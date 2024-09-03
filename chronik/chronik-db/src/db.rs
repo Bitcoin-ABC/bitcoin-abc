@@ -48,6 +48,10 @@ pub const CF_LOOKUP_TX_BY_HASH: &str = "lookup_tx_by_hash";
 pub const CF_META: &str = "meta";
 /// Column family to store plugin group UTXOs.
 pub const CF_PLUGIN_GROUP_UTXOS: &str = "plugin_utxos";
+/// Column family to store tx history by plugin groups.
+pub const CF_PLUGIN_HISTORY: &str = "plugin_history";
+/// Column family to store number of txs by plugin groups.
+pub const CF_PLUGIN_HISTORY_NUM_TXS: &str = "plugin_history_num_txs";
 /// Column family to store plugin metadata.
 pub const CF_PLUGIN_META: &str = "plugin_meta";
 /// Column family to store plugin outputs.

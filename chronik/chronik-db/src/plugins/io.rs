@@ -21,7 +21,8 @@ use crate::{
     db::{Db, CF, CF_PLUGIN_META, CF_PLUGIN_OUTPUTS},
     index_tx::IndexTx,
     io::{
-        token::ProcessedTokenTxBatch, BlockHeight, GroupUtxoMemData,
+        token::ProcessedTokenTxBatch, BlockHeight, GroupHistoryMemData,
+        GroupHistoryReader, GroupHistoryWriter, GroupUtxoMemData,
         GroupUtxoReader, GroupUtxoWriter, TxNum,
     },
     plugins::{PluginDbError::*, PluginsGroup},
@@ -32,6 +33,10 @@ use crate::{
 pub type PluginsUtxoWriter<'a> = GroupUtxoWriter<'a, PluginsGroup>;
 /// Read UTXOs of plugins in the DB
 pub type PluginsUtxoReader<'a> = GroupUtxoReader<'a, PluginsGroup>;
+/// Index the tx history of plugins in the DB
+pub type PluginsHistoryWriter<'a> = GroupHistoryWriter<'a, PluginsGroup>;
+/// Read tx history of plugins in the DB
+pub type PluginsHistoryReader<'a> = GroupHistoryReader<'a, PluginsGroup>;
 
 struct PluginsCol<'a> {
     db: &'a Db,
@@ -259,6 +264,15 @@ impl<'a> PluginsWriter<'a> {
             &mut GroupUtxoMemData::default(),
         )?;
 
+        let group_history =
+            PluginsHistoryWriter::new(self.col.db, PluginsGroup)?;
+        group_history.insert(
+            batch,
+            txs,
+            &plugin_outputs,
+            &mut GroupHistoryMemData::default(),
+        )?;
+
         Ok(plugin_outputs)
     }
 
@@ -320,6 +334,15 @@ impl<'a> PluginsWriter<'a> {
             &mut GroupUtxoMemData::default(),
         )?;
 
+        let group_history =
+            PluginsHistoryWriter::new(self.col.db, PluginsGroup)?;
+        group_history.delete(
+            batch,
+            txs,
+            &plugin_outputs,
+            &mut GroupHistoryMemData::default(),
+        )?;
+
         Ok(())
     }
 
@@ -333,6 +356,7 @@ impl<'a> PluginsWriter<'a> {
             rocksdb::Options::default(),
         ));
         PluginsUtxoWriter::add_cfs(columns);
+        PluginsHistoryWriter::add_cfs(columns);
     }
 }
 

@@ -119,6 +119,8 @@ class MyPluginPlugin(Plugin):
         chronik_sub_plugin(ws1, node, "my_plugin", b"a")
         chronik_sub_plugin(ws2, node, "my_plugin", b"b")
 
+        plugin = chronik.plugin("my_plugin")
+
         coinvalue = 5000000000
         tx1 = CTransaction()
         tx1.vin = [CTxIn(COutPoint(int(cointx, 16), 0), SCRIPTSIG_OP_TRUE)]
@@ -146,11 +148,18 @@ class MyPluginPlugin(Plugin):
             [output.plugins for output in proto_tx1.outputs],
             tx1_plugin_outputs,
         )
-        proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
+        proto_utxos1 = plugin.utxos(b"a").ok().utxos
         assert_equal(
             [utxo.plugins for utxo in proto_utxos1],
             tx1_plugin_outputs[1:],
         )
+
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), [proto_tx1])
+        assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), [])
+        assert_equal(list(plugin.history(b"a").ok().txs), [proto_tx1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.history(b"b").ok().txs), [])
 
         tx2 = CTransaction()
         tx2.vin = [CTxIn(COutPoint(tx1.sha256, 3), SCRIPTSIG_OP_TRUE)]
@@ -193,6 +202,15 @@ class MyPluginPlugin(Plugin):
             tx2_plugin_outputs[1:],
         )
 
+        proto_tx1 = chronik.tx(tx1.hash).ok()
+        txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), txs)
+        assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), [])
+        assert_equal(list(plugin.history(b"a").ok().txs), txs[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx2])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.history(b"b").ok().txs), [proto_tx2])
+
         # Mine tx1 and tx2
         block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
@@ -228,6 +246,14 @@ class MyPluginPlugin(Plugin):
             [utxo.plugins for utxo in proto_utxos2],
             tx2_plugin_outputs[1:],
         )
+
+        txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), txs)
+        assert_equal(list(plugin.history(b"a").ok().txs), txs[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
+        assert_equal(list(plugin.history(b"b").ok().txs), [proto_tx2])
 
         tx3 = CTransaction()
         tx3.vin = [
@@ -272,6 +298,12 @@ class MyPluginPlugin(Plugin):
             tx3_plugin_outputs[1:],
         )
 
+        proto_tx2 = chronik.tx(tx2.hash).ok()
+        txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx3])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
+        assert_equal(list(plugin.history(b"b").ok().txs), txs[::-1])
+
         # Mine tx3
         block2 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
@@ -291,6 +323,12 @@ class MyPluginPlugin(Plugin):
             [utxo.plugins for utxo in proto_utxos3],
             tx3_plugin_outputs[1:],
         )
+
+        proto_tx3 = chronik.tx(tx3.hash).ok()
+        txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), txs)
+        assert_equal(list(plugin.history(b"b").ok().txs), txs[::-1])
 
         # Disconnect block2, inputs + outputs still work
         node.invalidateblock(block2)

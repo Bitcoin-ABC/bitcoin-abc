@@ -16,12 +16,14 @@ use thiserror::Error;
 use crate::{
     db::Db,
     io::{TxNum, TxReader},
-    mem::{MempoolGroupUtxos, MempoolTx},
+    mem::{MempoolGroupHistory, MempoolGroupUtxos, MempoolTx},
     plugins::{MempoolPluginsError::*, PluginsGroup, PluginsReader},
 };
 
 /// Index the mempool UTXOs of plugin groups
 pub type MempoolPluginUtxos = MempoolGroupUtxos<PluginsGroup>;
+/// Index the mempool history of plugin groups
+pub type MempoolPluginHistory = MempoolGroupHistory<PluginsGroup>;
 
 /// Plugin data of the mempool
 #[derive(Debug)]
@@ -29,6 +31,7 @@ pub struct MempoolPlugins {
     plugin_outputs: BTreeMap<OutPoint, PluginOutput>,
     spent_outputs: BTreeMap<TxId, BTreeMap<OutPoint, PluginOutput>>,
     group_utxos: MempoolPluginUtxos,
+    group_history: MempoolPluginHistory,
 }
 
 /// Error indicating something went wrong with [`MempoolPlugins`].
@@ -49,6 +52,7 @@ impl MempoolPlugins {
             plugin_outputs: BTreeMap::new(),
             spent_outputs: BTreeMap::new(),
             group_utxos: MempoolPluginUtxos::new(PluginsGroup),
+            group_history: MempoolPluginHistory::new(PluginsGroup),
         }
     }
 
@@ -95,6 +99,7 @@ impl MempoolPlugins {
 
         self.group_utxos
             .insert(tx, &is_mempool_tx, &plugin_outputs)?;
+        self.group_history.insert(tx, &plugin_outputs);
 
         // Save plugin outputs spent by inputs
         let spent_outputs = tx
@@ -123,6 +128,7 @@ impl MempoolPlugins {
 
         self.group_utxos
             .remove(tx, &is_mempool_tx, &plugin_outputs)?;
+        self.group_history.remove(tx, &plugin_outputs);
 
         Ok(plugin_outputs)
     }
@@ -132,6 +138,7 @@ impl MempoolPlugins {
         let plugin_outputs = self.remove_tx(&tx.tx);
 
         self.group_utxos.remove_mined(tx, &plugin_outputs);
+        self.group_history.remove(tx, &plugin_outputs);
 
         Ok(())
     }
@@ -216,6 +223,11 @@ impl MempoolPlugins {
     /// Mempool UTXOs grouped by plugin groups
     pub fn group_utxos(&self) -> &MempoolPluginUtxos {
         &self.group_utxos
+    }
+
+    /// Mempool history grouped by plugin groups
+    pub fn group_history(&self) -> &MempoolPluginHistory {
+        &self.group_history
     }
 }
 

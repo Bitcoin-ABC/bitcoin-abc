@@ -157,6 +157,26 @@ class ChronikPluginClient:
             pb.PluginGroups,
         )
 
+    def confirmed_txs(self, group: bytes, page=None, page_size=None):
+        query = _page_query_params(page, page_size)
+        return self.client._request_get(
+            f"/plugin/{self.plugin_name}/{group.hex()}/confirmed-txs{query}",
+            pb.TxHistoryPage,
+        )
+
+    def history(self, group: bytes, page=None, page_size=None):
+        query = _page_query_params(page, page_size)
+        return self.client._request_get(
+            f"/plugin/{self.plugin_name}/{group.hex()}/history{query}",
+            pb.TxHistoryPage,
+        )
+
+    def unconfirmed_txs(self, group: bytes):
+        return self.client._request_get(
+            f"/plugin/{self.plugin_name}/{group.hex()}/unconfirmed-txs",
+            pb.TxHistoryPage,
+        )
+
 
 class ChronikWs:
     def __init__(self, client: "ChronikClient", **kwargs) -> None:

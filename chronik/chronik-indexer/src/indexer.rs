@@ -32,7 +32,7 @@ use chronik_db::{
         TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
-    plugins::{PluginMeta, PluginsReader, PluginsWriter},
+    plugins::{PluginMeta, PluginsGroup, PluginsReader, PluginsWriter},
 };
 use chronik_plugin::{
     context::PluginContext, data::PluginNameMap, plugin::Plugin,
@@ -896,6 +896,23 @@ impl ChronikIndexer {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
+        }
+    }
+
+    /// Return [`QueryGroupHistory`] to query plugin group history
+    pub fn plugin_history<'a>(
+        &'a self,
+        node: &'a Node,
+    ) -> QueryGroupHistory<'a, PluginsGroup> {
+        QueryGroupHistory {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
+            mempool_history: self.mempool.plugins().group_history(),
+            group: PluginsGroup,
+            node,
             is_token_index_enabled: self.is_token_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         }

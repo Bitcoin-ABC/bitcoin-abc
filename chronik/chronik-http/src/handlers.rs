@@ -4,7 +4,9 @@ use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use abc_rust_error::{Report, Result};
 use bitcoinsuite_slp::token_id::TokenId;
+use chronik_db::plugins::PluginMember;
 use chronik_indexer::indexer::{ChronikIndexer, Node};
+use chronik_plugin::data::{PluginIdx, PluginNameMap};
 use chronik_proto::proto;
 use hyper::Uri;
 use thiserror::Error;
@@ -31,6 +33,10 @@ pub enum ChronikHandlerError {
         /// Human-readable error message.
         msg: String,
     },
+
+    /// Plugin with the given name not loaded.
+    #[error("404: Plugin {0:?} not loaded")]
+    PluginNotLoaded(String),
 }
 
 use self::ChronikHandlerError::*;
@@ -50,6 +56,15 @@ where
         param_value: param.to_string(),
         msg: err.to_string(),
     })?))
+}
+
+fn get_plugin_idx(
+    plugin_name: &str,
+    plugin_name_map: &PluginNameMap,
+) -> Result<PluginIdx> {
+    Ok(plugin_name_map
+        .idx_by_name(plugin_name)
+        .ok_or_else(|| PluginNotLoaded(plugin_name.to_string()))?)
 }
 
 /// Fallback route that returns a 404 response
@@ -255,6 +270,76 @@ pub async fn handle_plugin_utxos(
     let plugin = indexer.plugins();
     let utxos = plugin.utxos(plugin_name, &group)?;
     Ok(proto::Utxos { utxos })
+}
+
+/// Return a page of the confirmed txs of the given group of the given plugin.
+pub async fn handle_plugin_confirmed_txs(
+    plugin_name: &str,
+    group_hex: &str,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::TxHistoryPage> {
+    let group = parse_hex(group_hex)?;
+    let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
+    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let plugin_history = indexer.plugin_history(node);
+    let plugin_idx = indexer
+        .plugin_name_map()
+        .idx_by_name(plugin_name)
+        .ok_or_else(|| PluginNotLoaded(plugin_name.to_string()))?;
+    let member = PluginMember {
+        plugin_idx,
+        group: &group,
+    };
+    plugin_history.confirmed_txs(
+        member.ser(),
+        page_num as usize,
+        page_size as usize,
+    )
+}
+
+/// Return all unconfirmed txs of the given group of the given plugin.
+pub async fn handle_plugin_unconfirmed_txs(
+    plugin_name: &str,
+    group_hex: &str,
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::TxHistoryPage> {
+    let group = parse_hex(group_hex)?;
+    let plugin_history = indexer.plugin_history(node);
+    let plugin_idx = get_plugin_idx(plugin_name, indexer.plugin_name_map())?;
+    let member = PluginMember {
+        plugin_idx,
+        group: &group,
+    };
+    plugin_history.unconfirmed_txs(member.ser())
+}
+
+/// Return a page of the tx history of the given group of the given plugin, in
+/// reverse chronological order, i.e. the latest transaction first and then
+/// going back in time.
+pub async fn handle_plugin_history(
+    plugin_name: &str,
+    group_hex: &str,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::TxHistoryPage> {
+    let group = parse_hex(group_hex)?;
+    let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
+    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let plugin_history = indexer.plugin_history(node);
+    let plugin_idx = get_plugin_idx(plugin_name, indexer.plugin_name_map())?;
+    let member = PluginMember {
+        plugin_idx,
+        group: &group,
+    };
+    plugin_history.rev_history(
+        member.ser(),
+        page_num as usize,
+        page_size as usize,
+    )
 }
 
 /// Return the groups (with unspent members) of the given plugin, with an
