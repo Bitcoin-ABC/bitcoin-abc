@@ -101,6 +101,11 @@ function Mining(props) {
                             MineMine
                         </ExternalLink>
                     </li>
+                    <li>
+                        <ExternalLink href="https://www.mining-dutch.nl/pools/ecash.php?page=dashboard">
+                            Mining Dutch
+                        </ExternalLink>
+                    </li>
                 </ul>
                 <h4>Using a mining pool</h4>
                 <p>
