@@ -291,6 +291,7 @@ const SendXec = () => {
             setFormData({
                 multiAddressInput: location.state.airdropRecipients,
                 airdropTokenId: location.state.airdropTokenId,
+                cashtabMsg: '',
             });
 
             // validate the airdrop outputs from the calculator
