@@ -66,6 +66,28 @@ class DumptxoutsetTest(BitcoinTestFramework):
             "bogus",
         )
 
+        self.log.info(
+            "Test that dumptxoutset failure does not leave the network activity suspended"
+        )
+        blockchaininfo_before_rollback = node.getblockchaininfo()
+        blocks_path = Path(node.datadir) / self.chain / "blocks"
+        rev_file = blocks_path / "rev00000.dat"
+        bogus_file = blocks_path / "bogus.dat"
+        rev_file.rename(bogus_file)
+        assert_raises_rpc_error(
+            -1,
+            "Could not roll back to requested height.",
+            node.dumptxoutset,
+            "utxos.dat",
+            rollback=99,
+        )
+        assert_equal(node.getnetworkinfo()["networkactive"], True)
+        # Check that the tip ("blocks", "bestblockhash"...) is still the same
+        assert_equal(node.getblockchaininfo(), blockchaininfo_before_rollback)
+
+        # Cleanup
+        bogus_file.rename(rev_file)
+
 
 if __name__ == "__main__":
     DumptxoutsetTest().main()
