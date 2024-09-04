@@ -171,97 +171,101 @@ export const startExpressServer = (
         },
     );
 
-    app.get('/claim/:address', async function (req: Request, res: Response) {
-        // Get the requested address
-        const address = req.params.address;
+    app.get(
+        '/claim/:address',
+        limiter,
+        async function (req: Request, res: Response) {
+            // Get the requested address
+            const address = req.params.address;
 
-        logIpInfo(req);
+            logIpInfo(req);
 
-        if (!cashaddr.isValidCashAddress(address, 'ecash')) {
-            return res.status(500).json({
+            if (!cashaddr.isValidCashAddress(address, 'ecash')) {
+                return res.status(500).json({
+                    address,
+                    error: `Invalid eCash address`,
+                });
+            }
+
+            // Get the timestamp of the request in seconds
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+
+            // Get the timestamp after which txs received at this address
+            // are potentially blocking token reward eligibility
+            const timestamp = timeOfRequest - config.eligibilityResetSeconds;
+            // Get potentially eligible tx history
+            let historyToCheck;
+            try {
+                historyToCheck = await getHistoryAfterTimestamp(
+                    chronik,
+                    address,
+                    timestamp,
+                );
+            } catch (err: unknown) {
+                console.log(`Error fetching ${req.url}`, err);
+                // err is likely ChronikError, i.e. {msg}
+                return res.status(500).json({
+                    address,
+                    error: `chronik error building token reward`,
+                });
+            }
+
+            // Determine if the address is eligible
+            const isAddressEligible = isAddressEligibleForTokenReward(
                 address,
-                error: `Invalid eCash address`,
-            });
-        }
-
-        // Get the timestamp of the request in seconds
-        const timeOfRequest = Math.ceil(Date.now() / 1000);
-
-        // Get the timestamp after which txs received at this address
-        // are potentially blocking token reward eligibility
-        const timestamp = timeOfRequest - config.eligibilityResetSeconds;
-        // Get potentially eligible tx history
-        let historyToCheck;
-        try {
-            historyToCheck = await getHistoryAfterTimestamp(
-                chronik,
-                address,
-                timestamp,
-            );
-        } catch (err: unknown) {
-            console.log(`Error fetching ${req.url}`, err);
-            // err is likely ChronikError, i.e. {msg}
-            return res.status(500).json({
-                address,
-                error: `chronik error building token reward`,
-            });
-        }
-
-        // Determine if the address is eligible
-        const isAddressEligible = isAddressEligibleForTokenReward(
-            address,
-            config.rewardsTokenId,
-            SERVER_WALLET_OUTPUTSCRIPT,
-            historyToCheck,
-        );
-
-        if (typeof isAddressEligible === 'number') {
-            // Return address ineligible response
-            return res.status(500).json({
-                address,
-                error: `Address is not yet eligible for token rewards`,
-                becomesEligible:
-                    isAddressEligible + config.eligibilityResetSeconds,
-            });
-        }
-
-        // Build and broadcast reward tx
-        let rewardSuccess;
-        try {
-            rewardSuccess = await sendReward(
-                chronik,
-                ecc,
-                secrets.prod.wallet,
                 config.rewardsTokenId,
-                config.rewardAmountTokenSats,
-                address,
+                SERVER_WALLET_OUTPUTSCRIPT,
+                historyToCheck,
             );
-        } catch (err) {
-            // Log error for server review
-            console.log(`Error broadcasting rewards tx`);
-            console.log(err);
-            // Return server error response
-            return res.status(500).json({
-                error: `Error sending rewards tx, please contact admin`,
-                msg: `${err}`,
-            });
-        }
 
-        // Get txid before sending response
-        const { txid } = rewardSuccess.response;
-        interface SendRewardResponse {
-            address: string;
-            txid?: string;
-            msg: string;
-        }
-        const response: SendRewardResponse = {
-            address,
-            txid,
-            msg: 'Success',
-        };
+            if (typeof isAddressEligible === 'number') {
+                // Return address ineligible response
+                return res.status(500).json({
+                    address,
+                    error: `Address is not yet eligible for token rewards`,
+                    becomesEligible:
+                        isAddressEligible + config.eligibilityResetSeconds,
+                });
+            }
 
-        return res.status(200).json(response);
-    });
+            // Build and broadcast reward tx
+            let rewardSuccess;
+            try {
+                rewardSuccess = await sendReward(
+                    chronik,
+                    ecc,
+                    secrets.prod.wallet,
+                    config.rewardsTokenId,
+                    config.rewardAmountTokenSats,
+                    address,
+                );
+            } catch (err) {
+                // Log error for server review
+                console.log(`Error broadcasting rewards tx`);
+                console.log(err);
+                // Return server error response
+                return res.status(500).json({
+                    error: `Error sending rewards tx, please contact admin`,
+                    msg: `${err}`,
+                });
+            }
+
+            // Get txid before sending response
+            const { txid } = rewardSuccess.response;
+            interface SendRewardResponse {
+                address: string;
+                txid?: string;
+                msg: string;
+            }
+            const response: SendRewardResponse = {
+                address,
+                txid,
+                msg: 'Success',
+            };
+
+            return res.status(200).json(response);
+        },
+    );
 
     // Endpoint for Cashtab users to claim an XEC airdrop on creation of a new wallet
     app.get(
