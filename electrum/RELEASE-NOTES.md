@@ -1,5 +1,17 @@
 # Release notes
 
+## Release 5.3.0
+
+- Fix the fiat price cache file not being created when a fiat currency
+  is selected for the first time (D16663).
+- Use libsecp256k1 for elliptic curve point addition (D16684).
+- Make libsecp256k1 a mandatory dependency, remove the slow pure-python
+  fallback code (D16689, D16690, D16705).
+- Update protobuf files to make it possible to run Electrum ABC from
+  sources with a newer protobuf version than the one specified in the
+  requirements (D16702).
+
+
 ## Release 5.2.14
 
 - Fix a potential OOM crash when opening a BIP72 URI pointing to a very
