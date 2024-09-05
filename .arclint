@@ -239,7 +239,7 @@
                 "(\\.md$)"
             ],
             "exclude": [
-                "(^modules/docs/chronik.e.cash/)"
+                "(^web/chronik.e.cash/)"
             ]
         },
         "lint-python-mypy": {
