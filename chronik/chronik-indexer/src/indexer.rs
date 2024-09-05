@@ -890,8 +890,7 @@ impl ChronikIndexer {
         }
     }
 
-    /// Return [`QueryGroupHistory`] for LOKAD IDs to query the tx history of
-    /// LOKAD IDs.
+    /// Return [`QueryPlugins`] to query plugin data
     pub fn plugins(&self) -> QueryPlugins<'_> {
         QueryPlugins {
             db: &self.db,

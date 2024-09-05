@@ -316,7 +316,10 @@ class MyPluginPlugin(Plugin):
         # Topological order
         assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
         assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        # Reorg first clears the mempool and then adds back in topological order
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))
         assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
 
         proto_tx1 = chronik.tx(tx1.hash).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
