@@ -11,10 +11,24 @@ set -e
 
 pushd "$contrib"/..
 
+info "Installing locale files"
+(
+    cd "${ELECTRUM_ROOT}"
+    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$CONTRIB"
+    if ! which msgfmt > /dev/null 2>&1; then
+        fail "Please install gettext"
+    fi
+    for i in ./locale/*; do
+        dir="${ELECTRUM_ROOT}/electrumabc/$i/LC_MESSAGES"
+        mkdir -p $dir
+        msgfmt --output-file="$dir/electron-cash.mo" "$i/electron-cash.po" || true
+    done
+    popd_pkg
+)
+
 info "Making SrcDist for ${PACKAGE}..."
 
-"$contrib"/make_locale && \
-    "$contrib"/make_packages && \
+"$contrib"/make_packages && \
     python3 setup.py sdist --enable-secp --enable-zbar --format=zip,gztar || fail "Failed."
 
 info "Linux source distribution (including compiled libseck256k1 & libzbar) has been placed in dist/"

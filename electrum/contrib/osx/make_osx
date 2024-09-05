@@ -192,8 +192,20 @@ pyinstaller --version
 
 rm -rf ./dist
 
-info "Making locale..."
-python3 ./contrib/make_locale || fail "Failed to make locale..."
+info "Installing locale files"
+(
+    cd "${ELECTRUM_ROOT}"
+    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$CONTRIB"
+    if ! which msgfmt > /dev/null 2>&1; then
+        fail "Please install gettext"
+    fi
+    for i in ./locale/*; do
+        dir="${ELECTRUM_ROOT}/electrumabc/$i/LC_MESSAGES"
+        mkdir -p $dir
+        msgfmt --output-file="$dir/electron-cash.mo" "$i/electron-cash.po" || true
+    done
+    popd_pkg
+)
 
 info "Downloading libusb..."
 curl -L https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/libusb-1.0.21.el_capitan.bottle.tar.gz | \
