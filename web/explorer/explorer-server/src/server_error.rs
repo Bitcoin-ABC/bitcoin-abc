@@ -12,8 +12,10 @@ pub struct ServerError {
 
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
+        let network_selector = false;
         let error_template = ErrorTemplate {
             message: self.message,
+            network_selector,
         };
         let error_page = error_template.render().unwrap();
 

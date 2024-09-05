@@ -45,6 +45,7 @@ pub struct Server {
     satoshi_addr_prefix: &'static str,
     tokens_addr_prefix: &'static str,
     token_icon_url: &'static str,
+    network_selector: bool,
 }
 
 impl Server {
@@ -52,6 +53,7 @@ impl Server {
         chronik: ChronikClient,
         base_dir: PathBuf,
         chain: Chain,
+        network_selector: bool,
     ) -> Result<Self> {
         Ok(Server {
             chronik,
@@ -63,6 +65,7 @@ impl Server {
             },
             tokens_addr_prefix: "etoken",
             token_icon_url: "https://icons.etokens.cash",
+            network_selector,
         })
     }
 
@@ -97,6 +100,7 @@ impl Server {
 
         let blocks_template = BlocksTemplate {
             last_block_height: blockchain_info.tip_height as u32,
+            network_selector: self.network_selector,
         };
 
         Ok(blocks_template.render().unwrap())
@@ -261,6 +265,7 @@ impl Server {
             difficulty,
             coinbase_data,
             best_height,
+            network_selector: self.network_selector,
         };
 
         Ok(block_template.render().unwrap())
@@ -330,6 +335,7 @@ impl Server {
             confirmations,
             timestamp,
             token_icon_url: self.token_icon_url,
+            network_selector: self.network_selector,
         };
 
         Ok(transaction_template.render().unwrap())
@@ -548,6 +554,7 @@ impl Server {
             encoded_tokens,
             encoded_balances,
             token_icon_url: &self.token_icon_url,
+            network_selector: self.network_selector,
         };
 
         Ok(address_template.render().unwrap())

@@ -72,9 +72,12 @@
     <body class="{% block body_classes %}{% endblock %}">
         <div id="main">
             <div class="header-ctn">
-                <a class="header-logo" href="/">
-                    <img class="logo" src="/assets/logo.png" />
-                </a>
+                <div class="logo-selector-ctn">
+                    <a class="header-logo" href="/">
+                        <img class="logo" src="/assets/logo.png" />
+                    </a>
+                    {% if network_selector %}<div id="network-select-container"></div>{% endif %}
+                </div>
                 <div class="search-ctn">
                     <a href="https://e.cash" target="_blank">Learn more about e.Cash</a>
                     <div id="search-box" class="ui transparent icon input">
@@ -97,4 +100,52 @@
             Bitcoin ABC
         </div>
     </body>
+    <script>
+        function toggleOptions() {
+            const optionCtn = document.querySelector('.option');
+            const arrow = document.querySelector('.down-arrow');
+
+            if (optionCtn.style.display === 'block') {
+                optionCtn.style.display = 'none';
+                arrow.classList.remove('rotate-arrow');
+            } else {
+                optionCtn.style.display = 'block';
+                arrow.classList.add('rotate-arrow');
+            }
+        }
+
+        function renderNetworkSelector() {
+            const networkSelectContainer = document.getElementById('network-select-container');
+            const currentHostName = window.location.hostname;
+
+            let currentNetwork = '';
+            let switchToText = '';
+            let switchToLink = '';
+
+            if (currentHostName === 'explorer.e.cash') {
+                currentNetwork = 'Mainnet';
+                switchToText = 'Testnet';
+                switchToLink = 'https://texplorer.fabien.cash';
+            } else if (currentHostName === 'texplorer.fabien.cash') {
+                currentNetwork = 'Testnet';
+                switchToText = 'Mainnet';
+                switchToLink = 'https://explorer.e.cash';
+            } else {
+                // Don't show the selector if the host is none of the expected ones
+                return;
+            }
+
+            networkSelectContainer.innerHTML = `
+            <div class="network-select-ctn" onclick="toggleOptions()">
+                <div class="selection">
+                    ${currentNetwork}
+                    <div class="down-arrow"></div>
+                </div>
+                <a href="${switchToLink}" class="option">${switchToText}</a>
+            </div>
+        `;
+        }
+
+        window.onload = renderNetworkSelector;
+    </script>
 </html>

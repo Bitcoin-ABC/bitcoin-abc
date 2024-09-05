@@ -9,6 +9,7 @@ pub struct Config {
     pub chronik_api_url: String,
     pub base_dir: Option<PathBuf>,
     pub chain: Option<String>,
+    pub network_selector: Option<bool>,
 }
 
 pub fn load_config(config_string: &str) -> Result<Config> {

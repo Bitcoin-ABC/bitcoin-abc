@@ -44,6 +44,64 @@ a:hover {
     background-color: var(--primary-background);
 }
 
+.logo-selector-ctn {
+    display: flex;
+    align-items: center;
+}
+
+.network-select-ctn {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid #fff;
+    padding-left: 20px;
+    user-select: none;
+}
+
+.down-arrow {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #fff;
+    margin-left: 8px;
+    transform: rotate(0deg);
+    transition: all ease-in-out 200ms;
+}
+
+.selection {
+    display: flex;
+    align-items: center;
+    transition: all ease-in-out 200ms;
+}
+
+.selection:hover .down-arrow {
+    border-top-color: var(--accent);
+}
+
+.selection:hover,
+.option:hover {
+    color: var(--accent);
+}
+
+.rotate-arrow {
+    transform: rotate(180deg);
+    transition: all ease-in-out 200ms;
+}
+
+.option {
+    position: absolute;
+    bottom: -48px;
+    left: 0px;
+    background-color: var(--primary-background);
+    padding: 6px 20px;
+    cursor: pointer;
+    display: none;
+    z-index: 999;
+    color: #fff;
+    border-top: 1px solid #646464;
+    transition: all ease-in-out 200ms;
+}
+
 .header-logo {
     margin: 0;
     padding: 0;

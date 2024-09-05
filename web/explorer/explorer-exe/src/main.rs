@@ -20,7 +20,10 @@ async fn main() -> Result<()> {
         .chain
         .unwrap_or("mainnet".to_string())
         .parse::<Chain>()?;
-    let server = Arc::new(Server::setup(chronik, base_dir, chain).await?);
+    let network_selector = config.network_selector.unwrap_or(false);
+    let server = Arc::new(
+        Server::setup(chronik, base_dir, chain, network_selector).await?,
+    );
     let app = server.router().layer(Extension(server));
 
     axum::Server::bind(&config.host)
