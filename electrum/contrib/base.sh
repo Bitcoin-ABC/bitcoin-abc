@@ -250,7 +250,12 @@ export ELECTRUM_LOCALE_REPO="https://github.com/Electron-Cash/electrum-locale"
 export ELECTRUM_LOCALE_COMMIT="848004f800821a3bceaa23d00eeccf78ddb94eb5"
 
 # Newer git errors-out about permissions here sometimes, so do this
-git config --global --add safe.directory $(readlink -f "$ELECTRUM_ROOT")
+if [[ $OSTYPE == "darwin"* ]]; then
+    CANON_ROOT=$(greadlink -f "$ELECTRUM_ROOT")
+else
+    CANON_ROOT=$(readlink -f "$ELECTRUM_ROOT")
+fi
+git config --global --add safe.directory ${CANON_ROOT}
 
 # Build a command line argument for docker, enabling interactive mode if stdin
 # is a tty and enabling tty in docker if stdout is a tty.
