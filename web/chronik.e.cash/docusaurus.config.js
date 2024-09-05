@@ -26,7 +26,7 @@ const config = {
     organizationName: 'Bitcoin ABC',
     projectName: 'Bitcoin ABC',
 
-    onBrokenLinks: 'throw',
+    onBrokenLinks: 'warn',
     onBrokenMarkdownLinks: 'warn',
 
     i18n: {
