@@ -102,7 +102,7 @@ def sign(privkey, message_hash):
 
     sig = create_string_buffer(64)
     res = seclib.secp256k1_schnorr_sign(
-        secp256k1.secp256k1.ctx, sig, message_hash, privkey, None, None
+        seclib.ctx, sig, message_hash, privkey, None, None
     )
     if not res:
         # Looking at the libsecp256k1 code, we can see that this will
@@ -134,13 +134,13 @@ def verify(pubkey, signature, message_hash):
     if not isinstance(message_hash, bytes) or len(message_hash) != 32:
         raise ValueError("message_hash must be a bytes object of length 32")
     pubkey_parsed = create_string_buffer(64)
-    res = secp256k1.secp256k1.secp256k1_ec_pubkey_parse(
-        secp256k1.secp256k1.ctx, pubkey_parsed, pubkey, c_size_t(len(pubkey))
+    res = seclib.secp256k1_ec_pubkey_parse(
+        seclib.ctx, pubkey_parsed, pubkey, c_size_t(len(pubkey))
     )
     if not res:
         raise ValueError("pubkey could not be parsed by the secp256k1 library")
     res = seclib.secp256k1_schnorr_verify(
-        secp256k1.secp256k1.ctx, signature, message_hash, pubkey_parsed
+        seclib.ctx, signature, message_hash, pubkey_parsed
     )
     return bool(res)
 
