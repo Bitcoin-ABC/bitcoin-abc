@@ -94,6 +94,11 @@ export const startExpressServer = (
     app.use(express.static(config.imageDir));
     console.log(`Serving static assets from ${config.imageDir}`);
 
+    // Use the x-forwarded-for IP address
+    // In this way, we get the client address and not the prod server address
+    // when the app is deployed with docker
+    app.set('trust proxy', 1);
+
     // API endpoints
     app.get('/status', async function (req: Request, res: Response) {
         logIpInfo(req);
