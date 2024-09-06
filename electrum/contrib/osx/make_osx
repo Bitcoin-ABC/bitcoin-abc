@@ -56,7 +56,6 @@ GIT_COMMIT_HASH=$(git rev-parse HEAD)
 
 # Paramterize
 BUILDDIR=/tmp/electrumabc-build
-LIBSECP_COMMIT="69ccf0d2f758b1a4df9cde8222459381e08fc1dc"
 # Compute major.minor Python version from above using Bash array magic
 MAJ_MIN=(${PYTHON_VERSION//./ })
 MAJ_MIN=${MAJ_MIN[0]}.${MAJ_MIN[1]}
