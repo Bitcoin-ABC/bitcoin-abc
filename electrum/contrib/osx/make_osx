@@ -146,11 +146,8 @@ mkdir -p "$BUILDDIR"
 
 info "Building PyInstaller."
 PYINSTALLER_REPO="https://github.com/pyinstaller/pyinstaller.git"
-PYINSTALLER_COMMIT="90256f93ed943daf6de53c7dd39710a415f705cb"
-# ^ tag "v6.4.0"
-# TODO test newer versions of pyinstaller for build-reproducibility.
-#      we are using this version for now due to change in code-signing behaviour
-#      (https://github.com/pyinstaller/pyinstaller/pull/5581)
+PYINSTALLER_COMMIT="085296f616a4b7eff4614710f9527b164c463c21"
+# ^ tag "v6.10.0"
 (
     if [ -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit/runw" || -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit-arm/runw" ]; then
         info "pyinstaller already built, skipping"
