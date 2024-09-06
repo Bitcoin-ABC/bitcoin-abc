@@ -681,6 +681,7 @@ add_library(server
 	noui.cpp
 	policy/block/minerfund.cpp
 	policy/block/preconsensus.cpp
+	policy/block/rtt.cpp
 	policy/block/stakingrewards.cpp
 	policy/fees.cpp
 	policy/packages.cpp
@@ -972,6 +973,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		net_permissions.cpp  # via net.cpp
 		policy/block/minerfund.cpp
 		policy/block/preconsensus.cpp
+		policy/block/rtt.cpp
 		policy/block/stakingrewards.cpp
 		protocol.cpp            # avalanche/processor.cpp uses NetMsgType
 		timedata.cpp            # via net.cpp
