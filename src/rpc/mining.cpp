@@ -8,6 +8,7 @@
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <common/system.h>
 #include <config.h>
 #include <consensus/activation.h>
@@ -22,6 +23,7 @@
 #include <net.h>
 #include <node/context.h>
 #include <node/miner.h>
+#include <policy/block/rtt.h>
 #include <policy/block/stakingrewards.h>
 #include <policy/policy.h>
 #include <pow/pow.h>
@@ -820,6 +822,31 @@ static RPCHelpMan getblocktemplate() {
                      "compressed target of next block"},
                     {RPCResult::Type::NUM, "height",
                      "The height of the next block"},
+                    {RPCResult::Type::OBJ,
+                     "rtt",
+                     "The real-time target parameters. Only present if "
+                     "-enablertt is set",
+                     {
+                         {RPCResult::Type::ARR,
+                          "prevheadertime",
+                          "The time the preview block headers were received, "
+                          "expressed in " +
+                              UNIX_EPOCH_TIME +
+                              ". Contains 4 values for headers at height N-2, "
+                              "N-5, N-11 and N-17.",
+                          {
+                              {RPCResult::Type::NUM_TIME, "prevheadertime",
+                               "The time the block header was received, "
+                               "expressed in " +
+                                   UNIX_EPOCH_TIME},
+                          }},
+                         {RPCResult::Type::STR, "prevbits",
+                          "The previous block compressed target"},
+                         {RPCResult::Type::NUM_TIME, "nodetime",
+                          "The node local time in " + UNIX_EPOCH_TIME},
+                         {RPCResult::Type::STR_HEX, "nexttarget",
+                          "The real-time target in compact format"},
+                     }},
                 }},
         },
         RPCExamples{HelpExampleCli("getblocktemplate", "") +
@@ -828,6 +855,7 @@ static RPCHelpMan getblocktemplate() {
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
+            ArgsManager &argsman = EnsureArgsman(node);
             LOCK(cs_main);
 
             const CChainParams &chainparams = config.GetChainParams();
@@ -1139,6 +1167,50 @@ static RPCHelpMan getblocktemplate() {
             result.pushKV("curtime", pblock->GetBlockTime());
             result.pushKV("bits", strprintf("%08x", pblock->nBits));
             result.pushKV("height", int64_t(pindexPrev->nHeight) + 1);
+
+            if (argsman.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT)) {
+                // Compute the target for RTT
+                uint32_t nextTarget = pblock->nBits;
+                if (!consensusParams.fPowAllowMinDifficultyBlocks ||
+                    (pblock->GetBlockTime() <=
+                     pindexPrev->GetBlockTime() +
+                         2 * consensusParams.nPowTargetSpacing)) {
+                    auto rttTarget = GetNextRTTWorkRequired(
+                        pindexPrev, adjustedTime, consensusParams);
+                    if (rttTarget &&
+                        arith_uint256().SetCompact(*rttTarget) < hashTarget) {
+                        nextTarget = *rttTarget;
+                    }
+                }
+
+                const CBlockIndex *previousIndex = pindexPrev;
+                std::vector<int64_t> prevHeaderReceivedTime(18, 0);
+                for (size_t i = 1; i < 18; i++) {
+                    if (!previousIndex) {
+                        break;
+                    }
+
+                    prevHeaderReceivedTime[i] =
+                        previousIndex->GetHeaderReceivedTime();
+                    previousIndex = previousIndex->pprev;
+                }
+
+                // Let the miner recompute RTT on their end if they want to do
+                // so
+                UniValue rtt(UniValue::VOBJ);
+
+                UniValue prevHeaderTimes(UniValue::VARR);
+                for (size_t i : {2, 5, 11, 17}) {
+                    prevHeaderTimes.push_back(prevHeaderReceivedTime[i]);
+                }
+
+                rtt.pushKV("prevheadertime", prevHeaderTimes);
+                rtt.pushKV("prevbits", strprintf("%08x", pindexPrev->nBits));
+                rtt.pushKV("nodetime", adjustedTime);
+                rtt.pushKV("nexttarget", strprintf("%08x", nextTarget));
+
+                result.pushKV("rtt", rtt);
+            }
 
             return result;
         },
