@@ -36,6 +36,7 @@
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
 #include <policy/block/preconsensus.h>
+#include <policy/block/rtt.h>
 #include <policy/block/stakingrewards.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -2959,6 +2960,25 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
                 consensusParams, *pindexNew, blockConnecting, blockReward));
 
             if (avalanche) {
+                // Only enable the RTT policy if the node already finalized a
+                // block. This is because it's very possible that new blocks
+                // will be parked after a node restart (but after IBD) if the
+                // node is behind by a few blocks. We want to make sure that the
+                // node will be able to switch back to the right tip in this
+                // case.
+                if (avalanche->hasFinalizedTip()) {
+                    // Special case for testnet, don't reject blocks mined with
+                    // the min difficulty
+                    if (!consensusParams.fPowAllowMinDifficultyBlocks ||
+                        (blockConnecting.GetBlockTime() <=
+                         pindexNew->pprev->GetBlockTime() +
+                             2 * consensusParams.nPowTargetSpacing)) {
+                        parkingPolicies.emplace_back(
+                            std::make_unique<RTTPolicy>(consensusParams,
+                                                        *pindexNew));
+                    }
+                }
+
                 parkingPolicies.emplace_back(
                     std::make_unique<StakingRewardsPolicy>(
                         *avalanche, consensusParams, *pindexNew,

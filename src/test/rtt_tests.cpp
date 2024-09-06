@@ -5,8 +5,14 @@
 #include <policy/block/rtt.h>
 
 #include <arith_uint256.h>
+#include <avalanche/processor.h>
+#include <blockindex.h>
 #include <chainparams.h>
+#include <common/args.h>
+#include <pow/pow.h>
+#include <random.h>
 #include <util/time.h>
+#include <validation.h>
 
 #include <test/util/setup_common.h>
 
@@ -268,6 +274,84 @@ BOOST_AUTO_TEST_CASE(get_next_rtt_work_required) {
         // The difficulty decreases, i.e. the target increaes
         BOOST_CHECK(target_lt(lastWork, *nextWork));
     }
+}
+
+BOOST_AUTO_TEST_CASE(rtt_policy) {
+    const Consensus::Params &consensusParams = Params().GetConsensus();
+
+    auto checkRTTPolicy = [&](const CBlockIndex &blockIndex, bool expected) {
+        BlockPolicyValidationState state;
+        BOOST_CHECK_EQUAL(RTTPolicy(consensusParams, blockIndex)(state),
+                          expected);
+        BOOST_CHECK_EQUAL(state.IsValid(), expected);
+        if (!expected) {
+            BOOST_CHECK_EQUAL(state.GetRejectReason(), "policy-bad-rtt");
+        }
+    };
+
+    int64_t now = GetTime();
+    SetMockTime(now);
+
+    arith_uint256 prevWork = UintToArith256(consensusParams.powLimit) >> 10;
+    std::vector<CBlockIndex> blocks(18);
+    CBlockIndex *lastBlock = &blocks[0];
+    for (auto &block : blocks) {
+        block.nTimeReceived = now - 18000;
+        lastBlock->pprev = &block;
+        lastBlock = &block;
+    }
+    blocks[1].nBits = prevWork.GetCompact();
+    BlockHash hash{ArithToUint256(prevWork)};
+    blocks[0].phashBlock = &hash;
+
+    gArgs.ForceSetArg("-enablertt", "1");
+
+    // Diff time is 200s, same hash as before won't cut it as RTT is increasing
+    // the difficulty.
+    blocks[0].nTimeReceived = now;
+    blocks[1].nTimeReceived = now;
+    blocks[2].nTimeReceived = now - 200;
+    checkRTTPolicy(blocks[0], false);
+
+    // Policy is disabled
+    gArgs.ForceSetArg("-enablertt", "0");
+    checkRTTPolicy(blocks[0], true);
+
+    gArgs.ForceSetArg("-enablertt", "1");
+    checkRTTPolicy(blocks[0], false);
+
+    // Prev block index is null, the policy doesn't apply
+    for (size_t i = 0; i < 17; i++) {
+        blocks[i].pprev = nullptr;
+        checkRTTPolicy(blocks[0], true);
+
+        blocks[i].pprev = &blocks[i + 1];
+        checkRTTPolicy(blocks[0], false);
+    }
+
+    // Hash is low enough
+    hash = BlockHash(
+        ArithToUint256(UintToArith256(consensusParams.powLimit) >> 20));
+    checkRTTPolicy(blocks[0], true);
+
+    hash = BlockHash{ArithToUint256(prevWork)};
+    checkRTTPolicy(blocks[0], false);
+
+    // Difftime is large enough, same hash as previous block is acceptable.
+    // Since blocks[2] difftime is 200s and the EDA crossing point happens after
+    // 459s with RTT_K = 6, moving time by >= 259s while keeping the same hash
+    // as the previous block should be accepted.
+    for (int64_t t : {259, 600, 1000, 3600, 24 * 60 * 60, 365 * 24 * 60 * 60}) {
+        blocks[0].nTimeReceived = now + t;
+        checkRTTPolicy(blocks[0], true);
+    }
+
+    for (int64_t t : {-1, 0, 1, 10, 100, 258}) {
+        blocks[0].nTimeReceived = now + t;
+        checkRTTPolicy(blocks[0], false);
+    }
+
+    gArgs.ClearForcedArg("-enablertt");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

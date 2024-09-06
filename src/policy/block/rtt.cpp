@@ -6,11 +6,49 @@
 
 #include <arith_uint256.h>
 #include <blockindex.h>
+#include <common/args.h>
 #include <consensus/params.h>
+#include <logging.h>
 #include <pow/pow.h>
+#include <timedata.h>
+
+#include <tinyformat.h>
 
 #include <algorithm>
 #include <cmath>
+
+bool RTTPolicy::operator()(BlockPolicyValidationState &state) {
+    if (!gArgs.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT)) {
+        return true;
+    }
+
+    if (!m_blockIndex.pprev) {
+        return true;
+    }
+
+    auto rttWork = GetNextRTTWorkRequired(m_blockIndex.pprev,
+                                          m_blockIndex.GetHeaderReceivedTime(),
+                                          m_consensusParams);
+    if (!rttWork.has_value()) {
+        return true;
+    }
+
+    if (!CheckProofOfWork(m_blockIndex.GetBlockHash(), *rttWork,
+                          m_consensusParams)) {
+        return state.Invalid(
+            BlockPolicyValidationResult::POLICY_VIOLATION, "policy-bad-rtt",
+            strprintf(
+                "Block %s at height %d violates the real time target %08x (%s "
+                "> %s, time diff %ds)\n",
+                m_blockIndex.GetBlockHash().ToString(), m_blockIndex.nHeight,
+                *rttWork, m_blockIndex.GetBlockHash().ToString(),
+                arith_uint256().SetCompact(*rttWork).ToString(),
+                m_blockIndex.GetHeaderReceivedTime() -
+                    m_blockIndex.pprev->GetHeaderReceivedTime()));
+    }
+
+    return true;
+}
 
 /**
  *   target(t) = target(prev_block) * RTT_CONSTANT_FACTOR * t^(RTT_K - 1)

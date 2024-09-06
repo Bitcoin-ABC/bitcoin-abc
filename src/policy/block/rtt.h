@@ -5,6 +5,8 @@
 #ifndef BITCOIN_POLICY_BLOCK_RTT_H
 #define BITCOIN_POLICY_BLOCK_RTT_H
 
+#include <policy/block/parkingpolicy.h>
+
 #include <cstdint>
 #include <optional>
 
@@ -13,6 +15,22 @@ class CBlockIndex;
 namespace Consensus {
 struct Params;
 }
+
+/** Default for -enablertt */
+static constexpr bool DEFAULT_ENABLE_RTT{false};
+
+class RTTPolicy : public ParkingPolicy {
+private:
+    const Consensus::Params &m_consensusParams;
+    const CBlockIndex &m_blockIndex;
+
+public:
+    RTTPolicy(const Consensus::Params &consensusParams,
+              const CBlockIndex &blockIndex)
+        : m_consensusParams(consensusParams), m_blockIndex(blockIndex) {}
+
+    bool operator()(BlockPolicyValidationState &state) override;
+};
 
 /**
  * Compute the real time block hash target given the previous block parameters.

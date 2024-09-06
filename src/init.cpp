@@ -465,6 +465,7 @@ void SetupServerArgs(NodeContext &node) {
         "-uiplatform",
         // TODO remove after the Nov. 2024 upgrade
         "-augustoactivationtime",
+        "-enablertt",
     };
 
     // Set all of the args and their help
