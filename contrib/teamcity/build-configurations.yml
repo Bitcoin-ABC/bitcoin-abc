@@ -919,6 +919,19 @@ builds:
     templates:
       - js-mocha
 
+  ecash-agora-tests:
+    runOnDiffRegex:
+      - modules/ecash-agora/
+      - modules/ecash-lib/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-agora
+      DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
+      DEPENDS_ECASH_LIB: "true"
+    templates:
+      - js-mocha
+
   ecash-agora-integration-tests:
     cmake_flags:
       - '-DBUILD_BITCOIN_CHRONIK=ON'
