@@ -186,26 +186,23 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
             coins_view_cache.HaveCoin(random_out_point);
         const bool exists_using_have_coin_in_cache =
             coins_view_cache.HaveCoinInCache(random_out_point);
-        Coin coin_using_get_coin;
-        const bool exists_using_get_coin =
-            coins_view_cache.GetCoin(random_out_point, coin_using_get_coin);
-        if (exists_using_get_coin) {
-            assert(coin_using_get_coin == coin_using_access_coin);
+        if (auto coin{coins_view_cache.GetCoin(random_out_point)}) {
+            assert(*coin == coin_using_access_coin);
+            assert(exists_using_access_coin &&
+                   exists_using_have_coin_in_cache && exists_using_have_coin);
+        } else {
+            assert(!exists_using_access_coin &&
+                   !exists_using_have_coin_in_cache && !exists_using_have_coin);
         }
-        assert((exists_using_access_coin && exists_using_have_coin_in_cache &&
-                exists_using_have_coin && exists_using_get_coin) ||
-               (!exists_using_access_coin && !exists_using_have_coin_in_cache &&
-                !exists_using_have_coin && !exists_using_get_coin));
         const bool exists_using_have_coin_in_backend =
             backend_coins_view.HaveCoin(random_out_point);
         if (exists_using_have_coin_in_backend) {
             assert(exists_using_have_coin);
         }
-        Coin coin_using_backend_get_coin;
-        if (backend_coins_view.GetCoin(random_out_point,
-                                       coin_using_backend_get_coin)) {
+        if (auto coin{backend_coins_view.GetCoin(random_out_point)}) {
             assert(exists_using_have_coin_in_backend);
-            assert(coin_using_get_coin == coin_using_backend_get_coin);
+            // Note we can't assert that `coin_using_get_coin == *coin` because
+            // the coin in the cache may have been modified but not yet flushed.
         } else {
             assert(!exists_using_have_coin_in_backend);
         }

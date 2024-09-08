@@ -329,10 +329,9 @@ namespace {
         void rpcUnsetTimerInterface(RPCTimerInterface *iface) override {
             RPCUnsetTimerInterface(iface);
         }
-        bool getUnspentOutput(const COutPoint &output, Coin &coin) override {
+        std::optional<Coin> getUnspentOutput(const COutPoint &output) override {
             LOCK(::cs_main);
-            return chainman().ActiveChainstate().CoinsTip().GetCoin(output,
-                                                                    coin);
+            return chainman().ActiveChainstate().CoinsTip().GetCoin(output);
         }
         WalletClient &walletClient() override {
             return *Assert(m_context->wallet_client);

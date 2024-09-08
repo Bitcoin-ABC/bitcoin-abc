@@ -44,18 +44,14 @@ class CCoinsViewTest : public CCoinsView {
 public:
     CCoinsViewTest(FastRandomContext &rng) : m_rng{rng} {}
 
-    [[nodiscard]] bool GetCoin(const COutPoint &outpoint,
-                               Coin &coin) const override {
-        std::map<COutPoint, Coin>::const_iterator it = map_.find(outpoint);
-        if (it == map_.end()) {
-            return false;
+    std::optional<Coin> GetCoin(const COutPoint &outpoint) const override {
+        if (auto it{map_.find(outpoint)}; it != map_.end()) {
+            if (!it->second.IsSpent() || m_rng.randbool()) {
+                // TODO spent coins shouldn't be returned
+                return it->second;
+            }
         }
-        coin = it->second;
-        if (coin.IsSpent() && m_rng.randbool() == 0) {
-            // Randomly return false in case of an empty entry.
-            return false;
-        }
-        return true;
+        return std::nullopt;
     }
 
     BlockHash GetBestBlock() const override { return hashBestBlock_; }
@@ -749,8 +745,8 @@ static void CheckAccessCoin(const Amount base_value,
                             const MaybeCoin &expected) {
     SingleEntryCacheTest test{base_value, cache_coin};
     auto &coin = test.cache.AccessCoin(OUTPOINT);
-    Coin dummy;
-    BOOST_CHECK_EQUAL(coin.IsSpent(), !test.cache.GetCoin(OUTPOINT, dummy));
+    BOOST_CHECK_EQUAL(coin.IsSpent(),
+                      !test.cache.GetCoin(OUTPOINT).has_value());
     test.cache.SelfTest(/*sanity_check=*/false);
     BOOST_CHECK_EQUAL(GetCoinMapEntry(test.cache.map()), expected);
 }

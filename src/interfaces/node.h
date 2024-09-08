@@ -197,8 +197,8 @@ public:
     //! Unset RPC timer interface.
     virtual void rpcUnsetTimerInterface(RPCTimerInterface *iface) = 0;
 
-    //! Get unspent outputs associated with a transaction.
-    virtual bool getUnspentOutput(const COutPoint &output, Coin &coin) = 0;
+    //! Get unspent output associated with a transaction.
+    virtual std::optional<Coin> getUnspentOutput(const COutPoint &output) = 0;
 
     //! Get wallet client.
     virtual WalletClient &walletClient() = 0;

@@ -400,10 +400,9 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
         for (const CTxIn &txin : wtx.tx->vin) {
             COutPoint prevout = txin.prevout;
 
-            Coin prev;
-            if (node.getUnspentOutput(prevout, prev)) {
+            if (auto prev{node.getUnspentOutput(prevout)}) {
                 strHTML += "<li>";
-                const CTxOut &vout = prev.GetTxOut();
+                const CTxOut &vout = prev->GetTxOut();
                 CTxDestination address;
                 if (ExtractDestination(vout.scriptPubKey, address)) {
                     std::string name;

@@ -402,11 +402,11 @@ CMutableTransaction TestChain100Setup::CreateValidMempoolTransaction(
     CCoinsViewCache coins_cache(&coins_view);
     AddCoins(coins_cache, *input_transaction.get(), input_height);
     // - Use GetCoin to properly populate utxo_to_spend,
-    Coin utxo_to_spend;
-    assert(coins_cache.GetCoin(outpoint_to_spend, utxo_to_spend));
+    auto utxo_to_spend = coins_cache.GetCoin(outpoint_to_spend);
+    assert(utxo_to_spend.has_value());
     // - Then add it to a map to pass in to SignTransaction
     std::map<COutPoint, Coin> input_coins;
-    input_coins.insert({outpoint_to_spend, utxo_to_spend});
+    input_coins.insert({outpoint_to_spend, std::move(utxo_to_spend.value())});
     // - Default signature hashing type
     SigHashType nHashType = SigHashType().withForkId();
     std::map<int, std::string> input_errors;

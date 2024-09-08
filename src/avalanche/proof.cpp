@@ -197,8 +197,8 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
         const Stake &s = ss.getStake();
         const COutPoint &utxo = s.getUTXO();
 
-        Coin coin;
-        if (!chainman.ActiveChainstate().CoinsTip().GetCoin(utxo, coin)) {
+        auto coin{chainman.ActiveChainstate().CoinsTip().GetCoin(utxo)};
+        if (!coin) {
             // The coins are not in the UTXO set.
             return state.Invalid(ProofValidationResult::MISSING_UTXO,
                                  "utxo-missing-or-spent");
@@ -212,22 +212,22 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
                           activeHeight));
         }
 
-        if (s.isCoinbase() != coin.IsCoinBase()) {
+        if (s.isCoinbase() != coin->IsCoinBase()) {
             return state.Invalid(
                 ProofValidationResult::COINBASE_MISMATCH, "coinbase-mismatch",
                 strprintf("expected %s, found %s",
                           s.isCoinbase() ? "true" : "false",
-                          coin.IsCoinBase() ? "true" : "false"));
+                          coin->IsCoinBase() ? "true" : "false"));
         }
 
-        if (s.getHeight() != coin.GetHeight()) {
+        if (s.getHeight() != coin->GetHeight()) {
             return state.Invalid(ProofValidationResult::HEIGHT_MISMATCH,
                                  "height-mismatch",
                                  strprintf("expected %u, found %u",
-                                           s.getHeight(), coin.GetHeight()));
+                                           s.getHeight(), coin->GetHeight()));
         }
 
-        const CTxOut &out = coin.GetTxOut();
+        const CTxOut &out = coin->GetTxOut();
         if (s.getAmount() != out.nValue) {
             // Wrong amount.
             return state.Invalid(

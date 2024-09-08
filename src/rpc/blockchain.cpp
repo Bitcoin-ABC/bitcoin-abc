@@ -1277,38 +1277,39 @@ RPCHelpMan gettxout() {
                 fMempool = request.params[2].get_bool();
             }
 
-            Coin coin;
             Chainstate &active_chainstate = chainman.ActiveChainstate();
             CCoinsViewCache *coins_view = &active_chainstate.CoinsTip();
 
+            std::optional<Coin> coin;
             if (fMempool) {
                 const CTxMemPool &mempool = EnsureMemPool(node);
                 LOCK(mempool.cs);
                 CCoinsViewMemPool view(coins_view, mempool);
-                if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
-                    return NullUniValue;
+                if (!mempool.isSpent(out)) {
+                    coin = view.GetCoin(out);
                 }
             } else {
-                if (!coins_view->GetCoin(out, coin)) {
-                    return NullUniValue;
-                }
+                coin = coins_view->GetCoin(out);
+            }
+            if (!coin) {
+                return UniValue::VNULL;
             }
 
             const CBlockIndex *pindex =
                 active_chainstate.m_blockman.LookupBlockIndex(
                     coins_view->GetBestBlock());
             ret.pushKV("bestblock", pindex->GetBlockHash().GetHex());
-            if (coin.GetHeight() == MEMPOOL_HEIGHT) {
+            if (coin->GetHeight() == MEMPOOL_HEIGHT) {
                 ret.pushKV("confirmations", 0);
             } else {
                 ret.pushKV("confirmations",
-                           int64_t(pindex->nHeight - coin.GetHeight() + 1));
+                           int64_t(pindex->nHeight - coin->GetHeight() + 1));
             }
-            ret.pushKV("value", coin.GetTxOut().nValue);
+            ret.pushKV("value", coin->GetTxOut().nValue);
             UniValue o(UniValue::VOBJ);
-            ScriptPubKeyToUniv(coin.GetTxOut().scriptPubKey, o, true);
+            ScriptPubKeyToUniv(coin->GetTxOut().scriptPubKey, o, true);
             ret.pushKV("scriptPubKey", std::move(o));
-            ret.pushKV("coinbase", coin.IsCoinBase());
+            ret.pushKV("coinbase", coin->IsCoinBase());
 
             return ret;
         },

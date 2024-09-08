@@ -165,18 +165,15 @@ std::optional<std::vector<int>> CalculatePrevHeights(const CBlockIndex &tip,
     std::vector<int> prev_heights;
     prev_heights.resize(tx.vin.size());
     for (size_t i = 0; i < tx.vin.size(); ++i) {
-        const CTxIn &txin = tx.vin[i];
-        Coin coin;
-        if (!coins.GetCoin(txin.prevout, coin)) {
-            LogPrintf("ERROR: %s: Missing input %d in transaction \'%s\'\n",
-                      __func__, i, tx.GetId().GetHex());
-            return std::nullopt;
-        }
-        if (coin.GetHeight() == MEMPOOL_HEIGHT) {
+        if (auto coin{coins.GetCoin(tx.vin[i].prevout)}) {
             // Assume all mempool transaction confirm in the next block.
-            prev_heights[i] = tip.nHeight + 1;
+            prev_heights[i] = coin->GetHeight() == MEMPOOL_HEIGHT
+                                  ? tip.nHeight + 1
+                                  : coin->GetHeight();
         } else {
-            prev_heights[i] = coin.GetHeight();
+            LogPrintf("ERROR: %s: Missing input %d in transaction \'%s\'\n",
+                      __func__, i, tx.GetHash().GetHex());
+            return std::nullopt;
         }
     }
     return prev_heights;
@@ -1731,10 +1728,9 @@ std::vector<Coin> GetSpentCoins(const CTransactionRef &ptx,
     std::vector<Coin> spent_coins;
     spent_coins.reserve(ptx->vin.size());
     for (const CTxIn &input : ptx->vin) {
-        Coin coin;
-        const bool coinFound = coins_view.GetCoin(input.prevout, coin);
-        Assume(coinFound);
-        spent_coins.push_back(std::move(coin));
+        auto coin{coins_view.GetCoin(input.prevout)};
+        Assume(coin.has_value());
+        spent_coins.push_back(std::move(*coin));
     }
     return spent_coins;
 }
