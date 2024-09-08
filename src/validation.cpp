@@ -2612,10 +2612,6 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                 }
             }
             const auto nNow{NodeClock::now()};
-            // Avoid writing/flushing immediately after startup.
-            if (m_last_write == decltype(m_last_write){}) {
-                m_last_write = nNow;
-            }
             // The cache is large and we're within 10% and 10 MiB of the limit,
             // but we have time now (not in the middle of a block processing).
             bool fCacheLarge = mode == FlushStateMode::PERIODIC &&
@@ -2626,8 +2622,8 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             // It's been a while since we wrote the block index  and chain
             // state to disk. Do this frequently, so we don't need to
             // redownload or reindex after a crash.
-            bool fPeriodicWrite = mode == FlushStateMode::PERIODIC &&
-                                  nNow > m_last_write + DATABASE_WRITE_INTERVAL;
+            bool fPeriodicWrite =
+                mode == FlushStateMode::PERIODIC && nNow >= m_next_write;
             // Combine all conditions that result in a write to disk.
             bool should_write = (mode == FlushStateMode::ALWAYS) ||
                                 fCacheLarge || fCacheCritical ||
@@ -2711,7 +2707,10 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                            uint32_t(mode), coins_count,
                            uint64_t(coins_mem_usage), fFlushForPrune);
                 }
-                m_last_write = NodeClock::now();
+            }
+
+            if (should_write || m_next_write == NodeClock::time_point::max()) {
+                m_next_write = NodeClock::now() + DATABASE_WRITE_INTERVAL;
             }
         }
 
