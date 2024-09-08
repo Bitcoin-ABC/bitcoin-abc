@@ -93,8 +93,14 @@ using node::UNDOFILE_CHUNK_SIZE;
 #define MICRO 0.000001
 #define MILLI 0.001
 
-/** Time to wait between writing blocks/block index and chainstate to disk. */
-static constexpr std::chrono::hours DATABASE_WRITE_INTERVAL{1};
+/**
+ * Time window to wait between writing blocks/block index and chainstate to
+ * disk.
+ * Randomize writing time inside the window to prevent a situation where the
+ * network over time settles into a few cohorts of synchronized writers.
+ */
+static constexpr auto DATABASE_WRITE_INTERVAL_MIN{50min};
+static constexpr auto DATABASE_WRITE_INTERVAL_MAX{70min};
 const std::vector<std::string> CHECKLEVEL_DOC{
     "level 0 reads the blocks from disk",
     "level 1 verifies block validity",
@@ -2710,7 +2716,10 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             }
 
             if (should_write || m_next_write == NodeClock::time_point::max()) {
-                m_next_write = NodeClock::now() + DATABASE_WRITE_INTERVAL;
+                constexpr auto range{DATABASE_WRITE_INTERVAL_MAX -
+                                     DATABASE_WRITE_INTERVAL_MIN};
+                m_next_write = FastRandomContext().rand_uniform_delay(
+                    NodeClock::now() + DATABASE_WRITE_INTERVAL_MIN, range);
             }
         }
 
