@@ -13,7 +13,6 @@ import {
     getUtxos,
     getAllTxHistoryByTokenId,
     getChildNftsFromParent,
-    getAllTxHistoryByLokadId,
 } from 'chronik';
 import vectors from '../fixtures/vectors';
 import {
@@ -455,57 +454,6 @@ describe('Cashtab chronik.js functions', () => {
                 NftChildGenesisTx.tokenEntries[0].tokenId,
                 '2222222222222222222222222222222222222222222222222222222222222222',
             ]);
-        });
-    });
-    describe('We can get tx history by lokadId', () => {
-        it('We can get tx history if total txs are less than one page', async () => {
-            // Initialize chronik mock with history info
-            const mockedChronik = new MockChronikClient();
-            const lokadId = '63686174'; // eCashChat
-            mockedChronik.setLokadId(lokadId);
-            mockedChronik.setTxHistoryByLokadId(lokadId, [
-                { txid: 'deadbeef' },
-            ]);
-            expect(
-                await getAllTxHistoryByLokadId(mockedChronik, lokadId),
-            ).toStrictEqual([{ txid: 'deadbeef' }]);
-        });
-        it('We can get tx history if we need to fetch multiple pages', async () => {
-            const TEST_PAGE_SIZE = 1;
-            // Initialize chronik mock with history info
-            const mockedChronik = new MockChronikClient();
-            const lokadId = '63686174'; // eCashChat
-            mockedChronik.setLokadId(lokadId);
-            mockedChronik.setTxHistoryByTokenId(
-                lokadId,
-                [
-                    { txid: 'deadbeef' },
-                    { txid: 'deadbeef' },
-                    { txid: 'deadbeef' },
-                ],
-                1,
-            );
-            expect(
-                await getAllTxHistoryByLokadId(
-                    mockedChronik,
-                    lokadId,
-                    TEST_PAGE_SIZE,
-                ),
-            ).toStrictEqual([
-                { txid: 'deadbeef' },
-                { txid: 'deadbeef' },
-                { txid: 'deadbeef' },
-            ]);
-        });
-        it('We get an empty array if the lokadId has no tx history', async () => {
-            // Initialize chronik mock with history info
-            const mockedChronik = new MockChronikClient();
-            const lokadId = '63686174'; // eCashChat
-            mockedChronik.setLokadId(lokadId);
-            mockedChronik.setTxHistoryByLokadId(lokadId, []);
-            expect(
-                await getAllTxHistoryByLokadId(mockedChronik, lokadId),
-            ).toStrictEqual([]);
         });
     });
 });
