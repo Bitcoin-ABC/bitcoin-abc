@@ -4,7 +4,7 @@
 
 'use strict';
 const assert = require('assert');
-const { MockChronikClient } = require('../index');
+const { MockChronikClient, MockAgora } = require('../index');
 const {
     mockBlockInfo,
     mockTxInfo,
@@ -485,6 +485,56 @@ it('Mock an error returned from the address().history() API', async function () 
     // Execute the API call
     await assert.rejects(
         async () => mockedChronik.address(P2PKH_ADDRESS).history(0, 2),
+        expectedError,
+    );
+});
+
+it('We can set and return expected values for supported Agora query methods', async function () {
+    // Initialize agora mock
+    const mockedAgora = new MockAgora();
+
+    // offeredGroupTokenIds
+    const mockOfferedTokenIds = [
+        '0000000000000000000000000000000000000000000000000000000000000000',
+        '1111111111111111111111111111111111111111111111111111111111111111',
+    ];
+    mockedAgora.setOfferedGroupTokenIds(mockOfferedTokenIds);
+    assert.deepEqual(
+        await mockedAgora.offeredGroupTokenIds(),
+        mockOfferedTokenIds,
+    );
+
+    // activeOffersByPubKey
+    const mockPubKey = '01020304';
+    const mockActiveOffersByPubKey = [{ test: 'test' }, { test: 'test' }];
+    mockedAgora.setActiveOffersByPubKey(mockPubKey, mockActiveOffersByPubKey);
+    assert.deepEqual(
+        await mockedAgora.activeOffersByPubKey(mockPubKey),
+        mockActiveOffersByPubKey,
+    );
+
+    // activeOffersByGroupTokenId
+    const mockGroupTokenId =
+        '3333333333333333333333333333333333333333333333333333333333333333';
+    const mockActiveOffersByGroupTokenId = [
+        { test: 'test2' },
+        { test: 'test2' },
+    ];
+    mockedAgora.setActiveOffersByGroupTokenId(
+        mockGroupTokenId,
+        mockActiveOffersByGroupTokenId,
+    );
+    assert.deepEqual(
+        await mockedAgora.activeOffersByGroupTokenId(mockGroupTokenId),
+        mockActiveOffersByGroupTokenId,
+    );
+
+    // We can also set and throw errors
+    const expectedError = new Error('some agora error');
+    mockedAgora.setOfferedGroupTokenIds(expectedError);
+
+    await assert.rejects(
+        async () => mockedAgora.offeredGroupTokenIds(),
         expectedError,
     );
 });

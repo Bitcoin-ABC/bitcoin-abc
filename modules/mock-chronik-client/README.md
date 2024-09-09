@@ -148,3 +148,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.10.1
 
 -   Return missing `numTxs` key from `history()` calls [D16617](https://reviews.bitcoinabc.org/D16617)
+
+1.11.0
+
+-   Add support for `MockAgora`, a simple set-and-return mock for some `ecash-agora` class methods [D16737](https://reviews.bitcoinabc.org/D16737)

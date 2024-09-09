@@ -7,6 +7,66 @@ const cashaddr = require('ecashaddrjs');
 const CHRONIK_DEFAULT_PAGESIZE = 25;
 
 module.exports = {
+    MockAgora: class {
+        // Agora can make specialized chronik-client calls to a chronik-client instance
+        // running the agora plugin
+        // For the purposes of unit testing, we only need to re-create how this object
+        // is initialized and support getting and setting of expected responses
+        constructor() {
+            // Use self since it is not a reserved term in js
+            // Can access self from inside a method and still get the class
+            const self = this;
+            // API call mock return objects
+            // Can be set with self.setMock
+            self.mockedResponses = {
+                offeredGroupTokenIds: {},
+                activeOffersByPubKey: {},
+                activeOffersByGroupTokenId: {},
+            };
+
+            // Allow user to set supported agora query responses
+            self.setOfferedGroupTokenIds = function (response) {
+                self.mockedResponses.offeredGroupTokenIds = response;
+            };
+            self.setActiveOffersByPubKey = function (pubKey, response) {
+                self.mockedResponses.activeOffersByPubKey[pubKey] = response;
+            };
+            self.setActiveOffersByGroupTokenId = function (
+                groupTokenId,
+                response,
+            ) {
+                self.mockedResponses.activeOffersByGroupTokenId[groupTokenId] =
+                    response;
+            };
+
+            // Checks whether the user set this mock response to be an error.
+            // If so, throw it to simulate an API error response.
+            function throwOrReturnValue(mockResponse) {
+                if (mockResponse instanceof Error) {
+                    throw mockResponse;
+                }
+                return mockResponse;
+            }
+
+            self.offeredGroupTokenIds = async function () {
+                return throwOrReturnValue(
+                    self.mockedResponses.offeredGroupTokenIds,
+                );
+            };
+            self.activeOffersByPubKey = async function (pubKey) {
+                return throwOrReturnValue(
+                    self.mockedResponses.activeOffersByPubKey[pubKey],
+                );
+            };
+            self.activeOffersByGroupTokenId = async function (groupTokenId) {
+                return throwOrReturnValue(
+                    self.mockedResponses.activeOffersByGroupTokenId[
+                        groupTokenId
+                    ],
+                );
+            };
+        }
+    },
     MockChronikClient: class {
         constructor() {
             // Use self since it is not a reserved term in js
