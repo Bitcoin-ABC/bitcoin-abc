@@ -2,7 +2,74 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { DEFAULT_DUST_LIMIT } from 'ecash-lib';
+import {
+    ALL_ANYONECANPAY_BIP143,
+    ALL_BIP143,
+    DEFAULT_DUST_LIMIT,
+    Ecc,
+    flagSignature,
+    Op,
+    OP_0,
+    OP_0NOTEQUAL,
+    OP_1,
+    OP_12,
+    OP_2,
+    OP_2DUP,
+    OP_2OVER,
+    OP_2SWAP,
+    OP_3DUP,
+    OP_8,
+    OP_9,
+    OP_ADD,
+    OP_BIN2NUM,
+    OP_CAT,
+    OP_CHECKDATASIGVERIFY,
+    OP_CHECKSIG,
+    OP_CHECKSIGVERIFY,
+    OP_CODESEPARATOR,
+    OP_DIV,
+    OP_DROP,
+    OP_DUP,
+    OP_ELSE,
+    OP_ENDIF,
+    OP_EQUAL,
+    OP_EQUALVERIFY,
+    OP_FROMALTSTACK,
+    OP_GREATERTHANOREQUAL,
+    OP_HASH160,
+    OP_HASH256,
+    OP_IF,
+    OP_MOD,
+    OP_NIP,
+    OP_NOTIF,
+    OP_NUM2BIN,
+    OP_OVER,
+    OP_PICK,
+    OP_PUSHDATA1,
+    OP_REVERSEBYTES,
+    OP_ROT,
+    OP_SHA256,
+    OP_SIZE,
+    OP_SPLIT,
+    OP_SUB,
+    OP_SWAP,
+    OP_TOALTSTACK,
+    OP_TUCK,
+    OP_VERIFY,
+    pushBytesOp,
+    pushNumberOp,
+    Script,
+    sha256d,
+    Signatory,
+    slpSend,
+    strToBytes,
+    UnsignedTxInput,
+    Writer,
+    WriterBytes,
+    WriterLength,
+    writeTxOutput,
+} from 'ecash-lib';
+import { AGORA_LOKAD_ID } from './consts.js';
 
 /**
  * "Human viable" parameters for partial Agora offers, can serve as a basis to
@@ -367,9 +434,12 @@ export class AgoraPartial {
     }
 
     public updateScriptLen() {
-        // TODO: Actually calculate the script length
-        // Random placeholder to ensure tests aren't dependent on this
-        this.scriptLen = Math.floor(Math.random() * 1000);
+        let measuredLength = this.script().cutOutCodesep(0).bytecode.length;
+        if (measuredLength >= 0x80) {
+            this.scriptLen = 0x80;
+            measuredLength = this.script().cutOutCodesep(0).bytecode.length;
+        }
+        this.scriptLen = measuredLength;
     }
 
     /**
@@ -443,5 +513,534 @@ export class AgoraPartial {
         const prepared = this.prepareAcceptedTokens(acceptedTokens);
         const sats = this.askedSats(prepared);
         return (sats * 1000000000n) / prepared;
+    }
+
+    public adPushdata(): Uint8Array {
+        const serAdPushdata = (writer: Writer) => {
+            if (this.tokenProtocol == 'ALP') {
+                throw new Error('Currently only SLP implemented');
+            }
+            writer.putU8(this.numTokenTruncBytes);
+            writer.putU8(this.numSatsTruncBytes);
+            writer.putU64(this.tokenScaleFactor);
+            writer.putU64(this.scaledTruncTokensPerTruncSat);
+            writer.putU64(this.minAcceptedScaledTruncTokens);
+            writer.putBytes(this.makerPk);
+        };
+        const lengthWriter = new WriterLength();
+        serAdPushdata(lengthWriter);
+        const bytesWriter = new WriterBytes(lengthWriter.length);
+        serAdPushdata(bytesWriter);
+        return bytesWriter.data;
+    }
+
+    public covenantConsts(): [Uint8Array, number] {
+        const adPushdata = this.adPushdata();
+        // "Consts" is serialized data with the terms of the offer + the token
+        // protocol intros.
+        if (this.tokenProtocol == 'SLP') {
+            const slpSendIntro = slpSend(this.tokenId, this.tokenType, [
+                0,
+            ]).bytecode;
+            const covenantConstsWriter = new WriterBytes(
+                slpSendIntro.length + adPushdata.length,
+            );
+            covenantConstsWriter.putBytes(slpSendIntro);
+            covenantConstsWriter.putBytes(adPushdata);
+            return [covenantConstsWriter.data, slpSendIntro.length];
+        } else {
+            throw new Error('Only SLP implemented');
+        }
+    }
+
+    public script(): Script {
+        const [covenantConsts, tokenIntroLen] = this.covenantConsts();
+
+        // Serialize scaled tokens as 8-byte little endian.
+        // Even though Script currently doesn't support 64-bit integers,
+        // this allows us to eventually upgrade to 64-bit without changing this
+        // Script at all.
+        const scaledTruncTokens8LeWriter = new WriterBytes(8);
+        scaledTruncTokens8LeWriter.putU64(
+            this.truncTokens * this.tokenScaleFactor,
+        );
+        const scaledTruncTokens8Le = scaledTruncTokens8LeWriter.data;
+
+        return Script.fromOps([
+            // # Push consts
+            pushBytesOp(covenantConsts),
+            // # Push offered token amount as scaled trunc tokens, as u64 LE
+            pushBytesOp(scaledTruncTokens8Le),
+            // # Use OP_CODESEPERATOR to remove the above two (large) pushops
+            // # from the sighash preimage (tx size optimization)
+            OP_CODESEPARATOR,
+            // OP_ROT(isPurchase, _, _)
+            OP_ROT,
+            // OP_IF(isPurchase)
+            OP_IF,
+            // scaledTruncTokens = OP_BIN2NUM(scaledTruncTokens8Le)
+            OP_BIN2NUM,
+            // OP_ROT(acceptedScaledTruncTokens, _, _)
+            OP_ROT,
+
+            // # Verify accepted amount doesn't exceed available amount
+            // OP_2DUP(scaledTruncTokens, acceptedScaledTruncTokens)
+            OP_2DUP,
+            // isNotExcessive = OP_GREATERTHANOREQUAL(scaledTruncTokens,
+            //                                        acceptedScaledTruncTokens)
+            OP_GREATERTHANOREQUAL,
+            // OP_VERIFY(isNotExcessive)
+            OP_VERIFY,
+
+            // # Verify accepted amount is above a required minimum
+            // OP_DUP(acceptedScaledTruncTokens)
+            OP_DUP,
+            // # Ensure minimum accepted amount is not violated
+            pushNumberOp(this.minAcceptedScaledTruncTokens),
+            // isEnough = OP_GREATERTHANOREQUAL(acceptedScaledTruncTokens,
+            //                                  minAcceptedScaledTruncTokens)
+            OP_GREATERTHANOREQUAL,
+            // OP_VERIFY(isEnough)
+            OP_VERIFY,
+
+            // # Verify accepted amount is scaled correctly, must be a
+            // # multiple of tokenScaleFactor.
+            // OP_DUP(acceptedScaledTruncTokens)
+            OP_DUP,
+            pushNumberOp(this.tokenScaleFactor),
+            // scaleRemainder = OP_MOD(acceptedScaledTruncTokens,
+            //                         tokenScaleFactor)
+            OP_MOD,
+            OP_0,
+            // OP_EQUALVERIFY(scaleRemainder, 0)
+            OP_EQUALVERIFY,
+
+            // OP_TUCK(_, acceptedScaledTruncTokens);
+            OP_TUCK,
+
+            // # Calculate tokens left over after purchase
+            // leftoverScaledTruncTokens = OP_SUB(scaledTruncTokens,
+            //                                    acceptedScaledTruncTokens)
+            OP_SUB,
+
+            // # Get token intro from consts
+            // depthConsts = depth_of(consts)
+            pushNumberOp(2),
+            // consts = OP_PICK(depthConsts);
+            OP_PICK,
+
+            // # Size of the token protocol intro
+            pushNumberOp(tokenIntroLen),
+            // tokenIntro, agoraIntro = OP_SPLIT(consts, introSize)
+            OP_SPLIT,
+            // OP_DROP(agoraIntro)
+            OP_DROP,
+
+            // OP_OVER(leftoverScaledTruncTokens, _)
+            OP_OVER,
+
+            // hasLeftover = OP_0NOTEQUAL(leftoverScaledTruncTokens)
+            // # (SCRIPT_VERIFY_MINIMALIF is not on eCash, but better be safe)
+            OP_0NOTEQUAL,
+
+            // Insert (sub)script that builds the OP_RETURN for SLP/ALP
+            ...this._scriptBuildOpReturn(),
+
+            // # Add trunc padding for sats to un-truncate sats
+            pushBytesOp(new Uint8Array(this.numSatsTruncBytes)),
+
+            // outputsOpreturnPad = OP_CAT(opreturnOutput, truncPaddingSats)
+            OP_CAT,
+
+            // OP_ROT(acceptedScaledTruncTokens, _, _)
+            OP_ROT,
+
+            // # We divide rounding up when we calc sats, so add divisor - 1
+            pushNumberOp(this.scaledTruncTokensPerTruncSat - 1n),
+            OP_ADD,
+
+            // # Price (scaled + truncated)
+            pushNumberOp(this.scaledTruncTokensPerTruncSat),
+
+            // # Calculate how many (truncated) sats the user has to pay
+            // requiredTruncSats = OP_DIV(acceptedScaledTruncTokens,
+            //                            scaledTruncTokensPerTruncSat)
+            OP_DIV,
+
+            // # Build the required sats with the correct byte length
+            // truncLen = 8 - numSatsTruncBytes
+            pushNumberOp(8 - this.numSatsTruncBytes),
+            // requiredTruncSatsLe = OP_NUM2BIN(requiredTruncSats, truncLen)
+            OP_NUM2BIN,
+            // # Build OP_RETURN output + satoshi amount (8 bytes LE).
+            // # We already added the padding to un-truncate sats in the
+            // # previous OP_CAT to the output.
+            // outputsOpreturnSats =
+            //     OP_CAT(outputsOpreturnPad, requiredTruncSatsLe)
+            OP_CAT,
+
+            // # Build maker's P2PKH script
+            // p2pkhIntro = [25, OP_DUP, OP_HASH160, 20]
+            pushBytesOp(new Uint8Array([25, OP_DUP, OP_HASH160, 20])),
+            // OP_2OVER(consts, leftoverScaledTruncTokens, _, _);
+            OP_2OVER,
+            // OP_DROP(leftoverScaledTruncTokens);
+            OP_DROP,
+            // # Slice out pubkey from the consts (always the last 33 bytes)
+            // pubkeyIdx = consts.length - 33
+            pushNumberOp(covenantConsts.length - 33),
+            // rest, makerPk = OP_SPLIT(consts, pubkeyIdx)
+            OP_SPLIT,
+            // OP_NIP(rest, _)
+            OP_NIP,
+            // makerPkh = OP_HASH160(makerPk)
+            OP_HASH160,
+            // makerP2pkh1 = OP_CAT(p2pkhIntro, makerPkh)
+            OP_CAT,
+            // p2pkhOutro = [OP_EQUALVERIFY, OP_CHECKSIG]
+            pushBytesOp(new Uint8Array([OP_EQUALVERIFY, OP_CHECKSIG])),
+            // makerScript = OP_CAT(makerP2pkh1, p2pkhOutro)
+            OP_CAT,
+
+            // # Now we have the first 2 outputs: OP_RETURN + maker P2PKH
+            // outputsOpreturnMaker = OP_CAT(outputsOpreturnSats, makerScript)
+            OP_CAT,
+            // # Move to altstack, we need it when calculating hashOutputs
+            // OP_TOALTSTACK(outputsOpreturnMaker)
+            OP_TOALTSTACK,
+
+            // # Build loopback P2SH, will receive the leftover tokens with
+            // # a Script with the same terms.
+            // OP_TUCK(_, leftoverScaledTruncTokens);
+            OP_TUCK,
+            // P2SH has dust sats
+            pushNumberOp(this.dustAmount),
+            OP_8,
+            // dustAmount8le = OP_NUM2BIN(dustAmount, 8)
+            OP_NUM2BIN,
+            // p2shIntro = [23, OP_HASH160, 20]
+            pushBytesOp(new Uint8Array([23, OP_HASH160, 20])),
+            // loopbackOutputIntro = OP_CAT(dustAmount8le, p2shIntro);
+            OP_CAT,
+
+            // # Build the new redeem script; same terms but different
+            // # scaledTruncTokens8Le.
+
+            // # Build opcode to push consts. Sometimes they get long and we
+            // # need OP_PUSHDATA1.
+            // pushConstsOpcode = if consts.length >= OP_PUSHDATA1 {
+            //     [OP_PUSHDATA1, consts.length]
+            // } else {
+            //     [consts.length]
+            // }
+            pushBytesOp(
+                new Uint8Array(
+                    covenantConsts.length >= OP_PUSHDATA1
+                        ? [OP_PUSHDATA1, covenantConsts.length]
+                        : [covenantConsts.length],
+                ),
+            ),
+
+            // OP_2SWAP(consts, leftoverScaledTruncTokens, _, _)
+            OP_2SWAP,
+            OP_8,
+            // OP_TUCK(_, 8)
+            OP_TUCK,
+            // leftoverScaledTruncTokens8le =
+            //     OP_NUM2BIN(leftoverScaledTruncTokens, 8)
+            OP_NUM2BIN,
+            // pushLeftoverScaledTruncTokens8le =
+            //     OP_CAT(8, leftoverScaledTruncTokens8le)
+            OP_CAT,
+            // constsPushLeftover =
+            //     OP_CAT(consts, pushLeftoverScaledTruncTokens8le)
+            OP_CAT,
+            // # The two ops that push consts plus amount
+            // pushState = OP_CAT(pushConstsOpcode, constsPushLeftover)
+            OP_CAT,
+            // opcodesep = [OP_CODESEPARATOR]
+            pushBytesOp(new Uint8Array([OP_CODESEPARATOR])),
+            // loopbackScriptIntro = OP_CAT(pushState, opcodesep)
+            OP_CAT,
+            // depthPreimage4_10 = depth_of(preimage4_10);
+            pushNumberOp(3),
+            // preimage4_10 = OP_PICK(depthPreimage4_10);
+            OP_PICK,
+            // scriptCodeIdx = 36 + if scriptLen < 0xfd { 1 } else { 3 }
+            pushNumberOp(36 + (this.scriptLen < 0xfd ? 1 : 3)),
+            // outpoint, preimage5_10 = OP_SPLIT(preimage4_10, scriptCodeIdx)
+            OP_SPLIT,
+            // OP_NIP(outpoint, __)
+            OP_NIP,
+            // # Split out scriptCode
+            pushNumberOp(this.scriptLen),
+            // script_code, preimage6_10 = OP_SPLIT(preimage5_10, scriptLen)
+            OP_SPLIT,
+
+            // # Extract hashOutputs
+            OP_12,
+            // (preimage6_7, preimage8_10) = OP_SPLIT(preimage6_10, 12)
+            OP_SPLIT,
+            // OP_NIP(preimage6_7, _)
+            OP_NIP,
+            // # Split out hashOutputs
+            pushNumberOp(32),
+            // actualHashOutputs, preimage9_10 = OP_SPLIT(preimage8_10, 32)
+            OP_SPLIT,
+            // OP_DROP(preimage9_10)
+            OP_DROP,
+            // # Move to altstack, will be needed later
+            // OP_TOALTSTACK(actualHashOutputs)
+            OP_TOALTSTACK,
+
+            // # Build redeemScript of loopback P2SH output
+            // loopbackScript = OP_CAT(loopbackScriptIntro, scriptCode)
+            OP_CAT,
+            // # Calculate script hash for P2SH script
+            // loopbackScriptHash = OP_HASH160(loopbackScript)
+            OP_HASH160,
+            // loopbackOutputIntroSh =
+            //     OP_CAT(loopbackOutputIntro, loopbackScriptHash)
+            OP_CAT,
+            // p2shEnd = [OP_EQUAL]
+            pushBytesOp(new Uint8Array([OP_EQUAL])),
+            // # Build loopback P2SH output
+            // loopbackOutput = OP_CAT(loopbackOutputIntroSh, p2shEnd)
+            OP_CAT,
+
+            // # Check if we have tokens left over and send them back
+            // # It is cheaper (in bytes) to build the loopback output and then
+            // # throw it away if needed than to not build it at all.
+            // OP_SWAP(leftoverScaledTruncTokens, _)
+            OP_SWAP,
+            // hasLeftover = OP_0NOTEQUAL(leftoverScaledTruncTokens)
+            OP_0NOTEQUAL,
+            // OP_NOTIF(hasLeftover)
+            OP_NOTIF,
+            // OP_DROP(loopbackOutput)
+            OP_DROP,
+            // loopbackOutput = []
+            pushBytesOp(new Uint8Array()),
+            OP_ENDIF,
+
+            // OP_ROT(buyerOutputs, _, _)
+            OP_ROT,
+
+            // # Verify user specified output, otherwise total burn on ALP
+            // buyerOutputs, buyerOutputsSize = OP_SIZE(buyerOutputs)
+            OP_SIZE,
+            // isNotEmpty = OP_0NOTEQUAL(buyerOutputsSize)
+            OP_0NOTEQUAL,
+            // OP_VERIFY(isNotEmpty)
+            OP_VERIFY,
+
+            // # Loopback + taker outputs
+            // outputsLoopbackTaker = OP_CAT(loopbackOutput, buyerOutputs)
+            OP_CAT,
+
+            // OP_FROMALTSTACK(actualHashOutputs)
+            OP_FROMALTSTACK,
+            // OP_FROMALTSTACK(outputsOpreturnMaker)
+            OP_FROMALTSTACK,
+            // OP_ROT(outputsLoopbackTaker, _, _)
+            OP_ROT,
+            // # Outputs expected by this Script
+            // expectedOutputs = OP_CAT(outputsOpreturnMaker,
+            //                          outputsLoopbackTaker)
+            OP_CAT,
+            // expectedHashOutputs = OP_HASH256(expectedOutputs)
+            OP_HASH256,
+            // # Verify tx has the expected outputs
+            // OP_EQUALVERIFY(actualHashOutputs, expectedHashOutputs)
+            OP_EQUALVERIFY,
+
+            // # Build sighash preimage parts 1 to 3 via OP_NUM2BIN
+            // txVersion = 2
+            OP_2,
+            // preimage1_3Len = 4 + 32 + 32
+            pushNumberOp(4 + 32 + 32),
+            // preimage1_3 = OP_NUM2BIN(txVersion, preimage1_3Len)
+            OP_NUM2BIN,
+
+            // # Build full sighash preimage
+            // OP_SWAP(preimage4_10, preimage1_3)
+            OP_SWAP,
+            // preimage = OP_CAT(preimage1_3, preimage4_10)
+            OP_CAT,
+
+            // # Sighash for this covenant
+            // preimageSha256 = OP_SHA256(preimage)
+            OP_SHA256,
+
+            // # Verify our sighash actually matches that of the transaction
+            // OP_3DUP(covenantPk, covenantSig, preimageSha256)
+            OP_3DUP,
+            // OP_ROT(covenantPk, covenantSig, preimageSha256)
+            OP_ROT,
+            // OP_CHECKDATASIGVERIFY(covenantSig, preimageSha256, covenantPk)
+            OP_CHECKDATASIGVERIFY,
+            // OP_DROP(preimageSha256)
+            OP_DROP,
+            // sigHashFlags = [ALL_ANYONECANPAY_BIP143]
+            pushBytesOp(new Uint8Array([ALL_ANYONECANPAY_BIP143.toInt()])),
+            // covenantSigFlagged = OP_CAT(covenantSig, sigHashFlags)
+            OP_CAT,
+            // covenantSig, pk = OP_SWAP(covenantPk, covenantSigFlagged)
+            OP_SWAP,
+
+            OP_ELSE,
+
+            // # "Cancel" branch, split out the maker pubkey and verify sig
+            // # is for the maker pubkey.
+            // OP_DROP(scaledTruncTokens8le);
+            OP_DROP,
+            // pubkeyIdx = consts.length - 33
+            pushNumberOp(covenantConsts.length - 33),
+            // rest, pk = OP_SPLIT(consts, pubkeyIdx)
+            OP_SPLIT,
+            // OP_NIP(rest, __)
+            OP_NIP,
+
+            OP_ENDIF,
+
+            // # SLP and ALP differ at the end of the Script
+            ...this._scriptOutro(),
+        ]);
+    }
+
+    private _scriptBuildOpReturn(): Op[] {
+        // Script takes in the token amounts and builds the OP_RETURN for the
+        // corresponding protocol
+        if (this.tokenProtocol == 'SLP') {
+            return this._scriptBuildSlpOpReturn();
+        } else {
+            throw new Error('Only SLP implemented');
+        }
+    }
+
+    private _scriptBuildSlpOpReturn(): Op[] {
+        const scriptSerSlpTruncTokens = () => {
+            // Serialize the number on the stack using the configured truncation
+            if (this.numTokenTruncBytes == 5) {
+                // Edge case where we only have 3 bytes space to serialize the
+                // number, but if the MSB of the number is set, OP_NUM2BIN will
+                // serialize using 4 bytes (with the last byte being just 0x00),
+                // so we always serialize using 4 bytes and then cut the last
+                // byte (that's always 0x00) off.
+                return [
+                    pushNumberOp(4),
+                    OP_NUM2BIN,
+                    pushNumberOp(3),
+                    OP_SPLIT,
+                    OP_DROP,
+                ];
+            } else {
+                // If we have 4 or more bytes space, we can always serialize
+                // just using normal OP_NUM2BIN.
+                return [pushNumberOp(8 - this.numTokenTruncBytes), OP_NUM2BIN];
+            }
+        };
+        return [
+            // # If there's a leftover, append it to the token amounts
+            // OP_IF(leftoverScaledTruncTokens)
+            OP_IF,
+            // # Size of an SLP amount
+            OP_8,
+            // tokenIntro8 = OP_CAT(tokenIntro, 8);
+            OP_CAT,
+            // OP_OVER(leftoverScaledTruncTokens, _)
+            OP_OVER,
+            // # Scale down the scaled leftover amount
+            pushNumberOp(this.tokenScaleFactor),
+            // leftoverTokensTrunc = OP_DIV(leftoverScaledTruncTokens,
+            //                              tokenScaleFactor)
+            OP_DIV,
+            // # Serialize the leftover trunc tokens (overflow-safe)
+            ...scriptSerSlpTruncTokens(),
+            // # SLP uses big-endian, so we have to use OP_REVERSEBYTES
+            // leftoverTokenTruncBe = OP_REVERSEBYTES(leftoverTokenTruncLe)
+            OP_REVERSEBYTES,
+            // # Bytes to un-truncate the leftover tokens
+            pushBytesOp(new Uint8Array(this.numTokenTruncBytes)),
+            // # Build the actual 8 byte big-endian leftover
+            // leftoverToken8be = OP_CAT(leftoverTokenTruncBe, untruncatePad);
+            OP_CAT,
+            // # Append the leftover to the token intro
+            // tokenScript = OP_CAT(tokenIntro8, leftoverToken8be);
+            OP_CAT,
+
+            OP_ENDIF,
+
+            // # Append accepted token amount going to the taker
+            // # Size of an SLP amount
+            OP_8,
+            // tokenScript = OP_CAT(tokenScript, 8)
+            OP_CAT,
+            // # Get the accepted token amount
+            // depthAcceptedScaledTruncTokens =
+            //     depth_of(acceptedScaledTruncTokens)
+            pushNumberOp(2),
+            // acceptedScaledTruncTokens =
+            //     OP_PICK(depthAcceptedScaledTruncTokens)
+            OP_PICK,
+            // # Scale down the accepted token amount
+            pushNumberOp(this.tokenScaleFactor),
+            // acceptedTokensTrunc = OP_DIV(acceptedScaledTruncTokens,
+            //                              tokenScaleFactor)
+            OP_DIV,
+            // # Serialize the accepted token amount (overflow-safe)
+            ...scriptSerSlpTruncTokens(),
+            // # SLP uses big-endian, so we have to use OP_REVERSEBYTES
+            // acceptedTokensTruncBe = OP_REVERSEBYTES(acceptedTokensTruncLe);
+            OP_REVERSEBYTES,
+            // # Bytes to un-truncate the leftover tokens
+            pushBytesOp(new Uint8Array(this.numTokenTruncBytes)),
+            // acceptedTokens8be = OP_CAT(acceptedTokensTruncBe, untruncatePad);
+            OP_CAT,
+
+            // # Finished SLP token script
+            // tokenScript = OP_CAT(tokenScript, acceptedTokens8be);
+            OP_CAT,
+
+            // # Build OP_RETURN script with 0u64 and size prepended
+            // # tokenScript, tokenScriptSize = OP_SIZE(tokenScript)
+            OP_SIZE,
+
+            // # Build output value (0u64) + tokenScriptSize.
+            // # In case the tokenScriptSize > 127, it will be represented as
+            // # 0xXX00 in Script, but it should be just 0xXX.
+            // # We could serialize to 2 bytes and then cut one off, but here we
+            // # use a neat optimization: We serialize to 9 bytes (resulting in
+            // # 0xXX0000000000000000) and then call OP_REVERSEBYTES, which
+            // # will result in 0x0000000000000000XX, which is exactly what the
+            // # first 9 bytes of the OP_RETURN output should look like.
+            OP_9,
+            // tokenScriptSize9Le = OP_NUM2BIN(tokenScriptSize, 9)
+            OP_NUM2BIN,
+            // opreturnValueSize = OP_REVERSEBYTES(tokenScriptSize9Le);
+            OP_REVERSEBYTES,
+
+            // OP_SWAP(tokenScript, opreturnValueSize);
+            OP_SWAP,
+            // opreturnOutput = OP_CAT(opreturnValueSize, tokenScript);
+            OP_CAT,
+        ];
+    }
+
+    private _scriptOutro(): Op[] {
+        if (this.tokenProtocol == 'SLP') {
+            // Verify the sig, and also ensure the first two push ops of the
+            // scriptSig are "AGR0" "PARTIAL", which will always have to be the
+            // first two ops because of the cleanstack rule.
+            return [
+                OP_CHECKSIGVERIFY,
+                pushBytesOp(strToBytes(AgoraPartial.COVENANT_VARIANT)),
+                OP_EQUALVERIFY,
+                pushBytesOp(AGORA_LOKAD_ID),
+                OP_EQUAL,
+            ];
+        } else {
+            throw new Error('Only SLP implemented');
+        }
     }
 }
