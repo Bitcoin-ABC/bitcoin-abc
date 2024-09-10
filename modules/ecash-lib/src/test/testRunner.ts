@@ -12,6 +12,7 @@ import { pushBytesOp } from '../op.js';
 import { OP_1, OP_RETURN } from '../opcode.js';
 import { Script } from '../script.js';
 import { OutPoint, Tx } from '../tx.js';
+import { TxBuilder } from '../txBuilder.js';
 
 const OP_TRUE_SCRIPT = Script.fromOps([OP_1]);
 const OP_TRUE_SCRIPT_SIG = Script.fromOps([
@@ -26,6 +27,7 @@ export class TestRunner {
     public runner: ChildProcess;
     public chronik: ChronikClient;
     private coinsTxid: string | undefined;
+    private coinValue: number | undefined;
     private lastUsedOutIdx: number;
 
     private constructor(
@@ -129,20 +131,19 @@ export class TestRunner {
         coinValue: number,
     ): Promise<void> {
         const opTrueScriptHash = shaRmd160(OP_TRUE_SCRIPT.bytecode);
-        const utxo = (
+        const utxos = (
             await this.chronik.script('p2sh', toHex(opTrueScriptHash)).utxos()
-        ).utxos[0];
+        ).utxos;
         const anyoneScriptHash = shaRmd160(ANYONE_SCRIPT.bytecode);
         const anyoneP2sh = Script.p2sh(anyoneScriptHash);
         const tx = new Tx({
-            inputs: [
-                {
-                    prevOut: utxo.outpoint,
-                    script: OP_TRUE_SCRIPT_SIG,
-                    sequence: 0xffffffff,
-                },
-            ],
+            inputs: utxos.map(utxo => ({
+                prevOut: utxo.outpoint,
+                script: OP_TRUE_SCRIPT_SIG,
+                sequence: 0xffffffff,
+            })),
         });
+        const utxosValue = utxos.reduce((a, b) => a + b.value, 0);
         for (let i = 0; i < numCoins; ++i) {
             tx.outputs.push({
                 value: coinValue,
@@ -154,9 +155,10 @@ export class TestRunner {
             script: Script.fromOps([OP_RETURN]),
         });
         tx.outputs[tx.outputs.length - 1].value =
-            utxo.value - numCoins * coinValue - tx.serSize();
+            utxosValue - numCoins * coinValue - tx.serSize();
 
         this.coinsTxid = (await this.chronik.broadcastTx(tx.ser())).txid;
+        this.coinValue = coinValue;
     }
 
     public getOutpoint(): OutPoint {
@@ -169,17 +171,31 @@ export class TestRunner {
         };
     }
 
-    public async sendToScript(value: number, script: Script): Promise<string> {
-        const setupTx = new Tx({
+    public async sendToScript(
+        value: number | number[],
+        script: Script,
+    ): Promise<string> {
+        const coinValue = this.coinValue!;
+        const values = Array.isArray(value) ? value : [value];
+        const setupTxBuilder = new TxBuilder({
             inputs: [
                 {
-                    prevOut: this.getOutpoint(),
-                    script: ANYONE_SCRIPT_SIG,
-                    sequence: 0xffffffff,
+                    input: {
+                        prevOut: this.getOutpoint(),
+                        script: ANYONE_SCRIPT_SIG,
+                        sequence: 0xffffffff,
+                        signData: {
+                            value: coinValue,
+                        },
+                    },
                 },
             ],
-            outputs: [{ value, script }],
+            outputs: [
+                ...values.map(value => ({ value, script })),
+                Script.fromOps([OP_RETURN]), // burn leftover
+            ],
         });
+        const setupTx = setupTxBuilder.sign(this.ecc, 1000, 546);
         return (await this.chronik.broadcastTx(setupTx.ser())).txid;
     }
 

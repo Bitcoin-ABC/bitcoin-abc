@@ -26,7 +26,7 @@ class EcashAgoraSetup(SetupFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
+        self.generatetoaddress(node, 149, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         plugins_toml = os.path.join(node.datadir, "plugins.toml")
