@@ -2,6 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+interface TokenServerRateLimits {
+    windowMs: number;
+    limit: number;
+    standardHeaders: 'draft-6' | 'draft-7';
+    legacyHeaders: boolean;
+    message: string;
+}
+
 interface TokenServerConfig {
     port: Number;
     chronikUrls: string[];
@@ -13,6 +21,7 @@ interface TokenServerConfig {
     rejectedDir: string;
     maxUploadSize: number;
     whitelist: string[];
+    limiter: TokenServerRateLimits;
     iconSizes: number[];
 }
 
@@ -42,6 +51,14 @@ const config: TokenServerConfig = {
         'chrome-extension://aleabaopoakgpbijdnicepefdiglggfl', // dev extension
         'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag', // prod extension
     ],
+    limiter: {
+        windowMs: 120 * 60 * 1000, // 120 minutes
+        limit: 3, // Limit each IP to 10 requests per `window`
+        standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+        legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+        message:
+            'If you really need some eCash, throw up a diff. reviews.bitcoinabc.org',
+    },
     iconSizes: [32, 64, 128, 256, 512],
 };
 

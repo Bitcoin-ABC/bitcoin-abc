@@ -10,6 +10,7 @@ import { ChronikClient } from 'chronik-client';
 import { initializeTelegramBot } from './src/telegram';
 import fs from 'fs';
 import { Ecc, initWasm } from 'ecash-lib';
+import { rateLimit } from 'express-rate-limit';
 
 // Connect to available in-node chronik servers
 const chronik = new ChronikClient(config.chronikUrls);
@@ -32,6 +33,7 @@ initWasm().then(
             telegramBot,
             fs,
             ecc,
+            rateLimit(config.limiter),
         );
         console.log(`Express server started on port ${config.port}`);
 

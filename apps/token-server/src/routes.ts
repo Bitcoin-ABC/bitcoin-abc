@@ -20,7 +20,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { alertNewTokenIcon } from '../src/telegram';
 import cashaddr from 'ecashaddrjs';
 import { Ecc } from 'ecash-lib';
-import { rateLimit } from 'express-rate-limit';
+import { RateLimitRequestHandler } from 'express-rate-limit';
 
 /**
  * routes.ts
@@ -50,16 +50,6 @@ var corsOptions: CorsOptions = {
     },
 };
 
-// Basic IP rate limiting
-const limiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 10 minutes
-    limit: 10, // Limit each IP to 10 requests per `window` (here, per 10 minutes).
-    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-    message:
-        'If you really need some eCash, throw up a diff. reviews.bitcoinabc.org',
-});
-
 /**
  * Standard IP logger function to be called by all endpoints
  * @param request express request
@@ -75,6 +65,7 @@ export const startExpressServer = (
     telegramBot: TelegramBot,
     fs: any,
     ecc: Ecc,
+    limiter: RateLimitRequestHandler,
 ): http.Server => {
     // Initialize express
     const app: Express = express();
