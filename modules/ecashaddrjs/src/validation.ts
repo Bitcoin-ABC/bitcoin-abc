@@ -21,30 +21,30 @@
  * @constructor ValidationError
  * @param {string} message Error description.
  */
-function ValidationError(message) {
-    var error = new Error();
-    this.name = error.name = 'ValidationError';
-    this.message = error.message = message;
-    this.stack = error.stack;
+class ValidationError extends Error {
+    constructor(message: string) {
+        super(message); // Call the parent constructor
+        this.name = 'ValidationError'; // Set the error name
+        // If targeting ES5 or earlier, need to set this manually for subclassing to work
+        Object.setPrototypeOf(this, ValidationError.prototype);
+    }
 }
-
-ValidationError.prototype = Object.create(Error.prototype);
 
 /**
  * Validates a given condition, throwing a {@link ValidationError} if
  * the given condition does not hold.
  *
  * @static
- * @param {boolean} condition Condition to validate.
- * @param {string} message Error message in case the condition does not hold.
+ * @param condition Condition to validate.
+ * @param message Error message in case the condition does not hold.
  */
-function validate(condition, message) {
+function validate(condition: boolean, message: string) {
     if (!condition) {
         throw new ValidationError(message);
     }
 }
 
-module.exports = {
+export default {
     ValidationError: ValidationError,
     validate: validate,
 };

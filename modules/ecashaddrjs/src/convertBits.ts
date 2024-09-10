@@ -1,5 +1,6 @@
 // Copyright (c) 2017-2018 Emilio Almansi
 // Copyright (c) 2017 Pieter Wuille
+// Copyright (c) 2024 Bitcoin ABC
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +22,8 @@
 
 'use strict';
 
-var validate = require('./validation').validate;
+import validation from './validation';
+const { validate } = validation;
 
 /**
  * Converts an array of integers made up of 'from' bits into an
@@ -30,13 +32,17 @@ var validate = require('./validation').validate;
  * Throws a {@link ValidationError} if input is invalid.
  * Original by Pieter Wuille: https://github.com/sipa/bech32.
  *
- * @param {Uint8Array} data Array of integers made up of 'from' bits.
- * @param {number} from Length in bits of elements in the input array.
- * @param {number} to Length in bits of elements in the output array.
- * @param {bool} strictMode Require the conversion to be completed without padding.
- * @returns {Uint8Array}
+ * @param data Array of integers made up of 'from' bits.
+ * @param from Length in bits of elements in the input array.
+ * @param to Length in bits of elements in the output array.
+ * @param strictMode Require the conversion to be completed without padding.
  */
-module.exports = function (data, from, to, strictMode) {
+export default function (
+    data: Uint8Array,
+    from: number,
+    to: number,
+    strictMode: boolean = false,
+): Uint8Array {
     var length = strictMode
         ? Math.floor((data.length * from) / to)
         : Math.ceil((data.length * from) / to);
@@ -73,4 +79,4 @@ module.exports = function (data, from, to, strictMode) {
         );
     }
     return result;
-};
+}

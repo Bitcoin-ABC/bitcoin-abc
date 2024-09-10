@@ -2,14 +2,15 @@
  * @license
  * https://reviews.bitcoinabc.org
  * Copyright (c) 2017-2020 Emilio Almansi
- * Copyright (c) 2023 Bitcoin ABC
+ * Copyright (c) 2023-2024 Bitcoin ABC
  * Distributed under the MIT software license, see the accompanying
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
 
 'use strict';
 
-var validate = require('./validation').validate;
+import validation from './validation';
+const { validate } = validation;
 
 /**
  * Base32 encoding and decoding.
@@ -21,13 +22,13 @@ var validate = require('./validation').validate;
  * Charset containing the 32 symbols used in the base32 encoding.
  * @private
  */
-var CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+export var CHARSET: string = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 
 /**
  * Inverted index mapping each symbol into its index within the charset.
  * @private
  */
-var CHARSET_INVERSE_INDEX = {
+var CHARSET_INVERSE_INDEX: { [key: string]: number } = {
     q: 0,
     p: 1,
     z: 2,
@@ -66,11 +67,10 @@ var CHARSET_INVERSE_INDEX = {
  * Encodes the given array of 5-bit integers as a base32-encoded string.
  *
  * @static
- * @param {Uint8Array} data Array of integers between 0 and 31 inclusive.
- * @returns {string}
+ * @param data Array of integers between 0 and 31 inclusive.
  * @throws {ValidationError}
  */
-function encode(data) {
+function encode(data: Uint8Array): string {
     validate(data instanceof Uint8Array, 'Invalid data: ' + data + '.');
     var base32 = '';
     for (var i = 0; i < data.length; ++i) {
@@ -85,11 +85,10 @@ function encode(data) {
  * Decodes the given base32-encoded string into an array of 5-bit integers.
  *
  * @static
- * @param {string} string
- * @returns {Uint8Array}
+ * @param string
  * @throws {ValidationError}
  */
-function decode(string) {
+function decode(string: string): Uint8Array {
     validate(
         typeof string === 'string',
         'Invalid base32-encoded string: ' + string + '.',
@@ -106,7 +105,7 @@ function decode(string) {
     return data;
 }
 
-module.exports = {
+export default {
     encode: encode,
     decode: decode,
 };

@@ -157,3 +157,4 @@ https://jsfiddle.net/zghd6c2y/
 -   1.5.6 - Add types declaration for easy import by typescript apps
 -   1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
 -   1.5.8 - Upgrading dependencies [D16376](https://reviews.bitcoinabc.org/D16376)
+-   1.6.0 - Implement typescript [D16744](https://reviews.bitcoinabc.org/D16744)

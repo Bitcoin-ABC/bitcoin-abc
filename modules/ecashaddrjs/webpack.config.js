@@ -4,7 +4,7 @@ const webpack = require('webpack');
 
 const base = {
     mode: 'production',
-    entry: path.resolve(__dirname, 'src', 'cashaddr.js'),
+    entry: path.resolve(__dirname, 'src', 'cashaddr.ts'),
     output: {
         path: path.resolve(__dirname, 'dist'),
         library: 'cashaddr',
@@ -15,20 +15,15 @@ const base = {
         fallback: {
             buffer: require.resolve('buffer'),
         },
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js'],
     },
     module: {
         rules: [
             {
-                test: /\.js$/,
+                // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
+                test: /\.tsx?$/,
+                loader: 'ts-loader',
                 exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: [
-                            ['@babel/preset-env', { targets: 'defaults' }],
-                        ],
-                    },
-                },
             },
         ],
     },

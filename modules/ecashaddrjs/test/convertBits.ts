@@ -10,7 +10,7 @@
 
 const { assert } = require('chai');
 const { ValidationError } = require('../src/validation');
-const convertBits = require('../src/convertBits');
+import convertBits from '../src/convertBits';
 const { Random, MersenneTwister19937 } = require('random-js');
 
 describe('#convertBits()', () => {
@@ -26,7 +26,7 @@ describe('#convertBits()', () => {
 
     it('should fail if it receives an invalid value', () => {
         assert.throws(() => {
-            convertBits([100], 5, 8);
+            convertBits([100] as unknown as Uint8Array, 5, 8);
         }, ValidationError);
     });
 
