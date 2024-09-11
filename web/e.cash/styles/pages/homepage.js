@@ -50,6 +50,7 @@ export const HeroTextCtn = styled.div`
     flex-direction: column;
     width: 50%;
     align-items: flex-start;
+    z-index: 2;
 
     h1 {
         font-family: 'Montserrat', sans-serif;
