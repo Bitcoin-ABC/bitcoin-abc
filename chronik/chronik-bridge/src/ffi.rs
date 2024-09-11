@@ -353,6 +353,10 @@ unsafe impl Send for ChronikBridge {}
 #[allow(unsafe_code)]
 unsafe impl Sync for ChronikBridge {}
 
+/// SAFETY: All functions that take CBlockIndex are acquiring required C++ locks
+#[allow(unsafe_code)]
+unsafe impl Sync for CBlockIndex {}
+
 impl std::fmt::Debug for ChronikBridge {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ChronikBridge").finish_non_exhaustive()
