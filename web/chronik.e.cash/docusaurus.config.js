@@ -39,7 +39,7 @@ const config = {
         [
             'docusaurus-plugin-typedoc',
             {
-                entryPoints: ['../../chronik-client/'],
+                entryPoints: ['../../modules/chronik-client/'],
                 entryPointStrategy: 'packages',
                 out: './1-chronik-js/api',
                 sidebar: {

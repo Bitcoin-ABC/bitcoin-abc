@@ -13,7 +13,7 @@ Anything **unclear** or **buggy** in this tutorial? [Please report it in our Tel
 You can try out your Chronik instance by entering its URL here:
 
 import { useState } from 'react';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import './03-congratulations.scss';
 
 export const GetBlockchainInfo = () => {
@@ -23,7 +23,7 @@ export const GetBlockchainInfo = () => {
     const [blockchainInfo, setBlockchainInfo] = useState(undefined);
     const [error, setError] = useState(undefined);
     const getBlockchainInfo = async () => {
-        const client = new ChronikClientNode(chronikUrl);
+        const client = new ChronikClient(chronikUrl);
         try {
             const info = await client.blockchainInfo();
             console.log(info);

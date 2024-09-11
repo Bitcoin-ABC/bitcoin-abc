@@ -3,10 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import CodeBlock from '@theme/CodeBlock';
 
-const chronik = new ChronikClientNode(['https://chronik-native1.fabien.cash']);
+const chronik = new ChronikClient(['https://chronik-native1.fabien.cash']);
 
 const Json = props => {
     const [result, setResult] = useState(undefined);
@@ -36,7 +36,7 @@ const Json = props => {
 const ReactLiveScope = {
     React,
     ...React,
-    ChronikClientNode,
+    ChronikClient,
     Json,
     chronik,
 };

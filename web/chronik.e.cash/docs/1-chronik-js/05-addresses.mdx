@@ -3,22 +3,27 @@ sidebar_position: 6
 ---
 
 # Scripts & Addresses
-Access scripts & addresses and  using Chronik.
+
+Access scripts & addresses and using Chronik.
 
 ## `address(address)`
 
 Return an object that can be used to fetch address data from Chronik in a fluent Interface.
 
-See [address](api/classes/ChronikClientNode#address) API docs.
+See [address](api/classes/ChronikClient#address) API docs.
 
 ```jsx live
 function DemoAddress() {
-  return <Json fn={async () => {
-    // Some address with little history
-    return await chronik
-      .address("ecash:qr3ax9kpca8qkgtwk0cdqdhnprsgfsq3xu2dx56fmw")
-      .history(0);
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // Some address with little history
+                return await chronik
+                    .address('ecash:qr3ax9kpca8qkgtwk0cdqdhnprsgfsq3xu2dx56fmw')
+                    .history(0);
+            }}
+        />
+    );
 }
 ```
 
@@ -26,16 +31,20 @@ function DemoAddress() {
 
 Return an object that can be used to fetch script data from Chronik in a fluent Interface.
 
-See [script](api/classes/ChronikClientNode#script) API docs.
+See [script](api/classes/ChronikClient#script) API docs.
 
 ```jsx live
 function DemoScript() {
-  return <Json fn={async () => {
-    // Same address, but using the Public-Key-Hash
-    return await chronik
-      .script("p2pkh", "e3d316c1c74e0b216eb3f0d036f308e084c01137")
-      .history(0);
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // Same address, but using the Public-Key-Hash
+                return await chronik
+                    .script('p2pkh', 'e3d316c1c74e0b216eb3f0d036f308e084c01137')
+                    .history(0);
+            }}
+        />
+    );
 }
 ```
 
@@ -47,11 +56,16 @@ See [history](api/classes/ScriptEndpointInNode#history) API docs.
 
 ```jsx live
 function DemoAddressHistory() {
-  return <Json fn={async () => {
-    // IFP address
-    return await chronik.address("ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07")
-                        .history(300, 2);
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // IFP address
+                return await chronik
+                    .address('ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07')
+                    .history(300, 2);
+            }}
+        />
+    );
 }
 ```
 
@@ -63,13 +77,20 @@ See [utxos](api/classes/ScriptEndpointInNode#utxos) API docs.
 
 ```jsx live
 function DemoScriptUtxos() {
-  return <Json fn={async () => {
-    // Genesis PK utxos
-    return await chronik
-      .script("p2pk", "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a6" +
-                      "7962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c" +
-                      "384df7ba0b8d578a4c702b6bf11d5f")
-      .utxos();
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // Genesis PK utxos
+                return await chronik
+                    .script(
+                        'p2pk',
+                        '04678afdb0fe5548271967f1a67130b7105cd6a828e03909a6' +
+                            '7962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c' +
+                            '384df7ba0b8d578a4c702b6bf11d5f',
+                    )
+                    .utxos();
+            }}
+        />
+    );
 }
 ```

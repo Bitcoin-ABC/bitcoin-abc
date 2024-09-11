@@ -3,6 +3,7 @@ sidebar_position: 7
 ---
 
 # Tokens
+
 Access tokens using Chronik.
 
 :::note
@@ -14,15 +15,20 @@ All other APIs (tx, history, utxos, etc.) also contain token data where applicab
 
 Return token info for the given tokenId
 
-See [token](api/classes/ChronikClientNode#token) API docs.
+See [token](api/classes/ChronikClient#token) API docs.
 
 ```jsx live
 function DemoToken() {
-  return <Json fn={async () => {
-    // CRD token
-    return await chronik
-      .token("cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145");
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // CRD token
+                return await chronik.token(
+                    'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                );
+            }}
+        />
+    );
 }
 ```
 
@@ -30,16 +36,22 @@ function DemoToken() {
 
 Return an object that can be used to fetch token data from Chronik in a fluent interface.
 
-See [tokenId](api/classes/ChronikClientNode#tokenid) API docs.
+See [tokenId](api/classes/ChronikClient#tokenid) API docs.
 
 ```jsx live
 function DemoTokenId() {
-  return <Json fn={async () => {
-    // CRD Genesis is first
-    return await chronik
-      .tokenId("cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145")
-      .confirmedTxs(0, 1);
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // CRD Genesis is first
+                return await chronik
+                    .tokenId(
+                        'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                    )
+                    .confirmedTxs(0, 1);
+            }}
+        />
+    );
 }
 ```
 
@@ -51,12 +63,18 @@ See [history](api/classes/TokenIdEndpoint#history) API docs.
 
 ```jsx live
 function DemoTokenIdHistory() {
-  return <Json fn={async () => {
-    // The latest CRD tx
-    return await chronik
-      .tokenId("cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145")
-      .history(0, 1);
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // The latest CRD tx
+                return await chronik
+                    .tokenId(
+                        'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                    )
+                    .history(0, 1);
+            }}
+        />
+    );
 }
 ```
 
@@ -68,12 +86,18 @@ See [confirmedTxs](api/classes/TokenIdEndpoint#confirmedtxs) API docs.
 
 ```jsx live
 function DemoTokenIdConfirmedTxs() {
-  return <Json fn={async () => {
-    // CRD GENESIS
-    return await chronik
-      .tokenId("cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145")
-      .confirmedTxs(0, 1);
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // CRD GENESIS
+                return await chronik
+                    .tokenId(
+                        'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                    )
+                    .confirmedTxs(0, 1);
+            }}
+        />
+    );
 }
 ```
 
@@ -85,12 +109,18 @@ See [unconfirmedTxs](api/classes/TokenIdEndpoint#unconfirmedtxs) API docs.
 
 ```jsx live
 function DemoTokenIdUnconfirmedTxs() {
-  return <Json fn={async () => {
-    // Grumpy token txs in mempool
-    return await chronik
-      .tokenId("fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa")
-      .unconfirmedTxs();
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // Grumpy token txs in mempool
+                return await chronik
+                    .tokenId(
+                        'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+                    )
+                    .unconfirmedTxs();
+            }}
+        />
+    );
 }
 ```
 
@@ -102,11 +132,19 @@ See [utxos](api/classes/TokenIdEndpoint#utxos) API docs.
 
 ```jsx live
 function DemoTokenIdUtxos() {
-  return <Json fn={async () => {
-    // Some CRD UTXO
-    return (await chronik
-      .tokenId("cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145")
-      .utxos()).utxos[0];
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                // Some CRD UTXO
+                return (
+                    await chronik
+                        .tokenId(
+                            'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                        )
+                        .utxos()
+                ).utxos[0];
+            }}
+        />
+    );
 }
 ```

@@ -3,20 +3,26 @@ sidebar_position: 5
 ---
 
 # Transactions
+
 Access transactions using Chronik
 
 ## `tx(txid)`
 
 Fetch tx details given the txid, includes token info.
 
-See [tx](api/classes/ChronikClientNode#tx) API docs.
+See [tx](api/classes/ChronikClient#tx) API docs.
 
 ```jsx live
 function DemoTx() {
-  return <Json fn={async () => {
-    return await chronik.tx(
-      "cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145");
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                return await chronik.tx(
+                    'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                );
+            }}
+        />
+    );
 }
 ```
 
@@ -24,13 +30,18 @@ function DemoTx() {
 
 Fetch the raw tx bytes given the txid.
 
-See [rawTx](api/classes/ChronikClientNode#rawtx) API docs.
+See [rawTx](api/classes/ChronikClient#rawtx) API docs.
 
 ```jsx live
 function DemoRawTx() {
-  return <Json fn={async () => {
-    return await chronik.rawTx(
-      "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
-  }} />;
+    return (
+        <Json
+            fn={async () => {
+                return await chronik.rawTx(
+                    '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+                );
+            }}
+        />
+    );
 }
 ```

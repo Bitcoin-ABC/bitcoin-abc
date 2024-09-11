@@ -6,11 +6,11 @@ sidebar_position: 2
 
 Connect to a Chronik node via `chronik-client`.
 
-Import `ChronikClientNode` (soon to become `ChronikClient`) and provide it the Chronik URL in the constructor:
+Import `ChronikClient` and provide it the Chronik URL in the constructor:
 
 ```tsx
-import { ChronikClientNode } from 'chronik-client';
-const chronik = new ChronikClientNode('https://chronik-native1.fabien.cash');
+import { ChronikClient } from 'chronik-client';
+const chronik = new ChronikClient(['https://chronik-native1.fabien.cash']);
 ```
 
 ## Try it out!
@@ -22,7 +22,7 @@ function DemoConnect() {
     return (
         <Json
             fn={async () => {
-                const chronik = new ChronikClientNode(
+                const chronik = new ChronikClient(
                     'https://chronik-native1.fabien.cash',
                 );
                 return await chronik.blockchainInfo();
