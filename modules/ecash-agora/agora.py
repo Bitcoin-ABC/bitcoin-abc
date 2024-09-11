@@ -13,32 +13,57 @@ peer-to-peer, non-custodial transaction.
 
 import hashlib
 from dataclasses import dataclass
-from typing import Optional
+from io import BytesIO
+from typing import Optional, Union
 
 from chronik_plugin.plugin import Plugin, PluginOutput
 from chronik_plugin.script import (
+    OP_0,
+    OP_0NOTEQUAL,
     OP_2,
+    OP_2DUP,
+    OP_2OVER,
+    OP_2SWAP,
     OP_3DUP,
+    OP_8,
+    OP_9,
+    OP_12,
+    OP_ADD,
+    OP_BIN2NUM,
     OP_CAT,
     OP_CHECKDATASIGVERIFY,
     OP_CHECKSIG,
     OP_CHECKSIGVERIFY,
     OP_CODESEPARATOR,
+    OP_DIV,
     OP_DROP,
+    OP_DUP,
     OP_ELSE,
     OP_ENDIF,
     OP_EQUAL,
     OP_EQUALVERIFY,
+    OP_FROMALTSTACK,
+    OP_GREATERTHANOREQUAL,
     OP_HASH160,
     OP_HASH256,
     OP_IF,
+    OP_MOD,
     OP_NIP,
+    OP_NOTIF,
     OP_NUM2BIN,
     OP_OVER,
+    OP_PICK,
+    OP_PUSHDATA1,
+    OP_REVERSEBYTES,
     OP_ROT,
     OP_SHA256,
+    OP_SIZE,
     OP_SPLIT,
+    OP_SUB,
     OP_SWAP,
+    OP_TOALTSTACK,
+    OP_TUCK,
+    OP_VERIFY,
     CScript,
 )
 from chronik_plugin.slp import slp_send
@@ -79,16 +104,7 @@ class AgoraPlugin(Plugin):
             return []
 
         ad_input = tx.inputs[0]
-        offer_output = tx.outputs[1]
-        token = offer_output.token
-
-        # Offer must have a token
-        if token is None:
-            return []
-
         token_entry = tx.token_entries[0]
-        if token.token_id != token_entry.token_id:
-            return []
 
         pushdata = parse_ad_script_sig(ad_input.script)
         if pushdata is None:
@@ -98,9 +114,15 @@ class AgoraPlugin(Plugin):
         ad_redeem_script = CScript(ad_redeem_bytecode)
 
         if covenant_variant == b"ONESHOT":
+            # Offer output is always output 1
+            offer_idx = 1
+            offer_output = tx.outputs[offer_idx]
+            # Offer must have a token
+            if offer_output.token is None:
+                return []
             agora_oneshot = AgoraOneshot.parse_redeem_script(
                 ad_redeem_script,
-                token,
+                offer_output.token,
             )
             if agora_oneshot is None:
                 return []
@@ -121,10 +143,45 @@ class AgoraPlugin(Plugin):
                 ]
             data = agora_oneshot.data()
             pubkey = agora_oneshot.cancel_pk
+        elif covenant_variant == b"PARTIAL":
+            # Offer output is either output 1 or 2
+            offer_idx = 1
+            offer_output = tx.outputs[offer_idx]
+            if len(tx.outputs) >= 3 and offer_output.token is None:
+                offer_idx = 2
+                offer_output = tx.outputs[offer_idx]
+            # Offer must have a token
+            if offer_output.token is None:
+                return []
+
+            agora_partial = AgoraPartial.parse_redeem_script(
+                ad_redeem_script, offer_output.token
+            )
+            if agora_partial is None:
+                return []
+
+            expected_agora_script = agora_partial.script()
+            expected_agora_sh = hash160(expected_agora_script)
+            expected_agora_p2sh = CScript(
+                bytes([OP_HASH160, 20]) + expected_agora_sh + bytes([OP_EQUAL])
+            )
+
+            if offer_output.script != expected_agora_p2sh:
+                # Offered output doesn't have the advertized P2SH script
+                return [
+                    PluginOutput(
+                        idx=offer_idx,
+                        data=[b"ERROR", expected_agora_script],
+                        groups=[],
+                    )
+                ]
+
+            data = agora_partial.data()
+            pubkey = agora_partial.maker_pk
         else:
             return []
 
-        token_id_bytes = bytes.fromhex(token.token_id)
+        token_id_bytes = bytes.fromhex(token_entry.token_id)
         groups = [
             b"P" + pubkey,
             b"T" + token_id_bytes,
@@ -136,7 +193,7 @@ class AgoraPlugin(Plugin):
 
         return [
             PluginOutput(
-                idx=1,
+                idx=offer_idx,
                 data=data,
                 groups=groups,
             )
@@ -146,10 +203,10 @@ class AgoraPlugin(Plugin):
 MIN_NUM_SCRIPTSIG_PUSHOPS = 3
 
 
-def parse_ad_script_sig(script) -> Optional[list[bytes]]:
+def parse_ad_script_sig(script) -> Optional[list[Union[bytes, int]]]:
     pushdata = []
     for op in script:
-        if not isinstance(op, bytes):
+        if not isinstance(op, (bytes, int)):
             return None
         pushdata.append(op)
     if len(pushdata) < MIN_NUM_SCRIPTSIG_PUSHOPS:
@@ -269,3 +326,322 @@ class AgoraOneshot:
                 OP_CHECKSIG,
             ]
         )
+
+
+@dataclass
+class AgoraPartial:
+    trunc_tokens: int
+    num_token_trunc_bytes: int
+    token_scale_factor: int
+    scaled_trunc_tokens_per_trunc_sat: int
+    num_sats_trunc_bytes: int
+    maker_pk: bytes
+    min_accepted_scaled_trunc_tokens: int
+    token_id: str
+    token_type: int
+    token_protocol: str
+    script_len: int
+    dust_amount: int
+
+    @classmethod
+    def parse_redeem_script(cls, redeem_script, token):
+        consts = next(iter(redeem_script))
+        len_slp_intro = len(
+            slp_send(
+                token_type=token.token_type,
+                token_id=token.token_id,
+                amounts=[0],
+            )
+        )
+        ad_pushdata = consts[len_slp_intro:]
+        return parse_partial(ad_pushdata, token)
+
+    def ad_pushdata(self):
+        pushdata = bytearray()
+        pushdata.append(self.num_token_trunc_bytes)
+        pushdata.append(self.num_sats_trunc_bytes)
+        pushdata.extend(self.token_scale_factor.to_bytes(8, "little"))
+        pushdata.extend(self.scaled_trunc_tokens_per_trunc_sat.to_bytes(8, "little"))
+        pushdata.extend(self.min_accepted_scaled_trunc_tokens.to_bytes(8, "little"))
+        pushdata.extend(self.maker_pk)
+        return bytes(pushdata)
+
+    def data(self) -> list[bytes]:
+        return [
+            b"PARTIAL",
+            bytes([self.num_token_trunc_bytes]),
+            bytes([self.num_sats_trunc_bytes]),
+            self.token_scale_factor.to_bytes(8, "little"),
+            self.scaled_trunc_tokens_per_trunc_sat.to_bytes(8, "little"),
+            self.min_accepted_scaled_trunc_tokens.to_bytes(8, "little"),
+        ]
+
+    def script(self) -> CScript:
+        # See partial.ts in ecash-agora for a commented version of this Script
+        scaled_trunc_tokens_8le = (
+            self.trunc_tokens * self.token_scale_factor
+        ).to_bytes(8, "little")
+
+        ad_pushdata = self.ad_pushdata()
+
+        # Consts are of slightly different form
+        if self.token_protocol == "SLP":
+            slp_intro = slp_send(
+                token_type=self.token_type,
+                token_id=self.token_id,
+                amounts=[0],
+            )
+            covenant_consts = bytes(slp_intro) + ad_pushdata
+            token_intro_len = len(slp_intro)
+        else:
+            raise NotImplementedError
+
+        return CScript(
+            [
+                covenant_consts,
+                scaled_trunc_tokens_8le,
+                OP_CODESEPARATOR,
+                OP_ROT,
+                OP_IF,
+                OP_BIN2NUM,
+                OP_ROT,
+                OP_2DUP,
+                OP_GREATERTHANOREQUAL,
+                OP_VERIFY,
+                OP_DUP,
+                self.min_accepted_scaled_trunc_tokens,
+                OP_GREATERTHANOREQUAL,
+                OP_VERIFY,
+                OP_DUP,
+                self.token_scale_factor,
+                OP_MOD,
+                OP_0,
+                OP_EQUALVERIFY,
+                OP_TUCK,
+                OP_SUB,
+                2,
+                OP_PICK,
+                token_intro_len,
+                OP_SPLIT,
+                OP_DROP,
+                OP_OVER,
+                OP_0NOTEQUAL,
+                *self._script_build_op_return(),
+                bytes(self.num_sats_trunc_bytes),
+                OP_CAT,
+                OP_ROT,
+                self.scaled_trunc_tokens_per_trunc_sat - 1,
+                OP_ADD,
+                self.scaled_trunc_tokens_per_trunc_sat,
+                OP_DIV,
+                8 - self.num_sats_trunc_bytes,
+                OP_NUM2BIN,
+                OP_CAT,
+                bytes([25, OP_DUP, OP_HASH160, 20]),
+                OP_2OVER,
+                OP_DROP,
+                len(covenant_consts) - 33,
+                OP_SPLIT,
+                OP_NIP,
+                OP_HASH160,
+                OP_CAT,
+                bytes([OP_EQUALVERIFY, OP_CHECKSIG]),
+                OP_CAT,
+                OP_CAT,
+                OP_TOALTSTACK,
+                OP_TUCK,
+                self.dust_amount,
+                OP_8,
+                OP_NUM2BIN,
+                bytes([23, OP_HASH160, 20]),
+                OP_CAT,
+                bytes(
+                    [OP_PUSHDATA1, len(covenant_consts)]
+                    if len(covenant_consts) >= OP_PUSHDATA1
+                    else [len(covenant_consts)]
+                ),
+                OP_2SWAP,
+                OP_8,
+                OP_TUCK,
+                OP_NUM2BIN,
+                OP_CAT,
+                OP_CAT,
+                OP_CAT,
+                bytes([OP_CODESEPARATOR]),
+                OP_CAT,
+                3,
+                OP_PICK,
+                36 + (1 if self.script_len < 0xFD else 3),
+                OP_SPLIT,
+                OP_NIP,
+                self.script_len,
+                OP_SPLIT,
+                OP_12,
+                OP_SPLIT,
+                OP_NIP,
+                32,
+                OP_SPLIT,
+                OP_DROP,
+                OP_TOALTSTACK,
+                OP_CAT,
+                OP_HASH160,
+                OP_CAT,
+                bytes([OP_EQUAL]),
+                OP_CAT,
+                OP_SWAP,
+                OP_0NOTEQUAL,
+                OP_NOTIF,
+                OP_DROP,
+                b"",
+                OP_ENDIF,
+                OP_ROT,
+                OP_SIZE,
+                OP_0NOTEQUAL,
+                OP_VERIFY,
+                OP_CAT,
+                OP_FROMALTSTACK,
+                OP_FROMALTSTACK,
+                OP_ROT,
+                OP_CAT,
+                OP_HASH256,
+                OP_EQUALVERIFY,
+                OP_2,
+                4 + 32 + 32,
+                OP_NUM2BIN,
+                OP_SWAP,
+                OP_CAT,
+                OP_SHA256,
+                OP_3DUP,
+                OP_ROT,
+                OP_CHECKDATASIGVERIFY,
+                OP_DROP,
+                bytes([ALL_ANYONECANPAY_BIP143]),
+                OP_CAT,
+                OP_SWAP,
+                OP_ELSE,
+                OP_DROP,
+                len(covenant_consts) - 33,
+                OP_SPLIT,
+                OP_NIP,
+                OP_ENDIF,
+                *self._script_outro(),
+            ]
+        )
+
+    def _script_build_op_return(self):
+        if self.token_protocol == "SLP":
+            return self._script_build_slp_op_return()
+        else:
+            raise NotImplementedError
+
+    def _script_build_slp_op_return(self):
+        return [
+            OP_IF,
+            OP_8,
+            OP_CAT,
+            OP_OVER,
+            self.token_scale_factor,
+            OP_DIV,
+            *self._script_ser_slp_trunc_tokens(),
+            OP_REVERSEBYTES,
+            bytes(self.num_token_trunc_bytes),
+            OP_CAT,
+            OP_CAT,
+            OP_ENDIF,
+            OP_8,
+            OP_CAT,
+            2,
+            OP_PICK,
+            self.token_scale_factor,
+            OP_DIV,
+            *self._script_ser_slp_trunc_tokens(),
+            OP_REVERSEBYTES,
+            bytes(self.num_token_trunc_bytes),
+            OP_CAT,
+            OP_CAT,
+            OP_SIZE,
+            OP_9,
+            OP_NUM2BIN,
+            OP_REVERSEBYTES,
+            OP_SWAP,
+            OP_CAT,
+        ]
+
+    def _script_ser_slp_trunc_tokens(self):
+        if self.num_token_trunc_bytes == 5:
+            return [
+                4,
+                OP_NUM2BIN,
+                3,
+                OP_SPLIT,
+                OP_DROP,
+            ]
+        return [
+            8 - self.num_token_trunc_bytes,
+            OP_NUM2BIN,
+        ]
+
+    def _script_outro(self):
+        if self.token_protocol == "SLP":
+            return [
+                OP_CHECKSIGVERIFY,
+                b"PARTIAL",
+                OP_EQUALVERIFY,
+                LOKAD_ID,
+                OP_EQUAL,
+            ]
+        else:
+            raise NotImplementedError
+
+
+def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
+    data_reader = BytesIO(pushdata)
+    # AGR0 PARTIAL pushdata always has the same length
+    if token.token_protocol == "SLP":
+        if len(pushdata) != 59:
+            return None
+    else:
+        raise NotImplementedError
+    num_token_trunc_bytes = data_reader.read(1)[0]
+    num_sats_trunc_bytes = data_reader.read(1)[0]
+    token_scale_factor = int.from_bytes(data_reader.read(8), "little")
+    scaled_trunc_tokens_per_trunc_sat = int.from_bytes(data_reader.read(8), "little")
+    min_accepted_scaled_trunc_tokens = int.from_bytes(data_reader.read(8), "little")
+    maker_pk = data_reader.read(33)
+
+    token_trunc_factor = 1 << (8 * num_token_trunc_bytes)
+
+    # Offers must have a losslessly truncatable token amount
+    if token.amount % token_trunc_factor != 0:
+        return None
+
+    partial_alp = AgoraPartial(
+        trunc_tokens=token.amount // token_trunc_factor,
+        num_token_trunc_bytes=num_token_trunc_bytes,
+        token_scale_factor=token_scale_factor,
+        scaled_trunc_tokens_per_trunc_sat=scaled_trunc_tokens_per_trunc_sat,
+        num_sats_trunc_bytes=num_sats_trunc_bytes,
+        maker_pk=maker_pk,
+        min_accepted_scaled_trunc_tokens=min_accepted_scaled_trunc_tokens,
+        token_id=token.token_id,
+        token_type=token.token_type,
+        token_protocol=token.token_protocol,
+        script_len=0x7F,
+        dust_amount=546,
+    )
+    measured_len = len(cut_out_codesep(partial_alp.script()))
+    if measured_len > 0x80:
+        partial_alp.script_len = measured_len
+        measured_len = len(cut_out_codesep(partial_alp.script()))
+    partial_alp.script_len = measured_len
+    return partial_alp
+
+
+def cut_out_codesep(script):
+    script_iter = iter(script)
+    for op in script_iter:
+        if op == OP_CODESEPARATOR:
+            break
+    else:
+        return script
+    return CScript(script_iter)

@@ -2,8 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { ChronikClient, PluginEndpoint, Token, Utxo } from 'chronik-client';
 import {
+    ChronikClient,
+    PluginEndpoint,
+    PluginEntry,
+    Token,
+    Utxo,
+} from 'chronik-client';
+import {
+    Amount,
     Bytes,
     DEFAULT_DUST_LIMIT,
     DEFAULT_FEE_PER_KB,
@@ -13,6 +20,8 @@ import {
     OutPoint,
     readTxOutput,
     Script,
+    shaRmd160,
+    Signatory,
     slpSend,
     strToBytes,
     toHex,
@@ -29,6 +38,11 @@ import {
     AgoraOneshotCancelSignatory,
     AgoraOneshotSignatory,
 } from './oneshot.js';
+import {
+    AgoraPartial,
+    AgoraPartialCancelSignatory,
+    AgoraPartialSignatory,
+} from './partial.js';
 
 const TOKEN_ID_PREFIX = toHex(strToBytes('T'));
 const PUBKEY_PREFIX = toHex(strToBytes('P'));
@@ -37,14 +51,20 @@ const GROUP_TOKEN_ID_PREFIX = toHex(strToBytes('G'));
 const PLUGIN_NAME = 'agora';
 
 const ONESHOT_HEX = toHex(strToBytes(AgoraOneshot.COVENANT_VARIANT));
+const PARTIAL_HEX = toHex(strToBytes(AgoraPartial.COVENANT_VARIANT));
 
 const PLUGIN_GROUPS_MAX_PAGE_SIZE = 50;
 
 /** Offer variant, determines the Script used to enforce the offer */
-export type AgoraOfferVariant = {
-    type: 'ONESHOT';
-    params: AgoraOneshot;
-};
+export type AgoraOfferVariant =
+    | {
+          type: 'ONESHOT';
+          params: AgoraOneshot;
+      }
+    | {
+          type: 'PARTIAL';
+          params: AgoraPartial;
+      };
 
 /**
  * Individual token offer on the Agora, i.e. one UTXO offering tokens.
@@ -101,6 +121,8 @@ export class AgoraOffer {
         fuelInputs: TxBuilderInput[];
         /** Script to send the tokens and the leftover sats (if any) to. */
         recipientScript: Script;
+        /** For partial offers: Number of accepted tokens */
+        acceptedTokens?: bigint;
         /** Dust amount to use for the token output. */
         dustAmount?: number;
         /** Fee per kB to use when building the tx. */
@@ -119,6 +141,7 @@ export class AgoraOffer {
                 },
                 params.recipientScript,
             ],
+            acceptedTokens: params.acceptedTokens,
         });
         return txBuild.sign(params.ecc, feePerKb, dustAmount);
     }
@@ -136,6 +159,7 @@ export class AgoraOffer {
         extraInputs?: TxBuilderInput[];
         /** Fee per kB to use when building the tx. */
         feePerKb?: number;
+        acceptedTokens?: bigint;
     }): bigint {
         const feePerKb = params.feePerKb ?? DEFAULT_FEE_PER_KB;
         const txBuild = this._acceptTxBuilder({
@@ -148,6 +172,7 @@ export class AgoraOffer {
                     script: params.recipientScript,
                 },
             ],
+            acceptedTokens: params.acceptedTokens,
         });
         const measureTx = txBuild.sign(new EccDummy());
         return BigInt(Math.ceil((measureTx.serSize() * feePerKb) / 1000));
@@ -158,24 +183,93 @@ export class AgoraOffer {
         covenantPk: Uint8Array;
         fuelInputs: TxBuilderInput[];
         extraOutputs: TxBuilderOutput[];
-    }) {
-        return new TxBuilder({
-            inputs: [
-                ...params.fuelInputs,
-                {
+        acceptedTokens?: bigint;
+    }): TxBuilder {
+        switch (this.variant.type) {
+            case 'ONESHOT':
+                return new TxBuilder({
+                    inputs: [
+                        ...params.fuelInputs,
+                        {
+                            input: this.txBuilderInput,
+                            signatory: AgoraOneshotSignatory(
+                                params.covenantSk,
+                                params.covenantPk,
+                                this.variant.params.enforcedOutputs.length,
+                            ),
+                        },
+                    ],
+                    outputs: [
+                        ...this.variant.params.enforcedOutputs,
+                        ...params.extraOutputs,
+                    ],
+                });
+            case 'PARTIAL':
+                if (params.acceptedTokens === undefined) {
+                    throw new Error(
+                        'Must set acceptedTokens for partial offers',
+                    );
+                }
+                const txBuild = new TxBuilder();
+                const agoraPartial = this.variant.params;
+                const truncFactor =
+                    1n << BigInt(8 * agoraPartial.numTokenTruncBytes);
+                if (params.acceptedTokens % truncFactor != 0n) {
+                    throw new Error(
+                        `Must acceptedTokens must be a multiple of ${truncFactor}`,
+                    );
+                }
+                txBuild.inputs.push({
                     input: this.txBuilderInput,
-                    signatory: AgoraOneshotSignatory(
+                    signatory: AgoraPartialSignatory(
+                        agoraPartial,
+                        params.acceptedTokens / truncFactor,
                         params.covenantSk,
                         params.covenantPk,
-                        this.variant.params.enforcedOutputs.length,
                     ),
-                },
-            ],
-            outputs: [
-                ...this.variant.params.enforcedOutputs,
-                ...params.extraOutputs,
-            ],
-        });
+                });
+                txBuild.inputs.push(...params.fuelInputs);
+                const sendAmounts: Amount[] = [0];
+                const offeredTokens = BigInt(this.token.amount);
+                if (offeredTokens > params.acceptedTokens) {
+                    sendAmounts.push(offeredTokens - params.acceptedTokens);
+                }
+                sendAmounts.push(params.acceptedTokens);
+                if (agoraPartial.tokenProtocol == 'SLP') {
+                    txBuild.outputs.push({
+                        value: 0,
+                        script: slpSend(
+                            this.token.tokenId,
+                            this.token.tokenType.number,
+                            sendAmounts,
+                        ),
+                    });
+                } else {
+                    throw new Error('Only SLP implemented at the moment');
+                }
+                txBuild.outputs.push({
+                    value: agoraPartial.askedSats(params.acceptedTokens),
+                    script: Script.p2pkh(shaRmd160(agoraPartial.makerPk)),
+                });
+                if (offeredTokens > params.acceptedTokens) {
+                    const newAgoraPartial = new AgoraPartial({
+                        ...agoraPartial,
+                        truncTokens:
+                            (offeredTokens - params.acceptedTokens) /
+                            truncFactor,
+                    });
+                    txBuild.outputs.push({
+                        value: agoraPartial.dustAmount,
+                        script: Script.p2sh(
+                            shaRmd160(newAgoraPartial.script().bytecode),
+                        ),
+                    });
+                }
+                txBuild.outputs.push(...params.extraOutputs);
+                return txBuild;
+            default:
+                throw new Error('Not implemented');
+        }
     }
 
     /**
@@ -263,12 +357,26 @@ export class AgoraOffer {
         fuelInputs: TxBuilderInput[];
         extraOutputs: TxBuilderOutput[];
     }) {
+        let signatory: Signatory;
+        switch (this.variant.type) {
+            case 'ONESHOT':
+                signatory = AgoraOneshotCancelSignatory(params.cancelSk);
+                break;
+            case 'PARTIAL':
+                signatory = AgoraPartialCancelSignatory(
+                    params.cancelSk,
+                    this.variant.params.tokenProtocol,
+                );
+                break;
+            default:
+                throw new Error('Not implemented');
+        }
         return new TxBuilder({
             inputs: [
                 ...params.fuelInputs,
                 {
                     input: this.txBuilderInput,
-                    signatory: AgoraOneshotCancelSignatory(params.cancelSk),
+                    signatory,
                 },
             ],
             outputs: [
@@ -289,8 +397,20 @@ export class AgoraOffer {
      * How many satoshis are asked to accept this offer, excluding tx fees.
      * This is what should be displayed to the user as the price.
      **/
-    public askedSats(): bigint {
-        return this.variant.params.askedSats();
+    public askedSats(acceptedTokens?: bigint): bigint {
+        switch (this.variant.type) {
+            case 'ONESHOT':
+                return this.variant.params.askedSats();
+            case 'PARTIAL':
+                if (acceptedTokens === undefined) {
+                    throw new Error(
+                        'Must provide acceptedTokens for PARTIAL offers',
+                    );
+                }
+                return this.variant.params.askedSats(acceptedTokens);
+            default:
+                throw new Error('Not implemented');
+        }
     }
 }
 
@@ -302,13 +422,15 @@ export class AgoraOffer {
  **/
 export class Agora {
     private plugin: PluginEndpoint;
+    private dustAmount: number;
 
     /**
      * Create an Agora instance. The provided Chronik instance must have the
      * "agora" plugin loaded.
      **/
-    public constructor(chronik: ChronikClient) {
+    public constructor(chronik: ChronikClient, dustAmount?: number) {
         this.plugin = chronik.plugin(PLUGIN_NAME);
+        this.dustAmount = dustAmount ?? DEFAULT_DUST_LIMIT;
     }
 
     /**
@@ -386,17 +508,27 @@ export class Agora {
         if (utxo.plugins === undefined) {
             return undefined;
         }
-        if (utxo.token?.tokenType.protocol !== 'SLP') {
-            // Currently only SLP supported
-            return undefined;
-        }
         const plugin = utxo.plugins[PLUGIN_NAME];
         if (plugin === undefined) {
             return undefined;
         }
         const covenantVariant = plugin.data[0];
-        if (covenantVariant !== ONESHOT_HEX) {
-            // Unknown offer type
+        switch (covenantVariant) {
+            case ONESHOT_HEX:
+                return this._parseOneshotOfferUtxo(utxo, plugin);
+            case PARTIAL_HEX:
+                return this._parsePartialOfferUtxo(utxo, plugin);
+            default:
+                return undefined;
+        }
+    }
+
+    private _parseOneshotOfferUtxo(
+        utxo: Utxo,
+        plugin: PluginEntry,
+    ): AgoraOffer | undefined {
+        if (utxo.token?.tokenType.protocol !== 'SLP') {
+            // Currently only SLP supported
             return undefined;
         }
         const outputsSerHex = plugin.data[1];
@@ -438,6 +570,83 @@ export class Agora {
                 signData: {
                     value: utxo.value,
                     redeemScript: agoraOneshot.script(),
+                },
+            },
+            token: utxo.token,
+        });
+    }
+
+    private _parsePartialOfferUtxo(
+        utxo: Utxo,
+        plugin: PluginEntry,
+    ): AgoraOffer | undefined {
+        if (utxo.token === undefined) {
+            return undefined;
+        }
+        if (utxo.token.tokenType.protocol !== 'SLP') {
+            // Currently only SLP supported
+            return undefined;
+        }
+
+        // Plugin gives us the offer data in this form
+        const [
+            _,
+            numTokenTruncBytesHex,
+            numSatsTruncBytesHex,
+            tokenScaleFactorHex,
+            scaledTruncTokensPerTruncSatHex,
+            minAcceptedScaledTruncTokensHex,
+        ] = plugin.data;
+
+        const numTokenTruncBytes = fromHex(numTokenTruncBytesHex)[0];
+        const numSatsTruncBytes = fromHex(numSatsTruncBytesHex)[0];
+        const tokenScaleFactor = new Bytes(
+            fromHex(tokenScaleFactorHex),
+        ).readU64();
+        const scaledTruncTokensPerTruncSat = new Bytes(
+            fromHex(scaledTruncTokensPerTruncSatHex),
+        ).readU64();
+        const minAcceptedScaledTruncTokens = new Bytes(
+            fromHex(minAcceptedScaledTruncTokensHex),
+        ).readU64();
+
+        const makerPkGroupHex = plugin.groups.find(group =>
+            group.startsWith(PUBKEY_PREFIX),
+        );
+        if (makerPkGroupHex === undefined) {
+            return undefined;
+        }
+        const makerPk = fromHex(
+            makerPkGroupHex.substring(PUBKEY_PREFIX.length),
+        );
+
+        const agoraPartial = new AgoraPartial({
+            truncTokens:
+                BigInt(utxo.token.amount) >> (8n * BigInt(numTokenTruncBytes)),
+            numTokenTruncBytes,
+            tokenScaleFactor,
+            scaledTruncTokensPerTruncSat,
+            numSatsTruncBytes,
+            makerPk,
+            minAcceptedScaledTruncTokens,
+            tokenId: utxo.token.tokenId,
+            tokenType: utxo.token.tokenType.number,
+            tokenProtocol: utxo.token.tokenType.protocol,
+            scriptLen: 0x7f,
+            dustAmount: this.dustAmount,
+        });
+        agoraPartial.updateScriptLen();
+        return new AgoraOffer({
+            variant: {
+                type: 'PARTIAL',
+                params: agoraPartial,
+            },
+            outpoint: utxo.outpoint,
+            txBuilderInput: {
+                prevOut: utxo.outpoint,
+                signData: {
+                    value: utxo.value,
+                    redeemScript: agoraPartial.script(),
                 },
             },
             token: utxo.token,

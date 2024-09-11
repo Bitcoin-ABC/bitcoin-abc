@@ -1043,4 +1043,118 @@ export class AgoraPartial {
             throw new Error('Only SLP implemented');
         }
     }
+
+    /**
+     * redeemScript of the Script advertizing this offer.
+     * It requires a setup tx followed by the actual offer, which reveals
+     * the covenantConsts.
+     * The reason we have an OP_CHECKSIGVERIFY (as opposed to just leaving it
+     * as "anyone can spend with this pushdata") is so that others on the
+     * network can't spend this UTXO (and potentially take the tokens in it),
+     * and only the maker can spend it.
+     **/
+    public adScript(): Script {
+        const [covenantConsts, _] = this.covenantConsts();
+        return Script.fromOps([
+            pushBytesOp(covenantConsts),
+            pushNumberOp(covenantConsts.length - 33),
+            OP_SPLIT,
+            OP_NIP,
+            OP_CHECKSIGVERIFY,
+            pushBytesOp(strToBytes(AgoraPartial.COVENANT_VARIANT)),
+            OP_EQUALVERIFY,
+            pushBytesOp(AGORA_LOKAD_ID),
+            OP_EQUAL,
+        ]);
+    }
 }
+
+function makeScriptSigIntro(tokenProtocol: 'SLP' | 'ALP'): Op[] {
+    switch (tokenProtocol) {
+        case 'SLP':
+            // For SLP, we need to add "AGR0" "PARTIAL" at the beginning of the
+            // scriptSig, to advertize it via the LOKAD ID. ALP uses the
+            // OP_RETURN, so there this is not needed.
+            return [
+                pushBytesOp(AGORA_LOKAD_ID),
+                pushBytesOp(strToBytes(AgoraPartial.COVENANT_VARIANT)),
+            ];
+        default:
+            return [];
+    }
+}
+
+export const AgoraPartialSignatory = (
+    params: AgoraPartial,
+    acceptedTruncTokens: bigint,
+    covenantSk: Uint8Array,
+    covenantPk: Uint8Array,
+): Signatory => {
+    return (ecc: Ecc, input: UnsignedTxInput) => {
+        const preimage = input.sigHashPreimage(ALL_ANYONECANPAY_BIP143, 0);
+        const sighash = sha256d(preimage.bytes);
+        const covenantSig = ecc.schnorrSign(covenantSk, sighash);
+        const hasLeftover = params.truncTokens > acceptedTruncTokens;
+        const buyerOutputIdx = hasLeftover ? 3 : 2;
+        const buyerOutputs = input.unsignedTx.tx.outputs.slice(buyerOutputIdx);
+
+        const serTakerOutputs = (writer: Writer) => {
+            for (const output of buyerOutputs) {
+                writeTxOutput(output, writer);
+            }
+        };
+        const writerLength = new WriterLength();
+        serTakerOutputs(writerLength);
+        const writer = new WriterBytes(writerLength.length);
+        serTakerOutputs(writer);
+        const buyerOutputsSer = writer.data;
+
+        return Script.fromOps([
+            ...makeScriptSigIntro(params.tokenProtocol),
+            pushBytesOp(covenantPk),
+            pushBytesOp(covenantSig),
+            pushBytesOp(buyerOutputsSer),
+            pushBytesOp(preimage.bytes.slice(4 + 32 + 32)), // preimage_4_10
+            pushNumberOp(acceptedTruncTokens * params.tokenScaleFactor),
+            OP_1, // is_purchase = true
+            pushBytesOp(preimage.redeemScript.bytecode),
+        ]);
+    };
+};
+
+export const AgoraPartialCancelSignatory = (
+    makerSk: Uint8Array,
+    tokenProtocol: 'SLP' | 'ALP',
+): Signatory => {
+    return (ecc: Ecc, input: UnsignedTxInput) => {
+        const preimage = input.sigHashPreimage(ALL_BIP143, 0);
+        const sighash = sha256d(preimage.bytes);
+        const cancelSig = flagSignature(
+            ecc.schnorrSign(makerSk, sighash),
+            ALL_BIP143,
+        );
+        return Script.fromOps([
+            ...makeScriptSigIntro(tokenProtocol),
+            pushBytesOp(cancelSig),
+            OP_0, // is_purchase = false
+            pushBytesOp(preimage.redeemScript.bytecode),
+        ]);
+    };
+};
+
+export const AgoraPartialAdSignatory = (makerSk: Uint8Array) => {
+    return (ecc: Ecc, input: UnsignedTxInput): Script => {
+        const preimage = input.sigHashPreimage(ALL_BIP143);
+        const sighash = sha256d(preimage.bytes);
+        const makerSig = flagSignature(
+            ecc.schnorrSign(makerSk, sighash),
+            ALL_BIP143,
+        );
+        return Script.fromOps([
+            pushBytesOp(AGORA_LOKAD_ID),
+            pushBytesOp(strToBytes(AgoraPartial.COVENANT_VARIANT)),
+            pushBytesOp(makerSig),
+            pushBytesOp(preimage.redeemScript.bytecode),
+        ]);
+    };
+};
