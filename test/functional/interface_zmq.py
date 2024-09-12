@@ -10,7 +10,7 @@ from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNS
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CTransaction, FromHex, hash256
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_equal, assert_raises_rpc_error, ensure_for
 
 # Test may be skipped and not have zmq installed
 try:
@@ -484,14 +484,15 @@ class ZMQTest(BitcoinTestFramework):
             block_count = self.nodes[0].getblockcount()
             best_hash = self.nodes[0].getbestblockhash()
             self.nodes[0].invalidateblock(best_hash)
-            # Bit of room to make sure transaction things happened
-            sleep(2)
 
             # Make sure getrawmempool mempool_sequence results aren't "queued"
             # but immediately reflective of the time they were gathered.
-            assert (
-                self.nodes[0].getrawmempool(mempool_sequence=True)["mempool_sequence"]
-                > seq_num
+            ensure_for(
+                duration=2,
+                f=lambda: self.nodes[0].getrawmempool(mempool_sequence=True)[
+                    "mempool_sequence"
+                ]
+                > seq_num,
             )
 
             assert_equal((payment_txid_2, "R", seq_num), seq.receive_sequence())

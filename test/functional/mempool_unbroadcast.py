@@ -4,12 +4,10 @@
 """Test that the mempool ensures transaction delivery by periodically sending
 to peers until a GETDATA is received."""
 
-import time
-
 from test_framework.blocktools import create_confirmed_utxos
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, ensure_for
 
 # 15 minutes in seconds
 MAX_INITIAL_BROADCAST_DELAY = 15 * 60
@@ -92,8 +90,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         conn = node.add_p2p_connection(P2PTxInvStore())
         node.mockscheduler(MAX_INITIAL_BROADCAST_DELAY)
         # allow sufficient time for possibility of broadcast
-        time.sleep(2)
-        assert_equal(len(conn.get_invs()), 0)
+        ensure_for(duration=2, f=lambda: len(conn.get_invs()) == 0)
 
         self.disconnect_nodes(node.index, 1)
         node.disconnect_p2ps()
