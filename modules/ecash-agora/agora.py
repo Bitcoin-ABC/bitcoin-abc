@@ -24,6 +24,7 @@ from chronik_plugin.script import (
     OP_2DUP,
     OP_2OVER,
     OP_2SWAP,
+    OP_3,
     OP_3DUP,
     OP_8,
     OP_9,
@@ -54,6 +55,8 @@ from chronik_plugin.script import (
     OP_OVER,
     OP_PICK,
     OP_PUSHDATA1,
+    OP_RESERVED,
+    OP_RETURN,
     OP_REVERSEBYTES,
     OP_ROT,
     OP_SHA256,
@@ -82,6 +85,15 @@ def hash160(m):
     return ripemd160.digest()
 
 
+def alp_send_intro(token_id: str) -> bytes:
+    result = bytearray()
+    result.extend(b"SLP2")
+    result.append(0)
+    result.extend(b"\x04SEND")
+    result.extend(bytes.fromhex(token_id)[::-1])
+    return bytes(result)
+
+
 class AgoraPlugin(Plugin):
     def lokad_id(self):
         return LOKAD_ID
@@ -90,7 +102,7 @@ class AgoraPlugin(Plugin):
         return "0.1.0"
 
     def run(self, tx):
-        return self.run_ad_input(tx)
+        return self.run_ad_input(tx) or self.run_ad_empp(tx)
 
     def run_ad_input(self, tx):
         """
@@ -144,12 +156,7 @@ class AgoraPlugin(Plugin):
             data = agora_oneshot.data()
             pubkey = agora_oneshot.cancel_pk
         elif covenant_variant == b"PARTIAL":
-            # Offer output is either output 1 or 2
-            offer_idx = 1
-            offer_output = tx.outputs[offer_idx]
-            if len(tx.outputs) >= 3 and offer_output.token is None:
-                offer_idx = 2
-                offer_output = tx.outputs[offer_idx]
+            offer_output, offer_idx = AgoraPartial.find_offered_output(tx)
             # Offer must have a token
             if offer_output.token is None:
                 return []
@@ -196,6 +203,47 @@ class AgoraPlugin(Plugin):
                 idx=offer_idx,
                 data=data,
                 groups=groups,
+            )
+        ]
+
+    def run_ad_empp(self, tx):
+        if not tx.empp_data:
+            return []
+        agr0_data = bytes(tx.empp_data[0])
+        if not agr0_data.startswith(LOKAD_ID):
+            return []
+        if len(tx.outputs) < 2:
+            return []
+        offer_output, offer_idx = AgoraPartial.find_offered_output(tx)
+        if offer_output.token is None:
+            return []
+        agora_partial = parse_partial(agr0_data, offer_output.token)
+        if agora_partial is None:
+            return []
+        expected_agora_script = agora_partial.script()
+        expected_agora_sh = hash160(expected_agora_script)
+        expected_agora_p2sh = CScript(
+            bytes([OP_HASH160, 20]) + expected_agora_sh + bytes([OP_EQUAL])
+        )
+        if offer_output.script != expected_agora_p2sh:
+            return [
+                PluginOutput(
+                    idx=offer_idx,
+                    data=[b"ERROR", expected_agora_script],
+                    groups=[],
+                )
+            ]
+
+        token_id_bytes = bytes.fromhex(offer_output.token.token_id)
+        return [
+            PluginOutput(
+                idx=offer_idx,
+                data=agora_partial.data(),
+                groups=[
+                    b"P" + agora_partial.maker_pk,
+                    b"T" + token_id_bytes,
+                    b"F" + token_id_bytes,
+                ],
             )
         ]
 
@@ -356,8 +404,21 @@ class AgoraPartial:
         ad_pushdata = consts[len_slp_intro:]
         return parse_partial(ad_pushdata, token)
 
+    @classmethod
+    def find_offered_output(cls, tx):
+        # Offer output is either output 1 or 2
+        offer_idx = 1
+        offer_output = tx.outputs[offer_idx]
+        if len(tx.outputs) >= 3 and offer_output.token is None:
+            offer_idx = 2
+            offer_output = tx.outputs[offer_idx]
+        return offer_output, offer_idx
+
     def ad_pushdata(self):
         pushdata = bytearray()
+        if self.token_protocol == "ALP":
+            pushdata.extend(b"AGR0")
+            pushdata.extend(b"\x07PARTIAL")
         pushdata.append(self.num_token_trunc_bytes)
         pushdata.append(self.num_sats_trunc_bytes)
         pushdata.extend(self.token_scale_factor.to_bytes(8, "little"))
@@ -393,6 +454,11 @@ class AgoraPartial:
             )
             covenant_consts = bytes(slp_intro) + ad_pushdata
             token_intro_len = len(slp_intro)
+        elif self.token_protocol == "ALP":
+            alp_intro = alp_send_intro(self.token_id)
+            empp_intro = CScript([OP_RETURN, OP_RESERVED, self.ad_pushdata()])
+            covenant_consts = alp_intro + bytes(empp_intro)
+            token_intro_len = len(alp_intro)
         else:
             raise NotImplementedError
 
@@ -426,7 +492,7 @@ class AgoraPartial:
                 OP_DROP,
                 OP_OVER,
                 OP_0NOTEQUAL,
-                *self._script_build_op_return(),
+                *self._script_build_op_return(token_intro_len),
                 bytes(self.num_sats_trunc_bytes),
                 OP_CAT,
                 OP_ROT,
@@ -528,9 +594,11 @@ class AgoraPartial:
             ]
         )
 
-    def _script_build_op_return(self):
+    def _script_build_op_return(self, token_intro_len):
         if self.token_protocol == "SLP":
             return self._script_build_slp_op_return()
+        elif self.token_protocol == "ALP":
+            return self._script_build_alp_op_return(token_intro_len)
         else:
             raise NotImplementedError
 
@@ -542,7 +610,7 @@ class AgoraPartial:
             OP_OVER,
             self.token_scale_factor,
             OP_DIV,
-            *self._script_ser_slp_trunc_tokens(),
+            *self._script_ser_trunc_tokens(),
             OP_REVERSEBYTES,
             bytes(self.num_token_trunc_bytes),
             OP_CAT,
@@ -554,7 +622,7 @@ class AgoraPartial:
             OP_PICK,
             self.token_scale_factor,
             OP_DIV,
-            *self._script_ser_slp_trunc_tokens(),
+            *self._script_ser_trunc_tokens(),
             OP_REVERSEBYTES,
             bytes(self.num_token_trunc_bytes),
             OP_CAT,
@@ -567,8 +635,55 @@ class AgoraPartial:
             OP_CAT,
         ]
 
-    def _script_ser_slp_trunc_tokens(self):
-        if self.num_token_trunc_bytes == 5:
+    def _script_build_alp_op_return(self, token_intro_len):
+        return [
+            OP_IF,
+            OP_3,
+            7 + self.num_token_trunc_bytes,
+            OP_NUM2BIN,
+            OP_CAT,
+            OP_OVER,
+            self.token_scale_factor,
+            OP_DIV,
+            6,
+            OP_ELSE,
+            OP_2,
+            7 + self.num_token_trunc_bytes,
+            OP_ENDIF,
+            OP_NUM2BIN,
+            OP_CAT,
+            2,
+            OP_PICK,
+            self.token_scale_factor,
+            OP_DIV,
+            *self._script_ser_trunc_tokens(),
+            OP_CAT,
+            OP_SIZE,
+            OP_SWAP,
+            OP_CAT,
+            3,
+            OP_PICK,
+            token_intro_len,
+            OP_SPLIT,
+            OP_NIP,
+            OP_SWAP,
+            OP_CAT,
+            OP_SIZE,
+            OP_9,
+            OP_NUM2BIN,
+            OP_REVERSEBYTES,
+            OP_SWAP,
+            OP_CAT,
+        ]
+
+    def _script_ser_trunc_tokens(self):
+        if self.token_protocol == "SLP":
+            num_bytes_token_amount = 8
+        elif self.token_protocol == "ALP":
+            num_bytes_token_amount = 6
+        else:
+            raise NotImplementedError
+        if self.num_token_trunc_bytes == num_bytes_token_amount - 3:
             return [
                 4,
                 OP_NUM2BIN,
@@ -577,7 +692,7 @@ class AgoraPartial:
                 OP_DROP,
             ]
         return [
-            8 - self.num_token_trunc_bytes,
+            num_bytes_token_amount - self.num_token_trunc_bytes,
             OP_NUM2BIN,
         ]
 
@@ -590,6 +705,8 @@ class AgoraPartial:
                 LOKAD_ID,
                 OP_EQUAL,
             ]
+        elif self.token_protocol == "ALP":
+            return [OP_CHECKSIG]
         else:
             raise NotImplementedError
 
@@ -599,6 +716,13 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
     # AGR0 PARTIAL pushdata always has the same length
     if token.token_protocol == "SLP":
         if len(pushdata) != 59:
+            return None
+    elif token.token_protocol == "ALP":
+        if len(pushdata) != 71:
+            return None
+        if data_reader.read(4) != b"AGR0":
+            return None
+        if data_reader.read(8) != b"\x07PARTIAL":
             return None
     else:
         raise NotImplementedError

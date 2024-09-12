@@ -10,12 +10,14 @@ import {
     Utxo,
 } from 'chronik-client';
 import {
+    alpSend,
     Amount,
     Bytes,
     DEFAULT_DUST_LIMIT,
     DEFAULT_FEE_PER_KB,
     Ecc,
     EccDummy,
+    emppScript,
     fromHex,
     OutPoint,
     readTxOutput,
@@ -244,8 +246,20 @@ export class AgoraOffer {
                             sendAmounts,
                         ),
                     });
+                } else if (agoraPartial.tokenProtocol == 'ALP') {
+                    txBuild.outputs.push({
+                        value: 0,
+                        script: emppScript([
+                            agoraPartial.adPushdata(),
+                            alpSend(
+                                this.token.tokenId,
+                                this.token.tokenType.number,
+                                sendAmounts,
+                            ),
+                        ]),
+                    });
                 } else {
-                    throw new Error('Only SLP implemented at the moment');
+                    throw new Error('Not implemented');
                 }
                 txBuild.outputs.push({
                     value: agoraPartial.askedSats(params.acceptedTokens),
@@ -358,19 +372,48 @@ export class AgoraOffer {
         extraOutputs: TxBuilderOutput[];
     }) {
         let signatory: Signatory;
+        let tokenProtocol: 'SLP' | 'ALP';
         switch (this.variant.type) {
             case 'ONESHOT':
                 signatory = AgoraOneshotCancelSignatory(params.cancelSk);
+                tokenProtocol = 'SLP';
                 break;
             case 'PARTIAL':
+                tokenProtocol = this.variant.params.tokenProtocol;
                 signatory = AgoraPartialCancelSignatory(
                     params.cancelSk,
-                    this.variant.params.tokenProtocol,
+                    tokenProtocol,
                 );
                 break;
             default:
                 throw new Error('Not implemented');
         }
+        const outputs: TxBuilderOutput[] = [];
+        switch (tokenProtocol) {
+            case 'SLP':
+                outputs.push({
+                    value: 0,
+                    script: slpSend(
+                        this.token.tokenId,
+                        this.token.tokenType.number,
+                        [BigInt(this.token.amount)],
+                    ),
+                });
+                break;
+            case 'ALP':
+                outputs.push({
+                    value: 0,
+                    script: emppScript([
+                        alpSend(
+                            this.token.tokenId,
+                            this.token.tokenType.number,
+                            [BigInt(this.token.amount)],
+                        ),
+                    ]),
+                });
+                break;
+        }
+        outputs.push(...params.extraOutputs);
         return new TxBuilder({
             inputs: [
                 ...params.fuelInputs,
@@ -379,17 +422,7 @@ export class AgoraOffer {
                     signatory,
                 },
             ],
-            outputs: [
-                {
-                    value: 0,
-                    script: slpSend(
-                        this.token.tokenId,
-                        this.token.tokenType.number,
-                        [BigInt(this.token.amount)],
-                    ),
-                },
-                ...params.extraOutputs,
-            ],
+            outputs,
         });
     }
 
@@ -581,10 +614,6 @@ export class Agora {
         plugin: PluginEntry,
     ): AgoraOffer | undefined {
         if (utxo.token === undefined) {
-            return undefined;
-        }
-        if (utxo.token.tokenType.protocol !== 'SLP') {
-            // Currently only SLP supported
             return undefined;
         }
 
