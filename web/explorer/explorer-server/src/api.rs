@@ -63,7 +63,14 @@ pub fn tx_history_to_json(
 
     for tx in address_tx_history.txs.iter() {
         let (block_height, timestamp) = match &tx.block {
-            Some(block) => (Some(block.height), block.timestamp),
+            Some(block) => (
+                Some(block.height),
+                if tx.time_first_seen == 0 {
+                    block.timestamp
+                } else {
+                    tx.time_first_seen
+                },
+            ),
             None => (None, tx.time_first_seen),
         };
 
