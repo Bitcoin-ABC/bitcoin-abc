@@ -325,6 +325,8 @@ export class AgoraPartial {
         // Edge case where price can be represented exactly,
         // no need to introduce extra approximation.
         const isPrecisePrice = 1000000000n % params.priceNanoSatsPerToken == 0n;
+        // The Script can only handle a maximum level of truncation
+        const maxTokenTruncBytes = params.tokenProtocol == 'SLP' ? 5 : 3;
 
         const minTokenScaleFactor = isPrecisePrice
             ? 1n
@@ -334,7 +336,10 @@ export class AgoraPartial {
         // bits at a time until it fits.
         let truncTokens = params.offeredTokens;
         let numTokenTruncBytes = 0n;
-        while (truncTokens * minTokenScaleFactor > maxScriptInt) {
+        while (
+            truncTokens * minTokenScaleFactor > maxScriptInt &&
+            numTokenTruncBytes < maxTokenTruncBytes
+        ) {
             truncTokens >>= 8n;
             numTokenTruncBytes++;
         }
