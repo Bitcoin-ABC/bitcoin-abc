@@ -5,8 +5,10 @@
 import {
     ALL_ANYONECANPAY_BIP143,
     ALL_BIP143,
+    alpSend,
     DEFAULT_DUST_LIMIT,
     Ecc,
+    emppScript,
     flagSignature,
     Op,
     OP_0,
@@ -17,6 +19,7 @@ import {
     OP_2DUP,
     OP_2OVER,
     OP_2SWAP,
+    OP_3,
     OP_3DUP,
     OP_8,
     OP_9,
@@ -518,7 +521,10 @@ export class AgoraPartial {
     public adPushdata(): Uint8Array {
         const serAdPushdata = (writer: Writer) => {
             if (this.tokenProtocol == 'ALP') {
-                throw new Error('Currently only SLP implemented');
+                // On ALP, we signal AGR0 in the pushdata
+                writer.putBytes(AGORA_LOKAD_ID);
+                writer.putU8(AgoraPartial.COVENANT_VARIANT.length);
+                writer.putBytes(strToBytes(AgoraPartial.COVENANT_VARIANT));
             }
             writer.putU8(this.numTokenTruncBytes);
             writer.putU8(this.numSatsTruncBytes);
@@ -548,8 +554,23 @@ export class AgoraPartial {
             covenantConstsWriter.putBytes(slpSendIntro);
             covenantConstsWriter.putBytes(adPushdata);
             return [covenantConstsWriter.data, slpSendIntro.length];
+        } else if (this.tokenProtocol == 'ALP') {
+            const alpSendTemplate = alpSend(this.tokenId, this.tokenType, []);
+            // ALP SEND section, but without the num amounts
+            const alpSendIntro = alpSendTemplate.slice(
+                0,
+                alpSendTemplate.length - 1,
+            );
+            // eMPP script with Agora ad, but without the ALP section
+            const emppIntro = emppScript([adPushdata]);
+            const covenantConstsWriter = new WriterBytes(
+                alpSendIntro.length + emppIntro.bytecode.length,
+            );
+            covenantConstsWriter.putBytes(alpSendIntro);
+            covenantConstsWriter.putBytes(emppIntro.bytecode);
+            return [covenantConstsWriter.data, alpSendIntro.length];
         } else {
-            throw new Error('Only SLP implemented');
+            throw new Error('Not implemented');
         }
     }
 
@@ -644,7 +665,7 @@ export class AgoraPartial {
             OP_0NOTEQUAL,
 
             // Insert (sub)script that builds the OP_RETURN for SLP/ALP
-            ...this._scriptBuildOpReturn(),
+            ...this._scriptBuildOpReturn(tokenIntroLen),
 
             // # Add trunc padding for sats to un-truncate sats
             pushBytesOp(new Uint8Array(this.numSatsTruncBytes)),
@@ -908,41 +929,22 @@ export class AgoraPartial {
         ]);
     }
 
-    private _scriptBuildOpReturn(): Op[] {
+    private _scriptBuildOpReturn(tokenIntroLen: number): Op[] {
         // Script takes in the token amounts and builds the OP_RETURN for the
         // corresponding protocol
         if (this.tokenProtocol == 'SLP') {
             return this._scriptBuildSlpOpReturn();
+        } else if (this.tokenProtocol == 'ALP') {
+            return this._scriptBuildAlpOpReturn(tokenIntroLen);
         } else {
             throw new Error('Only SLP implemented');
         }
     }
 
     private _scriptBuildSlpOpReturn(): Op[] {
-        const scriptSerSlpTruncTokens = () => {
-            // Serialize the number on the stack using the configured truncation
-            if (this.numTokenTruncBytes == 5) {
-                // Edge case where we only have 3 bytes space to serialize the
-                // number, but if the MSB of the number is set, OP_NUM2BIN will
-                // serialize using 4 bytes (with the last byte being just 0x00),
-                // so we always serialize using 4 bytes and then cut the last
-                // byte (that's always 0x00) off.
-                return [
-                    pushNumberOp(4),
-                    OP_NUM2BIN,
-                    pushNumberOp(3),
-                    OP_SPLIT,
-                    OP_DROP,
-                ];
-            } else {
-                // If we have 4 or more bytes space, we can always serialize
-                // just using normal OP_NUM2BIN.
-                return [pushNumberOp(8 - this.numTokenTruncBytes), OP_NUM2BIN];
-            }
-        };
         return [
             // # If there's a leftover, append it to the token amounts
-            // OP_IF(leftoverScaledTruncTokens)
+            // OP_IF(hasLeftover)
             OP_IF,
             // # Size of an SLP amount
             OP_8,
@@ -956,7 +958,7 @@ export class AgoraPartial {
             //                              tokenScaleFactor)
             OP_DIV,
             // # Serialize the leftover trunc tokens (overflow-safe)
-            ...scriptSerSlpTruncTokens(),
+            ...this._scriptSerTruncTokens(8),
             // # SLP uses big-endian, so we have to use OP_REVERSEBYTES
             // leftoverTokenTruncBe = OP_REVERSEBYTES(leftoverTokenTruncLe)
             OP_REVERSEBYTES,
@@ -989,7 +991,7 @@ export class AgoraPartial {
             //                              tokenScaleFactor)
             OP_DIV,
             // # Serialize the accepted token amount (overflow-safe)
-            ...scriptSerSlpTruncTokens(),
+            ...this._scriptSerTruncTokens(8),
             // # SLP uses big-endian, so we have to use OP_REVERSEBYTES
             // acceptedTokensTruncBe = OP_REVERSEBYTES(acceptedTokensTruncLe);
             OP_REVERSEBYTES,
@@ -1027,6 +1029,149 @@ export class AgoraPartial {
         ];
     }
 
+    private _scriptBuildAlpOpReturn(tokenIntroLen: number): Op[] {
+        // Script takes in the token amounts and builds the OP_RETURN for the
+        // ALP token protocol
+        return [
+            // # If there's a leftover, add it to the token amounts
+            // OP_IF(hasLeftover)
+            OP_IF,
+
+            // numTokenAmounts = 3
+            OP_3,
+            // # Append the number of token amounts + the first 0 amount +
+            // # un-truncate padding for the 2nd output.
+            // # We meld these three ops into one by using OP_NUM2BIN using
+            // # 7 + numTokenTruncBytes bytes, which gives us the number of
+            // # amounts in the first byte, followed by 6 zero bytes for the
+            // # first output, and then numTokenTruncBytes bytes for the
+            // # un-truncate padding.
+            pushNumberOp(7 + this.numTokenTruncBytes),
+            // tokenAmounts1 = OP_NUM2BIN(numTokenAmounts, size)
+            OP_NUM2BIN,
+            // tokenIntro = OP_CAT(tokenIntro, tokenAmounts1)
+            OP_CAT,
+            // OP_OVER(leftoverScaledTruncTokens, __)
+            OP_OVER,
+            // # Scale down the scaled leftover amount
+            pushNumberOp(this.tokenScaleFactor),
+            // nextSerValue = OP_DIV(leftoverScaledTruncTokens,
+            //                       tokenScaleFactor)
+            OP_DIV,
+
+            // # Serialize size for leftoverTokensTrunc, and also already add the un-truncate padding for the 3rd amount
+            // # Combining these two ops also doesn't require us to serialize overflow-aware
+            pushNumberOp(
+                6 /*- this.numTokenTruncBytes + this.numTokenTruncBytes*/,
+            ),
+
+            OP_ELSE,
+
+            // # Append the number of token amounts + the first 0 amount +
+            // # un-truncate padding for the 3rd output.
+            // nextSerValue = 2
+            OP_2,
+            // serializeSize = 7 + numTokenTruncBytes
+            pushNumberOp(7 + this.numTokenTruncBytes),
+
+            OP_ENDIF,
+
+            // tokenAmounts2 = OP_NUM2BIN(numTokenAmounts, serializeSize)
+            // # Serialize 1st/2nd output + padding for 2nd/3rd output
+            OP_NUM2BIN,
+
+            // # Build the part of the token section that has all the amounts
+            // # for the maker (i.e. 0) and covenant loopback, and the
+            // # un-truncate padding for the accepted token amount.
+            // tokenSection1Pad = OP_CAT(tokenIntro, tokenAmounts2)
+            OP_CAT,
+
+            // depthAcceptedScaledTruncTokens =
+            //     depth_of(acceptedScaledTruncTokens)
+            pushNumberOp(2),
+            // acceptedScaledTruncTokens =
+            //     OP_PICK(depthAcceptedScaledTruncTokens)
+            OP_PICK,
+
+            // # Scale down the accepted token amount
+            pushNumberOp(this.tokenScaleFactor),
+            // acceptedTokensTrunc = OP_DIV(acceptedScaledTruncTokens,
+            //                              tokenScaleFactor)
+            OP_DIV,
+            // # Serialize accepted token amount (overflow-safe)
+            ...this._scriptSerTruncTokens(6),
+
+            // # Finished token section
+            // tokenSection = OP_CAT(tokenSection1Pad, acceptedTokensTruncLe);
+            OP_CAT,
+
+            // Turn token section into a pushdata op
+            // tokenSection, tokenSectionSize = OP_SIZE(tokenSection)
+            OP_SIZE,
+            // OP_SWAP(tokenSection, tokenSectionSize)
+            OP_SWAP,
+            // let pushTokenSection = OP_CAT(tokenSectionSize, tokenSection);
+            OP_CAT,
+
+            // Get empp intro from consts
+            // depthConsts = depth_of(consts)
+            pushNumberOp(3),
+            // consts = OP_PICK(depthConsts)
+            OP_PICK,
+            // # Split out the emppAgoraIntro to prepend it to the OP_RETURN
+            pushNumberOp(tokenIntroLen),
+            // tokenIntro, emppAgoraIntro = OP_SPLIT(consts, alpIntroSize)
+            OP_SPLIT,
+            // # We don't need the tokenIntro
+            // OP_NIP(tokenIntro, _)
+            OP_NIP,
+
+            // Build OP_RETURN script with 0u64 and size prepended
+            // OP_SWAP(pushTokenSection, _)
+            OP_SWAP,
+            // emppScript = OP_CAT(emppIntro, pushTokenSection)
+            OP_CAT,
+            // emppScript, emppScriptSize = OP_SIZE(emppScript)
+            OP_SIZE,
+            // # Build output value (0u64) + tokenScriptSize.
+            // # See _scriptBuildSlpOpReturn for an explanation
+            OP_9,
+            // emppScriptSizeZero8 = OP_NUM2BIN(emppScriptSize, _9)
+            OP_NUM2BIN,
+            // zero8EmppScriptSize = OP_REVERSEBYTES(emppScriptSizeZero8)
+            OP_REVERSEBYTES,
+            // OP_SWAP(emppScript, zero8EmppScriptSize)
+            OP_SWAP,
+            // let opreturnOutput = OP_CAT(zero8EmppScriptSize, emppScript)
+            OP_CAT,
+        ];
+    }
+
+    private _scriptSerTruncTokens(numSerBytes: number): Op[] {
+        // Serialize the number on the stack using the configured truncation
+        if (this.numTokenTruncBytes == numSerBytes - 3) {
+            // Edge case where we only have 3 bytes space to serialize the
+            // number, but if the MSB of the number is set, OP_NUM2BIN will
+            // serialize using 4 bytes (with the last byte being just 0x00),
+            // so we always serialize using 4 bytes and then cut the last
+            // byte (that's always 0x00) off.
+            return [
+                pushNumberOp(4),
+                OP_NUM2BIN,
+                pushNumberOp(3),
+                OP_SPLIT,
+                OP_DROP,
+            ];
+        } else {
+            // If we have 4 or more bytes space, we can always serialize
+            // just using normal OP_NUM2BIN.
+            return [
+                pushNumberOp(numSerBytes - this.numTokenTruncBytes),
+                OP_NUM2BIN,
+            ];
+        }
+    }
+
     private _scriptOutro(): Op[] {
         if (this.tokenProtocol == 'SLP') {
             // Verify the sig, and also ensure the first two push ops of the
@@ -1039,6 +1184,8 @@ export class AgoraPartial {
                 pushBytesOp(AGORA_LOKAD_ID),
                 OP_EQUAL,
             ];
+        } else if (this.tokenProtocol == 'ALP') {
+            return [OP_CHECKSIG];
         } else {
             throw new Error('Only SLP implemented');
         }
