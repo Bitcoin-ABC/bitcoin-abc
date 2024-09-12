@@ -1413,6 +1413,10 @@ module.exports = {
         const opReturnTxTgMsgLines = [];
         let xecSendTxTgMsgLines = [];
 
+        // We do not get that much newsworthy value from a long list of individual token send txs
+        // So, we organize token send txs by tokenId
+        const tokenSendTxMap = new Map();
+
         // Iterate over parsedTxs to find anything newsworthy
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
@@ -1555,41 +1559,6 @@ module.exports = {
                 let { tokenId, tokenChangeOutputs, tokenReceivingOutputs } =
                     tokenSendInfo;
 
-                // Get token info from tokenInfoMap
-                const thisTokenInfo = tokenInfoMap.get(tokenId);
-
-                let { tokenTicker, tokenName, decimals } = thisTokenInfo;
-                // Note: tokenDocumentUrl and tokenDocumentHash are also available from thisTokenInfo
-
-                // Make sure tokenName does not contain telegram html escape characters
-                tokenName = prepareStringForTelegramHTML(tokenName);
-                // Make sure tokenName does not contain telegram html escape characters
-                tokenTicker = prepareStringForTelegramHTML(tokenTicker);
-
-                // Initialize tokenSendMsg
-                let tokenSendMsg;
-
-                // Initialize token outputs (could be receiving or change depending on tx type)
-                let tokenOutputs =
-                    tokenReceivingOutputs.size === 0
-                        ? tokenChangeOutputs
-                        : tokenReceivingOutputs;
-
-                let undecimalizedTokenReceivedAmount = new BigNumber(0);
-                for (const tokenReceivedAmount of tokenOutputs.values()) {
-                    undecimalizedTokenReceivedAmount =
-                        undecimalizedTokenReceivedAmount.plus(
-                            tokenReceivedAmount,
-                        );
-                }
-                // Calculate true tokenReceivedAmount using decimals
-                // Use decimals to calculate the received amount as string
-                const decimalizedTokenReceivedAmount =
-                    bigNumberAmountToLocaleString(
-                        undecimalizedTokenReceivedAmount.toString(),
-                        decimals,
-                    );
-
                 // Special handling for Cashtab rewards
                 if (
                     // CACHET token id
@@ -1604,10 +1573,69 @@ module.exports = {
                     continue;
                 }
 
-                tokenSendMsg = `${emojis.tokenSend} <a href="${config.blockExplorer}/tx/${txid}">${decimalizedTokenReceivedAmount}</a> <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a>`;
+                // See if you already have info for txs from this token
+                const tokenSendTxInfo = tokenSendTxMap.get(tokenId);
+                if (typeof tokenSendTxInfo === 'undefined') {
+                    // We don't have any other txs for this token, initialize an info object
+                    // Get token info from tokenInfoMap
+                    const thisTokenInfo = tokenInfoMap.get(tokenId);
 
-                tokenSendTxTgMsgLines.push(tokenSendMsg);
-                // This parsed tx has a tg msg line. Move on to the next one.
+                    let { tokenTicker, tokenName, decimals } = thisTokenInfo;
+                    // Note: tokenDocumentUrl and tokenDocumentHash are also available from thisTokenInfo
+
+                    // Make sure tokenName does not contain telegram html escape characters
+                    tokenName = prepareStringForTelegramHTML(tokenName);
+                    // Make sure tokenName does not contain telegram html escape characters
+                    tokenTicker = prepareStringForTelegramHTML(tokenTicker);
+
+                    // Initialize token outputs (could be receiving or change depending on tx type)
+                    let tokenOutputs =
+                        tokenReceivingOutputs.size === 0
+                            ? tokenChangeOutputs
+                            : tokenReceivingOutputs;
+
+                    let undecimalizedTokenReceivedAmount = new BigNumber(0);
+                    for (const tokenReceivedAmount of tokenOutputs.values()) {
+                        undecimalizedTokenReceivedAmount =
+                            undecimalizedTokenReceivedAmount.plus(
+                                tokenReceivedAmount,
+                            );
+                    }
+
+                    tokenSendTxMap.set(tokenId, {
+                        sendTxs: 1,
+                        tokenName,
+                        tokenTicker,
+                        decimals,
+                        undecimalizedTokenReceivedAmount,
+                    });
+                } else {
+                    // We do have other txs for this token, increment the tx count and amount sent
+                    // Initialize token outputs (could be receiving or change depending on tx type)
+                    let tokenOutputs =
+                        tokenReceivingOutputs.size === 0
+                            ? tokenChangeOutputs
+                            : tokenReceivingOutputs;
+
+                    let undecimalizedTokenReceivedAmount = new BigNumber(0);
+                    for (const tokenReceivedAmount of tokenOutputs.values()) {
+                        undecimalizedTokenReceivedAmount =
+                            undecimalizedTokenReceivedAmount.plus(
+                                tokenReceivedAmount,
+                            );
+                    }
+
+                    tokenSendTxMap.set(tokenId, {
+                        ...tokenSendTxInfo,
+                        sendTxs: tokenSendTxInfo.sendTxs + 1,
+                        undecimalizedTokenReceivedAmount:
+                            tokenSendTxInfo.undecimalizedTokenReceivedAmount.plus(
+                                undecimalizedTokenReceivedAmount,
+                            ),
+                    });
+                }
+
+                // This parsed tx has info needed to build a tg msg line. Move on to the next one.
                 continue;
             }
 
@@ -1848,19 +1876,36 @@ module.exports = {
                 }</b>`,
             );
         }
-        if (tokenSendTxTgMsgLines.length > 0) {
+        if (tokenSendTxMap.size > 0) {
             // eToken Send txs
             // Line break for new section
             tgMsg.push('');
 
-            // 1 eToken send tx:
-            // or
-            // <n> eToken send txs:
-            tgMsg.push(
-                `<b>${tokenSendTxTgMsgLines.length} eToken send tx${
-                    tokenSendTxTgMsgLines.length > 1 ? `s` : ''
-                }</b>`,
-            );
+            // We include a 1-line summary for token send txs for each token ID
+            tokenSendTxMap.forEach((tokenSendInfo, tokenId) => {
+                const {
+                    sendTxs,
+                    tokenName,
+                    tokenTicker,
+                    decimals,
+                    undecimalizedTokenReceivedAmount,
+                } = tokenSendInfo;
+
+                // Get decimalized receive amount
+                const decimalizedTokenReceivedAmount =
+                    bigNumberAmountToLocaleString(
+                        undecimalizedTokenReceivedAmount.toString(),
+                        decimals,
+                    );
+
+                tgMsg.push(
+                    `${sendTxs} tx${
+                        sendTxs > 1 ? `s` : ''
+                    } sent ${decimalizedTokenReceivedAmount} <a href="${
+                        config.blockExplorer
+                    }/tx/${tokenId}">${tokenName} (${tokenTicker})</a>`,
+                );
+            });
 
             tgMsg = tgMsg.concat(tokenSendTxTgMsgLines);
         }
