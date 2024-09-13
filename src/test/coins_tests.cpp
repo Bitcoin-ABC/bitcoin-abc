@@ -662,7 +662,13 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags,
         } else {
             value = it->second.coin.GetTxOut().nValue;
         }
-        flags = it->second.GetFlags();
+        flags = 0;
+        if (it->second.IsDirty()) {
+            flags |= DIRTY;
+        }
+        if (it->second.IsFresh()) {
+            flags |= FRESH;
+        }
         assert(flags != NO_ENTRY);
     }
 }
