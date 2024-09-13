@@ -31,27 +31,6 @@ export const OfferTable = styled.div`
     justify-content: center;
     width: 100%;
     gap: 9px;
-    background-color: ${props => props.theme.panel}
-    border-radius: 9px;
-    color: ${props => props.theme.contrast};
-    max-height: 250px;
-    overflow: auto;
-    &::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    &::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-        background-color: ${props => props.theme.eCashBlue};
-        border-radius: 10px;
-        height: 80%;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        border-radius: 10px;
-        color: ${props => props.theme.eCashBlue};
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
-    }
 `;
 export const OfferIcon = styled.div`
     display: flex;

@@ -214,6 +214,22 @@ describe('<Nfts />', () => {
         // The NFTs page is rendered
         expect(await screen.findByTitle('Listed NFTs')).toBeInTheDocument();
 
+        // On load, the app shows listings for sale, not listings to manage
+        const toggleNftsSwitch = screen.getByTitle('Toggle NFTs');
+        expect(toggleNftsSwitch).toHaveProperty('checked', false);
+        expect(
+            screen.queryByText('Manage your listings'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByText('Collections on the market'),
+        ).toBeInTheDocument();
+
+        // We click the switch to see the listings we can manage
+        await userEvent.click(toggleNftsSwitch);
+
+        // Now we see listings created by this wallet
+        expect(screen.getByText('Manage your listings')).toBeInTheDocument();
+
         // We see the listing created by this wallet under "My Listings"
         expect(
             screen.queryByText('This wallet has no listed NFTs'),
@@ -283,6 +299,14 @@ describe('<Nfts />', () => {
         // support for multiple calls in mock-chronik-client to test this
         // Expected behavior in app is that the listing would disappear from "My Listings"
         // but this is not expected to happen in the test
+
+        // We click the toggle NFTs switch again to see the listings we can buy
+        await userEvent.click(toggleNftsSwitch);
+
+        // Now we see listings NOT created by this wallet
+        expect(
+            screen.getByText('Collections on the market'),
+        ).toBeInTheDocument();
 
         // We see a listing not created by this wallet under "NFTs for sale"
         expect(
@@ -460,6 +484,26 @@ describe('<Nfts />', () => {
         // The NFTs page is rendered
         expect(await screen.findByTitle('Listed NFTs')).toBeInTheDocument();
 
+        // On load, the app shows listings for sale, not listings to manage
+        const toggleNftsSwitch = screen.getByTitle('Toggle NFTs');
+        expect(toggleNftsSwitch).toHaveProperty('checked', false);
+        expect(
+            screen.queryByText('Manage your listings'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByText('Collections on the market'),
+        ).toBeInTheDocument();
+
+        // NFTs not created by this wallet are displayed
+        expect(
+            screen.getByRole('button', {
+                name: `See listed NFTs from the Flags collection`,
+            }),
+        ).toBeInTheDocument();
+
+        // We click the switch to see the listings we can manage
+        await userEvent.click(toggleNftsSwitch);
+
         // We see the listing created by this wallet under "My Listings"
         expect(
             screen.queryByText('You do not have any listed NFTs'),
@@ -469,12 +513,6 @@ describe('<Nfts />', () => {
         expect(
             screen.getByRole('button', {
                 name: `See your listed NFTs from the Classics collection`,
-            }),
-        ).toBeInTheDocument();
-        // NFTs not created by this wallet are also displayed
-        expect(
-            screen.getByRole('button', {
-                name: `See listed NFTs from the Flags collection`,
             }),
         ).toBeInTheDocument();
 
@@ -494,6 +532,13 @@ describe('<Nfts />', () => {
         );
         expect(await screen.findByTitle('Listed NFTs')).toBeInTheDocument();
 
+        // The switch is still set to Manage Listings, so we do not see buy listings
+        expect(toggleNftsSwitch).toHaveProperty('checked', true);
+        expect(screen.getByText('Manage your listings')).toBeInTheDocument();
+        expect(
+            screen.queryByText('Collections on the market'),
+        ).not.toBeInTheDocument();
+
         // Now we have no listings to manage as the new wallet did not create these listings
         expect(
             screen.getByText('You do not have any listed NFTs'),
@@ -505,6 +550,21 @@ describe('<Nfts />', () => {
                 name: `See your listed NFTs from the Classics collection`,
             }),
         ).not.toBeInTheDocument();
+
+        // We click the switch to see the listings we can buy
+        // Note, for some reason related to the testing lib,
+        // if we use the var "toggleNftsSwitch" here,
+        // we don't get the same switch
+        await userEvent.click(screen.getByTitle('Toggle NFTs'));
+        expect(screen.getByTitle('Toggle NFTs')).toHaveProperty(
+            'checked',
+            false,
+        );
+
+        // Now we see listed NFTs not created by this wallet
+        expect(
+            await screen.findByText('Collections on the market'),
+        ).toBeInTheDocument();
 
         // All NFTs are available to buy
         expect(

@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from 'wallet/context';
-import { LoadingCtn } from 'components/Common/Atoms';
+import { LoadingCtn, SwitchLabel } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
 import {
@@ -21,10 +21,11 @@ import {
     OfferIcon,
     ChronikErrorAlert,
 } from './styled';
-import { NftTokenIdAndCopyIcon } from 'components/Etokens/Token/styled';
 import {
+    NftTokenIdAndCopyIcon,
     TokenIconExpandButton,
     TokenSentLink,
+    SwitchHolder,
 } from 'components/Etokens/Token/styled';
 import { getWalletState } from 'utils/cashMethods';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -40,6 +41,7 @@ import NftListingActions from 'components/Common/NftListingActions';
 import BrowseCollection from 'components/Common/BrowseCollection';
 import { CopyIconButton } from 'components/Common/Buttons';
 import { InlineLoader } from 'components/Common/Spinner';
+import Switch from 'components/Common/Switch';
 
 const Nfts = () => {
     const userLocale = getUserLocale(navigator);
@@ -73,6 +75,7 @@ const Nfts = () => {
     const [showMyCollectionTokenId, setShowMyCollectionTokenId] = useState('');
     const [displayedCollectionListings, setDisplayedCollectionListings] =
         useState(null);
+    const [manageMyNfts, setManageMyNfts] = useState(false);
 
     /**
      * This is a helper function to allow the use of Promise.all() in creating the maps we need for
@@ -539,206 +542,248 @@ const Nfts = () => {
                         </NftsCtn>
                     ) : (
                         <NftsCtn title="Listed NFTs">
-                            <OfferTitle>Manage your listings</OfferTitle>
+                            <SwitchHolder>
+                                <Switch
+                                    name="Toggle NFTs"
+                                    on=""
+                                    off=""
+                                    checked={manageMyNfts}
+                                    handleToggle={() => {
+                                        setManageMyNfts(() => !manageMyNfts);
+                                    }}
+                                />
+                                <SwitchLabel>
+                                    Toggle Buy / Manage Listings
+                                </SwitchLabel>
+                            </SwitchHolder>
+                            {manageMyNfts ? (
+                                <>
+                                    <OfferTitle>
+                                        Manage your listings
+                                    </OfferTitle>
 
-                            {offeredNftsByGroupTokenIdThisWallet.size > 0 ? (
-                                <OfferTable>
-                                    {Array.from(
-                                        offeredNftsByGroupTokenIdThisWallet.keys(),
-                                    ).map(collectionTokenId => {
-                                        const cachedCollectionInfo =
-                                            cashtabCache.tokens.get(
-                                                collectionTokenId,
-                                            );
+                                    {offeredNftsByGroupTokenIdThisWallet.size >
+                                    0 ? (
+                                        <OfferTable>
+                                            {Array.from(
+                                                offeredNftsByGroupTokenIdThisWallet.keys(),
+                                            ).map(collectionTokenId => {
+                                                const cachedCollectionInfo =
+                                                    cashtabCache.tokens.get(
+                                                        collectionTokenId,
+                                                    );
 
-                                        // Handle case of token info not available in cache
-                                        let tokenName,
-                                            tokenTicker,
-                                            genesisSupply = <InlineLoader />;
-                                        if (
-                                            typeof cachedCollectionInfo !==
-                                            'undefined'
-                                        ) {
-                                            tokenName =
-                                                cachedCollectionInfo.genesisInfo
-                                                    .tokenName;
-                                            tokenTicker =
-                                                cachedCollectionInfo.genesisInfo
-                                                    .tokenTicker;
-                                            genesisSupply =
-                                                cachedCollectionInfo.genesisSupply;
-                                        }
+                                                // Handle case of token info not available in cache
+                                                let tokenName,
+                                                    tokenTicker,
+                                                    genesisSupply = (
+                                                        <InlineLoader />
+                                                    );
+                                                if (
+                                                    typeof cachedCollectionInfo !==
+                                                    'undefined'
+                                                ) {
+                                                    tokenName =
+                                                        cachedCollectionInfo
+                                                            .genesisInfo
+                                                            .tokenName;
+                                                    tokenTicker =
+                                                        cachedCollectionInfo
+                                                            .genesisInfo
+                                                            .tokenTicker;
+                                                    genesisSupply =
+                                                        cachedCollectionInfo.genesisSupply;
+                                                }
 
-                                        const offeredNftsInThisGroup =
-                                            offeredNftsByGroupTokenIdThisWallet.get(
-                                                collectionTokenId,
-                                            );
+                                                const offeredNftsInThisGroup =
+                                                    offeredNftsByGroupTokenIdThisWallet.get(
+                                                        collectionTokenId,
+                                                    );
 
-                                        return (
-                                            <OfferCol key={collectionTokenId}>
-                                                <TokenIconExpandButton
-                                                    aria-label={`See your listed NFTs from the ${tokenName} collection`}
-                                                    onClick={() =>
-                                                        setShowMyCollectionTokenId(
-                                                            collectionTokenId,
-                                                        )
-                                                    }
-                                                >
-                                                    <OfferIcon
-                                                        title={
-                                                            collectionTokenId
-                                                        }
-                                                        size={128}
-                                                        tokenId={
-                                                            collectionTokenId
-                                                        }
-                                                    />
-                                                </TokenIconExpandButton>
-                                                <OfferRow>
-                                                    <NftTokenIdAndCopyIcon>
-                                                        <a
-                                                            href={`${explorer.blockExplorerUrl}/tx/${collectionTokenId}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                        >
-                                                            {collectionTokenId.slice(
-                                                                0,
-                                                                3,
-                                                            )}
-                                                            ...
-                                                            {collectionTokenId.slice(
-                                                                -3,
-                                                            )}
-                                                        </a>
-                                                        <CopyIconButton
-                                                            data={
-                                                                collectionTokenId
+                                                return (
+                                                    <OfferCol
+                                                        key={collectionTokenId}
+                                                    >
+                                                        <TokenIconExpandButton
+                                                            aria-label={`See your listed NFTs from the ${tokenName} collection`}
+                                                            onClick={() =>
+                                                                setShowMyCollectionTokenId(
+                                                                    collectionTokenId,
+                                                                )
                                                             }
-                                                            showToast
-                                                            customMsg={`Collection Token ID "${collectionTokenId}" copied to clipboard`}
-                                                        />
-                                                    </NftTokenIdAndCopyIcon>
-                                                </OfferRow>
-                                                <OfferRow>
-                                                    {tokenName} ({tokenTicker})
-                                                </OfferRow>
-                                                <OfferRow></OfferRow>
-                                                <OfferRow>
-                                                    {genesisSupply} NFTs
-                                                </OfferRow>
-                                                <OfferRow>
-                                                    {
-                                                        offeredNftsInThisGroup.length
-                                                    }{' '}
-                                                    listed
-                                                </OfferRow>
-                                            </OfferCol>
-                                        );
-                                    })}
-                                </OfferTable>
-                            ) : (
-                                <p>You do not have any listed NFTs</p>
-                            )}
-
-                            <OfferTitle>Collections on the market</OfferTitle>
-
-                            {offeredNftsByGroupTokenId.size > 0 ? (
-                                <OfferTable>
-                                    {Array.from(
-                                        offeredNftsByGroupTokenId.keys(),
-                                    ).map(collectionTokenId => {
-                                        const cachedCollectionInfo =
-                                            cashtabCache.tokens.get(
-                                                collectionTokenId,
-                                            );
-
-                                        // Handle case of token info not available in cache
-                                        let tokenName,
-                                            tokenTicker,
-                                            genesisSupply = <InlineLoader />;
-                                        if (
-                                            typeof cachedCollectionInfo !==
-                                            'undefined'
-                                        ) {
-                                            tokenName =
-                                                cachedCollectionInfo.genesisInfo
-                                                    .tokenName;
-                                            tokenTicker =
-                                                cachedCollectionInfo.genesisInfo
-                                                    .tokenTicker;
-                                            genesisSupply =
-                                                cachedCollectionInfo.genesisSupply;
-                                        }
-
-                                        const offeredNftsInThisGroup =
-                                            offeredNftsByGroupTokenId.get(
-                                                collectionTokenId,
-                                            );
-
-                                        return (
-                                            <OfferCol key={collectionTokenId}>
-                                                <TokenIconExpandButton
-                                                    aria-label={`See listed NFTs from the ${tokenName} collection`}
-                                                    onClick={() =>
-                                                        setDisplayedCollectionListings(
-                                                            collectionTokenId,
-                                                        )
-                                                    }
-                                                >
-                                                    <OfferIcon
-                                                        title={
-                                                            collectionTokenId
-                                                        }
-                                                        size={128}
-                                                        tokenId={
-                                                            collectionTokenId
-                                                        }
-                                                    />
-                                                </TokenIconExpandButton>
-                                                <OfferRow>
-                                                    <NftTokenIdAndCopyIcon>
-                                                        <a
-                                                            href={`${explorer.blockExplorerUrl}/tx/${collectionTokenId}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
                                                         >
-                                                            {collectionTokenId.slice(
-                                                                0,
-                                                                3,
-                                                            )}
-                                                            ...
-                                                            {collectionTokenId.slice(
-                                                                -3,
-                                                            )}
-                                                        </a>
-                                                        <CopyIconButton
-                                                            data={
-                                                                collectionTokenId
-                                                            }
-                                                            showToast
-                                                            customMsg={`Collection Token ID "${collectionTokenId}" copied to clipboard`}
-                                                        />
-                                                    </NftTokenIdAndCopyIcon>
-                                                </OfferRow>
-                                                <OfferRow>
-                                                    {tokenName} ({tokenTicker})
-                                                </OfferRow>
-                                                <OfferRow></OfferRow>
-                                                <OfferRow>
-                                                    {genesisSupply} NFTs
-                                                </OfferRow>
-                                                <OfferRow>
-                                                    {
-                                                        offeredNftsInThisGroup.length
-                                                    }{' '}
-                                                    listed
-                                                </OfferRow>
-                                            </OfferCol>
-                                        );
-                                    })}
-                                </OfferTable>
+                                                            <OfferIcon
+                                                                title={
+                                                                    collectionTokenId
+                                                                }
+                                                                size={128}
+                                                                tokenId={
+                                                                    collectionTokenId
+                                                                }
+                                                            />
+                                                        </TokenIconExpandButton>
+                                                        <OfferRow>
+                                                            <NftTokenIdAndCopyIcon>
+                                                                <a
+                                                                    href={`${explorer.blockExplorerUrl}/tx/${collectionTokenId}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                >
+                                                                    {collectionTokenId.slice(
+                                                                        0,
+                                                                        3,
+                                                                    )}
+                                                                    ...
+                                                                    {collectionTokenId.slice(
+                                                                        -3,
+                                                                    )}
+                                                                </a>
+                                                                <CopyIconButton
+                                                                    data={
+                                                                        collectionTokenId
+                                                                    }
+                                                                    showToast
+                                                                    customMsg={`Collection Token ID "${collectionTokenId}" copied to clipboard`}
+                                                                />
+                                                            </NftTokenIdAndCopyIcon>
+                                                        </OfferRow>
+                                                        <OfferRow>
+                                                            {tokenName} (
+                                                            {tokenTicker})
+                                                        </OfferRow>
+                                                        <OfferRow></OfferRow>
+                                                        <OfferRow>
+                                                            {genesisSupply} NFTs
+                                                        </OfferRow>
+                                                        <OfferRow>
+                                                            {
+                                                                offeredNftsInThisGroup.length
+                                                            }{' '}
+                                                            listed
+                                                        </OfferRow>
+                                                    </OfferCol>
+                                                );
+                                            })}
+                                        </OfferTable>
+                                    ) : (
+                                        <p>You do not have any listed NFTs</p>
+                                    )}
+                                </>
                             ) : (
-                                <p>No NFTs are currently listed for sale</p>
+                                <>
+                                    <OfferTitle>
+                                        Collections on the market
+                                    </OfferTitle>
+
+                                    {offeredNftsByGroupTokenId.size > 0 ? (
+                                        <OfferTable>
+                                            {Array.from(
+                                                offeredNftsByGroupTokenId.keys(),
+                                            ).map(collectionTokenId => {
+                                                const cachedCollectionInfo =
+                                                    cashtabCache.tokens.get(
+                                                        collectionTokenId,
+                                                    );
+
+                                                // Handle case of token info not available in cache
+                                                let tokenName,
+                                                    tokenTicker,
+                                                    genesisSupply = (
+                                                        <InlineLoader />
+                                                    );
+                                                if (
+                                                    typeof cachedCollectionInfo !==
+                                                    'undefined'
+                                                ) {
+                                                    tokenName =
+                                                        cachedCollectionInfo
+                                                            .genesisInfo
+                                                            .tokenName;
+                                                    tokenTicker =
+                                                        cachedCollectionInfo
+                                                            .genesisInfo
+                                                            .tokenTicker;
+                                                    genesisSupply =
+                                                        cachedCollectionInfo.genesisSupply;
+                                                }
+
+                                                const offeredNftsInThisGroup =
+                                                    offeredNftsByGroupTokenId.get(
+                                                        collectionTokenId,
+                                                    );
+
+                                                return (
+                                                    <OfferCol
+                                                        key={collectionTokenId}
+                                                    >
+                                                        <TokenIconExpandButton
+                                                            aria-label={`See listed NFTs from the ${tokenName} collection`}
+                                                            onClick={() =>
+                                                                setDisplayedCollectionListings(
+                                                                    collectionTokenId,
+                                                                )
+                                                            }
+                                                        >
+                                                            <OfferIcon
+                                                                title={
+                                                                    collectionTokenId
+                                                                }
+                                                                size={128}
+                                                                tokenId={
+                                                                    collectionTokenId
+                                                                }
+                                                            />
+                                                        </TokenIconExpandButton>
+                                                        <OfferRow>
+                                                            <NftTokenIdAndCopyIcon>
+                                                                <a
+                                                                    href={`${explorer.blockExplorerUrl}/tx/${collectionTokenId}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                >
+                                                                    {collectionTokenId.slice(
+                                                                        0,
+                                                                        3,
+                                                                    )}
+                                                                    ...
+                                                                    {collectionTokenId.slice(
+                                                                        -3,
+                                                                    )}
+                                                                </a>
+                                                                <CopyIconButton
+                                                                    data={
+                                                                        collectionTokenId
+                                                                    }
+                                                                    showToast
+                                                                    customMsg={`Collection Token ID "${collectionTokenId}" copied to clipboard`}
+                                                                />
+                                                            </NftTokenIdAndCopyIcon>
+                                                        </OfferRow>
+                                                        <OfferRow>
+                                                            {tokenName} (
+                                                            {tokenTicker})
+                                                        </OfferRow>
+                                                        <OfferRow></OfferRow>
+                                                        <OfferRow>
+                                                            {genesisSupply} NFTs
+                                                        </OfferRow>
+                                                        <OfferRow>
+                                                            {
+                                                                offeredNftsInThisGroup.length
+                                                            }{' '}
+                                                            listed
+                                                        </OfferRow>
+                                                    </OfferCol>
+                                                );
+                                            })}
+                                        </OfferTable>
+                                    ) : (
+                                        <p>
+                                            No NFTs are currently listed for
+                                            sale
+                                        </p>
+                                    )}
+                                </>
                             )}
                         </NftsCtn>
                     )}

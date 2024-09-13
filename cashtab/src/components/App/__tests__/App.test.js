@@ -395,7 +395,7 @@ describe('<App />', () => {
 
         // Now we see the NFTs screen
         expect(
-            await screen.findByText('You do not have any listed NFTs'),
+            await screen.findByText('No NFTs are currently listed for sale'),
         ).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
