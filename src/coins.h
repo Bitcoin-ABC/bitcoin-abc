@@ -96,7 +96,7 @@ struct CCoinsCacheEntry {
 private:
     /**
      * These are used to create a doubly linked list of flagged entries.
-     * They are set in AddFlags and unset in ClearFlags.
+     * They are set in SetDirty, SetFresh, and unset in SetClean.
      * A flagged entry is any entry that is either DIRTY, FRESH, or both.
      *
      * DIRTY entries are tracked so that only modified entries can be passed to
@@ -141,23 +141,33 @@ public:
 
     CCoinsCacheEntry() noexcept = default;
     explicit CCoinsCacheEntry(Coin &&coin_) : coin(std::move(coin_)) {}
-    ~CCoinsCacheEntry() { ClearFlags(); }
+    ~CCoinsCacheEntry() { SetClean(); }
 
     //! Adding a flag also requires a self reference to the pair that contains
     //! this entry in the CCoinsCache map and a reference to the sentinel of the
     //! flagged pair linked list.
-    inline void AddFlags(uint8_t flags, CoinsCachePair &self,
-                         CoinsCachePair &sentinel) noexcept {
-        Assume(&self.second == this);
-        if (!m_flags && flags) {
+    void AddFlags(uint8_t flags, CoinsCachePair &pair,
+                  CoinsCachePair &sentinel) noexcept {
+        Assume(flags & (DIRTY | FRESH));
+        Assume(&pair.second == this);
+        if (!m_flags) {
             m_prev = sentinel.second.m_prev;
             m_next = &sentinel;
-            sentinel.second.m_prev = &self;
-            m_prev->second.m_next = &self;
+            sentinel.second.m_prev = &pair;
+            m_prev->second.m_next = &pair;
         }
         m_flags |= flags;
     }
-    inline void ClearFlags() noexcept {
+    static void SetDirty(CoinsCachePair &pair,
+                         CoinsCachePair &sentinel) noexcept {
+        pair.second.AddFlags(DIRTY, pair, sentinel);
+    }
+    static void SetFresh(CoinsCachePair &pair,
+                         CoinsCachePair &sentinel) noexcept {
+        pair.second.AddFlags(FRESH, pair, sentinel);
+    }
+
+    void SetClean() noexcept {
         if (!m_flags) {
             return;
         }
@@ -165,27 +175,27 @@ public:
         m_prev->second.m_next = m_next;
         m_flags = 0;
     }
-    inline uint8_t GetFlags() const noexcept { return m_flags; }
-    inline bool IsDirty() const noexcept { return m_flags & DIRTY; }
-    inline bool IsFresh() const noexcept { return m_flags & FRESH; }
+    uint8_t GetFlags() const noexcept { return m_flags; }
+    bool IsDirty() const noexcept { return m_flags & DIRTY; }
+    bool IsFresh() const noexcept { return m_flags & FRESH; }
 
     //! Only call Next when this entry is DIRTY, FRESH, or both
-    inline CoinsCachePair *Next() const noexcept {
+    CoinsCachePair *Next() const noexcept {
         Assume(m_flags);
         return m_next;
     }
 
     //! Only call Prev when this entry is DIRTY, FRESH, or both
-    inline CoinsCachePair *Prev() const noexcept {
+    CoinsCachePair *Prev() const noexcept {
         Assume(m_flags);
         return m_prev;
     }
 
     //! Only use this for initializing the linked list sentinel
-    inline void SelfRef(CoinsCachePair &self) noexcept {
-        Assume(&self.second == this);
-        m_prev = &self;
-        m_next = &self;
+    void SelfRef(CoinsCachePair &pair) noexcept {
+        Assume(&pair.second == this);
+        m_prev = &pair;
+        m_next = &pair;
         // Set sentinel to DIRTY so we can call Next on it
         m_flags = DIRTY;
     }
@@ -267,13 +277,13 @@ struct CoinsViewCacheCursor {
     inline CoinsCachePair *NextAndMaybeErase(CoinsCachePair &current) noexcept {
         const auto next_entry{current.second.Next()};
         // If we are not going to erase the cache, we must still erase spent
-        // entries. Otherwise clear the flags on the entry.
+        // entries. Otherwise, clear the state of the entry.
         if (!m_will_erase) {
             if (current.second.coin.IsSpent()) {
                 m_usage -= current.second.coin.DynamicMemoryUsage();
                 m_map.erase(current.first);
             } else {
-                current.second.ClearFlags();
+                current.second.SetClean();
             }
         }
         return next_entry;
