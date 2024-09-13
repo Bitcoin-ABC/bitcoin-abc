@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <functional>
 #include <memory>
+#include <thread>
 #include <vector>
 
 class ArgsManager;
@@ -73,6 +74,7 @@ struct NodeContext {
     //! Issues calls about blocks and transactions
     std::unique_ptr<ValidationSignals> validation_signals;
     std::atomic<int> exit_status{EXIT_SUCCESS};
+    std::thread background_init_thread;
 
     std::unique_ptr<avalanche::Processor> avalanche;
 

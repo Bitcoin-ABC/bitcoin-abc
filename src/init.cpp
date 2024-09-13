@@ -292,8 +292,8 @@ void Shutdown(NodeContext &node) {
 
     StopTorControl();
 
-    if (node.chainman && node.chainman->m_thread_load.joinable()) {
-        node.chainman->m_thread_load.join();
+    if (node.background_init_thread.joinable()) {
+        node.background_init_thread.join();
     }
     // After everything has been shut down, but before things get flushed,
     // stop the scheduler. After this point, SyncWithValidationInterfaceQueue()
@@ -3003,7 +3003,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     avalanche::Processor *const avalanche = node.avalanche.get();
-    chainman.m_thread_load = std::thread(
+    node.background_init_thread = std::thread(
         &util::TraceThread, "initload", [=, &chainman, &args, &node] {
             // Import blocks
             ImportBlocks(chainman, avalanche, vImportFiles);
