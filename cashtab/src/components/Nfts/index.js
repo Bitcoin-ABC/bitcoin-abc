@@ -363,7 +363,9 @@ const Nfts = () => {
                 offeredNftsByGroupTokenId === null ||
                 offeredNftsByGroupTokenIdThisWallet === null) &&
             !chronikQueryError ? (
-                <LoadingCtn title="Loading tokens" />
+                <LoadingCtn title="Loading tokens">
+                    <Spinner />
+                </LoadingCtn>
             ) : (
                 <>
                     {loadingNfts && <Spinner />}
