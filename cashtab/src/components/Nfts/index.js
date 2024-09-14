@@ -74,6 +74,112 @@ const Nfts = () => {
     const [displayedCollectionListings, setDisplayedCollectionListings] =
         useState(null);
 
+    /**
+     * This is a helper function to allow the use of Promise.all() in creating the maps we need for
+     * the UI of the NFTs screen
+     *
+     * Because it does a lot of specialized work particular to this screen, we define it here
+     * @param {object} cashtabCache
+     * @param {string} groupTokenId
+     * @param {Map} allOffersMap
+     * @param {Map} myOffersMap
+     * @param {Map} listedOffersMap
+     * @param {Set} tokenIdsWeNeedToCacheSet
+     * @param {string[]} myOffersTokenIds
+     * @returns {Promise}
+     */
+    const returnGetActiveOffersByTokenIdAndAddToMapPromise = (
+        cashtabCache,
+        groupTokenId,
+        allOffersMap,
+        myOffersMap,
+        listedOffersMap,
+        tokenIdsWeNeedToCacheSet,
+        myOffersTokenIds,
+    ) => {
+        return new Promise((resolve, reject) => {
+            agora.activeOffersByGroupTokenId(groupTokenId).then(
+                activeOffers => {
+                    // A collection may have several active offers
+                    // There may be active offers by the user and not by the user
+                    // Initialize arrays to separate these offers, as the user actions
+                    // in the UI are different for each case
+                    const offeredNftsThisWallet = [];
+                    const offeredNfts = [];
+
+                    // Iterate over active offers in this collection
+                    for (const offer of activeOffers) {
+                        // Token ID of this active offer's NFT
+                        const tokenId = offer.token.tokenId;
+
+                        // We also keep a map of all the offers, for easy reference
+                        // This somewhat cumbersome arrangement (3 maps) is chosen to keep
+                        // offers best organized for UX
+                        // We need to have listings organized by pubkey, collection, and nft tokenid
+                        // First map -- all NFTs by tokenId
+                        allOffersMap.set(tokenId, offer);
+
+                        if (
+                            typeof cashtabCache.tokens.get(tokenId) ===
+                            'undefined'
+                        ) {
+                            // If we do not have the token info for this NFT cached,
+                            // Add it to a set to we can query for its token info
+                            tokenIdsWeNeedToCacheSet.add(tokenId);
+                        }
+
+                        if (myOffersTokenIds.includes(tokenId)) {
+                            // If the user is selling this NFT, we want to render it
+                            // as a "manage" NFT
+                            offeredNftsThisWallet.push(offer);
+                        } else {
+                            // Otherwise this NFT can be purchased
+                            offeredNfts.push(offer);
+                        }
+                    }
+                    // We only add to the respective map if there are relevant offers
+                    if (offeredNftsThisWallet.length > 0) {
+                        // Second map, NFTs listed by this wallet, by collection token ID
+                        myOffersMap.set(groupTokenId, offeredNftsThisWallet);
+                    }
+                    if (offeredNfts.length > 0) {
+                        // Third map, NFTs listed but NOT by this wallet, by collection token ID
+                        listedOffersMap.set(groupTokenId, offeredNfts);
+                    }
+                    resolve(true);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
+    /**
+     * Specialized helper function to support use of Promise.all in adding new tokens to cache
+     * While this functionality could be extended to other parts of Cashtab, for now it is
+     * only necessary on this screen
+     * As it is extended, this function should be generalized and refactored out of this screen
+     * Leave it here for now as a model of how to do it. Ensuring the cache (local storage) is properly
+     * updated with the state may need to be handled differently in a different component
+     * @param {object} cashtabCache
+     * @param {string} tokenId
+     * @returns {Promise}
+     */
+    const returnGetAndCacheTokenInfoPromise = (cashtabCache, tokenId) => {
+        return new Promise((resolve, reject) => {
+            getTokenGenesisInfo(chronik, tokenId).then(
+                result => {
+                    cashtabCache.tokens.set(tokenId, result);
+                    resolve(true);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
     const getListedNfts = async sellerPk => {
         // 1. Get all offered group token IDs
         let offeredGroupTokenIds;
@@ -86,7 +192,7 @@ const Nfts = () => {
 
         // Initialize a set of all tokenIds where we need token info
         // This is both group tokenIds and child tokenIds
-        const tokenIdsWeMayNeedToCache = new Set(offeredGroupTokenIds);
+        const tokenIdsWeNeedToCache = new Set();
 
         // 2. Get all NFTs listed from the active wallet
         let activeOffersByPubKey;
@@ -109,89 +215,74 @@ const Nfts = () => {
         }
 
         // 3. For each offeredGroupTokenId, get the offered NFTs
-        // Create two maps.
-        // One for the active wallet's listed NFTs (to manage them)
-        // The other for all NFTs available to buy
+        // Create three maps.
+        // One - all active offers by tokenId
+        // Two - the active wallet's active offers by token ID(to manage them)
+        // Three - all active offers not offered by this wallet by token ID
+        const allOffersByNftTokenId = new Map();
         const offeredNftsByGroupTokenIdThisWallet = new Map();
         const offeredNftsByGroupTokenId = new Map();
-        const allOffersByNftTokenId = new Map();
+
+        // Initialize an array of specialized promises to load the UI for this screen
+        const getActiveOffersByTokenIdAndAddToMapPromises = [];
         for (const offeredGroupTokenId of offeredGroupTokenIds) {
-            try {
-                const offeredNftsThisGroup =
-                    await agora.activeOffersByGroupTokenId(offeredGroupTokenId);
-
-                // Iterate over all offered NFTS in this group to determine which are listed by this wallet
-                // and which are not
-                const offeredNftsThisWallet = [];
-                const offeredNfts = [];
-                for (const offeredNft of offeredNftsThisGroup) {
-                    const { token } = offeredNft;
-                    const { tokenId } = token;
-
-                    // We also keep a map of all the offers, for easy reference
-                    // This somewhat cumbersome arrangement (3 maps) is chosen to keep
-                    // offers best organized for UX
-                    // We need to have listings organized by pubkey, collection, and nft tokenid
-                    // First map -- all NFTs by tokenId
-                    allOffersByNftTokenId.set(tokenId, offeredNft);
-
-                    tokenIdsWeMayNeedToCache.add(tokenId);
-                    if (activeOffersThisWalletTokenIds.includes(tokenId)) {
-                        offeredNftsThisWallet.push(offeredNft);
-                    } else {
-                        offeredNfts.push(offeredNft);
-                    }
-                }
-                // We only add to the respective map if there are relevant offers
-                if (offeredNftsThisWallet.length > 0) {
-                    // Second map, NFTs listed by this wallet, by collection token ID
-                    offeredNftsByGroupTokenIdThisWallet.set(
-                        offeredGroupTokenId,
-                        offeredNftsThisWallet,
-                    );
-                }
-                if (offeredNfts.length > 0) {
-                    // Third map, NFTs listed but NOT by this wallet, by collection token ID
-                    offeredNftsByGroupTokenId.set(
-                        offeredGroupTokenId,
-                        offeredNfts,
-                    );
-                }
-            } catch (err) {
-                console.error(
-                    `Error in agora.activeOffersByGroupTokenId(${offeredGroupTokenId})`,
-                    err,
-                );
-                return setChronikQueryError(true);
+            if (
+                typeof cashtabCache.tokens.get(offeredGroupTokenId) ===
+                'undefined'
+            ) {
+                // If we do not have token info for this collection cached, keep track of it
+                tokenIdsWeNeedToCache.add(offeredGroupTokenId);
             }
+            getActiveOffersByTokenIdAndAddToMapPromises.push(
+                returnGetActiveOffersByTokenIdAndAddToMapPromise(
+                    cashtabCache,
+                    offeredGroupTokenId,
+                    allOffersByNftTokenId,
+                    offeredNftsByGroupTokenIdThisWallet,
+                    offeredNftsByGroupTokenId,
+                    tokenIdsWeNeedToCache,
+                    activeOffersThisWalletTokenIds,
+                ),
+            );
         }
 
+        try {
+            await Promise.all(getActiveOffersByTokenIdAndAddToMapPromises);
+        } catch (err) {
+            console.error(
+                `Error in Promise.all(
+                getActiveOffersByTokenIdAndAddToMapPromises,
+            )`,
+                err,
+            );
+            return setChronikQueryError(true);
+        }
         setOfferedNftsByGroupTokenId(offeredNftsByGroupTokenId);
         setOfferedNftsByGroupTokenIdThisWallet(
             offeredNftsByGroupTokenIdThisWallet,
         );
         setAllOffersByNftTokenId(allOffersByNftTokenId);
 
-        // We need to get token info for all groups and NFTs to properly render UX
-        let tokenCacheUpdateRequired = false;
-        let tokenCache = cashtabCache.tokens;
-
-        for (const tokenId of Array.from(tokenIdsWeMayNeedToCache)) {
-            let thisTokenCachedInfo = tokenCache.get(tokenId);
-            if (typeof thisTokenCachedInfo === 'undefined') {
-                // If we have not cached this token before, cache it
-                thisTokenCachedInfo = await getTokenGenesisInfo(
-                    chronik,
-                    tokenId,
-                );
-                tokenCache.set(tokenId, thisTokenCachedInfo);
-                tokenCacheUpdateRequired = true;
-            }
+        // Build an array of promises to get token info for all unknown NFTs and collections
+        const tokenInfoPromises = [];
+        for (const tokenId of Array.from(tokenIdsWeNeedToCache)) {
+            tokenInfoPromises.push(
+                returnGetAndCacheTokenInfoPromise(cashtabCache, tokenId),
+            );
         }
-        if (tokenCacheUpdateRequired) {
+        try {
+            await Promise.all(tokenInfoPromises);
+        } catch (err) {
+            console.error(`Error in Promise.all(tokenInfoPromises)`, err);
+            // Cache will not be updated, token names and IDs will show spinners
+        }
+        if (tokenInfoPromises.length > 0) {
+            // If we had new tokens to cache, update the cache
+            // This will replace the inline spinners with tokenIds
+            // and also update cashtabCache in local storage
             updateCashtabState('cashtabCache', {
                 ...cashtabState.cashtabCache,
-                tokens: tokenCache,
+                tokens: cashtabCache.tokens,
             });
         }
     };
