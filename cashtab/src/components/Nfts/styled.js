@@ -67,6 +67,7 @@ export const OfferIcon = styled.div`
     }
 `;
 export const OfferRow = styled.div`
+    word-break: break-word;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
