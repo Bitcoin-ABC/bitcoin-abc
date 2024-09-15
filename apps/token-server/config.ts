@@ -53,7 +53,7 @@ const config: TokenServerConfig = {
     ],
     limiter: {
         windowMs: 120 * 60 * 1000, // 120 minutes
-        limit: 3, // Limit each IP to 10 requests per `window`
+        limit: 1, // Limit each IP to 10 requests per `window`
         standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
         message:
