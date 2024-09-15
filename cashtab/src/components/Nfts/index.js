@@ -39,6 +39,7 @@ import { toast } from 'react-toastify';
 import NftListingActions from 'components/Common/NftListingActions';
 import BrowseCollection from 'components/Common/BrowseCollection';
 import { CopyIconButton } from 'components/Common/Buttons';
+import { InlineLoader } from 'components/Common/Spinner';
 
 const Nfts = () => {
     const userLocale = getUserLocale(navigator);
@@ -68,15 +69,12 @@ const Nfts = () => {
     const [manageMyNft, setManageMyNft] = useState('');
     const [buyThisNft, setBuyThisNft] = useState('');
     const [activePublicKey, setActivePublicKey] = useState(null);
-    const [loadingNfts, setLoadingNfts] = useState(true);
     const [chronikQueryError, setChronikQueryError] = useState(false);
     const [showMyCollectionTokenId, setShowMyCollectionTokenId] = useState('');
     const [displayedCollectionListings, setDisplayedCollectionListings] =
         useState(null);
 
     const getListedNfts = async sellerPk => {
-        setLoadingNfts(true);
-
         // 1. Get all offered group token IDs
         let offeredGroupTokenIds;
         try {
@@ -196,7 +194,6 @@ const Nfts = () => {
                 tokens: tokenCache,
             });
         }
-        setLoadingNfts(false);
     };
 
     useEffect(() => {
@@ -368,7 +365,6 @@ const Nfts = () => {
                 </LoadingCtn>
             ) : (
                 <>
-                    {loadingNfts && <Spinner />}
                     {showMyCollectionTokenId !== '' &&
                         typeof offeredNftsByGroupTokenIdThisWallet.get(
                             showMyCollectionTokenId,
@@ -467,7 +463,7 @@ const Nfts = () => {
                                         // Handle case of token info not available in cache
                                         let tokenName,
                                             tokenTicker,
-                                            genesisSupply;
+                                            genesisSupply = <InlineLoader />;
                                         if (
                                             typeof cachedCollectionInfo !==
                                             'undefined'
@@ -480,15 +476,6 @@ const Nfts = () => {
                                                     .tokenTicker;
                                             genesisSupply =
                                                 cachedCollectionInfo.genesisSupply;
-                                        } else {
-                                            tokenName = `${collectionTokenId.slice(
-                                                0,
-                                                3,
-                                            )}...${collectionTokenId.slice(
-                                                -3,
-                                            )}`;
-                                            tokenTicker = 'N/A';
-                                            genesisSupply = 'N/A';
                                         }
 
                                         const offeredNftsInThisGroup =
@@ -577,7 +564,7 @@ const Nfts = () => {
                                         // Handle case of token info not available in cache
                                         let tokenName,
                                             tokenTicker,
-                                            genesisSupply;
+                                            genesisSupply = <InlineLoader />;
                                         if (
                                             typeof cachedCollectionInfo !==
                                             'undefined'
@@ -590,15 +577,6 @@ const Nfts = () => {
                                                     .tokenTicker;
                                             genesisSupply =
                                                 cachedCollectionInfo.genesisSupply;
-                                        } else {
-                                            tokenName = `${collectionTokenId.slice(
-                                                0,
-                                                3,
-                                            )}...${collectionTokenId.slice(
-                                                -3,
-                                            )}`;
-                                            tokenTicker = 'N/A';
-                                            genesisSupply = 'N/A';
                                         }
 
                                         const offeredNftsInThisGroup =
