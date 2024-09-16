@@ -176,6 +176,36 @@ bool TxPool::HaveTx(const TxId &txid) const {
     return m_pool_txs.count(txid);
 }
 
+CTransactionRef TxPool::GetTx(const TxId &txid) const {
+    LOCK(m_mutex);
+
+    const auto tx_it = m_pool_txs.find(txid);
+    if (tx_it != m_pool_txs.end()) {
+        return tx_it->second.tx;
+    }
+
+    return nullptr;
+}
+
+std::vector<CTransactionRef>
+TxPool::GetConflictTxs(const CTransactionRef &tx) const {
+    LOCK(m_mutex);
+
+    std::vector<CTransactionRef> conflictingTxs;
+    for (const auto &txin : tx->vin) {
+        auto itByPrev = m_outpoint_to_tx_it.find(txin.prevout);
+        if (itByPrev == m_outpoint_to_tx_it.end()) {
+            continue;
+        }
+
+        for (auto mi = itByPrev->second.begin(); mi != itByPrev->second.end();
+             ++mi) {
+            conflictingTxs.push_back((*mi)->second.tx);
+        }
+    }
+    return conflictingTxs;
+}
+
 CTransactionRef TxPool::GetTxToReconsider(NodeId peer) {
     LOCK(m_mutex);
 

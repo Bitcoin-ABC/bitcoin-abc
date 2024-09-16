@@ -8,7 +8,6 @@
 #include <nodeid.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
-
 #include <sync.h>
 #include <util/time.h>
 
@@ -35,6 +34,11 @@ public:
 
     /** Check if we already have an the transaction */
     bool HaveTx(const TxId &txid) const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+
+    CTransactionRef GetTx(const TxId &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    std::vector<CTransactionRef> GetConflictTxs(const CTransactionRef &tx) const
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /**
      * Extract a transaction from a peer's work set
