@@ -709,6 +709,132 @@ export default {
                     queryString: { value: 'amount=125', error: false },
                 },
             },
+            // no op_return_raw, additional outputs
+            {
+                description:
+                    'Valid primary address & amount, valid secondary addr & amount',
+                addressInput:
+                    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.50',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '110', error: false },
+                    parsedAdditionalXecOutputs: {
+                        error: false,
+                        value: [
+                            [
+                                'ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5',
+                                '5.50',
+                            ],
+                        ],
+                    },
+                    queryString: {
+                        value: 'amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.50',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'Valid primary address & amount, invalid secondary addr',
+                addressInput:
+                    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&addr=someinvalidaddress&amount=5.50',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '110', error: false },
+                    parsedAdditionalXecOutputs: {
+                        error: `Invalid address "someinvalidaddress"`,
+                        value: null,
+                    },
+                    queryString: {
+                        value: 'amount=110&addr=someinvalidaddress&amount=5.50',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'Valid primary address & amount, invalid secondary amount',
+                addressInput:
+                    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.123',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '110', error: false },
+                    parsedAdditionalXecOutputs: {
+                        error: `Invalid amount 5.123 for address ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5: XEC transactions do not support more than 2 decimal places`,
+                        value: null,
+                    },
+                    queryString: {
+                        value: 'amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.123',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'Valid primary address & amount, valid secondary addr & amount, but the secondary amount param does not directly follow the secondary addr param',
+                addressInput:
+                    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&op_return_raw=0401020304&amount=5.50',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '110', error: false },
+                    parsedAdditionalXecOutputs: {
+                        error: `No amount key for addr ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5`,
+                        value: null,
+                    },
+                    queryString: {
+                        value: 'amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&op_return_raw=0401020304&amount=5.50',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'Valid primary address & amount, valid secondary addr, but no corresponding amount param',
+                addressInput:
+                    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '110', error: false },
+                    parsedAdditionalXecOutputs: {
+                        error: `No amount key for addr ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5`,
+                        value: null,
+                    },
+                    queryString: {
+                        value: 'amount=110&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5',
+                        error: false,
+                    },
+                },
+            },
 
             // opreturn param only
             {
@@ -801,7 +927,40 @@ export default {
                     },
                 },
             },
-
+            // Both op_return_raw and amount params, with an additional output
+            {
+                description:
+                    'Valid amount and op_return_raw params and valid second output',
+                addressInput:
+                    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&op_return_raw=0470617977202562dd05deda1c101b10562527bcd6bec20268fb94eed01843ba049cd774bec1&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.50',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '110', error: false },
+                    op_return_raw: {
+                        value: '0470617977202562dd05deda1c101b10562527bcd6bec20268fb94eed01843ba049cd774bec1',
+                        error: false,
+                    },
+                    parsedAdditionalXecOutputs: {
+                        error: false,
+                        value: [
+                            [
+                                'ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5',
+                                '5.50',
+                            ],
+                        ],
+                    },
+                    queryString: {
+                        value: 'amount=110&op_return_raw=0470617977202562dd05deda1c101b10562527bcd6bec20268fb94eed01843ba049cd774bec1&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.50',
+                        error: false,
+                    },
+                },
+            },
             {
                 description: 'invalid querystring (unsupported params)',
                 addressInput:
@@ -822,7 +981,8 @@ export default {
             },
             // Querystring errors where no params can be returned
             {
-                description: 'Invalid queryString, repeated param',
+                description:
+                    'Invalid queryString, repeated amount param without corresponding address',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45&amount=678.9',
                 balanceSats: 50000000,
@@ -833,9 +993,13 @@ export default {
                         error: false,
                         isAlias: false,
                     },
+                    amount: {
+                        value: null,
+                        error: 'Duplicated amount param without matching address',
+                    },
                     queryString: {
                         value: 'amount=123.45&amount=678.9',
-                        error: 'bip21 parameters may not appear more than once',
+                        error: 'The amount param appears without a corresponding addr param',
                     },
                 },
             },
@@ -851,9 +1015,13 @@ export default {
                         error: false,
                         isAlias: false,
                     },
+                    op_return_raw: {
+                        error: 'Duplicated op_return_raw param',
+                        value: null,
+                    },
                     queryString: {
                         value: 'op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                        error: `bip21 parameters may not appear more than once`,
+                        error: `The op_return_raw param may not appear more than once`,
                     },
                 },
             },

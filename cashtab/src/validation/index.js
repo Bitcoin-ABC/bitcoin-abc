@@ -651,6 +651,7 @@ export const shouldSendXecBeDisabled = (
  * For now, Cashtab supports only
  * amount - amount to be sent in XEC
  * opreturn - raw hex for opreturn output
+ * additional addr & amount - multiple outputs for XEC txs
  * @param {number} balanceSats user wallet balance in satoshis
  * @param {string} userLocale navigator.language if available, or default value if not
  * @returns {object} addressInfo. Object with parsed params designed for use in Send.js
@@ -714,31 +715,92 @@ export function parseAddressInput(
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
         const addrParams = new URLSearchParams(queryString);
 
-        // Check for duplicated params
-        const duplicatedParams =
-            new Set(addrParams.keys()).size !==
-            Array.from(addrParams.keys()).length;
-
-        if (duplicatedParams) {
-            // In this case, we can't pass any values back for supported params,
-            // without changing the shape of addressInfo
-            parsedAddressInput.queryString.error = `bip21 parameters may not appear more than once`;
-            return parsedAddressInput;
-        }
-
-        const supportedParams = ['amount', 'op_return_raw'];
+        const supportedParams = ['amount', 'op_return_raw', 'addr'];
 
         // Iterate over params to check for valid and/or invalid params
-        for (const paramKeyValue of addrParams) {
-            const paramKey = paramKeyValue[0];
-            if (!supportedParams.includes(paramKey)) {
+        // Set a flag -- the first time we see the 'amount' param, it is for the bip21 starting address
+        let firstAmount = true;
+        // Set a flag -- per spec, nth outputs must be addr=<address> followed immediately by amount= for that address
+        let precedingParamAddr = false;
+
+        // Tempting to make additionalXecOutputs a map of address => amount
+        // However, we want to support the use case of multiple outputs of different amounts going to the same address
+        const additionalXecOutputs = [];
+        // Flag as any duplication of this param is off spec
+        let opReturnRawOccurred = false;
+        for (const [key, value] of addrParams) {
+            if (precedingParamAddr !== false) {
+                // If the preceding param was addr, then this has to be amount, otherwise off spec
+                if (key !== 'amount') {
+                    parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+                    return parsedAddressInput;
+                }
+                // Validate the amount
+                const isValidXecSendAmountOrErrorMsg = isValidXecSendAmount(
+                    value,
+                    balanceSats,
+                    userLocale,
+                );
+                if (isValidXecSendAmountOrErrorMsg !== true) {
+                    parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid amount ${value} for address ${precedingParamAddr}: ${isValidXecSendAmountOrErrorMsg}`;
+                    return parsedAddressInput;
+                } else {
+                    additionalXecOutputs.push([precedingParamAddr, value]);
+                }
+
+                // Reset the flag
+                precedingParamAddr = false;
+
+                // Go to the next param
+                continue;
+            }
+
+            if (!supportedParams.includes(key)) {
                 // queryString error
                 // Keep parsing for other params though
-                parsedAddressInput.queryString.error = `Unsupported param "${paramKey}"`;
+                parsedAddressInput.queryString.error = `Unsupported param "${key}"`;
             }
-            if (paramKey === 'amount') {
+            if (key === 'addr') {
+                // nth output address param
+                // So, we will return a parsedAdditionalXecOutputs key
+                parsedAddressInput.parsedAdditionalXecOutputs = {
+                    value: null,
+                    error: false,
+                };
+
+                const nthAddress = value;
+                // address validation
+                // Note: for now, Cashtab only supports valid cash addresses for secondary outputs
+                // TODO support aliases
+                const isValidNthAddress = cashaddr.isValidCashAddress(
+                    nthAddress,
+                    'ecash',
+                );
+                if (!isValidNthAddress) {
+                    //
+                    // If your address is not a valid address and not a valid alias format
+                    parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid address "${nthAddress}"`;
+                    // We do not return a value for parsedAdditionalXecOutputs if there is a validation error
+                    return parsedAddressInput;
+                }
+                // set precedingParamAddr flag to the address
+                // In this way we can validate bip21 spec and set the amount for this address by the next param
+                precedingParamAddr = nthAddress;
+            }
+            if (key === 'amount') {
+                if (!firstAmount) {
+                    // We should only get to this block for the first amount
+                    // If we get here otherwise, it means we are missing the corresponding 'addr' param for this amount
+                    // Set a query string error
+                    parsedAddressInput.queryString.error = `The amount param appears without a corresponding addr param`;
+                    // Do not return an amount value, since it is ambiguous
+                    parsedAddressInput.amount.value = null;
+                    parsedAddressInput.amount.error = `Duplicated amount param without matching address`;
+                    // Stop parsing
+                    return parsedAddressInput;
+                }
                 // Handle Cashtab-supported bip21 param 'amount'
-                const amount = paramKeyValue[1];
+                const amount = value;
                 parsedAddressInput.amount = { value: amount, error: false };
 
                 const validXecSendAmount = isValidXecSendAmount(
@@ -750,10 +812,25 @@ export function parseAddressInput(
                     // If the result of isValidXecSendAmount is not true, it is an error msg explaining wy
                     parsedAddressInput.amount.error = validXecSendAmount;
                 }
+
+                if (firstAmount) {
+                    // Unset the firstAmount flag so that we correctly parse nth outputs
+                    firstAmount = false;
+                }
             }
-            if (paramKey === 'op_return_raw') {
+            if (key === 'op_return_raw') {
+                if (opReturnRawOccurred) {
+                    // Set a query string error
+                    parsedAddressInput.queryString.error = `The op_return_raw param may not appear more than once`;
+                    // Do not return an op_return_raw value, since it is ambiguous
+                    parsedAddressInput.op_return_raw.value = null;
+                    parsedAddressInput.op_return_raw.error = `Duplicated op_return_raw param`;
+                    // Stop parsing
+                    return parsedAddressInput;
+                }
+                opReturnRawOccurred = true;
                 // Handle Cashtab-supported bip21 param 'op_return_raw'
-                const opreturnParam = paramKeyValue[1];
+                const opreturnParam = value;
                 parsedAddressInput.op_return_raw = {
                     value: opreturnParam,
                     error: false,
@@ -764,6 +841,17 @@ export function parseAddressInput(
                     parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param: ${opReturnRawError}`;
                 }
             }
+        }
+
+        // Catch a bip21 syntax error where the LAST param was addr
+        if (precedingParamAddr !== false) {
+            parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+            return parsedAddressInput;
+        }
+        if (additionalXecOutputs.length > 0) {
+            // If we have secondary outputs, include them
+            parsedAddressInput.parsedAdditionalXecOutputs.value =
+                additionalXecOutputs;
         }
     }
 

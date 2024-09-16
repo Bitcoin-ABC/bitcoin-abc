@@ -1772,4 +1772,152 @@ describe('<SendXec />', () => {
             ),
         );
     });
+    it('Entering a valid bip21 query string with multiple outputs and op_return_raw will correctly populate UI fields, and the tx can be sent', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Can check in electrum for opreturn and multiple outputs
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441d95dfbf01e233d19684fd525d1cc39eb82a53ebfc97b8f2f9160f418ce863f4360f9fd1d6c182abde1d582ed39c6998ec5e4cdbde1b09736f6abe390a6ab8d8f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac40e20100000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acca980c00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'f153119862f52dbe765ed5d66a5ff848d0386c5d987af9bef5e49a7e62a2c889';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        // The user enters a valid BIP21 query string with a valid amount param
+        const op_return_raw =
+            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}&addr=ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035&amount=1234.56`;
+        await user.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this bip21 query string as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // The 'Send To' input field is not disabled
+        expect(addressInputEl).toHaveProperty('disabled', false);
+
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // Because we have multiple outputs, the amount input is not displayed
+        expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
+
+        // Instead, we see a summary of total outputs and XEC to be sent
+        expect(
+            screen.getByText('BIP21: Sending 1,251.56 XEC to 2 outputs'),
+        ).toBeInTheDocument();
+
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
+        // We see expected data in the op_return_raw preview
+        expect(
+            screen.getByText('cashtab message with op_return_raw'),
+        ).toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
+
+        // The Send button is enabled as we have valid address and amount params
+        expect(screen.getByRole('button', { name: 'Send' })).not.toHaveStyle(
+            'cursor: not-allowed',
+        );
+
+        // The Cashtab Msg switch is disabled because op_return_raw is set
+        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // We see a summary table of addresses and amounts
+        expect(screen.getByText('Parsed BIP21 outputs')).toBeInTheDocument();
+        expect(
+            screen.getByText('qp89xg...9nhgg6, 17.00 XEC'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText('qz2708...rf5035, 1,234.56 XEC'),
+        ).toBeInTheDocument();
+
+        // Click Send
+        await user.click(
+            screen.getByRole('button', { name: 'Send' }),
+            addressInput,
+        );
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+        await waitFor(() =>
+            // The op_return_raw set alert is now removed
+            expect(
+                screen.queryByText(
+                    `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
+                ),
+            ).not.toBeInTheDocument(),
+        );
+        // The amount input is no longer hidden
+        expect(
+            await screen.findByPlaceholderText('Amount'),
+        ).toBeInTheDocument(),
+            // Amount input is reset
+            expect(await screen.findByPlaceholderText('Amount')).toHaveValue(
+                null,
+            ),
+            // The "Send to Many" switch is not disabled
+            expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+                'disabled',
+                false,
+            );
+
+        // The 'Send To' input field has been cleared
+        expect(addressInputEl).toHaveValue('');
+
+        // The Cashtab Msg switch is not disabled because op_return_raw is not set
+        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
+            'disabled',
+            false,
+        );
+    });
 });

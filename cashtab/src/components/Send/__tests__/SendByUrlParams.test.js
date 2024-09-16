@@ -679,15 +679,17 @@ describe('<SendXec /> rendered with params in URL', () => {
             true,
         );
 
-        // Amount input is not updated as the bip21 query is invalid
-        expect(amountInputEl).toHaveValue(null);
+        // Amount input is updated despite invalid bip21 query, so the user can see the amount
+        expect(amountInputEl).toHaveValue(amount);
 
-        // The amount input is not disabled because it is not set by the invalid bip21 query string
-        expect(amountInputEl).toHaveProperty('disabled', false);
+        // The amount input is disabled because it was set by a bip21 query string and URL routing
+        expect(amountInputEl).toHaveProperty('disabled', true);
 
         // We get the expected validation error
         expect(
-            screen.getByText('bip21 parameters may not appear more than once'),
+            screen.getByText(
+                'The op_return_raw param may not appear more than once',
+            ),
         ).toBeInTheDocument();
 
         // The Send button is disabled
@@ -755,5 +757,124 @@ describe('<SendXec /> rendered with params in URL', () => {
         for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
+    });
+    it('bip21 param - valid bip21 param with amount, op_return_raw, and additional output with amount is parsed as expected', async () => {
+        const destinationAddress =
+            'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv';
+        const amount = 110;
+        const secondOutputAddr =
+            'ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5';
+        const secondOutputAmount = 5.5;
+        const op_return_raw =
+            '0470617977202562dd05deda1c101b10562527bcd6bec20268fb94eed01843ba049cd774bec1';
+        const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}&addr=${secondOutputAddr}&amount=${secondOutputAmount}`;
+        const hash = `#/send?bip21=${bip21Str}`;
+        // ?bip21=ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&op_return_raw=0470617977202562dd05deda1c101b10562527bcd6bec20268fb94eed01843ba049cd774bec1&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.50
+        Object.defineProperty(window, 'location', {
+            value: {
+                hash,
+            },
+            writable: true,
+        });
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // The 'Send To' input field has this address as a value
+        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
+
+        // The address input is disabled for app txs with bip21 strings
+        // Note it is NOT disabled for txs where the user inputs the bip21 string
+        // This is covered in SendXec.test.js
+        expect(addressInputEl).toHaveProperty('disabled', true);
+
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // Amount input is not displayed
+        expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
+
+        // Instead, we see a bip21 output summary
+        expect(
+            screen.getByText('BIP21: Sending 115.50 XEC to 2 outputs'),
+        ).toBeInTheDocument();
+
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
+
+        // The op_return_raw switch is disabled because we have txInfoFromUrl
+        expect(screen.getByTitle('Toggle op_return_raw')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // The op_return_raw switch is checked because it is set by txInfoFromUrl
+        expect(screen.getByTitle('Toggle op_return_raw')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // We see the preview of this op_return_raw
+        expect(screen.getByText('Parsed op_return_raw')).toBeInTheDocument();
+
+        // The Send button is enabled as we have valid address and amount params
+        expect(
+            await screen.findByRole('button', { name: 'Send' }),
+        ).not.toHaveStyle('cursor: not-allowed');
+
+        // The Cashtab Msg switch is disabled because we have txInfoFromUrl
+        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // We see expected summary of additional bip21 outputs
+        expect(screen.getByText('Parsed BIP21 outputs')).toBeInTheDocument();
+        expect(
+            screen.getByText(`qr6lws...6lyxkv, 110.00 XEC`),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(`qp4dxt...qkrjp5, 5.50 XEC`),
+        ).toBeInTheDocument();
     });
 });
