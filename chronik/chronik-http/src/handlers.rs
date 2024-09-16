@@ -378,3 +378,32 @@ pub async fn handle_plugin_groups(
         next_start: groups.next_start.unwrap_or_default(),
     })
 }
+
+/// Return a block header and optionally checkpoint data
+pub async fn handle_block_header(
+    hash_or_height: String,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::BlockHeader> {
+    let blocks = indexer.blocks(node);
+    let checkpoint_height: i32 =
+        get_param(query_params, "checkpoint_height")?.unwrap_or(0);
+    blocks.header(hash_or_height, checkpoint_height).await
+}
+
+/// Return block headers and optionally checkpoint data
+pub async fn handle_block_headers(
+    start_height: i32,
+    end_height: i32,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::BlockHeaders> {
+    let blocks = indexer.blocks(node);
+    let checkpoint_height: i32 =
+        get_param(query_params, "checkpoint_height")?.unwrap_or(0);
+    blocks
+        .headers_by_range(start_height, end_height, checkpoint_height)
+        .await
+}

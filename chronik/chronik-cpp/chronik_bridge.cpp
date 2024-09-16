@@ -230,6 +230,24 @@ ChronikBridge::get_block_headers_by_range(int start, int end) const {
     return chronik::util::ToRustVec<RawBlockHeader>(headers);
 }
 
+rust::Vec<WrappedBlockHash>
+ChronikBridge::get_block_hashes_by_range(int start, int end) const {
+    if (start < 0 || end < start) {
+        throw invalid_block_range();
+    }
+    LOCK(cs_main);
+    std::vector<WrappedBlockHash> block_hashes;
+    for (int height = start; height <= end; height++) {
+        const CBlockIndex *pindex = m_node.chainman->ActiveChain()[height];
+        if (!pindex) {
+            throw block_index_not_found();
+        }
+        block_hashes.push_back(
+            {.data = chronik::util::HashToArray(pindex->GetBlockHash())});
+    }
+    return chronik::util::ToRustVec<WrappedBlockHash>(block_hashes);
+}
+
 std::unique_ptr<CBlock>
 ChronikBridge::load_block(const CBlockIndex &bindex) const {
     CBlock block;

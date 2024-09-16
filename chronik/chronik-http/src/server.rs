@@ -309,22 +309,39 @@ async fn handle_block(
 
 async fn handle_block_header(
     Path(hash_or_height): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
     Extension(indexer): Extension<ChronikIndexerRef>,
     Extension(node): Extension<NodeRef>,
 ) -> Result<Protobuf<proto::BlockHeader>, ReportError> {
     let indexer = indexer.read().await;
-    let blocks = indexer.blocks(&node);
-    Ok(Protobuf(blocks.header(hash_or_height)?))
+    Ok(Protobuf(
+        handlers::handle_block_header(
+            hash_or_height,
+            &query_params,
+            &indexer,
+            &node,
+        )
+        .await?,
+    ))
 }
 
 async fn handle_block_headers(
     Path((start_height, end_height)): Path<(i32, i32)>,
+    Query(query_params): Query<HashMap<String, String>>,
     Extension(indexer): Extension<ChronikIndexerRef>,
     Extension(node): Extension<NodeRef>,
 ) -> Result<Protobuf<proto::BlockHeaders>, ReportError> {
     let indexer = indexer.read().await;
-    let blocks = indexer.blocks(&node);
-    Ok(Protobuf(blocks.headers_by_range(start_height, end_height)?))
+    Ok(Protobuf(
+        handlers::handle_block_headers(
+            start_height,
+            end_height,
+            &query_params,
+            &indexer,
+            &node,
+        )
+        .await?,
+    ))
 }
 
 async fn handle_block_txs(

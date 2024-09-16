@@ -133,6 +133,13 @@ mod ffi_inner {
         pub data: [u8; 80],
     }
 
+    /// Wrapper struct for a block hash.
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub struct WrappedBlockHash {
+        /// Raw block hash
+        pub data: [u8; 32],
+    }
+
     #[allow(missing_debug_implementations)]
     unsafe extern "C++" {
         include!("blockindex.h");
@@ -219,6 +226,13 @@ mod ffi_inner {
             start: i32,
             end: i32,
         ) -> Result<Vec<RawBlockHeader>>;
+
+        /// Get a range of consecutive block hashes.
+        fn get_block_hashes_by_range(
+            self: &ChronikBridge,
+            start: i32,
+            end: i32,
+        ) -> Result<Vec<WrappedBlockHash>>;
 
         /// Load the CBlock data of this CBlockIndex from the disk
         fn load_block(

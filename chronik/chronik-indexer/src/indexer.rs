@@ -39,11 +39,12 @@ use chronik_plugin::{
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 
 use crate::{
     avalanche::Avalanche,
     indexer::ChronikIndexerError::*,
+    merkle::BlockMerkleTree,
     query::{
         QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
         QueryPlugins, QueryTxs, UtxoProtobufOutput, UtxoProtobufValue,
@@ -93,6 +94,7 @@ pub struct ChronikIndexer {
     needs_lokad_id_reindex: bool,
     plugin_ctx: Arc<PluginContext>,
     plugin_name_map: PluginNameMap,
+    block_merkle_tree: Mutex<BlockMerkleTree>,
 }
 
 /// Access to the bitcoind node.
@@ -299,6 +301,7 @@ impl ChronikIndexer {
             needs_lokad_id_reindex,
             plugin_ctx: params.plugin_ctx,
             plugin_name_map,
+            block_merkle_tree: Mutex::new(BlockMerkleTree::new()),
         })
     }
 
@@ -722,6 +725,9 @@ impl ChronikIndexer {
             hash: block.db_block.hash,
             height: block.db_block.height,
         });
+        self.block_merkle_tree
+            .get_mut()
+            .invalidate_block(block.db_block.height as usize);
         Ok(())
     }
 
@@ -789,6 +795,7 @@ impl ChronikIndexer {
             node,
             is_token_index_enabled: self.is_token_index_enabled,
             plugin_name_map: &self.plugin_name_map,
+            block_merkle_tree: &self.block_merkle_tree,
         }
     }
 

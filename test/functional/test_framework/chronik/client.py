@@ -358,12 +358,31 @@ class ChronikClient:
     def blocks(self, start_height: int, end_height: int) -> ChronikResponse:
         return self._request_get(f"/blocks/{start_height}/{end_height}", pb.Blocks)
 
-    def block_header(self, hash_or_height: Union[str, int]) -> ChronikResponse:
-        return self._request_get(f"/block-header/{hash_or_height}", pb.BlockHeader)
-
-    def block_headers(self, start_height: int, end_height: int) -> ChronikResponse:
+    def block_header(
+        self, hash_or_height: Union[str, int], checkpoint_height: Optional[int] = None
+    ) -> ChronikResponse:
+        query = (
+            f"?checkpoint_height={checkpoint_height}"
+            if checkpoint_height is not None
+            else ""
+        )
         return self._request_get(
-            f"/block-headers/{start_height}/{end_height}", pb.BlockHeaders
+            f"/block-header/{hash_or_height}{query}", pb.BlockHeader
+        )
+
+    def block_headers(
+        self,
+        start_height: int,
+        end_height: int,
+        checkpoint_height: Optional[int] = None,
+    ) -> ChronikResponse:
+        query = (
+            f"?checkpoint_height={checkpoint_height}"
+            if checkpoint_height is not None
+            else ""
+        )
+        return self._request_get(
+            f"/block-headers/{start_height}/{end_height}{query}", pb.BlockHeaders
         )
 
     def chronik_info(self) -> ChronikResponse:

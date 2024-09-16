@@ -31,6 +31,7 @@ struct BlockInfo;
 struct Block;
 struct Tx;
 struct OutPoint;
+struct WrappedBlockHash;
 struct RawBlockHeader;
 
 class block_index_not_found : public std::exception {
@@ -71,6 +72,8 @@ public:
 
     rust::Vec<RawBlockHeader> get_block_headers_by_range(int start,
                                                          int end) const;
+    rust::Vec<WrappedBlockHash> get_block_hashes_by_range(int start,
+                                                          int end) const;
 
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
 

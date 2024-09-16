@@ -22,6 +22,10 @@ message Blocks {
 message BlockHeader {
     // Raw data
     bytes raw_header = 1;
+    // Merkle root
+    bytes root = 2;
+    // Merkle branch of header up to root, deepest pairing first
+    repeated bytes branch = 3;
 }
 
 // Range of headers
