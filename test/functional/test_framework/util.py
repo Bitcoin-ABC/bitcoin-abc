@@ -242,6 +242,10 @@ def str_to_b64str(string):
     return b64encode(string.encode("utf-8")).decode("ascii")
 
 
+def hex_to_be_bytes(hex_string: str) -> bytes:
+    return bytes.fromhex(hex_string)[::-1]
+
+
 def satoshi_round(amount):
     return Decimal(amount).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
 
