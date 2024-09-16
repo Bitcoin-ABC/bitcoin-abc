@@ -25,14 +25,13 @@ import {
     ExchangeWrapper,
     BuildSection,
     BuildSectionCtn,
-    LearnMoreBtnCtn,
     ButtonFlagCtn,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
 import Hand from '/public/images/hand-logo.png';
 import Rockets from '/public/images/rocket.png';
-import HomepageTiles from '/components/homepage-tiles';
+import CoreTech from '/components/core-tech';
 import { getScoreCardData } from '/data/scores.js';
 
 function Home(props) {
@@ -140,15 +139,7 @@ function Home(props) {
                     <TilesSectionCtn>
                         <H2 subtext="Why eCash?" text="Core Tech" center />
                     </TilesSectionCtn>
-                    <HomepageTiles />
-                    <LearnMoreBtnCtn>
-                        <Button
-                            text="Learn More"
-                            link="/core-tech"
-                            color="primary"
-                            corner="bottomRight"
-                        />
-                    </LearnMoreBtnCtn>
+                    <CoreTech />
                 </Container>
             </StoryAndWhySection>
             <PixelBorder />

@@ -360,9 +360,3 @@ export const TilesSectionCtn = styled(motion.div).attrs(() =>
         margin-top: 80px;
     }
 `;
-
-export const LearnMoreBtnCtn = styled.div`
-    display: flex;
-    margin-top: 60px;
-    justify-content: center;
-`;
