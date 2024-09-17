@@ -136,6 +136,11 @@ if(BUILD_BITCOIN_CHRONIK)
 	add_subdirectory(chronik)
 endif()
 
+option(BUILD_BITCOIN_IGUANA "Activate the Iguana debugger" ON)
+if(BUILD_BITCOIN_IGUANA)
+	add_subdirectory(iguana)
+endif()
+
 add_subdirectory(test)
 
 add_subdirectory(electrum)
