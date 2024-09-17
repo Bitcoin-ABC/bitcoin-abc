@@ -211,7 +211,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		reverselock_tests.cpp
 		rpc_tests.cpp
 		rpc_server_tests.cpp
-		rtt_tests.cpp
 		rwcollection_tests.cpp
 		sanity_tests.cpp
 		scheduler_tests.cpp
