@@ -3841,6 +3841,52 @@ export const EtokensWalletMock = {
                 },
                 path: 1899,
             },
+            // NFT Collection
+            {
+                outpoint: {
+                    txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                    outIdx: 1,
+                },
+                blockHeight: 840530,
+                isCoinbase: false,
+                value: 546,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                },
+                path: 1899,
+            },
+            // NFT
+            {
+                outpoint: {
+                    txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                    outIdx: 1,
+                },
+                blockHeight: 840530,
+                isCoinbase: false,
+                value: 546,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        'e2db39ade16e971afba2087bf6e29a83d7579137900eb73e5d955bdb769204bb',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                },
+                path: 1899,
+            },
         ],
         nonSlpUtxos: [
             {
@@ -4075,6 +4121,14 @@ export const EtokensWalletMock = {
             [
                 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
                 '100100.00',
+            ],
+            [
+                'e2db39ade16e971afba2087bf6e29a83d7579137900eb73e5d955bdb769204bb',
+                '1',
+            ],
+            [
+                '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                '1',
             ],
         ]),
         parsedTxHistory: [
@@ -8187,6 +8241,64 @@ export const EtokensStoredCashtabCache = {
                     hash: '000000000000000004e9f52e566c10a95a0eb57a6c74abb4cc41eb10641af403',
                     timestamp: 1711717943,
                 },
+            },
+        ],
+        // NFT Collection
+        [
+            '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                timeFirstSeen: 1716324230,
+                genesisInfo: {
+                    tokenTicker: 'MASCOTS',
+                    tokenName: 'Mascots',
+                    url: 'cashtab.com',
+                    decimals: 0,
+                    hash: '2d0f7be21838551f43872cddda2213659f6603d0aec566dd8f917e49e172f27d',
+                },
+                block: {
+                    height: 845656,
+                    hash: '00000000000000001c7f33318a0ac58f2256696b302c2047ab73315943c0c6d7',
+                    timestamp: 1716327571,
+                },
+                genesisSupply: '100',
+                genesisOutputScripts: [
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                ],
+                genesisMintBatons: 0,
+            },
+        ],
+        // NFT
+        [
+            'e2db39ade16e971afba2087bf6e29a83d7579137900eb73e5d955bdb769204bb',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                timeFirstSeen: 1725914476,
+                genesisInfo: {
+                    tokenTicker: 'S5',
+                    tokenName: 'Saturn V',
+                    url: 'en.wikipedia.org/wiki/Saturn_V',
+                    decimals: 0,
+                    hash: 'ce2f92283c966e1e0f98ecf79b5a9122aac5e32cb865ecf1953820710ee62969',
+                },
+                block: {
+                    height: 861567,
+                    hash: '00000000000000001be902c2068d3848695eea5aa539383636ec62f5814fb9c8',
+                    timestamp: 1725914985,
+                },
+                genesisSupply: '100',
+                genesisOutputScripts: [
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                ],
+                genesisMintBatons: 0,
             },
         ],
     ],
