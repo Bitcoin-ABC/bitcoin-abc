@@ -424,4 +424,59 @@ BOOST_FIXTURE_TEST_CASE(handle_missing_inputs, TestChain100Setup) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(reconsiderable_parent_already_have) {
+    CTxMemPool &pool = *Assert(m_node.mempool);
+    FastRandomContext det_rand{true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
+                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    NodeId nodeid{0};
+    node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
+                                                /*m_relay_permissions=*/false};
+
+    const auto ptx_parent = CreatePlaceholderTx();
+    const auto ptx_child = CreatePlaceholderTx();
+    const auto &parent_txid = ptx_parent->GetId();
+    const auto &child_txid = ptx_child->GetId();
+
+    TxValidationState state_orphan;
+    state_orphan.Invalid(TxValidationResult::TX_MISSING_INPUTS, "");
+
+    // A parent in RecentRejectsPackageReconsiderableFilter is not validated
+    // again on its own, but a 1p1c package is looked for in the orphanage.
+    // This should not happen if the parent is also AlreadyHaveTx for another
+    // reason, e.g. it was later found to be invalid or it was confirmed.
+    for (int i = 0; i < 3; ++i) {
+        TestTxDownloadManagerImpl txdownload_impl{DEFAULT_OPTS, nodeid,
+                                                  DEFAULT_CONN};
+
+        // The child is received first and is added to the orphanage.
+        txdownload_impl.MempoolRejectedTx(ptx_child, state_orphan, nodeid,
+                                          /*first_time_failure=*/true);
+        BOOST_CHECK(txdownload_impl.HaveOrphan(child_txid));
+
+        // The parent was rejected for a reason that makes it reconsiderable in
+        // a package.
+        txdownload_impl.RecentRejectsPackageReconsiderableFilter().insert(
+            parent_txid);
+        if (i == 1) {
+            txdownload_impl.RecentRejectsFilter().insert(parent_txid);
+        } else if (i == 2) {
+            txdownload_impl.RecentConfirmedTransactionsFilter().insert(
+                parent_txid);
+        }
+
+        const auto [should_validate, package_to_validate] =
+            txdownload_impl.ReceivedTx(nodeid, ptx_parent);
+        BOOST_CHECK(!should_validate);
+        if (i == 0) {
+            BOOST_REQUIRE(package_to_validate.has_value());
+            BOOST_CHECK_EQUAL(package_to_validate->m_txns.size(), 2);
+            BOOST_CHECK(package_to_validate->m_txns.front() == ptx_parent);
+            BOOST_CHECK(package_to_validate->m_txns.back() == ptx_child);
+        } else {
+            BOOST_CHECK(!package_to_validate.has_value());
+        }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

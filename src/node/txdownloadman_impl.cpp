@@ -482,19 +482,7 @@ TxDownloadManagerImpl::ReceivedTx(NodeId nodeid, const CTransactionRef &ptx) {
     m_txrequest.ReceivedResponse(nodeid, txid);
 
     // First check if we should drop this tx.
-    if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
-        if (RecentRejectsPackageReconsiderableFilter().contains(txid)) {
-            // When a transaction is already in
-            // m_recent_rejects_package_reconsiderable, we shouldn't submit it
-            // by itself again. However, look for a matching child in the
-            // orphanage, as it is possible that they succeed as a package.
-            LogDebug(BCLog::TXPACKAGES,
-                     "found tx %s in reconsiderable rejects, looking for "
-                     "child in orphanage\n",
-                     txid.ToString());
-            return std::make_pair(false, Find1P1CPackage(ptx, nodeid));
-        }
-
+    if (AlreadyHaveTx(txid, /*include_reconsiderable=*/false)) {
         // If a tx is detected by m_recent_rejects it is ignored. Because we
         // haven't submitted the tx to our mempool, we won't have computed a
         // DoS score for it or determined exactly why we consider it invalid.
@@ -511,6 +499,16 @@ TxDownloadManagerImpl::ReceivedTx(NodeId nodeid, const CTransactionRef &ptx) {
         // peer simply for relaying a tx that our m_recent_rejects has caught,
         // regardless of false positives.
         return {false, std::nullopt};
+    } else if (RecentRejectsPackageReconsiderableFilter().contains(txid)) {
+        // When a transaction is already in
+        // m_recent_rejects_package_reconsiderable, we shouldn't submit it by
+        // itself again. However, look for a matching child in the orphanage,
+        // as it is possible that they succeed as a package.
+        LogDebug(BCLog::TXPACKAGES,
+                 "found tx %s in reconsiderable rejects, looking for child in "
+                 "orphanage\n",
+                 txid.ToString());
+        return {false, Find1P1CPackage(ptx, nodeid)};
     }
 
     return {true, std::nullopt};
