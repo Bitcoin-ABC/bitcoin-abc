@@ -6,27 +6,54 @@
 
 namespace avalanche {
 
+void StakeContenderCache::cleanup(const int minHeight) {
+    std::set<BlockHash> hashesToErase;
+    auto &mwHeightView = manualWinners.get<by_blockheight>();
+    for (auto it = mwHeightView.begin();
+         it != mwHeightView.lower_bound(minHeight); it++) {
+        hashesToErase.insert(it->prevblockhash);
+    }
+
+    auto &cHeightView = contenders.get<by_blockheight>();
+    for (auto it = cHeightView.begin();
+         it != cHeightView.lower_bound(minHeight); it++) {
+        hashesToErase.insert(it->prevblockhash);
+    }
+
+    for (const auto &blockhash : hashesToErase) {
+        auto &mwHashView = manualWinners.get<by_prevblockhash>();
+        auto [mwHashBegin, mwHashEnd] = mwHashView.equal_range(blockhash);
+        mwHashView.erase(mwHashBegin, mwHashEnd);
+
+        auto &cHashView = contenders.get<by_prevblockhash>();
+        auto [cHashBegin, cHashEnd] = cHashView.equal_range(blockhash);
+        cHashView.erase(cHashBegin, cHashEnd);
+    }
+}
+
 bool StakeContenderCache::add(const CBlockIndex *pindex, const ProofRef &proof,
                               uint8_t status) {
     return contenders
-        .emplace(pindex->GetBlockHash(), proof->getId(), status,
-                 proof->getPayoutScript(), proof->getScore())
+        .emplace(pindex->GetBlockHash(), pindex->nHeight, proof->getId(),
+                 status, proof->getPayoutScript(), proof->getScore())
         .second;
 }
 
 bool StakeContenderCache::addWinner(const CBlockIndex *pindex,
                                     const CScript &payoutScript) {
     const BlockHash &prevblockhash = pindex->GetBlockHash();
-    std::vector<CScript> payoutScripts;
-    auto it = manualWinners.find(prevblockhash);
-    if (it != manualWinners.end()) {
-        payoutScripts = it->second;
+    auto &view = manualWinners.get<by_prevblockhash>();
+    auto it = view.find(prevblockhash);
+    if (it == view.end()) {
+        std::vector<CScript> payoutScripts{payoutScript};
+        return manualWinners
+            .emplace(prevblockhash, pindex->nHeight, payoutScripts)
+            .second;
     }
 
-    payoutScripts.push_back(payoutScript);
-
-    manualWinners.insert_or_assign(prevblockhash, payoutScripts);
-    return true;
+    return manualWinners.modify(it, [&](ManualWinners &entry) {
+        entry.payoutScripts.push_back(payoutScript);
+    });
 }
 
 bool StakeContenderCache::accept(const StakeContenderId &contenderId) {
@@ -100,12 +127,14 @@ bool StakeContenderCache::getWinners(const BlockHash &prevblockhash,
     payouts.clear();
 
     // Add manual winners first, preserving order
-    auto manualWinnerIt = manualWinners.find(prevblockhash);
+    auto &manualWinnersView = manualWinners.get<by_prevblockhash>();
+    auto manualWinnerIt = manualWinnersView.find(prevblockhash);
     if (manualWinnerIt != manualWinners.end()) {
-        payouts.reserve(manualWinnerIt->second.size() + rankedWinners.size());
+        payouts.reserve(manualWinnerIt->payoutScripts.size() +
+                        rankedWinners.size());
 
-        payouts.insert(payouts.begin(), manualWinnerIt->second.begin(),
-                       manualWinnerIt->second.end());
+        payouts.insert(payouts.begin(), manualWinnerIt->payoutScripts.begin(),
+                       manualWinnerIt->payoutScripts.end());
     } else {
         payouts.reserve(rankedWinners.size());
     }

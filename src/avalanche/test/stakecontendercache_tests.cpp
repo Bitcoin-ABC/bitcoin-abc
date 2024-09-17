@@ -204,4 +204,111 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(cleanup_tests) {
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
+    StakeContenderCache cache;
+
+    std::vector<ProofRef> proofs;
+    for (int i = 0; i < 10; i++) {
+        proofs.push_back(
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
+    }
+
+    CBlockIndex *pindex = active_chainstate.m_chain.Tip();
+    std::vector<BlockHash> blockhashes;
+    for (int i = 0; i < 3; i++) {
+        BlockHash blockhash = pindex->GetBlockHash();
+        blockhashes.push_back(blockhash);
+        for (const auto &proof : proofs) {
+            cache.add(pindex, proof, StakeContenderStatus::IN_WINNER_SET);
+        }
+        CheckWinners(cache, blockhash, {}, proofs);
+        pindex = pindex->pprev;
+    }
+
+    // Cleaning up nonexistant entries has no impact
+    for (int height : {0, 10, 50, 90, 98}) {
+        cache.cleanup(height);
+        CheckWinners(cache, blockhashes[0], {}, proofs);
+        CheckWinners(cache, blockhashes[1], {}, proofs);
+        CheckWinners(cache, blockhashes[2], {}, proofs);
+    }
+
+    // Cleanup oldest block in the cache
+    cache.cleanup(99);
+    CheckWinners(cache, blockhashes[0], {}, proofs);
+    CheckWinners(cache, blockhashes[1], {}, proofs);
+    CheckWinners(cache, blockhashes[2], {}, {});
+
+    // Add only a local winner to the recently cleared block
+    cache.addWinner(active_chainstate.m_chain.Tip()->pprev->pprev, CScript());
+    CheckWinners(cache, blockhashes[0], {}, proofs);
+    CheckWinners(cache, blockhashes[1], {}, proofs);
+    CheckWinners(cache, blockhashes[2], {CScript()}, {});
+
+    // Clean it up again
+    cache.cleanup(99);
+    CheckWinners(cache, blockhashes[0], {}, proofs);
+    CheckWinners(cache, blockhashes[1], {}, proofs);
+    CheckWinners(cache, blockhashes[2], {}, {});
+
+    // Add a local winner to a block with winners already there, then clear it
+    cache.addWinner(active_chainstate.m_chain.Tip()->pprev, CScript());
+    CheckWinners(cache, blockhashes[0], {}, proofs);
+    CheckWinners(cache, blockhashes[1], {CScript()}, proofs);
+    CheckWinners(cache, blockhashes[2], {}, {});
+
+    cache.cleanup(100);
+    CheckWinners(cache, blockhashes[0], {}, proofs);
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {});
+
+    // Invalidate proofs so they are no longer in the winner set
+    for (const auto &proof : proofs) {
+        cache.invalidate(StakeContenderId(blockhashes[0], proof->getId()));
+    }
+    CheckWinners(cache, blockhashes[0], {}, {});
+    BOOST_CHECK(!cache.isEmpty());
+
+    // Clean up the remaining block and the cache should be empty now
+    cache.cleanup(101);
+    BOOST_CHECK(cache.isEmpty());
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {});
+
+    // Cleaning up again has no effect
+    cache.cleanup(101);
+    BOOST_CHECK(cache.isEmpty());
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {});
+
+    // Add winners back with random states and sanity check that higher heights
+    // clear the cache as we expect.
+    for (int height : {102, 200, 1000, 1000000}) {
+        pindex = active_chainstate.m_chain.Tip();
+        for (size_t i = 0; i < 2; i++) {
+            for (const auto &proof : proofs) {
+                cache.add(pindex, proof, InsecureRandBits(2));
+                cache.addWinner(pindex, CScript());
+            }
+
+            // Sanity check there are some winners
+            std::vector<CScript> winners;
+            BOOST_CHECK(cache.getWinners(blockhashes[i], winners));
+            BOOST_CHECK(winners.size() >= 1);
+            pindex = pindex->pprev;
+        }
+
+        // Cleaning up the cache at a height higher than any block results in an
+        // empty cache and no winners.
+        cache.cleanup(height);
+        BOOST_CHECK(cache.isEmpty());
+        CheckWinners(cache, blockhashes[0], {}, {});
+        CheckWinners(cache, blockhashes[1], {}, {});
+        CheckWinners(cache, blockhashes[2], {}, {});
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

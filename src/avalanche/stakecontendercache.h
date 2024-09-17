@@ -16,7 +16,6 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
-#include <unordered_map>
 #include <vector>
 
 namespace avalanche {
@@ -31,6 +30,7 @@ enum StakeContenderStatus : uint8_t {
 
 struct StakeContenderCacheEntry {
     BlockHash prevblockhash;
+    int blockheight;
     ProofId proofid;
     uint8_t status;
     // Cache payout script and proof score because the peer manager does not
@@ -38,11 +38,12 @@ struct StakeContenderCacheEntry {
     CScript payoutScriptPubkey;
     uint32_t score;
 
-    StakeContenderCacheEntry(const BlockHash &_prevblockhash,
+    StakeContenderCacheEntry(const BlockHash &_prevblockhash, int _blockheight,
                              const ProofId &_proofid, uint8_t _status,
                              const CScript &_payoutScriptPubkey,
                              uint32_t _score)
-        : prevblockhash(_prevblockhash), proofid(_proofid), status(_status),
+        : prevblockhash(_prevblockhash), blockheight(_blockheight),
+          proofid(_proofid), status(_status),
           payoutScriptPubkey(_payoutScriptPubkey), score(_score) {}
 
     double computeRewardRank() const {
@@ -56,6 +57,17 @@ struct StakeContenderCacheEntry {
     }
 };
 
+struct ManualWinners {
+    BlockHash prevblockhash;
+    int blockheight;
+    std::vector<CScript> payoutScripts;
+
+    ManualWinners(const BlockHash &_prevblockhash, int _blockheight,
+                  std::vector<CScript> &_payoutScripts)
+        : prevblockhash(_prevblockhash), blockheight(_blockheight),
+          payoutScripts(_payoutScripts) {}
+};
+
 struct stakecontenderid_index {
     using result_type = StakeContenderId;
     result_type operator()(const StakeContenderCacheEntry &entry) const {
@@ -65,6 +77,7 @@ struct stakecontenderid_index {
 
 struct by_stakecontenderid;
 struct by_prevblockhash;
+struct by_blockheight;
 
 namespace bmi = boost::multi_index;
 
@@ -83,14 +96,41 @@ class StakeContenderCache {
                 bmi::tag<by_prevblockhash>,
                 bmi::member<StakeContenderCacheEntry, BlockHash,
                             &StakeContenderCacheEntry::prevblockhash>,
-                SaltedUint256Hasher>>>;
+                SaltedUint256Hasher>,
+            // index by block height
+            bmi::ordered_non_unique<
+                bmi::tag<by_blockheight>,
+                bmi::member<StakeContenderCacheEntry, int,
+                            &StakeContenderCacheEntry::blockheight>>>>;
 
     ContenderSet contenders;
-    std::unordered_map<BlockHash, std::vector<CScript>, SaltedUint256Hasher>
-        manualWinners;
+
+    using ManualWinnersSet = boost::multi_index_container<
+        ManualWinners,
+        bmi::indexed_by<
+            // index by prevblockhash
+            bmi::hashed_unique<bmi::tag<by_prevblockhash>,
+                               bmi::member<ManualWinners, BlockHash,
+                                           &ManualWinners::prevblockhash>,
+                               SaltedUint256Hasher>,
+            // index by block height
+            bmi::ordered_unique<
+                bmi::tag<by_blockheight>,
+                bmi::member<ManualWinners, int, &ManualWinners::blockheight>>>>;
+
+    ManualWinnersSet manualWinners;
 
 public:
     StakeContenderCache() {}
+
+    void cleanup(const int minHeight);
+
+    /**
+     * For tests.
+     */
+    size_t isEmpty() const {
+        return (contenders.size() + manualWinners.size()) == 0;
+    }
 
     /**
      * Add a proof to consider in staking rewards pre-consensus.
@@ -116,8 +156,6 @@ public:
      */
     bool getWinners(const BlockHash &prevblockhash,
                     std::vector<CScript> &payouts) const;
-
-    // TODO cleanup() so the cache doesn't grow unbounded
 };
 
 } // namespace avalanche
