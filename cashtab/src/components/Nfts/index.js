@@ -574,11 +574,15 @@ const Nfts = () => {
                                                     );
 
                                                 // Handle case of token info not available in cache
-                                                let tokenName,
-                                                    tokenTicker,
-                                                    genesisSupply = (
-                                                        <InlineLoader />
-                                                    );
+                                                let tokenName = (
+                                                    <InlineLoader />
+                                                );
+                                                let tokenTicker = (
+                                                    <InlineLoader />
+                                                );
+                                                let genesisSupply = (
+                                                    <InlineLoader />
+                                                );
                                                 if (
                                                     typeof cachedCollectionInfo !==
                                                     'undefined'
@@ -686,11 +690,15 @@ const Nfts = () => {
                                                     );
 
                                                 // Handle case of token info not available in cache
-                                                let tokenName,
-                                                    tokenTicker,
-                                                    genesisSupply = (
-                                                        <InlineLoader />
-                                                    );
+                                                let tokenName = (
+                                                    <InlineLoader />
+                                                );
+                                                let tokenTicker = (
+                                                    <InlineLoader />
+                                                );
+                                                let genesisSupply = (
+                                                    <InlineLoader />
+                                                );
                                                 if (
                                                     typeof cachedCollectionInfo !==
                                                     'undefined'
