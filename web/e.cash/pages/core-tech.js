@@ -104,6 +104,7 @@ export default function CoreTech() {
                         title="Avalanche"
                         image={avalanche}
                         reverse
+                        speed="0.75"
                     >
                         <p>
                             Avalanche is a revolutionary consensus algorithm
