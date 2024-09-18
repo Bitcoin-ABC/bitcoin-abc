@@ -5629,36 +5629,194 @@ void PeerManagerImpl::ProcessMessage(
         const TxId &txid = tx.GetId();
         AddKnownTx(*peer, txid);
 
-        LOCK(cs_main);
+        bool shouldReconcileTx{false};
+        {
+            LOCK(cs_main);
 
-        m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
+            m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
 
-        if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
-            if (pfrom.HasPermission(NetPermissionFlags::ForceRelay)) {
-                // Always relay transactions received from peers with
-                // forcerelay permission, even if they were already in the
-                // mempool, allowing the node to function as a gateway for
-                // nodes hidden behind it.
-                if (!m_mempool.exists(tx.GetId())) {
-                    LogPrintf("Not relaying non-mempool transaction %s from "
-                              "forcerelay peer=%d\n",
-                              tx.GetId().ToString(), pfrom.GetId());
-                } else {
-                    LogPrintf("Force relaying tx %s from peer=%d\n",
-                              tx.GetId().ToString(), pfrom.GetId());
-                    RelayTransaction(tx.GetId());
+            if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
+                if (pfrom.HasPermission(NetPermissionFlags::ForceRelay)) {
+                    // Always relay transactions received from peers with
+                    // forcerelay permission, even if they were already in the
+                    // mempool, allowing the node to function as a gateway for
+                    // nodes hidden behind it.
+                    if (!m_mempool.exists(tx.GetId())) {
+                        LogPrintf(
+                            "Not relaying non-mempool transaction %s from "
+                            "forcerelay peer=%d\n",
+                            tx.GetId().ToString(), pfrom.GetId());
+                    } else {
+                        LogPrintf("Force relaying tx %s from peer=%d\n",
+                                  tx.GetId().ToString(), pfrom.GetId());
+                        RelayTransaction(tx.GetId());
+                    }
                 }
+
+                if (m_recent_rejects_package_reconsiderable.contains(txid)) {
+                    // When a transaction is already in
+                    // m_recent_rejects_package_reconsiderable, we shouldn't
+                    // submit it by itself again. However, look for a matching
+                    // child in the orphanage, as it is possible that they
+                    // succeed as a package.
+                    LogPrint(
+                        BCLog::TXPACKAGES,
+                        "found tx %s in reconsiderable rejects, looking for "
+                        "child in orphanage\n",
+                        txid.ToString());
+                    if (auto package_to_validate{
+                            Find1P1CPackage(ptx, pfrom.GetId())}) {
+                        const auto package_result{ProcessNewPackage(
+                            m_chainman.ActiveChainstate(), m_mempool,
+                            package_to_validate->m_txns,
+                            /*test_accept=*/false)};
+                        LogPrint(BCLog::TXPACKAGES,
+                                 "package evaluation for %s: %s (%s)\n",
+                                 package_to_validate->ToString(),
+                                 package_result.m_state.IsValid()
+                                     ? "package accepted"
+                                     : "package rejected",
+                                 package_result.m_state.ToString());
+                        ProcessPackageResult(package_to_validate.value(),
+                                             package_result);
+                    }
+                }
+                // If a tx is detected by m_recent_rejects it is ignored.
+                // Because we haven't submitted the tx to our mempool, we won't
+                // have computed a DoS score for it or determined exactly why we
+                // consider it invalid.
+                //
+                // This means we won't penalize any peer subsequently relaying a
+                // DoSy tx (even if we penalized the first peer who gave it to
+                // us) because we have to account for m_recent_rejects showing
+                // false positives. In other words, we shouldn't penalize a peer
+                // if we aren't *sure* they submitted a DoSy tx.
+                //
+                // Note that m_recent_rejects doesn't just record DoSy or
+                // invalid transactions, but any tx not accepted by the mempool,
+                // which may be due to node policy (vs. consensus). So we can't
+                // blanket penalize a peer simply for relaying a tx that our
+                // m_recent_rejects has caught, regardless of false positives.
+                return;
             }
 
-            if (m_recent_rejects_package_reconsiderable.contains(txid)) {
-                // When a transaction is already in
-                // m_recent_rejects_package_reconsiderable, we shouldn't submit
-                // it by itself again. However, look for a matching child in the
-                // orphanage, as it is possible that they succeed as a package.
-                LogPrint(BCLog::TXPACKAGES,
-                         "found tx %s in reconsiderable rejects, looking for "
-                         "child in orphanage\n",
-                         txid.ToString());
+            const MempoolAcceptResult result =
+                m_chainman.ProcessTransaction(ptx);
+            const TxValidationState &state = result.m_state;
+
+            if (result.m_result_type ==
+                MempoolAcceptResult::ResultType::VALID) {
+                ProcessValidTx(pfrom.GetId(), ptx);
+                pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
+            } else if (state.GetResult() ==
+                       TxValidationResult::TX_MISSING_INPUTS) {
+                // It may be the case that the orphans parents have all been
+                // rejected.
+                bool fRejectedParents = false;
+
+                // Deduplicate parent txids, so that we don't have to loop over
+                // the same parent txid more than once down below.
+                std::vector<TxId> unique_parents;
+                unique_parents.reserve(tx.vin.size());
+                for (const CTxIn &txin : tx.vin) {
+                    // We start with all parents, and then remove duplicates
+                    // below.
+                    unique_parents.push_back(txin.prevout.GetTxId());
+                }
+                std::sort(unique_parents.begin(), unique_parents.end());
+                unique_parents.erase(
+                    std::unique(unique_parents.begin(), unique_parents.end()),
+                    unique_parents.end());
+
+                // Distinguish between parents in m_recent_rejects and
+                // m_recent_rejects_package_reconsiderable. We can tolerate
+                // having up to 1 parent in
+                // m_recent_rejects_package_reconsiderable since we submit 1p1c
+                // packages. However, fail immediately if any are in
+                // m_recent_rejects.
+                std::optional<TxId> rejected_parent_reconsiderable;
+                for (const TxId &parent_txid : unique_parents) {
+                    if (m_recent_rejects.contains(parent_txid)) {
+                        fRejectedParents = true;
+                        break;
+                    }
+
+                    if (m_recent_rejects_package_reconsiderable.contains(
+                            parent_txid) &&
+                        !m_mempool.exists(parent_txid)) {
+                        // More than 1 parent in
+                        // m_recent_rejects_package_reconsiderable:
+                        // 1p1c will not be sufficient to accept this package,
+                        // so just give up here.
+                        if (rejected_parent_reconsiderable.has_value()) {
+                            fRejectedParents = true;
+                            break;
+                        }
+                        rejected_parent_reconsiderable = parent_txid;
+                    }
+                }
+                if (!fRejectedParents) {
+                    const auto current_time{
+                        GetTime<std::chrono::microseconds>()};
+
+                    for (const TxId &parent_txid : unique_parents) {
+                        // FIXME: MSG_TX should use a TxHash, not a TxId.
+                        AddKnownTx(*peer, parent_txid);
+                        // Exclude m_recent_rejects_package_reconsiderable: the
+                        // missing parent may have been previously rejected for
+                        // being too low feerate. This orphan might CPFP it.
+                        if (!AlreadyHaveTx(parent_txid,
+                                           /*include_reconsiderable=*/false)) {
+                            AddTxAnnouncement(pfrom, parent_txid, current_time);
+                        }
+                    }
+
+                    // NO_THREAD_SAFETY_ANALYSIS because we can't annotate for
+                    // g_msgproc_mutex
+                    if (unsigned int nEvicted =
+                            m_mempool.withOrphanage(
+                                [&](TxOrphanage &orphanage)
+                                    NO_THREAD_SAFETY_ANALYSIS {
+                                        if (orphanage.AddTx(ptx,
+                                                            pfrom.GetId())) {
+                                            AddToCompactExtraTransactions(ptx);
+                                        }
+                                        return orphanage.LimitTxs(
+                                            m_opts.max_orphan_txs, m_rng);
+                                    }) > 0) {
+                        LogPrint(BCLog::TXPACKAGES,
+                                 "orphanage overflow, removed %u tx\n",
+                                 nEvicted);
+                    }
+
+                    // Once added to the orphan pool, a tx is considered
+                    // AlreadyHave, and we shouldn't request it anymore.
+                    m_txrequest.ForgetInvId(tx.GetId());
+
+                } else {
+                    LogPrint(BCLog::MEMPOOL,
+                             "not keeping orphan with rejected parents %s\n",
+                             tx.GetId().ToString());
+                    // We will continue to reject this tx since it has rejected
+                    // parents so avoid re-requesting it from other peers.
+                    m_recent_rejects.insert(tx.GetId());
+                    m_txrequest.ForgetInvId(tx.GetId());
+                }
+            }
+            if (state.IsInvalid()) {
+                ProcessInvalidTx(pfrom.GetId(), ptx, state,
+                                 /*maybe_add_extra_compact_tx=*/true);
+            }
+            // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look for
+            // a matching child in the orphanage, as it is possible that they
+            // succeed as a package.
+            if (state.GetResult() ==
+                TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
+                LogPrint(
+                    BCLog::TXPACKAGES,
+                    "tx %s failed but reconsiderable, looking for child in "
+                    "orphanage\n",
+                    txid.ToString());
                 if (auto package_to_validate{
                         Find1P1CPackage(ptx, pfrom.GetId())}) {
                     const auto package_result{ProcessNewPackage(
@@ -5675,175 +5833,34 @@ void PeerManagerImpl::ProcessMessage(
                                          package_result);
                 }
             }
-            // If a tx is detected by m_recent_rejects it is ignored. Because we
-            // haven't submitted the tx to our mempool, we won't have computed a
-            // DoS score for it or determined exactly why we consider it
-            // invalid.
-            //
-            // This means we won't penalize any peer subsequently relaying a
-            // DoSy tx (even if we penalized the first peer who gave it to us)
-            // because we have to account for m_recent_rejects showing false
-            // positives. In other words, we shouldn't penalize a peer if we
-            // aren't *sure* they submitted a DoSy tx.
-            //
-            // Note that m_recent_rejects doesn't just record DoSy or invalid
-            // transactions, but any tx not accepted by the mempool, which may
-            // be due to node policy (vs. consensus). So we can't blanket
-            // penalize a peer simply for relaying a tx that our
-            // m_recent_rejects has caught, regardless of false positives.
-            return;
-        }
 
-        const MempoolAcceptResult result = m_chainman.ProcessTransaction(ptx);
-        const TxValidationState &state = result.m_state;
-
-        if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
-            ProcessValidTx(pfrom.GetId(), ptx);
-            pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
-        } else if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
-            // It may be the case that the orphans parents have all been
-            // rejected.
-            bool fRejectedParents = false;
-
-            // Deduplicate parent txids, so that we don't have to loop over
-            // the same parent txid more than once down below.
-            std::vector<TxId> unique_parents;
-            unique_parents.reserve(tx.vin.size());
-            for (const CTxIn &txin : tx.vin) {
-                // We start with all parents, and then remove duplicates below.
-                unique_parents.push_back(txin.prevout.GetTxId());
-            }
-            std::sort(unique_parents.begin(), unique_parents.end());
-            unique_parents.erase(
-                std::unique(unique_parents.begin(), unique_parents.end()),
-                unique_parents.end());
-
-            // Distinguish between parents in m_recent_rejects and
-            // m_recent_rejects_package_reconsiderable. We can tolerate having
-            // up to 1 parent in m_recent_rejects_package_reconsiderable since
-            // we submit 1p1c packages. However, fail immediately if any are in
-            // m_recent_rejects.
-            std::optional<TxId> rejected_parent_reconsiderable;
-            for (const TxId &parent_txid : unique_parents) {
-                if (m_recent_rejects.contains(parent_txid)) {
-                    fRejectedParents = true;
-                    break;
-                }
-
-                if (m_recent_rejects_package_reconsiderable.contains(
-                        parent_txid) &&
-                    !m_mempool.exists(parent_txid)) {
-                    // More than 1 parent in
-                    // m_recent_rejects_package_reconsiderable:
-                    // 1p1c will not be sufficient to accept this package, so
-                    // just give up here.
-                    if (rejected_parent_reconsiderable.has_value()) {
-                        fRejectedParents = true;
-                        break;
-                    }
-                    rejected_parent_reconsiderable = parent_txid;
-                }
-            }
-            if (!fRejectedParents) {
-                const auto current_time{GetTime<std::chrono::microseconds>()};
-
-                for (const TxId &parent_txid : unique_parents) {
-                    // FIXME: MSG_TX should use a TxHash, not a TxId.
-                    AddKnownTx(*peer, parent_txid);
-                    // Exclude m_recent_rejects_package_reconsiderable: the
-                    // missing parent may have been previously rejected for
-                    // being too low feerate. This orphan might CPFP it.
-                    if (!AlreadyHaveTx(parent_txid,
-                                       /*include_reconsiderable=*/false)) {
-                        AddTxAnnouncement(pfrom, parent_txid, current_time);
-                    }
-                }
-
-                // NO_THREAD_SAFETY_ANALYSIS because we can't annotate for
-                // g_msgproc_mutex
-                if (unsigned int nEvicted =
-                        m_mempool.withOrphanage(
-                            [&](TxOrphanage &orphanage)
-                                NO_THREAD_SAFETY_ANALYSIS {
-                                    if (orphanage.AddTx(ptx, pfrom.GetId())) {
-                                        AddToCompactExtraTransactions(ptx);
-                                    }
-                                    return orphanage.LimitTxs(
-                                        m_opts.max_orphan_txs, m_rng);
-                                }) > 0) {
-                    LogPrint(BCLog::TXPACKAGES,
-                             "orphanage overflow, removed %u tx\n", nEvicted);
-                }
-
-                // Once added to the orphan pool, a tx is considered
+            if (state.GetResult() ==
+                TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
+                // Once added to the conflicting pool, a tx is considered
                 // AlreadyHave, and we shouldn't request it anymore.
                 m_txrequest.ForgetInvId(tx.GetId());
 
-            } else {
-                LogPrint(BCLog::MEMPOOL,
-                         "not keeping orphan with rejected parents %s\n",
-                         tx.GetId().ToString());
-                // We will continue to reject this tx since it has rejected
-                // parents so avoid re-requesting it from other peers.
-                m_recent_rejects.insert(tx.GetId());
-                m_txrequest.ForgetInvId(tx.GetId());
-            }
-        }
-        if (state.IsInvalid()) {
-            ProcessInvalidTx(pfrom.GetId(), ptx, state,
-                             /*maybe_add_extra_compact_tx=*/true);
-        }
-        // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look for a
-        // matching child in the orphanage, as it is possible that they succeed
-        // as a package.
-        if (state.GetResult() ==
-            TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
-            LogPrint(BCLog::TXPACKAGES,
-                     "tx %s failed but reconsiderable, looking for child in "
-                     "orphanage\n",
-                     txid.ToString());
-            if (auto package_to_validate{Find1P1CPackage(ptx, pfrom.GetId())}) {
-                const auto package_result{ProcessNewPackage(
-                    m_chainman.ActiveChainstate(), m_mempool,
-                    package_to_validate->m_txns, /*test_accept=*/false)};
-                LogPrint(BCLog::TXPACKAGES,
-                         "package evaluation for %s: %s (%s)\n",
-                         package_to_validate->ToString(),
-                         package_result.m_state.IsValid() ? "package accepted"
-                                                          : "package rejected",
-                         package_result.m_state.ToString());
-                ProcessPackageResult(package_to_validate.value(),
-                                     package_result);
-            }
-        }
+                unsigned int nEvicted{0};
+                // NO_THREAD_SAFETY_ANALYSIS because of g_msgproc_mutex required
+                // in the lambda for m_rng
+                m_mempool.withConflicting(
+                    [&](TxConflicting &conflicting) NO_THREAD_SAFETY_ANALYSIS {
+                        conflicting.AddTx(ptx, pfrom.GetId());
+                        nEvicted = conflicting.LimitTxs(
+                            m_opts.max_conflicting_txs, m_rng);
+                        shouldReconcileTx = conflicting.HaveTx(ptx->GetId());
+                    });
 
-        if (state.GetResult() ==
-            TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
-            // Once added to the conflicting pool, a tx is considered
-            // AlreadyHave, and we shouldn't request it anymore.
-            m_txrequest.ForgetInvId(tx.GetId());
-
-            unsigned int nEvicted{0};
-            bool haveConflictingTx{false};
-            // NO_THREAD_SAFETY_ANALYSIS because of g_msgproc_mutex required in
-            // the lambda for m_rng
-            m_mempool.withConflicting(
-                [&](TxConflicting &conflicting) NO_THREAD_SAFETY_ANALYSIS {
-                    conflicting.AddTx(ptx, pfrom.GetId());
-                    nEvicted =
-                        conflicting.LimitTxs(m_opts.max_conflicting_txs, m_rng);
-                    haveConflictingTx = conflicting.HaveTx(ptx->GetId());
-                });
-
-            if (nEvicted > 0) {
-                LogPrint(BCLog::TXPACKAGES,
-                         "conflicting pool overflow, removed %u tx\n",
-                         nEvicted);
+                if (nEvicted > 0) {
+                    LogPrint(BCLog::TXPACKAGES,
+                             "conflicting pool overflow, removed %u tx\n",
+                             nEvicted);
+                }
             }
-            if (m_avalanche && m_avalanche->m_preConsensus &&
-                haveConflictingTx) {
-                m_avalanche->addToReconcile(ptx);
-            }
+        } // Release cs_main
+
+        if (m_avalanche && m_avalanche->m_preConsensus && shouldReconcileTx) {
+            m_avalanche->addToReconcile(ptx);
         }
 
         return;
