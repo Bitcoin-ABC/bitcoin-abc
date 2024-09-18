@@ -12,6 +12,7 @@ import {
     isValidWsSubscription,
     verifyLokadId,
     verifyTokenId,
+    verifyPluginSubscription,
 } from './validation';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
@@ -564,7 +565,13 @@ export class WsEndpoint {
         this.autoReconnect =
             config.autoReconnect !== undefined ? config.autoReconnect : true;
         this.manuallyClosed = false;
-        this.subs = { scripts: [], tokens: [], lokadIds: [], blocks: false };
+        this.subs = {
+            scripts: [],
+            tokens: [],
+            lokadIds: [],
+            plugins: [],
+            blocks: false,
+        };
         this._proxyInterface = proxyInterface;
     }
 
@@ -735,6 +742,51 @@ export class WsEndpoint {
         }
     }
 
+    /** Subscribe to a plugin */
+    public subscribeToPlugin(pluginName: string, group: string) {
+        // Build sub according to chronik expected type
+        const subscription: WsSubPluginClient = {
+            pluginName,
+            group,
+        };
+
+        verifyPluginSubscription(subscription);
+
+        // Update ws.subs to include this plugin
+        this.subs.plugins.push(subscription);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send subscribe msg to chronik server
+            this._subUnsubPlugin(false, subscription);
+        }
+    }
+
+    /** Unsubscribe from the given plugin */
+    public unsubscribeFromPlugin(pluginName: string, group: string) {
+        // Find the requested unsub script and remove it
+        const unsubIndex = this.subs.plugins.findIndex(
+            sub => sub.pluginName === pluginName && sub.group === group,
+        );
+        if (unsubIndex === -1) {
+            // If we cannot find this subscription in this.subs.plugins, throw an error
+            // We do not want an app developer thinking they have unsubscribed from something
+            throw new Error(
+                `No existing sub at pluginName="${pluginName}", group="${group}"`,
+            );
+        }
+
+        // Remove the requested subscription from this.subs.plugins
+        this.subs.plugins.splice(unsubIndex, 1);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send unsubscribe msg to chronik server
+            this._subUnsubPlugin(true, {
+                pluginName,
+                group,
+            });
+        }
+    }
+
     /**
      * Close the WebSocket connection and prevent any future reconnection
      * attempts.
@@ -796,6 +848,24 @@ export class WsEndpoint {
             isUnsub,
             tokenId: {
                 tokenId: tokenId,
+            },
+        }).finish();
+
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+
+        this.ws.send(encodedSubscription);
+    }
+
+    private _subUnsubPlugin(isUnsub: boolean, plugin: WsSubPluginClient) {
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            plugin: {
+                pluginName: plugin.pluginName,
+                // User input for plugin group is string
+                // Chronik expects bytes
+                group: fromHex(plugin.group),
             },
         }).finish();
 
@@ -1761,6 +1831,14 @@ export interface WsSubScriptClient {
     payload: string;
 }
 
+/* The plugin name and its group for a chronik-client subscribeToPlugin subscription */
+export interface WsSubPluginClient {
+    /** pluginName as lower-case hex string */
+    pluginName: string;
+    /** group as lower-case hex string */
+    group: string;
+}
+
 export interface Error {
     type: 'Error';
     msg: string;
@@ -1843,6 +1921,8 @@ interface WsSubscriptions {
     tokens: string[];
     /** Subscriptions to lokadIds */
     lokadIds: string[];
+    /** Subscriptions to plugins */
+    plugins: WsSubPluginClient[];
     /** Subscription to blocks */
     blocks: boolean;
 }

@@ -724,6 +724,8 @@ export interface WsSub {
     tokenId?: WsSubTokenId | undefined;
     /** Subscription to a lokad ID */
     lokadId?: WsSubLokadId | undefined;
+    /** Subscription to a plugin group */
+    plugin?: WsPlugin | undefined;
 }
 
 /**
@@ -767,6 +769,14 @@ export interface WsSubTokenId {
 export interface WsSubLokadId {
     /** 4-byte LOKAD ID. */
     lokadId: Uint8Array;
+}
+
+/** Subscription to a group assigned by a plugin to outputs. */
+export interface WsPlugin {
+    /** Name of the plugin to subscribe to */
+    pluginName: string;
+    /** Group assigned by the plugin to subscribe to */
+    group: Uint8Array;
 }
 
 /** Message coming from the WebSocket */
@@ -5249,6 +5259,7 @@ function createBaseWsSub(): WsSub {
         script: undefined,
         tokenId: undefined,
         lokadId: undefined,
+        plugin: undefined,
     };
 }
 
@@ -5283,6 +5294,9 @@ export const WsSub = {
                 message.lokadId,
                 writer.uint32(42).fork(),
             ).ldelim();
+        }
+        if (message.plugin !== undefined) {
+            WsPlugin.encode(message.plugin, writer.uint32(50).fork()).ldelim();
         }
         return writer;
     },
@@ -5342,6 +5356,13 @@ export const WsSub = {
                         reader.uint32(),
                     );
                     continue;
+                case 6:
+                    if (tag !== 50) {
+                        break;
+                    }
+
+                    message.plugin = WsPlugin.decode(reader, reader.uint32());
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -5368,6 +5389,9 @@ export const WsSub = {
             lokadId: isSet(object.lokadId)
                 ? WsSubLokadId.fromJSON(object.lokadId)
                 : undefined,
+            plugin: isSet(object.plugin)
+                ? WsPlugin.fromJSON(object.plugin)
+                : undefined,
         };
     },
 
@@ -5387,6 +5411,9 @@ export const WsSub = {
         }
         if (message.lokadId !== undefined) {
             obj.lokadId = WsSubLokadId.toJSON(message.lokadId);
+        }
+        if (message.plugin !== undefined) {
+            obj.plugin = WsPlugin.toJSON(message.plugin);
         }
         return obj;
     },
@@ -5412,6 +5439,10 @@ export const WsSub = {
         message.lokadId =
             object.lokadId !== undefined && object.lokadId !== null
                 ? WsSubLokadId.fromPartial(object.lokadId)
+                : undefined;
+        message.plugin =
+            object.plugin !== undefined && object.plugin !== null
+                ? WsPlugin.fromPartial(object.plugin)
                 : undefined;
         return message;
     },
@@ -5688,6 +5719,90 @@ export const WsSubLokadId = {
     ): WsSubLokadId {
         const message = createBaseWsSubLokadId();
         message.lokadId = object.lokadId ?? new Uint8Array(0);
+        return message;
+    },
+};
+
+function createBaseWsPlugin(): WsPlugin {
+    return { pluginName: '', group: new Uint8Array(0) };
+}
+
+export const WsPlugin = {
+    encode(
+        message: WsPlugin,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.pluginName !== '') {
+            writer.uint32(10).string(message.pluginName);
+        }
+        if (message.group.length !== 0) {
+            writer.uint32(18).bytes(message.group);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): WsPlugin {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseWsPlugin();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.pluginName = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.group = reader.bytes();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): WsPlugin {
+        return {
+            pluginName: isSet(object.pluginName)
+                ? globalThis.String(object.pluginName)
+                : '',
+            group: isSet(object.group)
+                ? bytesFromBase64(object.group)
+                : new Uint8Array(0),
+        };
+    },
+
+    toJSON(message: WsPlugin): unknown {
+        const obj: any = {};
+        if (message.pluginName !== '') {
+            obj.pluginName = message.pluginName;
+        }
+        if (message.group.length !== 0) {
+            obj.group = base64FromBytes(message.group);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<WsPlugin>, I>>(base?: I): WsPlugin {
+        return WsPlugin.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<WsPlugin>, I>>(
+        object: I,
+    ): WsPlugin {
+        const message = createBaseWsPlugin();
+        message.pluginName = object.pluginName ?? '';
+        message.group = object.group ?? new Uint8Array(0);
         return message;
     },
 };

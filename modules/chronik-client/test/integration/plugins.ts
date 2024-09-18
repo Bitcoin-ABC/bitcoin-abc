@@ -7,11 +7,12 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClient } from '../../index';
+import { ChronikClient, WsMsgClient, WsEndpoint } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
     TestInfo,
+    expectWsMsgs,
 } from '../setup/testRunner';
 
 const expect = chai.expect;
@@ -21,6 +22,10 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
     // Define variables used in scope of this test
     const testName = path.basename(__filename);
     let testRunner: ChildProcess;
+
+    // Collect websocket msgs in an array for analysis in each step
+    let msgCollectorWs1: Array<WsMsgClient> = [];
+    let msgCollectorWs2: Array<WsMsgClient> = [];
 
     const statusEvent = new EventEmitter();
     let get_test_info: Promise<TestInfo>;
@@ -73,8 +78,26 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
     });
 
     afterEach(() => {
+        // Reset msgCollectors after each step
+        msgCollectorWs1 = [];
+        msgCollectorWs2 = [];
+
         testRunner.send('next');
     });
+
+    let ws1: WsEndpoint;
+    let ws2: WsEndpoint;
+
+    const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
+        type: 'Tx',
+        msgType: 'TX_ADDED_TO_MEMPOOL',
+        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
+    const BASE_CONFIRMED_WSMSG: WsMsgClient = {
+        type: 'Tx',
+        msgType: 'TX_CONFIRMED',
+        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
 
     const PLUGIN_NAME = 'my_plugin';
     const BYTES_a = Buffer.from('a').toString('hex');
@@ -145,8 +168,78 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             Error,
             `Failed getting /plugin/${PLUGIN_NAME}/not a hex string/utxos: 400: Invalid hex: Invalid character 'n' at position 0`,
         );
+
+        // Connect to the websocket with a testable onMessage handler
+        ws1 = chronik.ws({
+            onMessage: msg => {
+                msgCollectorWs1.push(msg);
+            },
+        });
+        await ws1.waitForOpen();
+
+        // We can subscribe to a plugin
+        ws1.subscribeToPlugin(PLUGIN_NAME, BYTES_a);
+        expect(ws1.subs.plugins).to.deep.equal([
+            { pluginName: PLUGIN_NAME, group: BYTES_a },
+        ]);
+
+        // We can subscribe to multiple plugins
+        ws1.subscribeToPlugin(PLUGIN_NAME, BYTES_b);
+        expect(ws1.subs.plugins).to.deep.equal([
+            { pluginName: PLUGIN_NAME, group: BYTES_a },
+            { pluginName: PLUGIN_NAME, group: BYTES_b },
+        ]);
+
+        // We can unsubscribe from a plugin we are subscribed to
+        ws1.unsubscribeFromPlugin(PLUGIN_NAME, BYTES_b);
+        expect(ws1.subs.plugins).to.deep.equal([
+            { pluginName: PLUGIN_NAME, group: BYTES_a },
+        ]);
+
+        // We cannot unsubscribe from a plugin if we are not currently subscribed to it
+        expect(() => ws1.unsubscribeFromPlugin(PLUGIN_NAME, BYTES_b)).to.throw(
+            `No existing sub at pluginName="${PLUGIN_NAME}", group="${BYTES_b}"`,
+        );
+
+        // We cannot subscribe to an invalid plugin
+        expect(() =>
+            ws1.subscribeToPlugin(undefined as unknown as string, BYTES_a),
+        ).to.throw(`pluginName must be a string`);
+        expect(() =>
+            ws1.subscribeToPlugin(PLUGIN_NAME, undefined as unknown as string),
+        ).to.throw(`group must be a string`);
+        expect(() => ws1.subscribeToPlugin(PLUGIN_NAME, 'aaa')).to.throw(
+            `group must have even length (complete bytes): "aaa"`,
+        );
+        expect(() =>
+            ws1.subscribeToPlugin(PLUGIN_NAME, 'not a hex string'),
+        ).to.throw(
+            `group must be a valid lowercase hex string: "not a hex string"`,
+        );
+
+        // Initialize a second websocket to confirm we match the behavior of the chronik test script
+        ws2 = chronik.ws({
+            onMessage: msg => {
+                msgCollectorWs2.push(msg);
+            },
+        });
+        await ws2.waitForOpen();
+        ws2.subscribeToPlugin(PLUGIN_NAME, BYTES_b);
+        expect(ws2.subs.plugins).to.deep.equal([
+            { pluginName: PLUGIN_NAME, group: BYTES_b },
+        ]);
     });
     it('After broadcasting a tx with plugin utxos in group "a"', async () => {
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorWs1);
+
+        // We get ADDED_TO_MEMPOOL websocket msg at ws1
+        expect(msgCollectorWs1).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: FIRST_PLUGIN_TXID },
+        ]);
+        // We get no websocket msg at ws2
+        expect(msgCollectorWs2).to.deep.equal([]);
+
         const firstTx = await chronik.tx(FIRST_PLUGIN_TXID);
         const { inputs, outputs } = firstTx;
 
@@ -220,6 +313,19 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         });
     });
     it('After broadcasting a tx with plugin utxos in group "b"', async () => {
+        // Wait for expected msg at ws1
+        await expectWsMsgs(1, msgCollectorWs1);
+        // We get ADDED_TO_MEMPOOL websocket msg at ws1
+        expect(msgCollectorWs1).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: SECOND_PLUGIN_TXID },
+        ]);
+        // Wait for expected msg a ws2
+        await expectWsMsgs(1, msgCollectorWs2);
+        // We get ADDED_TO_MEMPOOL websocket msg at ws2
+        expect(msgCollectorWs2).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: SECOND_PLUGIN_TXID },
+        ]);
+
         const secondTx = await chronik.tx(SECOND_PLUGIN_TXID);
 
         const { inputs, outputs } = secondTx;
@@ -300,6 +406,17 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         });
     });
     it('After mining a block with these first 2 txs', async () => {
+        await expectWsMsgs(2, msgCollectorWs1);
+        // We get ADDED_TO_MEMPOOL websocket msg at ws1
+        expect(msgCollectorWs1).to.deep.equal([
+            { ...BASE_CONFIRMED_WSMSG, txid: SECOND_PLUGIN_TXID },
+            { ...BASE_CONFIRMED_WSMSG, txid: FIRST_PLUGIN_TXID },
+        ]);
+        await expectWsMsgs(1, msgCollectorWs2);
+        // We get ADDED_TO_MEMPOOL websocket msg at ws2
+        expect(msgCollectorWs2).to.deep.equal([
+            { ...BASE_CONFIRMED_WSMSG, txid: SECOND_PLUGIN_TXID },
+        ]);
         // The plugin info in a tx returned by chronik-client is not changed by a block confirming
         const firstTx = await chronik.tx(FIRST_PLUGIN_TXID);
         const { inputs, outputs } = firstTx;
@@ -333,6 +450,13 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         });
     });
     it('After broadcasting a tx with plugin utxos in group "c"', async () => {
+        // We get no websocket msgs at ws1
+        expect(msgCollectorWs1).to.deep.equal([]);
+        await expectWsMsgs(1, msgCollectorWs2);
+        // We get ADDED_TO_MEMPOOL websocket msg at ws2
+        expect(msgCollectorWs2).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: THIRD_PLUGIN_TXID },
+        ]);
         const thirdTx = await chronik.tx(THIRD_PLUGIN_TXID);
 
         const { inputs, outputs } = thirdTx;
@@ -387,6 +511,11 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         });
     });
     it('After mining a block with this third tx', async () => {
+        // We get expected ws confirmed msg
+        await expectWsMsgs(1, msgCollectorWs2);
+        expect(msgCollectorWs2).to.deep.equal([
+            { ...BASE_CONFIRMED_WSMSG, txid: THIRD_PLUGIN_TXID },
+        ]);
         // Plugin output is not changed by mining the block
         const thesePluginUtxos = await chronik
             .plugin(PLUGIN_NAME)
@@ -398,6 +527,10 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         });
     });
     it('After invalidating the mined block with the third tx', async () => {
+        await expectWsMsgs(1, msgCollectorWs2);
+        expect(msgCollectorWs2).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: THIRD_PLUGIN_TXID },
+        ]);
         // Plugin output is not changed by invalidating the block
         const thesePluginUtxos = await chronik
             .plugin(PLUGIN_NAME)
@@ -409,6 +542,30 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         });
     });
     it('After invalidating the mined block with the first two txs', async () => {
+        await expectWsMsgs(2, msgCollectorWs1);
+        // We get ADDED_TO_MEMPOOL websocket msgs at ws1
+        expect(msgCollectorWs1).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: FIRST_PLUGIN_TXID },
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: SECOND_PLUGIN_TXID },
+        ]);
+        await expectWsMsgs(1, msgCollectorWs2);
+        // We get websocket msgs at ws2 in lexicographic order
+        expect(msgCollectorWs2).to.deep.equal([
+            {
+                ...BASE_ADDEDTOMEMPOOL_WSMSG,
+                txid: THIRD_PLUGIN_TXID,
+                msgType: 'TX_REMOVED_FROM_MEMPOOL',
+            },
+            {
+                ...BASE_ADDEDTOMEMPOOL_WSMSG,
+                txid: SECOND_PLUGIN_TXID,
+            },
+            {
+                ...BASE_ADDEDTOMEMPOOL_WSMSG,
+                txid: THIRD_PLUGIN_TXID,
+            },
+        ]);
+
         // The plugin info in a chronik tx is not changed by a block invalidating
         const secondTx = await chronik.tx(SECOND_PLUGIN_TXID);
 

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { WsSubScriptClient } from './ChronikClient';
+import { WsSubScriptClient, WsSubPluginClient } from './ChronikClient';
 
 const VALID_HEX_REGEX = new RegExp(/^[a-f0-9]+$/);
 const VALID_LOKADID_REGEX = new RegExp(/^[a-f0-9]{8}$/);
@@ -62,6 +62,31 @@ export const verifyTokenId = (tokenId: string) => {
     if (!VALID_TOKENID_REGEX.test(tokenId)) {
         throw new Error(
             `Invalid tokenId: "${tokenId}". tokenId must be 64 characters of lowercase hex.`,
+        );
+    }
+};
+
+// Tested in test/integration/plugins.ts
+export const verifyPluginSubscription = (
+    pluginSubscription: WsSubPluginClient,
+) => {
+    const { pluginName, group } = pluginSubscription;
+    if (typeof pluginName === 'undefined') {
+        throw new Error(`pluginName must be a string`);
+    }
+    if (typeof group === 'undefined') {
+        throw new Error(`group must be a string`);
+    }
+    // Test for odd length
+    if (group.length % 2 !== 0) {
+        throw new Error(
+            `group must have even length (complete bytes): "${group}"`,
+        );
+    }
+    // Test for valid hex
+    if (!VALID_HEX_REGEX.test(group)) {
+        throw new Error(
+            `group must be a valid lowercase hex string: "${group}"`,
         );
     }
 };

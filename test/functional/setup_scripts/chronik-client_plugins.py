@@ -22,7 +22,7 @@ from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import OP_RETURN, CScript
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_plugin
 
 
 class ChronikClientPlugins(SetupFramework):
@@ -41,6 +41,14 @@ class ChronikClientPlugins(SetupFramework):
         yield True
 
         chronik = node.get_chronik_client()
+
+        def ws_msg(txid: str, msg_type):
+            return pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=msg_type,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            )
 
         def assert_start_raises(*args, **kwargs):
             node.assert_start_raises_init_error(["-chronik"], *args, **kwargs)
@@ -100,6 +108,10 @@ class MyPluginPlugin(Plugin):
         ):
             self.restart_node(0, ["-chronik", "-chronikreindex"])
 
+        # Init and websockets here so we can confirm msgs are sent server-side
+        ws1 = chronik.ws()
+        ws2 = chronik.ws()
+
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
@@ -110,6 +122,10 @@ class MyPluginPlugin(Plugin):
         self.log.info("Step 2: Send a tx to create plugin utxos in group 'a'")
 
         self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
+
+        # Subscribe to websockets in test script to support timing match in chronik-client integration tests
+        chronik_sub_plugin(ws1, node, "my_plugin", b"a")
+        chronik_sub_plugin(ws2, node, "my_plugin", b"b")
 
         coinvalue = 5000000000
         tx1 = CTransaction()
@@ -122,6 +138,8 @@ class MyPluginPlugin(Plugin):
         ]
         pad_tx(tx1)
         node.sendrawtransaction(tx1.serialize().hex())
+
+        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
 
         # Plugin ran on the mempool tx
         # Note: we must perform these assertions here before yield True
@@ -185,11 +203,19 @@ class MyPluginPlugin(Plugin):
             tx2_plugin_outputs[1:],
         )
 
+        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+
         yield True
         self.log.info("Step 4: Mine these first two transactions")
 
         # Mine tx1 and tx2
         block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
+        # Lexicographic order
+        txids = sorted([tx1.hash, tx2.hash])
+        assert_equal(ws1.recv(), ws_msg(txids[0], pb.TX_CONFIRMED))
+        assert_equal(ws1.recv(), ws_msg(txids[1], pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_CONFIRMED))
         yield True
 
         self.log.info("Step 5: Send a third tx to create plugin utxos in group 'c'")
@@ -205,6 +231,8 @@ class MyPluginPlugin(Plugin):
         ]
         pad_tx(tx3)
         node.sendrawtransaction(tx3.serialize().hex())
+
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
 
         proto_tx3 = chronik.tx(tx3.hash).ok()
         tx3_plugin_inputs = [tx2_plugin_outputs[1], tx2_plugin_outputs[3]]
@@ -241,6 +269,7 @@ class MyPluginPlugin(Plugin):
 
         # Mine tx3
         block2 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_CONFIRMED))
 
         yield True
 
@@ -248,12 +277,22 @@ class MyPluginPlugin(Plugin):
 
         # Disconnect block2, inputs + outputs still work
         node.invalidateblock(block2)
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
 
         yield True
 
         self.log.info("Step 8: Invalidate the block with the first two txs")
 
         node.invalidateblock(block1)
+
+        # Topological order
+        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+
+        # Reorg first clears the mempool and then adds back in topological order
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
 
         yield True
 
