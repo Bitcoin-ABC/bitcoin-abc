@@ -127,6 +127,8 @@ class MyPluginPlugin(Plugin):
         chronik_sub_plugin(ws1, node, "my_plugin", b"a")
         chronik_sub_plugin(ws2, node, "my_plugin", b"b")
 
+        plugin = chronik.plugin("my_plugin")
+
         coinvalue = 5000000000
         tx1 = CTransaction()
         tx1.vin = [CTxIn(COutPoint(int(cointx, 16), 0), SCRIPTSIG_OP_TRUE)]
@@ -156,11 +158,18 @@ class MyPluginPlugin(Plugin):
             [output.plugins for output in proto_tx1.outputs],
             tx1_plugin_outputs,
         )
-        proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
+        proto_utxos1 = plugin.utxos(b"a").ok().utxos
         assert_equal(
             [utxo.plugins for utxo in proto_utxos1],
             tx1_plugin_outputs[1:],
         )
+
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), [proto_tx1])
+        assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), [])
+        assert_equal(list(plugin.history(b"a").ok().txs), [proto_tx1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.history(b"b").ok().txs), [])
 
         yield True
         self.log.info("Step 3: Send a second tx to create plugin utxos in group 'b'")
@@ -192,6 +201,57 @@ class MyPluginPlugin(Plugin):
             [output.plugins for output in proto_tx2.outputs],
             tx2_plugin_outputs,
         )
+        proto_utxos1 = plugin.utxos(b"a").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos1],
+            [tx1_plugin_outputs[1], tx1_plugin_outputs[2]],  # "abc" spent
+        )
+        proto_utxos2 = plugin.utxos(b"b").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos2],
+            tx2_plugin_outputs[1:],
+        )
+
+        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+
+        proto_tx1 = chronik.tx(tx1.hash).ok()
+        txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), txs)
+        assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), [])
+        assert_equal(list(plugin.history(b"a").ok().txs), txs[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx2])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.history(b"b").ok().txs), [proto_tx2])
+
+        yield True
+        self.log.info("Step 4: Mine these first two transactions")
+
+        # Mine tx1 and tx2
+        block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
+
+        # Lexicographic order
+        txids = sorted([tx1.hash, tx2.hash])
+        assert_equal(ws1.recv(), ws_msg(txids[0], pb.TX_CONFIRMED))
+        assert_equal(ws1.recv(), ws_msg(txids[1], pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_CONFIRMED))
+
+        proto_tx1 = chronik.tx(tx1.hash).ok()
+        assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
+        assert_equal(
+            [output.plugins for output in proto_tx1.outputs],
+            tx1_plugin_outputs,
+        )
+
+        proto_tx2 = chronik.tx(tx2.hash).ok()
+        assert_equal(
+            [inpt.plugins for inpt in proto_tx2.inputs],
+            tx2_plugin_inputs,
+        )
+        assert_equal(
+            [output.plugins for output in proto_tx2.outputs],
+            tx2_plugin_outputs,
+        )
         proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
         assert_equal(
             [utxo.plugins for utxo in proto_utxos1],
@@ -203,19 +263,13 @@ class MyPluginPlugin(Plugin):
             tx2_plugin_outputs[1:],
         )
 
-        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
-
-        yield True
-        self.log.info("Step 4: Mine these first two transactions")
-
-        # Mine tx1 and tx2
-        block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
-        # Lexicographic order
-        txids = sorted([tx1.hash, tx2.hash])
-        assert_equal(ws1.recv(), ws_msg(txids[0], pb.TX_CONFIRMED))
-        assert_equal(ws1.recv(), ws_msg(txids[1], pb.TX_CONFIRMED))
-        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_CONFIRMED))
+        txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), txs)
+        assert_equal(list(plugin.history(b"a").ok().txs), txs[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
+        assert_equal(list(plugin.history(b"b").ok().txs), [proto_tx2])
         yield True
 
         self.log.info("Step 5: Send a third tx to create plugin utxos in group 'c'")
@@ -252,16 +306,22 @@ class MyPluginPlugin(Plugin):
             [output.plugins for output in proto_tx3.outputs],
             tx3_plugin_outputs,
         )
-        proto_utxos2 = chronik.plugin("my_plugin").utxos(b"b").ok().utxos
+        proto_utxos2 = plugin.utxos(b"b").ok().utxos
         assert_equal(
             [utxo.plugins for utxo in proto_utxos2],
             [tx2_plugin_outputs[2]],  # only "borg" remaining
         )
-        proto_utxos3 = chronik.plugin("my_plugin").utxos(b"c").ok().utxos
+        proto_utxos3 = plugin.utxos(b"c").ok().utxos
         assert_equal(
             [utxo.plugins for utxo in proto_utxos3],
             tx3_plugin_outputs[1:],
         )
+
+        proto_tx2 = chronik.tx(tx2.hash).ok()
+        txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx3])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
+        assert_equal(list(plugin.history(b"b").ok().txs), txs[::-1])
 
         yield True
 
@@ -270,6 +330,12 @@ class MyPluginPlugin(Plugin):
         # Mine tx3
         block2 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
         assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_CONFIRMED))
+
+        proto_tx3 = chronik.tx(tx3.hash).ok()
+        txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
+        assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
+        assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), txs)
+        assert_equal(list(plugin.history(b"b").ok().txs), txs[::-1])
 
         yield True
 

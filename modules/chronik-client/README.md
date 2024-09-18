@@ -110,3 +110,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   0.29.0 - Support for `plugins` endpoints: `utxos` and `groups` [D16605](https://reviews.bitcoinabc.org/D16605)
 -   1.0.0 - **(Breaking change)** Deprecate NNG chronik and rename all `InNode` classes and types [D16627](https://reviews.bitcoinabc.org/D16627). Users may no longer import `ChronikClientNode` class to run in-node chronik-client and must import `ChronikClient` (which is no longer the NNG class). [D16710](https://reviews.bitcoinabc.org/D16710)
 -   1.1.0 - Support websocket subscriptions to plugins [D16783](https://reviews.bitcoinabc.org/D16783)
+-   1.2.0 - Support `history`, `confirmedTxs`, and `unconfirmedTxs` methods for `plugins` endpoints [D16786](https://reviews.bitcoinabc.org/D16786)

@@ -496,6 +496,72 @@ export class PluginEndpoint {
 
         return convertToPluginGroups(groups);
     }
+
+    /**
+     * Fetches the tx history of this groupHex for this plugin, in anti-chronological order.
+     * @param groupHex group as a lowercase hex string
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async history(
+        groupHex: string,
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage> {
+        const data = await this._proxyInterface.get(
+            `/plugin/${this._pluginName}/${groupHex}/history?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
+     * Fetches the confirmed tx history of this groupHex for this plugin, in the order they appear on the blockchain.
+     * @param groupHex group as a lowercase hex string
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async confirmedTxs(
+        groupHex: string,
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage> {
+        const data = await this._proxyInterface.get(
+            `/plugin/${this._pluginName}/${groupHex}/confirmed-txs?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
+     * Fetches the unconfirmed tx history of this groupHex for this plugin, in chronological order.
+     * @param groupHex group as a lowercase hex string
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async unconfirmedTxs(
+        groupHex: string,
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage> {
+        const data = await this._proxyInterface.get(
+            `/plugin/${this._pluginName}/${groupHex}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
 }
 
 /** Config for a WebSocket connection to Chronik. */

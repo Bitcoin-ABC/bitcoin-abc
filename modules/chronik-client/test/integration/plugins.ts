@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClient, WsMsgClient, WsEndpoint } from '../../index';
+import { ChronikClient, WsMsgClient, WsEndpoint, Tx } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -153,20 +153,81 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             pluginName: PLUGIN_NAME,
         });
 
+        // We get empty history if no txs exist for a plugin
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_a),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
         // We throw an error if the endpoint is called with plugin name that does not exist
+        const nonExistentPlugin = 'doesnotexist';
         await expect(
-            chronik.plugin('doesnotexist').utxos(BYTES_a),
+            chronik.plugin(nonExistentPlugin).utxos(BYTES_a),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/doesnotexist/${BYTES_a}/utxos: 404: Plugin "doesnotexist" not loaded`,
+            `Failed getting /plugin/${nonExistentPlugin}/${BYTES_a}/utxos: 404: Plugin "${nonExistentPlugin}" not loaded`,
+        );
+        await expect(
+            chronik.plugin(nonExistentPlugin).history(BYTES_a),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /plugin/${nonExistentPlugin}/${BYTES_a}/history?page=0&page_size=25: 404: Plugin "${nonExistentPlugin}" not loaded`,
+        );
+        await expect(
+            chronik.plugin(nonExistentPlugin).confirmedTxs(BYTES_a),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /plugin/${nonExistentPlugin}/${BYTES_a}/confirmed-txs?page=0&page_size=25: 404: Plugin "${nonExistentPlugin}" not loaded`,
+        );
+        await expect(
+            chronik.plugin(nonExistentPlugin).unconfirmedTxs(BYTES_a),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /plugin/${nonExistentPlugin}/${BYTES_a}/unconfirmed-txs?page=0&page_size=25: 404: Plugin "${nonExistentPlugin}" not loaded`,
         );
 
         // We throw an error if the endpoint is called with an invalid plugin group hex
+        const badPluginName = 'not a hex string';
         await expect(
-            chronik.plugin(PLUGIN_NAME).utxos('not a hex string'),
+            chronik.plugin(PLUGIN_NAME).utxos(badPluginName),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/not a hex string/utxos: 400: Invalid hex: Invalid character 'n' at position 0`,
+            `Failed getting /plugin/${PLUGIN_NAME}/${badPluginName}/utxos: 400: Invalid hex: Invalid character 'n' at position 0`,
+        );
+        await expect(
+            chronik.plugin(PLUGIN_NAME).history(badPluginName),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /plugin/${PLUGIN_NAME}/${badPluginName}/history?page=0&page_size=25: 400: Invalid hex: Invalid character 'n' at position 0`,
+        );
+        await expect(
+            chronik.plugin(PLUGIN_NAME).confirmedTxs(badPluginName),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /plugin/${PLUGIN_NAME}/${badPluginName}/confirmed-txs?page=0&page_size=25: 400: Invalid hex: Invalid character 'n' at position 0`,
+        );
+        await expect(
+            chronik.plugin(PLUGIN_NAME).unconfirmedTxs(badPluginName),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /plugin/${PLUGIN_NAME}/${badPluginName}/unconfirmed-txs?page=0&page_size=25: 400: Invalid hex: Invalid character 'n' at position 0`,
         );
 
         // Connect to the websocket with a testable onMessage handler
@@ -311,6 +372,54 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
                 },
             ],
         });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [firstTx],
+            numPages: 1,
+            numTxs: 1,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_a),
+        ).to.deep.equal({
+            txs: [firstTx],
+            numPages: 1,
+            numTxs: 1,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
     });
     it('After broadcasting a tx with plugin utxos in group "b"', async () => {
         // Wait for expected msg at ws1
@@ -404,6 +513,60 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
                 },
             ],
         });
+
+        // Update firstTx, as now it has a spent output
+        const firstTx = await chronik.tx(FIRST_PLUGIN_TXID);
+
+        // unconfirmed txs are sorted by timeFirstSeen
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [secondTx, firstTx],
+            numPages: 1,
+            numTxs: 2,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        // Note that the history endpoint keeps unconfirmed txs in reverse-chronological order
+        // Opposite order of unconfirmedTxs
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_a),
+        ).to.deep.equal({
+            txs: [firstTx, secondTx],
+            numPages: 1,
+            numTxs: 2,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [secondTx],
+            numPages: 1,
+            numTxs: 1,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
+        ).to.deep.equal({
+            txs: [secondTx],
+            numPages: 1,
+            numTxs: 1,
+        });
     });
     it('After mining a block with these first 2 txs', async () => {
         await expectWsMsgs(2, msgCollectorWs1);
@@ -447,6 +610,71 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
                 groups: [BYTES_a],
                 data: [BYTES_abc],
             },
+        });
+
+        // Update txs as they now have block keys
+        // Note that firstTx was already updated above
+        const secondTx = await chronik.tx(SECOND_PLUGIN_TXID);
+
+        // Sort alphabetical by txid, as this is how confirmed txs will be sorted
+        // aka lexicographic sorting
+        const txsSortedByTxid = [firstTx, secondTx].sort((a, b) =>
+            a.txid.localeCompare(b.txid),
+        );
+
+        // History sorting is more complicated
+        // Since timeFirstSeen here is constant, we end up getting "reverse-txid" order
+        // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
+        const txsSortedByTxidReverse = [firstTx, secondTx].sort((a, b) =>
+            b.txid.localeCompare(a.txid),
+        );
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_a),
+        ).to.deep.equal({
+            txs: txsSortedByTxid,
+            numPages: 1,
+            numTxs: 2,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_a),
+        ).to.deep.equal({
+            txs: txsSortedByTxidReverse,
+            numPages: 1,
+            numTxs: 2,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [secondTx],
+            numPages: 1,
+            numTxs: 1,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
+        ).to.deep.equal({
+            txs: [secondTx],
+            numPages: 1,
+            numTxs: 1,
         });
     });
     it('After broadcasting a tx with plugin utxos in group "c"', async () => {
@@ -509,6 +737,44 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             pluginName: PLUGIN_NAME,
             utxos: [group_c_utxo],
         });
+
+        // Update secondTx as now an output is spent
+        const secondTx = await chronik.tx(SECOND_PLUGIN_TXID);
+
+        // Sort alphabetical by txid, as this is how confirmed txs will be sorted
+        // aka lexicographic sorting
+        const txsSortedByTxid = [secondTx, thirdTx].sort((a, b) =>
+            a.txid.localeCompare(b.txid),
+        );
+
+        // History sorting is more complicated
+        // Since timeFirstSeen here is constant, we end up getting "reverse-txid" order
+        // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
+        const txsSortedByTxidReverse = txsSortedByTxid.reverse();
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [thirdTx],
+            numPages: 1,
+            numTxs: 1,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [secondTx],
+            numPages: 1,
+            numTxs: 1,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
+        ).to.deep.equal({
+            txs: txsSortedByTxidReverse,
+            numPages: 1,
+            numTxs: 2,
+        });
     });
     it('After mining a block with this third tx', async () => {
         // We get expected ws confirmed msg
@@ -524,6 +790,50 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             groupHex: BYTES_c,
             pluginName: PLUGIN_NAME,
             utxos: [{ ...group_c_utxo, blockHeight: 103 }],
+        });
+
+        // Get the second tx for this scope
+        const secondTx = await chronik.tx(SECOND_PLUGIN_TXID);
+        // Update third tx as it now has a block key
+        const thirdTx = await chronik.tx(THIRD_PLUGIN_TXID);
+
+        // Sort alphabetical by txid, as this is how confirmed txs will be sorted
+        // aka lexicographic sorting
+        const txsSortedByTxid = [secondTx, thirdTx].sort((a, b) =>
+            a.txid.localeCompare(b.txid),
+        );
+
+        // History sorting is more complicated
+        // Since timeFirstSeen here is constant, we end up getting "reverse-txid" order
+        // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
+        const txsSortedTxidReverse = [secondTx, thirdTx].sort(
+            (b, a) =>
+                a.timeFirstSeen - b.timeFirstSeen ||
+                a.txid.localeCompare(b.txid),
+        );
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: [],
+            numPages: 0,
+            numTxs: 0,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).confirmedTxs(BYTES_b),
+        ).to.deep.equal({
+            txs: txsSortedByTxid,
+            numPages: 1,
+            numTxs: 2,
+        });
+
+        expect(
+            await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
+        ).to.deep.equal({
+            txs: txsSortedTxidReverse,
+            numPages: 1,
+            numTxs: 2,
         });
     });
     it('After invalidating the mined block with the third tx', async () => {
