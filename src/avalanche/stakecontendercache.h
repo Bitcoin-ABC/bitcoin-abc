@@ -115,7 +115,7 @@ public:
      * Get payout scripts of the winning proofs.
      */
     bool getWinners(const BlockHash &prevblockhash,
-                    std::vector<CScript> &payouts);
+                    std::vector<CScript> &payouts) const;
 
     // TODO cleanup() so the cache doesn't grow unbounded
 };

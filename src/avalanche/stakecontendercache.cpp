@@ -79,7 +79,7 @@ bool StakeContenderCache::invalidate(const StakeContenderId &contenderId) {
 }
 
 bool StakeContenderCache::getWinners(const BlockHash &prevblockhash,
-                                     std::vector<CScript> &payouts) {
+                                     std::vector<CScript> &payouts) const {
     // Winners determined by avalanche are sorted by reward rank
     std::vector<const StakeContenderCacheEntry *> rankedWinners;
     auto &view = contenders.get<by_prevblockhash>();
