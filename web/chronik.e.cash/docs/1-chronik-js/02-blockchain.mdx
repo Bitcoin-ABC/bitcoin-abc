@@ -38,9 +38,9 @@ function DemoChronikInfo() {
     return (
         <Json
             fn={async () => {
-                const chronik = new ChronikClient(
+                const chronik = new ChronikClient([
                     'https://chronik-native1.fabien.cash',
-                );
+                ]);
                 return await chronik.chronikInfo();
             }}
         />
