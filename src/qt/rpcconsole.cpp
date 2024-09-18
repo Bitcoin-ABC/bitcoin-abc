@@ -17,7 +17,9 @@
 #include <qt/clientmodel.h>
 #include <qt/forms/ui_debugwindow.h>
 #include <qt/platformstyle.h>
+#ifdef ENABLE_WALLET
 #include <qt/walletmodel.h>
+#endif // ENABLE_WALLET
 #include <rpc/client.h>
 #include <rpc/server.h>
 #include <util/strencodings.h>
