@@ -9,6 +9,7 @@
 #include <avalanche/avalanche.h>
 #include <net.h>
 #include <sync.h>
+#include <txorphanage.h>
 #include <validationinterface.h>
 
 namespace avalanche {
@@ -120,6 +121,8 @@ public:
     /** Get statistics from node state */
     virtual bool GetNodeStateStats(NodeId nodeid,
                                    CNodeStateStats &stats) const = 0;
+
+    virtual std::vector<TxOrphanage::PoolTx> GetOrphanTransactions() = 0;
 
     /** Whether this node ignores txs received over p2p. */
     virtual bool IgnoresIncomingTxs() = 0;

@@ -17,6 +17,10 @@ class TxOrphanage : public TxPool {
 public:
     TxOrphanage()
         : TxPool("orphan", ORPHAN_TX_EXPIRE_TIME, ORPHAN_TX_EXPIRE_INTERVAL) {}
+
+    std::vector<PoolTx> GetOrphanTransactions() const {
+        return GetPoolTransactions();
+    }
 };
 
 #endif // BITCOIN_TXORPHANAGE_H

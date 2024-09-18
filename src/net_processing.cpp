@@ -813,6 +813,8 @@ public:
                const CBlockIndex &block_index) override;
     bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) const override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
+    std::vector<TxOrphanage::PoolTx> GetOrphanTransactions() override
+        EXCLUSIVE_LOCKS_REQUIRED(!m_tx_download_mutex);
     bool IgnoresIncomingTxs() override { return m_opts.ignore_incoming_txs; }
     void SendPings() override EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
     void RelayTransaction(const TxId &txid) override
@@ -2539,6 +2541,13 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
     }
 
     return true;
+}
+
+std::vector<TxOrphanage::PoolTx> PeerManagerImpl::GetOrphanTransactions() {
+    LOCK(m_tx_download_mutex);
+    return m_mempool.withOrphanage([](const TxOrphanage &orphanage) {
+        return orphanage.GetOrphanTransactions();
+    });
 }
 
 void PeerManagerImpl::AddToCompactExtraTransactions(const CTransactionRef &tx) {

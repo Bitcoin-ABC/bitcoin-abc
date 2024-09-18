@@ -123,6 +123,24 @@ std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey) {
     return ParseHexV(o.find_value(strKey), strKey);
 }
 
+int ParseVerbosity(const UniValue &arg, int default_verbosity,
+                   bool allow_bool) {
+    if (!arg.isNull()) {
+        if (arg.isBool()) {
+            if (!allow_bool) {
+                throw JSONRPCError(
+                    RPC_TYPE_ERROR,
+                    "Verbosity was boolean but only integer allowed");
+            }
+            // true = 1
+            return arg.get_bool();
+        } else {
+            return arg.getInt<int>();
+        }
+    }
+    return default_verbosity;
+}
+
 namespace {
 
 /**

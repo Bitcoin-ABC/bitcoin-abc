@@ -329,3 +329,13 @@ TxPool::GetChildrenFromDifferentPeer(const CTransactionRef &parent,
     }
     return children_found;
 }
+
+std::vector<TxPool::PoolTx> TxPool::GetPoolTransactions() const {
+    std::vector<PoolTx> ret;
+    ret.reserve(m_pool_txs.size());
+    for (const auto &o : m_pool_txs) {
+        ret.push_back({o.second.tx, o.second.fromPeer, o.second.nTimeExpire,
+                       o.second.list_pos});
+    }
+    return ret;
+}

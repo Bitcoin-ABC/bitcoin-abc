@@ -88,6 +88,16 @@ public:
     /** Return how many entries exist in the pool */
     size_t Size() const { return m_pool_txs.size(); }
 
+    /** Allows providing pool transaction information externally */
+    struct PoolTx {
+        CTransactionRef tx;
+        NodeId fromPeer;
+        NodeSeconds nTimeExpire;
+        size_t list_pos;
+    };
+
+    std::vector<PoolTx> GetPoolTransactions() const;
+
 protected:
     /** The transaction kind as string, used for logging */
     const std::string txKind;
@@ -95,13 +105,6 @@ protected:
     const std::chrono::seconds expireTime;
     /** Minimum time between transactions expire time checks */
     const std::chrono::seconds expireInterval;
-
-    struct PoolTx {
-        CTransactionRef tx;
-        NodeId fromPeer;
-        NodeSeconds nTimeExpire;
-        size_t list_pos;
-    };
 
     /**
      * Map from txid to pool transaction record. Should be size constrained by

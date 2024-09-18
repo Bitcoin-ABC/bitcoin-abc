@@ -85,6 +85,19 @@ extern uint256 ParseHashO(const UniValue &o, std::string strKey);
 extern std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName);
 extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
 
+/**
+ * Parses verbosity from provided UniValue.
+ *
+ * @param[in] arg The verbosity argument as an int (0, 1, 2,...) or bool if
+ *                allow_bool is set to true
+ * @param[in] default_verbosity The value to return if verbosity argument is
+ *                              null
+ * @param[in] allow_bool If true, allows arg to be a bool and parses it
+ * @returns An integer describing the verbosity level (e.g. 0, 1, 2, etc.)
+ * @throws JSONRPCError if allow_bool is false but arg provided is boolean
+ */
+int ParseVerbosity(const UniValue &arg, int default_verbosity, bool allow_bool);
+
 extern Amount AmountFromValue(const UniValue &value);
 
 using RPCArgList = std::vector<std::pair<std::string, UniValue>>;

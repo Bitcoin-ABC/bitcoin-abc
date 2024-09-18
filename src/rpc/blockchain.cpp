@@ -806,14 +806,9 @@ static RPCHelpMan getblock() {
             const JSONRPCRequest &request) -> UniValue {
             BlockHash hash(ParseHashV(request.params[0], "blockhash"));
 
-            int verbosity = 1;
-            if (!request.params[1].isNull()) {
-                if (request.params[1].isNum()) {
-                    verbosity = request.params[1].getInt<int>();
-                } else {
-                    verbosity = request.params[1].get_bool() ? 1 : 0;
-                }
-            }
+            int verbosity{ParseVerbosity(request.params[1],
+                                         /*default_verbosity=*/1,
+                                         /*allow_bool=*/true)};
 
             const CBlockIndex *pblockindex;
             const CBlockIndex *tip;
