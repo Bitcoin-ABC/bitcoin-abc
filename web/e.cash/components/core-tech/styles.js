@@ -13,11 +13,13 @@ export const SectionCtn = styled(motion.div).attrs(() =>
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     justify-content: center;
-    margin-top: 60px;
-
+    min-height: 600px;
+    align-items: center;
     ${props => props.theme.breakpoint.medium} {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto auto;
+        min-height: unset;
+        align-items: center;
     }
 `;
 
@@ -144,6 +146,8 @@ export const DescriptionCtn = styled.div`
     ${props => props.theme.breakpoint.medium} {
         grid-row: 2;
         grid-column: 1 / 3;
+        min-height: 500px;
+        align-items: start;
     }
 `;
 

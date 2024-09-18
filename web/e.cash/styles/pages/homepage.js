@@ -190,10 +190,10 @@ export const StoryAndWhySection = styled.div`
     background-repeat: no-repeat;
     background-position: center;
     width: 100%;
-    padding: 0 0 400px;
+    padding: 0 0 200px;
     position: relative;
     ${props => props.theme.breakpoint.medium} {
-        padding-bottom: 200px;
+        padding-bottom: 20px;
     }
 `;
 
