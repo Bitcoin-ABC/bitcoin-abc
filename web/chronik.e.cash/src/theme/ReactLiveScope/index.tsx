@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { ChronikClient } from 'chronik-client';
 import CodeBlock from '@theme/CodeBlock';
 
-const chronik = new ChronikClient(['https://chronik-native1.fabien.cash']);
+const chronik = new ChronikClient(['https://chronik-doc.fabien.cash']);
 
 const Json = props => {
     const [result, setResult] = useState(undefined);

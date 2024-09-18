@@ -17,9 +17,9 @@ function DemoBlockchainInfo() {
     return (
         <Json
             fn={async () => {
-                const chronik = new ChronikClient(
-                    'https://chronik-native1.fabien.cash',
-                );
+                const chronik = new ChronikClient([
+                    'https://chronik-doc.fabien.cash',
+                ]);
                 return await chronik.blockchainInfo();
             }}
         />
@@ -39,7 +39,7 @@ function DemoChronikInfo() {
         <Json
             fn={async () => {
                 const chronik = new ChronikClient([
-                    'https://chronik-native1.fabien.cash',
+                    'https://chronik-doc.fabien.cash',
                 ]);
                 return await chronik.chronikInfo();
             }}

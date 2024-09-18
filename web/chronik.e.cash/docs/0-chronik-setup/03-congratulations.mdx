@@ -18,12 +18,12 @@ import './03-congratulations.scss';
 
 export const GetBlockchainInfo = () => {
     const [chronikUrl, setChronikUrl] = useState(
-        'https://chronik-native1.fabien.cash',
+        'https://chronik-doc.fabien.cash',
     );
     const [blockchainInfo, setBlockchainInfo] = useState(undefined);
     const [error, setError] = useState(undefined);
     const getBlockchainInfo = async () => {
-        const client = new ChronikClient(chronikUrl);
+        const client = new ChronikClient([chronikUrl]);
         try {
             const info = await client.blockchainInfo();
             console.log(info);
