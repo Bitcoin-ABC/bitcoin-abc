@@ -95,13 +95,13 @@ public:
     /**
      * Add a proof to consider in staking rewards pre-consensus.
      */
-    bool add(const BlockHash &prevblockhash, const ProofRef &proof,
+    bool add(const CBlockIndex *pindex, const ProofRef &proof,
              uint8_t status = StakeContenderStatus::UNKNOWN);
     /**
      * Add a proof that should be treated as a winner (already finalized). This
      * should only be used for manually added winners via RPC.
      */
-    bool addWinner(const BlockHash &prevblockhash, const CScript &payoutScript);
+    bool addWinner(const CBlockIndex *pindex, const CScript &payoutScript);
 
     /**
      * Helpers to set avalanche state of a contender.

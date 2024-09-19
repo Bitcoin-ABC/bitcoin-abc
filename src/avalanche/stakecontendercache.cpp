@@ -6,16 +6,17 @@
 
 namespace avalanche {
 
-bool StakeContenderCache::add(const BlockHash &prevblockhash,
-                              const ProofRef &proof, uint8_t status) {
+bool StakeContenderCache::add(const CBlockIndex *pindex, const ProofRef &proof,
+                              uint8_t status) {
     return contenders
-        .emplace(prevblockhash, proof->getId(), status,
+        .emplace(pindex->GetBlockHash(), proof->getId(), status,
                  proof->getPayoutScript(), proof->getScore())
         .second;
 }
 
-bool StakeContenderCache::addWinner(const BlockHash &prevblockhash,
+bool StakeContenderCache::addWinner(const CBlockIndex *pindex,
                                     const CScript &payoutScript) {
+    const BlockHash &prevblockhash = pindex->GetBlockHash();
     std::vector<CScript> payoutScripts;
     auto it = manualWinners.find(prevblockhash);
     if (it != manualWinners.end()) {
