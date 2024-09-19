@@ -21,6 +21,7 @@ class Config;
 
 static constexpr bool DEFAULT_CHECKPOINTS_ENABLED{true};
 static constexpr auto DEFAULT_MAX_TIP_AGE{24h};
+static constexpr bool DEFAULT_STORE_RECENT_HEADERS_TIME{false};
 
 namespace kernel {
 
@@ -49,6 +50,10 @@ struct ChainstateManagerOpts {
     DBOptions coins_db{};
     CoinsViewOptions coins_view{};
     Notifications &notifications;
+
+    //! If set, store and load the last few block headers reception time to
+    //! speed up RTT bootstraping
+    bool store_recent_headers_time{DEFAULT_STORE_RECENT_HEADERS_TIME};
 };
 
 } // namespace kernel

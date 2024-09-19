@@ -52,6 +52,10 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
     ReadDatabaseArgs(args, opts.coins_db);
     ReadCoinsViewArgs(args, opts.coins_view);
 
+    if (auto value{args.GetBoolArg("-persistrecentheaderstime")}) {
+        opts.store_recent_headers_time = *value;
+    }
+
     return std::nullopt;
 }
 } // namespace node

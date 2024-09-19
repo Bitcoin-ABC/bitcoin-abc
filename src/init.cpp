@@ -145,6 +145,8 @@ static constexpr bool DEFAULT_CHRONIK = false;
 
 static const char *DEFAULT_ASMAP_FILENAME = "ip_asn.map";
 
+static const std::string HEADERS_TIME_FILE_NAME{"headerstime.dat"};
+
 /**
  * The PID file facilities.
  */
@@ -339,6 +341,9 @@ void Shutdown(NodeContext &node) {
                 chainstate->ResetCoinsViews();
             }
         }
+
+        node.chainman->DumpRecentHeadersTime(node.chainman->m_options.datadir /
+                                             HEADERS_TIME_FILE_NAME);
     }
     for (const auto &client : node.chain_clients) {
         client->stop();
@@ -588,6 +593,14 @@ void SetupServerArgs(NodeContext &node) {
                              "on restart (default: %u)",
                              DEFAULT_PERSIST_MEMPOOL),
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-persistrecentheaderstime",
+        strprintf(
+            "Whether the node stores the recent headers reception time to a "
+            "file and load it upon startup. This is intended for mining nodes "
+            "to overestimate the real time target upon restart (default: %u)",
+            DEFAULT_STORE_RECENT_HEADERS_TIME),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-pid=<file>",
         strprintf("Specify pid file. Relative paths will be prefixed "
@@ -2476,6 +2489,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             std::tie(status, error) = catch_exceptions(
                 [&] { return VerifyLoadedChainstate(chainman, options); });
             if (status == node::ChainstateLoadStatus::SUCCESS) {
+                WITH_LOCK(cs_main, return node.chainman->LoadRecentHeadersTime(
+                                       node.chainman->m_options.datadir /
+                                       HEADERS_TIME_FILE_NAME));
                 fLoaded = true;
                 LogPrintf(" block index %15dms\n",
                           GetTimeMillis() - load_block_index_start_time);

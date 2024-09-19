@@ -111,6 +111,8 @@ const std::vector<std::string> CHECKLEVEL_DOC{
  * */
 static constexpr int PRUNE_LOCK_BUFFER{10};
 
+static constexpr uint64_t HEADERS_TIME_VERSION{1};
+
 GlobalMutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
 const CBlockIndex *g_best_block;
@@ -5333,6 +5335,124 @@ void Chainstate::UnloadBlockIndex() {
     m_best_fork_tip = nullptr;
     m_best_fork_base = nullptr;
     setBlockIndexCandidates.clear();
+}
+
+bool ChainstateManager::DumpRecentHeadersTime(const fs::path &filePath) const {
+    AssertLockHeld(cs_main);
+
+    if (!m_options.store_recent_headers_time) {
+        return false;
+    }
+
+    // Dump enough headers for RTT computation, with a few extras in case a
+    // reorg occurs.
+    const uint64_t numHeaders{20};
+
+    try {
+        const fs::path filePathTmp = filePath + ".new";
+        FILE *filestr = fsbridge::fopen(filePathTmp, "wb");
+        if (!filestr) {
+            return false;
+        }
+
+        CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+        file << HEADERS_TIME_VERSION;
+        file << numHeaders;
+
+        const CBlockIndex *index = ActiveTip();
+        bool missingIndex{false};
+        for (uint64_t i = 0; i < numHeaders; i++) {
+            if (!index) {
+                LogPrintf("Missing block index, stopping the headers time "
+                          "dumping after %d blocks.\n",
+                          i);
+                missingIndex = true;
+                break;
+            }
+
+            file << index->GetBlockHash();
+            file << index->GetHeaderReceivedTime();
+
+            index = index->pprev;
+        }
+
+        if (!FileCommit(file.Get())) {
+            throw std::runtime_error(strprintf("Failed to commit to file %s",
+                                               PathToString(filePathTmp)));
+        }
+        file.fclose();
+
+        if (missingIndex) {
+            fs::remove(filePathTmp);
+            return false;
+        }
+
+        if (!RenameOver(filePathTmp, filePath)) {
+            throw std::runtime_error(strprintf("Rename failed from %s to %s",
+                                               PathToString(filePathTmp),
+                                               PathToString(filePath)));
+        }
+    } catch (const std::exception &e) {
+        LogPrintf("Failed to dump the headers time: %s.\n", e.what());
+        return false;
+    }
+
+    LogPrintf("Successfully dumped the last %d headers time to %s.\n",
+              numHeaders, PathToString(filePath));
+
+    return true;
+}
+
+bool ChainstateManager::LoadRecentHeadersTime(const fs::path &filePath) {
+    AssertLockHeld(cs_main);
+
+    if (!m_options.store_recent_headers_time) {
+        return false;
+    }
+
+    FILE *filestr = fsbridge::fopen(filePath, "rb");
+    CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+    if (file.IsNull()) {
+        LogPrintf("Failed to open header times from disk, skipping.\n");
+        return false;
+    }
+
+    try {
+        uint64_t version;
+        file >> version;
+
+        if (version != HEADERS_TIME_VERSION) {
+            LogPrintf("Unsupported header times file version, skipping.\n");
+            return false;
+        }
+
+        uint64_t numBlocks;
+        file >> numBlocks;
+
+        for (uint64_t i = 0; i < numBlocks; i++) {
+            BlockHash blockHash;
+            int64_t receiveTime;
+
+            file >> blockHash;
+            file >> receiveTime;
+
+            CBlockIndex *index = m_blockman.LookupBlockIndex(blockHash);
+            if (!index) {
+                LogPrintf("Missing index for block %s, stopping the headers "
+                          "time loading after %d blocks.\n",
+                          blockHash.ToString(), i);
+                return false;
+            }
+
+            index->nTimeReceived = receiveTime;
+        }
+    } catch (const std::exception &e) {
+        LogPrintf("Failed to read the headers time file data on disk: %s.\n",
+                  e.what());
+        return false;
+    }
+
+    return true;
 }
 
 bool ChainstateManager::LoadBlockIndex() {

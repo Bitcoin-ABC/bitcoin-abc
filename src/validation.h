@@ -1553,6 +1553,13 @@ public:
     //!
     //! @sa node/chainstate:LoadChainstate()
     bool ValidatedSnapshotCleanup() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    /** Dump the recent block headers reception time to a file. */
+    bool DumpRecentHeadersTime(const fs::path &filePath) const
+        EXCLUSIVE_LOCKS_REQUIRED(GetMutex());
+    /** Load the recent block headers reception time from a file. */
+    bool LoadRecentHeadersTime(const fs::path &filePath)
+        EXCLUSIVE_LOCKS_REQUIRED(GetMutex());
 };
 
 /** Deployment* info via ChainstateManager */

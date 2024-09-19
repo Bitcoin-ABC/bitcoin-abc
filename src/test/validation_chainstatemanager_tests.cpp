@@ -6,6 +6,7 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <kernel/disconnected_transactions.h>
+#include <node/chainstatemanager_args.h>
 #include <node/kernel_notifications.h>
 #include <node/utxo_snapshot.h>
 #include <random.h>
@@ -401,12 +402,13 @@ struct SnapshotTestSetup : TestChain100Setup {
             chainman.ResetChainstates();
             BOOST_CHECK_EQUAL(chainman.GetAll().size(), 0);
             m_node.notifications = std::make_unique<KernelNotifications>();
-            const ChainstateManager::Options chainman_opts{
+            ChainstateManager::Options chainman_opts{
                 .config = chainman.GetConfig(),
                 .datadir = m_args.GetDataDirNet(),
                 .adjusted_time_callback = GetAdjustedTime,
                 .notifications = *m_node.notifications,
             };
+            node::ApplyArgsManOptions(*m_node.args, chainman_opts);
             const BlockManager::Options blockman_opts{
                 .chainparams = chainman_opts.config.GetChainParams(),
                 .blocks_dir = m_args.GetBlocksDirPath(),
@@ -743,6 +745,110 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion_hash_mismatch,
         LOCK(::cs_main);
         BOOST_CHECK_EQUAL(chainman_restarted.ActiveHeight(), 220);
     }
+}
+
+BOOST_FIXTURE_TEST_CASE(chainstatemanager_recent_headers_time,
+                        SnapshotTestSetup) {
+    auto &initial_chainman = *Assert(m_node.chainman);
+
+    BOOST_CHECK(!initial_chainman.m_options.store_recent_headers_time);
+    // The dump fails if the feature is not enabled
+    BOOST_CHECK(!WITH_LOCK(
+        cs_main,
+        return initial_chainman.DumpRecentHeadersTime("headerstime.test.dat")));
+
+    // Restart with the appropriate option
+    m_node.args->ForceSetArg("-persistrecentheaderstime", "1");
+    auto &chainman = this->SimulateNodeRestart();
+    this->LoadVerifyActivateChainstate();
+    // Now it's enabled
+    BOOST_CHECK(chainman.m_options.store_recent_headers_time);
+
+    auto now = GetTime();
+    SetMockTime(now);
+
+    mineBlocks(30);
+
+    {
+        const CBlockIndex *index =
+            WITH_LOCK(cs_main, return chainman.ActiveTip());
+        for (size_t i = 30; i > 0; i--) {
+            BOOST_CHECK(index);
+            // mineBlocks increment the mocktime by 1 after each block
+            BOOST_CHECK_EQUAL(index->GetHeaderReceivedTime(), now + i - 1);
+            index = index->pprev;
+        }
+    }
+
+    // Dump the headers time
+    BOOST_CHECK(WITH_LOCK(cs_main, return chainman.DumpRecentHeadersTime(
+                                       "headerstime.test.dat")));
+
+    // Restart the chainstate manager
+    BlockHash prevTipHash =
+        WITH_LOCK(cs_main, return chainman.ActiveTip()->GetBlockHash());
+    auto &restartedChainman = this->SimulateNodeRestart();
+    this->LoadVerifyActivateChainstate();
+    BlockHash restartedTip = WITH_LOCK(
+        cs_main, return restartedChainman.ActiveTip()->GetBlockHash());
+    BOOST_CHECK_EQUAL(restartedTip, prevTipHash);
+
+    {
+        const CBlockIndex *index =
+            WITH_LOCK(cs_main, return restartedChainman.ActiveTip());
+        // Without loading the file, all the headers time are lost and set to
+        // the default as loaded from disk, aka zero
+        for (size_t i = 30; i > 0; i--) {
+            BOOST_CHECK(index);
+            BOOST_CHECK_EQUAL(index->GetHeaderReceivedTime(), 0);
+            index = index->pprev;
+        }
+    }
+
+    // Load the headers time
+    BOOST_CHECK(
+        WITH_LOCK(cs_main, return restartedChainman.LoadRecentHeadersTime(
+                               "headerstime.test.dat")));
+
+    {
+        const CBlockIndex *index =
+            WITH_LOCK(cs_main, return restartedChainman.ActiveTip());
+        // After the file is loaded, the headers time is recovered for the last
+        // 20 headers and lost for the others
+        for (size_t i = 30; i > 10; i--) {
+            BOOST_CHECK(index);
+            BOOST_CHECK_EQUAL(index->GetHeaderReceivedTime(), now + i - 1);
+            index = index->pprev;
+        }
+        for (size_t i = 10; i > 0; i--) {
+            BOOST_CHECK(index);
+            BOOST_CHECK_EQUAL(index->GetHeaderReceivedTime(), 0);
+            index = index->pprev;
+        }
+    }
+
+    // Failure cases
+    {
+        LOCK(cs_main);
+
+        // Cannot load a non existent file
+        BOOST_CHECK(!restartedChainman.LoadRecentHeadersTime(
+            "does_not_exist.test.dat"));
+
+        // Cannot dump if we don't have all the block indexes
+        CBlockIndex *index = restartedChainman.ActiveTip();
+        for (size_t i = 0; i < 19; i++) {
+            BOOST_CHECK(index);
+            CBlockIndex *savedIndex = index->pprev;
+            index->pprev = nullptr;
+            BOOST_CHECK(!restartedChainman.DumpRecentHeadersTime(
+                "headerstime.test.dat"));
+            index->pprev = savedIndex;
+            index = index->pprev;
+        }
+    }
+
+    m_node.args->ClearForcedArg("-persistrecentheaderstime");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
