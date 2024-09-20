@@ -72,8 +72,7 @@ static void CheckWinners(StakeContenderCache &cache, BlockHash &prevblockhash,
 }
 
 BOOST_AUTO_TEST_CASE(winners_tests) {
-    ChainstateManager &chainman = *Assert(m_node.chainman);
-    Chainstate &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
     StakeContenderCache cache;
 
     std::vector<CScript> manualWinners = {
