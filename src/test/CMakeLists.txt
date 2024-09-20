@@ -301,6 +301,7 @@ function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
 			"--logger=${HRF_LOGGER}${JUNIT_LOGGER}"
 			"--catch_system_errors=no"
 			--
+			"-printtoconsole=1"
 			"-testsuitename=Bitcoin ABC unit tests with next upgrade activated"
 			# May. 16th, 2024 at 08:00:00
 			-augustoactivationtime=1715846400

@@ -191,6 +191,8 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 			"--run_test=${_test_name}"
 			"--logger=${HRF_LOGGER}${JUNIT_LOGGER}"
 			"--catch_system_errors=no"
+			--
+			"-printtoconsole=1"
 		)
 		set_property(
 			TARGET ${SUITE_TARGET}
