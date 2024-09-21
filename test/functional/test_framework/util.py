@@ -303,6 +303,7 @@ def wait_until_helper_internal(
     timeout=60,
     lock=None,
     timeout_factor=1.0,
+    check_interval=0.05,
 ):
     """Sleep until the predicate resolves to be True.
 
@@ -323,7 +324,7 @@ def wait_until_helper_internal(
         else:
             if predicate():
                 return
-        time.sleep(0.05)
+        time.sleep(check_interval)
 
     # Print the cause of the timeout
     predicate_source = f"''''\n{inspect.getsource(predicate)}'''"

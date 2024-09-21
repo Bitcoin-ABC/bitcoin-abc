@@ -870,9 +870,12 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.sync_mempools(nodes)
         self.sync_proofs(nodes)
 
-    def wait_until(self, test_function, timeout=60):
+    def wait_until(self, test_function, timeout=60, check_interval=0.05):
         return wait_until_helper_internal(
-            test_function, timeout=timeout, timeout_factor=self.options.timeout_factor
+            test_function,
+            timeout=timeout,
+            timeout_factor=self.options.timeout_factor,
+            check_interval=check_interval,
         )
 
     # Private helper methods. These should not be accessed by the subclass
