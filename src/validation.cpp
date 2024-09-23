@@ -4037,7 +4037,7 @@ bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex,
         m_avalancheFinalizedBlockIndex = pindex;
     }
 
-    GetMainSignals().BlockFinalized(pindex);
+    WITH_LOCK(cs_main, GetMainSignals().BlockFinalized(pindex));
 
     return true;
 }
