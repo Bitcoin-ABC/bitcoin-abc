@@ -52,7 +52,13 @@ impl BlockMerkleTree {
         let mut out = if cache_level < self.levels.len()
             && num_hashes_to_reuse <= self.levels[cache_level].len()
         {
+            // The cache has more intermediate hashes than we need, i.e. we
+            // previously already computed the merkle root for a higher block
+            // number. Take the slice that we need.
             self.levels[cache_level][..num_hashes_to_reuse].to_vec()
+        } else if cache_level < self.levels.len() {
+            // The cache has some intermediate hashes already computed.
+            self.levels[cache_level].to_vec()
         } else {
             Vec::new()
         };
