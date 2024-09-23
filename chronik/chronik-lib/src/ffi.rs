@@ -81,6 +81,11 @@ mod ffi_inner {
             bindex: &CBlockIndex,
         );
         fn handle_block_finalized(&self, bindex: &CBlockIndex);
+        fn handle_block_invalidated(
+            &self,
+            block: &CBlock,
+            bindex: &CBlockIndex,
+        );
     }
 
     unsafe extern "C++" {

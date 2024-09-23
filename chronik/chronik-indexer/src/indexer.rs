@@ -774,6 +774,20 @@ impl ChronikIndexer {
         Ok(())
     }
 
+    /// Block invalidated with Avalanche.
+    pub fn handle_block_invalidated(
+        &mut self,
+        block: ChronikBlock,
+    ) -> Result<()> {
+        let subs = self.subs.get_mut();
+        subs.broadcast_block_msg(BlockMsg {
+            msg_type: BlockMsgType::Invalidated,
+            hash: block.db_block.hash,
+            height: block.db_block.height,
+        });
+        Ok(())
+    }
+
     /// Return [`QueryBroadcast`] to broadcast tx to the network.
     pub fn broadcast<'a>(&'a self, node: &'a Node) -> QueryBroadcast<'a> {
         QueryBroadcast {

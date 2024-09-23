@@ -61,6 +61,11 @@ private:
     void BlockFinalized(const CBlockIndex *pindex) override {
         m_chronik->handle_block_finalized(*pindex);
     }
+
+    void BlockInvalidated(const CBlockIndex *pindex,
+                          const std::shared_ptr<const CBlock> &block) override {
+        m_chronik->handle_block_invalidated(*block, *pindex);
+    }
 };
 
 std::unique_ptr<ChronikValidationInterface> g_chronik_validation_interface;

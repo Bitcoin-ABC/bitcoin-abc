@@ -336,6 +336,7 @@ fn sub_block_msg_action(
         BlockMsgType::Connected => BlkConnected,
         BlockMsgType::Disconnected => BlkDisconnected,
         BlockMsgType::Finalized => BlkFinalized,
+        BlockMsgType::Invalidated => BlkInvalidated,
     };
     let msg_type = Some(MsgType::Block(proto::MsgBlock {
         msg_type: block_msg_type as _,

@@ -534,6 +534,8 @@ enum BlockMsgType {
     BLK_DISCONNECTED = 1;
     // Block has been finalized by Avalanche
     BLK_FINALIZED = 2;
+    // Block has been invalidated by Avalanche
+    BLK_INVALIDATED = 3;
 }
 
 // Tx got added to/removed from mempool, or confirmed in a block, etc.

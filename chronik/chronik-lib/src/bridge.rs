@@ -234,6 +234,19 @@ impl Chronik {
             .ok_or_abort("handle_block_finalized", self.finalize_block(bindex));
     }
 
+    /// Block invalidated with Avalanche
+    pub fn handle_block_invalidated(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) {
+        self.block_if_paused();
+        self.node.ok_or_abort(
+            "handle_block_invalidated",
+            self.invalidate_block(block, bindex),
+        );
+    }
+
     fn add_tx_to_mempool(
         &self,
         ptx: &ffi::CTransaction,
@@ -303,6 +316,25 @@ impl Chronik {
             "Chronik: block {} finalized with {} txs\n",
             block_hash,
             num_txs,
+        );
+        Ok(())
+    }
+
+    fn invalidate_block(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) -> Result<()> {
+        let block_undo = self.node.bridge.load_block_undo(bindex)?;
+        let block =
+            chronik_bridge::ffi::bridge_block(block, &block_undo, bindex)?;
+        let mut indexer = self.indexer.blocking_write();
+        let block = indexer.make_chronik_block(block);
+        let block_hash = block.db_block.hash.clone();
+        let num_txs = block.block_txs.txs.len();
+        indexer.handle_block_invalidated(block)?;
+        log_chronik!(
+            "Chronik: block {block_hash} invalidated with {num_txs} txs\n",
         );
         Ok(())
     }

@@ -4,6 +4,7 @@
 """Test whether Chronik sends WebSocket messages correctly."""
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.messages import AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, chronik_sub_to_blocks
 
@@ -101,6 +102,63 @@ class ChronikWsTest(BitcoinTestFramework):
             pb.WsMsg(
                 block=pb.MsgBlock(
                     msg_type=pb.BLK_DISCONNECTED,
+                    block_hash=bytes.fromhex(tip)[::-1],
+                    block_height=height,
+                )
+            ),
+        )
+
+        tip = self.generate(node, 1)[-1]
+        height = node.getblockcount()
+
+        # We get a CONNECTED msg
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_CONNECTED,
+                    block_hash=bytes.fromhex(tip)[::-1],
+                    block_height=height,
+                )
+            ),
+        )
+
+        # Reject the block via avalanche
+        with node.wait_for_debug_log(
+            [f"Avalanche rejected block {tip}".encode()],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                quorum, int(tip, 16), AvalancheVoteError.INVALID
+            ),
+        ):
+            pass
+
+        # We get a DISCONNECTED msg
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_DISCONNECTED,
+                    block_hash=bytes.fromhex(tip)[::-1],
+                    block_height=height,
+                )
+            ),
+        )
+
+        # Keep rejected the block until it gets invalidated
+        with node.wait_for_debug_log(
+            [f"Avalanche invalidated block {tip}".encode()],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                quorum, int(tip, 16), AvalancheVoteError.INVALID
+            ),
+        ):
+            pass
+
+        # We get an INVALIDATED msg
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_INVALIDATED,
                     block_hash=bytes.fromhex(tip)[::-1],
                     block_height=height,
                 )

@@ -41,6 +41,8 @@ pub enum BlockMsgType {
     Disconnected,
     /// Block has been finalized by Avalanche
     Finalized,
+    /// Block has been invalidated by Avalanche
+    Invalidated,
 }
 
 const BLOCK_CHANNEL_CAPACITY: usize = 16;
