@@ -54,9 +54,13 @@ public:
     TestInterface(std::function<void()> onBlockChecked_call = nullptr,
                   std::function<void(const CBlockIndex *)>
                       onBlockFinalized_call = nullptr,
+                  std::function<void(const CBlockIndex *,
+                                     const std::shared_ptr<const CBlock> &)>
+                      onBlockInvalidated_call = nullptr,
                   std::function<void()> on_destroy = nullptr)
         : m_onBlockChecked_call(std::move(onBlockChecked_call)),
           m_onBlockFinalized_call(std::move(onBlockFinalized_call)),
+          m_onBlockInvalidated_call(std::move(onBlockInvalidated_call)),
           m_on_destroy(std::move(on_destroy)) {}
     virtual ~TestInterface() {
         if (m_on_destroy) {
@@ -85,8 +89,24 @@ public:
         GetMainSignals().BlockFinalized(pindex);
     }
 
+    void BlockInvalidated(const CBlockIndex *pindex,
+                          const std::shared_ptr<const CBlock> &block) override {
+        if (m_onBlockInvalidated_call) {
+            m_onBlockInvalidated_call(pindex, block);
+        }
+    }
+
+    static void
+    CallBlockInvalidated(const CBlockIndex *pindex,
+                         const std::shared_ptr<const CBlock> &block) {
+        GetMainSignals().BlockInvalidated(pindex, block);
+    }
+
     std::function<void()> m_onBlockChecked_call;
     std::function<void(const CBlockIndex *)> m_onBlockFinalized_call;
+    std::function<void(const CBlockIndex *,
+                       const std::shared_ptr<const CBlock> &)>
+        m_onBlockInvalidated_call;
     std::function<void()> m_on_destroy;
 };
 
@@ -104,7 +124,7 @@ BOOST_AUTO_TEST_CASE(unregister_all_during_call) {
             UnregisterAllValidationInterfaces();
             BOOST_CHECK(!destroyed);
         },
-        nullptr, [&] { destroyed = true; }));
+        nullptr, nullptr, [&] { destroyed = true; }));
     TestInterface::CallBlockChecked();
     BOOST_CHECK(destroyed);
 }
@@ -118,7 +138,7 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
             callCount++;
             calledIndex = pindex;
         },
-        nullptr));
+        nullptr, nullptr));
 
     for (size_t i = 0; i < 10; i++) {
         TestInterface::CallBlockFinalized(nullptr);
@@ -175,6 +195,61 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
         BOOST_CHECK_EQUAL(callCount, 1);
         BOOST_CHECK_EQUAL(calledIndex, tip);
     }
+}
+
+BOOST_FIXTURE_TEST_CASE(block_invalidated, TestChain100Setup) {
+    uint32_t callCount = 0;
+    const CBlockIndex *calledIndex;
+    std::shared_ptr<const CBlock> calledBlock;
+    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
+        nullptr, nullptr,
+        [&](const CBlockIndex *pindex,
+            const std::shared_ptr<const CBlock> &block) {
+            callCount++;
+            calledIndex = pindex;
+            calledBlock = block;
+        },
+        nullptr));
+
+    for (size_t i = 0; i < 10; i++) {
+        TestInterface::CallBlockInvalidated(nullptr, nullptr);
+    }
+    SyncWithValidationInterfaceQueue();
+    BOOST_CHECK_EQUAL(callCount, 10);
+    BOOST_CHECK_EQUAL(calledIndex, nullptr);
+    BOOST_CHECK_EQUAL(calledBlock, nullptr);
+
+    callCount = 0;
+
+    CBlockIndex index;
+    for (size_t i = 0; i < 10; i++) {
+        TestInterface::CallBlockInvalidated(&index, nullptr);
+    }
+    SyncWithValidationInterfaceQueue();
+    BOOST_CHECK_EQUAL(callCount, 10);
+    BOOST_CHECK_EQUAL(calledIndex, &index);
+    BOOST_CHECK_EQUAL(calledBlock, nullptr);
+
+    callCount = 0;
+
+    auto block = std::make_shared<const CBlock>();
+    for (size_t i = 0; i < 10; i++) {
+        TestInterface::CallBlockInvalidated(nullptr, block);
+    }
+    SyncWithValidationInterfaceQueue();
+    BOOST_CHECK_EQUAL(callCount, 10);
+    BOOST_CHECK_EQUAL(calledIndex, nullptr);
+    BOOST_CHECK_EQUAL(calledBlock, block);
+
+    callCount = 0;
+
+    for (size_t i = 0; i < 10; i++) {
+        TestInterface::CallBlockInvalidated(&index, block);
+    }
+    SyncWithValidationInterfaceQueue();
+    BOOST_CHECK_EQUAL(callCount, 10);
+    BOOST_CHECK_EQUAL(calledIndex, &index);
+    BOOST_CHECK_EQUAL(calledBlock, block);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

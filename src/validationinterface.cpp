@@ -298,3 +298,14 @@ void CMainSignals::BlockFinalized(const CBlockIndex *pindex) {
     ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s", __func__,
                           pindex ? pindex->GetBlockHash().ToString() : "null");
 }
+
+void CMainSignals::BlockInvalidated(
+    const CBlockIndex *pindex, const std::shared_ptr<const CBlock> &block) {
+    auto event = [pindex, block, this] {
+        m_internals->Iterate([&](CValidationInterface &callbacks) {
+            callbacks.BlockInvalidated(pindex, block);
+        });
+    };
+    ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s", __func__,
+                          block ? block->GetHash().ToString() : "null");
+}

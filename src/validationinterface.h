@@ -192,6 +192,8 @@ protected:
                                   const std::shared_ptr<const CBlock> &block){};
 
     virtual void BlockFinalized(const CBlockIndex *pindex){};
+    virtual void BlockInvalidated(const CBlockIndex *pindex,
+                                  const std::shared_ptr<const CBlock> &block){};
 
     friend class CMainSignals;
     friend class ValidationInterfaceTest;
@@ -241,7 +243,9 @@ public:
     void BlockChecked(const CBlock &, const BlockValidationState &);
     void NewPoWValidBlock(const CBlockIndex *,
                           const std::shared_ptr<const CBlock> &);
-    void BlockFinalized(const CBlockIndex *);
+    void BlockFinalized(const CBlockIndex *pindex);
+    void BlockInvalidated(const CBlockIndex *pindex,
+                          const std::shared_ptr<const CBlock> &block);
 };
 
 CMainSignals &GetMainSignals();
