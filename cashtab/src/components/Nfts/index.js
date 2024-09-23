@@ -594,7 +594,9 @@ const Nfts = () => {
                                                     tokenTicker =
                                                         cachedCollectionInfo
                                                             .genesisInfo
-                                                            .tokenTicker;
+                                                            .tokenTicker === ''
+                                                            ? ''
+                                                            : ` (${cachedCollectionInfo.genesisInfo.tokenTicker})`;
                                                     genesisSupply =
                                                         cachedCollectionInfo.genesisSupply;
                                                 }
@@ -652,8 +654,8 @@ const Nfts = () => {
                                                             </NftTokenIdAndCopyIcon>
                                                         </OfferRow>
                                                         <OfferRow>
-                                                            {tokenName} (
-                                                            {tokenTicker})
+                                                            {tokenName}
+                                                            {tokenTicker}
                                                         </OfferRow>
                                                         <OfferRow></OfferRow>
                                                         <OfferRow>
@@ -710,7 +712,9 @@ const Nfts = () => {
                                                     tokenTicker =
                                                         cachedCollectionInfo
                                                             .genesisInfo
-                                                            .tokenTicker;
+                                                            .tokenTicker === ''
+                                                            ? ''
+                                                            : ` (${cachedCollectionInfo.genesisInfo.tokenTicker})`;
                                                     genesisSupply =
                                                         cachedCollectionInfo.genesisSupply;
                                                 }
@@ -768,8 +772,8 @@ const Nfts = () => {
                                                             </NftTokenIdAndCopyIcon>
                                                         </OfferRow>
                                                         <OfferRow>
-                                                            {tokenName} (
-                                                            {tokenTicker})
+                                                            {tokenName}
+                                                            {tokenTicker}
                                                         </OfferRow>
                                                         <OfferRow></OfferRow>
                                                         <OfferRow>
