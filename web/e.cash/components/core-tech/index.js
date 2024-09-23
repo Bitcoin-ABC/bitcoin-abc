@@ -18,25 +18,25 @@ import {
 const coreTech = [
     {
         title: 'Avalanche',
-        text: "Avalanche is a revolutionary consensus algorithm integrated with eCash's core Proof-of-Work, enabling instant transactions, enhanced security, subnets, staking rewards for node operators, and fork-free upgrades.",
+        text: "Avalanche is a breakthrough consensus algorithm integrated with eCash's Proof-of-Work, enabling instant transaction finality, greater flexibility, and unmatched security.",
         link: '/core-tech#avalanche',
         image: '/images/avalanche-icon.png',
     },
     {
         title: 'Staking',
-        text: 'Earn rewards for holding XEC. Staking rewards incentivize running eCash avalanche nodes, to improve the security and performance of eCash. Anyone can now earn while holding their XEC.',
+        text: 'Staking rewards incentivize running eCash Avalanche nodes to improve the security and performance of the network. Anyone can now earn while holding their XEC.',
         link: '/staking',
         image: '/images/staking-icon.png',
     },
     {
-        title: 'eTokens and NFTs',
-        text: 'eCash supports tokens that anyone can create and trade with a few clicks. Instantly create your own custom NFT collection, and permissionlessly offer them for sale on-chain. Or create fungible tokens with their own name, supply, decimal places, and icon.',
+        title: 'eTokens',
+        text: "eCash supports tokens that anyone can create in a few clicks. Instantly mint tokens or NFT collections and trade them within your wallet's integrated DEX.",
         link: '/core-tech#etokens',
         image: '/images/tokens-icon.png',
     },
     {
         title: 'Subnets',
-        text: 'Enable customized networks such as EVM or Zero-Knowledge privacy. Powered by eCash Avalanche technology.',
+        text: 'Subnets enable customized networks such as EVM or Zero-Knowledge privacy. Build faster with permissionless subnets powered by eCash Avalanche technology.',
         link: '/core-tech#subnets',
         image: '/images/subnets-icon.png',
     },
