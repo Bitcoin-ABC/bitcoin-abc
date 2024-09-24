@@ -25,6 +25,7 @@ describe('/chronik-info', () => {
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
     let setupScriptTermination: ReturnType<typeof setTimeout>;
+    let get_chronik_version: Promise<{ [key: string]: string }>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
@@ -35,6 +36,12 @@ describe('/chronik-info', () => {
             if (message && message.test_info) {
                 get_test_info = new Promise(resolve => {
                     resolve(message.test_info);
+                });
+            }
+
+            if (message && message.chronik_version) {
+                get_chronik_version = new Promise(resolve => {
+                    resolve(message.chronik_version);
                 });
             }
         });
@@ -70,10 +77,10 @@ describe('/chronik-info', () => {
     });
 
     it('gives us the chronik info and throws expected error on bad server connection', async () => {
-        const EXPECTED_CHRONIK_VERSION = '0.1.0';
+        const chronikVersion = await get_chronik_version;
         const chronik = new ChronikClient(chronikUrl);
         const chronikInfo = await chronik.chronikInfo();
-        expect(chronikInfo.version).to.eql(EXPECTED_CHRONIK_VERSION);
+        expect(chronikInfo.version).to.eql(chronikVersion);
 
         // Throws expected error if called on bad server
 

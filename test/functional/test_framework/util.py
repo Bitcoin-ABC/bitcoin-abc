@@ -699,6 +699,14 @@ def uint256_hex(hash_int: int) -> str:
     return f"{hash_int:0{64}x}"
 
 
+def get_cli_version(framework, node):
+    """Use bitcoin-cli to get the version"""
+    version = node.cli().send_cli("-version")
+    version = version.splitlines()[0]
+    preamble = f"{framework.config['environment']['PACKAGE_NAME']} RPC client version "
+    return version[len(preamble) :]
+
+
 def chronik_sub_to_blocks(ws, node, *, is_unsub=False) -> None:
     """Subscribe to block events and make sure the subscription is active before returning"""
     subscribe_log = "unsubscribe from" if is_unsub else "subscribe to"

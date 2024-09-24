@@ -8,6 +8,7 @@
 #include <chronik-cpp/chronik_bridge.h>
 #include <chronik-cpp/util/collection.h>
 #include <chronik-cpp/util/hash.h>
+#include <clientversion.h>
 #include <compressor.h>
 #include <config.h>
 #include <feerate.h>
@@ -454,6 +455,10 @@ void sync_with_validation_interface_queue() {
 
 bool init_error(const rust::Str msg) {
     return InitError(Untranslated(std::string(msg)));
+}
+
+rust::String format_full_version() {
+    return FormatFullVersion();
 }
 
 } // namespace chronik_bridge

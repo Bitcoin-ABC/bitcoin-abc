@@ -123,6 +123,8 @@ void sync_with_validation_interface_queue();
 
 bool init_error(const rust::Str msg);
 
+rust::String format_full_version();
+
 } // namespace chronik_bridge
 
 #endif // BITCOIN_CHRONIK_CPP_CHRONIK_BRIDGE_H

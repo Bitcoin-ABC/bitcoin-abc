@@ -280,7 +280,7 @@ async fn handle_blockchain_info(
 
 async fn handle_chronik_info(
 ) -> Result<Protobuf<proto::ChronikInfo>, ReportError> {
-    let this_chronik_version: String = env!("CARGO_PKG_VERSION").to_string();
+    let this_chronik_version: String = ffi::format_full_version();
     let chronik_info = proto::ChronikInfo {
         version: this_chronik_version,
     };

@@ -354,6 +354,9 @@ mod ffi_inner {
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;
+
+        /// Calls FormatFullVersion from clientversion.cpp
+        fn format_full_version() -> String;
     }
 }
 
