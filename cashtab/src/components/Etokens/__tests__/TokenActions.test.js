@@ -378,9 +378,9 @@ describe('<Token /> available actions rendered', () => {
         }
 
         const hex =
-            '02000000023333333333333333333333333333333333333333333333333333333333333333010000006441516d7c24c909e3a775b1678ef365ca3c01fc1376f4471cc1c72c7fb86c422f88cd3fb9b9e9463b76269ebe02860786be3edf918b54e73e6393379416182f7d794121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441f511724b183a21997d7dcb967102447146ac794d0b2a955e83bd9e00596b926b585e7212ba9559dad44ed0f8248582f6158985ac2fa387b5eeee2299ca03d6984121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000396a04534c500001410747454e455349534c000b426974636f696e204142430b636173687461622e636f6d4c0001004c0008000000000000000122020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac80330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '020000000233333333333333333333333333333333333333333333333333333333333333330100000064412564b7504e0ec0a094aae832fee07ce86f21de56153a71c99bcc50a20d4f79ba264cccd4fc39d4840af59e0f013cb535b07ae31795197db0fcda47b8ef91973b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064418758fd9e1a9eec69b262ba29227a1cbb0990dca35f7deadb91145af82e922cabe1efcb688c4a498fefbc903d6d4b5cdb8facdf624e7cbde95065b7ad014a54864121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000003c6a04534c500001410747454e4553495304414243310b426974636f696e204142430b636173687461622e636f6d4c0001004c0008000000000000000122020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac7a330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
-            '2db0bbdbc2772bbbb1e334a995a8fd280f32ee94adc75e3006acbe445688de3a';
+            'd215995b67194576b66ef9c593a66d9255a3ec21e424ecfbb6046643b8e0dbe6';
 
         mintNftMockedChronik.setMock('broadcastTx', {
             input: hex,
@@ -464,10 +464,32 @@ describe('<Token /> available actions rendered', () => {
         // The Burn action is NOT available
         expect(screen.queryByTitle('Toggle Burn')).not.toBeInTheDocument();
 
-        // We can mint an NFT if we give it a name
+        // We can mint an NFT if we give it a name and a ticker
         await userEvent.type(
             await screen.findByPlaceholderText('Enter a name for your NFT'),
             'Bitcoin ABC',
+        );
+
+        // The mint button is disabled as the user has not entered a ticker
+        expect(screen.getByRole('button', { name: /Mint NFT/ })).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        expect(
+            screen.getByText('NFT must have a name and a ticker'),
+        ).toBeInTheDocument();
+
+        // We give the NFT a ticker
+        await userEvent.type(
+            await screen.findByPlaceholderText('Enter a ticker for your NFT'),
+            'ABC1',
+        );
+
+        // The mint button is no longer disabled
+        expect(screen.getByRole('button', { name: /Mint NFT/ })).toHaveProperty(
+            'disabled',
+            false,
         );
 
         await userEvent.click(screen.getByRole('button', { name: /Mint NFT/ }));

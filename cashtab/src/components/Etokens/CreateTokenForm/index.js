@@ -442,6 +442,8 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         formDataErrors.url === false &&
         // Name must not be empty
         formData.name !== '' &&
+        // Ticker must not be empty
+        formData.ticker !== '' &&
         // If this is an nft mint, we need an NFT Mint Input
         ((isNftMint && nftChildGenesisInput.length === 1) || !isNftMint) &&
         (tokenIcon === '' ||
@@ -899,16 +901,17 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                         ? 'Mint NFT'
                         : 'Create eToken'}
                 </PrimaryButton>
-                {formData.name === '' && (
-                    <ButtonDisabledMsg>
-                        {isNftMint
-                            ? 'NFT'
-                            : createNftCollection
-                            ? 'NFT Collection'
-                            : 'Token'}{' '}
-                        must have a name
-                    </ButtonDisabledMsg>
-                )}
+                {formData.name === '' ||
+                    (formData.ticker === '' && (
+                        <ButtonDisabledMsg>
+                            {isNftMint
+                                ? 'NFT'
+                                : createNftCollection
+                                ? 'NFT Collection'
+                                : 'Token'}{' '}
+                            must have a name and a ticker
+                        </ButtonDisabledMsg>
+                    ))}
                 {tokenIcon !== '' && tokenIcon.size > ICON_MAX_UPLOAD_BYTES && (
                     <ButtonDisabledMsg>
                         Icon exceeds max upload size of{' '}

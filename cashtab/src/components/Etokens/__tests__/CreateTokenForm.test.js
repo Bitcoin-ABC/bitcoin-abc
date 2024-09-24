@@ -219,10 +219,25 @@ describe('<CreateTokenForm />', () => {
             await screen.findByPlaceholderText('Enter a name for your token'),
             'test token',
         );
+
+        // The create button is disabled as the user has not entered a ticker
+        expect(
+            screen.getByRole('button', { name: /Create eToken/ }),
+        ).toHaveProperty('disabled', true);
+        expect(
+            screen.getByText('Token must have a name and a ticker'),
+        ).toBeInTheDocument();
+
         await user.type(
             await screen.findByPlaceholderText('Enter a ticker for your token'),
             'TKE',
         );
+
+        // The create button is now enabled as the user has not entered a ticker
+        expect(
+            screen.getByRole('button', { name: /Create eToken/ }),
+        ).toHaveProperty('disabled', false);
+
         await user.type(
             await screen.findByPlaceholderText(
                 'Enter number of decimal places',
