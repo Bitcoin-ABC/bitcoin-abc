@@ -111,9 +111,7 @@ export const BlankTile = styled.div`
     }
 `;
 
-export const ImageTextCtn = styled(motion.div).attrs(() =>
-    getAnimationSettings(),
-)`
+export const ImageTextCtn = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
