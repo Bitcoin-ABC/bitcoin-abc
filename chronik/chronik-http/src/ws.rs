@@ -338,10 +338,27 @@ fn sub_block_msg_action(
         BlockMsgType::Finalized => BlkFinalized,
         BlockMsgType::Invalidated => BlkInvalidated,
     };
+    let coinbase_data = match block_msg.coinbase_tx {
+        Some(tx) => Some(proto::CoinbaseData {
+            coinbase_scriptsig: tx.inputs[0].script.to_vec(),
+            coinbase_outputs: tx
+                .outputs
+                .iter()
+                .map(|output| proto::TxOutput {
+                    value: output.value,
+                    output_script: output.script.to_vec(),
+                    ..Default::default()
+                })
+                .collect(),
+        }),
+        _ => None,
+    };
     let msg_type = Some(MsgType::Block(proto::MsgBlock {
         msg_type: block_msg_type as _,
         block_hash: block_msg.hash.to_vec(),
         block_height: block_msg.height,
+        block_timestamp: block_msg.timestamp,
+        coinbase_data,
     }));
     let msg_proto = proto::WsMsg { msg_type };
     let msg = ws::Message::Binary(msg_proto.encode_to_vec());

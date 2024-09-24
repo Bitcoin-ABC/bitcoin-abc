@@ -87,12 +87,15 @@ class ChronikWsOrdering(BitcoinTestFramework):
                 )
             )
 
-        def ws_block_msg(block_hash: str, block_height: int, msg_type):
+        def ws_block_msg(
+            block_hash: str, block_height: int, block_timestamp: int, msg_type
+        ):
             return pb.WsMsg(
                 block=pb.MsgBlock(
                     msg_type=msg_type,
                     block_hash=bytes.fromhex(block_hash)[::-1],
                     block_height=block_height,
+                    block_timestamp=block_timestamp,
                 )
             )
 
@@ -153,10 +156,13 @@ class ChronikWsOrdering(BitcoinTestFramework):
         assert not node.isfinalblock(finalized_blockhash)
         assert not node.isfinaltransaction(cb_txid, finalized_blockhash)
         finalized_height = node.getblock(finalized_blockhash, 1)["height"]
+        block_timestamp = node.getblock(finalized_blockhash, 1)["time"]
 
         assert_equal(
             ws.recv(),
-            ws_block_msg(finalized_blockhash, finalized_height, pb.BLK_CONNECTED),
+            ws_block_msg(
+                finalized_blockhash, finalized_height, block_timestamp, pb.BLK_CONNECTED
+            ),
         )
 
         with node.assert_debug_log(
@@ -166,7 +172,9 @@ class ChronikWsOrdering(BitcoinTestFramework):
 
         assert_equal(
             ws.recv(),
-            ws_block_msg(finalized_blockhash, finalized_height, pb.BLK_FINALIZED),
+            ws_block_msg(
+                finalized_blockhash, finalized_height, block_timestamp, pb.BLK_FINALIZED
+            ),
         )
 
         assert node.isfinaltransaction(cb_txid, finalized_blockhash)
@@ -194,11 +202,14 @@ class ChronikWsOrdering(BitcoinTestFramework):
         # Mine all txs in a block
         next_blockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
         assert_equal(node.getblockcount(), finalized_height + 1)
+        block_timestamp = node.getblock(next_blockhash, 1)["time"]
 
         # BLK_CONNECTED always comes first
         assert_equal(
             ws.recv(),
-            ws_block_msg(next_blockhash, finalized_height + 1, pb.BLK_CONNECTED),
+            ws_block_msg(
+                next_blockhash, finalized_height + 1, block_timestamp, pb.BLK_CONNECTED
+            ),
         )
 
         # Then come the TX_CONFIRMED msgs, but in indeterministic order.
@@ -228,7 +239,9 @@ class ChronikWsOrdering(BitcoinTestFramework):
         # BLK_FINALIZED always comes first
         assert_equal(
             ws.recv(),
-            ws_block_msg(next_blockhash, finalized_height + 1, pb.BLK_FINALIZED),
+            ws_block_msg(
+                next_blockhash, finalized_height + 1, block_timestamp, pb.BLK_FINALIZED
+            ),
         )
         # TX_FINALIZED come next
         actual_ws_msgs = [ws.recv() for i in range(len(p2sh_txids) + 3)]

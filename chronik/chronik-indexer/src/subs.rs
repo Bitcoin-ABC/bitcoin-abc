@@ -22,7 +22,7 @@ use tokio::sync::broadcast;
 use crate::subs_group::{SubsGroup, TxMsgType};
 
 /// Block update message.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BlockMsg {
     /// What happened with the block.
     pub msg_type: BlockMsgType,
@@ -30,6 +30,11 @@ pub struct BlockMsg {
     pub hash: BlockHash,
     /// Height of the block which we got an update for.
     pub height: BlockHeight,
+    /// The timestamp of the block
+    pub timestamp: i64,
+    /// The coinbase tx for the block, only available upon disconnect or
+    /// invalidate
+    pub coinbase_tx: Option<Tx>,
 }
 
 /// Type of message for the block.

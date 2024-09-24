@@ -516,7 +516,15 @@ message WsMsg {
     }
 }
 
-// Block got connected, disconnected, finalized, etc.
+// The relevant coinbase data
+message CoinbaseData {
+    // The coinbase input scriptsig
+    bytes coinbase_scriptsig = 1;
+    // Outputs of the coinbase tx
+    repeated TxOutput coinbase_outputs = 2;
+}
+
+// Block got connected, disconnected, finalized, invalidated, etc.
 message MsgBlock {
     // What happened to the block
     BlockMsgType msg_type = 1;
@@ -524,6 +532,11 @@ message MsgBlock {
     bytes block_hash = 2;
     // Height of the block
     int32 block_height = 3;
+    // Timestamp field of the block
+    int64 block_timestamp = 4;
+    // The coinbase data, only available if the block is disconnected or
+    // invalidated
+    CoinbaseData coinbase_data = 5;
 }
 
 // Type of message for the block

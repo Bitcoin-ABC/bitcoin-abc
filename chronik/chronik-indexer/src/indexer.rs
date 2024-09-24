@@ -621,6 +621,8 @@ impl ChronikIndexer {
             msg_type: BlockMsgType::Connected,
             hash: block.db_block.hash,
             height: block.db_block.height,
+            timestamp: block.db_block.timestamp,
+            coinbase_tx: None,
         });
         subs.handle_block_tx_events(
             &block.txs,
@@ -724,6 +726,11 @@ impl ChronikIndexer {
             msg_type: BlockMsgType::Disconnected,
             hash: block.db_block.hash,
             height: block.db_block.height,
+            timestamp: block.db_block.timestamp,
+            coinbase_tx: Some({
+                let mut block_txs = block.txs;
+                block_txs.remove(0)
+            }),
         });
         self.block_merkle_tree
             .get_mut()
@@ -742,6 +749,8 @@ impl ChronikIndexer {
             msg_type: BlockMsgType::Finalized,
             hash: block.db_block.hash,
             height: block.db_block.height,
+            timestamp: block.db_block.timestamp,
+            coinbase_tx: None,
         });
         let tx_reader = TxReader::new(&self.db)?;
         let first_tx_num = tx_reader
@@ -784,6 +793,11 @@ impl ChronikIndexer {
             msg_type: BlockMsgType::Invalidated,
             hash: block.db_block.hash,
             height: block.db_block.height,
+            timestamp: block.db_block.timestamp,
+            coinbase_tx: Some({
+                let mut block_txs = block.txs;
+                block_txs.remove(0)
+            }),
         });
         Ok(())
     }
@@ -1367,6 +1381,8 @@ mod tests {
 
     #[test]
     fn test_indexer() -> Result<()> {
+        use bitcoinsuite_core::tx::{Tx, TxId, TxMut};
+
         let load_tx = |_, _, _| unreachable!();
 
         let tempdir = tempdir::TempDir::new("chronik-indexer--indexer")?;
@@ -1397,6 +1413,9 @@ mod tests {
 
         // DB is empty
         assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
+        let coinbase = TxMut {
+            ..Default::default()
+        };
         let block = ChronikBlock {
             db_block: DbBlock {
                 hash: BlockHash::from([4; 32]),
@@ -1412,7 +1431,7 @@ mod tests {
                 txs: vec![],
             },
             size: 285,
-            txs: vec![],
+            txs: vec![Tx::with_txid(TxId::from_tx(&coinbase), coinbase)],
         };
 
         // Add block
