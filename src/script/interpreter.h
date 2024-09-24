@@ -22,6 +22,8 @@ class CPubKey;
 class CTransaction;
 class uint256;
 
+bool CastToBool(const std::vector<uint8_t> &vch);
+
 template <class T>
 uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
                       unsigned int nIn, SigHashType sigHashType,
@@ -133,6 +135,9 @@ public:
 
     // Do checks after running the last opcode, and set script_error on error
     bool CheckPostConditions();
+
+    // Return the next opcode (with attached pushdata, if present)
+    bool GetNextOp(opcodetype &opcodeRet, std::vector<uint8_t> &vchRet) const;
 
     // Run all opcodes to completion, setting script_error on any error
     bool RunUntilEnd();

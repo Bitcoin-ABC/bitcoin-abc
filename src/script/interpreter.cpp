@@ -165,6 +165,12 @@ bool ScriptInterpreter::CheckPostConditions() {
     return true;
 }
 
+bool ScriptInterpreter::GetNextOp(opcodetype &opcodeRet,
+                                  std::vector<uint8_t> &vchRet) const {
+    CScript::const_iterator pcCopy = pc;
+    return script.GetOp(pcCopy, opcodeRet, vchRet);
+}
+
 bool ScriptInterpreter::RunUntilEnd() {
     if (!CheckPreConditions()) {
         // script_error is set

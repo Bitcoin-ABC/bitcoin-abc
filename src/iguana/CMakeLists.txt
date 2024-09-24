@@ -4,12 +4,19 @@ project(iguana
 	DESCRIPTION "Iguana is a Script debugger for eCash"
 )
 
-add_executable(iguana iguana.cpp)
+add_executable(iguana
+	iguana.cpp
+	iguana_formatter.cpp
+	iguana_interpreter.cpp
+)
 generate_windows_version_info(iguana
 	DESCRIPTION "eCash script debugger"
 )
-
-target_link_libraries(iguana script)
+target_include_directories(iguana
+	PUBLIC
+		"${CMAKE_CURRENT_SOURCE_DIR}"
+)
+target_link_libraries(iguana bitcoinconsensus)
 
 # This is a workaround for an annoying cmake behavior.
 # CMake always generate an import library even for executables (this could be
@@ -34,6 +41,7 @@ COMMAND
 	-E env
 		IGUANA_BIN="${CMAKE_CURRENT_BINARY_DIR}/iguana"
 		CMAKE_PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
+		PYTHONPATH="${CMAKE_SOURCE_DIR}/test/functional"
 	"${Python_EXECUTABLE}"
 	-m pytest
 	-v
