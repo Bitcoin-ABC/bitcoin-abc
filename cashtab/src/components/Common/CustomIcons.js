@@ -50,6 +50,7 @@ import { ReactComponent as AgoraTx } from 'assets/agora-tx.svg';
 import { ReactComponent as AgoraBuy } from 'assets/agora-buy.svg';
 import { ReactComponent as AgoraSale } from 'assets/agora-sale.svg';
 import { ReactComponent as AgoraCancel } from 'assets/agora-cancel.svg';
+import { ReactComponent as Doge } from 'assets/doge.svg';
 
 import appConfig from 'config/app';
 
@@ -224,6 +225,7 @@ export const AgoraTxIcon = () => <AgoraTx title="Agora Tx" />;
 export const AgoraBuyIcon = () => <AgoraBuy title="Agora Purchase" />;
 export const AgoraSaleIcon = () => <AgoraSale title="Agora Sale" />;
 export const AgoraCancelIcon = () => <AgoraCancel title="Agora Cancel" />;
+export const DogeIcon = () => <Doge title="Meme Agora" />;
 
 const GithubIconWrapper = styled.div`
     svg {

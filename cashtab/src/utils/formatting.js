@@ -167,7 +167,9 @@ export const getFormattedFiatPrice = (
     fiatPrice,
 ) => {
     const renderFiat = typeof fiatPrice === 'number';
-    const renderedPrice = renderFiat ? priceXec * fiatPrice : priceXec;
+    const renderedPrice = renderFiat
+        ? parseFloat(priceXec) * fiatPrice
+        : parseFloat(priceXec);
     let ticker = 'XEC';
     if (renderFiat) {
         ticker = settings.fiatCurrency.toUpperCase();

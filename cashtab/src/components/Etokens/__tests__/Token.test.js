@@ -129,7 +129,7 @@ describe('<Token />', () => {
         await clearLocalForage(localforage);
     });
 
-    it('Renders the Token screen with send address input', async () => {
+    it('For a fungible SLP token, renders the Token screen with sale by default and expected inputs', async () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -141,31 +141,32 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
 
-        const addressInputEl = screen.getByPlaceholderText(/Address/);
-        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const totalQtyInput = screen.getByPlaceholderText('Offered qty');
+        const minQtyInput = screen.getByPlaceholderText('Min buy');
 
         // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        expect(totalQtyInput).toBeInTheDocument();
+        expect(minQtyInput).toBeInTheDocument();
 
-        // Inputs are not disabled
-        expect(addressInputEl).toHaveProperty('disabled', false);
-        expect(amountInputEl).toHaveProperty('disabled', false);
+        // Qty inputs are not disabled
+        expect(totalQtyInput).toHaveProperty('disabled', false);
+        expect(minQtyInput).toHaveProperty('disabled', false);
 
-        // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS_TOKEN) {
-            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
-        }
-        // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS_TOKEN) {
-            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
-        }
+        // Price input is disabled as qty inputs are at 0 value
+        expect(
+            screen.getByPlaceholderText('Enter SLP list price (per token)'),
+        ).toHaveProperty('disabled', true);
+
+        // List button is present and disabled
+        expect(
+            screen.getByRole('button', { name: /List BearNip/ }),
+        ).toHaveProperty('disabled', true);
     });
     it('Accepts a valid ecash: prefixed address', async () => {
         render(
@@ -179,11 +180,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -215,11 +219,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -252,11 +259,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -317,11 +327,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -347,11 +360,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -379,11 +395,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -431,11 +450,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -476,11 +498,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         const addressInputEl = screen.getByPlaceholderText(/Address/);
 
@@ -519,11 +544,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // Click Send
+        await user.click(await screen.findByTitle('Toggle Send'));
 
         // The user enters a valid address and send amount
         const addressInputEl = screen.getByPlaceholderText(/Address/);
@@ -568,17 +596,14 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // The sell switch is turned on by default
+        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
 
-        // The send switch is turned on by default
-        expect(screen.getByTitle('Toggle Send')).toHaveProperty(
-            'checked',
-            true,
-        );
+        // The send switch is present
+        expect(screen.getByTitle('Toggle Send')).toBeInTheDocument();
 
         // Click the burn switch to show the burn interface
         await user.click(screen.getByTitle('Toggle Burn'));
@@ -637,8 +662,8 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
@@ -743,8 +768,8 @@ describe('<Token />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
 
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
-        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );

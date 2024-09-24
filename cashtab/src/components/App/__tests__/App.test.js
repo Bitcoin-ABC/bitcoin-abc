@@ -227,6 +227,9 @@ describe('<App />', () => {
 
         mockedAgora.setOfferedGroupTokenIds([]);
 
+        // Also empty agora page for the same reason
+        mockedAgora.setOfferedFungibleTokenIds([]);
+
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
         const thisPrivateKey = wif.decode(
@@ -397,6 +400,18 @@ describe('<App />', () => {
         expect(
             await screen.findByText('No NFTs are currently listed for sale'),
         ).toBeInTheDocument();
+
+        // Navigate to Agora screen
+        await user.click(
+            screen.getByRole('button', {
+                name: /Agora/i,
+            }),
+        );
+
+        // Now we see the Agora screen
+        // We know because the Meme Agora icon now appears twice, in the menu and the header
+        // We haven't mocked active offers so we otherwise expect the Chronik Query error on this screen
+        expect(screen.getAllByTitle('Meme Agora')[1]).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

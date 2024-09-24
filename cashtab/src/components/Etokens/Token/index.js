@@ -21,8 +21,11 @@ import {
     parseAddressInput,
     isValidTokenMintAmount,
     getXecListPriceError,
+    getAgoraPartialListPriceError,
+    NANOSAT_DECIMALS,
 } from 'validation';
-import { formatDate } from 'utils/formatting';
+import { BN } from 'slp-mdm';
+import { formatDate, getFormattedFiatPrice } from 'utils/formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'alias';
@@ -50,6 +53,8 @@ import {
     decimalizeTokenAmount,
     toSatoshis,
     toXec,
+    undecimalizeTokenAmount,
+    xecToNanoSatoshis,
 } from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
@@ -59,6 +64,7 @@ import {
     ModalInput,
     InputFlex,
     ListPriceInput,
+    Slider,
 } from 'components/Common/Inputs';
 import { QuestionIcon } from 'components/Common/CustomIcons';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
@@ -89,6 +95,11 @@ import {
     NftNameTitle,
     NftCollectionTitle,
     ListPricePreview,
+    AgoraPreviewParagraph,
+    AgoraPreviewTable,
+    AgoraPreviewRow,
+    AgoraPreviewLabel,
+    AgoraPreviewCol,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import {
@@ -100,6 +111,7 @@ import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import {
     slpSend,
     SLP_NFT1_CHILD,
+    SLP_FUNGIBLE,
     Script,
     fromHex,
     shaRmd160,
@@ -107,7 +119,11 @@ import {
     ALL_BIP143,
 } from 'ecash-lib';
 import { InlineLoader } from 'components/Common/Spinner';
-import { AgoraOneshot, AgoraOneshotAdSignatory } from 'ecash-agora';
+import {
+    AgoraOneshot,
+    AgoraOneshotAdSignatory,
+    AgoraPartialAdSignatory,
+} from 'ecash-agora';
 import * as wif from 'wif';
 
 const Token = () => {
@@ -117,6 +133,7 @@ const Token = () => {
         cashtabState,
         updateCashtabState,
         chronik,
+        agora,
         ecc,
         chaintipBlockheight,
         loading,
@@ -209,6 +226,7 @@ const Token = () => {
     const [nftFanInputs, setNftFanInputs] = useState([]);
     const [availableNftInputs, setAvailableNftInputs] = useState(0);
     const [showTokenTypeInfo, setShowTokenTypeInfo] = useState(false);
+    const [showAgoraPartialInfo, setShowAgoraPartialInfo] = useState(false);
     const [showFanoutInfo, setShowFanoutInfo] = useState(false);
     const [showMintNftInfo, setShowMintNftInfo] = useState(false);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
@@ -222,7 +240,19 @@ const Token = () => {
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
     const [nftListPriceError, setNftListPriceError] = useState(false);
+    const [slpListPriceError, setSlpListPriceError] = useState(false);
     const [showConfirmListNft, setShowConfirmListNft] = useState(false);
+    const [showConfirmListPartialSlp, setShowConfirmListPartialSlp] =
+        useState(false);
+    const [slpAgoraPartialTokenQty, setSlpAgoraPartialTokenQty] = useState('0');
+    const [slpAgoraPartialTokenQtyError, setSlpAgoraPartialTokenQtyError] =
+        useState(false);
+    const [slpAgoraPartialMin, setSlpAgoraPartialMin] = useState('0');
+    const [slpAgoraPartialMinError, setSlpAgoraPartialMinError] =
+        useState(false);
+    // We need to build an agora partial and keep it in state so the user is able
+    // to confirm the actual offer is reasonable vs their inputs, which are approximations
+    const [previewedAgoraPartial, setPreviewedAgoraPartial] = useState(null);
 
     // By default, we load the app with all switches disabled
     // For SLP v1 tokens, we want showSend to be enabled by default
@@ -235,6 +265,7 @@ const Token = () => {
         showFanout: false,
         showMintNft: false,
         showSellNft: false,
+        showSellSlp: false,
     };
     const [switches, setSwitches] = useState(switchesOff);
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
@@ -263,11 +294,110 @@ const Token = () => {
         burnAmount: '',
         mintAmount: '',
         nftListPrice: null,
+        slpListPrice: null,
     };
 
     const [formData, setFormData] = useState(emptyFormData);
 
     const userLocale = getUserLocale(navigator);
+
+    const getAgoraPartialActualPrice = () => {
+        // Due to encoding limitations of agora offers, the actual price may vary depending on how
+        // much of an offer the buyer accepts
+        // Calculate the actual price by determining the price per token for the minimum buy of the created preview offer
+
+        // Get min accepted tokens
+        // Note this value is in token satoshis
+        const minAcceptedTokenSatoshis =
+            previewedAgoraPartial.minAcceptedTokens();
+        // Get the cost for accepting the min offer
+        // Note this price is in satoshis (per token satoshi)
+        const minAcceptPriceSats = previewedAgoraPartial.askedSats(
+            minAcceptedTokenSatoshis,
+        );
+        const minAcceptedPriceXec = toXec(Number(minAcceptPriceSats));
+        // Decimalize token amount
+        const minAcceptedTokens = decimalizeTokenAmount(
+            minAcceptedTokenSatoshis.toString(),
+            decimals,
+        );
+        // Get the unit price
+        // Use BN because this could be less than 1 satoshi
+        const actualPricePerToken = new BN(minAcceptedPriceXec).div(
+            new BN(minAcceptedTokens),
+        );
+        // Get formatted price in XEC
+        const renderedActualPrice = getFormattedFiatPrice(
+            settings,
+            userLocale,
+            actualPricePerToken.toNumber(),
+            null,
+        );
+
+        return renderedActualPrice;
+    };
+
+    const getAgoraPartialTargetPriceXec = () => {
+        // Get the price per token, in XEC, based on the user's input settings
+        // Used for a visual comparison with the calculated actual price in XEC
+        // from the created Agora Partial (which we get from getAgoraPartialActualPrice())
+        return selectedCurrency === appConfig.ticker
+            ? getFormattedFiatPrice(
+                  settings,
+                  userLocale,
+                  formData.slpListPrice,
+                  null,
+              )
+            : getFormattedFiatPrice(
+                  settings,
+                  userLocale,
+                  parseFloat(formData.slpListPrice) / fiatPrice,
+                  null,
+              );
+    };
+
+    /**
+     * Get price preview of per-token agora partial pricing
+     * Depends on user currency selection and locale
+     */
+    const getAgoraPartialPricePreview = () => {
+        // Make sure you have the state fields you need to render
+        if (
+            typeof userLocale !== 'string' ||
+            typeof formData === 'undefined' ||
+            formData.slpListPrice === null ||
+            typeof settings !== 'object' ||
+            typeof fiatPrice === 'undefined'
+        ) {
+            return;
+        }
+        let inputPrice = formData.slpListPrice;
+        if (inputPrice === '') {
+            inputPrice = 0;
+        }
+        return selectedCurrency === appConfig.ticker
+            ? `${getFormattedFiatPrice(
+                  settings,
+                  userLocale,
+                  inputPrice,
+                  null,
+              )} (${getFormattedFiatPrice(
+                  settings,
+                  userLocale,
+                  inputPrice,
+                  fiatPrice,
+              )}) per token`
+            : `${
+                  supportedFiatCurrencies[settings.fiatCurrency].symbol
+              }${inputPrice.toLocaleString(
+                  userLocale,
+              )} ${selectedCurrency.toUpperCase()} (${getFormattedFiatPrice(
+                  settings,
+                  userLocale,
+                  parseFloat(inputPrice) / fiatPrice,
+                  null,
+              )}) per token`;
+    };
 
     const getUncachedTokenInfo = async () => {
         let tokenUtxos;
@@ -371,6 +501,8 @@ const Token = () => {
             if (isNftChild) {
                 // Default action is list
                 setSwitches({ ...switchesOff, showSellNft: true });
+            } else if (tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
+                setSwitches({ ...switchesOff, showSellSlp: true });
             } else {
                 // Default action is send
                 setSwitches({ ...switchesOff, showSend: true });
@@ -379,9 +511,16 @@ const Token = () => {
     }, [isSupportedToken, isNftParent, isNftChild]);
 
     useEffect(() => {
-        // Clear NFT list price and de-select fiat currency if rate is unavailable
+        // Clear NFT and SLP list prices and de-select fiat currency if rate is unavailable
         handleSelectedCurrencyChange({ target: { value: 'XEC' } });
     }, [fiatPrice]);
+
+    useEffect(() => {
+        // We need to adjust slpAgoraPartialMin if the user reduces slpAgoraPartialTokenQty
+        if (Number(slpAgoraPartialTokenQty) < Number(slpAgoraPartialMin)) {
+            setSlpAgoraPartialMin(slpAgoraPartialTokenQty);
+        }
+    }, [slpAgoraPartialTokenQty]);
 
     const getNfts = async tokenId => {
         const nftParentTxHistory = await getAllTxHistoryByTokenId(
@@ -435,6 +574,19 @@ const Token = () => {
         }
         // Otherwise all switches are off
     }, [nftFanInputs, nftChildGenesisInput]);
+
+    useEffect(() => {
+        if (previewedAgoraPartial === null) {
+            // Hide the confirm modal if the user cancels the listing
+            // This happens
+            // 1 - on screen load
+            // 2 - on user canceling an SLP listing at confirmation modal
+            return setShowConfirmListPartialSlp(false);
+        }
+
+        // Show the Agora Partial summary and confirm modal when we have a non-null previewedAgoraPartial
+        setShowConfirmListPartialSlp(true);
+    }, [previewedAgoraPartial]);
 
     // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
@@ -570,6 +722,52 @@ const Token = () => {
             toast.error(`${e}`);
         }
     }
+
+    const handleSlpOfferedSlide = e => {
+        const amount = e.target.value;
+
+        const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+            amount,
+            tokenBalance,
+            decimals,
+        );
+
+        setSlpAgoraPartialTokenQtyError(
+            isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
+        );
+
+        setSlpAgoraPartialTokenQty(amount);
+    };
+
+    const handleSlpMinSlide = e => {
+        const amount = e.target.value;
+
+        const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+            amount,
+            tokenBalance,
+            decimals,
+        );
+
+        setSlpAgoraPartialMinError(
+            isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
+        );
+
+        // Also validate price input if it is non-zero
+        // If the user has reduced min qty, the price may now be below dust
+        if (formData.slpListPrice !== null) {
+            setSlpListPriceError(
+                getAgoraPartialListPriceError(
+                    formData.slpListPrice,
+                    selectedCurrency,
+                    fiatPrice,
+                    amount,
+                    decimals,
+                ),
+            );
+        }
+
+        setSlpAgoraPartialMin(amount);
+    };
 
     const handleSlpAmountChange = e => {
         const { value, name } = e.target;
@@ -888,11 +1086,12 @@ const Token = () => {
 
     const handleSelectedCurrencyChange = e => {
         setSelectedCurrency(e.target.value);
-        // Clear NFT price input field to prevent unit confusion
+        // Clear SLP and NFT price input fields to prevent unit confusion
         // User must re-specify price in new units
         setFormData(p => ({
             ...p,
             nftListPrice: '',
+            slpListPrice: '',
         }));
     };
 
@@ -901,6 +1100,25 @@ const Token = () => {
         setNftListPriceError(
             getXecListPriceError(value, selectedCurrency, fiatPrice),
         );
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
+    const handleSlpListPriceChange = e => {
+        const { name, value } = e.target;
+
+        setSlpListPriceError(
+            getAgoraPartialListPriceError(
+                value,
+                selectedCurrency,
+                fiatPrice,
+                slpAgoraPartialMin,
+                decimals,
+            ),
+        );
+
         setFormData(p => ({
             ...p,
             [name]: value,
@@ -1114,6 +1332,286 @@ const Token = () => {
         }
     };
 
+    const previewSlpPartial = async () => {
+        // We can't expect users to enter numbers that exactly fit the encoding requirements of
+        // agora partial offers
+        // So, we build offers with agora.selectParams(), which calls AgoraPartial.approximateParams()
+        // These are not guaranteed to be ideal.
+        // So, the user should review the actual offer before it is created.
+
+        // Convert formData price input to nanosats per token
+        // note this is nanosats per token sat
+        // So, you must account for token decimals
+        const priceInXec =
+            selectedCurrency === appConfig.ticker
+                ? parseFloat(formData.slpListPrice)
+                : new BN(
+                      new BN(
+                          parseFloat(formData.slpListPrice) / fiatPrice,
+                      ).toFixed(NANOSAT_DECIMALS),
+                  );
+        const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceInXec);
+
+        // Adjust for token satoshis
+        // e.g. a 9-decimal token, the user sets the the price for 1.000000000 tokens
+        // but you must create the offer with priceNanoSatsPerToken for 1 token satoshi
+        // i.e. 0.000000001 token
+        const priceNanoSatsPerTokenSatoshi =
+            BigInt(priceNanoSatsPerDecimalizedToken) /
+            BigInt(Math.pow(10, decimals));
+
+        // Convert formData list qty (a decimalized token qty) to BigInt token sats
+        const userSuggestedOfferedTokens = BigInt(
+            undecimalizeTokenAmount(slpAgoraPartialTokenQty, decimals),
+        );
+
+        // Convert formData min buy qty to BigInt
+        const minAcceptedTokens = BigInt(
+            undecimalizeTokenAmount(slpAgoraPartialMin, decimals),
+        );
+
+        const sellerSk = wif.decode(
+            wallet.paths.get(appConfig.derivationPath).wif,
+        ).privateKey;
+        const makerPk = ecc.derivePubkey(sellerSk);
+
+        let agoraPartial;
+
+        try {
+            agoraPartial = await agora.selectParams({
+                tokenId: tokenId,
+                tokenType: SLP_FUNGIBLE,
+                tokenProtocol: 'SLP',
+                offeredTokens: userSuggestedOfferedTokens,
+                priceNanoSatsPerToken: priceNanoSatsPerTokenSatoshi,
+                makerPk,
+                minAcceptedTokens,
+            });
+            return setPreviewedAgoraPartial(agoraPartial);
+        } catch (err) {
+            // We can run into errors trying to create an agora partial
+            // Most of these are prevented by validation in Cashtab
+            // However some are a bit testier, e.g.
+            // "Parameters cannot be represented in Script"
+            // "minAcceptedTokens too small, got truncated to 0"
+            // Catch and give a generic error
+            console.error(`Error creating AgoraPartial`, err);
+            toast.error(
+                `Unable to create Agora offer with these parameters, try increasing the min buy.`,
+            );
+            // Do not show the preview modal
+            return;
+        }
+    };
+
+    const listSlpPartial = async () => {
+        const sellerSk = wif.decode(
+            wallet.paths.get(appConfig.derivationPath).wif,
+        ).privateKey;
+        const makerPk = ecc.derivePubkey(sellerSk);
+
+        const sellerP2pkh = Script.p2pkh(
+            fromHex(wallet.paths.get(appConfig.derivationPath).hash),
+        );
+
+        // offeredTokens is in units of token satoshis
+        const offeredTokens = previewedAgoraPartial.offeredTokens();
+
+        // To guarantee we have no utxo conflicts while sending a chain of 2 txs
+        // We ensure that the target output of the ad setup tx will include enough XEC
+        // to cover the offer tx
+        const satsPerKb =
+            settings.minFeeSends &&
+            (hasEnoughToken(
+                tokens,
+                appConfig.vipTokens.grumpy.tokenId,
+                appConfig.vipTokens.grumpy.vipBalance,
+            ) ||
+                hasEnoughToken(
+                    tokens,
+                    appConfig.vipTokens.cachet.tokenId,
+                    appConfig.vipTokens.cachet.vipBalance,
+                ))
+                ? appConfig.minFee
+                : appConfig.defaultFee;
+
+        const agoraAdScript = previewedAgoraPartial.adScript();
+        const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
+
+        // Get enough token utxos to cover the listing
+        // Note that getSendTokenInputs expects decimalized tokens as a string and decimals as a param
+        // Because we have undecimalized tokens in token sats from the AgoraPartial object,
+        // We pass this and "0" as decimals
+        const slpInputsInfo = getSendTokenInputs(
+            wallet.state.slpUtxos,
+            tokenId,
+            // This is already in units of token sats
+            offeredTokens.toString(),
+            0, // offeredTokens is already undecimalized
+        );
+
+        const { tokenInputs, sendAmounts } = slpInputsInfo;
+
+        // Seller finishes offer setup + sends tokens to the advertised P2SH
+        const agoraScript = previewedAgoraPartial.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+        const offerTargetOutputs = [
+            {
+                value: 0,
+                // We will not have any token change for the tx that creates the offer
+                // This is bc the ad setup tx sends the exact amount of tokens we need
+                // for the ad tx (the offer)
+                script: slpSend(tokenId, SLP_FUNGIBLE, [sendAmounts[0]]),
+            },
+            { value: appConfig.dustSats, script: agoraP2sh },
+        ];
+
+        const adSetupSatoshis = getAgoraAdFuelSats(
+            agoraAdScript,
+            AgoraPartialAdSignatory(sellerSk),
+            offerTargetOutputs,
+            satsPerKb,
+        );
+
+        // The ad setup tx itself is sending tokens to a dust output
+        // So, the fuel input must be adSetupSatoshis more than dust
+        const agoraAdFuelInputSats = appConfig.dustSats + adSetupSatoshis;
+
+        const adSetupInputs = [];
+        for (const slpTokenInput of tokenInputs) {
+            adSetupInputs.push({
+                input: {
+                    prevOut: slpTokenInput.outpoint,
+                    signData: {
+                        value: appConfig.dustSats,
+                        outputScript: sellerP2pkh,
+                    },
+                },
+                signatory: P2PKHSignatory(sellerSk, makerPk, ALL_BIP143),
+            });
+        }
+        const adSetupTargetOutputs = [
+            {
+                value: 0,
+                // We use sendAmounts here instead of sendAmounts[0] used in offerTargetOutputs
+                // They may be the same thing, i.e. sendAmounts may be an array of length one
+                // But we could have token change for the ad setup tx
+                script: slpSend(
+                    tokenId,
+                    previewedAgoraPartial.tokenType,
+                    sendAmounts,
+                ),
+            },
+            {
+                value: agoraAdFuelInputSats,
+                script: agoraAdP2sh,
+            },
+        ];
+
+        // Include token change output for the ad setup tx if we have change
+        if (sendAmounts.length > 1) {
+            adSetupTargetOutputs.push({ value: appConfig.dustSats });
+        }
+
+        // Calculate decimalized total offered amount for notifications
+        const decimalizedOfferedTokens = decimalizeTokenAmount(
+            offeredTokens.toString(),
+            decimals,
+        );
+
+        // Broadcast the ad setup tx
+        let adSetupTxid;
+        try {
+            // Build and broadcast the ad setup tx
+            const { response } = await sendXec(
+                chronik,
+                ecc,
+                wallet,
+                adSetupTargetOutputs,
+                satsPerKb,
+                chaintipBlockheight,
+                adSetupInputs,
+            );
+            adSetupTxid = response.txid;
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {`Successful ad setup tx to offer ${decimalizedOfferedTokens} ${tokenName} for ${getAgoraPartialActualPrice()} per token`}
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+        } catch (err) {
+            console.error(`Error creating SLP Partial listing ad`, err);
+            toast.error(`Error creating SLP Partial listing ad: ${err}`);
+            // Do not attempt to list the SLP Partial if the ad tx fails
+            return;
+        }
+
+        // Now that we know the prevOut txid, we can make the real input
+        const offerInputs = [
+            // The utxo storing the tokens to be offered
+            {
+                input: {
+                    prevOut: {
+                        // Since we just broadcast the ad tx and know how it was built,
+                        // this prevOut will always look like this
+                        txid: adSetupTxid,
+                        outIdx: 1,
+                    },
+                    signData: {
+                        value: agoraAdFuelInputSats,
+                        redeemScript: agoraAdScript,
+                    },
+                },
+                signatory: AgoraPartialAdSignatory(sellerSk),
+            },
+        ];
+
+        let offerTxid;
+        try {
+            // Build and broadcast the ad setup tx
+            const { response } = await sendXec(
+                chronik,
+                ecc,
+                wallet,
+                offerTargetOutputs,
+                satsPerKb,
+                chaintipBlockheight,
+                offerInputs,
+            );
+            offerTxid = response.txid;
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+
+            // We stay on this token page as, unlike with NFTs, we may still have more of this token
+        } catch (err) {
+            console.error(`Error listing SLP Partial`, err);
+            toast.error(`Error listing SLP Partial: ${err}`);
+        }
+
+        // Clear the offer
+        // Note this will also clear the confirmation modal
+        setPreviewedAgoraPartial(null);
+    };
+
     return (
         <>
             {tokenBalance &&
@@ -1125,6 +1623,16 @@ const Token = () => {
                                 description={renderedTokenDescription}
                                 handleOk={() => setShowTokenTypeInfo(false)}
                                 handleCancel={() => setShowTokenTypeInfo(false)}
+                            />
+                        )}
+                        {showAgoraPartialInfo && (
+                            <Modal
+                                title={`Sell Tokens`}
+                                description={`List tokens for sale with Agora Partial offers. Decide how many tokens you would like to sell, the minimum amount a user must buy to accept an offer, and the price per token. Due to encoding, input values here are approximate. The actual offer may have slightly different parameters. Price can be set lower than 1 XEC per token (no lower than 1 nanosat per 1 token satoshi). To ensure accurate pricing, the minimum buy should be set to at least 0.1% of the total tokens offered.`}
+                                handleOk={() => setShowAgoraPartialInfo(false)}
+                                handleCancel={() =>
+                                    setShowAgoraPartialInfo(false)
+                                }
                             />
                         )}
                         {showFanoutInfo && (
@@ -1304,6 +1812,80 @@ const Token = () => {
                                 height={275}
                             />
                         )}
+                        {showConfirmListPartialSlp &&
+                            formData.slpListPrice !== '' &&
+                            previewedAgoraPartial !== null && (
+                                <Modal
+                                    title={`List ${tokenTicker}?`}
+                                    handleOk={listSlpPartial}
+                                    handleCancel={() =>
+                                        setPreviewedAgoraPartial(null)
+                                    }
+                                    showCancelButton
+                                    height={450}
+                                >
+                                    <AgoraPreviewParagraph>
+                                        Agora offers require special encoding
+                                        and may not match your input.
+                                    </AgoraPreviewParagraph>
+                                    <AgoraPreviewParagraph>
+                                        Create the following sell offer?
+                                    </AgoraPreviewParagraph>
+
+                                    <AgoraPreviewTable>
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Offered qty:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {decimalizeTokenAmount(
+                                                    previewedAgoraPartial
+                                                        .offeredTokens()
+                                                        .toString(),
+                                                    decimals,
+                                                )}
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Min buy:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {decimalizeTokenAmount(
+                                                    previewedAgoraPartial
+                                                        .minAcceptedTokens()
+                                                        .toString(),
+                                                    decimals,
+                                                )}
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Actual price:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {getAgoraPartialActualPrice()}
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Target price:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {getAgoraPartialTargetPriceXec()}
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                    </AgoraPreviewTable>
+                                    <AgoraPreviewParagraph>
+                                        If actual price is not close to target
+                                        price, increase your min buy.
+                                    </AgoraPreviewParagraph>
+                                    <AgoraPreviewParagraph>
+                                        You can cancel this listing at any time.
+                                    </AgoraPreviewParagraph>
+                                </Modal>
+                            )}
                         {renderedTokenType === 'NFT' ? (
                             <>
                                 <NftNameTitle>{tokenName}</NftNameTitle>
@@ -1575,11 +2157,11 @@ const Token = () => {
 
                         {isSupportedToken && (
                             <SendTokenForm title="Token Actions">
-                                {isNftChild && (
+                                {isNftChild ? (
                                     <>
                                         <SwitchHolder>
                                             <Switch
-                                                name="Toggle Sell"
+                                                name="Toggle Sell NFT"
                                                 on="💰"
                                                 off="💰"
                                                 checked={switches.showSellNft}
@@ -1725,6 +2307,172 @@ const Token = () => {
                                             </>
                                         )}
                                     </>
+                                ) : (
+                                    tokenType.type ===
+                                        'SLP_TOKEN_TYPE_FUNGIBLE' && (
+                                        <>
+                                            <SwitchHolder>
+                                                <Switch
+                                                    name="Toggle Sell SLP"
+                                                    on="💰"
+                                                    off="💰"
+                                                    checked={
+                                                        switches.showSellSlp
+                                                    }
+                                                    handleToggle={() => {
+                                                        // We turn everything else off, whether we are turning this one on or off
+                                                        setSwitches({
+                                                            ...switchesOff,
+                                                            showSellSlp:
+                                                                !switches.showSellSlp,
+                                                        });
+                                                    }}
+                                                />
+                                                <SwitchLabel>
+                                                    Sell {tokenName} (
+                                                    {tokenTicker})
+                                                </SwitchLabel>
+                                                <IconButton
+                                                    name={`Click for more info about agora partial sales`}
+                                                    icon={<QuestionIcon />}
+                                                    onClick={() =>
+                                                        setShowAgoraPartialInfo(
+                                                            true,
+                                                        )
+                                                    }
+                                                />
+                                            </SwitchHolder>
+
+                                            {switches.showSellSlp && (
+                                                <>
+                                                    <SendTokenFormRow>
+                                                        <InputRow>
+                                                            <Slider
+                                                                name={
+                                                                    'slpAgoraPartialTokenQty'
+                                                                }
+                                                                label={`Offered qty`}
+                                                                value={
+                                                                    slpAgoraPartialTokenQty
+                                                                }
+                                                                handleSlide={
+                                                                    handleSlpOfferedSlide
+                                                                }
+                                                                error={
+                                                                    slpAgoraPartialTokenQtyError
+                                                                }
+                                                                min={0}
+                                                                max={
+                                                                    tokenBalance
+                                                                }
+                                                                // Step is 1 smallets supported decimal point of the given token
+                                                                step={parseFloat(
+                                                                    `1e-${decimals}`,
+                                                                )}
+                                                                allowTypedInput
+                                                            />
+                                                        </InputRow>
+                                                    </SendTokenFormRow>
+                                                    <SendTokenFormRow>
+                                                        <InputRow>
+                                                            <Slider
+                                                                name={
+                                                                    'slpAgoraPartialMin'
+                                                                }
+                                                                label={`Min buy`}
+                                                                value={
+                                                                    slpAgoraPartialMin
+                                                                }
+                                                                handleSlide={
+                                                                    handleSlpMinSlide
+                                                                }
+                                                                error={
+                                                                    slpAgoraPartialMinError
+                                                                }
+                                                                min={0}
+                                                                max={
+                                                                    slpAgoraPartialTokenQty
+                                                                }
+                                                                // Step is 1 smallets supported decimal point of the given token
+                                                                step={parseFloat(
+                                                                    `1e-${decimals}`,
+                                                                )}
+                                                                allowTypedInput
+                                                            />
+                                                        </InputRow>
+                                                    </SendTokenFormRow>
+                                                    <SendTokenFormRow>
+                                                        <InputRow>
+                                                            <ListPriceInput
+                                                                name="slpListPrice"
+                                                                placeholder="Enter SLP list price (per token)"
+                                                                inputDisabled={
+                                                                    slpAgoraPartialMin ===
+                                                                    '0'
+                                                                }
+                                                                value={Number(
+                                                                    formData.slpListPrice,
+                                                                )}
+                                                                selectValue={
+                                                                    selectedCurrency
+                                                                }
+                                                                selectDisabled={
+                                                                    fiatPrice ===
+                                                                    null
+                                                                }
+                                                                fiatCode={settings.fiatCurrency.toUpperCase()}
+                                                                error={
+                                                                    slpListPriceError
+                                                                }
+                                                                handleInput={
+                                                                    handleSlpListPriceChange
+                                                                }
+                                                                handleSelect={
+                                                                    handleSelectedCurrencyChange
+                                                                }
+                                                            ></ListPriceInput>
+                                                        </InputRow>
+                                                    </SendTokenFormRow>
+
+                                                    {!slpListPriceError &&
+                                                        formData.slpListPrice !==
+                                                            '' &&
+                                                        formData.slpListPrice !==
+                                                            null &&
+                                                        fiatPrice !== null && (
+                                                            <ListPricePreview title="SLP List Price">
+                                                                {getAgoraPartialPricePreview()}
+                                                            </ListPricePreview>
+                                                        )}
+                                                    <SendTokenFormRow>
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                apiError ||
+                                                                slpListPriceError ||
+                                                                formData.slpListPrice ===
+                                                                    '' ||
+                                                                formData.slpListPrice ===
+                                                                    null ||
+                                                                slpAgoraPartialTokenQty ===
+                                                                    '0' ||
+                                                                slpAgoraPartialMin ===
+                                                                    '0'
+                                                            }
+                                                            onClick={
+                                                                previewSlpPartial
+                                                            }
+                                                        >
+                                                            List {tokenName}
+                                                        </PrimaryButton>
+                                                    </SendTokenFormRow>
+                                                </>
+                                            )}
+                                        </>
+                                    )
                                 )}
                                 {!isNftParent && (
                                     <>

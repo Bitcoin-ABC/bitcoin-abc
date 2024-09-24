@@ -2450,4 +2450,238 @@ export default {
             },
         ],
     },
+    getAgoraPartialListPriceError: {
+        expectedReturns: [
+            {
+                description:
+                    'Accepts price if minimum token accept costs exactly dust, xec price',
+                xecListPrice: '5.46',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects price if minimum token accept costs 1 nanosatoshi less than dust, xec price',
+                xecListPrice: '5.45999999999',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned:
+                    'Minimum buy costs 5.45999999999 XEC, must be at least 5.46 XEC',
+            },
+            {
+                description:
+                    'Accepts price if minimum token accept costs exactly dust, fiat price',
+                xecListPrice: '5.46',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects price if minimum token accept costs 1 nanosatoshi less than dust, fiat price',
+                xecListPrice: '5.45999999999',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned:
+                    'Minimum buy costs 5.45999999999 XEC, must be at least 5.46 XEC',
+            },
+            {
+                description: 'Accepts the lowest possible price for XEC input',
+                xecListPrice: '0.00000000001', // 1 nanosatoshi
+                selectedCurrency: 'XEC',
+                minBuyTokenQty: 5.46 * 1e11,
+                fiatPrice: null,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects the the lowest possible price for XEC input if token decimals means the price per token satoshi is less than 1 nanosatoshi of XEC',
+                xecListPrice: '0.00000000001', // 1 nanosatoshi
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 5.46 * 1e11,
+                tokenDecimals: 1,
+                returned:
+                    'Price cannot be lower than 1 nanosatoshi per 1 token satoshi',
+            },
+            {
+                description: 'Accepts the lowest possible price for fiat input',
+                xecListPrice: '0.00000000001', // 1 nanosatoshi
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 5.46 * 1e11,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects the the lowest possible price for fiat input if token decimals means the price per token satoshi is less than 1 nanosatoshi of XEC',
+                xecListPrice: '0.00000000001', // 1 nanosatoshi
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 5.46 * 1e11,
+                tokenDecimals: 1,
+                returned:
+                    'Price cannot be lower than 1 nanosatoshi per 1 token satoshi',
+            },
+            {
+                description:
+                    'Accepts a price with 0-decimal places but a decimal point anyway for XEC input',
+                xecListPrice: '111.',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description:
+                    'Accepts a price with 0-decimal places but a decimal point anyway for fiat input',
+                xecListPrice: '111.',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description: `Rejects input of greater than 11 decimal places for XEC input`,
+                xecListPrice: '111.123456789012',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: `List price supports up to 11 decimal places.`,
+            },
+            {
+                description: `Rejects input of greater than 11 decimal places for fiat input`,
+                xecListPrice: '111.123456789012',
+                selectedCurrency: 'USD',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: `List price supports up to 11 decimal places.`,
+            },
+            {
+                description: 'Rejects negative number for XEC input',
+                xecListPrice: '-33',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: 'List price must be a number',
+            },
+            {
+                description: 'Rejects negative number for fiat input',
+                xecListPrice: '-33',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: 'List price must be a number',
+            },
+            {
+                description: 'Rejects non-number input for XEC',
+                xecListPrice: 'abc',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: 'List price must be a number',
+            },
+            {
+                description: 'Rejects non-number input for fiat',
+                xecListPrice: 'abc',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: 'List price must be a number',
+            },
+            {
+                description: 'Rejects empty input for XEC',
+                xecListPrice: '',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: 'List price is required.',
+            },
+            {
+                description: 'Rejects empty input for fiat',
+                xecListPrice: '',
+                selectedCurrency: 'GBP',
+                fiatPrice: 1,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned: 'List price is required.',
+            },
+            {
+                description: 'Rejects fiat input if fiatPrice is null',
+                xecListPrice: '100',
+                selectedCurrency: 'GBP',
+                fiatPrice: null,
+                minBuyTokenQty: 1,
+                tokenDecimals: 0,
+                returned:
+                    'Cannot input price in GBP while fiat price is unavailable.',
+            },
+        ],
+    },
+    getAgoraPartialAcceptTokenQtyError: {
+        expectedReturns: [
+            {
+                description:
+                    'User is trying to purchase a qty of tokens such that remaining qty is less than min',
+                acceptTokenQty: 100,
+                offerMinAcceptTokenQty: 10,
+                offerMaxAcceptTokenQty: 105,
+                decimals: 0,
+                returned: 'Must accept <= 95 or the full offer',
+            },
+            {
+                description: 'Error msg is formatted to decimals of the token',
+                acceptTokenQty: 100,
+                offerMinAcceptTokenQty: 10.123456789,
+                offerMaxAcceptTokenQty: 105,
+                decimals: 9,
+                returned: 'Must accept <= 94.876543211 or the full offer',
+            },
+            {
+                description: 'The exact threshold is ok',
+                acceptTokenQty: 94.876543211,
+                offerMinAcceptTokenQty: 10.123456789,
+                offerMaxAcceptTokenQty: 105,
+                decimals: 9,
+                returned: false,
+            },
+            {
+                description: 'The full offer is ok',
+                acceptTokenQty: 105,
+                offerMinAcceptTokenQty: 10.123456789,
+                offerMaxAcceptTokenQty: 105,
+                decimals: 9,
+                returned: false,
+            },
+            {
+                description:
+                    'One token satoshi less than the full offer is not ok',
+                acceptTokenQty: 104.999999999,
+                offerMinAcceptTokenQty: 10.123456789,
+                offerMaxAcceptTokenQty: 105,
+                decimals: 9,
+                returned: 'Must accept <= 94.876543211 or the full offer',
+            },
+        ],
+    },
 };

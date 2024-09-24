@@ -30,6 +30,7 @@ import { cashtabCacheToJSON } from 'helpers';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import * as wif from 'wif';
+import { Agora } from 'ecash-agora';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -66,6 +67,8 @@ describe('<Token /> available actions rendered', () => {
     });
     let mockedChronik;
     beforeEach(async () => {
+        const mockedDate = new Date('2022-01-01T12:00:00.000Z');
+        jest.spyOn(global, 'Date').mockImplementation(() => mockedDate);
         // Mock the app with context at the Token Action screen
         mockedChronik = await initializeCashtabStateForTests(
             tokenTestWallet,
@@ -154,11 +157,14 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // The send switch is turned on by default
-        expect(screen.getByTitle('Toggle Send')).toHaveProperty(
+        // The sell switch is turned on by default
+        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // The send switch is present
+        expect(screen.getByTitle('Toggle Send')).toBeInTheDocument();
 
         // The Airdrop switch is present
         expect(screen.getByTitle('Toggle Airdrop')).toBeInTheDocument();
@@ -209,11 +215,14 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // The send switch is turned on by default
-        expect(screen.getByTitle('Toggle Send')).toHaveProperty(
+        // The sell switch is turned on by default
+        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
             'checked',
             true,
         );
+
+        // The send switch is present
+        expect(screen.getByTitle('Toggle Send')).toBeInTheDocument();
 
         // The Airdrop switch is present
         expect(screen.getByTitle('Toggle Airdrop')).toBeInTheDocument();
@@ -226,6 +235,200 @@ describe('<Token /> available actions rendered', () => {
             'disabled',
             false,
         );
+    });
+    it('We can list an SLP1 fungible token', async () => {
+        // Mock Math.random()
+        jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
+
+        // SLP1 ad prep
+        const adPrepHex =
+            '0200000002666de5d5852807a13612b6ea0373643266d435822daeb39c29e5d4b67e893cda01000000644197cae3a028dc79f0b0a3f4c9e11b05caf6732f4538cfe5e8dbb998e2a72a2a192406989de5bfc9d1fd5ec5e81ba2f3d51d65efbcfa02cd905074a4c2d592aa484121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064411e69f2336f646e8897a6580eeb009f18e1e7ade89984e34f3d21604ece51dd92783110a4d6f24e81870bbb590f24a5cb322743ceaec0b9b52e812d00c7b0a0eb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d0000080000000000009600060500000000000017a914db8f807dea2033241c8e4fe1f05553a7db8bc07d8722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const adPrepTxid =
+            '48af9c248cd0ed7eed8d889691ff808df632cde00f3a9b351bcfab2630a3f1fa';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: adPrepHex,
+            output: { txid: adPrepTxid },
+        });
+
+        // SLP1 ad list
+        const adListHex =
+            '0200000001faf1a33026abcf1b359b3a0fe0cd32f68d80ff9196888ded7eedd08c249caf4801000000dd0441475230075041525449414c41b574bf2d1a36ad5eb14d605779cb7254955783747be944eff689eb4336eef70cc2e869a24926478c4e4dcb879fb3c5f9241335ce8c1db869106357d9a53697e2414c8c4c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000000000000000200f304000000000000efc6010000000000eff5ac0c000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d0000220200000000000017a9141350b9a081c552c6ed69ad734b59ab13bb1a713d8700000000';
+        const adListTxid =
+            '5ccf6377013065350be6dc4ff13cc2d18484e150c89a5ab841ac36e17e8f7566';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: adListHex,
+            output: { txid: adListTxid },
+        });
+
+        // We need to give mockedChronik a plugin function
+        // This is required for creating a new Agora(mockedChronik)
+        mockedChronik.plugin = () => 'dummy plugin';
+
+        // Mock response for agora select params check
+        // Note
+        // We obtain EXPECTED_OFFER_P2SH by adding
+        // console.log(toHex(shaRmd160(agoraScript.bytecode)));
+        // to ecash-agora lib and running this test
+        // Note that Date() and Math.random() must be mocked to keep this deterministic
+        const EXPECTED_OFFER_P2SH = '1350b9a081c552c6ed69ad734b59ab13bb1a713d';
+
+        mockedChronik.setScript('p2sh', EXPECTED_OFFER_P2SH);
+        // We mock no existing utxos
+        mockedChronik.setUtxos('p2sh', EXPECTED_OFFER_P2SH, { utxos: [] });
+        const agora = new Agora(mockedChronik);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={agora}
+                route={`/send-token/${slp1FixedMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = slp1FixedMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Token image is rendered
+        expect(
+            screen.getByAltText(`icon for ${slp1FixedMocks.tokenId}`),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // On load, default action for SLP is to list it
+        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // The list button is disabled on load
+        const listButton = screen.getByRole('button', {
+            name: /List Vespene Gas/,
+        });
+        expect(listButton).toHaveProperty('disabled', true);
+
+        // The price input is disabled until qty values are entered
+        const priceInput = screen.getByPlaceholderText(
+            'Enter SLP list price (per token)',
+        );
+        expect(priceInput).toHaveProperty('disabled', true);
+
+        // Enter token balance as offered qty
+        await userEvent.type(screen.getByPlaceholderText('Offered qty'), '111');
+
+        // Enter a min qty
+        await userEvent.type(screen.getByPlaceholderText('Min buy'), '11');
+
+        // The price input is no longer disabled
+        expect(priceInput).toHaveProperty('disabled', false);
+
+        // We see expected error msg if we try to list the token at a price where the min buy would cost less than dust
+        await userEvent.type(priceInput, '0.001');
+
+        expect(
+            screen.getByText(
+                'Minimum buy costs 0.011 XEC, must be at least 5.46 XEC',
+            ),
+        ).toBeInTheDocument();
+
+        // The buy button is disabled with invalid price
+        expect(listButton).toHaveProperty('disabled', true);
+
+        // Increase the price to a valid one
+        await userEvent.clear(priceInput);
+        await userEvent.type(priceInput, '0.5');
+
+        // The list button is no longer disabled
+        expect(listButton).toHaveProperty('disabled', false);
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('0.50 XEC ($0.000015 USD) per token'),
+        ).toBeInTheDocument();
+
+        // We can also set the price in fiat currency
+        await userEvent.selectOptions(
+            screen.getByTestId('currency-select-dropdown'),
+            screen.getByTestId('fiat-option'),
+        );
+
+        // The price input is cleared when the user changes from XEC price to fiat price
+        expect(priceInput).toHaveValue(0);
+
+        // We list for $2 per token
+        await userEvent.type(priceInput, '5');
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('$5 USD (166,666.67 XEC) per token'),
+        ).toBeInTheDocument();
+
+        // We enter a low price in fiat
+        await userEvent.clear(priceInput);
+        await userEvent.type(priceInput, '0.00005');
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('$0.00005 USD (1.67 XEC) per token'),
+        ).toBeInTheDocument();
+
+        // Click the now-enabled list button
+        await userEvent.click(listButton);
+
+        // We see expected confirmation modal to list the Token
+        expect(screen.getByText('List VSP?')).toBeInTheDocument();
+        expect(
+            screen.getByText('Create the following sell offer?'),
+        ).toBeInTheDocument();
+        // Offered qty (actual, calculated from AgoraOffer)
+        const actualOfferedQty = '110.999961600';
+        expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
+        // Min by (actual, calculated from AgoraOffer)
+        expect(screen.getByText('11.000020992')).toBeInTheDocument();
+        // Actual price calculated from AgoraOffer
+        const actualPricePerTokenForMinBuy = '1.66 XEC';
+        expect(
+            screen.getByText(actualPricePerTokenForMinBuy),
+        ).toBeInTheDocument();
+        // User input price
+        expect(screen.getByText('1.67 XEC')).toBeInTheDocument();
+
+        // We can cancel and not create this listing
+        await userEvent.click(screen.getByText('Cancel'));
+
+        // The confirmation modal is gone
+        expect(screen.queryByText('List VSP?')).not.toBeInTheDocument();
+
+        // We change our mind and list it
+        await userEvent.click(listButton);
+        // We wait for the preview to be calculated again
+
+        expect(await screen.findByText('List VSP?')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('OK'));
+
+        // We see expected toast notification for the ad setup tx
+        expect(
+            await screen.findByText(
+                `Successful ad setup tx to offer ${actualOfferedQty} Vespene Gas for ${actualPricePerTokenForMinBuy} per token`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the expected toast notification for the successful listing tx
+        // Note: I'm not sure why 0111 is appearing in this integration test instead of 111
+        // I'm not able to repeat this in prod
+        expect(
+            await screen.findByText(
+                `${actualOfferedQty} Vespene Gas listed for ${actualPricePerTokenForMinBuy} per token`,
+            ),
+        ).toBeInTheDocument();
     });
     it('We can correctly render an SLP1 NFT Parent token with no NFT Mint inputs, then create some NFT Mint inputs', async () => {
         const hex =
@@ -739,7 +942,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
         // On load, default action for NFT is to list it
-        expect(screen.getByTitle('Toggle Sell')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Sell NFT')).toHaveProperty(
             'checked',
             true,
         );
@@ -847,7 +1050,7 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
 
         // On load, default action for NFT is to list it
-        const sellActionSwitch = screen.getByTitle('Toggle Sell');
+        const sellActionSwitch = screen.getByTitle('Toggle Sell NFT');
         expect(sellActionSwitch).toHaveProperty('checked', true);
 
         // Sending is disabled

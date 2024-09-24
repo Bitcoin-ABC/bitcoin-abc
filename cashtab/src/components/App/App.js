@@ -18,6 +18,7 @@ import {
     TokensIcon,
     RewardIcon,
     NftIcon,
+    DogeIcon,
 } from 'components/Common/CustomIcons';
 import Spinner from 'components/Common/Spinner';
 import { ThemeProvider } from 'styled-components';
@@ -40,6 +41,7 @@ import Rewards from 'components/Rewards';
 import NotFound from 'components/App/NotFound';
 import OnBoarding from 'components/OnBoarding';
 import Nfts from 'components/Nfts';
+import Agora from 'components/Agora';
 import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
@@ -214,6 +216,12 @@ const App = () => {
                                                     <NftIcon />
                                                 </NavHeader>
                                             )}
+                                            {location.pathname === '/agora' && (
+                                                <NavHeader>
+                                                    Agora
+                                                    <DogeIcon />
+                                                </NavHeader>
+                                            )}
                                             {location.pathname ===
                                                 '/contacts' && (
                                                 <NavHeader>
@@ -353,6 +361,10 @@ const App = () => {
                                                     element={<Nfts />}
                                                 />
                                                 <Route
+                                                    path="/agora"
+                                                    element={<Agora />}
+                                                />
+                                                <Route
                                                     path="/contacts"
                                                     element={<Contacts />}
                                                 />
@@ -473,6 +485,14 @@ const App = () => {
                                         {' '}
                                         <p>Listed NFTs</p>
                                         <NftIcon />
+                                    </NavItem>
+                                    <NavItem
+                                        active={location.pathname === '/agora'}
+                                        onClick={() => navigate('/agora')}
+                                    >
+                                        {' '}
+                                        <p>Agora</p>
+                                        <DogeIcon />
                                     </NavItem>
                                     <NavItem
                                         active={

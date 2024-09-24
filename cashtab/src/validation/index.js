@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { BN } from 'slp-mdm';
-import { toXec, toSatoshis } from 'wallet';
+import { toXec, toSatoshis, xecToNanoSatoshis } from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import {
@@ -1091,5 +1091,111 @@ export const getXecListPriceError = (
     }
 
     // If we get here, there is no error in the XEC list price for this NFT
+    return false;
+};
+
+/**
+ * Validation for a user-input price for listing a token in an Agora Partial offer, in XEC or fiat
+ * Unlike NFTs, agora partial offers are priced in nanosatoshis per token satoshi
+ * So, we can have much lower prices
+ * However we still must prevent prices that are "too low", i.e. less than 1 nanosatoshi per token
+ * satoshi, or prices where the min buy would be less than dust (546 satoshis)
+ * @param {string} xecListPrice user input list price of an NFT in XEC or fiat
+ * @param {string} selectedCurrency e.g. XEC, USD (comes from Select dropdown)
+ * @param {number} fiatPrice price of XEC in selectedCurrency
+ * @param {string} minBuyTokenQty min amount that can be purchased in this agora partial
+ * @param {0|1|2|3|4|5|6|7|8|9} tokenDecimals
+ */
+export const NANOSAT_DECIMALS = 11;
+export const getAgoraPartialListPriceError = (
+    xecListPrice,
+    selectedCurrency,
+    fiatPrice,
+    minBuyTokenQty,
+    tokenDecimals,
+) => {
+    if (xecListPrice === '') {
+        return 'List price is required.';
+    }
+    if (selectedCurrency !== 'XEC' && fiatPrice === null) {
+        // Should never happen as screen using this function sets selectedCurrency to XEC on fiatPrice becoming null
+        return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
+    }
+    if (!STRINGIFIED_DECIMALIZED_REGEX.test(xecListPrice)) {
+        // Must be a number (can't necessarily rely on Number input field to validate this)
+        return 'List price must be a number';
+    }
+    if (xecListPrice.includes('.')) {
+        // We can't support prices lower than 1 nanosatoshi per token satoshi
+        // In practice, if the token has more than 1 decimal place,
+        // Any amoutn lower than 1 nanosatoshi will be much lower than 1 nanosatoshi per token satoshi
+        if (xecListPrice.split('.')[1].length > NANOSAT_DECIMALS) {
+            return `List price supports up to ${NANOSAT_DECIMALS} decimal places.`;
+        }
+    }
+
+    // Get the price in XEC
+
+    let priceXec =
+        selectedCurrency !== 'XEC'
+            ? new BN(
+                  new BN(xecListPrice).div(fiatPrice).toFixed(NANOSAT_DECIMALS),
+              )
+            : new BN(xecListPrice);
+
+    // Get the total price of the min buy amount
+    const priceXecMinBuy = priceXec.times(new BN(minBuyTokenQty));
+
+    if (priceXecMinBuy.lt(toXec(appConfig.dustSats))) {
+        // We cannot enforce an output to have less than dust satoshis
+        return `Minimum buy costs ${priceXecMinBuy.toString()} XEC, must be at least 5.46 XEC`;
+    }
+
+    // Get the price in nanosats per token satoshi
+    // this is the unit agora takes, 1 nanosat per 1 tokens at is the min
+    const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceXec);
+
+    if (priceNanoSatsPerDecimalizedToken < Math.pow(10, tokenDecimals)) {
+        return 'Price cannot be lower than 1 nanosatoshi per 1 token satoshi';
+    }
+
+    // If we get here, there is no error in the XEC list price for this NFT
+    return false;
+};
+
+export const getAgoraPartialAcceptTokenQtyError = (
+    acceptTokenQty,
+    offerMinAcceptTokenQty,
+    offerMaxAcceptTokenQty,
+    decimals,
+) => {
+    /**
+     * 2 potential problems
+     *
+     * 1 - the minimum amount left may cost less than 5.46 XEC, or dust
+     *     such a tx would be impossible to accept
+     *
+     * 2 - the minimum amount left may be less than the minAcceptedTokens of this offer
+     *     In this case, ecash-agora will create a partial with a total amount of less
+     *     than the min accepted offer, which would itself be unacceptable
+     *
+     * ecash-agora has validation preventing both cases. But the agora protocol does not
+     * necessarily prevent this from happening.
+     *
+     * Even if the case were handled by ecash-agora, it is still a good practice to validate this input
+     * in the frontend, so the user knows why such a qty cannot be accepted
+     *
+     * For now, Cashtab already handles 1 -- as the minAcceptedToken amount is validated such that
+     * it must cost at least dust
+     *
+     * So, in Cashtab, we only test for case 2 here
+     */
+
+    const threshold = offerMaxAcceptTokenQty - offerMinAcceptTokenQty;
+    if (acceptTokenQty > threshold && acceptTokenQty < offerMaxAcceptTokenQty) {
+        return `Must accept <= ${threshold.toFixed(
+            decimals,
+        )} or the full offer`;
+    }
     return false;
 };

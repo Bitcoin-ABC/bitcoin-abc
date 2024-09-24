@@ -529,6 +529,9 @@ describe('<Configure />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/GRP/))[0]).toBeInTheDocument();
 
+        // Hit the 'Send' switch
+        await user.click(screen.getByTitle('Toggle Send'));
+
         // We send enough GRP to be under the min
         await user.type(
             screen.getByPlaceholderText('Address'),

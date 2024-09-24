@@ -190,3 +190,31 @@ export const ListPricePreview = styled.div`
     text-align: center;
     color: ${props => props.theme.contrast};
 `;
+export const AgoraPreviewParagraph = styled.p`
+    color: ${props => props.theme.contrast};
+`;
+export const AgoraPreviewTable = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    font-size: 12px;
+    color: ${props => props.theme.contrast};
+`;
+export const AgoraPreviewRow = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    align-items: center;
+    width: 100%;
+    flex-direction: row;
+`;
+export const AgoraPreviewCol = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+export const AgoraPreviewLabel = styled.div`
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+    text-align: right;
+`;

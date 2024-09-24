@@ -218,7 +218,7 @@ const Nfts = () => {
                 activeOffersThisWalletTokenIds.push(activeOffer.token.tokenId);
             }
         } catch (err) {
-            console.error(`Error getting agora.offeredGroupTokenIds()`, err);
+            console.error(`Error getting agora.activeOffersByPubKey()`, err);
             return setChronikQueryError(true);
         }
 
