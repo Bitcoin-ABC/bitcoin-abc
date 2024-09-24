@@ -39,6 +39,10 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let get_next_blockhash: Promise<string>;
     let get_finalized_block_blockhash: Promise<string>;
     let get_finalized_height: Promise<number>;
+    let get_block_timestamp: Promise<number>;
+    let get_coinbase_scriptsig: Promise<string>;
+    let get_coinbase_out_value: Promise<number>;
+    let get_coinbase_out_scriptpubkey: Promise<string>;
     let get_mixed_output_txid: Promise<string>;
     const statusEvent = new EventEmitter();
     // Collect websocket msgs in an array for analysis in each step
@@ -125,6 +129,30 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 });
             }
 
+            if (message && message.block_timestamp) {
+                get_block_timestamp = new Promise(resolve => {
+                    resolve(message.block_timestamp);
+                });
+            }
+
+            if (message && message.coinbase_scriptsig) {
+                get_coinbase_scriptsig = new Promise(resolve => {
+                    resolve(message.coinbase_scriptsig);
+                });
+            }
+
+            if (message && message.coinbase_out_value) {
+                get_coinbase_out_value = new Promise(resolve => {
+                    resolve(message.coinbase_out_value);
+                });
+            }
+
+            if (message && message.coinbase_out_scriptpubkey) {
+                get_coinbase_out_scriptpubkey = new Promise(resolve => {
+                    resolve(message.coinbase_out_scriptpubkey);
+                });
+            }
+
             if (message && message.mixed_output_txid) {
                 get_mixed_output_txid = new Promise(resolve => {
                     resolve(message.mixed_output_txid);
@@ -186,7 +214,12 @@ describe('Test expected websocket behavior of chronik-client', () => {
 
     let finalizedBlockhash = '';
     let finalizedHeight = 0;
+    let blockTimestamp = 0;
     let nextBlockhash = '';
+
+    let coinbaseScriptsig = '';
+    let coinbaseOutValue = 0;
+    let coinbaseOutScriptpubkey = '';
 
     let mixedOutputTxid = '';
 
@@ -330,6 +363,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
     it('After a block is avalanche finalized', async () => {
         finalizedBlockhash = await get_finalized_block_blockhash;
         finalizedHeight = await get_finalized_height;
+        blockTimestamp = await get_block_timestamp;
 
         // Wait for expected ws msg
         await expectWsMsgs(1, msgCollector);
@@ -342,6 +376,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_FINALIZED',
             blockHash: finalizedBlockhash,
             blockHeight: finalizedHeight,
+            blockTimestamp: blockTimestamp,
         });
 
         // We only get this msg
@@ -396,6 +431,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_CONNECTED',
             blockHash: nextBlockhash,
             blockHeight: finalizedHeight + 1,
+            blockTimestamp: blockTimestamp,
         });
 
         // The order of confirmed and finalized txs from multiple script subscriptions is indeterminate
@@ -428,6 +464,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_FINALIZED',
             blockHash: nextBlockhash,
             blockHeight: finalizedHeight + 1,
+            blockTimestamp: blockTimestamp,
         });
 
         // The order of confirmed and finalized txs from multiple script subscriptions is indeterminate
@@ -449,6 +486,11 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector.length).to.eql(4);
     });
     it('After this block is parked', async () => {
+        nextBlockhash = await get_next_blockhash;
+        coinbaseScriptsig = await get_coinbase_scriptsig;
+        coinbaseOutValue = await get_coinbase_out_value;
+        coinbaseOutScriptpubkey = await get_coinbase_out_scriptpubkey;
+
         // Wait for expected ws msgs
         await expectWsMsgs(5, msgCollector);
 
@@ -461,6 +503,16 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_DISCONNECTED',
             blockHash: nextBlockhash,
             blockHeight: finalizedHeight + 1,
+            blockTimestamp: blockTimestamp,
+            coinbaseData: {
+                scriptsig: coinbaseScriptsig,
+                outputs: [
+                    {
+                        value: coinbaseOutValue,
+                        outputScript: coinbaseOutScriptpubkey,
+                    },
+                ],
+            },
         });
 
         // Tx msgs on Block Disconnected come in alphabetical order
@@ -493,6 +545,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_CONNECTED',
             blockHash: nextBlockhash,
             blockHeight: finalizedHeight + 1,
+            blockTimestamp: blockTimestamp,
         });
 
         // The order of confirmed and finalized txs from multiple script subscriptions is indeterminate
@@ -527,6 +580,16 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_DISCONNECTED',
             blockHash: nextBlockhash,
             blockHeight: finalizedHeight + 1,
+            blockTimestamp: blockTimestamp,
+            coinbaseData: {
+                scriptsig: coinbaseScriptsig,
+                outputs: [
+                    {
+                        value: coinbaseOutValue,
+                        outputScript: coinbaseOutScriptpubkey,
+                    },
+                ],
+            },
         });
 
         // Tx msgs come in alphabetical order for Block Disconnected events
@@ -559,6 +622,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'BLK_CONNECTED',
             blockHash: nextBlockhash,
             blockHeight: finalizedHeight + 1,
+            blockTimestamp: blockTimestamp,
         });
 
         // The order of confirmed and finalized txs from multiple script subscriptions is indeterminate
@@ -595,6 +659,102 @@ describe('Test expected websocket behavior of chronik-client', () => {
         });
 
         // This is the only msg we get
+        expect(msgCollector.length).to.eql(0);
+    });
+    it('After a block is mined', async () => {
+        nextBlockhash = await get_next_blockhash;
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(1, msgCollector);
+
+        // The block connected msg comes first
+        const blockConnectedMsg = msgCollector.shift();
+
+        expect(blockConnectedMsg).to.deep.equal({
+            type: 'Block',
+            msgType: 'BLK_CONNECTED',
+            blockHash: nextBlockhash,
+            blockHeight: finalizedHeight + 2,
+            blockTimestamp: blockTimestamp,
+        });
+
+        const mixedOutputTxMsg = msgCollector.shift();
+
+        expect(mixedOutputTxMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_CONFIRMED',
+            txid: mixedOutputTxid,
+        });
+
+        // This is the only msg we receive
+        expect(msgCollector.length).to.eql(0);
+    });
+    it('After this block is avalanche parked', async () => {
+        coinbaseScriptsig = await get_coinbase_scriptsig;
+        coinbaseOutValue = await get_coinbase_out_value;
+        coinbaseOutScriptpubkey = await get_coinbase_out_scriptpubkey;
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(1, msgCollector);
+
+        // The Block Disconnected msg comes first
+        const blockMsg = msgCollector.shift();
+
+        // We get Block Disconnected on parked block
+        expect(blockMsg).to.deep.equal({
+            type: 'Block',
+            msgType: 'BLK_DISCONNECTED',
+            blockHash: nextBlockhash,
+            blockHeight: finalizedHeight + 2,
+            blockTimestamp: blockTimestamp,
+            coinbaseData: {
+                scriptsig: coinbaseScriptsig,
+                outputs: [
+                    {
+                        value: coinbaseOutValue,
+                        outputScript: coinbaseOutScriptpubkey,
+                    },
+                ],
+            },
+        });
+
+        const mixedOutputTxMsg = msgCollector.shift();
+
+        expect(mixedOutputTxMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
+            txid: mixedOutputTxid,
+        });
+
+        // This is the only msg we receive
+        expect(msgCollector.length).to.eql(0);
+    });
+    it('After this block is avalanche invalidated', async () => {
+        // Wait for expected ws msgs
+        await expectWsMsgs(1, msgCollector);
+
+        // The Block Disconnected msg comes first
+        const blockMsg = msgCollector.shift();
+
+        // We get Block Disconnected on parked block
+        expect(blockMsg).to.deep.equal({
+            type: 'Block',
+            msgType: 'BLK_INVALIDATED',
+            blockHash: nextBlockhash,
+            blockHeight: finalizedHeight + 2,
+            blockTimestamp: blockTimestamp,
+            coinbaseData: {
+                scriptsig: coinbaseScriptsig,
+                outputs: [
+                    {
+                        value: coinbaseOutValue,
+                        outputScript: coinbaseOutScriptpubkey,
+                    },
+                ],
+            },
+        });
+
+        // This is the only msg we receive
         expect(msgCollector.length).to.eql(0);
 
         // Unsubscribe from everything to show you do not get any more msgs if another block is found

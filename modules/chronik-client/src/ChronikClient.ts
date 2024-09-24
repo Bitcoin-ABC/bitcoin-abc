@@ -956,12 +956,19 @@ export class WsEndpoint {
         if (typeof msg.error !== 'undefined') {
             this.onMessage({ type: 'Error', ...msg.error });
         } else if (typeof msg.block !== 'undefined') {
-            this.onMessage({
+            const msgBlock: MsgBlockClient = {
                 type: 'Block',
                 msgType: convertToBlockMsgType(msg.block.msgType),
                 blockHash: toHexRev(msg.block.blockHash),
                 blockHeight: msg.block.blockHeight,
-            });
+                blockTimestamp: parseInt(msg.block.blockTimestamp),
+            };
+            if (typeof msg.block.coinbaseData !== 'undefined') {
+                msgBlock.coinbaseData = convertToCoinbaseData(
+                    msg.block.coinbaseData,
+                );
+            }
+            this.onMessage(msgBlock);
         } else if (typeof msg.tx !== 'undefined') {
             this.onMessage({
                 type: 'Tx',
@@ -1413,6 +1420,15 @@ function isTxMsgType(msgType: any): msgType is TxMsgType {
     return TX_MSG_TYPES.includes(msgType);
 }
 
+function convertToCoinbaseData(coinbaseData: proto.CoinbaseData): CoinbaseData {
+    const returnedCoinbaseData: CoinbaseData = {
+        scriptsig: toHex(coinbaseData.coinbaseScriptsig),
+        outputs: coinbaseData.coinbaseOutputs.map(convertToTxOutput),
+    };
+
+    return returnedCoinbaseData;
+}
+
 /** Info about connected chronik server */
 export interface ChronikInfo {
     version: string;
@@ -1843,6 +1859,10 @@ export interface MsgBlockClient {
     blockHash: string;
     /** Height of the block */
     blockHeight: number;
+    /** Timestamp of the block */
+    blockTimestamp: number;
+    /** Coinbase data of the block */
+    coinbaseData?: CoinbaseData;
 }
 
 /** Block message types that can come from chronik */
@@ -1850,14 +1870,23 @@ export type BlockMsgType =
     | 'BLK_CONNECTED'
     | 'BLK_DISCONNECTED'
     | 'BLK_FINALIZED'
+    | 'BLK_INVALIDATED'
     | 'UNRECOGNIZED';
 
 const BLK_MSG_TYPES: BlockMsgType[] = [
     'BLK_CONNECTED',
     'BLK_DISCONNECTED',
     'BLK_FINALIZED',
+    'BLK_INVALIDATED',
     'UNRECOGNIZED',
 ];
+
+export interface CoinbaseData {
+    /** The scriptsig of the coinbase */
+    scriptsig: string;
+    /** The outputs of the coinbase */
+    outputs: TxOutput[];
+}
 
 /** Tx got added to/removed from mempool, or confirmed in a block, etc.*/
 export interface MsgTxClient {

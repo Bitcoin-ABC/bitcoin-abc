@@ -208,6 +208,8 @@ export enum BlockMsgType {
     BLK_DISCONNECTED = 1,
     /** BLK_FINALIZED - Block has been finalized by Avalanche */
     BLK_FINALIZED = 2,
+    /** BLK_INVALIDATED - Block has been invalidated by Avalanche */
+    BLK_INVALIDATED = 3,
     UNRECOGNIZED = -1,
 }
 
@@ -222,6 +224,9 @@ export function blockMsgTypeFromJSON(object: any): BlockMsgType {
         case 2:
         case 'BLK_FINALIZED':
             return BlockMsgType.BLK_FINALIZED;
+        case 3:
+        case 'BLK_INVALIDATED':
+            return BlockMsgType.BLK_INVALIDATED;
         case -1:
         case 'UNRECOGNIZED':
         default:
@@ -237,6 +242,8 @@ export function blockMsgTypeToJSON(object: BlockMsgType): string {
             return 'BLK_DISCONNECTED';
         case BlockMsgType.BLK_FINALIZED:
             return 'BLK_FINALIZED';
+        case BlockMsgType.BLK_INVALIDATED:
+            return 'BLK_INVALIDATED';
         case BlockMsgType.UNRECOGNIZED:
         default:
             return 'UNRECOGNIZED';
@@ -309,6 +316,10 @@ export interface Blocks {
 export interface BlockHeader {
     /** Raw data */
     rawHeader: Uint8Array;
+    /** Merkle root */
+    root: Uint8Array;
+    /** Merkle branch of header up to root, deepest pairing first */
+    branch: Uint8Array[];
 }
 
 /** Range of headers */
@@ -789,7 +800,15 @@ export interface WsMsg {
     tx?: MsgTx | undefined;
 }
 
-/** Block got connected, disconnected, finalized, etc. */
+/** The relevant coinbase data */
+export interface CoinbaseData {
+    /** The coinbase input scriptsig */
+    coinbaseScriptsig: Uint8Array;
+    /** Outputs of the coinbase tx */
+    coinbaseOutputs: TxOutput[];
+}
+
+/** Block got connected, disconnected, finalized, invalidated, etc. */
 export interface MsgBlock {
     /** What happened to the block */
     msgType: BlockMsgType;
@@ -797,6 +816,13 @@ export interface MsgBlock {
     blockHash: Uint8Array;
     /** Height of the block */
     blockHeight: number;
+    /** Timestamp field of the block */
+    blockTimestamp: string;
+    /**
+     * The coinbase data, only available of the block is disconnected or
+     * invalidated
+     */
+    coinbaseData: CoinbaseData | undefined;
 }
 
 /** Tx got added to/removed from mempool, or confirmed in a block, etc. */
@@ -959,7 +985,11 @@ export const Blocks = {
 };
 
 function createBaseBlockHeader(): BlockHeader {
-    return { rawHeader: new Uint8Array(0) };
+    return {
+        rawHeader: new Uint8Array(0),
+        root: new Uint8Array(0),
+        branch: [],
+    };
 }
 
 export const BlockHeader = {
@@ -969,6 +999,12 @@ export const BlockHeader = {
     ): _m0.Writer {
         if (message.rawHeader.length !== 0) {
             writer.uint32(10).bytes(message.rawHeader);
+        }
+        if (message.root.length !== 0) {
+            writer.uint32(18).bytes(message.root);
+        }
+        for (const v of message.branch) {
+            writer.uint32(26).bytes(v!);
         }
         return writer;
     },
@@ -988,6 +1024,20 @@ export const BlockHeader = {
 
                     message.rawHeader = reader.bytes();
                     continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.root = reader.bytes();
+                    continue;
+                case 3:
+                    if (tag !== 26) {
+                        break;
+                    }
+
+                    message.branch.push(reader.bytes());
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -1002,6 +1052,12 @@ export const BlockHeader = {
             rawHeader: isSet(object.rawHeader)
                 ? bytesFromBase64(object.rawHeader)
                 : new Uint8Array(0),
+            root: isSet(object.root)
+                ? bytesFromBase64(object.root)
+                : new Uint8Array(0),
+            branch: globalThis.Array.isArray(object?.branch)
+                ? object.branch.map((e: any) => bytesFromBase64(e))
+                : [],
         };
     },
 
@@ -1009,6 +1065,12 @@ export const BlockHeader = {
         const obj: any = {};
         if (message.rawHeader.length !== 0) {
             obj.rawHeader = base64FromBytes(message.rawHeader);
+        }
+        if (message.root.length !== 0) {
+            obj.root = base64FromBytes(message.root);
+        }
+        if (message.branch?.length) {
+            obj.branch = message.branch.map(e => base64FromBytes(e));
         }
         return obj;
     },
@@ -1023,6 +1085,8 @@ export const BlockHeader = {
     ): BlockHeader {
         const message = createBaseBlockHeader();
         message.rawHeader = object.rawHeader ?? new Uint8Array(0);
+        message.root = object.root ?? new Uint8Array(0);
+        message.branch = object.branch?.map(e => e) || [];
         return message;
     },
 };
@@ -5913,8 +5977,106 @@ export const WsMsg = {
     },
 };
 
+function createBaseCoinbaseData(): CoinbaseData {
+    return { coinbaseScriptsig: new Uint8Array(0), coinbaseOutputs: [] };
+}
+
+export const CoinbaseData = {
+    encode(
+        message: CoinbaseData,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.coinbaseScriptsig.length !== 0) {
+            writer.uint32(10).bytes(message.coinbaseScriptsig);
+        }
+        for (const v of message.coinbaseOutputs) {
+            TxOutput.encode(v!, writer.uint32(18).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): CoinbaseData {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseCoinbaseData();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.coinbaseScriptsig = reader.bytes();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.coinbaseOutputs.push(
+                        TxOutput.decode(reader, reader.uint32()),
+                    );
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): CoinbaseData {
+        return {
+            coinbaseScriptsig: isSet(object.coinbaseScriptsig)
+                ? bytesFromBase64(object.coinbaseScriptsig)
+                : new Uint8Array(0),
+            coinbaseOutputs: globalThis.Array.isArray(object?.coinbaseOutputs)
+                ? object.coinbaseOutputs.map((e: any) => TxOutput.fromJSON(e))
+                : [],
+        };
+    },
+
+    toJSON(message: CoinbaseData): unknown {
+        const obj: any = {};
+        if (message.coinbaseScriptsig.length !== 0) {
+            obj.coinbaseScriptsig = base64FromBytes(message.coinbaseScriptsig);
+        }
+        if (message.coinbaseOutputs?.length) {
+            obj.coinbaseOutputs = message.coinbaseOutputs.map(e =>
+                TxOutput.toJSON(e),
+            );
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<CoinbaseData>, I>>(
+        base?: I,
+    ): CoinbaseData {
+        return CoinbaseData.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<CoinbaseData>, I>>(
+        object: I,
+    ): CoinbaseData {
+        const message = createBaseCoinbaseData();
+        message.coinbaseScriptsig =
+            object.coinbaseScriptsig ?? new Uint8Array(0);
+        message.coinbaseOutputs =
+            object.coinbaseOutputs?.map(e => TxOutput.fromPartial(e)) || [];
+        return message;
+    },
+};
+
 function createBaseMsgBlock(): MsgBlock {
-    return { msgType: 0, blockHash: new Uint8Array(0), blockHeight: 0 };
+    return {
+        msgType: 0,
+        blockHash: new Uint8Array(0),
+        blockHeight: 0,
+        blockTimestamp: '0',
+        coinbaseData: undefined,
+    };
 }
 
 export const MsgBlock = {
@@ -5930,6 +6092,15 @@ export const MsgBlock = {
         }
         if (message.blockHeight !== 0) {
             writer.uint32(24).int32(message.blockHeight);
+        }
+        if (message.blockTimestamp !== '0') {
+            writer.uint32(32).int64(message.blockTimestamp);
+        }
+        if (message.coinbaseData !== undefined) {
+            CoinbaseData.encode(
+                message.coinbaseData,
+                writer.uint32(42).fork(),
+            ).ldelim();
         }
         return writer;
     },
@@ -5963,6 +6134,25 @@ export const MsgBlock = {
 
                     message.blockHeight = reader.int32();
                     continue;
+                case 4:
+                    if (tag !== 32) {
+                        break;
+                    }
+
+                    message.blockTimestamp = longToString(
+                        reader.int64() as Long,
+                    );
+                    continue;
+                case 5:
+                    if (tag !== 42) {
+                        break;
+                    }
+
+                    message.coinbaseData = CoinbaseData.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -5983,6 +6173,12 @@ export const MsgBlock = {
             blockHeight: isSet(object.blockHeight)
                 ? globalThis.Number(object.blockHeight)
                 : 0,
+            blockTimestamp: isSet(object.blockTimestamp)
+                ? globalThis.String(object.blockTimestamp)
+                : '0',
+            coinbaseData: isSet(object.coinbaseData)
+                ? CoinbaseData.fromJSON(object.coinbaseData)
+                : undefined,
         };
     },
 
@@ -5997,6 +6193,12 @@ export const MsgBlock = {
         if (message.blockHeight !== 0) {
             obj.blockHeight = Math.round(message.blockHeight);
         }
+        if (message.blockTimestamp !== '0') {
+            obj.blockTimestamp = message.blockTimestamp;
+        }
+        if (message.coinbaseData !== undefined) {
+            obj.coinbaseData = CoinbaseData.toJSON(message.coinbaseData);
+        }
         return obj;
     },
 
@@ -6010,6 +6212,11 @@ export const MsgBlock = {
         message.msgType = object.msgType ?? 0;
         message.blockHash = object.blockHash ?? new Uint8Array(0);
         message.blockHeight = object.blockHeight ?? 0;
+        message.blockTimestamp = object.blockTimestamp ?? '0';
+        message.coinbaseData =
+            object.coinbaseData !== undefined && object.coinbaseData !== null
+                ? CoinbaseData.fromPartial(object.coinbaseData)
+                : undefined;
         return message;
     },
 };

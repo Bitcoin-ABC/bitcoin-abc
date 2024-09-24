@@ -5,11 +5,20 @@
 Setup script to exercise the chronik-client js library script endpoints
 """
 
+import time
+
 import pathmagic  # noqa
 from ipc import send_ipc_message
 from setup_framework import SetupFramework
 from test_framework.avatools import AvaP2PInterface, can_find_inv_in_poll
-from test_framework.messages import CTransaction, CTxOut, FromHex, ToHex
+from test_framework.messages import (
+    XEC,
+    AvalancheVoteError,
+    CTransaction,
+    CTxOut,
+    FromHex,
+    ToHex,
+)
 from test_framework.script import OP_CHECKSIG, CScript
 from test_framework.util import assert_equal
 
@@ -96,6 +105,10 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         self.wait_until(is_quorum_established)
         self.wait_until(lambda: is_finalblock(node.getbestblockhash()))
 
+        now = int(time.time())
+        node.setmocktime(now)
+        send_ipc_message({"block_timestamp": now})
+
         finalized_blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
         cb_txid = node.getblock(finalized_blockhash)["tx"][0]
         assert not node.isfinalblock(finalized_blockhash)
@@ -166,27 +179,42 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         assert node.isfinaltransaction(next_cb_txid, next_blockhash)
         yield True
 
+        def send_coinbase_data(blockhash):
+            coinbase = node.getblock(blockhash, 2)["tx"][0]
+
+            coinbase_scriptsig = coinbase["vin"][0]["coinbase"]
+
+            # Only a single output is supported
+            assert_equal(len(coinbase["vout"]), 1)
+            coinbase_out_value = int(coinbase["vout"][0]["value"] * XEC)
+            coinbase_out_scriptpubkey = coinbase["vout"][0]["scriptPubKey"]["hex"]
+
+            send_ipc_message({"coinbase_scriptsig": coinbase_scriptsig})
+            send_ipc_message({"coinbase_out_value": coinbase_out_value})
+            send_ipc_message({"coinbase_out_scriptpubkey": coinbase_out_scriptpubkey})
+
         self.log.info("Step 5: Park the block containing those txs")
+        send_coinbase_data(next_blockhash)
         node.parkblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height)
         yield True
 
-        self.log.info("Step 6: Unpark the block containing those txs")
+        self.log.info("Step 8: Unpark the block containing those txs")
         node.unparkblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 7: Invalidate the block containing those txs")
+        self.log.info("Step 9: Manually invalidate the block containing those txs")
         node.invalidateblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height)
         yield True
 
-        self.log.info("Step 8: Reconsider the block containing those txs")
+        self.log.info("Step 10: Reconsider the block containing those txs")
         node.reconsiderblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 9: Broadcast a tx with mixed outputs")
+        self.log.info("Step 11: Broadcast a tx with mixed outputs")
         mixed_output_tx = CTransaction()
         mixed_output_tx.vout.append(CTxOut(1000000, p2pkh_output_script))
         mixed_output_tx.vout.append(CTxOut(1000000, p2sh_output_script))
@@ -203,9 +231,41 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         send_ipc_message({"mixed_output_txid": mixed_output_txid})
         yield True
 
-        self.log.info("Step 10: Mine another block")
-        parked_block_hash = self.generate(node, 1)[0]
-        send_ipc_message({"parked_block_hash": parked_block_hash})
+        self.log.info("Step 12: Mine another block")
+        next_blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
+        send_ipc_message({"next_blockhash": next_blockhash})
+        assert_equal(node.getblockcount(), finalized_height + 2)
+        yield True
+
+        def is_rejected_block(blockhash):
+            can_find_inv_in_poll(quorum, int(blockhash, 16), AvalancheVoteError.INVALID)
+            for tip in node.getchaintips():
+                if tip["hash"] == blockhash:
+                    return tip["status"] == "parked"
+            return False
+
+        self.log.info("Step 13: Avalanche rejects the block")
+        send_coinbase_data(next_blockhash)
+        self.wait_until(lambda: is_rejected_block(next_blockhash))
+        assert_equal(node.getblockcount(), finalized_height + 1)
+        yield True
+
+        self.log.info("Step 14: Avalanche invalidates the block")
+        with node.wait_for_debug_log(
+            [f"Avalanche invalidated block {next_blockhash}".encode()],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                quorum, int(next_blockhash, 16), AvalancheVoteError.INVALID
+            ),
+        ):
+            pass
+        assert_equal(node.getblockcount(), finalized_height + 1)
+        yield True
+
+        self.log.info("Step 15: Mine another block")
+        node.bumpmocktime(1)
+        next_blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
+        send_ipc_message({"block_timestamp": now + 1})
+        send_ipc_message({"next_blockhash": next_blockhash})
         assert_equal(node.getblockcount(), finalized_height + 2)
         yield True
 
