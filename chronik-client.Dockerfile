@@ -6,19 +6,13 @@
 
 FROM node:20-buster-slim
 
-# Build all local dependencies
-
-# ecashaddrjs
-WORKDIR /app/modules/ecashaddrjs
-COPY modules/ecashaddrjs/ .
-RUN npm ci
-RUN npm run build
-
 # Build chronik-client
 WORKDIR /app/modules/chronik-client
 
 # Copy all project files as they are required for building
 COPY modules/chronik-client .
+# Install ecashaddrjs from npm, so that module users install it automatically
+RUN npm install ecashaddrjs@latest
 RUN npm ci
 
 # Publish the module

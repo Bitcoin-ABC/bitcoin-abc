@@ -112,3 +112,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   1.1.0 - Support websocket subscriptions to plugins [D16783](https://reviews.bitcoinabc.org/D16783)
 -   1.2.0 - Support `history`, `confirmedTxs`, and `unconfirmedTxs` methods for `plugins` endpoints [D16786](https://reviews.bitcoinabc.org/D16786)
 -   1.3.0 - Support an avalanche invalidated websocket block message type and return extra block data for disconnected and avalanche invalidated blocks [D16812](https://reviews.bitcoinabc.org/D16812)
+-   1.3.1 - Install `ecashaddrjs` from npm before publishing to remove manual peer dependency [D16815](https://reviews.bitcoinabc.org/D16815)
