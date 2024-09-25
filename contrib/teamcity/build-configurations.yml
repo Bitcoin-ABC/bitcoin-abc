@@ -714,6 +714,7 @@ builds:
       - src/
       - iguana/
     targets:
+      - - iguana
       - - check-iguana
     timeout: 1200
 
