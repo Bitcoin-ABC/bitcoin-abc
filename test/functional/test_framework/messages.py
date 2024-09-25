@@ -57,6 +57,7 @@ NODE_COMPACT_FILTERS = 1 << 6
 NODE_NETWORK_LIMITED = 1 << 10
 NODE_AVALANCHE = 1 << 24
 
+MSG_UNDEFINED = 0
 MSG_TX = 1
 MSG_BLOCK = 2
 MSG_FILTERED_BLOCK = 3
@@ -297,7 +298,7 @@ class CInv:
     __slots__ = ("hash", "type")
 
     typemap = {
-        0: "Error",
+        MSG_UNDEFINED: "Error",
         MSG_TX: "TX",
         MSG_BLOCK: "Block",
         MSG_FILTERED_BLOCK: "filtered Block",

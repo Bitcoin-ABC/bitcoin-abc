@@ -11,6 +11,7 @@ from test_framework.messages import (
     MSG_AVA_PROOF,
     MSG_BLOCK,
     MSG_TX,
+    MSG_UNDEFINED,
     AvalancheVoteError,
     CInv,
 )
@@ -69,7 +70,7 @@ class AvalancheCooldownTest(BitcoinTestFramework):
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
         # Create a helper to issue a poll and validate the responses
-        def check_poll(inv, expect_response):
+        def check_poll(inv, expect_response, expect_vote=AvalancheVoteError.ACCEPTED):
             inv_hash, inv_type = inv
             poll_node.send_poll([inv_hash], inv_type)
 
@@ -85,7 +86,7 @@ class AvalancheCooldownTest(BitcoinTestFramework):
             assert_equal(len(votes), 1)
             for i in range(0, len(votes)):
                 if votes[i].hash == inv_hash:
-                    assert_equal(votes[i].error, AvalancheVoteError.ACCEPTED)
+                    assert_equal(votes[i].error, expect_vote)
 
         self.log.info("First poll is legit")
         check_poll(inv=(tip, MSG_BLOCK), expect_response=True)
@@ -99,6 +100,17 @@ class AvalancheCooldownTest(BitcoinTestFramework):
                     ["Ignoring repeated avapoll", "cooldown not elapsed"]
                 ):
                     check_poll(inv=inv, expect_response=False)
+
+        self.log.info("Subsequent polls are spams for unknown type")
+        for _ in range(3):
+            with node.assert_debug_log(
+                ["Ignoring repeated avapoll", "cooldown not elapsed"]
+            ):
+                check_poll(
+                    inv=(0, MSG_UNDEFINED),
+                    expect_response=False,
+                    expect_vote=AvalancheVoteError.UNKNOWN,
+                )
 
         # Restart with 100ms cooldown. Unfortunately we can't mock time as the
         # node uses the steady clock which is not mockable.
@@ -133,6 +145,22 @@ class AvalancheCooldownTest(BitcoinTestFramework):
 
             # Cooldown between inv types
             time.sleep(cooldown_ms / 1000)
+
+        self.log.info("First poll is legit for unknown type")
+        check_poll(
+            inv=(0, MSG_UNDEFINED),
+            expect_response=True,
+            expect_vote=AvalancheVoteError.UNKNOWN,
+        )
+
+        self.log.info("Subsequent polls are legit")
+        for _ in range(3):
+            time.sleep(cooldown_ms / 1000)
+            check_poll(
+                inv=(0, MSG_UNDEFINED),
+                expect_response=True,
+                expect_vote=AvalancheVoteError.UNKNOWN,
+            )
 
 
 if __name__ == "__main__":
