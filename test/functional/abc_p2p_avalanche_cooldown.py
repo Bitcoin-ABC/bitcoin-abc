@@ -5,10 +5,18 @@
 import time
 
 from test_framework.avatools import get_ava_p2p_interface
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.key import ECPubKey
-from test_framework.messages import MSG_BLOCK, AvalancheVoteError
+from test_framework.messages import (
+    MSG_AVA_PROOF,
+    MSG_BLOCK,
+    MSG_TX,
+    AvalancheVoteError,
+    CInv,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
 
@@ -27,6 +35,8 @@ class AvalancheCooldownTest(BitcoinTestFramework):
                 "-whitelist=noban@127.0.0.1",
                 "-avacooldown=10000",
                 "-persistavapeers=0",
+                # For polling transactions
+                "-avalanchepreconsensus=1",
             ],
         ]
 
@@ -44,6 +54,14 @@ class AvalancheCooldownTest(BitcoinTestFramework):
         poll_node = quorum[0]
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        proofid = poll_node.proof.proofid
+
+        # Make a transaction to poll
+        wallet = MiniWallet(node)
+        self.generate(wallet, 1, sync_fun=self.no_op)
+        self.generate(node, COINBASE_MATURITY, sync_fun=self.no_op)
+        txid = int(wallet.send_self_transfer(from_node=node)["txid"], 16)
 
         tip = int(self.generate(node, 1)[-1], 16)
 
@@ -72,12 +90,15 @@ class AvalancheCooldownTest(BitcoinTestFramework):
         self.log.info("First poll is legit")
         check_poll(inv=(tip, MSG_BLOCK), expect_response=True)
 
-        self.log.info("Subsequent polls are spams")
-        for _ in range(3):
-            with node.assert_debug_log(
-                ["Ignoring repeated avapoll", "cooldown not elapsed"]
-            ):
-                check_poll(inv=(tip, MSG_BLOCK), expect_response=False)
+        for inv in [(tip, MSG_BLOCK), (proofid, MSG_AVA_PROOF), (txid, MSG_TX)]:
+            self.log.info(
+                "Subsequent polls are spams for type {CInv().typemap[inv[1]]}"
+            )
+            for _ in range(3):
+                with node.assert_debug_log(
+                    ["Ignoring repeated avapoll", "cooldown not elapsed"]
+                ):
+                    check_poll(inv=inv, expect_response=False)
 
         # Restart with 100ms cooldown. Unfortunately we can't mock time as the
         # node uses the steady clock which is not mockable.
@@ -91,16 +112,27 @@ class AvalancheCooldownTest(BitcoinTestFramework):
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
 
+        proofid = poll_node.proof.proofid
+
+        # Make a transaction to poll
+        self.generate(wallet, 1, sync_fun=self.no_op)
+        self.generate(node, COINBASE_MATURITY, sync_fun=self.no_op)
+        txid = int(wallet.send_self_transfer(from_node=node)["txid"], 16)
+
         tip = int(self.generate(node, 1)[-1], 16)
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
-        self.log.info("First poll is legit")
-        check_poll(inv=(tip, MSG_BLOCK), expect_response=True)
+        for inv in [(tip, MSG_BLOCK), (proofid, MSG_AVA_PROOF), (txid, MSG_TX)]:
+            self.log.info(f"First poll is legit for type {CInv().typemap[inv[1]]}")
+            check_poll(inv=inv, expect_response=True)
 
-        self.log.info("Subsequent polls are legit")
-        for _ in range(3):
+            self.log.info("Subsequent polls are legit")
+            for _ in range(3):
+                time.sleep(cooldown_ms / 1000)
+                check_poll(inv=inv, expect_response=True)
+
+            # Cooldown between inv types
             time.sleep(cooldown_ms / 1000)
-            check_poll(inv=(tip, MSG_BLOCK), expect_response=True)
 
 
 if __name__ == "__main__":
