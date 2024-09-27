@@ -493,7 +493,8 @@ describe('AgoraPartial SLP', () => {
 
     for (const testCase of TEST_CASES) {
         it(`AgoraPartial SLP ${testCase.offeredTokens} for ${testCase.info}`, async () => {
-            const agoraPartial = AgoraPartial.approximateParams({
+            const agora = new Agora(chronik);
+            const agoraPartial = await agora.selectParams({
                 offeredTokens: testCase.offeredTokens,
                 priceNanoSatsPerToken: testCase.priceNanoSatsPerToken,
                 minAcceptedTokens: testCase.acceptedTokens,
@@ -524,7 +525,6 @@ describe('AgoraPartial SLP', () => {
             });
             const acceptTx = await chronik.tx(acceptTxid);
             const offeredTokens = agoraPartial.offeredTokens();
-            const agora = new Agora(chronik);
             if (testCase.acceptedTokens == offeredTokens) {
                 // FULL ACCEPT
                 // 0th output is OP_RETURN SLP SEND

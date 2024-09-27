@@ -119,6 +119,17 @@ export interface AgoraPartialParams {
     tokenType: number;
     /** Token protocol of the offered token. */
     tokenProtocol: 'SLP' | 'ALP';
+    /**
+     * Locktime enforced by the Script. Used to make identical offers unique.
+     *
+     * Use Agora.selectParams to automatically select a good value for this,
+     * only set this manually if you know what you're doing.
+     *
+     * If there's two offers with identical terms, it would be possible to burn
+     * one of them by accepting both in one transaction.
+     * To prevent this for identical offers, set to unique (past) locktimes.
+     **/
+    enforcedLockTime: number;
     /** Dust amount to be used by the script. */
     dustAmount?: number;
     /**
@@ -243,6 +254,17 @@ export class AgoraPartial {
     /** Byte length of the Script, after OP_CODESEPARATOR. */
     public scriptLen: number;
     /**
+     * Locktime enforced by the Script. Used to make identical offers unique.
+     *
+     * Use Agora.selectParams to automatically select a good value for this,
+     * only set this manually if you know what you're doing.
+     *
+     * If there's two offers with identical terms, it would be possible to burn
+     * one of them by accepting both in one transaction.
+     * To prevent this for identical offers, set to unique (past) locktimes.
+     **/
+    public enforcedLockTime: number;
+    /**
      * Dust amount of the network, the Script will enforce token outputs to have
      * this amount.
      **/
@@ -260,6 +282,7 @@ export class AgoraPartial {
         tokenType: number;
         tokenProtocol: 'SLP' | 'ALP';
         scriptLen: number;
+        enforcedLockTime: number;
         dustAmount: number;
     }) {
         this.truncTokens = params.truncTokens;
@@ -273,6 +296,7 @@ export class AgoraPartial {
         this.tokenType = params.tokenType;
         this.tokenProtocol = params.tokenProtocol;
         this.scriptLen = params.scriptLen;
+        this.enforcedLockTime = params.enforcedLockTime;
         this.dustAmount = params.dustAmount;
     }
 
@@ -432,6 +456,7 @@ export class AgoraPartial {
             tokenType: params.tokenType,
             tokenProtocol: params.tokenProtocol,
             scriptLen: 0x7f,
+            enforcedLockTime: params.enforcedLockTime,
             dustAmount: params.dustAmount ?? DEFAULT_DUST_LIMIT,
         });
         if (agoraPartial.minAcceptedTokens() < 1n) {
@@ -536,6 +561,7 @@ export class AgoraPartial {
             writer.putU64(this.tokenScaleFactor);
             writer.putU64(this.scaledTruncTokensPerTruncSat);
             writer.putU64(this.minAcceptedScaledTruncTokens);
+            writer.putU32(this.enforcedLockTime);
             writer.putBytes(this.makerPk);
         };
         const lengthWriter = new WriterLength();
@@ -591,6 +617,10 @@ export class AgoraPartial {
             this.truncTokens * this.tokenScaleFactor,
         );
         const scaledTruncTokens8Le = scaledTruncTokens8LeWriter.data;
+
+        const enforcedLockTime4LeWriter = new WriterBytes(4);
+        enforcedLockTime4LeWriter.putU32(this.enforcedLockTime);
+        const enforcedLockTime4Le = enforcedLockTime4LeWriter.data;
 
         return Script.fromOps([
             // # Push consts
@@ -813,8 +843,14 @@ export class AgoraPartial {
             pushNumberOp(32),
             // actualHashOutputs, preimage9_10 = OP_SPLIT(preimage8_10, 32)
             OP_SPLIT,
-            // OP_DROP(preimage9_10)
+            pushNumberOp(4),
+            // actualLocktime4Le, sighashType = OP_SPLIT(preimage9_10)
+            OP_SPLIT,
+            // OP_DROP(preimage10)
             OP_DROP,
+            pushBytesOp(enforcedLockTime4Le),
+            // OP_EQUALVERIFY(actualLocktime4Le, enforcedLockTime4Le)
+            OP_EQUALVERIFY,
             // # Move to altstack, will be needed later
             // OP_TOALTSTACK(actualHashOutputs)
             OP_TOALTSTACK,

@@ -438,7 +438,8 @@ describe('AgoraPartial ALP', () => {
 
     for (const testCase of TEST_CASES) {
         it(`AgoraPartial ALP ${testCase.offeredTokens} for ${testCase.info}`, async () => {
-            const agoraPartial = AgoraPartial.approximateParams({
+            const agora = new Agora(chronik);
+            const agoraPartial = await agora.selectParams({
                 offeredTokens: testCase.offeredTokens,
                 priceNanoSatsPerToken: testCase.priceNanoSatsPerToken,
                 minAcceptedTokens: testCase.acceptedTokens,
@@ -469,7 +470,6 @@ describe('AgoraPartial ALP', () => {
             });
             const acceptTx = await chronik.tx(acceptTxid);
             const offeredTokens = agoraPartial.offeredTokens();
-            const agora = new Agora(chronik);
             if (testCase.acceptedTokens == offeredTokens) {
                 // FULL ACCEPT
                 // 0th output is OP_RETURN eMPP AGR0 ad + ALP SEND

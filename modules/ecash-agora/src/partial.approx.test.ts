@@ -14,6 +14,7 @@ describe('Agora Partial Param Approximation', () => {
         tokenId: '00'.repeat(32),
         tokenType: SLP_FUNGIBLE,
         tokenProtocol: 'SLP' as const,
+        enforcedLockTime: 1234,
         dustAmount: DEFAULT_DUST_LIMIT,
     };
     const BASE_PARAMS_ALP = {
@@ -21,6 +22,7 @@ describe('Agora Partial Param Approximation', () => {
         tokenId: '00'.repeat(32),
         tokenType: ALP_STANDARD,
         tokenProtocol: 'ALP' as const,
+        enforcedLockTime: 1234,
         dustAmount: DEFAULT_DUST_LIMIT,
     };
 

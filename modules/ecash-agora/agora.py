@@ -389,6 +389,7 @@ class AgoraPartial:
     token_type: int
     token_protocol: str
     script_len: int
+    enforced_locktime: int
     dust_amount: int
 
     @classmethod
@@ -424,6 +425,7 @@ class AgoraPartial:
         pushdata.extend(self.token_scale_factor.to_bytes(8, "little"))
         pushdata.extend(self.scaled_trunc_tokens_per_trunc_sat.to_bytes(8, "little"))
         pushdata.extend(self.min_accepted_scaled_trunc_tokens.to_bytes(8, "little"))
+        pushdata.extend(self.enforced_locktime.to_bytes(4, "little"))
         pushdata.extend(self.maker_pk)
         return bytes(pushdata)
 
@@ -435,6 +437,7 @@ class AgoraPartial:
             self.token_scale_factor.to_bytes(8, "little"),
             self.scaled_trunc_tokens_per_trunc_sat.to_bytes(8, "little"),
             self.min_accepted_scaled_trunc_tokens.to_bytes(8, "little"),
+            self.enforced_locktime.to_bytes(4, "little"),
         ]
 
     def script(self) -> CScript:
@@ -547,7 +550,11 @@ class AgoraPartial:
                 OP_NIP,
                 32,
                 OP_SPLIT,
+                4,
+                OP_SPLIT,
                 OP_DROP,
+                self.enforced_locktime.to_bytes(4, "little"),
+                OP_EQUALVERIFY,
                 OP_TOALTSTACK,
                 OP_CAT,
                 OP_HASH160,
@@ -715,10 +722,10 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
     data_reader = BytesIO(pushdata)
     # AGR0 PARTIAL pushdata always has the same length
     if token.token_protocol == "SLP":
-        if len(pushdata) != 59:
+        if len(pushdata) != 63:
             return None
     elif token.token_protocol == "ALP":
-        if len(pushdata) != 71:
+        if len(pushdata) != 75:
             return None
         if data_reader.read(4) != b"AGR0":
             return None
@@ -731,6 +738,7 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
     token_scale_factor = int.from_bytes(data_reader.read(8), "little")
     scaled_trunc_tokens_per_trunc_sat = int.from_bytes(data_reader.read(8), "little")
     min_accepted_scaled_trunc_tokens = int.from_bytes(data_reader.read(8), "little")
+    enforced_locktime = int.from_bytes(data_reader.read(4), "little")
     maker_pk = data_reader.read(33)
 
     token_trunc_factor = 1 << (8 * num_token_trunc_bytes)
@@ -751,6 +759,7 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
         token_type=token.token_type,
         token_protocol=token.token_protocol,
         script_len=0x7F,
+        enforced_locktime=enforced_locktime,
         dust_amount=546,
     )
     measured_len = len(cut_out_codesep(partial_alp.script()))

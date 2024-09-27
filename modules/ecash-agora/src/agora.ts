@@ -46,6 +46,7 @@ import {
 import {
     AgoraPartial,
     AgoraPartialCancelSignatory,
+    AgoraPartialParams,
     AgoraPartialSignatory,
 } from './partial.js';
 
@@ -289,6 +290,7 @@ export class AgoraOffer {
                     });
                 }
                 txBuild.outputs.push(...params.extraOutputs);
+                txBuild.locktime = agoraPartial.enforcedLockTime;
                 return txBuild;
             default:
                 throw new Error('Not implemented');
@@ -494,6 +496,7 @@ export interface AgoraHistoryResult {
  * See agora.py.
  **/
 export class Agora {
+    private chronik: ChronikClient;
     private plugin: PluginEndpoint;
     private dustAmount: number;
 
@@ -502,6 +505,7 @@ export class Agora {
      * "agora" plugin loaded.
      **/
     public constructor(chronik: ChronikClient, dustAmount?: number) {
+        this.chronik = chronik;
         this.plugin = chronik.plugin(PLUGIN_NAME);
         this.dustAmount = dustAmount ?? DEFAULT_DUST_LIMIT;
     }
@@ -637,6 +641,47 @@ export class Agora {
         };
     }
 
+    /**
+     * Build a safe AgoraPartial for the given parameters.
+     *
+     * This looks at the blockchain to avoid creating an identical offer, by
+     * tweaking the enforcedLockTime.
+     */
+    public async selectParams(
+        params: Omit<AgoraPartialParams, 'enforcedLockTime'> | AgoraPartial,
+    ): Promise<AgoraPartial> {
+        // Assumes MTP is not more than 14 days in the past
+        const maxLockTime = new Date().getTime() / 1000 - 14 * 24 * 3600;
+        const minLockTime = 500000000;
+
+        // The probability of requiring a re-roll is only ~10^-9, but that's
+        // still high enough so we have to do it.
+        // If someone were to create 1000 identical offers, the probability of
+        // picking two conflicting locktimes would be 0.04%, and for 10000 it's
+        // even 4%, so we definitely have to check for duplicates.
+        // See https://www.bdayprob.com/, where D = 1200000000 and N = 1000
+        // (or 10000), and solve for P(D,N).
+        while (true) {
+            const enforcedLockTime =
+                Math.floor(Math.random() * (maxLockTime - minLockTime)) +
+                minLockTime;
+            const newParams =
+                params instanceof AgoraPartial
+                    ? new AgoraPartial({ ...params, enforcedLockTime })
+                    : AgoraPartial.approximateParams({
+                          ...params,
+                          enforcedLockTime,
+                      });
+            const agoraScript = newParams.script();
+            const utxos = await this.chronik
+                .script('p2sh', toHex(shaRmd160(agoraScript.bytecode)))
+                .utxos();
+            if (utxos.utxos.length == 0) {
+                return newParams;
+            }
+        }
+    }
+
     private async _allTokenIdsByPrefix(prefixHex: string): Promise<string[]> {
         let tokenIds: string[] = [];
         let nextStart: string | undefined = undefined;
@@ -760,7 +805,12 @@ export class Agora {
             tokenScaleFactorHex,
             scaledTruncTokensPerTruncSatHex,
             minAcceptedScaledTruncTokensHex,
+            enforcedLockTimeHex,
         ] = plugin.data;
+
+        if (enforcedLockTimeHex === undefined) {
+            throw new Error('Outdated plugin');
+        }
 
         const numTokenTruncBytes = fromHex(numTokenTruncBytesHex)[0];
         const numSatsTruncBytes = fromHex(numSatsTruncBytesHex)[0];
@@ -773,6 +823,9 @@ export class Agora {
         const minAcceptedScaledTruncTokens = new Bytes(
             fromHex(minAcceptedScaledTruncTokensHex),
         ).readU64();
+        const enforcedLockTime = new Bytes(
+            fromHex(enforcedLockTimeHex),
+        ).readU32();
 
         const makerPkGroupHex = plugin.groups.find(group =>
             group.startsWith(PUBKEY_PREFIX),
@@ -797,6 +850,7 @@ export class Agora {
             tokenType: utxo.token.tokenType.number,
             tokenProtocol: utxo.token.tokenType.protocol,
             scriptLen: 0x7f,
+            enforcedLockTime,
             dustAmount: this.dustAmount,
         });
         agoraPartial.updateScriptLen();

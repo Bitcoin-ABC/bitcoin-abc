@@ -7,6 +7,7 @@ import {
     ALL_BIP143,
     alpGenesis,
     alpSend,
+    Amount,
     Ecc,
     emppScript,
     P2PKHSignatory,
@@ -14,11 +15,45 @@ import {
     shaRmd160,
     TxBuilder,
     TxBuilderInput,
+    TxBuilderOutput,
 } from 'ecash-lib';
 import { expect } from 'chai';
 
 import { AgoraPartial } from '../src/partial.js';
 import { Agora, AgoraOffer } from '../src/agora.js';
+
+export function makeAlpGenesis(params: {
+    ecc: Ecc;
+    tokenType: number;
+    fuelInput: TxBuilderInput;
+    tokenAmounts: Amount[];
+    extraOutputs: TxBuilderOutput[];
+}) {
+    const { ecc, tokenType, fuelInput } = params;
+    const txBuildGenesisGroup = new TxBuilder({
+        inputs: [fuelInput],
+        outputs: [
+            {
+                value: 0,
+                script: emppScript([
+                    alpGenesis(
+                        tokenType,
+                        {
+                            tokenTicker: `ALP token type ${tokenType}`,
+                            decimals: 4,
+                        },
+                        {
+                            numBatons: 0,
+                            amounts: params.tokenAmounts,
+                        },
+                    ),
+                ]),
+            },
+            ...params.extraOutputs,
+        ],
+    });
+    return txBuildGenesisGroup.sign(ecc);
+}
 
 export async function makeAlpOffer(params: {
     chronik: ChronikClient;
@@ -33,29 +68,13 @@ export async function makeAlpOffer(params: {
     const makerP2pkh = Script.p2pkh(makerPkh);
 
     const genesisOutputSats = 2000;
-    const txBuildGenesisGroup = new TxBuilder({
-        inputs: [fuelInput],
-        outputs: [
-            {
-                value: 0,
-                script: emppScript([
-                    alpGenesis(
-                        agoraPartial.tokenType,
-                        {
-                            tokenTicker: `ALP token type ${agoraPartial.tokenType}`,
-                            decimals: 4,
-                        },
-                        {
-                            numBatons: 0,
-                            amounts: [agoraPartial.offeredTokens()],
-                        },
-                    ),
-                ]),
-            },
-            { value: genesisOutputSats, script: makerP2pkh },
-        ],
+    const genesisTx = makeAlpGenesis({
+        ecc,
+        tokenType: agoraPartial.tokenType,
+        fuelInput,
+        tokenAmounts: [agoraPartial.offeredTokens()],
+        extraOutputs: [{ value: genesisOutputSats, script: makerP2pkh }],
     });
-    const genesisTx = txBuildGenesisGroup.sign(ecc);
     const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
     const tokenId = genesisTxid;
     agoraPartial.tokenId = tokenId;

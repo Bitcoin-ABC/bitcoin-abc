@@ -25,6 +25,7 @@ import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 
 import { AgoraPartial } from '../src/partial.js';
 import { makeSlpOffer, takeSlpOffer } from './partial-helper-slp.js';
+import { Agora } from '../src/agora.js';
 
 use(chaiAsPromised);
 
@@ -105,7 +106,8 @@ describe('Agora Partial 7450M XEC vs 2p64-1 full accept', () => {
             BIGSATS,
         ]);
 
-        const agoraPartial = AgoraPartial.approximateParams({
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
             offeredTokens: 0xffffffffffffffffn,
             priceNanoSatsPerToken: 40n, // scaled to use the XEC
             makerPk: makerPk,
@@ -123,7 +125,8 @@ describe('Agora Partial 7450M XEC vs 2p64-1 full accept', () => {
                 makerPk,
                 minAcceptedScaledTruncTokens: 32511n,
                 ...BASE_PARAMS_SLP,
-                scriptLen: 216,
+                enforcedLockTime: agoraPartial.enforcedLockTime,
+                scriptLen: 224,
             }),
         );
         expect(agoraPartial.offeredTokens()).to.equal(0xffffff0000000000n);
@@ -204,7 +207,8 @@ describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
             BIGSATS,
         ]);
 
-        const agoraPartial = AgoraPartial.approximateParams({
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
             offeredTokens: 0xffffffffffffffffn,
             priceNanoSatsPerToken: 500000000n, // scaled to use the XEC
             makerPk,
@@ -221,7 +225,8 @@ describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
                 makerPk,
                 minAcceptedScaledTruncTokens: 0x7fn,
                 ...BASE_PARAMS_SLP,
-                scriptLen: 216,
+                enforcedLockTime: agoraPartial.enforcedLockTime,
+                scriptLen: 224,
             }),
         );
         expect(agoraPartial.offeredTokens()).to.equal(0xffffff0000000000n);
@@ -311,7 +316,8 @@ describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
             BIGSATS,
         ]);
 
-        const agoraPartial = AgoraPartial.approximateParams({
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
             offeredTokens: 0x7fffffffffffffffn,
             priceNanoSatsPerToken: 80n, // scaled to use the XEC
             makerPk: makerPk,
@@ -329,7 +335,8 @@ describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
                 makerPk,
                 minAcceptedScaledTruncTokens: 0xffffn,
                 ...BASE_PARAMS_SLP,
-                scriptLen: 206,
+                enforcedLockTime: agoraPartial.enforcedLockTime,
+                scriptLen: 214,
             }),
         );
         expect(agoraPartial.offeredTokens()).to.equal(0x7fffff4200000000n);
@@ -412,7 +419,8 @@ describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
             BIGSATS,
         ]);
 
-        const agoraPartial = AgoraPartial.approximateParams({
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
             offeredTokens: 0x7fffffffffffffffn,
             priceNanoSatsPerToken: 1000000000n,
             makerPk,
@@ -429,7 +437,8 @@ describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
                 makerPk,
                 minAcceptedScaledTruncTokens: 1n,
                 ...BASE_PARAMS_SLP,
-                scriptLen: 201,
+                enforcedLockTime: agoraPartial.enforcedLockTime,
+                scriptLen: 209,
             }),
         );
         expect(agoraPartial.offeredTokens()).to.equal(0x7fffffff00000000n);
@@ -519,7 +528,8 @@ describe('Agora Partial 7450M XEC vs 100 full accept', () => {
             BIGSATS,
         ]);
 
-        const agoraPartial = AgoraPartial.approximateParams({
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
             offeredTokens: 100n,
             priceNanoSatsPerToken: 7123456780n * 1000000000n, // scaled to use the XEC
             makerPk: makerPk,
@@ -536,7 +546,8 @@ describe('Agora Partial 7450M XEC vs 100 full accept', () => {
                 makerPk,
                 minAcceptedScaledTruncTokens: 0x7fff3a28n / 100n,
                 ...BASE_PARAMS_SLP,
-                scriptLen: 214,
+                enforcedLockTime: agoraPartial.enforcedLockTime,
+                scriptLen: 222,
             }),
         );
         expect(agoraPartial.offeredTokens()).to.equal(100n);
@@ -610,7 +621,8 @@ describe('Agora Partial 7450M XEC vs 100 small accept', () => {
             BIGSATS,
         ]);
 
-        const agoraPartial = AgoraPartial.approximateParams({
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
             offeredTokens: 100n,
             priceNanoSatsPerToken: 712345678000n * 1000000000n, // scaled to use the XEC
             makerPk: makerPk,
@@ -627,7 +639,8 @@ describe('Agora Partial 7450M XEC vs 100 small accept', () => {
                 makerPk,
                 minAcceptedScaledTruncTokens: 0x7ffe05f4n / 100n,
                 ...BASE_PARAMS_SLP,
-                scriptLen: 215,
+                enforcedLockTime: agoraPartial.enforcedLockTime,
+                scriptLen: 223,
             }),
         );
         expect(agoraPartial.offeredTokens()).to.equal(100n);
