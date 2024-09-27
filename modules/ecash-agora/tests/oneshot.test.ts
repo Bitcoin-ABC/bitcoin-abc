@@ -294,6 +294,7 @@ describe('SLP', () => {
                 amount: '1',
                 isMintBaton: false,
             },
+            status: 'OPEN',
         });
 
         // 5. Buyer searches for NFT trades, finds the advertised one
@@ -460,6 +461,83 @@ describe('SLP', () => {
         ]);
         expect(await agora.offeredFungibleTokenIds()).to.deep.equal([]);
 
+        // Get history
+        expect(
+            await agora.historicOffers({
+                type: 'TOKEN_ID',
+                tokenId: childTokenId,
+                table: 'HISTORY',
+            }),
+        ).to.deep.equal({
+            offers: [
+                {
+                    ...expectedOffer,
+                    status: 'CANCELED',
+                },
+            ],
+            numTxs: 2,
+            numPages: 1,
+        });
+        expect(
+            await agora.historicOffers({
+                type: 'GROUP_TOKEN_ID',
+                groupTokenId,
+                table: 'HISTORY',
+            }),
+        ).to.deep.equal({
+            offers: [
+                {
+                    ...expectedOffer,
+                    status: 'CANCELED',
+                },
+            ],
+            numTxs: 2,
+            numPages: 1,
+        });
+        expect(
+            await agora.historicOffers({
+                type: 'PUBKEY',
+                pubkeyHex: toHex(sellerPk),
+                table: 'HISTORY',
+            }),
+        ).to.deep.equal({
+            offers: [
+                {
+                    ...expectedOffer,
+                    status: 'CANCELED',
+                },
+            ],
+            numTxs: 2,
+            numPages: 1,
+        });
+        expect(
+            await agora.historicOffers({
+                type: 'TOKEN_ID',
+                tokenId: childTokenId,
+                table: 'UNCONFIRMED',
+            }),
+        ).to.deep.equal({
+            offers: [
+                {
+                    ...expectedOffer,
+                    status: 'CANCELED',
+                },
+            ],
+            numTxs: 2,
+            numPages: 1,
+        });
+        expect(
+            await agora.historicOffers({
+                type: 'TOKEN_ID',
+                tokenId: childTokenId,
+                table: 'CONFIRMED',
+            }),
+        ).to.deep.equal({
+            offers: [],
+            numTxs: 0,
+            numPages: 0,
+        });
+
         const newExpectedOffer = new AgoraOffer({
             variant: {
                 type: 'ONESHOT',
@@ -473,6 +551,7 @@ describe('SLP', () => {
                 amount: '1',
                 isMintBaton: false,
             },
+            status: 'OPEN',
         });
 
         expect(
@@ -565,5 +644,27 @@ describe('SLP', () => {
         expect(await agora.activeOffersByPubKey(toHex(sellerPk))).to.deep.equal(
             [],
         );
+
+        // But we have the history
+        expect(
+            await agora.historicOffers({
+                type: 'TOKEN_ID',
+                tokenId: childTokenId,
+                table: 'HISTORY',
+            }),
+        ).to.deep.equal({
+            offers: [
+                {
+                    ...expectedOffer,
+                    status: 'CANCELED',
+                },
+                {
+                    ...newExpectedOffer,
+                    status: 'TAKEN',
+                },
+            ],
+            numTxs: 3,
+            numPages: 1,
+        });
     });
 });

@@ -7,6 +7,7 @@ import {
     PluginEndpoint,
     PluginEntry,
     Token,
+    TxHistoryPage,
     Utxo,
 } from 'chronik-client';
 import {
@@ -19,6 +20,8 @@ import {
     EccDummy,
     emppScript,
     fromHex,
+    Op,
+    OP_0,
     OutPoint,
     readTxOutput,
     Script,
@@ -68,6 +71,9 @@ export type AgoraOfferVariant =
           params: AgoraPartial;
       };
 
+/** Status of the offer, i.e. if it open/taken/canceled */
+export type AgoraOfferStatus = 'OPEN' | 'TAKEN' | 'CANCELED';
+
 /**
  * Individual token offer on the Agora, i.e. one UTXO offering tokens.
  *
@@ -78,17 +84,20 @@ export class AgoraOffer {
     public outpoint: OutPoint;
     public txBuilderInput: TxInput;
     public token: Token;
+    public status: AgoraOfferStatus;
 
     public constructor(params: {
         variant: AgoraOfferVariant;
         outpoint: OutPoint;
         txBuilderInput: TxInput;
         token: Token;
+        status: AgoraOfferStatus;
     }) {
         this.variant = params.variant;
         this.outpoint = params.outpoint;
         this.txBuilderInput = params.txBuilderInput;
         this.token = params.token;
+        this.status = params.status;
     }
 
     /**
@@ -447,6 +456,37 @@ export class AgoraOffer {
     }
 }
 
+/** Which txs to query (confirmed, unconfirmed, reverse history) */
+export type TxHistoryTable = 'CONFIRMED' | 'UNCONFIRMED' | 'HISTORY';
+
+type AgoraQueryParamVariants =
+    | {
+          type: 'TOKEN_ID';
+          tokenId: string;
+      }
+    | {
+          type: 'GROUP_TOKEN_ID';
+          groupTokenId: string;
+      }
+    | {
+          type: 'PUBKEY';
+          pubkeyHex: string;
+      };
+
+/** Params which Agora txs to query */
+export type AgoraHistoryParams = AgoraQueryParamVariants & {
+    table: TxHistoryTable;
+    page?: number;
+    pageSize?: number;
+};
+
+/** Queried offers from the history */
+export interface AgoraHistoryResult {
+    offers: AgoraOffer[];
+    numTxs: number;
+    numPages: number;
+}
+
 /**
  * Enables access to Agora, via Chronik instances that have the "agora" plugin
  * loaded.
@@ -508,6 +548,95 @@ export class Agora {
         return await this._activeOffersByGroup(PUBKEY_PREFIX + pubkeyHex);
     }
 
+    /**
+     * Query historic offers (paginated)
+     *
+     * These are basically the "candlesticks" of a specific token (and also the
+     * cancelled offers, but those would have to be ignored).
+     * Offers can also be queried by pubkey, giving a history of user's offers.
+     **/
+    public async historicOffers(
+        params: AgoraHistoryParams,
+    ): Promise<AgoraHistoryResult> {
+        let groupHex: string;
+        switch (params.type) {
+            case 'TOKEN_ID':
+                groupHex = TOKEN_ID_PREFIX + params.tokenId;
+                break;
+            case 'GROUP_TOKEN_ID':
+                groupHex = GROUP_TOKEN_ID_PREFIX + params.groupTokenId;
+                break;
+            case 'PUBKEY':
+                groupHex = PUBKEY_PREFIX + params.pubkeyHex;
+                break;
+            default:
+                throw new Error('Unsupported type');
+        }
+        let result: TxHistoryPage;
+        switch (params.table) {
+            case 'CONFIRMED':
+                result = await this.plugin.confirmedTxs(
+                    groupHex,
+                    params.page,
+                    params.pageSize,
+                );
+                break;
+            case 'UNCONFIRMED':
+                result = await this.plugin.unconfirmedTxs(
+                    groupHex,
+                    params.page,
+                    params.pageSize,
+                );
+                break;
+            case 'HISTORY':
+                result = await this.plugin.history(
+                    groupHex,
+                    params.page,
+                    params.pageSize,
+                );
+                break;
+            default:
+                throw new Error('Unsupported table');
+        }
+        const offers = result.txs.flatMap(tx => {
+            return tx.inputs.flatMap(input => {
+                if (
+                    input.plugins === undefined ||
+                    input.plugins[PLUGIN_NAME] === undefined
+                ) {
+                    return [];
+                }
+                const ops = scriptOps(new Script(fromHex(input.inputScript)));
+                // isCanceled is always the last pushop (before redeemScript)
+                const opIsCanceled = ops[ops.length - 2];
+                const isCanceled = opIsCanceled === OP_0;
+                delete input.token?.entryIdx; // UTXO token has no entryIdx
+                const offer = this._parseOfferUtxo(
+                    {
+                        outpoint: input.prevOut,
+                        blockHeight: tx.block?.height ?? -1,
+                        isCoinbase: tx.isCoinbase,
+                        value: input.value,
+                        script: input.outputScript!,
+                        isFinal: false,
+                        plugins: input.plugins,
+                        token: input.token,
+                    },
+                    isCanceled ? 'CANCELED' : 'TAKEN',
+                );
+                if (offer === undefined) {
+                    return [];
+                }
+                return [offer];
+            });
+        });
+        return {
+            offers,
+            numTxs: result.numTxs,
+            numPages: result.numPages,
+        };
+    }
+
     private async _allTokenIdsByPrefix(prefixHex: string): Promise<string[]> {
         let tokenIds: string[] = [];
         let nextStart: string | undefined = undefined;
@@ -532,12 +661,15 @@ export class Agora {
     ): Promise<AgoraOffer[]> {
         const utxos = await this.plugin.utxos(groupHex);
         return utxos.utxos.flatMap(utxo => {
-            const offer = this._parseOfferUtxo(utxo);
+            const offer = this._parseOfferUtxo(utxo, 'OPEN');
             return offer ? [offer] : [];
         });
     }
 
-    private _parseOfferUtxo(utxo: Utxo): AgoraOffer | undefined {
+    private _parseOfferUtxo(
+        utxo: Utxo,
+        status: AgoraOfferStatus,
+    ): AgoraOffer | undefined {
         if (utxo.plugins === undefined) {
             return undefined;
         }
@@ -548,9 +680,9 @@ export class Agora {
         const covenantVariant = plugin.data[0];
         switch (covenantVariant) {
             case ONESHOT_HEX:
-                return this._parseOneshotOfferUtxo(utxo, plugin);
+                return this._parseOneshotOfferUtxo(utxo, plugin, status);
             case PARTIAL_HEX:
-                return this._parsePartialOfferUtxo(utxo, plugin);
+                return this._parsePartialOfferUtxo(utxo, plugin, status);
             default:
                 return undefined;
         }
@@ -559,6 +691,7 @@ export class Agora {
     private _parseOneshotOfferUtxo(
         utxo: Utxo,
         plugin: PluginEntry,
+        status: AgoraOfferStatus,
     ): AgoraOffer | undefined {
         if (utxo.token?.tokenType.protocol !== 'SLP') {
             // Currently only SLP supported
@@ -606,12 +739,14 @@ export class Agora {
                 },
             },
             token: utxo.token,
+            status,
         });
     }
 
     private _parsePartialOfferUtxo(
         utxo: Utxo,
         plugin: PluginEntry,
+        status: AgoraOfferStatus,
     ): AgoraOffer | undefined {
         if (utxo.token === undefined) {
             return undefined;
@@ -679,6 +814,17 @@ export class Agora {
                 },
             },
             token: utxo.token,
+            status,
         });
     }
+}
+
+function scriptOps(script: Script): Op[] {
+    const opsIter = script.ops();
+    const ops: Op[] = [];
+    let op;
+    while ((op = opsIter.next()) !== undefined) {
+        ops.push(op);
+    }
+    return ops;
 }

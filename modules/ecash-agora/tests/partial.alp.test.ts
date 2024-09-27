@@ -581,6 +581,31 @@ describe('AgoraPartial ALP', () => {
                 leftoverTokens.toString(),
             );
             expect(cancelTx.outputs[1].outputScript).to.equal(makerScriptHex);
+
+            // Tx history by token ID
+            const offers = [
+                {
+                    ...offer,
+                    status: 'TAKEN',
+                },
+                {
+                    ...newOffer,
+                    status: 'CANCELED',
+                },
+            ];
+            const actualOffers = await agora.historicOffers({
+                type: 'TOKEN_ID',
+                tokenId: offer.token.tokenId,
+                table: 'UNCONFIRMED',
+            });
+            if (offers[0].status !== actualOffers.offers[0].status) {
+                offers.reverse();
+            }
+            expect(actualOffers).to.deep.equal({
+                offers,
+                numTxs: 3,
+                numPages: 1,
+            });
         });
     }
 });
