@@ -6,3 +6,4 @@ export * from './ad.js';
 export * from './agora.js';
 export * from './consts.js';
 export * from './oneshot.js';
+export * from './partial.js';
