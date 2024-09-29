@@ -160,6 +160,12 @@ void RPCNestedTests::rpcNestedTests() {
                                       "rpcNestedTest(   abc   ,   cba )");
     QVERIFY(result == "[\"abc\",\"cba\"]");
 
+// Handle deprecated macro, can be removed once minimum Qt is at least 6.3.0.
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
+#undef QVERIFY_EXCEPTION_THROWN
+#define QVERIFY_EXCEPTION_THROWN(expression, exceptiontype)                    \
+    QVERIFY_THROWS_EXCEPTION(exceptiontype, expression)
+#endif
     // invalid syntax
     QVERIFY_EXCEPTION_THROWN(RPCConsole::RPCExecuteCommandLine(
                                  m_node, result, "getblockchaininfo() .\n"),
