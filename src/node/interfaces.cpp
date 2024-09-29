@@ -27,6 +27,7 @@
 #include <policy/settings.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
+#include <rpc/blockchain.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
 #include <shutdown.h>
@@ -715,6 +716,11 @@ namespace {
         bool isReadyToBroadcast() override {
             return !chainman().m_blockman.LoadingBlocks() &&
                    !isInitialBlockDownload();
+        }
+        std::optional<int> getPruneHeight() override {
+            LOCK(chainman().GetMutex());
+            return GetPruneHeight(chainman().m_blockman,
+                                  chainman().ActiveChain());
         }
         bool isInitialBlockDownload() override {
             return chainman().IsInitialBlockDownload();

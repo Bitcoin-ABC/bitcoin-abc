@@ -172,10 +172,10 @@ class AssumeutxoTest(BitcoinTestFramework):
             "backup_w2.dat",
         )
 
+        wallet_name = "w1"
+        n1.createwallet(wallet_name, disable_private_keys=True)
         if self.options.descriptors:
             self.log.info("Test loading descriptors during background sync")
-            wallet_name = "w1"
-            n1.createwallet(wallet_name, disable_private_keys=True)
             key = get_generate_key()
             time = n1.getblockchaininfo()["time"]
             timestamp = 0
@@ -191,6 +191,17 @@ class AssumeutxoTest(BitcoinTestFramework):
             result = self.import_descriptor(n1, wallet_name, key, timestamp)
             assert_equal(result[0]["error"]["code"], -1)
             assert_equal(result[0]["error"]["message"], expected_error_message)
+
+        self.log.info(
+            "Test that rescanning blocks from before the snapshot fails when blocks are not available from the background sync yet"
+        )
+        w1 = n1.get_wallet_rpc(wallet_name)
+        assert_raises_rpc_error(
+            -1,
+            "Failed to rescan unavailable blocks likely due to an in-progress assumeutxo background sync. Check logs or getchainstates RPC for assumeutxo background sync progress and try again later.",
+            w1.rescanblockchain,
+            100,
+        )
 
         PAUSE_HEIGHT = FINAL_HEIGHT - 40
 
