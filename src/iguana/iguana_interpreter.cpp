@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <iguana_interpreter.h>
+#include <script/script_error.h>
 #include <script/sigencoding.h>
 #include <streams.h>
 

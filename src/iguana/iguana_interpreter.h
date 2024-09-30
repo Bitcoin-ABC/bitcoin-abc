@@ -8,6 +8,12 @@
 #include <script/interpreter.h>
 #include <script/script.h>
 
+#include <optional>
+#include <string>
+#include <vector>
+
+enum class ScriptError;
+
 struct IguanaStacks {
     std::vector<std::vector<uint8_t>> stack;
     std::vector<std::vector<uint8_t>> altstack;
