@@ -4,14 +4,26 @@
 
 'use strict';
 const config = require('../config');
-const { parseBlockTxs, getBlockTgMessage } = require('./parse');
-const { getCoingeckoPrices } = require('./utils');
+const {
+    parseBlockTxs,
+    getBlockTgMessage,
+    getMinerFromCoinbaseTx,
+    guessRejectReason,
+} = require('./parse');
+const {
+    getCoingeckoPrices,
+    jsonReviver,
+    getNextStakingReward,
+} = require('./utils');
 const { sendBlockSummary } = require('./telegram');
 const {
     getTokenInfoMap,
     getOutputscriptInfoMap,
     getAllBlockTxs,
 } = require('./chronik');
+const knownMinersJson = require('../constants/miners');
+
+const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
 
 module.exports = {
     /**
@@ -62,7 +74,7 @@ module.exports = {
                 );
             } catch (err) {
                 console.log(
-                    `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions})`,
+                    `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions}) called from handleBlockFinalized`,
                     err,
                 );
                 return false;
@@ -112,6 +124,10 @@ module.exports = {
                 ),
             };
         }
+
+        // Don't await, this can take some time to complete due to remote
+        // caching.
+        getNextStakingReward(blockHeight + 1, memoryCache);
 
         // Broadcast block summary telegram message(s)
         return await sendBlockSummary(
@@ -175,7 +191,68 @@ module.exports = {
             );
         } catch (err) {
             console.log(
-                `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions})`,
+                `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions}) called from handleBlockConnected`,
+                err,
+            );
+        }
+    },
+    /**
+     * Handle block invalidated event
+     * @param {ChronikClient} chronik
+     * @param {object} telegramBot
+     * @param {string} channelId
+     * @param {string} blockHash
+     * @param {number} blockHeight
+     * @param {number} blockTimestamp
+     * @param {object} coinbaseData
+     * @param {object} memoryCache
+     */
+    handleBlockInvalidated: async function (
+        chronik,
+        telegramBot,
+        channelId,
+        blockHash,
+        blockHeight,
+        blockTimestamp,
+        coinbaseData,
+        memoryCache,
+    ) {
+        // Set to cache that this block was invalidated
+        await memoryCache.set(`${blockHeight}${blockHash}`, 'BLK_INVALIDATED');
+
+        const miner = getMinerFromCoinbaseTx(
+            coinbaseData.scriptsig,
+            coinbaseData.outputs,
+            miners,
+        );
+
+        const reason = await guessRejectReason(
+            chronik,
+            blockHeight,
+            coinbaseData,
+            memoryCache,
+        );
+
+        const errorTgMsg =
+            `Block invalidated by avalanche\n` +
+            `\n` +
+            `Height: ${blockHeight.toLocaleString('en-US')}\n` +
+            `\n` +
+            `Hash: ${blockHash}` +
+            `\n` +
+            `Timestamp: ${blockTimestamp}\n` +
+            `Mined by ${miner}\n` +
+            `Guessed reject reason: ${reason}`;
+
+        try {
+            return await telegramBot.sendMessage(
+                channelId,
+                errorTgMsg,
+                config.tgMsgOptions,
+            );
+        } catch (err) {
+            console.log(
+                `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions}) called from handleBlockInvalidated`,
                 err,
             );
         }

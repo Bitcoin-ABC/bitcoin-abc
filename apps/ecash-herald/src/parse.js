@@ -28,6 +28,9 @@ const SLP_1_PROTOCOL_NUMBER = 1;
 const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 
+// Miner fund output script
+const minerFundOutputScript = 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
+
 module.exports = {
     /**
      * Parse a finalized block for newsworthy information
@@ -38,8 +41,15 @@ module.exports = {
     parseBlockTxs: function (blockHash, blockHeight, txs) {
         // Parse coinbase string
         const coinbaseTx = txs[0];
-        const miner = module.exports.getMinerFromCoinbaseTx(coinbaseTx, miners);
-        let staker = module.exports.getStakerFromCoinbaseTx(coinbaseTx);
+        const miner = module.exports.getMinerFromCoinbaseTx(
+            coinbaseTx.inputs[0].inputScript,
+            coinbaseTx.outputs,
+            miners,
+        );
+        let staker = module.exports.getStakerFromCoinbaseTx(
+            blockHeight,
+            coinbaseTx.outputs,
+        );
         try {
             staker.staker = cashaddr.encodeOutputScript(staker.staker);
         } catch (err) {
@@ -115,18 +125,17 @@ module.exports = {
             outputScripts,
         };
     },
-    getStakerFromCoinbaseTx: function (coinbaseTx) {
+    getStakerFromCoinbaseTx: function (blockHeight, coinbaseOutputs) {
         const STAKING_ACTIVATION_HEIGHT = 818670;
-        if (coinbaseTx.block.height < STAKING_ACTIVATION_HEIGHT) {
+        if (blockHeight < STAKING_ACTIVATION_HEIGHT) {
             // Do not parse for staking rwds if they are not expected to exist
             return false;
         }
         const STAKING_REWARDS_PERCENT = 10;
-        const { outputs } = coinbaseTx;
-        const totalCoinbaseSats = outputs
+        const totalCoinbaseSats = coinbaseOutputs
             .map(output => parseInt(output.value))
             .reduce((prev, curr) => prev + curr, 0);
-        for (let output of outputs) {
+        for (let output of coinbaseOutputs) {
             const thisValue = parseInt(output.value);
             const minStakerValue = Math.floor(
                 totalCoinbaseSats * STAKING_REWARDS_PERCENT * 0.01,
@@ -152,20 +161,20 @@ module.exports = {
             }
         }
         // If you don't find a staker, don't add it in msg. Can troubleshoot if see this in the app.
-        // This can happen if a miner overpays staking rwds, underpays miner rwds
+        // This can happen if a miner overpays rwds, underpays miner rwds
         return false;
     },
-    getMinerFromCoinbaseTx: function (coinbaseTx, knownMiners) {
-        // get coinbase inputScript
-        const testedCoinbaseScript = coinbaseTx.inputs[0].inputScript;
-
+    getMinerFromCoinbaseTx: function (
+        coinbaseScriptsig,
+        coinbaseOutputs,
+        knownMiners,
+    ) {
         // When you find the miner, minerInfo will come from knownMiners
         let minerInfo = false;
 
         // First, check outputScripts for a known miner
-        const { outputs } = coinbaseTx;
-        for (let i = 0; i < outputs.length; i += 1) {
-            const thisOutputScript = outputs[i].outputScript;
+        for (let i = 0; i < coinbaseOutputs.length; i += 1) {
+            const thisOutputScript = coinbaseOutputs[i].outputScript;
             if (knownMiners.has(thisOutputScript)) {
                 minerInfo = knownMiners.get(thisOutputScript);
                 break;
@@ -177,7 +186,7 @@ module.exports = {
             // Possibly a known miner is using a new address
             knownMiners.forEach(knownMinerInfo => {
                 const { coinbaseHexFragment } = knownMinerInfo;
-                if (testedCoinbaseScript.includes(coinbaseHexFragment)) {
+                if (coinbaseScriptsig.includes(coinbaseHexFragment)) {
                     minerInfo = knownMinerInfo;
                 }
             });
@@ -188,7 +197,7 @@ module.exports = {
             // indentifying by the last chars of the payout address. For now
             // we assume the ordering of outputs such as the miner reward is at
             // the first position.
-            const minerPayoutSript = outputs[0].outputScript;
+            const minerPayoutSript = coinbaseOutputs[0].outputScript;
             try {
                 const minerAddress =
                     cashaddr.encodeOutputScript(minerPayoutSript);
@@ -215,7 +224,7 @@ module.exports = {
                  * i.e. /Mined by 260786/
                  * In ascii, these are encoded with '2f'
                  */
-                const infoHexParts = testedCoinbaseScript.split('2f');
+                const infoHexParts = coinbaseScriptsig.split('2f');
 
                 // Because the characters before and after the info we are looking for could also
                 // contain '2f', we need to find the right part
@@ -2016,5 +2025,109 @@ module.exports = {
         }
 
         return splitOverflowTgMsg(tgMsg);
+    },
+    /**
+     * Guess the reason why an block was invalidated by avalanche
+     * @param {ChronikClient} chronik
+     * @param {number} blockHeight
+     * @param {object} coinbaseData
+     * @param {object} memoryCache
+     * @returns {string} reason
+     */
+    guessRejectReason: async function (
+        chronik,
+        blockHeight,
+        coinbaseData,
+        memoryCache,
+    ) {
+        // Let's guess the reject reason by looking for the common cases in order:
+        //  1. Missing the miner fund output
+        //  2. Missing the staking reward output
+        //  3. Wrong staking reward winner
+        //  4. Normal orphan (another block exists at the same height)
+        //  5. RTT rejection
+        if (typeof coinbaseData === 'undefined') {
+            return undefined;
+        }
+
+        // 1. Missing the miner fund output
+        // This output is a constant so it's easy to look for
+        let hasMinerFundOuptut = false;
+        for (let i = 0; i < coinbaseData.outputs.length; i += 1) {
+            if (
+                coinbaseData.outputs[i].outputScript === minerFundOutputScript
+            ) {
+                hasMinerFundOuptut = true;
+                break;
+            }
+        }
+        if (!hasMinerFundOuptut) {
+            return 'missing miner fund output';
+        }
+
+        // 2. Missing the staking reward output
+        // We checked for missing miner fund output already, so if there are
+        // fewer than 3 outputs we are sure the staking reward is missing
+        if (coinbaseData.outputs.length < 3) {
+            return 'missing staking reward output';
+        }
+
+        // 3. Wrong staking reward winner
+        const expectedWinner = await memoryCache.get(`${blockHeight}`);
+        // We might have failed to fetch the expected winner for this block, in
+        // which case we can't determine if staking reward is the likely cause.
+        if (typeof expectedWinner !== 'undefined') {
+            const { address, scriptHex } = expectedWinner;
+
+            let stakingRewardOutputIndex = -1;
+            for (let i = 0; i < coinbaseData.outputs.length; i += 1) {
+                if (coinbaseData.outputs[i].outputScript === scriptHex) {
+                    stakingRewardOutputIndex = i;
+                    break;
+                }
+            }
+
+            // We didn't find the expected staking reward output
+            if (stakingRewardOutputIndex < 0) {
+                const wrongWinner = module.exports.getStakerFromCoinbaseTx(
+                    blockHeight,
+                    coinbaseData.outputs,
+                );
+
+                if (wrongWinner !== false) {
+                    // Try to show the eCash address and fallback to script hex
+                    // if it is not possible.
+                    if (typeof address !== 'undefined') {
+                        try {
+                            const wrongWinnerAddress =
+                                cashaddr.encodeOutputScript(wrongWinner.staker);
+                            return `wrong staking reward payout (${wrongWinnerAddress} instead of ${address})`;
+                        } catch (err) {
+                            // Fallthrough
+                        }
+                    }
+
+                    return `wrong staking reward payout (${wrongWinner.staker} instead of ${scriptHex})`;
+                }
+            }
+        }
+
+        // 4. Normal orphan (another block exists at the same height)
+        // If chronik returns a block at the same height, assume it orphaned
+        // the current invalidated block. It's very possible the block is not
+        // finalized yet so we have no better way to check it's actually what
+        // happened.
+        try {
+            const blockAtSameHeight = await chronik.block(blockHeight);
+            return `orphaned by block ${blockAtSameHeight.blockInfo.hash}`;
+        } catch (err) {
+            // Block not found, keep guessing
+        }
+
+        // 5. RTT rejection
+        // FIXME There is currently no way to determine if the block was
+        // rejected due to RTT violation.
+
+        return 'unknown';
     },
 };

@@ -9,6 +9,7 @@ const cashaddr = require('ecashaddrjs');
 const unrevivedBlock = require('./mocks/block');
 const { jsonReviver, getCoingeckoApiUrl } = require('../src/utils');
 const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
+const blockInvalidated = require('./mocks/blockInvalidated');
 const {
     initializeWebsocket,
     parseWebsocketMessage,
@@ -62,7 +63,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         // Confirm subscribed to blocks
         assert.deepEqual(result.subs.blocks, true);
     });
-    it('parseWebsocketMessage returns false for a msg other than BLK_CONNECTED or BLK_FINALIZED', async function () {
+    it('parseWebsocketMessage returns false for a msg other than BLK_CONNECTED, BLK_FINALIZED or BLK_INVALIDATED', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
@@ -160,6 +161,15 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         // Mock a successful API request
         mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
 
+        // Mock a successful staking reward API request
+        mock.onGet(config.stakingRewardApiUrl).reply(200, {
+            nextBlockHeight: thisBlock.parsedBlock.height + 1,
+            scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
+            address: cashaddr.encodeOutputScript(
+                thisBlock.blockTxs[0].outputs[2].outputScript,
+            ),
+        });
+
         const result = await parseWebsocketMessage(
             mockedChronik,
             mockWsMsg,
@@ -240,6 +250,15 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         // Mock a failed API request
         mock.onGet(getCoingeckoApiUrl(config)).reply(500, { error: 'error' });
 
+        // Mock a successful staking reward API request
+        mock.onGet(config.stakingRewardApiUrl).reply(200, {
+            nextBlockHeight: thisBlock.parsedBlock.height + 1,
+            scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
+            address: cashaddr.encodeOutputScript(
+                thisBlock.blockTxs[0].outputs[2].outputScript,
+            ),
+        });
+
         const result = await parseWebsocketMessage(
             mockedChronik,
             mockWsMsg,
@@ -317,6 +336,18 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         );
         const channelId = mockChannelId;
 
+        // Mock a successful staking reward API request
+        const mock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+        mock.onGet(config.stakingRewardApiUrl).reply(200, {
+            nextBlockHeight: thisBlock.parsedBlock.height + 1,
+            scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
+            address: cashaddr.encodeOutputScript(
+                thisBlock.blockTxs[0].outputs[2].outputScript,
+            ),
+        });
+
         const result = await parseWebsocketMessage(
             mockedChronik,
             mockWsMsg,
@@ -327,5 +358,45 @@ describe('ecash-herald chronikWsHandler.js', async function () {
 
         // Check that the function returns false
         assert.strictEqual(result, false);
+    });
+    it('parseWebsocketMessage creates and sends a telegram msg for invalidated blocks', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        const thisBlock = block;
+
+        // Mock a chronik websocket msg of correct format
+        const mockWsMsg = {
+            msgType: 'BLK_INVALIDATED',
+            blockHash: thisBlock.blockTxs[0].block.hash,
+            blockHeight: thisBlock.blockTxs[0].block.height,
+            blockTimestamp: thisBlock.blockTxs[0].block.timestamp,
+            coinbaseData: {
+                scriptsig: thisBlock.blockTxs[0].inputs[0].inputScript,
+                outputs: thisBlock.blockTxs[0].outputs,
+            },
+        };
+        const telegramBot = new MockTelegramBot();
+        const channelId = mockChannelId;
+
+        const result = await parseWebsocketMessage(
+            mockedChronik,
+            mockWsMsg,
+            telegramBot,
+            channelId,
+            memoryCache,
+        );
+
+        assert.strictEqual(telegramBot.messageSent, true);
+
+        let msgSuccess = {
+            success: true,
+            channelId,
+            msg: blockInvalidated.tgMsg,
+            options: config.tgMsgOptions,
+        };
+
+        // Check that the correct msg info was sent
+        assert.deepEqual(result, msgSuccess);
     });
 });

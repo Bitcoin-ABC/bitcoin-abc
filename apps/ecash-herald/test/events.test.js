@@ -8,8 +8,13 @@ const config = require('../config');
 const unrevivedBlock = require('./mocks/block');
 const { jsonReviver, getCoingeckoApiUrl } = require('../src/utils');
 const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
+const blockInvalidated = require('./mocks/blockInvalidated');
 const cashaddr = require('ecashaddrjs');
-const { handleBlockConnected, handleBlockFinalized } = require('../src/events');
+const {
+    handleBlockConnected,
+    handleBlockFinalized,
+    handleBlockInvalidated,
+} = require('../src/events');
 const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 const axios = require('axios');
@@ -346,5 +351,41 @@ describe('ecash-herald events.js', async function () {
 
         // Check that the correct msg info was sent
         assert.deepEqual(result, false);
+    });
+    it('handleBlockInvalidated creates and sends a telegram msg upon invalidated blocks', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        const thisBlock = block;
+
+        const telegramBot = new MockTelegramBot();
+        const channelId = mockChannelId;
+
+        const result = await handleBlockInvalidated(
+            mockedChronik,
+            telegramBot,
+            channelId,
+            thisBlock.blockTxs[0].block.hash,
+            thisBlock.blockTxs[0].block.height,
+            thisBlock.blockTxs[0].block.timestamp,
+            {
+                scriptsig: thisBlock.blockTxs[0].inputs[0].inputScript,
+                outputs: thisBlock.blockTxs[0].outputs,
+            },
+            memoryCache,
+        );
+
+        // Check that sendMessage was called successfully
+        assert.strictEqual(telegramBot.messageSent, true);
+
+        let msgSuccess = {
+            success: true,
+            channelId,
+            msg: blockInvalidated.tgMsg,
+            options: config.tgMsgOptions,
+        };
+
+        // Check that the correct msg info was sent
+        assert.deepEqual(result, msgSuccess);
     });
 });

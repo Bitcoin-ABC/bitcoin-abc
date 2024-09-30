@@ -391,4 +391,53 @@ module.exports = {
         }
         return true;
     },
+    /**
+     * Get the expected next staking reward winner and store it in the memory
+     * cache if the returned value targets the expected next block height.
+     * @param {number} nextBlockHeight The next block height
+     * @param {object} memoryCache The cache to store the result
+     */
+    getNextStakingReward: async function (nextBlockHeight, memoryCache) {
+        let retries = 10;
+
+        while (retries > 0) {
+            try {
+                const nextStakingReward = await axios.get(
+                    config.stakingRewardApiUrl,
+                );
+
+                if (
+                    nextStakingReward.data.nextBlockHeight === nextBlockHeight
+                ) {
+                    const { address, scriptHex } = nextStakingReward;
+
+                    const cachedObject = {
+                        scriptHex: scriptHex,
+                    };
+
+                    // Note: address can be undefined
+                    if (typeof address !== 'undefined') {
+                        cachedObject.address = address;
+                    }
+
+                    memoryCache.set(`${nextBlockHeight}`, cachedObject);
+
+                    return true;
+                }
+            } catch (err) {
+                // Fallthrough
+            }
+
+            retries -= 1;
+
+            // Wait for 2 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        console.log(
+            `Failed to fetch the expected staking reward for block ${nextBlockHeight}`,
+        );
+
+        return false;
+    },
 };

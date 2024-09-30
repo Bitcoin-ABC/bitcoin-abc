@@ -25,6 +25,7 @@ module.exports = {
         precision: 8,
     },
     fiatReference: { usd: '$', jpy: '¥', eur: '€', gbp: '£' },
+    stakingRewardApiUrl: 'https://avalanche.cash/api/nextstakingreward',
     ifpAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
     tgMsgOptions: {
         parse_mode: 'HTML',

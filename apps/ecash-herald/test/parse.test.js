@@ -9,11 +9,14 @@ const unrevivedBlock = require('./mocks/block');
 const minersJson = require('../constants/miners');
 const minerTestFixtures = require('./fixtures/miners');
 const stakerTestFixtures = require('./fixtures/stakers');
+const invalidatedBlocksTestFixtures = require('./fixtures/invalidatedBlocks');
 const { jsonReviver } = require('../src/utils');
 const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
 const miners = JSON.parse(JSON.stringify(minersJson), jsonReviver);
 const memoOutputScripts = require('./mocks/memo');
 const { consumeNextPush } = require('ecash-script');
+const { MockChronikClient } = require('../../../modules/mock-chronik-client');
+const { caching } = require('cache-manager');
 
 const {
     parseBlockTxs,
@@ -27,6 +30,7 @@ const {
     getEncryptedCashtabMsg,
     parseMultipushStack,
     parseSlpTwo,
+    guessRejectReason,
 } = require('../src/parse');
 const {
     swaps,
@@ -288,8 +292,15 @@ describe('parse.js functions', function () {
     });
     it('getStakerFromCoinbaseTx parses miner for all test vectors', function () {
         for (let i = 0; i < stakerTestFixtures.length; i += 1) {
-            let { coinbaseTx, staker } = stakerTestFixtures[i];
-            assert.deepEqual(getStakerFromCoinbaseTx(coinbaseTx), staker);
+            const { coinbaseTx, staker } = stakerTestFixtures[i];
+
+            assert.deepEqual(
+                getStakerFromCoinbaseTx(
+                    coinbaseTx.block.height,
+                    coinbaseTx.outputs,
+                ),
+                staker,
+            );
         }
     });
     it('getMinerFromCoinbaseTx parses miner for all test vectors', function () {
@@ -297,14 +308,42 @@ describe('parse.js functions', function () {
             const { parsed, coinbaseHex, payoutOutputScript } =
                 minerTestFixtures[i];
             // Minimally mock the coinbase tx
-            const thisCoinbaseTx = {
-                inputs: [{ inputScript: coinbaseHex }],
-                outputs: [{ outputScript: payoutOutputScript }],
-            };
+            const inputScript = coinbaseHex;
+            const outputs = [{ outputScript: payoutOutputScript }];
 
             assert.strictEqual(
-                getMinerFromCoinbaseTx(thisCoinbaseTx, miners),
+                getMinerFromCoinbaseTx(inputScript, outputs, miners),
                 parsed,
+            );
+        }
+    });
+    it('guessRejectReason returns the expected guess for all test vectors', async function () {
+        for (let i = 0; i < invalidatedBlocksTestFixtures.length; i += 1) {
+            const {
+                height,
+                coinbaseData,
+                expectedRejectReason,
+                expectedCacheData,
+                mockedBlock,
+            } = invalidatedBlocksTestFixtures[i];
+
+            const mockedChronik = new MockChronikClient();
+            mockedChronik.mockedResponses.block = mockedBlock;
+
+            const testMemoryCache = await caching('memory', {
+                max: 100,
+                ttl: 60,
+            });
+            testMemoryCache.set(`${height}`, expectedCacheData);
+
+            assert.strictEqual(
+                await guessRejectReason(
+                    mockedChronik,
+                    height,
+                    coinbaseData,
+                    testMemoryCache,
+                ),
+                expectedRejectReason,
             );
         }
     });

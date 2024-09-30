@@ -3,7 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const { handleBlockConnected, handleBlockFinalized } = require('./events');
+const {
+    handleBlockConnected,
+    handleBlockFinalized,
+    handleBlockInvalidated,
+} = require('./events');
 
 module.exports = {
     initializeWebsocket: async function (
@@ -39,8 +43,16 @@ module.exports = {
         memoryCache,
     ) {
         // Get height and msg type
-        // Note that herald only subscribes to blocks, so only MsgBlockClient is expected here
-        const { msgType, blockHeight, blockHash } = wsMsg;
+        // Note 1: herald only subscribes to blocks, so only MsgBlockClient is expected here
+        // Note 2: blockTimestamp and coinbaseData might be undefined, they are
+        //         introduced in chronik v0.30.0 and client version 1.3.0
+        const {
+            msgType,
+            blockHeight,
+            blockHash,
+            blockTimestamp,
+            coinbaseData,
+        } = wsMsg;
 
         switch (msgType) {
             case 'BLK_CONNECTED': {
@@ -60,6 +72,18 @@ module.exports = {
                     channelId,
                     blockHash,
                     blockHeight,
+                    memoryCache,
+                );
+            }
+            case 'BLK_INVALIDATED': {
+                return handleBlockInvalidated(
+                    chronik,
+                    telegramBot,
+                    channelId,
+                    blockHash,
+                    blockHeight,
+                    blockTimestamp,
+                    coinbaseData,
                     memoryCache,
                 );
             }
