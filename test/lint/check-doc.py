@@ -51,7 +51,6 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-chronikcors",
     "-dbcrashratio",
     "-enableminerfund",
-    "-enablertt",
     "-forcecompactdb",
     "-maxaddrtosend",
     "-parkdeepreorg",

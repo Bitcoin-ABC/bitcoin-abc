@@ -7,6 +7,7 @@
 #include <arith_uint256.h>
 #include <blockindex.h>
 #include <common/args.h>
+#include <consensus/activation.h>
 #include <consensus/params.h>
 #include <logging.h>
 #include <pow/pow.h>
@@ -18,11 +19,11 @@
 #include <cmath>
 
 bool RTTPolicy::operator()(BlockPolicyValidationState &state) {
-    if (!gArgs.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT)) {
+    if (!m_blockIndex.pprev) {
         return true;
     }
 
-    if (!m_blockIndex.pprev) {
+    if (!isRTTEnabled(m_consensusParams, m_blockIndex.pprev)) {
         return true;
     }
 
@@ -141,4 +142,9 @@ GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
     }
 
     return nextTarget.GetCompact();
+}
+
+bool isRTTEnabled(const Consensus::Params &params, const CBlockIndex *pprev) {
+    return IsAugustoEnabled(params, pprev) &&
+           gArgs.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT);
 }

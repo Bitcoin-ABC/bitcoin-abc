@@ -824,8 +824,8 @@ static RPCHelpMan getblocktemplate() {
                      "The height of the next block"},
                     {RPCResult::Type::OBJ,
                      "rtt",
-                     "The real-time target parameters. Only present if "
-                     "-enablertt is set",
+                     "The real-time target parameters. Only present after the "
+                     "Nov. 15, 2024 upgrade activated and if -enablertt is set",
                      {
                          {RPCResult::Type::ARR,
                           "prevheadertime",
@@ -855,7 +855,6 @@ static RPCHelpMan getblocktemplate() {
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
-            ArgsManager &argsman = EnsureArgsman(node);
             LOCK(cs_main);
 
             const CChainParams &chainparams = config.GetChainParams();
@@ -1168,7 +1167,7 @@ static RPCHelpMan getblocktemplate() {
             result.pushKV("bits", strprintf("%08x", pblock->nBits));
             result.pushKV("height", int64_t(pindexPrev->nHeight) + 1);
 
-            if (argsman.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT)) {
+            if (isRTTEnabled(consensusParams, pindexPrev)) {
                 // Compute the target for RTT
                 uint32_t nextTarget = pblock->nBits;
                 if (!consensusParams.fPowAllowMinDifficultyBlocks ||

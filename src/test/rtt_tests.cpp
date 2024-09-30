@@ -9,6 +9,7 @@
 #include <blockindex.h>
 #include <chainparams.h>
 #include <common/args.h>
+#include <consensus/activation.h>
 #include <pow/pow.h>
 #include <random.h>
 #include <util/time.h>
@@ -292,14 +293,22 @@ BOOST_AUTO_TEST_CASE(rtt_policy) {
     int64_t now = GetTime();
     SetMockTime(now);
 
+    int64_t activation = now - 100000;
+    BOOST_CHECK(activation > 0);
+    gArgs.ForceSetArg("-augustoactivationtime", strprintf("%d", activation));
+
     arith_uint256 prevWork = UintToArith256(consensusParams.powLimit) >> 10;
     std::vector<CBlockIndex> blocks(18);
     CBlockIndex *lastBlock = &blocks[0];
     for (auto &block : blocks) {
         block.nTimeReceived = now - 18000;
+        block.nTime = activation;
         lastBlock->pprev = &block;
         lastBlock = &block;
     }
+
+    BOOST_CHECK(IsAugustoEnabled(consensusParams, &blocks[0]));
+
     blocks[1].nBits = prevWork.GetCompact();
     BlockHash hash{ArithToUint256(prevWork)};
     blocks[0].phashBlock = &hash;
@@ -352,6 +361,7 @@ BOOST_AUTO_TEST_CASE(rtt_policy) {
     }
 
     gArgs.ClearForcedArg("-enablertt");
+    gArgs.ClearForcedArg("-augustoactivationtime");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

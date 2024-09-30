@@ -2,12 +2,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test dumping/loading the headers receive time to/from file."""
-import time
-
 from test_framework.messages import uint256_from_compact
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than
+
+THE_FUTURE = 2000000000
 
 
 class PersistHeadersTimeTest(BitcoinTestFramework):
@@ -17,14 +17,15 @@ class PersistHeadersTimeTest(BitcoinTestFramework):
             [
                 "-enablertt=1",
                 "-persistrecentheaderstime=1",
+                f"-augustoactivationtime={THE_FUTURE}",
             ]
         ]
 
     def run_test(self):
         node = self.nodes[0]
-        now = int(time.time())
-
         node.add_p2p_connection(P2PInterface())
+
+        now = THE_FUTURE
         node.setmocktime(now)
 
         # RTT should kick in after this block
@@ -49,10 +50,9 @@ class PersistHeadersTimeTest(BitcoinTestFramework):
             "After a restart with -persistrecentheaderstime=1 the headers are read back from the file and the RTT is computed"
         )
 
-        self.restart_node(0)
+        self.restart_node(0, extra_args=self.extra_args[0] + [f"-mocktime={now}"])
 
         node.add_p2p_connection(P2PInterface())
-        node.setmocktime(now)
 
         gbt_restart = node.getblocktemplate()
         assert_equal(gbt_restart["previousblockhash"], tip)
@@ -69,11 +69,11 @@ class PersistHeadersTimeTest(BitcoinTestFramework):
             extra_args=[
                 "-enablertt=1",
                 "-persistrecentheaderstime=0",
+                f"-mocktime={now}",
             ],
         )
 
         node.add_p2p_connection(P2PInterface())
-        node.setmocktime(now)
 
         gbt_nopersist = node.getblocktemplate()
         assert_equal(gbt_nopersist["previousblockhash"], tip)

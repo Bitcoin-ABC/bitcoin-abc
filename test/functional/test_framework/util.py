@@ -473,6 +473,7 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
         f.write("keypool=1\n")
         f.write("discover=0\n")
         f.write("dnsseed=0\n")
+        f.write("enablertt=0\n")
         f.write("fixedseeds=0\n")
         f.write("listenonion=0\n")
         f.write("printtoconsole=0\n")

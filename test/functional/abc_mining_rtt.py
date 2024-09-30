@@ -6,7 +6,6 @@ Tests for Bitcoin ABC mining with heartbeat
 """
 
 import threading
-import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import uint256_from_compact
@@ -21,6 +20,7 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2000000000
 
 
 class LongpollThread(threading.Thread):
@@ -52,6 +52,7 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
+                f"-augustoactivationtime={THE_FUTURE}",
             ],
         ]
 
@@ -60,7 +61,7 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
 
         node.add_p2p_connection(P2PInterface())
 
-        now = int(time.time())
+        now = THE_FUTURE
         node.setmocktime(now)
 
         self.log.info("Check the block template is updated with the relevant RTT info")

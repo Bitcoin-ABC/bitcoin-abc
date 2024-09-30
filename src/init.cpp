@@ -55,6 +55,7 @@
 #include <node/peerman_args.h>
 #include <node/ui_interface.h>
 #include <node/validation_cache_args.h>
+#include <policy/block/rtt.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <rpc/blockchain.h>
@@ -470,7 +471,6 @@ void SetupServerArgs(NodeContext &node) {
         "-uiplatform",
         // TODO remove after the Nov. 2024 upgrade
         "-augustoactivationtime",
-        "-enablertt",
     };
 
     // Set all of the args and their help
@@ -1432,6 +1432,11 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-avasessionkey", "Avalanche session key (default: random)",
                    ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
                    OptionsCategory::HIDDEN);
+    argsman.AddArg("-enablertt",
+                   strprintf("Whether to enforce Real Time Targeting via "
+                             "Avalanche, default (%u)",
+                             DEFAULT_ENABLE_RTT),
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-maxavalancheoutbound",
         strprintf(

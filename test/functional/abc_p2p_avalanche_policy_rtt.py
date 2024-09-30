@@ -2,8 +2,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the real time targeting policy."""
-import time
-
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import AvalancheVote, AvalancheVoteError, ToHex
@@ -12,6 +10,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2000000000
 
 
 class AvalancheRTTTest(BitcoinTestFramework):
@@ -27,6 +26,7 @@ class AvalancheRTTTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
+                f"-augustoactivationtime={THE_FUTURE}",
             ],
             [],
         ]
@@ -34,8 +34,11 @@ class AvalancheRTTTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        now = int(time.time()) - 10000
-        node.setmocktime(now)
+        def set_mocktimes(t):
+            [n.setmocktime(t) for n in self.nodes]
+
+        now = THE_FUTURE
+        set_mocktimes(now)
 
         node.add_p2p_connection(P2PInterface())
         self.nodes[1].add_p2p_connection(P2PInterface())
@@ -53,7 +56,7 @@ class AvalancheRTTTest(BitcoinTestFramework):
             quorum = []
             for _ in range(QUORUM_NODE_COUNT):
                 now += 600
-                node.setmocktime(now)
+                set_mocktimes(now)
                 quorum.append(get_ava_p2p_interface(self, node))
 
             return quorum
@@ -121,14 +124,13 @@ class AvalancheRTTTest(BitcoinTestFramework):
 
         self.log.info("Check the node accept blocks that match RTT")
         # Elapse enough time for the the difficulty to settle back to regtest
-        # target. We stop at 1h to avoid blocks too far in the future that would
-        # prevent node1 from catching up and node0 from restarting.
+        # target.
         # For the starting difftime, the limiting factor is the 5 blocks window
         # here which enforces >= 1836s with RTT_K=6 to not get RTT in the way.
         ref_time = now
-        for t in (636, 1800, 3600):
+        for t in (636, 1800, 3600, 3600 * 12):
             now = ref_time + t
-            node.setmocktime(now)
+            set_mocktimes(now)
             assert_equal(int(node.getblocktemplate()["bits"], 16), 0x207FFFFF)
             check_and_accept_new_block(node.getbestblockhash(), True)
 
@@ -140,7 +142,7 @@ class AvalancheRTTTest(BitcoinTestFramework):
         self.stop_node(0)
         self.generate(self.nodes[1], 20, sync_fun=self.no_op)
 
-        self.start_node(0, extra_args=self.extra_args[0])
+        self.start_node(0, extra_args=self.extra_args[0] + [f"-mocktime={now}"])
         self.connect_nodes(0, 1)
         self.sync_blocks()
 
