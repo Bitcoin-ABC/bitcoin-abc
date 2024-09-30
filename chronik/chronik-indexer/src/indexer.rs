@@ -27,9 +27,9 @@ use chronik_db::{
         merge,
         token::{ProcessedTokenTxBatch, TokenWriter},
         BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
-        DbBlock, GroupHistoryMemData, GroupUtxoMemData, MetadataReader,
-        MetadataWriter, SchemaVersion, SpentByWriter, TxEntry, TxNum, TxReader,
-        TxWriter, UpgradeWriter,
+        DbBlock, GroupHistoryMemData, GroupHistorySettings, GroupUtxoMemData,
+        MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
+        TxNum, TxReader, TxWriter, UpgradeWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
     plugins::{PluginMeta, PluginsGroup, PluginsReader, PluginsWriter},
@@ -67,12 +67,16 @@ pub struct ChronikIndexerParams {
     pub enable_token_index: bool,
     /// Whether Chronik should index txs by LOKAD ID.
     pub enable_lokad_id_index: bool,
+    /// Whether Chronik should index scripts by script hash.
+    pub enable_scripthash_index: bool,
     /// Whether to output Chronik performance statistics into a perf/ folder
     pub enable_perf_stats: bool,
     /// Settings for tuning TxNumCache.
     pub tx_num_cache: TxNumCacheSettings,
     /// Plugin context
     pub plugin_ctx: Arc<PluginContext>,
+    /// Settings for script history indexing
+    pub script_history: GroupHistorySettings,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
@@ -90,6 +94,7 @@ pub struct ChronikIndexer {
     /// Whether the LOKAD ID index needs to be reindexed, will be set to
     /// `false` after it caught up with the rest of Chronik.
     needs_lokad_id_reindex: bool,
+    needs_scripthash_reindex: bool,
     plugin_ctx: Arc<PluginContext>,
     plugin_name_map: PluginNameMap,
     block_merkle_tree: Mutex<BlockMerkleTree>,
@@ -268,6 +273,11 @@ impl ChronikIndexer {
             is_db_empty,
             params.enable_lokad_id_index,
         )?;
+        let needs_scripthash_reindex = verify_scripthash_index(
+            &db,
+            is_db_empty,
+            params.enable_scripthash_index,
+        )?;
         upgrade_db_if_needed(
             &db,
             schema_version,
@@ -287,12 +297,14 @@ impl ChronikIndexer {
             params.enable_token_index,
             params.enable_lokad_id_index,
         );
+        let mem_data = MemData::new(MemDataConf {
+            tx_num_cache: params.tx_num_cache,
+            script_history: params.script_history,
+        });
         Ok(ChronikIndexer {
             db,
             mempool,
-            mem_data: MemData::new(MemDataConf {
-                tx_num_cache: params.tx_num_cache,
-            }),
+            mem_data,
             script_group: ScriptGroup,
             avalanche: Avalanche::default(),
             subs: RwLock::new(Subs::new(ScriptGroup)),
@@ -300,6 +312,7 @@ impl ChronikIndexer {
             is_token_index_enabled: params.enable_token_index,
             is_lokad_id_index_enabled: params.enable_lokad_id_index,
             needs_lokad_id_reindex,
+            needs_scripthash_reindex,
             plugin_ctx: params.plugin_ctx,
             plugin_name_map,
             block_merkle_tree: Mutex::new(BlockMerkleTree::new()),
@@ -350,6 +363,10 @@ impl ChronikIndexer {
         if self.needs_lokad_id_reindex {
             self.reindex_lokad_id_index(bridge, node_tip_index, start_height)?;
             self.needs_lokad_id_reindex = false;
+        }
+        if self.needs_scripthash_reindex {
+            self.reindex_scripthash_index(bridge)?;
+            self.needs_scripthash_reindex = false;
         }
         let tip_height = node_tip_info.height;
         for height in start_height + 1..=tip_height {
@@ -478,6 +495,42 @@ impl ChronikIndexer {
         metadata_writer.update_is_lokad_id_index_enabled(&mut batch, true)?;
         self.db.write_batch(batch)?;
 
+        Ok(())
+    }
+
+    fn reindex_scripthash_index(
+        &mut self,
+        bridge: &ffi::ChronikBridge,
+    ) -> Result<()> {
+        let script_history_writer =
+            ScriptHistoryWriter::new(&self.db, ScriptGroup)?;
+        let metadata_writer = MetadataWriter::new(&self.db)?;
+
+        // First, wipe the scripthash index
+        let mut batch = WriteBatch::default();
+        script_history_writer.wipe_member_hash(&mut batch);
+        self.db.write_batch(batch)?;
+
+        script_history_writer.reindex_member_hash(decompress_script, || {
+            bridge.shutdown_requested()
+        })?;
+
+        let mut batch = WriteBatch::default();
+        // If the user requested a shutdown, it is very unlikely that the
+        // reindexing completed successfully. We don't set the flag to true,
+        // to trigger a full scripthash reindex on next restart if
+        // -chronikscripthashindex=1 is still set.
+        // We also wipe the db now to be sure to not keep a useless partial
+        // index on disk in case -chronikscripthashindex=0 is set on next
+        // restart.
+        if bridge.shutdown_requested() {
+            script_history_writer.wipe_member_hash(&mut batch);
+            self.db.write_batch(batch)?;
+            return Ok(());
+        }
+
+        metadata_writer.update_is_scripthash_index_enabled(&mut batch, true)?;
+        self.db.write_batch(batch)?;
         Ok(())
     }
 
@@ -1213,6 +1266,45 @@ fn verify_lokad_id_index(
     Ok(false)
 }
 
+/// Verify user config and DB are in sync. Returns whether the scripthash index
+/// needs to be reindexed.
+fn verify_scripthash_index(
+    db: &Db,
+    is_db_empty: bool,
+    enable: bool,
+) -> Result<bool> {
+    let metadata_reader = MetadataReader::new(db)?;
+    let metadata_writer = MetadataWriter::new(db)?;
+    let script_history_writer = ScriptHistoryWriter::new(db, ScriptGroup)?;
+    let is_enabled_db = metadata_reader
+        .is_scripthash_index_enabled()?
+        .unwrap_or(false);
+    let mut batch = WriteBatch::default();
+    if !is_db_empty {
+        if enable && !is_enabled_db {
+            // DB non-empty without scripthash index, but index enabled ->
+            // reindex
+            return Ok(true);
+        }
+        if !enable && is_enabled_db {
+            // Otherwise, the scripthash index has been enabled and now
+            // specified to be disabled, so we wipe the index.
+            log!(
+                "Warning: Wiping existing scripthash index, since \
+                 -chronikscripthashindex=0\n"
+            );
+            log!(
+                "You will need to specify -chronikscripthashindex=1 to \
+                 restore\n"
+            );
+            script_history_writer.wipe_member_hash(&mut batch);
+        }
+    }
+    metadata_writer.update_is_scripthash_index_enabled(&mut batch, enable)?;
+    db.write_batch(batch)?;
+    Ok(false)
+}
+
 fn update_plugins_index(
     db: &Db,
     plugin_ctx: &PluginContext,
@@ -1372,6 +1464,10 @@ fn verify_plugin_desynced_tx_num(
     Ok(min_tx_num)
 }
 
+fn decompress_script(script: &[u8]) -> Result<Vec<u8>> {
+    Ok(chronik_bridge::ffi::decompress_script(script)?)
+}
+
 impl Node {
     /// If `result` is [`Err`], logs and aborts the node.
     pub fn ok_or_abort<T>(&self, func_name: &str, result: Result<T>) {
@@ -1426,9 +1522,11 @@ mod tests {
             wipe_db: false,
             enable_token_index: false,
             enable_lokad_id_index: false,
+            enable_scripthash_index: false,
             enable_perf_stats: false,
             tx_num_cache: Default::default(),
             plugin_ctx: Default::default(),
+            script_history: Default::default(),
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
@@ -1507,9 +1605,11 @@ mod tests {
             wipe_db: false,
             enable_token_index: false,
             enable_lokad_id_index: false,
+            enable_scripthash_index: false,
             enable_perf_stats: false,
             tx_num_cache: Default::default(),
             plugin_ctx: Default::default(),
+            script_history: Default::default(),
         };
 
         // Setting up DB first time sets the schema version

@@ -103,11 +103,16 @@ impl Group for TokenIdGroup {
         member.to_be_bytes()
     }
 
+    fn ser_hash_member(&self, _member: &Self::Member<'_>) -> [u8; 32] {
+        unimplemented!("There is no use case for hashing TokenIdGroup")
+    }
+
     fn tx_history_conf() -> GroupHistoryConf {
         GroupHistoryConf {
             cf_page_name: CF_TOKEN_ID_HISTORY,
             cf_num_txs_name: CF_TOKEN_ID_HISTORY_NUM_TXS,
             page_size: 1000,
+            cf_member_hash_name: None,
         }
     }
 

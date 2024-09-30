@@ -66,6 +66,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .wipe_db = fWipe,
         .enable_token_index = args.GetBoolArg("-chroniktokenindex", true),
         .enable_lokad_id_index = args.GetBoolArg("-chroniklokadidindex", true),
+        .enable_scripthash_index =
+            args.GetBoolArg("-chronikscripthashindex", false),
         .is_pause_allowed = is_pause_allowed,
         .enable_perf_stats = args.GetBoolArg("-chronikperfstats", false),
         .ws_ping_interval_secs =

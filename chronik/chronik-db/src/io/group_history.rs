@@ -5,6 +5,8 @@
 use std::{collections::BTreeMap, marker::PhantomData, time::Instant};
 
 use abc_rust_error::Result;
+use bitcoinsuite_core::hash::{Hashed, Sha256};
+use chronik_util::log;
 use rocksdb::WriteBatch;
 use thiserror::Error;
 
@@ -36,12 +38,16 @@ pub struct GroupHistoryConf {
     pub cf_num_txs_name: &'static str,
     /// Page size for each member of the group.
     pub page_size: NumTxs,
+    /// Column family to store a mapping from member_hash -> ser_member
+    /// Currently only used for ScriptGroup for the ElectrumX API.
+    pub cf_member_hash_name: Option<&'static str>,
 }
 
 struct GroupHistoryColumn<'a> {
     db: &'a Db,
     cf_page: &'a CF,
     cf_num_txs: &'a CF,
+    cf_member_hash: Option<&'a CF>,
 }
 
 /// Write txs grouped and paginated to the DB.
@@ -76,11 +82,20 @@ pub struct GroupHistoryReader<'a, G: Group> {
     phantom: PhantomData<G>,
 }
 
+/// Settings for group history.
+#[derive(Clone, Debug, Default)]
+pub struct GroupHistorySettings {
+    /// Whether to index scripts by scripthash
+    pub is_member_hash_index_enabled: bool,
+}
+
 /// In-memory data for the tx history.
 #[derive(Debug, Default)]
 pub struct GroupHistoryMemData {
     /// Stats about cache hits, num requests etc.
     pub stats: GroupHistoryStats,
+    /// Whether to index scripts by scripthash
+    pub is_member_hash_index_enabled: bool,
 }
 
 /// Stats about cache hits, num requests etc.
@@ -174,10 +189,15 @@ impl<'a> GroupHistoryColumn<'a> {
     fn new(db: &'a Db, conf: &GroupHistoryConf) -> Result<Self> {
         let cf_page = db.cf(conf.cf_page_name)?;
         let cf_num_txs = db.cf(conf.cf_num_txs_name)?;
+        let cf_member_hash = conf
+            .cf_member_hash_name
+            .map(|name| db.cf(name))
+            .transpose()?;
         Ok(GroupHistoryColumn {
             db,
             cf_page,
             cf_num_txs,
+            cf_member_hash,
         })
     }
 
@@ -213,12 +233,26 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     ) -> Result<()> {
         let t_start = Instant::now();
         let fetched = self.fetch_members_num_txs(txs, aux, mem_data)?;
-        for ((mut new_tx_nums, member_ser), mut num_txs) in fetched
+        for (((member, mut new_tx_nums), member_ser), mut num_txs) in fetched
             .grouped_txs
-            .into_values()
+            .into_iter()
             .zip(fetched.ser_members)
             .zip(fetched.members_num_txs)
         {
+            // The member hash index can only be enabled for ScriptGroup. For
+            // other groups cf_member_hash will be None.
+            if let Some(cf_member_hash) = self.col.cf_member_hash {
+                // The is_member_hash_index_enabled flag is controlled by an
+                // init flag so users can enable or disable this
+                // index.
+                if num_txs == 0 && mem_data.is_member_hash_index_enabled {
+                    batch.put_cf(
+                        cf_member_hash,
+                        self.group.ser_hash_member(&member),
+                        member_ser.as_ref(),
+                    );
+                }
+            }
             let mut page_num = num_txs / self.conf.page_size;
             let mut last_page_num_txs = num_txs % self.conf.page_size;
             loop {
@@ -259,11 +293,12 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     ) -> Result<()> {
         let t_start = Instant::now();
         let fetched = self.fetch_members_num_txs(txs, aux, mem_data)?;
-        for ((mut removed_tx_nums, member_ser), mut num_txs) in fetched
-            .grouped_txs
-            .into_values()
-            .zip(fetched.ser_members)
-            .zip(fetched.members_num_txs)
+        for (((member, mut removed_tx_nums), member_ser), mut num_txs) in
+            fetched
+                .grouped_txs
+                .into_iter()
+                .zip(fetched.ser_members)
+                .zip(fetched.members_num_txs)
         {
             let mut num_remaining_removes = removed_tx_nums.len();
             let mut page_num = num_txs / self.conf.page_size;
@@ -301,6 +336,14 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
                             self.col.cf_num_txs,
                             member_ser.as_ref(),
                         );
+                        if let Some(cf_member_hash) = self.col.cf_member_hash {
+                            if mem_data.is_member_hash_index_enabled {
+                                batch.delete_cf(
+                                    cf_member_hash,
+                                    self.group.ser_hash_member(&member),
+                                );
+                            }
+                        }
                     }
                     break;
                 }
@@ -320,13 +363,22 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         batch.delete_range_cf(self.col.cf_num_txs, [].as_ref(), &[0xff; 16]);
     }
 
+    /// Clear member_hash data from the DB
+    pub fn wipe_member_hash(&self, batch: &mut WriteBatch) {
+        batch.delete_range_cf(
+            self.col.cf_member_hash.unwrap(),
+            [].as_ref(),
+            &[0xff; 32],
+        );
+    }
+
     fn fetch_members_num_txs<'tx>(
         &self,
         txs: &'tx [IndexTx<'tx>],
         aux: &G::Aux,
         mem_data: &mut GroupHistoryMemData,
     ) -> Result<FetchedNumTxs<'tx, G>> {
-        let GroupHistoryMemData { stats } = mem_data;
+        let GroupHistoryMemData { stats, .. } = mem_data;
         let t_group = Instant::now();
         let grouped_txs = self.group_txs(txs, aux);
         stats.t_group += t_group.elapsed().as_secs_f64();
@@ -408,6 +460,70 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
             conf.cf_num_txs_name,
             rocksdb::Options::default(),
         ));
+        if let Some(cf_member_hash_name) = conf.cf_member_hash_name {
+            columns.push(rocksdb::ColumnFamilyDescriptor::new(
+                cf_member_hash_name,
+                rocksdb::Options::default(),
+            ));
+        }
+    }
+
+    /// Compute the script hash index
+    pub fn reindex_member_hash(
+        &self,
+        decompress_script: fn(&[u8]) -> Result<Vec<u8>>,
+        shutdown_requested: impl Fn() -> bool,
+    ) -> Result<()> {
+        if self.col.cf_member_hash.is_none() {
+            return Ok(());
+        }
+
+        log!("Writing Chronik scripthash index.\n");
+        let t_start = Instant::now();
+        let estimated_num_keys = self
+            .col
+            .db
+            .estimate_num_keys(self.col.cf_num_txs)?
+            .unwrap_or(0);
+        let mut batch = WriteBatch::default();
+        for (db_idx, num_txs_ser) in
+            self.col.db.full_iterator(self.col.cf_num_txs).enumerate()
+        {
+            if db_idx % 10000 == 0 && shutdown_requested() {
+                log!("Cancelled script hash reindexing before it completed.\n");
+                return Ok(());
+            }
+            let (compressed_script, _num_tx_ser) = num_txs_ser?;
+            let script = decompress_script(&compressed_script)?;
+            let scripthash = Sha256::digest(&script).to_be_bytes();
+            batch.put_cf(
+                self.col.cf_member_hash.unwrap(),
+                scripthash,
+                compressed_script,
+            );
+
+            if db_idx % 1000000 == 0 {
+                log!("Upgraded {db_idx} of {estimated_num_keys} (estimated)\n");
+                self.col.db.write_batch_without_wal(batch)?;
+                batch = WriteBatch::default();
+            }
+        }
+        self.col.db.write_batch_without_wal(batch)?;
+        let duration = t_start.elapsed().as_secs_f64();
+        log!("Upgrade for scripthash index complete in {duration} seconds\n");
+        Ok(())
+    }
+}
+
+impl GroupHistoryMemData {
+    /// Create a new [`GroupHistoryMemData`] using the given
+    /// [`GroupHistorySettings`].
+    pub fn new(settings: GroupHistorySettings) -> Self {
+        let stats = GroupHistoryStats::default();
+        GroupHistoryMemData {
+            stats,
+            is_member_hash_index_enabled: settings.is_member_hash_index_enabled,
+        }
     }
 }
 

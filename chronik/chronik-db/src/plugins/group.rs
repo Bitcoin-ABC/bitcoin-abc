@@ -119,11 +119,16 @@ impl Group for PluginsGroup {
         member.to_vec()
     }
 
+    fn ser_hash_member(&self, _member: &Self::Member<'_>) -> [u8; 32] {
+        unimplemented!("There is no known use case for hashing PluginsGroup")
+    }
+
     fn tx_history_conf() -> GroupHistoryConf {
         GroupHistoryConf {
             cf_page_name: CF_PLUGIN_HISTORY,
             cf_num_txs_name: CF_PLUGIN_HISTORY_NUM_TXS,
             page_size: 1000,
+            cf_member_hash_name: None,
         }
     }
 

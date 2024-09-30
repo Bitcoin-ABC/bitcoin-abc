@@ -17,7 +17,9 @@ use bitcoinsuite_core::{
     tx::{Tx, TxId},
 };
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
-use chronik_db::{index_tx::TxNumCacheSettings, mem::MempoolTx};
+use chronik_db::{
+    index_tx::TxNumCacheSettings, io::GroupHistorySettings, mem::MempoolTx,
+};
 use chronik_http::server::{
     ChronikServer, ChronikServerParams, ChronikSettings,
 };
@@ -96,12 +98,16 @@ fn try_setup_chronik(
             wipe_db: params.wipe_db,
             enable_token_index: params.enable_token_index,
             enable_lokad_id_index: params.enable_lokad_id_index,
+            enable_scripthash_index: params.enable_scripthash_index,
             enable_perf_stats: params.enable_perf_stats,
             tx_num_cache: TxNumCacheSettings {
                 bucket_size: params.tx_num_cache.bucket_size,
                 num_buckets: params.tx_num_cache.num_buckets,
             },
             plugin_ctx: Arc::new(plugin_ctx),
+            script_history: GroupHistorySettings {
+                is_member_hash_index_enabled: params.enable_scripthash_index,
+            },
         },
         |file_num, data_pos, undo_pos| {
             Ok(Tx::from(bridge_ref.load_tx(file_num, data_pos, undo_pos)?))

@@ -22,6 +22,9 @@ pub const FIELD_TOKEN_INDEX_ENABLED: &[u8] = b"TOKEN_INDEX_ENABLED";
 /// Field in the `meta` cf whether Chronik had the LOKAD ID index enabled
 pub const FIELD_LOKAD_ID_INDEX_ENABLED: &[u8] = b"LOKAD_ID_INDEX_ENABLED";
 
+/// Field in the `meta` cf whether Chronik had the script hash index enabled
+pub const FIELD_SCRIPTHASH_INDEX_ENABLED: &[u8] = b"SCRIPTHASH_INDEX_ENABLED";
+
 /// Write database metadata
 pub struct MetadataWriter<'a> {
     cf: &'a CF,
@@ -82,6 +85,21 @@ impl<'a> MetadataWriter<'a> {
         Ok(())
     }
 
+    /// Update the flag storing whether the scripthash index is enabled in the
+    /// DB
+    pub fn update_is_scripthash_index_enabled(
+        &self,
+        batch: &mut rocksdb::WriteBatch,
+        is_scripthash_index_enabled: bool,
+    ) -> Result<()> {
+        batch.put_cf(
+            self.cf,
+            FIELD_SCRIPTHASH_INDEX_ENABLED,
+            db_serialize::<bool>(&is_scripthash_index_enabled)?,
+        );
+        Ok(())
+    }
+
     pub(crate) fn add_cfs(columns: &mut Vec<ColumnFamilyDescriptor>) {
         columns.push(ColumnFamilyDescriptor::new(
             CF_META,
@@ -129,6 +147,16 @@ impl<'a> MetadataReader<'a> {
         match self.db.get(self.cf, FIELD_LOKAD_ID_INDEX_ENABLED)? {
             Some(ser_token_index) => {
                 Ok(Some(db_deserialize::<bool>(&ser_token_index)?))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// Read whether the scripthash index is enabled, or None if unspecified
+    pub fn is_scripthash_index_enabled(&self) -> Result<Option<bool>> {
+        match self.db.get(self.cf, FIELD_SCRIPTHASH_INDEX_ENABLED)? {
+            Some(ser_scripthash_index) => {
+                Ok(Some(db_deserialize::<bool>(&ser_scripthash_index)?))
             }
             None => Ok(None),
         }

@@ -87,6 +87,11 @@ pub trait Group {
     /// Serialize the given member.
     fn ser_member(&self, member: &Self::Member<'_>) -> Self::MemberSer;
 
+    /// Hash the given member.
+    /// This is currently only used for ScriptGroup to create a
+    /// scripthash to script index for the ElectrumX API.
+    fn ser_hash_member(&self, member: &Self::Member<'_>) -> [u8; 32];
+
     /// The [`GroupHistoryConf`] for this group.
     fn tx_history_conf() -> GroupHistoryConf;
 

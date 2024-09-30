@@ -5,8 +5,9 @@
 use crate::{
     index_tx::{TxNumCache, TxNumCacheSettings},
     io::{
-        GroupHistoryMemData, GroupHistoryStats, GroupUtxoMemData,
-        GroupUtxoStats, SpentByMemData, SpentByStats, TxsMemData, TxsStats,
+        GroupHistoryMemData, GroupHistorySettings, GroupHistoryStats,
+        GroupUtxoMemData, GroupUtxoStats, SpentByMemData, SpentByStats,
+        TxsMemData, TxsStats,
     },
 };
 
@@ -43,6 +44,8 @@ pub struct StatsData {
 pub struct MemDataConf {
     /// Settings for tuning TxNumCache.
     pub tx_num_cache: TxNumCacheSettings,
+    /// Settings for script history
+    pub script_history: GroupHistorySettings,
 }
 
 impl MemData {
@@ -51,7 +54,7 @@ impl MemData {
         MemData {
             txs: TxsMemData::default(),
             tx_num_cache: TxNumCache::new(conf.tx_num_cache),
-            script_history: GroupHistoryMemData::default(),
+            script_history: GroupHistoryMemData::new(conf.script_history),
             script_utxos: GroupUtxoMemData::default(),
             spent_by: SpentByMemData::default(),
         }
