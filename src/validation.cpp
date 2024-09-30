@@ -6363,12 +6363,11 @@ double GuessVerificationProgress(const ChainTxData &data,
     if (pindex == nullptr) {
         return 0.0;
     }
-
-    if (!Assume(pindex->nChainTx > 0)) {
-        LogPrintf("Internal bug detected: block %d has unset nChainTx (%s %s). "
-                  "Please report this issue here: %s\n",
-                  pindex->nHeight, PACKAGE_NAME, FormatFullVersion(),
-                  PACKAGE_BUGREPORT);
+    if (pindex->nChainTx == 0) {
+        LogPrintLevel(BCLog::VALIDATION, BCLog::Level::Debug,
+                      "Block %d has unset m_chain_tx_count. Unable to "
+                      "estimate verification progress.\n",
+                      pindex->nHeight);
         return 0.0;
     }
 
