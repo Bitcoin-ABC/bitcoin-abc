@@ -35,18 +35,24 @@ add_to_security_check(iguana)
 install_target(iguana EXCLUDE_FROM_ALL)
 
 find_package(Python COMPONENTS Interpreter)
-add_custom_target(check-iguana
-COMMAND
-	"${CMAKE_COMMAND}"
-	-E env
-		IGUANA_BIN="${CMAKE_CURRENT_BINARY_DIR}/iguana"
-		CMAKE_PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
-		PYTHONPATH="${CMAKE_SOURCE_DIR}/test/functional"
-	"${Python_EXECUTABLE}"
-	-m pytest
-	-v
-WORKING_DIRECTORY
-	"${CMAKE_CURRENT_SOURCE_DIR}"
-DEPENDS
-	iguana
+
+include(TestSuite)
+add_test_custom_target(check-iguana
+	TEST_COMMAND
+		"${CMAKE_COMMAND}"
+		-E env
+			IGUANA_BIN="${CMAKE_CURRENT_BINARY_DIR}/iguana"
+			CMAKE_PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
+			PYTHONPATH="${CMAKE_SOURCE_DIR}/test/functional"
+		"${Python_EXECUTABLE}"
+		-m pytest
+		-q
+	CUSTOM_TARGET_ARGS
+		COMMENT "Running iguana test suite..."
+		WORKING_DIRECTORY
+			"${CMAKE_CURRENT_SOURCE_DIR}"
+		DEPENDS
+			iguana
 )
+
+add_dependencies(check check-iguana)

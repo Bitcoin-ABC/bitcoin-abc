@@ -708,16 +708,6 @@ builds:
         - check-functional
     timeout: 1800
 
-  check-iguana:
-    Werror: true
-    runOnDiffRegex:
-      - src/
-      - iguana/
-    targets:
-      - - iguana
-      - - check-iguana
-    timeout: 1200
-
   check-buildbot:
     runOnDiffRegex:
       - contrib/buildbot/
