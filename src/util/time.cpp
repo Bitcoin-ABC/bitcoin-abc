@@ -24,6 +24,7 @@ void UninterruptibleSleep(const std::chrono::microseconds &n) {
 
 //! For testing
 static std::atomic<int64_t> nMockTime(0);
+static std::atomic<std::chrono::milliseconds> g_mock_steady_time{};
 
 NodeClock::time_point NodeClock::now() noexcept {
     const std::chrono::seconds mocktime{
@@ -41,6 +42,23 @@ template <typename T> static T GetSystemTime() {
         std::chrono::system_clock::now().time_since_epoch());
     assert(now.count() > 0);
     return now;
+}
+
+MockableSteadyClock::time_point MockableSteadyClock::now() noexcept {
+    const auto mocktime{g_mock_steady_time.load(std::memory_order_relaxed)};
+    const auto ret{mocktime.count()
+                       ? mocktime
+                       : std::chrono::steady_clock::now().time_since_epoch()};
+    return time_point{ret};
+};
+
+void MockableSteadyClock::SetMockTime(std::chrono::milliseconds mock_time_in) {
+    Assert(mock_time_in >= 0s);
+    g_mock_steady_time.store(mock_time_in, std::memory_order_relaxed);
+}
+
+void MockableSteadyClock::ClearMockTime() {
+    g_mock_steady_time.store(0ms, std::memory_order_relaxed);
 }
 
 void SetMockTime(int64_t nMockTimeIn) {
