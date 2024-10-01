@@ -29,7 +29,6 @@ import json
 import os
 import queue
 import random
-import re
 import select
 import socket
 import stat
@@ -45,6 +44,7 @@ from .crypto import Hash
 from .i18n import _
 from .interface import Connection, Interface
 from .monotonic import Monotonic
+from .networks import parse_servers
 from .printerror import print_error
 from .simple_config import SimpleConfig
 from .tor import TorController, check_proxy_bypass_tor_control
@@ -73,37 +73,6 @@ DEFAULT_WHITELIST_SERVERS_ONLY = True
 # If no issues are encountered after this change has been released, it should be safe
 # to increase it more (to 500 or 1000) in future releases.
 MAX_QLEN_GET_MERKLE_REQUESTS = 100
-
-
-def parse_servers(result):
-    """parse servers list into dict format"""
-    servers = {}
-    for item in result:
-        try:
-            host = item[1]
-            out = {}
-            version = None
-            pruning_level = "-"
-            if len(item) > 2:
-                for v in item[2]:
-                    if re.match(r"[st]\d*", v):
-                        protocol, port = v[0], v[1:]
-                        if port == "":
-                            port = networks.net.DEFAULT_PORTS[protocol]
-                        out[protocol] = port
-                    elif re.match(r"v(.?)+", v):
-                        version = v[1:]
-                    elif re.match(r"p\d*", v):
-                        pruning_level = v[1:]
-                    if pruning_level == "":
-                        pruning_level = "0"
-            if out:
-                out["pruning"] = pruning_level
-                out["version"] = version
-                servers[host] = out
-        except (TypeError, ValueError, IndexError, KeyError) as e:
-            print_error("parse_servers:", item, repr(e))
-    return servers
 
 
 def filter_version(servers):

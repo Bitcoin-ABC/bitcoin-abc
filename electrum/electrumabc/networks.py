@@ -25,6 +25,7 @@
 
 import json
 import pkgutil
+import re
 
 from .asert_daa import Anchor, ASERTDaa
 from .constants import (
@@ -35,6 +36,7 @@ from .constants import (
     CASHADDR_TESTNET_PREFIX,
     CASHADDR_TESTNET_PREFIX_BCH,
 )
+from .printerror import print_error
 
 
 def _read_json_dict(filename):
@@ -213,3 +215,34 @@ class NetworkConstants:
             )
         )
         # setattr(net, name, value)
+
+
+def parse_servers(result):
+    """parse servers list into dict format"""
+    servers = {}
+    for item in result:
+        try:
+            host = item[1]
+            out = {}
+            version = None
+            pruning_level = "-"
+            if len(item) > 2:
+                for v in item[2]:
+                    if re.match(r"[st]\d*", v):
+                        protocol, port = v[0], v[1:]
+                        if port == "":
+                            port = net.DEFAULT_PORTS[protocol]
+                        out[protocol] = port
+                    elif re.match(r"v(.?)+", v):
+                        version = v[1:]
+                    elif re.match(r"p\d*", v):
+                        pruning_level = v[1:]
+                    if pruning_level == "":
+                        pruning_level = "0"
+            if out:
+                out["pruning"] = pruning_level
+                out["version"] = version
+                servers[host] = out
+        except (TypeError, ValueError, IndexError, KeyError) as e:
+            print_error("parse_servers:", item, repr(e))
+    return servers
