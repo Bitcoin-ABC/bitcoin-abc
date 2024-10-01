@@ -9,7 +9,7 @@ import ExternalLink from '/components/external-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
-const oldVersion = `0.28.12`;
+const oldVersion = `0.29.13`;
 
 function Upgrade(props) {
     const latestVersion = props.latestVersion;
@@ -19,7 +19,7 @@ function Upgrade(props) {
         <Layout>
             <SubPageHero
                 image={pins}
-                h2subtext="May 15th 2024"
+                h2subtext="Nov 15th 2024"
                 h2text="eCash Network Upgrade"
                 noLoop
             >
@@ -32,15 +32,6 @@ function Upgrade(props) {
             </SubPageHero>
             <GradientSpacer />
             <Container narrow>
-                <H3 text="What happened?" id="what" />
-                <p>
-                    The planned upgrade of the eCash network has successfully
-                    been completed. The first post-upgrade block is block number{' '}
-                    <ExternalLink href="https://explorer.e.cash/block/0000000000000000053b80210677e6821a2ac0ed73b949a78667e1bfb3dfa6eb">
-                        844743
-                    </ExternalLink>
-                    .
-                </p>
                 <H3 text="Who needs to upgrade?" id="who" />
                 <p>
                     All operators of a Bitcoin ABC full node must upgrade to the
@@ -51,36 +42,36 @@ function Upgrade(props) {
                     </Link>
                     .
                 </p>
+                <p>
+                    Miners need to update their setup according to the
+                    instructions on the <Link href="/mining">Mining page</Link>{' '}
+                    .
+                </p>
+                <H3 text="Exactly when will the upgrade activate?" id="when" />
+                <p>
+                    In order to activate reliably at a predictable time, the
+                    network upgrade uses the &ldquo;Median Time Past&rdquo;
+                    mechanism. The upgrade activates when the median of the last
+                    11 blocks reaches timestamp 1731672000 (12:00:00 UTC on
+                    November 15th, 2024). This means that the upgrade does not
+                    actually activate exactly at that time, but typically about
+                    one hour later, when 6 blocks with timestamps greater than
+                    the activation time have been produced.
+                </p>
                 <H3
                     text="What features are included in the Network Upgrade?"
                     id="features"
                 />
                 <p>
-                    There are no consensus changes activating at the upgrade,
-                    however the upgrade release includes the Chronik indexer as
-                    an opt-in option to the Bitcoin ABC node software for Linux
-                    and Windows.
+                    The Heartbeat feature, also known as Real Time Targeting,
+                    will activate with this upgrade. This is a block policy that
+                    makes it more difficult to mine blocks faster than the
+                    expected 10 minutes average, preventing large bumps in
+                    difficulty that can lead to inconsistent block intervals.
+                    Miners need to update their setup according to the
+                    instructions on the <Link href="/mining">Mining page</Link>{' '}
+                    .
                 </p>
-                <p>
-                    Chronik gives you access to a brand new API to get notified
-                    of finalized blocks, retrieve transaction history by eCash
-                    address, gather eToken transaction data, and much more. To
-                    enable Chronik, simply turn it on with the{' '}
-                    <code>-chronik</code> option.
-                </p>
-                <p>
-                    Take a look at the full{' '}
-                    <ExternalLink href="https://docs.chronik.xyz/">
-                        Setup and API documentation
-                    </ExternalLink>{' '}
-                    to get an overview of the features, and start building your
-                    own application with the{' '}
-                    <ExternalLink href="https://www.npmjs.com/package/chronik-client">
-                        chronik-client
-                    </ExternalLink>{' '}
-                    npm package.
-                </p>
-
                 <H3 text="Do I need to upgrade my wallet?" id="wallet" />
                 <p>
                     The network upgrade only affects full nodes. Other eCash
