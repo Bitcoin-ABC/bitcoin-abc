@@ -409,7 +409,7 @@ class CovertSubmitter(PrintError):
                     self.count_failed += 1
                 tend = time.monotonic()
                 self.print_error(
-                    f"could not establish connection (after {(tend-tbegin):.3f}s): {e}"
+                    f"could not establish connection (after {(tend - tbegin):.3f}s): {e}"
                 )
                 raise
             with self.lock:
@@ -417,7 +417,7 @@ class CovertSubmitter(PrintError):
             tend = time.monotonic()
             self.print_error(
                 f"[{covconn.conn_number}] connection established after"
-                f" {(tend-tbegin):.3f}s"
+                f" {(tend - tbegin):.3f}s"
             )
 
             covconn.delay = rand_trap(self.rng) * self.randspan

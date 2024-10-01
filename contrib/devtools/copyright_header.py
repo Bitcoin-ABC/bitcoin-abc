@@ -255,9 +255,7 @@ def print_report(file_infos, verbose):
         ]
         if len(dominant_style) > 0:
             print(
-                "{:4d} with '{}'".format(
-                    len(dominant_style), holder_name.replace("\n", "\\n")
-                )
+                f"{len(dominant_style):4d} with '{holder_name.replace('\\n', '\\\\n')}'"
             )
             print_filenames(dominant_style, verbose)
     print("")

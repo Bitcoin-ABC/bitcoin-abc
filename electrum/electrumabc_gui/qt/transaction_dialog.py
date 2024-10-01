@@ -862,7 +862,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             else:
                 prevout_hash = x.get("prevout_hash")
                 prevout_n = x.get("prevout_n")
-                hashn = f"{ prevout_hash[0:6] }...{ prevout_hash[-6:] }:{ prevout_n }"
+                hashn = f"{prevout_hash[0:6]}...{prevout_hash[-6:]}:{prevout_n}"
                 # linkify prevout_hash:n, send link to our handler
                 lnk2 = QTextCharFormat(lnk)
                 lnk2.setAnchorHref(prevout_hash)

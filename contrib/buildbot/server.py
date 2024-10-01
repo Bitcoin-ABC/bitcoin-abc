@@ -639,7 +639,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
             return panel_content + line + "\n"
 
         def add_project_header_to_panel(project_name):
-            return panel_content + ("| {} | Status |\n|---|---|\n").format(project_name)
+            return panel_content + f"| {project_name} | Status |\n|---|---|\n"
 
         # secp256k1 is a special case because it has a Cirrus build from a
         # Github repo that is not managed by the build-configurations.yml config.

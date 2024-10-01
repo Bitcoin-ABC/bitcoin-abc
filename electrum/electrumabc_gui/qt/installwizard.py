@@ -910,7 +910,7 @@ class DerivationPathScanner(QThread):
                         wallet.wait_until_synchronized(timeout=1.0)
                         synched = True
                     except TimeoutException:
-                        wallet.print_error(f"timeout try {ctr+1}/25")
+                        wallet.print_error(f"timeout try {ctr + 1}/25")
                     if self.aborting:
                         return
                 num_tx = len(wallet.get_history())

@@ -193,7 +193,7 @@ def filterbyasn(ips: List[Dict], max_per_asn: Dict, max_per_net: int) -> List[Di
         if i % 10 == 0:
             # give progress update
             print(
-                f"{i:6d}/{len(ips_ipv46)} [{100*i/len(ips_ipv46):04.1f}%]\r",
+                f"{i:6d}/{len(ips_ipv46)} [{100 * i / len(ips_ipv46):04.1f}%]\r",
                 file=sys.stderr,
                 end="",
                 flush=True,

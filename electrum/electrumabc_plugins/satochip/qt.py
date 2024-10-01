@@ -371,12 +371,12 @@ class SatochipSettingsDialog(WindowModalDialog):
         elif sw1 == 0x9C and sw2 == 0x0B:
             msg = _(
                 "Failed to reset seed: request rejected by 2FA device (error code:"
-                f" {hex(256*sw1+sw2)})"
+                f" {hex(256 * sw1 + sw2)})"
             )
             client.handler.show_message(msg)
             # to do: close client?
         else:
-            msg = _(f"Failed to reset seed with error code: {hex(256*sw1+sw2)}")
+            msg = _(f"Failed to reset seed with error code: {hex(256 * sw1 + sw2)}")
             client.handler.show_error(msg)
 
     def reset_seed_dialog(self, msg):
@@ -426,10 +426,10 @@ class SatochipSettingsDialog(WindowModalDialog):
                 )
                 if sw1 != 0x90 or sw2 != 0x00:
                     print_error(
-                        f"Unable to set 2FA with error code:= {hex(256*sw1+sw2)}"
+                        f"Unable to set 2FA with error code:= {hex(256 * sw1 + sw2)}"
                     )  # debugSatochip
                     raise RuntimeError(
-                        f"Unable to setup 2FA with error code: {hex(256*sw1+sw2)}"
+                        f"Unable to setup 2FA with error code: {hex(256 * sw1 + sw2)}"
                     )
                 else:
                     client.handler.show_message("2FA enabled successfully!")
@@ -474,11 +474,11 @@ class SatochipSettingsDialog(WindowModalDialog):
             elif sw1 == 0x9C and sw2 == 0x17:
                 msg = _(
                     "Failed to reset 2FA: \nyou must reset the seed first (error code"
-                    f" {hex(256*sw1+sw2)})"
+                    f" {hex(256 * sw1 + sw2)})"
                 )
                 client.handler.show_error(msg)
             else:
-                msg = _(f"Failed to reset 2FA with error code: {hex(256*sw1+sw2)}")
+                msg = _(f"Failed to reset 2FA with error code: {hex(256 * sw1 + sw2)}")
                 client.handler.show_error(msg)
         else:
             msg = _("2FA is already disabled!")

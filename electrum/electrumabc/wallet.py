@@ -1357,7 +1357,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                         f"{me.name}: removed",
                         ct,
                         "(non-relevant) pruned_txo's in",
-                        f"{time.time()-t0:3.2f}",
+                        f"{time.time() - t0:3.2f}",
                         "seconds",
                     )
         except Exception:

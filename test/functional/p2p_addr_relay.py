@@ -128,8 +128,8 @@ class AddrTest(BitcoinTestFramework):
             addr.time = self.mocktime + i
             addr.nServices = NODE_NETWORK
             addr.ip = (
-                f"{random.randrange(128,169)}.{random.randrange(1,255)}"
-                f".{random.randrange(1,255)}.{random.randrange(1,255)}"
+                f"{random.randrange(128, 169)}.{random.randrange(1, 255)}"
+                f".{random.randrange(1, 255)}.{random.randrange(1, 255)}"
             )
             addr.port = 8333
             addrs.append(addr)

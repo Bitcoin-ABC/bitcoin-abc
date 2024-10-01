@@ -15,8 +15,7 @@ export const TextImageBlockCtn = styled(motion.div).attrs(() =>
     align-items: center;
     border: 3px solid ${props => props.theme.colors.primaryLight};
     background-color: ${props => props.theme.colors.coretechBackground};
-    box-shadow:
-        -2px 6px 20px 2px ${props => props.theme.colors.coretechShadow1},
+    box-shadow: -2px 6px 20px 2px ${props => props.theme.colors.coretechShadow1},
         inset 0 0 17px 6px ${props => props.theme.colors.coretechShadow2};
     margin-bottom: 50px;
 

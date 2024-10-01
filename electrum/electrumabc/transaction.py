@@ -1936,7 +1936,7 @@ class Transaction:
             # potential race condition here, popping wrong t -- but in practice w/
             # CPython threading it won't matter
             eph.pop("_fetch", None)
-            print_error(f"fetch_input_data: elapsed {(time.time()-t0):.4f} sec")
+            print_error(f"fetch_input_data: elapsed {(time.time() - t0):.4f} sec")
             if done_callback:
                 done_callback(*done_args)
 
