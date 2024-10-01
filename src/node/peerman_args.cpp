@@ -44,6 +44,10 @@ void ApplyArgsManOptions(const ArgsManager &argsman,
     if (auto value{argsman.GetBoolArg("-avalanchepreconsensus")}) {
         options.avalanche_preconsensus = *value;
     }
+
+    if (auto value{argsman.GetBoolArg("-avalanchestakingpreconsensus")}) {
+        options.avalanche_staking_preconsensus = *value;
+    }
 }
 
 } // namespace node

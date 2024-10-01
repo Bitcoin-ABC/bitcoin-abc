@@ -24,6 +24,7 @@ struct ProofId;
  */
 struct StakeContenderId : public uint256 {
     explicit StakeContenderId() : uint256() {}
+    explicit StakeContenderId(const uint256 &b) : uint256(b) {}
     explicit StakeContenderId(const BlockHash &prevblockhash,
                               const ProofId &proofid)
         : uint256(Hash(prevblockhash, proofid)) {}

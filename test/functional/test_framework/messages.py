@@ -1065,6 +1065,13 @@ class AvalancheTxVoteError(IntEnum):
     ORPHAN = -2
 
 
+class AvalancheContenderVoteError(IntEnum):
+    ACCEPTED = 0
+    INVALID = 1
+    UNKNOWN = -1
+    PENDING = -2
+
+
 class AvalancheVote:
     __slots__ = ("error", "hash")
 

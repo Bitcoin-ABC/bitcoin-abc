@@ -10,6 +10,7 @@
 #include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
+#include <avalanche/stakecontender.h>
 #include <avalanche/statistics.h>
 #include <avalanche/validation.h>
 #include <banman.h>
@@ -6604,6 +6605,12 @@ void PeerManagerImpl::ProcessMessage(
                     vote = getAvalancheVoteForProof(
                         *m_avalanche, avalanche::ProofId(inv.hash));
                 } break;
+                case MSG_AVA_STAKE_CONTENDER: {
+                    if (m_opts.avalanche_staking_preconsensus) {
+                        vote = m_avalanche->getStakeContenderStatus(
+                            avalanche::StakeContenderId(inv.hash));
+                    }
+                } break;
                 default: {
                     LogPrint(BCLog::AVALANCHE,
                              "poll inv type %d unknown from peer=%d\n",
@@ -9095,6 +9102,10 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     }
 
     saveProofIfStaker(node, proofid, nodeid);
+
+    if (isStaker && m_opts.avalanche_staking_preconsensus) {
+        WITH_LOCK(cs_main, m_avalanche->addStakeContender(proof));
+    }
 
     return true;
 }
