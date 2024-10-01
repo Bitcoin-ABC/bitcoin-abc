@@ -72,6 +72,50 @@ static void CheckWinners(StakeContenderCache &cache,
     }
 }
 
+static void CheckVoteStatus(StakeContenderCache &cache,
+                            const BlockHash &prevblockhash,
+                            const ProofRef &proof, int expected) {
+    BOOST_CHECK_EQUAL(
+        cache.getVoteStatus(StakeContenderId(prevblockhash, proof->getId())),
+        expected);
+}
+
+BOOST_AUTO_TEST_CASE(vote_status_tests) {
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
+    StakeContenderCache cache;
+
+    CBlockIndex *pindex = active_chainstate.m_chain.Tip();
+    const BlockHash &blockhash = pindex->GetBlockHash();
+
+    std::vector<int> initialStatuses = {
+        StakeContenderStatus::UNKNOWN, StakeContenderStatus::ACCEPTED,
+        StakeContenderStatus::IN_WINNER_SET,
+        StakeContenderStatus::ACCEPTED | StakeContenderStatus::IN_WINNER_SET};
+    for (uint8_t initialStatus : initialStatuses) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+
+        // Unknown contender
+        CheckVoteStatus(cache, blockhash, proof, -1);
+
+        // Add the contender and check its vote after avalanche updates
+        BOOST_CHECK(cache.add(pindex, proof, initialStatus));
+        CheckVoteStatus(cache, blockhash, proof,
+                        !(initialStatus & StakeContenderStatus::ACCEPTED));
+
+        cache.accept(StakeContenderId(blockhash, proof->getId()));
+        CheckVoteStatus(cache, blockhash, proof, 0);
+
+        cache.reject(StakeContenderId(blockhash, proof->getId()));
+        CheckVoteStatus(cache, blockhash, proof, 1);
+
+        cache.finalize(StakeContenderId(blockhash, proof->getId()));
+        CheckVoteStatus(cache, blockhash, proof, 0);
+
+        cache.invalidate(StakeContenderId(blockhash, proof->getId()));
+        CheckVoteStatus(cache, blockhash, proof, 1);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(winners_tests) {
     Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
     StakeContenderCache cache;
@@ -98,19 +142,31 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
         BOOST_CHECK(cache.addWinner(pindex, manualWinners[0]));
         CheckWinners(cache, blockhash, {manualWinners[0]}, {});
 
+        // Before adding contenders, check that vote status is unknown
+        for (int p = 0; p < 4; p++) {
+            CheckVoteStatus(cache, blockhash, proofs[p], -1);
+        }
+
         // Add some contenders
         // Local winner
         BOOST_CHECK(cache.add(pindex, proofs[0],
                               StakeContenderStatus::ACCEPTED |
                                   StakeContenderStatus::IN_WINNER_SET));
+        CheckVoteStatus(cache, blockhash, proofs[0], 0);
+
         // Potential winner other than the local winner
         BOOST_CHECK(
             cache.add(pindex, proofs[1], StakeContenderStatus::ACCEPTED));
+        CheckVoteStatus(cache, blockhash, proofs[1], 0);
+
         // Local winner that has been rejected by avalanche so far
         BOOST_CHECK(
             cache.add(pindex, proofs[2], StakeContenderStatus::IN_WINNER_SET));
+        CheckVoteStatus(cache, blockhash, proofs[2], 1);
+
         // Some other contender
         BOOST_CHECK(cache.add(pindex, proofs[3]));
+        CheckVoteStatus(cache, blockhash, proofs[3], 1);
 
         // Attempting to add duplicates fails, even if status is different than
         // the successfully added entries.
@@ -139,6 +195,7 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
         for (const auto &proof : proofs) {
             const auto &payout = proof->getPayoutScript();
             BOOST_CHECK(cache.addWinner(pindex, payout));
+            CheckVoteStatus(cache, blockhash, proof, 0);
             moreManualWinners.push_back(payout);
             CheckWinners(cache, blockhash, moreManualWinners,
                          {proofs[0], proofs[2]});
@@ -200,6 +257,9 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
     for (int i = 0; i < 5; i++) {
         CheckWinners(cache, pindex->GetBlockHash(), manualWinners,
                      {proofs[0], proofs[1]});
+        for (int p = 0; p < 4; p++) {
+            CheckVoteStatus(cache, pindex->GetBlockHash(), proofs[p], 0);
+        }
         pindex = pindex->pprev;
     }
 }

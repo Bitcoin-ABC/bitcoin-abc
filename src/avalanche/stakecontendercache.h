@@ -52,6 +52,7 @@ struct StakeContenderCacheEntry {
     StakeContenderId getStakeContenderId() const {
         return StakeContenderId{prevblockhash, proofid};
     }
+    bool isAccepted() const { return status & StakeContenderStatus::ACCEPTED; }
     bool isInWinnerSet() const {
         return status & StakeContenderStatus::IN_WINNER_SET;
     }
@@ -150,6 +151,12 @@ public:
     bool finalize(const StakeContenderId &contenderId);
     bool reject(const StakeContenderId &contenderId);
     bool invalidate(const StakeContenderId &contenderId);
+
+    /**
+     * Get contender acceptance state for avalanche voting.
+     * Returns 0 for accepted, 1 for rejected, and -1 for not in cache.
+     */
+    int getVoteStatus(const StakeContenderId &contenderId) const;
 
     /**
      * Get payout scripts of the winning proofs.

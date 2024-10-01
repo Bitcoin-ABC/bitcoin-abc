@@ -106,6 +106,34 @@ bool StakeContenderCache::invalidate(const StakeContenderId &contenderId) {
     });
 }
 
+int StakeContenderCache::getVoteStatus(
+    const StakeContenderId &contenderId) const {
+    auto &view = contenders.get<by_stakecontenderid>();
+    auto it = view.find(contenderId);
+    if (it == view.end()) {
+        return -1;
+    }
+
+    // Contender is accepted
+    if (it->isAccepted()) {
+        return 0;
+    }
+
+    // If the contender matches a manual winner, it is accepted.
+    auto &manualWinnersView = manualWinners.get<by_prevblockhash>();
+    auto manualWinnerIt = manualWinnersView.find(it->prevblockhash);
+    if (manualWinnerIt != manualWinners.end()) {
+        for (auto &payoutScript : manualWinnerIt->payoutScripts) {
+            if (payoutScript == it->payoutScriptPubkey) {
+                return 0;
+            }
+        }
+    }
+
+    // Contender is rejected
+    return 1;
+}
+
 bool StakeContenderCache::getWinners(const BlockHash &prevblockhash,
                                      std::vector<CScript> &payouts) const {
     // Winners determined by avalanche are sorted by reward rank
