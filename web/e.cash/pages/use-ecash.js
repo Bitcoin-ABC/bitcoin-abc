@@ -136,7 +136,7 @@ function UseEcash(props) {
                             Powering the digital economy in the world&apos;s #1
                             Charter City, the eLempira (eLPS) is a stabletoken
                             built on eCash. It is used for real-world everyday
-                            paymnets such as for rent, utilities, food, gym
+                            payments such as for rent, utilities, food, gym
                             memberships, haircuts, and more!
                         </p>
                         <Button
