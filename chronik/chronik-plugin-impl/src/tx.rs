@@ -22,7 +22,7 @@ use pyo3::{
     types::{PyBytes, PyDict, PyList},
 };
 
-use crate::{token::TokenModule, util::to_bytes};
+use crate::{etoken::TokenModule, util::to_bytes};
 
 /// `tx.py` module handles
 #[derive(Debug)]

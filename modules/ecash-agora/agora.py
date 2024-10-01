@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import Optional, Union
 
+from chronik_plugin.etoken import Token
 from chronik_plugin.plugin import Plugin, PluginOutput
 from chronik_plugin.script import (
     OP_0,
@@ -70,7 +71,6 @@ from chronik_plugin.script import (
     CScript,
 )
 from chronik_plugin.slp import slp_send
-from chronik_plugin.token import Token
 
 LOKAD_ID = b"AGR0"
 SLP_INT_SIZE = 8

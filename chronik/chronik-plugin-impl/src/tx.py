@@ -4,8 +4,8 @@
 
 from typing import List, NamedTuple, Optional
 
+from chronik_plugin.etoken import Token, TokenTxEntry
 from chronik_plugin.script import CScript
-from chronik_plugin.token import Token, TokenTxEntry
 
 
 class PluginOutputEntry(NamedTuple):

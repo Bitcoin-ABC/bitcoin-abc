@@ -14,7 +14,7 @@ use pyo3::{prelude::*, types::PyDict};
 
 use crate::util::to_bytes;
 
-/// `token.py` module handles.
+/// `etoken.py` module handles.
 #[derive(Debug)]
 pub struct TokenModule {
     cls_genesis_info: PyObject,
@@ -23,9 +23,9 @@ pub struct TokenModule {
 }
 
 impl TokenModule {
-    /// Import the `token.py` module
+    /// Import the `etoken.py` module
     pub fn import(py: Python<'_>) -> PyResult<Self> {
-        let token_module = PyModule::import_bound(py, "chronik_plugin.token")?;
+        let token_module = PyModule::import_bound(py, "chronik_plugin.etoken")?;
         Ok(TokenModule {
             cls_genesis_info: token_module.getattr("GenesisInfo")?.into(),
             cls_token_tx_entry: token_module.getattr("TokenTxEntry")?.into(),

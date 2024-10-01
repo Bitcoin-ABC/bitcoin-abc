@@ -2,8 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+from chronik_plugin.etoken import GenesisInfo, Token, TokenTxEntry
 from chronik_plugin.script import CScript
-from chronik_plugin.token import GenesisInfo, Token, TokenTxEntry
 from chronik_plugin.tx import OutPoint, PluginOutputEntry, Tx, TxInput, TxOutput
 from test_framework.util import assert_equal
 

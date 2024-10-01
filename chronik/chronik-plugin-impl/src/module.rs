@@ -35,9 +35,9 @@ pub fn chronik_plugin(
     )?;
     PyModule::from_code_bound(
         py,
-        include_str!("token.py"),
-        "token.py",
-        "chronik_plugin.token",
+        include_str!("etoken.py"),
+        "etoken.py",
+        "chronik_plugin.etoken",
     )?;
     PyModule::from_code_bound(
         py,
