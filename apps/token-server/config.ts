@@ -2,12 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { Request, Response } from 'express';
+import { RateLimitExceededEventHandler } from 'express-rate-limit';
+
 interface TokenServerRateLimits {
     windowMs: number;
     limit: number;
     standardHeaders: 'draft-6' | 'draft-7';
     legacyHeaders: boolean;
-    message: string;
+    handler: RateLimitExceededEventHandler;
 }
 
 interface TokenServerConfig {
@@ -56,8 +59,12 @@ const config: TokenServerConfig = {
         limit: 1, // Limit each IP to 10 requests per `window`
         standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-        message:
-            'If you really need some eCash, throw up a diff. reviews.bitcoinabc.org',
+        handler: (req: Request, res: Response) => {
+            return res.status(429).json({
+                error: 'Too many requests',
+                msg: 'To earn more eCash, set up a staking node, or submit a diff to reviews.bitcoinabc.org.',
+            });
+        },
     },
     iconSizes: [32, 64, 128, 256, 512],
 };
