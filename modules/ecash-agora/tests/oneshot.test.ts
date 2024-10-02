@@ -4,7 +4,7 @@
 
 import { assert, expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChronikClient } from 'chronik-client';
+import { ChronikClient, MsgTxClient } from 'chronik-client';
 import {
     ALL_BIP143,
     Ecc,
@@ -32,6 +32,7 @@ import {
     AgoraOneshotSignatory,
 } from '../src/oneshot.js';
 import { Agora, AgoraOffer } from '../src/agora.js';
+import { EventEmitter, once } from 'node:events';
 
 use(chaiAsPromised);
 
@@ -197,6 +198,21 @@ describe('SLP', () => {
             timeFirstSeen: 1300000000,
         });
 
+        const emitter = new EventEmitter();
+        const ws = chronik.ws({
+            onMessage: async msg => {
+                if (!emitter.emit('ws', msg)) {
+                    console.warn('Emitted msg without any listeners', msg);
+                }
+            },
+        });
+        await ws.waitForOpen();
+        agora.subscribeWs(ws, {
+            type: 'TOKEN_ID',
+            tokenId: childTokenId,
+        });
+        const listenNext = () => once(emitter, 'ws') as Promise<[MsgTxClient]>;
+
         // 3. Seller sends the NFT to an ad setup output for an Agora Oneshot
         //    covenant that asks for 80000 sats
         const enforcedOutputs: TxOutput[] = [
@@ -267,6 +283,7 @@ describe('SLP', () => {
             ],
         });
         const offerTx = txBuildOffer.sign(ecc);
+        const offerPromise = listenNext();
         const offerTxid = (await chronik.broadcastTx(offerTx.ser())).txid;
         const offerOutpoint: OutPoint = {
             txid: offerTxid,
@@ -296,6 +313,11 @@ describe('SLP', () => {
             },
             status: 'OPEN',
         });
+
+        const [offerMsg] = await offerPromise;
+        expect(offerMsg.type).to.equal('Tx');
+        expect(offerMsg.msgType).to.equal('TX_ADDED_TO_MEMPOOL');
+        expect(offerMsg.txid).to.equal(offerTxid);
 
         // 5. Buyer searches for NFT trades, finds the advertised one
         expect(await agora.allOfferedTokenIds()).to.deep.equal([childTokenId]);
@@ -413,6 +435,7 @@ describe('SLP', () => {
             cancelFeeSats,
             Script.p2sh(shaRmd160(newAgoraAdScript.bytecode)),
         );
+        const newOfferPromise = listenNext();
         const offer1 = (await agora.activeOffersByTokenId(childTokenId))[0];
         const offer1AdInput = {
             input: {
@@ -453,6 +476,11 @@ describe('SLP', () => {
                 value: 546,
             },
         };
+
+        const [newOfferMsg] = await newOfferPromise;
+        expect(newOfferMsg.type).to.equal('Tx');
+        expect(newOfferMsg.msgType).to.equal('TX_ADDED_TO_MEMPOOL');
+        expect(newOfferMsg.txid).to.equal(newOfferTxid);
 
         // 8. Buyer searches for NFT trades again, finding both, one spent
         expect(await agora.allOfferedTokenIds()).to.deep.equal([childTokenId]);
@@ -629,7 +657,10 @@ describe('SLP', () => {
             recipientScript: buyerP2pkh,
         });
         expect(acceptSuccessTx.serSize()).to.equal(acceptFeeSats);
-        await chronik.broadcastTx(acceptSuccessTx.ser());
+        const acceptPromise = listenNext();
+        const acceptSuccessTxid = (
+            await chronik.broadcastTx(acceptSuccessTx.ser())
+        ).txid;
 
         // No trades left anymore
         expect(await agora.allOfferedTokenIds()).to.deep.equal([]);
@@ -644,6 +675,11 @@ describe('SLP', () => {
         expect(await agora.activeOffersByPubKey(toHex(sellerPk))).to.deep.equal(
             [],
         );
+
+        const [acceptMsg] = await acceptPromise;
+        expect(acceptMsg.type).to.equal('Tx');
+        expect(acceptMsg.msgType).to.equal('TX_ADDED_TO_MEMPOOL');
+        expect(acceptMsg.txid).to.equal(acceptSuccessTxid);
 
         // But we have the history
         expect(

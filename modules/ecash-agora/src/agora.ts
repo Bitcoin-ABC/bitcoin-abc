@@ -9,6 +9,7 @@ import {
     Token,
     TxHistoryPage,
     Utxo,
+    WsEndpoint,
 } from 'chronik-client';
 import {
     alpSend,
@@ -461,7 +462,7 @@ export class AgoraOffer {
 /** Which txs to query (confirmed, unconfirmed, reverse history) */
 export type TxHistoryTable = 'CONFIRMED' | 'UNCONFIRMED' | 'HISTORY';
 
-type AgoraQueryParamVariants =
+export type AgoraQueryParamVariants =
     | {
           type: 'TOKEN_ID';
           tokenId: string;
@@ -562,20 +563,7 @@ export class Agora {
     public async historicOffers(
         params: AgoraHistoryParams,
     ): Promise<AgoraHistoryResult> {
-        let groupHex: string;
-        switch (params.type) {
-            case 'TOKEN_ID':
-                groupHex = TOKEN_ID_PREFIX + params.tokenId;
-                break;
-            case 'GROUP_TOKEN_ID':
-                groupHex = GROUP_TOKEN_ID_PREFIX + params.groupTokenId;
-                break;
-            case 'PUBKEY':
-                groupHex = PUBKEY_PREFIX + params.pubkeyHex;
-                break;
-            default:
-                throw new Error('Unsupported type');
-        }
+        const groupHex = this._groupHex(params);
         let result: TxHistoryPage;
         switch (params.table) {
             case 'CONFIRMED':
@@ -641,6 +629,18 @@ export class Agora {
         };
     }
 
+    /** Subscribe to updates from the websocket for some params */
+    public subscribeWs(ws: WsEndpoint, params: AgoraQueryParamVariants) {
+        const groupHex = this._groupHex(params);
+        ws.subscribeToPlugin(PLUGIN_NAME, groupHex);
+    }
+
+    /** Unsubscribe from updates from the websocket for some params */
+    public unsubscribeWs(ws: WsEndpoint, params: AgoraQueryParamVariants) {
+        const groupHex = this._groupHex(params);
+        ws.unsubscribeFromPlugin(PLUGIN_NAME, groupHex);
+    }
+
     /**
      * Build a safe AgoraPartial for the given parameters.
      *
@@ -679,6 +679,19 @@ export class Agora {
             if (utxos.utxos.length == 0) {
                 return newParams;
             }
+        }
+    }
+
+    private _groupHex(params: AgoraQueryParamVariants): string {
+        switch (params.type) {
+            case 'TOKEN_ID':
+                return TOKEN_ID_PREFIX + params.tokenId;
+            case 'GROUP_TOKEN_ID':
+                return GROUP_TOKEN_ID_PREFIX + params.groupTokenId;
+            case 'PUBKEY':
+                return PUBKEY_PREFIX + params.pubkeyHex;
+            default:
+                throw new Error('Unsupported type');
         }
     }
 
