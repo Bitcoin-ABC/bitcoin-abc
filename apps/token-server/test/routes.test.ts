@@ -168,6 +168,14 @@ describe('routes.js', async function () {
                 legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
                 message: 'You have rate limited your own unit tests.',
             }),
+            // In tests, keep the same rate limits for token rewards
+            rateLimit({
+                windowMs: 60000,
+                limit: 100, // Limit each IP to 10 requests per `window`
+                standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+                legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+                message: 'You have rate limited your own unit tests.',
+            }),
         );
     });
     afterEach(async () => {

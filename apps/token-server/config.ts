@@ -25,6 +25,7 @@ interface TokenServerConfig {
     maxUploadSize: number;
     whitelist: string[];
     limiter: TokenServerRateLimits;
+    tokenLimiter: TokenServerRateLimits;
     iconSizes: number[];
 }
 
@@ -54,9 +55,23 @@ const config: TokenServerConfig = {
         'chrome-extension://aleabaopoakgpbijdnicepefdiglggfl', // dev extension
         'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag', // prod extension
     ],
+    // Rate limits for XEC rewards
     limiter: {
-        windowMs: 120 * 60 * 1000, // 120 minutes
-        limit: 1, // Limit each IP to 10 requests per `window`
+        windowMs: 7 * 24 * 60 * 60 * 1000, // 1 week
+        limit: 1, // requests per IP per `window`
+        standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+        legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+        handler: (req: Request, res: Response) => {
+            return res.status(429).json({
+                error: 'Too many requests',
+                msg: 'To earn more eCash, set up a staking node, or submit a diff to reviews.bitcoinabc.org.',
+            });
+        },
+    },
+    // Rate limits for token rewards
+    tokenLimiter: {
+        windowMs: 24 * 60 * 60 * 1000, // 24 hrs
+        limit: 3, // requests per IP per `window`
         standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
         handler: (req: Request, res: Response) => {

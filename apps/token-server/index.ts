@@ -34,6 +34,7 @@ initWasm().then(
             fs,
             ecc,
             rateLimit(config.limiter),
+            rateLimit(config.tokenLimiter),
         );
         console.log(`Express server started on port ${config.port}`);
 

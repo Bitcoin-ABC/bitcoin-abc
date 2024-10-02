@@ -66,6 +66,7 @@ export const startExpressServer = (
     fs: any,
     ecc: Ecc,
     limiter: RateLimitRequestHandler,
+    tokenLimiter: RateLimitRequestHandler,
 ): http.Server => {
     // Initialize express
     const app: Express = express();
@@ -169,7 +170,7 @@ export const startExpressServer = (
 
     app.get(
         '/claim/:address',
-        limiter,
+        tokenLimiter,
         async function (req: Request, res: Response) {
             // Get the requested address
             const address = req.params.address;
