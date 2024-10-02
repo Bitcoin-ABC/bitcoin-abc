@@ -62,6 +62,10 @@ const txids = [
     // Cashtab CACHET send tx that is not a Cashtab Reward
     'aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517',
 
+    // Cashtab XEC rewards
+    'd8fe456c89357c23ac6d240fe9319ce9ba393c9c3833631046a265ca7c8349e6',
+    '083b7862bae48e78549ccf63833896f5f4f5bdef5c380a108fa99cdb64261fa3',
+
     // eToken send txs
     '6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2', // etoken send tx, 0 decimals
     'fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e', // etoken send tx, 7 decimals

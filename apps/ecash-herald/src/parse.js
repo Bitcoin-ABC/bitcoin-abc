@@ -1408,6 +1408,8 @@ module.exports = {
         // These arrays will be used to present txs in batches by type
         const genesisTxTgMsgLines = [];
         let cashtabTokenRewards = 0;
+        let cashtabXecRewardTxs = 0;
+        let cashtabXecRewardsTotalXec = 0;
         const tokenSendTxTgMsgLines = [];
         const tokenBurnTxTgMsgLines = [];
         const opReturnTxTgMsgLines = [];
@@ -1711,6 +1713,19 @@ module.exports = {
                 const firstXecSendingOutputScript = xecSendingOutputScripts
                     .values()
                     .next().value;
+
+                const CASHTAB_TOKENSERVER_SENDINGOUTPUTSCRIPT =
+                    '76a914821407ac2993f8684227004f4086082f3f801da788ac';
+
+                if (
+                    firstXecSendingOutputScript ===
+                    CASHTAB_TOKENSERVER_SENDINGOUTPUTSCRIPT
+                ) {
+                    cashtabXecRewardTxs += 1;
+                    cashtabXecRewardsTotalXec += totalSatsSent;
+                    continue;
+                }
+
                 const firstXecReceivingOutputScript = xecReceivingAddressOutputs
                     .keys()
                     .next().value;
@@ -1945,6 +1960,22 @@ module.exports = {
             // alias: newlyregisteredalias
             // Cashtab Msg: This is a Cashtab Msg
             tgMsg = tgMsg.concat(opReturnTxTgMsgLines);
+        }
+
+        // Cashtab XEC rewards
+        if (cashtabXecRewardTxs > 0) {
+            tgMsg.push('');
+
+            // 1 Cashtab XEC reward:
+            // or
+            // <n> Cashtab XEC rewards:
+            tgMsg.push(
+                `<b>${cashtabXecRewardTxs} new Cashtab user${
+                    cashtabXecRewardTxs > 1 ? `s` : ''
+                } received ${satsToFormattedValue(
+                    cashtabXecRewardsTotalXec,
+                )}</b>`,
+            );
         }
 
         // XEC txs
