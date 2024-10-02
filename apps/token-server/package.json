@@ -36,6 +36,7 @@
         "@types/node": "^20.11.29",
         "@types/node-telegram-bot-api": "^0.64.6",
         "@types/supertest": "^6.0.2",
+        "axios-mock-adapter": "^2.0.0",
         "eslint": "^8.57.0",
         "eslint-plugin-header": "^3.1.1",
         "memfs": "^4.7.7",
@@ -48,6 +49,7 @@
         "typescript": "^5.3.3"
     },
     "dependencies": {
+        "axios": "^1.7.7",
         "bip32": "^4.0.0",
         "bip39": "^3.1.0",
         "chronik-client": "file:../../modules/chronik-client",

@@ -21,6 +21,7 @@ import PrimaryButton, {
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
+import { load } from 'recaptcha-v3';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -153,6 +154,9 @@ const Home = () => {
     const claimAirdropForNewWallet = async () => {
         // Disable the button to prevent double claims
         setAirdropPending(true);
+        const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
+        const token = await recaptcha.execute('claimxec');
+
         // Claim rewards
         // We only show this option if wallet has no tx history. Such a wallet is always
         // expected to be eligible.
@@ -163,6 +167,13 @@ const Home = () => {
                     `${tokenConfig.rewardsServerBaseUrl}/claimxec/${
                         wallet.paths.get(1899).address
                     }`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token }),
+                    },
                 )
             ).json();
             // Could help in debugging from user reports

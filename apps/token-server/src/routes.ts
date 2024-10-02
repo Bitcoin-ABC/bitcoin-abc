@@ -21,6 +21,7 @@ import { alertNewTokenIcon } from '../src/telegram';
 import cashaddr from 'ecashaddrjs';
 import { Ecc } from 'ecash-lib';
 import { RateLimitRequestHandler } from 'express-rate-limit';
+import axios from 'axios';
 
 /**
  * routes.ts
@@ -265,7 +266,7 @@ export const startExpressServer = (
     );
 
     // Endpoint for Cashtab users to claim an XEC airdrop on creation of a new wallet
-    app.get(
+    app.post(
         '/claimxec/:address',
         limiter,
         async function (req: Request, res: Response) {
@@ -273,6 +274,35 @@ export const startExpressServer = (
             const address = req.params.address;
 
             logIpInfo(req);
+
+            // Verify recaptcha before reward
+
+            let recaptchaVerification;
+            try {
+                recaptchaVerification = await axios.post(
+                    config.recaptchaUrl,
+                    null,
+                    {
+                        params: {
+                            secret: secrets.prod.recaptchaSecret,
+                            response: req.body.token,
+                        },
+                    },
+                );
+
+                if (recaptchaVerification.data.success !== true) {
+                    return res.status(500).json({
+                        address,
+                        error: `Recaptcha check failed. Are you a bot?`,
+                    });
+                }
+            } catch (err) {
+                console.error('Error verifying recaptcha-response');
+                return res.status(500).json({
+                    address,
+                    error: `Error validating recaptcha response, please try again later`,
+                });
+            }
 
             if (!cashaddr.isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({

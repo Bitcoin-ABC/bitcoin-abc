@@ -19,6 +19,16 @@ import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import userEvent from '@testing-library/user-event';
 import { token as tokenConfig } from 'config/token';
 
+// Mock the recaptcha-v3 library
+const MOCKED_RECAPTCHA_TOKEN = 'mocked-recaptcha-token';
+jest.mock('recaptcha-v3', () => ({
+    load: jest.fn(async () => {
+        return {
+            execute: jest.fn(() => Promise.resolve(MOCKED_RECAPTCHA_TOKEN)),
+        };
+    }),
+}));
+
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -218,6 +228,13 @@ describe('<Home />', () => {
         when(fetch)
             .calledWith(
                 `${tokenConfig.rewardsServerBaseUrl}/claimxec/${address}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: MOCKED_RECAPTCHA_TOKEN }),
+                },
             )
             .mockResolvedValue({
                 json: () =>

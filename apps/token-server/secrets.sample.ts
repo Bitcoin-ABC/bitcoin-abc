@@ -9,6 +9,7 @@ interface Secrets {
     channelId: string;
     approvedMods: number[];
     wallet: ServerWallet;
+    recaptchaSecret: string;
 }
 
 interface TokenServerSecrets {
@@ -30,6 +31,7 @@ const secrets: TokenServerSecrets = {
                 ),
             ),
         },
+        recaptchaSecret: 'reCAPTCHA_COPY_SECRET_KEY',
     },
     prod: {
         botId: 'yourBotId',
@@ -47,6 +49,7 @@ const secrets: TokenServerSecrets = {
                 ),
             ),
         },
+        recaptchaSecret: 'reCAPTCHA_COPY_SECRET_KEY',
     },
 };
 
