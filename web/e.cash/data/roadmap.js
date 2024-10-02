@@ -83,7 +83,7 @@ export const roadmap = [
             {
                 title: 'Regular Heartbeat',
                 description: 'more consistent block times',
-                status: 'underway',
+                status: 'complete',
             },
             {
                 title: 'Avalanche Pre-consensus',
