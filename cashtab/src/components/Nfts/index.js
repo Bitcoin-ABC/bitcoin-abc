@@ -112,6 +112,11 @@ const Nfts = () => {
 
                     // Iterate over active offers in this collection
                     for (const offer of activeOffers) {
+                        if (offer.variant.type !== 'ONESHOT') {
+                            // We do not expect any non-ONESHOT offers for an NFT
+                            // Still, filter them out to make sure
+                            continue;
+                        }
                         // Token ID of this active offer's NFT
                         const tokenId = offer.token.tokenId;
 

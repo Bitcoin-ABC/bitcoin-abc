@@ -1481,6 +1481,99 @@ export const argentinaAgoraOffer = new AgoraOffer({
     token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: argentina.tokenId },
 });
 
+// We make this SLP Partial offer to prove we filter it out if one happens to
+// somehow exist
+// It's not expected for Partial offer to possibly be indexed by group token id,
+// but one could reasonably be expected to be indexed by makerPk
+export const mockPartial = {
+    groupTokenId:
+        '0123456789012345678901234567890123456789012345678901234567890123',
+    tokenId: '0023456789012345678901234567890123456789012345678901234567890123',
+    listPriceSatoshis: 50000,
+    sellerAddress: 'ecash:pzq3s6ghhvxxn9a4m0vartygt2ukxqrm5g8u0uwt9m',
+    cancelPk: new Uint8Array(33),
+    outpoint: {
+        outIdx: 1,
+        txid: '394d0464d623bdc6267c7e8766d4e56aab7e1d5ecf5f56d7fb29d3787b7035d7',
+    },
+    groupCache: {
+        genesisInfo: {
+            tokenTicker: 'TEST',
+            tokenName: 'Test',
+            url: 'cashtab.com',
+            decimals: 0,
+            hash: '0123456789012345678901234567890123456789012345678901234567890123',
+        },
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+            number: 129,
+        },
+        genesisMintBatons: 0,
+        genesisOutputScripts: [
+            '76a914ef9ed343e3e9ef97b589145625d69c26407ae09988ac',
+        ],
+        genesisSupply: '222',
+        timeFirstSeen: 0,
+    },
+    cache: {
+        genesisInfo: {
+            tokenTicker: 'ALPHA',
+            tokenName: 'Alpha',
+            url: 'https://en.wikipedia.org/wiki/Alpha',
+            decimals: 0,
+            hash: '0023456789012345678901234567890123456789012345678901234567890123',
+        },
+        genesisMintBatons: 0,
+        genesisOutputScripts: [
+            '76a914ef9ed343e3e9ef97b589145625d69c26407ae09988ac',
+        ],
+        genesisSupply: '1000',
+        groupTokenId:
+            '0123456789012345678901234567890123456789012345678901234567890123',
+        timeFirstSeen: 0,
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+            number: 65,
+        },
+    },
+};
+const mockPartialEnforcedOutputs = [
+    {
+        value: BigInt(0),
+        script: slpSend(mockPartial.groupTokenId, SLP_ONE_TOKEN_NUMBER, [
+            0,
+            BigInt(1),
+        ]),
+    },
+    {
+        value: mockPartial.listPriceSatoshis,
+        script: Script.p2pkh(
+            fromHex(cashaddr.decode(mockPartial.sellerAddress, true).hash),
+        ),
+    },
+];
+const mockPartialOneshot = new AgoraOneshot({
+    enforcedOutputs: mockPartialEnforcedOutputs,
+    cancelPk: mockPartial.cancelPk,
+});
+export const mockPartialAgoraOffer = new AgoraOffer({
+    variant: {
+        type: 'PARTIAL',
+        params: mockPartialOneshot,
+    },
+    outpoint: mockPartial.outpoint,
+    txBuilderInput: {
+        prevOut: mockPartial.outpoint,
+        signData: {
+            value: 546,
+            redeemScript: mockPartialOneshot.script(),
+        },
+    },
+    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: mockPartial.tokenId },
+});
+
 // Mocks for caching market-listed NFT
 export const transvaalCacheMocks = {
     token: {

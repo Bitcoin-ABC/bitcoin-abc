@@ -24,6 +24,8 @@ import {
     transvaalCacheMocks,
     argentina,
     argentinaAgoraOffer,
+    mockPartial,
+    mockPartialAgoraOffer,
 } from 'components/Nfts/fixtures/mocks';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
@@ -122,6 +124,7 @@ describe('<Nfts />', () => {
         mockedAgora.setOfferedGroupTokenIds([
             saturnFive.groupTokenId,
             transvaal.groupTokenId,
+            mockPartial.groupTokenId,
         ]);
 
         // activeOffersByPubKey
@@ -142,6 +145,9 @@ describe('<Nfts />', () => {
             transvaalAgoraOffer,
             argentinaAgoraOffer,
         ]);
+        mockedAgora.setActiveOffersByGroupTokenId(mockPartial.groupTokenId, [
+            mockPartialAgoraOffer,
+        ]);
 
         const mockedChronik = await initializeCashtabStateForTests(
             nftMarketWallet,
@@ -159,6 +165,12 @@ describe('<Nfts />', () => {
         yourTokenCache.tokens.set(saturnFive.tokenId, saturnFive.cache);
         // Cache the Transvaal NFT's group, Flags
         yourTokenCache.tokens.set(transvaal.groupTokenId, transvaal.groupCache);
+        // Cache your made up mock partial token and group
+        yourTokenCache.tokens.set(
+            mockPartial.groupTokenId,
+            mockPartial.groupCache,
+        );
+        yourTokenCache.tokens.set(mockPartial.groupTokenId, mockPartial.cache);
 
         // To show that the page will load and cache the info
         // Do not cache the Transvaal flag NFT
@@ -317,6 +329,13 @@ describe('<Nfts />', () => {
                 `${transvaal.groupCache.genesisInfo.tokenName} (${transvaal.groupCache.genesisInfo.tokenTicker})`,
             ),
         ).toBeInTheDocument();
+
+        // Note that we DO NOT see our mock partial group listed, since it contained no ONESHOT offers
+        expect(
+            screen.queryByText(
+                `${mockPartial.groupCache.genesisInfo.tokenName} (${mockPartial.groupCache.genesisInfo.tokenTicker})`,
+            ),
+        ).not.toBeInTheDocument();
 
         // We see the total supply and listed supply of this collection
         expect(screen.getByText(/190 NFTs/)).toBeInTheDocument();
