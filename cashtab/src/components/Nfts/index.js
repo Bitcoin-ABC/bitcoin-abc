@@ -266,6 +266,12 @@ const Nfts = () => {
         );
         setAllOffersByNftTokenId(allOffersByNftTokenId);
 
+        // Handy to check this in Cashtab
+        console.info(
+            `${offeredNftsByGroupTokenId.size} collections with active listings.`,
+        );
+        console.info(`${allOffersByNftTokenId.size} active listings`);
+
         // Build an array of promises to get token info for all unknown NFTs and collections
         const tokenInfoPromises = [];
         for (const tokenId of Array.from(tokenIdsWeNeedToCache)) {
