@@ -33,8 +33,13 @@ from test_framework.signature_hash import (
 def iguana(*args, expected_stderr="", expected_returncode=None):
     if expected_returncode is None:
         expected_returncode = 255 if expected_stderr else 0
+
+    command = [os.environ["IGUANA_BIN"], *args]
+    if emulator := os.environ.get("EMULATOR", None):
+        command.insert(0, emulator)
+
     child = subprocess.Popen(
-        [os.environ["IGUANA_BIN"], *args],
+        command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
