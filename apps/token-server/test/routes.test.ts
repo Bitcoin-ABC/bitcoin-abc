@@ -321,6 +321,29 @@ describe('routes.js', async function () {
                 error: `Recaptcha check failed. Are you a bot?`,
             });
     });
+    it('/claimxec/:address returns 500 and expected msg if called with no recaptcha token', function () {
+        const MOCK_RECAPTCHA_TOKEN = 'badrecaptcha';
+
+        // Mock successful recaptcha response
+        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        const mock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+
+        // Mock a successful API request
+        mock.onPost(config.recaptchaUrl).reply(200, { success: false });
+
+        return request(app)
+            .post(`/claimxec/${USED_ADDRESS}`)
+            .send({ keyNotNamedToken: MOCK_RECAPTCHA_TOKEN }) // send the request body without a "token" key
+            .set('Content-Type', 'application/json') // set the Content-Type header
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: USED_ADDRESS,
+                error: `Request did not include Recaptcha token. Are you a bot?`,
+            });
+    });
     it('/claimxec/:address returns 500 if called with an address that has tx history', function () {
         const MOCK_RECAPTCHA_TOKEN = 'goodrecaptcha';
 
@@ -358,6 +381,8 @@ describe('routes.js', async function () {
 
         return request(app)
             .post(`/claimxec/${NEW_ADDRESS}`)
+            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
+            .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(200)
             .expect('Content-Type', /json/)
             .expect({
@@ -380,6 +405,8 @@ describe('routes.js', async function () {
 
         return request(app)
             .post(`/claimxec/${ERROR_ADDRESS}`)
+            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
+            .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
@@ -401,6 +428,8 @@ describe('routes.js', async function () {
 
         return request(app)
             .post(`/claimxec/${INVALID_ADDRESS}`)
+            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
+            .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
