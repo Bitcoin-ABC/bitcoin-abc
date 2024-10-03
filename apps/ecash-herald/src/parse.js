@@ -1877,19 +1877,35 @@ module.exports = {
         }
 
         // Cashtab rewards
-        if (cashtabTokenRewards > 0) {
+        if (cashtabTokenRewards > 0 || cashtabXecRewardTxs > 0) {
             tgMsg.push('');
+            tgMsg.push(`<a href="https://cashtab.com/">Cashtab</a>`);
+            if (cashtabTokenRewards > 0) {
+                // 1 CACHET reward:
+                // or
+                // <n> CACHET rewards:
+                tgMsg.push(
+                    `<b>${cashtabTokenRewards}</b> <a href="${
+                        config.blockExplorer
+                    }/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward${
+                        cashtabTokenRewards > 1 ? `s` : ''
+                    }`,
+                );
+            }
 
-            // 1 Cashtab CACHET reward:
-            // or
-            // <n> Cashtab CACHET rewards:
-            tgMsg.push(
-                `<b>${cashtabTokenRewards} Cashtab <a href="${
-                    config.blockExplorer
-                }/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward${
-                    cashtabTokenRewards > 1 ? `s` : ''
-                }</b>`,
-            );
+            // Cashtab XEC rewards
+            if (cashtabXecRewardTxs > 0) {
+                // 1 new user received 42 XEC
+                // or
+                // <n> new users received <...>
+                tgMsg.push(
+                    `<b>${cashtabXecRewardTxs}</b> new user${
+                        cashtabXecRewardTxs > 1 ? `s` : ''
+                    } received <b>${satsToFormattedValue(
+                        cashtabXecRewardsTotalXec,
+                    )}</b>`,
+                );
+            }
         }
         if (tokenSendTxMap.size > 0) {
             // eToken Send txs
@@ -1960,22 +1976,6 @@ module.exports = {
             // alias: newlyregisteredalias
             // Cashtab Msg: This is a Cashtab Msg
             tgMsg = tgMsg.concat(opReturnTxTgMsgLines);
-        }
-
-        // Cashtab XEC rewards
-        if (cashtabXecRewardTxs > 0) {
-            tgMsg.push('');
-
-            // 1 Cashtab XEC reward:
-            // or
-            // <n> Cashtab XEC rewards:
-            tgMsg.push(
-                `<b>${cashtabXecRewardTxs} new Cashtab user${
-                    cashtabXecRewardTxs > 1 ? `s` : ''
-                } received ${satsToFormattedValue(
-                    cashtabXecRewardsTotalXec,
-                )}</b>`,
-            );
         }
 
         // XEC txs
