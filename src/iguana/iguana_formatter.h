@@ -6,6 +6,7 @@
 #define BITCOIN_IGUANA_IGUANA_FORMATTER_H
 
 #include <string>
+#include <vector>
 
 struct IguanaResult;
 struct IguanaStacks;
@@ -15,6 +16,7 @@ struct ScriptExecutionMetrics;
 class IguanaFormatter {
 public:
     virtual bool Format(const IguanaResult &) = 0;
+    virtual ~IguanaFormatter(){};
 };
 
 class FormatterHumanReadable : public IguanaFormatter {
@@ -25,6 +27,21 @@ private:
     bool FormatTrace(const std::string &title, const IguanaTrace &trace,
                      const ScriptExecutionMetrics &metrics);
     void FormatStacks(const IguanaStacks &stacks);
+    void FormatExecutionMetrics(const ScriptExecutionMetrics &metrics);
+};
+
+class FormatterCsv : public IguanaFormatter {
+public:
+    virtual bool Format(const IguanaResult &result) override;
+
+private:
+    bool FormatTrace(const std::string &title, const IguanaTrace &trace,
+                     const ScriptExecutionMetrics &metrics,
+                     size_t topStackSize);
+    void TopStackSize(const IguanaTrace &trace, size_t &topStackSize,
+                      size_t &topAltStackSize);
+    void FormatStacks(const IguanaStacks &stacks, size_t topStackSize);
+    void FormatStack(const std::vector<std::vector<uint8_t>> &stack);
     void FormatExecutionMetrics(const ScriptExecutionMetrics &metrics);
 };
 

@@ -66,6 +66,13 @@ def test_parse_error():
     )
 
 
+def test_invalid_format():
+    iguana(
+        "-format=doesntexist",
+        expected_stderr="Unsupported output format doesntexist\n",
+    )
+
+
 def test_invalid_inputindex():
     tx = CTransaction()
     iguana(
@@ -80,15 +87,23 @@ def test_invalid_inputindex():
 def test_sig_push_only():
     tx = CTransaction()
     tx.vin = [CTxIn(COutPoint(), CScript([b"\x31", OP_DUP]))]
-    stdout = iguana(
-        "-tx=" + tx.serialize().hex(),
-        "-inputindex=0",
-        "-scriptpubkey=",
-        "-value=0",
-        expected_stderr="scriptSig failed execution: Only push operators allowed in signatures\n",
-    )
+
+    def run(fmt, expected_stderr):
+        return iguana(
+            "-tx=" + tx.serialize().hex(),
+            "-inputindex=0",
+            "-scriptpubkey=",
+            "-value=0",
+            f"-format={fmt}",
+            expected_stderr=expected_stderr,
+            expected_returncode=255,
+        )
+
     assert (
-        stdout
+        run(
+            "human",
+            expected_stderr="scriptSig failed execution: Only push operators allowed in signatures\n",
+        )
         == """\
 ======= scriptSig =======
        Stack (0 items): (empty stack)
@@ -98,16 +113,32 @@ OP  0: 0x01 31
 OP  1: OP_DUP
 """
     )
+    assert (
+        run("csv", "")
+        == """\
+scriptName,index,opcode,stack 0,
+scriptSig,0,0x31,"31",
+scriptSig,1,OP_DUP,
+scriptSig failed execution: Only push operators allowed in signatures
+"""
+    )
 
 
 def test_script_sig_success():
     tx = CTransaction()
     tx.vin = [CTxIn(COutPoint(), CScript([b"\x31"]))]
-    stdout = iguana(
-        "-tx=" + tx.serialize().hex(), "-inputindex=0", "-scriptpubkey=", "-value=0"
-    )
+
+    def run(fmt):
+        return iguana(
+            "-tx=" + tx.serialize().hex(),
+            "-inputindex=0",
+            "-scriptpubkey=",
+            "-value=0",
+            f"-format={fmt}",
+        )
+
     assert (
-        stdout
+        run("human")
         == """\
 ======= scriptSig =======
        Stack (0 items): (empty stack)
@@ -118,23 +149,47 @@ OP  0: 0x01 31
 Script executed without errors
 """
     )
+    assert (
+        run("csv")
+        == """\
+scriptName,index,opcode,stack 0,
+scriptSig,0,0x31,"31",
+#sigChecks,0
+Script executed without errors
+"""
+    )
 
 
 def test_script_sig_invalid_opcode_encoding():
     tx = CTransaction()
     tx.vin = [CTxIn(COutPoint(), CScript(b"\x01"))]
-    stdout = iguana(
-        "-tx=" + tx.serialize().hex(),
-        "-inputindex=0",
-        "-scriptpubkey=",
-        "-value=0",
-        expected_stderr="scriptSig failed execution: Invalidly encoded opcode\n",
-    )
+
+    def run(fmt, expected_stderr):
+        return iguana(
+            "-tx=" + tx.serialize().hex(),
+            "-inputindex=0",
+            "-scriptpubkey=",
+            "-value=0",
+            f"-format={fmt}",
+            expected_stderr=expected_stderr,
+            expected_returncode=255,
+        )
+
     assert (
-        stdout
+        run(
+            "human",
+            expected_stderr="scriptSig failed execution: Invalidly encoded opcode\n",
+        )
         == """\
 ======= scriptSig =======
        Stack (0 items): (empty stack)
+"""
+    )
+    assert (
+        run("csv", "")
+        == """\
+scriptName,index,opcode,
+scriptSig failed execution: Invalidly encoded opcode
 """
     )
 
@@ -143,14 +198,18 @@ def test_script_pub_key_success():
     tx = CTransaction()
     tx.vin = [CTxIn(COutPoint(), CScript([b"\x31", b"\x32"]))]
     script_pub_key = CScript([OP_ADD, b"\x63", OP_EQUAL])
-    stdout = iguana(
-        "-tx=" + tx.serialize().hex(),
-        "-inputindex=0",
-        "-scriptpubkey=" + script_pub_key.hex(),
-        "-value=0",
-    )
+
+    def run(fmt):
+        return iguana(
+            "-tx=" + tx.serialize().hex(),
+            "-inputindex=0",
+            "-scriptpubkey=" + script_pub_key.hex(),
+            "-value=0",
+            f"-format={fmt}",
+        )
+
     assert (
-        stdout
+        run("human")
         == """\
 ======= scriptSig =======
        Stack (0 items): (empty stack)
@@ -172,6 +231,19 @@ OP  1: 0x01 63
 OP  2: OP_EQUAL
        Stack (1 item):
          0: 01
+Script executed without errors
+"""
+    )
+    assert (
+        run("csv")
+        == """\
+scriptName,index,opcode,stack 0,stack 1,
+scriptSig,0,0x31,"31",
+scriptSig,1,0x32,"31","32",
+scriptPubKey,0,OP_ADD,"63",
+scriptPubKey,1,0x63,"63","63",
+scriptPubKey,2,OP_EQUAL,"01",
+#sigChecks,0
 Script executed without errors
 """
     )
@@ -286,14 +358,18 @@ def test_redeem_script_success():
     tx.vin = [CTxIn(COutPoint(), CScript([b"\x63", b"alt!", bytes(redeem_script)]))]
     script_hash = hash160(redeem_script)
     script_pub_key = CScript([OP_HASH160, script_hash, OP_EQUAL])
-    stdout = iguana(
-        "-tx=" + tx.serialize().hex(),
-        "-inputindex=0",
-        "-scriptpubkey=" + script_pub_key.hex(),
-        "-value=0",
-    )
+
+    def run(fmt):
+        return iguana(
+            "-tx=" + tx.serialize().hex(),
+            "-inputindex=0",
+            "-scriptpubkey=" + script_pub_key.hex(),
+            "-value=0",
+            f"-format={fmt}",
+        )
+
     assert (
-        stdout
+        run("human")
         == f"""\
 ======= scriptSig =======
        Stack (0 items): (empty stack)
@@ -346,6 +422,23 @@ OP  2: OP_EQUAL
          0: 01
        Altstack (1 item):
          0: {b"alt!".hex()}
+Script executed without errors
+"""
+    )
+    assert (
+        run("csv")
+        == f"""\
+scriptName,index,opcode,stack 0,stack 1,stack 2,stack 3,altstack 0,
+scriptSig,0,0x63,"63",
+scriptSig,1,0x{b"alt!".hex()},"63","{b"alt!".hex()}",
+scriptSig,2,0x{redeem_script.hex()},"63","{b"alt!".hex()}","{redeem_script.hex()}",
+scriptPubKey,0,OP_HASH160,"63","{b"alt!".hex()}","{script_hash.hex()}",
+scriptPubKey,1,0x{script_hash.hex()},"63","{b"alt!".hex()}","{script_hash.hex()}","{script_hash.hex()}",
+scriptPubKey,2,OP_EQUAL,"63","{b"alt!".hex()}","01",
+redeemScript,0,OP_TOALTSTACK,"63",,,,"{b"alt!".hex()}",
+redeemScript,1,0x63,"63","63",,,"{b"alt!".hex()}",
+redeemScript,2,OP_EQUAL,"01",,,,"{b"alt!".hex()}",
+#sigChecks,0
 Script executed without errors
 """
     )

@@ -122,3 +122,118 @@ void FormatterHumanReadable::FormatExecutionMetrics(
     const ScriptExecutionMetrics &metrics) {
     std::cout << "Number of sigChecks: " << metrics.nSigChecks << std::endl;
 }
+
+bool FormatterCsv::Format(const IguanaResult &result) {
+    // Calculate the maximum used stack size (to format the altstack)
+    size_t topStackSize = 0;
+    size_t topAltStackSize = 0;
+    TopStackSize(result.traceScriptSig, topStackSize, topAltStackSize);
+    TopStackSize(result.traceScriptPubKey, topStackSize, topAltStackSize);
+    if (result.traceRedeemScript) {
+        TopStackSize(*result.traceRedeemScript, topStackSize, topAltStackSize);
+    }
+
+    std::cout << "scriptName,index,opcode,";
+    for (size_t idx = 0; idx < topStackSize; ++idx) {
+        std::cout << "stack " << idx << ",";
+    }
+    for (size_t idx = 0; idx < topAltStackSize; ++idx) {
+        std::cout << "altstack " << idx << ",";
+    }
+    std::cout << std::endl;
+
+    if (!FormatTrace("scriptSig", result.traceScriptSig, result.metrics,
+                     topStackSize)) {
+        return false;
+    }
+
+    if (!FormatTrace("scriptPubKey", result.traceScriptPubKey, result.metrics,
+                     topStackSize)) {
+        return false;
+    }
+
+    if (result.traceRedeemScript) {
+        if (!FormatTrace("redeemScript", *result.traceRedeemScript,
+                         result.metrics, topStackSize)) {
+            return false;
+        }
+    }
+
+    FormatExecutionMetrics(result.metrics);
+    std::cout << "Script executed without errors" << std::endl;
+
+    return true;
+}
+
+void FormatterCsv::TopStackSize(const IguanaTrace &trace, size_t &topStackSize,
+                                size_t &topAltStackSize) {
+    for (const IguanaTraceEntry &entry : trace.entries) {
+        topStackSize = std::max(topStackSize, entry.stacks.stack.size());
+        topAltStackSize =
+            std::max(topAltStackSize, entry.stacks.altstack.size());
+    }
+}
+
+bool FormatterCsv::FormatTrace(const std::string &traceName,
+                               const IguanaTrace &trace,
+                               const ScriptExecutionMetrics &metrics,
+                               size_t topStackSize) {
+    for (size_t entryIdx = 0; entryIdx < trace.entries.size(); ++entryIdx) {
+        const IguanaTraceEntry &entry = trace.entries[entryIdx];
+        std::cout << traceName << ",";
+        std::cout << entryIdx << ",";
+        if (entry.pushdata.empty()) {
+            std::cout << FormatOpcode(entry.opcode) << ",";
+        } else {
+            std::cout << "0x" << HexStr(entry.pushdata) << ",";
+        }
+        FormatStacks(entry.stacks, topStackSize);
+        std::cout << std::endl;
+    }
+
+    if (!trace.errorMsg.empty() || trace.scriptError != ScriptError::OK) {
+        if (trace.scriptError == ScriptError::INPUT_SIGCHECKS) {
+            FormatExecutionMetrics(metrics);
+        }
+
+        std::cout << traceName << " failed execution: ";
+        if (trace.errorMsg.size() > 0) {
+            std::cout << trace.errorMsg;
+        } else {
+            std::cout << ScriptErrorString(trace.scriptError);
+        }
+        std::cout << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+void FormatterCsv::FormatStacks(const IguanaStacks &stacks,
+                                size_t topStackSize) {
+    FormatStack(stacks.stack);
+    if (!stacks.altstack.empty()) {
+        for (size_t padIdx = 0; padIdx < topStackSize - stacks.stack.size();
+             ++padIdx) {
+            std::cout << ",";
+        }
+        FormatStack(stacks.altstack);
+    }
+}
+
+void FormatterCsv::FormatStack(const std::vector<std::vector<uint8_t>> &stack) {
+    for (const std::vector<uint8_t> &item : stack) {
+        if (item.empty()) {
+            std::cout << "(empty)";
+        } else {
+            std::cout << "\"" << HexStr(item) << "\"";
+        }
+        std::cout << ",";
+    }
+}
+
+void FormatterCsv::FormatExecutionMetrics(
+    const ScriptExecutionMetrics &metrics) {
+    std::cout << "#sigChecks"
+              << "," << metrics.nSigChecks << std::endl;
+}

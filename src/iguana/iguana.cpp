@@ -6,6 +6,7 @@
 #include <common/args.h>
 #include <iguana_formatter.h>
 #include <iguana_interpreter.h>
+#include <memory>
 #include <policy/policy.h>
 #include <span.h>
 #include <streams.h>
@@ -19,6 +20,7 @@
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 const int64_t DEFAULT_INPUT_INDEX = 0;
+const std::string DEFAULT_FORMAT = "human";
 
 void SetupIguanaArgs(ArgsManager &args) {
     args.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
@@ -35,6 +37,11 @@ void SetupIguanaArgs(ArgsManager &args) {
     args.AddArg("-value",
                 "Value (in sats) of the output being spent (required)",
                 ArgsManager::ALLOW_INT, OptionsCategory::OPTIONS);
+    args.AddArg("-format",
+                strprintf("Output format for the debug trace (Options: human, "
+                          "csv. Default: %d)",
+                          DEFAULT_FORMAT),
+                ArgsManager::ALLOW_STRING, OptionsCategory::OPTIONS);
 }
 
 int main(int argc, char *argv[]) {
@@ -58,6 +65,17 @@ int main(int argc, char *argv[]) {
         std::cout << "Usage:  iguana [options]" << std::endl;
         std::cout << args.GetHelpMessage();
         return 0;
+    }
+
+    const std::string outputFormat = args.GetArg("-format", DEFAULT_FORMAT);
+    std::unique_ptr<IguanaFormatter> formatter;
+    if (outputFormat == "human") {
+        formatter.reset(new FormatterHumanReadable());
+    } else if (outputFormat == "csv") {
+        formatter.reset(new FormatterCsv());
+    } else {
+        std::cerr << "Unsupported output format " << outputFormat << std::endl;
+        return -1;
     }
 
     std::vector<std::string> missingArgs;
@@ -105,8 +123,7 @@ int main(int argc, char *argv[]) {
     IguanaInterpreter iguana(tx, inputIndex, txout, flags);
     IguanaResult result = iguana.Run();
 
-    FormatterHumanReadable formatter;
-    if (!formatter.Format(result)) {
+    if (!formatter->Format(result)) {
         return -1;
     }
 
