@@ -99,10 +99,12 @@ IguanaTrace IguanaInterpreter::RunScript(ScriptInterpreter &interpreter,
                                          bool isPushOnly) const {
     IguanaTrace trace;
     trace.scriptError = ScriptError::UNKNOWN;
+    trace.initialStacks.stack = interpreter.GetStack();
+    trace.initialStacks.altstack = interpreter.GetAltStack();
     try {
         while (!interpreter.IsAtEnd()) {
-            IguanaTraceEntry entry;
-            if (!interpreter.GetNextOp(entry.opcode, entry.pushdata)) {
+            IguanaTraceEntry nextEntry;
+            if (!interpreter.GetNextOp(nextEntry.opcode, nextEntry.pushdata)) {
                 // Override message for invalid encoding, since an unknown
                 // opcode also results in BAD_OPCODE
                 trace.errorMsg = "Invalidly encoded opcode";
@@ -110,9 +112,7 @@ IguanaTrace IguanaInterpreter::RunScript(ScriptInterpreter &interpreter,
                 return trace;
             }
 
-            entry.stacks.stack = interpreter.GetStack();
-            entry.stacks.altstack = interpreter.GetAltStack();
-            trace.entries.push_back(entry);
+            IguanaTraceEntry &entry = trace.entries.emplace_back(nextEntry);
 
             if (isPushOnly && entry.opcode > OP_16) {
                 trace.scriptError = ScriptError::SIG_PUSHONLY;
@@ -122,13 +122,14 @@ IguanaTrace IguanaInterpreter::RunScript(ScriptInterpreter &interpreter,
                 trace.scriptError = interpreter.GetScriptError();
                 return trace;
             }
+
+            entry.stacks.stack = interpreter.GetStack();
+            entry.stacks.altstack = interpreter.GetAltStack();
         }
     } catch (std::exception &ex) {
         trace.errorMsg = strprintf("Exception: %s", ex.what());
         return trace;
     }
     trace.scriptError = ScriptError::OK;
-    trace.finalStacks.stack = interpreter.GetStack();
-    trace.finalStacks.altstack = interpreter.GetAltStack();
     return trace;
 }

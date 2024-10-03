@@ -130,7 +130,13 @@ def test_script_sig_invalid_opcode_encoding():
         "-value=0",
         expected_stderr="scriptSig failed execution: Invalidly encoded opcode\n",
     )
-    assert stdout == "======= scriptSig =======\n"
+    assert (
+        stdout
+        == """\
+======= scriptSig =======
+       Stack (0 items): (empty stack)
+"""
+    )
 
 
 def test_script_pub_key_success():

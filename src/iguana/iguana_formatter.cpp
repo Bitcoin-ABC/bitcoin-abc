@@ -17,14 +17,20 @@ bool FormatterHumanReadable::Format(const IguanaResult &result) {
                      result.metrics)) {
         return false;
     }
-    FormatStacks(result.traceScriptPubKey.finalStacks);
+
+    if (!result.traceScriptPubKey.entries.empty()) {
+        FormatStacks(result.traceScriptPubKey.entries.back().stacks);
+    }
 
     if (result.traceRedeemScript) {
         if (!FormatTrace("redeemScript", *result.traceRedeemScript,
                          result.metrics)) {
             return false;
         }
-        FormatStacks(result.traceRedeemScript->finalStacks);
+
+        if (!result.traceRedeemScript->entries.empty()) {
+            FormatStacks(result.traceRedeemScript->entries.back().stacks);
+        }
     }
 
     std::cout << "Script executed without errors" << std::endl;
@@ -49,22 +55,27 @@ bool FormatterHumanReadable::FormatTrace(
     const ScriptExecutionMetrics &metrics) {
     std::cout << "======= " << title << " =======" << std::endl;
 
+    FormatStacks(trace.initialStacks);
+
     for (size_t entryIdx = 0; entryIdx < trace.entries.size(); ++entryIdx) {
         const IguanaTraceEntry &entry = trace.entries[entryIdx];
-        FormatStacks(entry.stacks);
         std::cout << strprintf("OP%3d: %s", entryIdx,
                                FormatOpcode(entry.opcode));
         if (!entry.pushdata.empty()) {
             std::cout << " " << HexStr(entry.pushdata);
         }
         std::cout << std::endl;
+
+        if (entryIdx == trace.entries.size() - 1 &&
+            trace.scriptError != ScriptError::CLEANSTACK &&
+            trace.scriptError != ScriptError::INPUT_SIGCHECKS) {
+            continue;
+        }
+
+        FormatStacks(entry.stacks);
     }
 
     if (!trace.errorMsg.empty() || trace.scriptError != ScriptError::OK) {
-        if (trace.scriptError == ScriptError::CLEANSTACK ||
-            trace.scriptError == ScriptError::INPUT_SIGCHECKS) {
-            FormatStacks(trace.finalStacks);
-        }
         if (trace.scriptError == ScriptError::INPUT_SIGCHECKS) {
             FormatExecutionMetrics(metrics);
         }

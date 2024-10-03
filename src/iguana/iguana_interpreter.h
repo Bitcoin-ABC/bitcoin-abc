@@ -27,7 +27,7 @@ struct IguanaTraceEntry {
 
 struct IguanaTrace {
     std::vector<IguanaTraceEntry> entries;
-    IguanaStacks finalStacks;
+    IguanaStacks initialStacks;
     std::string errorMsg;
     ScriptError scriptError;
 };
