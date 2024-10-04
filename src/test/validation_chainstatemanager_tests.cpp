@@ -751,11 +751,14 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_recent_headers_time,
                         SnapshotTestSetup) {
     auto &initial_chainman = *Assert(m_node.chainman);
 
+    // Make the path unique
+    fs::path dumpPath = "headerstime.test.";
+    dumpPath += ToString(FastRandomContext().rand64()) + ".dat";
+
     BOOST_CHECK(!initial_chainman.m_options.store_recent_headers_time);
     // The dump fails if the feature is not enabled
     BOOST_CHECK(!WITH_LOCK(
-        cs_main,
-        return initial_chainman.DumpRecentHeadersTime("headerstime.test.dat")));
+        cs_main, return initial_chainman.DumpRecentHeadersTime(dumpPath)));
 
     // Restart with the appropriate option
     m_node.args->ForceSetArg("-persistrecentheaderstime", "1");
@@ -781,8 +784,8 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_recent_headers_time,
     }
 
     // Dump the headers time
-    BOOST_CHECK(WITH_LOCK(cs_main, return chainman.DumpRecentHeadersTime(
-                                       "headerstime.test.dat")));
+    BOOST_CHECK(
+        WITH_LOCK(cs_main, return chainman.DumpRecentHeadersTime(dumpPath)));
 
     // Restart the chainstate manager
     BlockHash prevTipHash =
@@ -806,9 +809,8 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_recent_headers_time,
     }
 
     // Load the headers time
-    BOOST_CHECK(
-        WITH_LOCK(cs_main, return restartedChainman.LoadRecentHeadersTime(
-                               "headerstime.test.dat")));
+    BOOST_CHECK(WITH_LOCK(
+        cs_main, return restartedChainman.LoadRecentHeadersTime(dumpPath)));
 
     {
         const CBlockIndex *index =
@@ -841,8 +843,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_recent_headers_time,
             BOOST_CHECK(index);
             CBlockIndex *savedIndex = index->pprev;
             index->pprev = nullptr;
-            BOOST_CHECK(!restartedChainman.DumpRecentHeadersTime(
-                "headerstime.test.dat"));
+            BOOST_CHECK(!restartedChainman.DumpRecentHeadersTime(dumpPath));
             index->pprev = savedIndex;
             index = index->pprev;
         }
