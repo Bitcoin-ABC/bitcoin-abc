@@ -64,6 +64,11 @@ const config: TokenServerConfig = {
         standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
         handler: (req: Request, res: Response) => {
+            // Log a rate limited request
+            const ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+            console.log(`${req.url} from ip="${ip}" blocked by rate limit`);
             return res.status(429).json({
                 error: 'Too many requests',
                 msg: 'To earn more eCash, set up a staking node, or submit a diff to reviews.bitcoinabc.org.',
@@ -77,6 +82,11 @@ const config: TokenServerConfig = {
         standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
         handler: (req: Request, res: Response) => {
+            // Log a rate limited request
+            const ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+            console.log(`${req.url} from ip="${ip}" blocked by rate limit`);
             return res.status(429).json({
                 error: 'Too many requests',
                 msg: 'To earn more eCash, set up a staking node, or submit a diff to reviews.bitcoinabc.org.',
