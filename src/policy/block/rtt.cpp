@@ -71,6 +71,9 @@ bool RTTPolicy::operator()(BlockPolicyValidationState &state) {
  * frequencies due to using a series of filters. We stop at 17 blocks because
  * it makes no practical difference to go further, the selectivity of the filter
  * doesn't change by any meaningful amount anymore.
+ *
+ * Inspired by the research from
+ * https://ledger.pitt.edu/ojs/ledger/article/download/195/187/1008
  */
 static constexpr double RTT_K{6.};
 
