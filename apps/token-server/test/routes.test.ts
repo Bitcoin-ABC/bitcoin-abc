@@ -321,7 +321,7 @@ describe('routes.js', async function () {
                 error: `Recaptcha check failed. Are you a bot?`,
             });
     });
-    it('/claimxec/:address returns 500 and expected msg if called with no recaptcha token', function () {
+    it('/claimxec/:address returns 500 and expected msg if the recaptcha is invalid', function () {
         const MOCK_RECAPTCHA_TOKEN = 'badrecaptcha';
 
         // Mock successful recaptcha response
@@ -335,13 +335,40 @@ describe('routes.js', async function () {
 
         return request(app)
             .post(`/claimxec/${USED_ADDRESS}`)
-            .send({ keyNotNamedToken: MOCK_RECAPTCHA_TOKEN }) // send the request body without a "token" key
+            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
             .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
                 address: USED_ADDRESS,
-                error: `Request did not include Recaptcha token. Are you a bot?`,
+                error: `Recaptcha check failed. Are you a bot?`,
+            });
+    });
+    it('/claimxec/:address returns 500 and expected msg if recaptcha succeeds with insufficient score', function () {
+        const MOCK_RECAPTCHA_TOKEN = 'badrecaptcha';
+
+        // Mock successful recaptcha response
+        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        const mock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+
+        // Mock a successful API request
+        mock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: config.recaptchaThreshold - 0.01,
+        });
+
+        return request(app)
+            .post(`/claimxec/${USED_ADDRESS}`)
+            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body without a "token" key
+            .set('Content-Type', 'application/json') // set the Content-Type header
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: USED_ADDRESS,
+                error: `Recaptcha check suspicious. Are you a bot?`,
+                msg: `🤔`,
             });
     });
     it('/claimxec/:address returns 500 if called with an address that has tx history', function () {
@@ -354,7 +381,10 @@ describe('routes.js', async function () {
         });
 
         // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, { success: true });
+        mock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: config.recaptchaThreshold,
+        });
 
         return request(app)
             .post(`/claimxec/${USED_ADDRESS}`)
@@ -377,7 +407,10 @@ describe('routes.js', async function () {
         });
 
         // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, { success: true });
+        mock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: config.recaptchaThreshold,
+        });
 
         return request(app)
             .post(`/claimxec/${NEW_ADDRESS}`)
@@ -401,7 +434,10 @@ describe('routes.js', async function () {
         });
 
         // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, { success: true });
+        mock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: config.recaptchaThreshold,
+        });
 
         return request(app)
             .post(`/claimxec/${ERROR_ADDRESS}`)
@@ -424,7 +460,10 @@ describe('routes.js', async function () {
         });
 
         // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, { success: true });
+        mock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: config.recaptchaThreshold,
+        });
 
         return request(app)
             .post(`/claimxec/${INVALID_ADDRESS}`)
