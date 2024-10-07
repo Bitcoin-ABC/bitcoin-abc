@@ -4,6 +4,16 @@
 
 'use strict';
 
+const headerArray = [
+    {
+        pattern:
+            '^ Copyright \\(c\\) 2[0-9]{3}(-2[0-9]{3})? The Bitcoin developers$',
+        template: ` Copyright (c) ${new Date().getFullYear()} The Bitcoin developers`,
+    },
+    ' Distributed under the MIT software license, see the accompanying',
+    ' file COPYING or http://www.opensource.org/licenses/mit-license.php.',
+];
+
 module.exports = {
     env: {
         node: true,
@@ -19,15 +29,6 @@ module.exports = {
     plugins: ['header'],
     rules: {
         'strict': 'error',
-        'header/header': [
-            2,
-            'line',
-            [
-                ' Copyright (c) 2023 The Bitcoin developers',
-                ' Distributed under the MIT software license, see the accompanying',
-                ' file COPYING or http://www.opensource.org/licenses/mit-license.php.',
-            ],
-            1,
-        ],
+        'header/header': [2, 'line', headerArray, 2],
     },
 };
