@@ -39,7 +39,12 @@ module.exports = {
         // Parse coinbase string
         const coinbaseTx = txs[0];
         const miner = module.exports.getMinerFromCoinbaseTx(coinbaseTx, miners);
-        const staker = module.exports.getStakerFromCoinbaseTx(coinbaseTx);
+        let staker = module.exports.getStakerFromCoinbaseTx(coinbaseTx);
+        try {
+            staker.staker = cashaddr.encodeOutputScript(staker.staker);
+        } catch (err) {
+            staker.staker = 'script(' + staker.staker + ')';
+        }
 
         // Start with i=1 to skip Coinbase tx
         let parsedTxs = [];
@@ -139,7 +144,9 @@ module.exports = {
                 thisValue <= assumedMaxStakerValue
             ) {
                 return {
-                    staker: cashaddr.encodeOutputScript(output.outputScript),
+                    // Return the script, there is no guarantee that we can use
+                    // an address to display this.
+                    staker: output.outputScript,
                     reward: thisValue,
                 };
             }

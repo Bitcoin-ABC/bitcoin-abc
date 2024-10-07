@@ -288,8 +288,7 @@ describe('parse.js functions', function () {
     });
     it('getStakerFromCoinbaseTx parses miner for all test vectors', function () {
         for (let i = 0; i < stakerTestFixtures.length; i += 1) {
-            const { coinbaseTx, staker } = stakerTestFixtures[i];
-
+            let { coinbaseTx, staker } = stakerTestFixtures[i];
             assert.deepEqual(getStakerFromCoinbaseTx(coinbaseTx), staker);
         }
     });

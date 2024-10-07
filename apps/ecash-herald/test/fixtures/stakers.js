@@ -36,7 +36,7 @@ module.exports = [
             },
         },
         staker: {
-            staker: 'ecash:qqrxlq7f5j0zvwd47ras8ax6rvu8cl526y86jg3ddg',
+            staker: '76a914066f83c9a49e2639b5f0fb03f4da1b387c7e8ad188ac',
             reward: 62500197,
         },
     },
