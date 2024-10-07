@@ -20,11 +20,49 @@ import {
     getNft,
     getNftChildSendTargetOutputs,
     isTokenDustChangeOutput,
+    getAgoraAdFuelSats,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
-import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
+import { SEND_DESTINATION_ADDRESS, MOCK_TOKEN_ID } from '../fixtures/vectors';
+import { AgoraOneshot, AgoraOneshotAdSignatory } from 'ecash-agora';
+import {
+    initWasm,
+    slpSend,
+    SLP_NFT1_CHILD,
+    shaRmd160,
+    Script,
+    fromHex,
+} from 'ecash-lib';
+import appConfig from 'config/app';
+
+const MOCK_WALLET_HASH = fromHex('12'.repeat(20));
+const MOCK_PK = fromHex(
+    '03000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f',
+);
 
 describe('slpv1 methods', () => {
+    let MOCK_AGORA_P2SH, MOCK_ONESHOT;
+    beforeAll(async () => {
+        // Initialize web assembly
+        await initWasm();
+
+        MOCK_ONESHOT = new AgoraOneshot({
+            enforcedOutputs: [
+                {
+                    value: 0,
+                    script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [0, 1]),
+                },
+                {
+                    value: 10000, // list price satoshis
+                    script: Script.p2pkh(MOCK_WALLET_HASH),
+                },
+            ],
+            cancelPk: MOCK_PK,
+        });
+        MOCK_AGORA_P2SH = Script.p2sh(
+            shaRmd160(MOCK_ONESHOT.script().bytecode),
+        );
+    });
     describe('Generating etoken genesis tx target outputs', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getSlpGenesisTargetOutput;
@@ -361,6 +399,58 @@ describe('slpv1 methods', () => {
                     returned,
                 );
             });
+        });
+    });
+    describe('getAgoraAdFuelSats correctly determines one-input fee for an agora offer tx', () => {
+        const MOCK_WALLET_SK = fromHex('33'.repeat(32));
+        const SATS_PER_KB_MIN = 1000;
+        const SATS_PER_KB_ALT = 2000;
+
+        it(`getAgoraAdFuelSats for minimum eCash fee`, () => {
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_ONESHOT.adScript(),
+                    AgoraOneshotAdSignatory(MOCK_WALLET_SK),
+                    [
+                        {
+                            value: 0,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [1]),
+                        },
+                        {
+                            value: appConfig.dustSats,
+                            script: MOCK_AGORA_P2SH,
+                        },
+                    ],
+                    SATS_PER_KB_MIN,
+                ),
+            ).toEqual(314);
+        });
+        it(`getAgoraAdFuelSats for a different fee level`, () => {
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_ONESHOT.adScript(),
+                    AgoraOneshotAdSignatory(MOCK_WALLET_SK),
+                    // Note: for NFT listings, the offerOutputs parameter is more or less constant,
+                    // at least in Cashtab
+                    // maybe you could have a case where sendAmounts array is not [1], mb you have a weird
+                    // NFT with "change" ... will not see this in Cashtab
+                    // So, arguably this function could be a constant. However, we will extend to support
+                    // partial agora offers, and we may change how these offers are made in the future
+                    // Also note... if you set this to a variable in this test, you get failures because
+                    // of the way ecash-lib copies objects and jest not liking it
+                    [
+                        {
+                            value: 0,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [1]),
+                        },
+                        {
+                            value: appConfig.dustSats,
+                            script: MOCK_AGORA_P2SH,
+                        },
+                    ],
+                    SATS_PER_KB_ALT,
+                ),
+            ).toEqual(628);
         });
     });
 });

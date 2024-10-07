@@ -42,6 +42,7 @@ import {
     getNftParentFanTxTargetOutputs,
     getNft,
     getNftChildSendTargetOutputs,
+    getAgoraAdFuelSats,
 } from 'slpv1';
 import { sendXec } from 'transactions';
 import {
@@ -907,10 +908,6 @@ const Token = () => {
     };
 
     const listNft = async () => {
-        // To guarantee we have no utxo conflicts while sending a chain of 2 txs
-        // We ensure that the target output of the ad setup tx will include enough XEC
-        // to cover the offer tx
-        const AD_SETUP_SATOSHIS = 3000;
         const listPriceSatoshis =
             selectedCurrency === appConfig.ticker
                 ? toSatoshis(formData.nftListPrice)
@@ -968,6 +965,32 @@ const Token = () => {
         const agoraAdScript = agoraOneshot.adScript();
         const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
 
+        // We need to calculate the fee of the offer tx before we build the
+        // "ad prep" tx
+
+        // Determine the offerTx parameters before building txs, so we can
+        // accurately calculate its fee
+        const agoraScript = agoraOneshot.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+        const offerTargetOutputs = [
+            {
+                value: 0,
+                script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
+            },
+            { value: appConfig.dustSats, script: agoraP2sh },
+        ];
+        const offerTxFuelSats = getAgoraAdFuelSats(
+            agoraAdScript,
+            AgoraOneshotAdSignatory(sellerSk),
+            offerTargetOutputs,
+            satsPerKb,
+        );
+
+        // So, the ad prep tx must include an output with an input that covers this fee
+        // This will be dust + fee
+        const adFuelOutputSats = appConfig.dustSats + offerTxFuelSats;
+
         // Input needs to be the child NFT utxo with appropriate signData
         // Get the NFT utxo from Cashtab wallet
         const [thisNftUtxo] = getNft(tokenId, wallet.state.slpUtxos);
@@ -992,7 +1015,7 @@ const Token = () => {
                 value: 0,
                 script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
             },
-            { value: AD_SETUP_SATOSHIS, script: agoraAdP2sh },
+            { value: adFuelOutputSats, script: agoraAdP2sh },
         ];
 
         // Broadcast the ad setup tx
@@ -1029,10 +1052,6 @@ const Token = () => {
             return;
         }
 
-        // Seller finishes offer setup + sends NFT to the advertised P2SH
-        const agoraScript = agoraOneshot.script();
-        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
-
         const offerInputs = [
             // The actual NFT
             {
@@ -1044,19 +1063,12 @@ const Token = () => {
                         outIdx: 1,
                     },
                     signData: {
-                        value: AD_SETUP_SATOSHIS,
+                        value: adFuelOutputSats,
                         redeemScript: agoraAdScript,
                     },
                 },
                 signatory: AgoraOneshotAdSignatory(sellerSk),
             },
-        ];
-        const offerTargetOutputs = [
-            {
-                value: 0,
-                script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
-            },
-            { value: appConfig.dustSats, script: agoraP2sh },
         ];
 
         let offerTxid;

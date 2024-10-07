@@ -4,7 +4,14 @@
 
 import appConfig from 'config/app';
 import { undecimalizeTokenAmount, decimalizeTokenAmount } from 'wallet';
-import { Script, slpGenesis, slpSend, slpMint } from 'ecash-lib';
+import {
+    Script,
+    slpGenesis,
+    slpSend,
+    slpMint,
+    TxBuilder,
+    EccDummy,
+} from 'ecash-lib';
 
 // Constants for SLP 1 token types as returned by chronik-client
 export const SLP_1_PROTOCOL_NUMBER = 1;
@@ -12,6 +19,9 @@ export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+
+const DUMMY_TXID =
+    '1111111111111111111111111111111111111111111111111111111111111111';
 
 // Cashtab spec
 // This is how Cashtab defines a token utxo to be received
@@ -610,4 +620,53 @@ export const isTokenDustChangeOutput = targetOutput => {
         // it's equal to 546
         targetOutput.value === appConfig.dustSats
     );
+};
+
+/**
+ * For ecash-agora SLP1 listings txs, an "ad setup tx" is required before
+ * we can actually broadcast the offer
+ *
+ * We want to minimize the amount of XEC we need to make these two required txs
+ *
+ * So, we calculate the fee needed to send the 2nd tx (the offer tx)
+ * We will then use this fee to size the output of the first tx to exactly
+ * cover the 2nd tx
+ */
+export const getAgoraAdFuelSats = (
+    redeemScript,
+    signatory,
+    offerOutputs,
+    satsPerKb,
+) => {
+    // First, get the size of the listing tx
+    const dummyOfferTx = new TxBuilder({
+        inputs: [
+            {
+                input: {
+                    prevOut: {
+                        // Use a placeholder 32-byte txid
+                        txid: DUMMY_TXID,
+                        // The outIdx will always be 1 in Cashtab
+                        // In practice, this does not impact the tx size calculation
+                        outIdx: 1,
+                    },
+                    signData: {
+                        // Arbitrary value that we know will cover the fee for this tx,
+                        // which will always have only one input in Cashtab
+                        value: 10000,
+                        redeemScript,
+                    },
+                },
+                signatory,
+            },
+        ],
+        outputs: offerOutputs,
+    });
+    const measureTx = dummyOfferTx.sign(new EccDummy());
+
+    const dummyOfferTxSats = Math.ceil(
+        (measureTx.serSize() * satsPerKb) / 1000,
+    );
+
+    return dummyOfferTxSats;
 };
