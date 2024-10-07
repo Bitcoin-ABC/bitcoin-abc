@@ -237,7 +237,7 @@ async function generateMock(
     // We want this string to appear in the generated blocks.js file,
     // but not in this file, as we want this file to show up in phab diffs
 
-    const mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n'use strict'\n\nmodule.exports=${JSON.stringify(
+    const mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n\n'use strict'\n\nmodule.exports=${JSON.stringify(
         returnedMocks,
         jsonReplacer,
         2,
