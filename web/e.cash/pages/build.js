@@ -67,6 +67,17 @@ const devLinks = [
         ],
     },
     {
+        sectionTitle: 'Documentation',
+        anchor: 'documentation',
+        links: [
+            {
+                title: 'Chronik',
+                description: 'Documentation for the Chronik Indexer',
+                link: 'https://chronik.e.cash',
+            },
+        ],
+    },
+    {
         sectionTitle: 'DevHub',
         anchor: 'devhub',
         links: [
