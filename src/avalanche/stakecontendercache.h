@@ -64,7 +64,7 @@ struct ManualWinners {
     std::vector<CScript> payoutScripts;
 
     ManualWinners(const BlockHash &_prevblockhash, int _blockheight,
-                  std::vector<CScript> &_payoutScripts)
+                  const std::vector<CScript> &_payoutScripts)
         : prevblockhash(_prevblockhash), blockheight(_blockheight),
           payoutScripts(_payoutScripts) {}
 };
@@ -139,10 +139,11 @@ public:
     bool add(const CBlockIndex *pindex, const ProofRef &proof,
              uint8_t status = StakeContenderStatus::UNKNOWN);
     /**
-     * Add a proof that should be treated as a winner (already finalized). This
+     * Set proof(s) that should be treated as winners (already finalized). This
      * should only be used for manually added winners via RPC.
      */
-    bool addWinner(const CBlockIndex *pindex, const CScript &payoutScript);
+    bool setWinners(const CBlockIndex *pindex,
+                    const std::vector<CScript> &payoutScripts);
 
     /**
      * Helpers to set avalanche state of a contender.

@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(vote_status_tests) {
         CheckVoteStatus(cache, blockhash, proof, 1);
 
         // Add the proof as a manual winner. It should always be accepted.
-        BOOST_CHECK(cache.addWinner(pindex, proof->getPayoutScript()));
+        BOOST_CHECK(cache.setWinners(pindex, {proof->getPayoutScript()}));
         CheckVoteStatus(cache, blockhash, proof, 0);
     }
 }
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
         CheckWinners(cache, blockhash, {}, {});
 
         // Add a winner manually
-        BOOST_CHECK(cache.addWinner(pindex, manualWinners[0]));
+        BOOST_CHECK(cache.setWinners(pindex, {manualWinners[0]}));
         CheckWinners(cache, blockhash, {manualWinners[0]}, {});
 
         // Before adding contenders, check that vote status is unknown
@@ -190,17 +190,16 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
 
         // Add another manual winner. It always comes before contenders in the
         // winner set.
-        BOOST_CHECK(cache.addWinner(pindex, manualWinners[1]));
+        BOOST_CHECK(cache.setWinners(pindex, manualWinners));
         CheckWinners(cache, blockhash, manualWinners, {proofs[0], proofs[2]});
 
         // Adding manual winners with the same payout scripts as contenders in
         // any state never causes conflicts
         std::vector<CScript> moreManualWinners = manualWinners;
         for (const auto &proof : proofs) {
-            const auto &payout = proof->getPayoutScript();
-            BOOST_CHECK(cache.addWinner(pindex, payout));
+            moreManualWinners.push_back(proof->getPayoutScript());
+            BOOST_CHECK(cache.setWinners(pindex, moreManualWinners));
             CheckVoteStatus(cache, blockhash, proof, 0);
-            moreManualWinners.push_back(payout);
             CheckWinners(cache, blockhash, moreManualWinners,
                          {proofs[0], proofs[2]});
         }
@@ -305,7 +304,8 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
     CheckWinners(cache, blockhashes[2], {}, {});
 
     // Add only a local winner to the recently cleared block
-    cache.addWinner(active_chainstate.m_chain.Tip()->pprev->pprev, CScript());
+    cache.setWinners(active_chainstate.m_chain.Tip()->pprev->pprev,
+                     {CScript()});
     CheckWinners(cache, blockhashes[0], {}, proofs);
     CheckWinners(cache, blockhashes[1], {}, proofs);
     CheckWinners(cache, blockhashes[2], {CScript()}, {});
@@ -317,7 +317,7 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
     CheckWinners(cache, blockhashes[2], {}, {});
 
     // Add a local winner to a block with winners already there, then clear it
-    cache.addWinner(active_chainstate.m_chain.Tip()->pprev, CScript());
+    cache.setWinners(active_chainstate.m_chain.Tip()->pprev, {CScript()});
     CheckWinners(cache, blockhashes[0], {}, proofs);
     CheckWinners(cache, blockhashes[1], {CScript()}, proofs);
     CheckWinners(cache, blockhashes[2], {}, {});
@@ -355,7 +355,7 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
         for (size_t i = 0; i < 2; i++) {
             for (const auto &proof : proofs) {
                 cache.add(pindex, proof, InsecureRandBits(2));
-                cache.addWinner(pindex, CScript());
+                cache.setWinners(pindex, {CScript()});
             }
 
             // Sanity check there are some winners

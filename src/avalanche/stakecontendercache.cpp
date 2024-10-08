@@ -39,21 +39,18 @@ bool StakeContenderCache::add(const CBlockIndex *pindex, const ProofRef &proof,
         .second;
 }
 
-bool StakeContenderCache::addWinner(const CBlockIndex *pindex,
-                                    const CScript &payoutScript) {
+bool StakeContenderCache::setWinners(
+    const CBlockIndex *pindex, const std::vector<CScript> &payoutScripts) {
     const BlockHash &prevblockhash = pindex->GetBlockHash();
     auto &view = manualWinners.get<by_prevblockhash>();
     auto it = view.find(prevblockhash);
     if (it == view.end()) {
-        std::vector<CScript> payoutScripts{payoutScript};
         return manualWinners
             .emplace(prevblockhash, pindex->nHeight, payoutScripts)
             .second;
     }
-
-    return manualWinners.modify(it, [&](ManualWinners &entry) {
-        entry.payoutScripts.push_back(payoutScript);
-    });
+    return manualWinners.replace(
+        it, ManualWinners(prevblockhash, pindex->nHeight, payoutScripts));
 }
 
 bool StakeContenderCache::accept(const StakeContenderId &contenderId) {
