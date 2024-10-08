@@ -9,6 +9,8 @@ DEFAULT_DISTROS=()
 DEFAULT_DISTROS+=("focal")
 # Jammy: Ubuntu 22.04 LTS
 DEFAULT_DISTROS+=("jammy")
+# Noble: Ubuntu 24.04 LTS
+DEFAULT_DISTROS+=("noble")
 
 DEFAULT_PPA="bitcoin-abc"
 DPUT_CONFIG_FILE=~/".dput.cf"
