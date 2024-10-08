@@ -10,7 +10,7 @@ Import `ChronikClient` and provide it the Chronik URL in the constructor:
 
 ```tsx
 import { ChronikClient } from 'chronik-client';
-const chronik = new ChronikClient(['https://chronik-doc.fabien.cash']);
+const chronik = new ChronikClient(['https://chronik.e.cash']);
 ```
 
 ## Try it out!
@@ -23,7 +23,7 @@ function DemoConnect() {
         <Json
             fn={async () => {
                 const chronik = new ChronikClient([
-                    'https://chronik-doc.fabien.cash',
+                    'https://chronik.e.cash',
                 ]);
                 return await chronik.blockchainInfo();
             }}
