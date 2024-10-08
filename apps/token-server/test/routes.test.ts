@@ -298,30 +298,7 @@ describe('routes.js', async function () {
                 error: `Error validating recaptcha response, please try again later`,
             });
     });
-    it('/claimxec/:address returns 500 and expected msg if the recaptcha is invalid', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'badrecaptcha';
-
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, { success: false });
-
-        return request(app)
-            .post(`/claimxec/${USED_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
-            .set('Content-Type', 'application/json') // set the Content-Type header
-            .expect(500)
-            .expect('Content-Type', /json/)
-            .expect({
-                address: USED_ADDRESS,
-                error: `Recaptcha check failed. Are you a bot?`,
-            });
-    });
-    it('/claimxec/:address returns 500 and expected msg if the recaptcha is invalid', function () {
+    it('/claimxec/:address returns 500 and expected msg if the recaptcha is invalid (google returns success: false)', function () {
         const MOCK_RECAPTCHA_TOKEN = 'badrecaptcha';
 
         // Mock successful recaptcha response
