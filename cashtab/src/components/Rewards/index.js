@@ -9,6 +9,7 @@ import PrimaryButton from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
+import { load } from 'recaptcha-v3';
 
 const Rewards = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -44,12 +45,22 @@ const Rewards = () => {
         }
     };
     const handleClaim = async () => {
+        // Get a recaptcha score
+        const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
+        const token = await recaptcha.execute('claimcachet');
         // Hit token-server API for rewards
         let claimResponse;
         try {
             claimResponse = await (
                 await fetch(
                     `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token }),
+                    },
                 )
             ).json();
             // Could help in debugging from user reports

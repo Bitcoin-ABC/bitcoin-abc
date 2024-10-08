@@ -169,7 +169,7 @@ export const startExpressServer = (
         },
     );
 
-    app.get(
+    app.post(
         '/claim/:address',
         tokenLimiter,
         async function (req: Request, res: Response) {
@@ -177,6 +177,59 @@ export const startExpressServer = (
             const address = req.params.address;
 
             logIpInfo(req);
+
+            // No need to bother with the google recaptcha check if we do not have the inputs
+            if (typeof req.body.token !== 'string') {
+                console.error('Request did not include a recaptcha token');
+                return res.status(500).json({
+                    address,
+                    error: `Request did not include Recaptcha token. Are you a bot?`,
+                });
+            }
+
+            // Verify recaptcha before reward
+
+            let recaptchaVerification;
+            try {
+                recaptchaVerification = await axios.post(
+                    config.recaptchaUrl,
+                    null,
+                    {
+                        params: {
+                            secret: secrets.prod.recaptchaSecret,
+                            response: req.body.token,
+                        },
+                    },
+                );
+
+                if (recaptchaVerification.data.success !== true) {
+                    console.error('Recaptcha check failed.');
+                    return res.status(500).json({
+                        address,
+                        error: `Recaptcha check failed. Are you a bot?`,
+                    });
+                }
+                // We also check the score
+                if (
+                    typeof recaptchaVerification.data.score === 'undefined' ||
+                    recaptchaVerification.data.score < config.recaptchaThreshold
+                ) {
+                    console.error(
+                        `Recaptcha check failed: score ${recaptchaVerification.data.score} is less than ${config.recaptchaThreshold} threshold`,
+                    );
+                    return res.status(500).json({
+                        address,
+                        error: `Recaptcha check suspicious. Are you a bot?`,
+                        msg: `🤔`,
+                    });
+                }
+            } catch (err) {
+                console.error('Error verifying recaptcha-response');
+                return res.status(500).json({
+                    address,
+                    error: `Error validating recaptcha response, please try again later`,
+                });
+            }
 
             if (!cashaddr.isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
