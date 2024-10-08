@@ -66,8 +66,6 @@ pub struct ChronikIndexerParams {
     /// Whether Chronik should index SLP/ALP token txs.
     pub enable_token_index: bool,
     /// Whether Chronik should index txs by LOKAD ID.
-    /// This will be overridden to `true` if the DB is empty and
-    /// `enable_lokad_id_index_specified` is false.
     pub enable_lokad_id_index: bool,
     /// Whether to output Chronik performance statistics into a perf/ folder
     pub enable_perf_stats: bool,
