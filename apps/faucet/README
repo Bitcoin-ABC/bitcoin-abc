@@ -1,0 +1,11 @@
+# Bitcoin-ABC Faucet
+
+This is a very simple and fully configurable faucet application that is suitable
+for sending testnet coins.
+
+All the configuration options are documented in the config.ts file.
+
+## Usage
+
+Edit the configuration file according to your requirements, then run the
+application with `npm start`.
