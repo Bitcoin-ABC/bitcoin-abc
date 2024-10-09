@@ -72,20 +72,10 @@ class Blockchair(BlockchainExplorer):
     addr_uses_prefix = False
 
 
-class ViaWallet(BlockchainExplorer):
-    name = "ViaWallet"
-    url_base = "https://explorer.viawallet.com/xec"
+class CoinexExplorer(BlockchainExplorer):
+    name = "CoinEx"
+    url_base = "https://explorer.coinex.com/xec"
     addr_uses_prefix: bool = False
-
-
-class BitcoinABC(BlockchainExplorer):
-    name = "BitcoinABC"
-    url_base = "https://explorer.bitcoinabc.org"
-    block_part = "block-height"
-
-
-class BitcoinABCTestnet(BitcoinABC):
-    url_base = "https://texplorer.bitcoinabc.org"
 
 
 class BeCash(BlockchainExplorer):
@@ -98,16 +88,19 @@ class ECash(BlockchainExplorer):
     url_base = "https://explorer.e.cash"
 
 
+class ECashTestnet(ECash):
+    url_base = "https://texplorer.e.cash"
+
+
 DEFAULT_EXPLORER = ECash
 
 mainnet_block_explorers = {
-    explorer.name: explorer
-    for explorer in [ECash, Blockchair, ViaWallet, BitcoinABC, BeCash]
+    explorer.name: explorer for explorer in [ECash, Blockchair, CoinexExplorer, BeCash]
 }
 
-DEFAULT_EXPLORER_TESTNET = BitcoinABCTestnet
+DEFAULT_EXPLORER_TESTNET = ECashTestnet
 
-testnet_block_explorers = {BitcoinABCTestnet.name: BitcoinABCTestnet}
+testnet_block_explorers = {ECashTestnet.name: ECashTestnet}
 
 
 def BE_info() -> Dict[str, BlockchainExplorer]:
@@ -123,7 +116,12 @@ def BE_default_explorer() -> BlockchainExplorer:
 
 
 def BE_name_from_config(config) -> str:
-    return config.get("block_explorer", BE_default_explorer().name)
+    """Return the block explorer name defined in the config file. If the config is
+    set to an unknown block explorer, return the default one."""
+    explorer_name = config.get("block_explorer", BE_default_explorer().name)
+    if explorer_name not in BE_info():
+        explorer_name = BE_default_explorer().name
+    return explorer_name
 
 
 def BE_URL(config, kind: ExplorerUrlParts, item: Union[str, Address]) -> str:
