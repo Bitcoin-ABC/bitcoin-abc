@@ -113,6 +113,10 @@ BOOST_AUTO_TEST_CASE(vote_status_tests) {
 
         cache.invalidate(StakeContenderId(blockhash, proof->getId()));
         CheckVoteStatus(cache, blockhash, proof, 1);
+
+        // Add the proof as a manual winner. It should always be accepted.
+        BOOST_CHECK(cache.addWinner(pindex, proof->getPayoutScript()));
+        CheckVoteStatus(cache, blockhash, proof, 0);
     }
 }
 
