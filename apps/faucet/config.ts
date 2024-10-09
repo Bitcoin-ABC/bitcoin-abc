@@ -39,5 +39,5 @@ export const config = {
     addressEligibilityCheckIntervalSeconds: 3600,
     /// Whitelist of the remotes that are allowed to connect the faucet. Leave
     /// empty to disable the whitelisting.
-    originWhitelist: ['http://127.0.0.1'],
+    originWhitelist: ['http://127.0.0.1'] as string[],
 };
