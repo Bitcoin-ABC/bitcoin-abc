@@ -25,6 +25,24 @@ const devLinks = [
                     'Learn more about contributing to the Bitcoin ABC repo',
                 link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md',
             },
+            {
+                title: 'Source Code',
+                description:
+                    'Source Code for eCash Software from Bitcoin ABC - Including the Full Node, Electrum ABC wallet, and Cashtab Wallet',
+                link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/',
+            },
+        ],
+    },
+    {
+        sectionTitle: 'Software',
+        anchor: 'software',
+        links: [
+            {
+                title: 'Bitcoin ABC Releases',
+                description:
+                    'Ready-to-run Binaries for the Bitcoin ABC Full Node',
+                link: 'https://www.bitcoinabc.org/releases/',
+            },
         ],
     },
     {
@@ -65,6 +83,12 @@ const devLinks = [
         sectionTitle: 'Documentation',
         anchor: 'documentation',
         links: [
+            {
+                title: 'Bitcoin ABC',
+                description:
+                    'Documentation for the Bitcoin ABC Full Node Software',
+                link: 'https://www.bitcoinabc.org/doc/',
+            },
             {
                 title: 'Chronik',
                 description: 'Documentation for the Chronik Indexer',
