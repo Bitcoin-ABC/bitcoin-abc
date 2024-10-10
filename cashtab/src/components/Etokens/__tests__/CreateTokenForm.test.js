@@ -138,6 +138,15 @@ describe('<CreateTokenForm />', () => {
             'https://www.cashtab.com',
         );
 
+        // By default, supply is variable
+        expect(screen.getByTitle('Toggle Mint Baton')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // Hit the switch for fixed supply
+        await user.click(screen.getByTitle('Toggle Mint Baton'));
+
         // Click the Create eToken button
         await user.click(screen.getByRole('button', { name: /Create eToken/ }));
 
@@ -255,8 +264,11 @@ describe('<CreateTokenForm />', () => {
             'https://www.cashtab.com',
         );
 
-        // Hit the switch for a variable supply token
-        await user.click(screen.getByTitle('Toggle Mint Baton'));
+        // Variable supply is default, so we do not need to hit the switch
+        expect(screen.getByTitle('Toggle Mint Baton')).toHaveProperty(
+            'checked',
+            true,
+        );
 
         // Click the Create eToken button
         await user.click(screen.getByRole('button', { name: /Create eToken/ }));
@@ -339,6 +351,15 @@ describe('<CreateTokenForm />', () => {
             ),
             'en.wikipedia.org/wiki/Tai-Pan_(novel)',
         );
+
+        // By default, supply is variable
+        expect(screen.getByTitle('Toggle Mint Baton')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // Hit the switch for fixed supply
+        await user.click(screen.getByTitle('Toggle Mint Baton'));
 
         // Click the Create eToken button
         await user.click(

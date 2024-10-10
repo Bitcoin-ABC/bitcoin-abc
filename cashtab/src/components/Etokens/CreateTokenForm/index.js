@@ -125,7 +125,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
     const [formDataErrors, setFormDataErrors] = useState(initialFormDataErrors);
     // This switch is form data, but since it is a bool and not a string, keep it with its own state field
     const [createWithMintBatonAtIndexTwo, setCreateWithMintBatonAtIndexTwo] =
-        useState(false);
+        useState(true);
 
     // Note: We do not include a UI input for token document hash
     // Questionable value to casual users and requires significant complication
