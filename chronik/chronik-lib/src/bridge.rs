@@ -325,7 +325,11 @@ impl Chronik {
         block: &ffi::CBlock,
         bindex: &ffi::CBlockIndex,
     ) -> Result<()> {
-        let block_undo = self.node.bridge.load_block_undo(bindex)?;
+        // If there is no block undo for this block, skip the processing.
+        // FIXME: investigate how to make this work when there is no undo data.
+        let Ok(block_undo) = self.node.bridge.load_block_undo(bindex) else {
+            return Ok(());
+        };
         let block =
             chronik_bridge::ffi::bridge_block(block, &block_undo, bindex)?;
         let mut indexer = self.indexer.blocking_write();
