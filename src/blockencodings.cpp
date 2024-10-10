@@ -60,8 +60,10 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         return READ_STATUS_INVALID;
     }
 
-    assert(header.IsNull());
-    assert(shortidProcessor == nullptr);
+    if (!header.IsNull() || shortidProcessor != nullptr) {
+        return READ_STATUS_INVALID;
+    }
+
     header = cmpctblock.header;
 
     for (const auto &prefilledtxn : cmpctblock.prefilledtxn) {
@@ -134,14 +136,20 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 }
 
 bool PartiallyDownloadedBlock::IsTxAvailable(size_t index) const {
-    assert(!header.IsNull());
-    assert(shortidProcessor != nullptr);
+    if (header.IsNull()) {
+        return false;
+    }
+    if (shortidProcessor == nullptr) {
+        return false;
+    }
     return shortidProcessor->getItem(index) != nullptr;
 }
 
 ReadStatus PartiallyDownloadedBlock::FillBlock(
     CBlock &block, const std::vector<CTransactionRef> &vtx_missing) {
-    assert(!header.IsNull());
+    if (header.IsNull()) {
+        return READ_STATUS_INVALID;
+    }
     uint256 hash = header.GetHash();
     block = header;
     const size_t txnCount = shortidProcessor->getItemCount();
