@@ -28,14 +28,14 @@ use crate::{
     chain::Chain,
     server_http::{
         address, address_qr, block, block_height, blocks, data_address_txs,
-        data_block_txs, data_blocks, search, serve_files, tx,
+        data_block_txs, data_blocks, search, serve_files, testnet_faucet, tx,
     },
     server_primitives::{
         JsonBalance, JsonBlock, JsonBlocksResponse, JsonTxsResponse, JsonUtxo,
     },
     templating::{
-        AddressTemplate, BlockTemplate, BlocksTemplate, TokenEntryTemplate,
-        TransactionTemplate,
+        AddressTemplate, BlockTemplate, BlocksTemplate, TestnetFaucetTemplate,
+        TokenEntryTemplate, TransactionTemplate,
     },
 };
 
@@ -91,6 +91,7 @@ impl Server {
                 "/favicon.ico",
                 serve_files(&self.base_dir.join("assets").join("favicon.png")),
             )
+            .route("/testnet-faucet", get(testnet_faucet))
     }
 }
 
@@ -104,6 +105,16 @@ impl Server {
         };
 
         Ok(blocks_template.render().unwrap())
+    }
+}
+
+impl Server {
+    pub async fn testnet_faucet(&self) -> Result<String> {
+        let testnet_faucet_template = TestnetFaucetTemplate {
+            network_selector: self.network_selector,
+        };
+
+        Ok(testnet_faucet_template.render().unwrap())
     }
 }
 

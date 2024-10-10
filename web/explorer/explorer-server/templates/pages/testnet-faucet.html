@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="homepage__welcome testnet_ctn">
+        <img class="homepage__network" src="/assets/network-background.png" />
+        <div class="testnet_text_ctn">
+            <h2>Testnet Faucet</h2>
+            <p>
+                Enter your ectest address below to receive some <span>testnet tokens</span>.
+                <br />
+                If the faucet is empty or if you need more test coins, please describe you project on the <a href="https://t.me/eCashDevelopment" target="_blank">eCash Development Telegram group</a>
+            </p>
+            <div id="faucet_input_ctn">
+                <input type="text" id="faucet_input" placeholder="Enter your ectest address">
+                <button id="faucet_button">Submit</button>
+                <div id="faucet_loading">Loading...</div>
+            </div>
+            <div id="faucet_response"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById("faucet_button").addEventListener("click", function() {
+            const inputValue = document.getElementById("faucet_input").value;
+            const loading = document.getElementById("faucet_loading")
+            loading.style.display = 'flex';
+
+            const apiUrl = `https://faucet.fabien.cash/claim/${inputValue}`
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const responseDiv = document.getElementById('faucet_response');
+
+                    let htmlContent = `<div class="inner_faucet_response ${data.error ? 'error' : ''}">`;
+                    for (const [key, value] of Object.entries(data)) {
+                        htmlContent += `<div><strong>${key}:</strong> ${value}</div>`;
+                    }
+                    htmlContent += '</div>';
+
+                    responseDiv.innerHTML = htmlContent;
+                    loading.style.display = 'none';
+                })
+                .catch(error => {
+                    const responseDiv = document.getElementById('faucet_response');
+                    responseDiv.innerHTML = '<div class="inner_faucet_response error">Network error. Please try again later.</div>';
+                    loading.style.display = 'none';
+                });
+        });
+    </script>
+{% endblock %}

@@ -79,7 +79,7 @@
                     {% if network_selector %}<div id="network-select-container"></div>{% endif %}
                 </div>
                 <div class="search-ctn">
-                    <a href="https://e.cash" target="_blank">Learn more about e.Cash</a>
+                    <div id="nav-message-container"></div>
                     <div id="search-box" class="ui transparent icon input">
                         <input id="search-bar"
                                type="text"
@@ -146,6 +146,24 @@
         `;
         }
 
-        window.onload = renderNetworkSelector;
+        function renderNavMessage() {
+            const navMessageContainer = document.getElementById('nav-message-container');
+            const currentHostName = window.location.hostname;
+
+            if (currentHostName === 'texplorer.e.cash') {
+                navMessageContainer.innerHTML = `
+            <a href="/testnet-faucet">Get testnet tokens</a>
+        `;
+            } else {
+                navMessageContainer.innerHTML = `
+            <a href="https://e.cash" target="_blank">Learn more about e.Cash</a>
+        `;
+            }
+        }
+
+        window.onload = function() {
+            renderNetworkSelector();
+            renderNavMessage();
+        };
     </script>
 </html>

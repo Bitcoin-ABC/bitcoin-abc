@@ -22,6 +22,14 @@ pub async fn blocks(
     Ok(Html(server.blocks().await.map_err(to_server_error)?))
 }
 
+pub async fn testnet_faucet(
+    server: Extension<Arc<Server>>,
+) -> Result<Html<String>, ServerError> {
+    Ok(Html(
+        server.testnet_faucet().await.map_err(to_server_error)?,
+    ))
+}
+
 pub async fn tx(
     Path(hash): Path<String>,
     server: Extension<Arc<Server>>,

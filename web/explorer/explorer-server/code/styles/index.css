@@ -206,6 +206,86 @@ a:hover {
     z-index: 88;
 }
 
+.testnet_ctn {
+    padding-left: 0;
+}
+
+.testnet_text_ctn {
+    width: 100%;
+    max-width: 700px;
+    margin: auto;
+    z-index: 999;
+    text-align: center;
+    padding: 0 20px;
+}
+
+.testnet_text_ctn h2 {
+    font-size: 50px;
+}
+
+.testnet_text_ctn span {
+    font-weight: 600;
+}
+
+#faucet_input_ctn {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    position: relative;
+}
+
+#faucet_input_ctn input {
+    padding: 10px 20px;
+    border: none;
+}
+
+#faucet_input_ctn button {
+    padding: 10px 20px;
+    border: none;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+#faucet_input_ctn button:hover {
+    background-color: var(--accent);
+}
+
+#faucet_loading {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 999;
+    position: absolute;
+    display: none;
+    top: 0;
+    left: 0;
+}
+
+.inner_faucet_response {
+    width: 100%;
+    background-color: var(--accent);
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    text-align: left;
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+}
+
+.inner_faucet_response > div {
+    margin: 10px 0;
+    word-break: break-all;
+}
+
+.error {
+    background-color: rgb(150, 0, 0);
+}
+
 .btn {
     border: 2px solid var(--accent);
     font-size: 16px;

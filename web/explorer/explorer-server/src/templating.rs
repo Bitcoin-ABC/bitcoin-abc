@@ -80,6 +80,12 @@ pub struct AddressTemplate<'a> {
 }
 
 #[derive(Template)]
+#[template(path = "pages/testnet-faucet.html")]
+pub struct TestnetFaucetTemplate {
+    pub network_selector: bool,
+}
+
+#[derive(Template)]
 #[template(path = "pages/error.html")]
 pub struct ErrorTemplate {
     pub message: String,
