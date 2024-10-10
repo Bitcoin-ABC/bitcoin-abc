@@ -19,6 +19,7 @@ from electrumabc_gui.qt.util import (
 
 from ..hw_wallet.plugin import only_hook_if_libraries_available
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
+from ..hw_wallet.trezor_qt_pinmatrix import PinMatrixWidget
 from .keepkey import TIM_MNEMONIC, TIM_NEW, TIM_RECOVER, KeepKeyPlugin
 
 PASSPHRASE_HELP_SHORT = _(
@@ -327,8 +328,6 @@ class Plugin(KeepKeyPlugin, QtPlugin):
 
     @classmethod
     def pin_matrix_widget_class(self):
-        from keepkeylib.qt.pinmatrix import PinMatrixWidget
-
         return PinMatrixWidget
 
 

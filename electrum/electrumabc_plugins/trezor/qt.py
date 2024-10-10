@@ -32,6 +32,7 @@ from electrumabc_gui.qt.util import (
 )
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
+from ..hw_wallet.trezor_qt_pinmatrix import PinMatrixWidget
 from .trezor import (
     PASSPHRASE_ON_DEVICE,
     RECOVERY_TYPE_MATRIX,
@@ -492,8 +493,6 @@ class Plugin(TrezorPlugin, QtPlugin):
 
     @classmethod
     def pin_matrix_widget_class(self):
-        from trezorlib.qt.pinmatrix import PinMatrixWidget
-
         return PinMatrixWidget
 
 
