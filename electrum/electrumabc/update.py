@@ -1,11 +1,5 @@
-"""This module handles copying the Electron Cash data dir
-to the Electrum ABC data path if it does not already exists.
-
-The first time a user runs this program, if he already uses Electron Cash,
-he should be able to see all his BCH wallets and have some of the
-settings imported.
-
-This module also handles updating the config file when default config parameters are
+"""
+This module handles updating the config file when default config parameters are
 changed.
 """
 

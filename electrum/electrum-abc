@@ -56,12 +56,12 @@ from electrumabc.commands import (
 from electrumabc.constants import PORTABLE_DATA_DIR, SCRIPT_NAME
 from electrumabc.json_util import json_decode, json_encode
 from electrumabc.keystore import bip44_derivation_xec
-from electrumabc.migrate_data import update_config
 from electrumabc.network import Network
 from electrumabc.plugins import Plugins
 from electrumabc.printerror import print_msg, print_stderr, set_verbosity
 from electrumabc.simple_config import SimpleConfig
 from electrumabc.storage import WalletStorage
+from electrumabc.update import update_config
 from electrumabc.util import InvalidPassword
 from electrumabc.wallet import (
     AbstractWallet,
