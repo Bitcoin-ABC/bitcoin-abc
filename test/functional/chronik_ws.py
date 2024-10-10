@@ -5,7 +5,8 @@
 import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.messages import XEC, AvalancheVoteError
+from test_framework.blocktools import create_block, create_coinbase
+from test_framework.messages import XEC, AvalancheVoteError, msg_block
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, chronik_sub_to_blocks
 
@@ -25,6 +26,7 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
                 "-whitelist=noban@127.0.0.1",
+                "-enableminerfund",
             ],
         ]
         self.supports_cli = False
@@ -198,6 +200,76 @@ class ChronikWsTest(BitcoinTestFramework):
                 )
             ),
         )
+
+        now += 1
+        node.setmocktime(now)
+        tip = node.getbestblockhash()
+
+        # Create a block that will be immediately parked by the node so it will
+        # not even disconnect.
+        # This coinbase is missing the miner fund output
+        height = node.getblockcount() + 1
+        cb1 = create_coinbase(height)
+        block1 = create_block(int(tip, 16), cb1, now, version=4)
+        block1.solve()
+
+        # And a second block that builds on top of the first one, which will
+        # also be rejected
+        cb2 = create_coinbase(height + 1)
+        block2 = create_block(int(block1.hash, 16), cb2, now, version=4)
+        block2.solve()
+
+        # Send the first block and invalidate it
+        with node.assert_debug_log(["policy-bad-miner-fund"]):
+            quorum[0].send_message(msg_block(block1))
+        with node.wait_for_debug_log(
+            [f"Avalanche invalidated block {block1.hash}".encode()],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                quorum, int(block1.hash, 16), AvalancheVoteError.INVALID
+            ),
+        ):
+            pass
+
+        # Then the second one
+        quorum[0].send_message(msg_block(block2))
+        with node.wait_for_debug_log(
+            [f"Avalanche invalidated block {block2.hash}".encode()],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                quorum, int(block2.hash, 16), AvalancheVoteError.INVALID
+            ),
+        ):
+            pass
+
+        # We get an INVALIDATED msg for the first block ...
+        coinbase_data1 = coinbase_data_from_block(block1.hash)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_INVALIDATED,
+                    block_hash=bytes.fromhex(block1.hash)[::-1],
+                    block_height=height,
+                    block_timestamp=now,
+                    coinbase_data=coinbase_data1,
+                )
+            ),
+        )
+
+        # ... but not for the second one
+        ws.timeout = 2
+        try:
+            ws.recv()
+        except TimeoutError as e:
+            assert str(e).startswith(
+                "No message received"
+            ), "The websocket did receive an unexpected message"
+            pass
+        except Exception:
+            assert False, "The websocket did not time out as expected"
+            raise
+        else:
+            assert False, "The websocket did receive an unexpected message"
+            raise
 
         ws.close()
 

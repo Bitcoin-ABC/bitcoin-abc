@@ -326,7 +326,9 @@ impl Chronik {
         bindex: &ffi::CBlockIndex,
     ) -> Result<()> {
         // If there is no block undo for this block, skip the processing.
-        // FIXME: investigate how to make this work when there is no undo data.
+        // This behavior can only occur for blocks building on a parked chain,
+        // and we don't have any interest for these blocks. This might as well
+        // be another chain.
         let Ok(block_undo) = self.node.bridge.load_block_undo(bindex) else {
             return Ok(());
         };
