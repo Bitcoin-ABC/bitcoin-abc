@@ -48,11 +48,6 @@ const devLinks = [
                 description: 'Tools for working with eCash addresses',
                 link: 'https://www.npmjs.com/package/ecashaddrjs',
             },
-            {
-                title: 'ecash-script',
-                description: 'Tools for parsing OP_RETURN transactions',
-                link: 'https://www.npmjs.com/package/ecash-script',
-            },
         ],
     },
     {
