@@ -16,13 +16,13 @@ import {
 
 const devLinks = [
     {
-        sectionTitle: 'How to contribute',
-        anchor: 'contributions',
+        sectionTitle: 'Contribute',
+        anchor: 'contribute',
         links: [
             {
-                title: 'Contributions guide',
+                title: 'Contribution guide',
                 description:
-                    'Learn more about contributing to the Bitcoin ABC repo',
+                    'Learn more about contributing to the Bitcoin ABC repository',
                 link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md',
             },
             {
