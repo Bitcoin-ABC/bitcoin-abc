@@ -31,8 +31,14 @@
                     const responseDiv = document.getElementById('faucet_response');
 
                     let htmlContent = `<div class="inner_faucet_response ${data.error ? 'error' : ''}">`;
-                    for (const [key, value] of Object.entries(data)) {
-                        htmlContent += `<div><strong>${key}:</strong> ${value}</div>`;
+                    if (data.amount && data.address && data.txid) {
+                        htmlContent += `<b>Successfully sent ${data.amount} tXEC!</b><br />
+                            to: <a href='/address/${data.address}'>${data.address}</a><br />
+                            txid: <a href='/tx/${data.txid}'>${data.txid}</a></div>`
+                    } else {
+                        for (const [key, value] of Object.entries(data)) {
+                            htmlContent += `<div><strong>${key}:</strong> ${value}</div>`;
+                        }
                     }
                     htmlContent += '</div>';
 
