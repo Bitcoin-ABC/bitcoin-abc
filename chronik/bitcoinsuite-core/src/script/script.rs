@@ -233,13 +233,13 @@ impl Script {
     /// assert_eq!(Script::p2pkh(&hash).variant(), ScriptVariant::P2PKH(hash));
     /// assert_eq!(Script::p2sh(&hash).variant(), ScriptVariant::P2SH(hash));
     ///
-    /// let pk = PubKey([5; 33]);
+    /// let pk = PubKey([2; 33]);
     /// assert_eq!(
     ///     Script::p2pk(&pk).variant(),
     ///     ScriptVariant::P2PK(PubKeyVariant::Compressed(pk)),
     /// );
     ///
-    /// let uncomp_pk = UncompressedPubKey([6; 65]);
+    /// let uncomp_pk = UncompressedPubKey([4; 65]);
     /// assert_eq!(
     ///     Script::p2pk_uncompressed(&uncomp_pk).variant(),
     ///     ScriptVariant::P2PK(PubKeyVariant::Uncompressed(uncomp_pk)),
@@ -272,14 +272,16 @@ impl Script {
                 ScriptVariant::P2SH(ShaRmd160(hash.try_into().unwrap()))
             }
             [COMP_PK_SIZE, pubkey @ .., OP_CHECKSIG]
-                if pubkey.len() == PubKey::SIZE =>
+                if pubkey.len() == PubKey::SIZE
+                    && (pubkey[0] == 0x02 || pubkey[0] == 0x03) =>
             {
                 ScriptVariant::P2PK(PubKeyVariant::Compressed(PubKey(
                     pubkey.try_into().unwrap(),
                 )))
             }
             [UNCOMP_PK_SIZE, pubkey @ .., OP_CHECKSIG]
-                if pubkey.len() == UncompressedPubKey::SIZE =>
+                if pubkey.len() == UncompressedPubKey::SIZE
+                    && pubkey[0] == 0x04 =>
             {
                 ScriptVariant::P2PK(PubKeyVariant::Uncompressed(
                     UncompressedPubKey(pubkey.try_into().unwrap()),
@@ -310,7 +312,12 @@ impl BitcoinSer for Script {
 mod tests {
     use bytes::Bytes;
 
-    use crate::{script::Script, ser::BitcoinSer};
+    use crate::{
+        script::{
+            PubKey, PubKeyVariant, Script, ScriptVariant, UncompressedPubKey,
+        },
+        ser::BitcoinSer,
+    };
 
     fn verify_ser(a: Script, b: &[u8]) {
         assert_eq!(a.ser().as_ref(), b);
@@ -332,5 +339,94 @@ mod tests {
             Script::new(vec![5; 0x10000].into()),
             &[[0xfe, 0, 0, 1, 0].as_ref(), &vec![5; 0x10000]].concat(),
         );
+    }
+
+    #[test]
+    fn test_variant() {
+        // Uncompressed pubkeys start with 0x04
+        let uncomp_pk = UncompressedPubKey([4; 65]);
+        assert_eq!(
+            Script::p2pk_uncompressed(&uncomp_pk).variant(),
+            ScriptVariant::P2PK(PubKeyVariant::Uncompressed(uncomp_pk)),
+        );
+
+        // ... else it is just a nonstandard script
+        let not_uncomp_pk = UncompressedPubKey([6; 65]);
+        let script = Script::new(
+            vec![
+                0x41, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0xAC,
+            ]
+            .into(),
+        );
+        assert_eq!(
+            Script::p2pk_uncompressed(&not_uncomp_pk).variant(),
+            ScriptVariant::Other(script),
+        );
+
+        // Compressed pubkeys start with 0x02
+        let comp_pk_0x02 = PubKey([2; 33]);
+        assert_eq!(
+            Script::p2pk(&comp_pk_0x02).variant(),
+            ScriptVariant::P2PK(PubKeyVariant::Compressed(comp_pk_0x02)),
+        );
+
+        // ... or 0x03
+        let comp_pk_0x03_data = [
+            0x03, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+        ];
+        let comp_pk_0x03 = PubKey(comp_pk_0x03_data);
+        assert_eq!(
+            Script::p2pk(&comp_pk_0x03).variant(),
+            ScriptVariant::P2PK(PubKeyVariant::Compressed(comp_pk_0x03)),
+        );
+
+        // ... else it is just a nonstandard script
+        let not_comp_pk = PubKey([6; 33]);
+        let script = Script::new(
+            vec![
+                0x21, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0xAC,
+            ]
+            .into(),
+        );
+        assert_eq!(
+            Script::p2pk(&not_comp_pk).variant(),
+            ScriptVariant::Other(script),
+        );
+
+        // This script is a P2PK
+        let script_data = vec![
+            0x21, 0x03, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0xAC,
+        ];
+        let script = Script::new(script_data.clone().into());
+        assert_eq!(
+            script.variant(),
+            ScriptVariant::P2PK(PubKeyVariant::Compressed(comp_pk_0x03)),
+        );
+
+        // This is a non-standard script
+        let script = Script::new(
+            vec![
+                0x21, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+                0x06, 0x06, 0x06, 0x06, 0xAC,
+            ]
+            .into(),
+        );
+        assert_eq!(script.variant(), ScriptVariant::Other(script));
     }
 }
