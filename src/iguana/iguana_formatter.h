@@ -5,6 +5,7 @@
 #ifndef BITCOIN_IGUANA_IGUANA_FORMATTER_H
 #define BITCOIN_IGUANA_IGUANA_FORMATTER_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
