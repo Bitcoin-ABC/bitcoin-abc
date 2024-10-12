@@ -14,6 +14,7 @@ import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import { toast } from 'react-toastify';
 import { theme } from 'assets/styles/theme';
+import appConfig from 'config/app';
 
 const SignVerifyForm = styled.div`
     margin-top: 24px;
@@ -120,7 +121,10 @@ const SignVerifyMsg = () => {
             }));
         } else if (name === 'addressToVerify') {
             // Validate addressToVerify
-            const isValidAddr = cashaddr.isValidCashAddress(value, 'ecash');
+            const isValidAddr = cashaddr.isValidCashAddress(
+                value,
+                appConfig.prefix,
+            );
             setFormDataError(previous => ({
                 ...previous,
                 [name]: isValidAddr ? false : 'Invalid cash address',

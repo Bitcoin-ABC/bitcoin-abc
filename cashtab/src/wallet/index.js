@@ -115,7 +115,11 @@ export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
         const pathInfo = getPathInfo(masterHDNode, path);
         if (path === appConfig.derivationPath) {
             // Initialize wallet name with first 5 chars of Path1899 address
-            wallet.name = pathInfo.address.slice(6, 11);
+            const prefixLength = `${appConfig.prefix}:`.length;
+            wallet.name = pathInfo.address.slice(
+                prefixLength,
+                prefixLength + 5,
+            );
         }
         wallet.paths.set(path, pathInfo);
     }
@@ -133,7 +137,7 @@ export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
 const getPathInfo = (masterHDNode, abbreviatedDerivationPath) => {
     const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
-    const address = cashaddr.encode('ecash', 'P2PKH', node.identifier);
+    const address = cashaddr.encode(appConfig.prefix, 'P2PKH', node.identifier);
     const { hash } = cashaddr.decode(address, true);
 
     return {

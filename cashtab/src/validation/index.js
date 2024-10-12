@@ -39,7 +39,10 @@ export const isValidSideshiftObj = sideshiftObj => {
 };
 
 export const getContactAddressError = (address, contacts) => {
-    const isValidCashAddress = cashaddr.isValidCashAddress(address, 'ecash');
+    const isValidCashAddress = cashaddr.isValidCashAddress(
+        address,
+        appConfig.prefix,
+    );
     // We do not accept prefixless input
     if (!address.startsWith('ecash:')) {
         return `Addresses in Contacts must start with "ecash:" prefix`;
@@ -318,7 +321,7 @@ export const isValidContactList = contactList => {
             // Address must be a valid XEC address, name must be a string
             const { address, name } = contact;
             if (
-                (cashaddr.isValidCashAddress(address, 'ecash') ||
+                (cashaddr.isValidCashAddress(address, appConfig.prefix) ||
                     isValidAliasSendInput(address)) &&
                 typeof name === 'string'
             ) {
@@ -446,8 +449,8 @@ export const isValidAirdropExclusionArray = airdropExclusionArray => {
     // parse and validate each address in array
     for (const address of addressStringArray) {
         if (
-            !address.startsWith('ecash') ||
-            !cashaddr.isValidCashAddress(address, 'ecash')
+            !address.startsWith(appConfig.prefix) ||
+            !cashaddr.isValidCashAddress(address, appConfig.prefix)
         ) {
             return false;
         }
@@ -495,7 +498,10 @@ export const isValidMultiSendUserInput = (
         }
 
         const address = addressAndValueThisLine[0].trim();
-        const isValidAddress = cashaddr.isValidCashAddress(address, 'ecash');
+        const isValidAddress = cashaddr.isValidCashAddress(
+            address,
+            appConfig.prefix,
+        );
 
         if (!isValidAddress) {
             return `Invalid address "${address}" at line ${i + 1}`;
@@ -682,7 +688,10 @@ export function parseAddressInput(
     parsedAddressInput.address.value = cleanAddress;
 
     // Validate address
-    const isValidAddr = cashaddr.isValidCashAddress(cleanAddress, 'ecash');
+    const isValidAddr = cashaddr.isValidCashAddress(
+        cleanAddress,
+        appConfig.prefix,
+    );
 
     // Is this valid address?
     if (!isValidAddr) {
@@ -774,7 +783,7 @@ export function parseAddressInput(
                 // TODO support aliases
                 const isValidNthAddress = cashaddr.isValidCashAddress(
                     nthAddress,
-                    'ecash',
+                    appConfig.prefix,
                 );
                 if (!isValidNthAddress) {
                     //

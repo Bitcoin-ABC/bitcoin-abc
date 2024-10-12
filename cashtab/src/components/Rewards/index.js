@@ -170,21 +170,25 @@ const Rewards = () => {
 
     return (
         <Wrapper title="Rewards">
-            <PrimaryButton disabled={!isEligible} onClick={handleClaim}>
-                {isEligible === null ? (
-                    <center>
-                        <InlineLoader />
-                    </center>
-                ) : isEligible ? (
-                    'Claim Reward'
-                ) : timeRemainingMs !== null ? (
-                    `Come back in ${hours}:${minutes}:${seconds}`
-                ) : (
-                    <center>
-                        <InlineLoader />
-                    </center>
-                )}
-            </PrimaryButton>
+            {process.env.REACT_APP_TESTNET !== 'true' ? (
+                <PrimaryButton disabled={!isEligible} onClick={handleClaim}>
+                    {isEligible === null ? (
+                        <center>
+                            <InlineLoader />
+                        </center>
+                    ) : isEligible ? (
+                        'Claim Reward'
+                    ) : timeRemainingMs !== null ? (
+                        `Come back in ${hours}:${minutes}:${seconds}`
+                    ) : (
+                        <center>
+                            <InlineLoader />
+                        </center>
+                    )}
+                </PrimaryButton>
+            ) : (
+                <p>Token Rewards are not enabled for Testnet</p>
+            )}
         </Wrapper>
     );
 };

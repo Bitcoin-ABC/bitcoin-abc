@@ -8,10 +8,10 @@ import tokenLogo from 'assets/logo_secondary.png';
 // App settings not adjustable by the user
 const appConfig = {
     name: 'eCash',
-    ticker: 'XEC',
+    ticker: process.env.REACT_APP_TESTNET === 'true' ? 'tXEC' : 'XEC',
     derivationPath: 1899,
     logo: mainLogo,
-    legacyPrefix: 'bitcoincash',
+    prefix: process.env.REACT_APP_TESTNET === 'true' ? 'ectest' : 'ecash',
     coingeckoId: 'ecash',
     fiatUpdateIntervalMs: 90000,
     defaultFee: 2010, // satoshis per kb

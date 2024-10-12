@@ -252,18 +252,21 @@ const App = () => {
                                                 </NavHeader>
                                             )}
                                             {process.env.REACT_APP_BUILD_ENV !==
-                                                'extension' && (
-                                                <>
-                                                    {location.pathname ===
-                                                        '/swap' && (
-                                                        <NavHeader>
-                                                            {' '}
-                                                            Swap
-                                                            <SwapIcon />
-                                                        </NavHeader>
-                                                    )}
-                                                </>
-                                            )}
+                                                'extension' &&
+                                                process.env
+                                                    .REACT_APP_TESTNET !==
+                                                    'true' && (
+                                                    <>
+                                                        {location.pathname ===
+                                                            '/swap' && (
+                                                            <NavHeader>
+                                                                {' '}
+                                                                Swap
+                                                                <SwapIcon />
+                                                            </NavHeader>
+                                                        )}
+                                                    </>
+                                                )}
                                             {process.env.REACT_APP_BUILD_ENV !==
                                                 'extension' && (
                                                 <>
@@ -374,12 +377,15 @@ const App = () => {
                                                 />
                                                 {process.env
                                                     .REACT_APP_BUILD_ENV !==
-                                                    'extension' && (
-                                                    <Route
-                                                        path="/swap"
-                                                        element={<Swap />}
-                                                    />
-                                                )}
+                                                    'extension' &&
+                                                    process.env
+                                                        .REACT_APP_TESTNET !==
+                                                        'true' && (
+                                                        <Route
+                                                            path="/swap"
+                                                            element={<Swap />}
+                                                        />
+                                                    )}
                                                 <Route
                                                     path="/rewards"
                                                     element={<Rewards />}
@@ -499,18 +505,23 @@ const App = () => {
                                         <RewardIcon />
                                     </NavItem>
                                     {process.env.REACT_APP_BUILD_ENV !==
-                                        'extension' && (
-                                        <NavItem
-                                            active={
-                                                location.pathname === '/swap'
-                                            }
-                                            onClick={() => navigate('/swap')}
-                                        >
-                                            {' '}
-                                            <p>Swap</p>
-                                            <SwapIcon />
-                                        </NavItem>
-                                    )}
+                                        'extension' &&
+                                        process.env.REACT_APP_TESTNET !==
+                                            'true' && (
+                                            <NavItem
+                                                active={
+                                                    location.pathname ===
+                                                    '/swap'
+                                                }
+                                                onClick={() =>
+                                                    navigate('/swap')
+                                                }
+                                            >
+                                                {' '}
+                                                <p>Swap</p>
+                                                <SwapIcon />
+                                            </NavItem>
+                                        )}
                                     <NavItem
                                         active={
                                             location.pathname ===
