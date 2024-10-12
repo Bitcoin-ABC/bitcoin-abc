@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const webpack = require('webpack');
 const resolve = require('resolve');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -589,6 +590,10 @@ module.exports = function (webpackEnv) {
             ].filter(Boolean),
         },
         plugins: [
+            // resolve issue with asn1.js dependency of crypto-browserify
+            new NodePolyfillPlugin({
+                additionalAliases: ['process'],
+            }),
             // Work around for Buffer is undefined:
             // https://github.com/webpack/changelog-v5/issues/10
             new webpack.ProvidePlugin({

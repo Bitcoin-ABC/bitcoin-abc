@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.45.1",
+    "version": "2.45.2",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -54,7 +54,7 @@
         "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
         "@svgr/webpack": "^6.3.1",
         "@testing-library/jest-dom": "^6.4.2",
-        "@testing-library/react": "^14.2.1",
+        "@testing-library/react": "^16.0.1",
         "@testing-library/user-event": "^14.5.2",
         "assert": "^2.0.0",
         "babel-jest": "^29.7.0",
@@ -89,6 +89,7 @@
         "jest-watch-typeahead": "^2.2.2",
         "jest-when": "^3.6.0",
         "mini-css-extract-plugin": "^2.4.5",
+        "node-polyfill-webpack-plugin": "^4.0.0",
         "postcss": "^8.4.4",
         "postcss-flexbugs-fixes": "^5.0.2",
         "postcss-loader": "^6.2.1",
