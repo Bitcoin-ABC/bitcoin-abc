@@ -268,11 +268,12 @@ extern "C" void *ThreadDumper(void *data) {
                     "%-47s  %4d  %11" PRId64
                     "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
                     "  %5i \"%s\"\n",
-                    rep.ip.ToString(), (int)rep.fGood, rep.lastSuccess,
-                    100.0 * rep.uptime[0], 100.0 * rep.uptime[1],
-                    100.0 * rep.uptime[2], 100.0 * rep.uptime[3],
-                    100.0 * rep.uptime[4], rep.blocks, rep.services,
-                    rep.clientVersion, rep.clientSubVersion);
+                    rep.ip.ToString(),
+                    rep.reliabilityStatus == ReliabilityStatus::OK ? 1 : 0,
+                    rep.lastSuccess, 100.0 * rep.uptime[0],
+                    100.0 * rep.uptime[1], 100.0 * rep.uptime[2],
+                    100.0 * rep.uptime[3], 100.0 * rep.uptime[4], rep.blocks,
+                    rep.services, rep.clientVersion, rep.clientSubVersion);
                 stat[0] += rep.uptime[0];
                 stat[1] += rep.uptime[1];
                 stat[2] += rep.uptime[2];

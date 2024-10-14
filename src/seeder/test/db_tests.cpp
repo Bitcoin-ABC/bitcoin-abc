@@ -58,22 +58,34 @@ BOOST_AUTO_TEST_CASE(seederaddrinfo_test) {
     // Any arbitrary port is OK
     auto info = BuildSeederAddrInfo(ip, /*good=*/true);
     BOOST_CHECK(info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() == ReliabilityStatus::OK);
+
+    info = BuildSeederAddrInfo(CService{CNetAddr{}, uint16_t{1337}},
+                               /*good=*/false);
+    BOOST_CHECK(!info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() == ReliabilityStatus::NOT_ROUTABLE);
 
     // Check the effect of successive failure/success
     info = BuildSeederAddrInfo(ip, /*good=*/false);
     BOOST_CHECK(!info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() == ReliabilityStatus::BAD_UPTIME);
     info.Update(/*good=*/true);
     BOOST_CHECK(info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() == ReliabilityStatus::OK);
     // TODO: complete this test with more elaborate reliability scenarii
 
     // A node without the NODE_NETWORK service is considered unreliable
     info = BuildSeederAddrInfo(ip, /*good=*/true, /*services=*/0);
     BOOST_CHECK(!info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() ==
+                ReliabilityStatus::NOT_NODE_NETWORK);
 
     // A node with clientVersion < REQUIRE_VERSION is considered unreliable
     info = BuildSeederAddrInfo(ip, /*good=*/true, /*services=*/NODE_NETWORK,
                                /*clientVersion=*/REQUIRE_VERSION - 1);
     BOOST_CHECK(!info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() ==
+                ReliabilityStatus::NOT_REQUIRED_VERSION);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

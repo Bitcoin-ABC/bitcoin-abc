@@ -60,6 +60,15 @@ public:
     friend class SeederAddrInfo;
 };
 
+enum class ReliabilityStatus {
+    OK,
+    NOT_NODE_NETWORK,
+    NOT_ROUTABLE,
+    NOT_REQUIRED_VERSION,
+    NOT_REQUIRED_HEIGHT,
+    BAD_UPTIME,
+};
+
 class CAddrReport {
 public:
     CService ip;
@@ -68,7 +77,7 @@ public:
     double uptime[5];
     std::string clientSubVersion;
     int64_t lastSuccess;
-    bool fGood;
+    ReliabilityStatus reliabilityStatus;
     uint64_t services;
 };
 
@@ -108,46 +117,41 @@ public:
         ret.uptime[3] = stat1W.reliability;
         ret.uptime[4] = stat1M.reliability;
         ret.lastSuccess = ourLastSuccess;
-        ret.fGood = IsReliable();
+        ret.reliabilityStatus = GetReliabilityStatus();
         ret.services = services;
         return ret;
     }
 
     bool IsReliable() const {
+        return GetReliabilityStatus() == ReliabilityStatus::OK;
+    }
+
+    // Return the first detected reason a node is unreliable or `OK` if no
+    // reason found
+    ReliabilityStatus GetReliabilityStatus() const {
         if (!(services & NODE_NETWORK)) {
-            return false;
+            return ReliabilityStatus::NOT_NODE_NETWORK;
         }
         if (!ip.IsRoutable()) {
-            return false;
+            return ReliabilityStatus::NOT_ROUTABLE;
         }
         if (clientVersion && clientVersion < REQUIRE_VERSION) {
-            return false;
+            return ReliabilityStatus::NOT_REQUIRED_VERSION;
         }
         if (blocks && blocks < GetRequireHeight()) {
-            return false;
+            return ReliabilityStatus::NOT_REQUIRED_HEIGHT;
         }
 
-        if (total <= 3 && success * 2 >= total) {
-            return true;
+        if ((total > 3 || success * 2 < total) &&
+            (stat2H.reliability <= 0.85 || stat2H.count <= 2) &&
+            (stat8H.reliability <= 0.70 || stat8H.count <= 4) &&
+            (stat1D.reliability <= 0.55 || stat1D.count <= 8) &&
+            (stat1W.reliability <= 0.45 || stat1W.count <= 16) &&
+            (stat1M.reliability <= 0.35 || stat1M.count <= 32)) {
+            return ReliabilityStatus::BAD_UPTIME;
         }
 
-        if (stat2H.reliability > 0.85 && stat2H.count > 2) {
-            return true;
-        }
-        if (stat8H.reliability > 0.70 && stat8H.count > 4) {
-            return true;
-        }
-        if (stat1D.reliability > 0.55 && stat1D.count > 8) {
-            return true;
-        }
-        if (stat1W.reliability > 0.45 && stat1W.count > 16) {
-            return true;
-        }
-        if (stat1M.reliability > 0.35 && stat1M.count > 32) {
-            return true;
-        }
-
-        return false;
+        return ReliabilityStatus::OK;
     }
 
     int64_t GetBanTime() const {
