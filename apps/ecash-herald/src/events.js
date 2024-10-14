@@ -9,6 +9,7 @@ const {
     getBlockTgMessage,
     getMinerFromCoinbaseTx,
     guessRejectReason,
+    summarizeTxHistory,
 } = require('./parse');
 const {
     getCoingeckoPrices,
@@ -101,10 +102,48 @@ module.exports = {
             outputScriptInfoMap,
         );
 
-        // returnMocks is used in the script function generateMocks
-        // Using it as a flag here ensures the script is always using the same function
-        // as the app
+        // Send a daily summary every 144 blocks
+        const BLOCKS_PER_DAY = 144;
+        if (blockHeight % BLOCKS_PER_DAY === 0) {
+            // If this block is a multiple of 144
+
+            const startHeight = blockHeight - BLOCKS_PER_DAY;
+
+            const getAllBlockTxPromises = [];
+            for (let i = 1; i <= BLOCKS_PER_DAY; i += 1) {
+                getAllBlockTxPromises.push(
+                    getAllBlockTxs(chronik, startHeight + i),
+                );
+            }
+
+            const allBlockTxs = (
+                await Promise.all(getAllBlockTxPromises)
+            ).flat();
+
+            // Get XEC price
+            let price;
+            if (typeof coingeckoPrices !== 'undefined') {
+                price = coingeckoPrices[0].price;
+            }
+
+            const dailySummaryTgMsgs = summarizeTxHistory(
+                blockHeight,
+                allBlockTxs,
+                price,
+            );
+
+            // Send msg with successful price API call
+            await sendBlockSummary(
+                dailySummaryTgMsgs,
+                telegramBot,
+                channelId,
+                'daily',
+            );
+        }
         if (returnMocks) {
+            // returnMocks is used in the script function generateMocks
+            // Using it as a flag here ensures the script is always using the same function
+            // as the app
             // Note you need coingeckoResponse so you can mock the axios response for coingecko
             return {
                 blockTxs,

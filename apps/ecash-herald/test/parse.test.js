@@ -31,6 +31,7 @@ const {
     parseMultipushStack,
     parseSlpTwo,
     guessRejectReason,
+    summarizeTxHistory,
 } = require('../src/parse');
 const {
     swaps,
@@ -44,6 +45,7 @@ const {
     paywallTxs,
     authenticationTxs,
 } = require('./mocks/appTxSamples');
+const dailyTxs = require('./mocks/dailyTxs');
 
 describe('parse.js functions', function () {
     it('Parses the master test block', function () {
@@ -346,5 +348,71 @@ describe('parse.js functions', function () {
                 expectedRejectReason,
             );
         }
+    });
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices', function () {
+        const mockLatestFinalizedBlockheight = 800000;
+        assert.deepEqual(
+            summarizeTxHistory(
+                mockLatestFinalizedBlockheight,
+                dailyTxs,
+                0.000033,
+            ),
+            [
+                '<b>eCash on-chain: 74 blocks thru 800,000</b>\n' +
+                    '\n' +
+                    '3 miners found blocks\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. Mining-Dutch, 1 (1%)\n' +
+                    '2. solopool.org, 1 (1%)\n' +
+                    '3. ViaBTC, 1 (1%)\n' +
+                    '\n' +
+                    '3 stakers earned $31\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 (1%)\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 (1%)\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 (1%)\n' +
+                    '\n' +
+                    '8 txs\n' +
+                    '1 new Cashtab user claimed 42 free XEC\n' +
+                    '1 Cashtab user claimed 100.00 CACHET\n' +
+                    '1 CashFusion tx\n' +
+                    '1 token tx\n' +
+                    '1 app tx\n' +
+                    '\n' +
+                    'Binance Hot Wallet\n' +
+                    '1 withdrawals totaling $1',
+            ],
+        );
+    });
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks without fiat price', function () {
+        const mockLatestFinalizedBlockheight = 800000;
+        assert.deepEqual(
+            summarizeTxHistory(mockLatestFinalizedBlockheight, dailyTxs),
+            [
+                '<b>eCash on-chain: 74 blocks thru 800,000</b>\n' +
+                    '\n' +
+                    '3 miners found blocks\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. Mining-Dutch, 1 (1%)\n' +
+                    '2. solopool.org, 1 (1%)\n' +
+                    '3. ViaBTC, 1 (1%)\n' +
+                    '\n' +
+                    '3 stakers earned 937,620 XEC\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 (1%)\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 (1%)\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 (1%)\n' +
+                    '\n' +
+                    '8 txs\n' +
+                    '1 new Cashtab user claimed 42 free XEC\n' +
+                    '1 Cashtab user claimed 100.00 CACHET\n' +
+                    '1 CashFusion tx\n' +
+                    '1 token tx\n' +
+                    '1 app tx\n' +
+                    '\n' +
+                    'Binance Hot Wallet\n' +
+                    '1 withdrawals totaling 19,720 XEC',
+            ],
+        );
     });
 });

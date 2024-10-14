@@ -13,6 +13,10 @@ const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
 const cashaddr = require('ecashaddrjs');
 const BigNumber = require('bignumber.js');
 const {
+    TOKEN_SERVER_OUTPUTSCRIPT,
+    BINANCE_OUTPUTSCRIPT,
+} = require('../constants/senders');
+const {
     prepareStringForTelegramHTML,
     splitOverflowTgMsg,
 } = require('./telegram');
@@ -1584,7 +1588,7 @@ module.exports = {
                         'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1' &&
                     // outputScript of token-server
                     xecSendingOutputScripts.values().next().value ===
-                        '76a914821407ac2993f8684227004f4086082f3f801da788ac'
+                        TOKEN_SERVER_OUTPUTSCRIPT
                 ) {
                     cashtabTokenRewards += 1;
                     // No further parsing for this tx
@@ -1730,13 +1734,7 @@ module.exports = {
                     .values()
                     .next().value;
 
-                const CASHTAB_TOKENSERVER_SENDINGOUTPUTSCRIPT =
-                    '76a914821407ac2993f8684227004f4086082f3f801da788ac';
-
-                if (
-                    firstXecSendingOutputScript ===
-                    CASHTAB_TOKENSERVER_SENDINGOUTPUTSCRIPT
-                ) {
+                if (firstXecSendingOutputScript === TOKEN_SERVER_OUTPUTSCRIPT) {
                     cashtabXecRewardTxs += 1;
                     cashtabXecRewardsTotalXec += totalSatsSent;
                     continue;
@@ -2129,5 +2127,362 @@ module.exports = {
         // rejected due to RTT violation.
 
         return 'unknown';
+    },
+    /**
+     * Summarize an arbitrary array of chronik txs
+     * Different logic vs "per block" herald msgs, as we are looking to
+     * get meaningful info from more txs
+     * We are interested in what txs were like over a certain time period
+     * Not details of a particular block
+     *
+     * TODO
+     * Biggest tx
+     * Highest fee
+     * Token dex volume
+     * Biggest token sales
+     * Whale alerts
+     *
+     * @param {Tx[]} txs array of CONFIRMED Txs
+     * @param {number} xecPriceUsd
+     * @param {number} blockheight height of the most recently finalized block
+     */
+    summarizeTxHistory: function (blockheight, txs, xecPriceUsd) {
+        // Throw out any unconfirmed txs
+        txs.filter(tx => tx.block !== 'undefined');
+
+        // Sort by blockheight
+        txs.sort((a, b) => a.block.height - b.block.height);
+        const txCount = txs.length;
+        // Get covered blocks
+        // Note we add 1 as we include the block at index 0
+        const blockCount =
+            txs[txCount - 1].block.height - txs[0].block.height + 1;
+
+        // Initialize objects useful for summarizing data
+
+        // miner => blocks found
+        const minerMap = new Map();
+
+        // miner pools where we can parse individual miners
+        let viaBtcBlocks = 0;
+        const viabtcMinerMap = new Map();
+
+        // stakerOutputScript => {count, reward}
+        const stakerMap = new Map();
+
+        // TODO more info about send txs
+        // inputs[0].outputScript => {count, satoshisSent}
+        // senderMap
+
+        // lokad name => count
+        const opReturnMap = new Map();
+
+        let totalStakingRewardSats = 0;
+        let cashtabXecRewardCount = 0;
+        let cashtabXecRewardSats = 0;
+        let cashtabCachetRewardCount = 0;
+        let binanceWithdrawalCount = 0;
+        let binanceWithdrawalSats = 0;
+
+        let tokenTxs = 0;
+        let opReturnTxs = 0;
+
+        for (const tx of txs) {
+            const { inputs, outputs, block, tokenEntries } = tx;
+
+            const senderOutputScript = inputs[0].outputScript;
+
+            if (typeof senderOutputScript === 'undefined') {
+                // Coinbase tx - get miner and staker info
+                const miner = module.exports.getMinerFromCoinbaseTx(
+                    tx.inputs[0].inputScript,
+                    outputs,
+                    miners,
+                );
+                if (miner.includes('ViaBTC')) {
+                    viaBtcBlocks += 1;
+                    // ViaBTC pool miner
+                    let blocksFoundThisViaMiner = viabtcMinerMap.get(miner);
+                    if (typeof blocksFoundThisViaMiner === 'undefined') {
+                        viabtcMinerMap.set(miner, 1);
+                    } else {
+                        viabtcMinerMap.set(miner, blocksFoundThisViaMiner + 1);
+                    }
+                } else {
+                    // Other miner
+                    let blocksFoundThisMiner = minerMap.get(miner);
+                    if (typeof blocksFoundThisMiner === 'undefined') {
+                        minerMap.set(miner, 1);
+                    } else {
+                        minerMap.set(miner, blocksFoundThisMiner + 1);
+                    }
+                }
+
+                const stakerInfo = module.exports.getStakerFromCoinbaseTx(
+                    block.height,
+                    outputs,
+                );
+                if (stakerInfo) {
+                    // The coinbase tx may have no staker
+                    // In thise case, we do not have any staking info to update
+
+                    const { staker, reward } = stakerInfo;
+
+                    totalStakingRewardSats += reward;
+
+                    let stakingRewardsThisStaker = stakerMap.get(staker);
+                    if (typeof stakingRewardsThisStaker === 'undefined') {
+                        stakerMap.set(staker, { count: 1, reward });
+                    } else {
+                        stakingRewardsThisStaker.reward += reward;
+                        stakingRewardsThisStaker.count += 1;
+                    }
+                }
+                // No further analysis for this tx
+                continue;
+            }
+            if (senderOutputScript === TOKEN_SERVER_OUTPUTSCRIPT) {
+                // If this tx was sent by token-server
+                if (tokenEntries.length > 0) {
+                    // We assume all token txs sent by token-server are CACHET rewards
+                    // CACHET reward
+                    cashtabCachetRewardCount += 1;
+                } else {
+                    // XEC rwd
+                    cashtabXecRewardCount += 1;
+                    for (const output of outputs) {
+                        const { value, outputScript } = output;
+                        if (outputScript !== TOKEN_SERVER_OUTPUTSCRIPT) {
+                            cashtabXecRewardSats += value;
+                        }
+                    }
+                }
+                // No further analysis for this tx
+                continue;
+            }
+            if (senderOutputScript === BINANCE_OUTPUTSCRIPT) {
+                // Tx sent by Binance
+                // Make sure it's not just a utxo consolidation
+                for (const output of outputs) {
+                    const { value, outputScript } = output;
+                    if (outputScript !== BINANCE_OUTPUTSCRIPT) {
+                        // If we have an output that is not sending to the binance hot wallet
+                        // Increment total value amount withdrawn
+                        binanceWithdrawalSats += value;
+                        // We also call this a withdrawal
+                        // Note that 1 tx from the hot wallet may include more than 1 withdrawal
+                        binanceWithdrawalCount += 1;
+                    }
+                }
+            }
+
+            // Other token actions
+            if (tokenEntries.length > 0) {
+                tokenTxs += 1;
+                continue;
+                /**
+                 * Token tx
+                 *
+                 * Possibilities
+                 *
+                 * GENESIS, SEND, MINT, BURN
+                 * agora list, agora ad prep, agora buy
+                 *
+                 * So first, check if it is agora-related or not
+                 *
+                 * ad prep example
+                 * https://explorer.e.cash/tx/e7ca2e9e9c778f130206520eebfa7244c300ca95e90284782ed54a8b376406da
+                 *
+                 * listing example
+                 * https://explorer.e.cash/tx/d142c4d3ee2fc09bca13314f9b5b1476b6bc3806f6db989b003e2d57a96c6cc5
+                 */
+                // Burn, mint, or genesis
+                // send -- if output size is not dust and it's to a p2sh, call it ad prep tx
+                // if output size dust and to a p2sh, call it a listing (mb a partial buy?)
+            }
+            const firstOutputScript = outputs[0].outputScript;
+            if (firstOutputScript.startsWith('6a')) {
+                const { app } = module.exports.parseOpReturn(
+                    firstOutputScript.slice(2),
+                );
+                if (app === 'unknown') {
+                    // See if there is a lokad
+                }
+                opReturnTxs += 1;
+                let appTxCount = opReturnMap.get(app);
+                if (typeof appTxCount === 'undefined') {
+                    opReturnMap.set(app, 1);
+                } else {
+                    opReturnMap.set(app, appTxCount + 1);
+                }
+            }
+        }
+
+        // Add ViaBTC as a single entity to minerMap
+        minerMap.set(`ViaBTC`, viaBtcBlocks);
+        // Sort miner map by blocks found
+        const sortedMinerMap = new Map(
+            [...minerMap.entries()].sort(
+                (keyValueArrayA, keyValueArrayB) =>
+                    keyValueArrayB[1] - keyValueArrayA[1],
+            ),
+        );
+        const sortedStakerMap = new Map(
+            [...stakerMap.entries()].sort(
+                (keyValueArrayA, keyValueArrayB) =>
+                    keyValueArrayB[1].count - keyValueArrayA[1].count,
+            ),
+        );
+
+        // Build your msg
+        const tgMsg = [];
+        tgMsg.push(
+            `<b>eCash on-chain: ${blockCount} blocks thru ${blockheight.toLocaleString(
+                'en-US',
+            )}</b>`,
+        );
+        tgMsg.push('');
+
+        // Top miners
+        const MINERS_TO_SHOW = 3;
+        tgMsg.push(`${sortedMinerMap.size} miners found blocks`);
+        tgMsg.push(`<u>Top ${MINERS_TO_SHOW}</u>`);
+
+        const topMiners = [...sortedMinerMap.entries()].slice(
+            0,
+            MINERS_TO_SHOW,
+        );
+        for (let i = 0; i < topMiners.length; i += 1) {
+            const count = topMiners[i][1];
+            const pct = (100 * (count / blockCount)).toFixed(0);
+            tgMsg.push(`${i + 1}. ${topMiners[i][0]}, ${count} (${pct}%)`);
+        }
+        tgMsg.push('');
+
+        const SATOSHIS_PER_XEC = 100;
+        const totalStakingRewardsXec =
+            totalStakingRewardSats / SATOSHIS_PER_XEC;
+        const renderedTotalStakingRewards =
+            typeof xecPriceUsd !== 'undefined'
+                ? `$${(totalStakingRewardsXec * xecPriceUsd).toLocaleString(
+                      'en-US',
+                      {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                      },
+                  )}`
+                : `${totalStakingRewardsXec.toLocaleString('en-US', {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                  })} XEC`;
+
+        // Top stakers
+        const STAKERS_TO_SHOW = 3;
+        tgMsg.push(
+            `${sortedStakerMap.size} stakers earned ${renderedTotalStakingRewards}`,
+        );
+        tgMsg.push(`<u>Top ${STAKERS_TO_SHOW}</u>`);
+        const topStakers = [...sortedStakerMap.entries()].slice(
+            0,
+            STAKERS_TO_SHOW,
+        );
+        for (let i = 0; i < topStakers.length; i += 1) {
+            const staker = topStakers[i];
+            const count = staker[1].count;
+            const pct = (100 * (count / blockCount)).toFixed(0);
+            const addr = cashaddr.encodeOutputScript(staker[0]);
+            tgMsg.push(
+                `${i + 1}. ${`<a href="${
+                    config.blockExplorer
+                }/address/${addr}">${returnAddressPreview(addr)}</a>`}, ${
+                    staker[1].count
+                } (${pct}%)`,
+            );
+        }
+        tgMsg.push('');
+
+        // Txs
+        tgMsg.push(`${txs.length.toLocaleString('en-US')} txs`);
+        if (cashtabXecRewardCount > 0) {
+            const xecClaimed = cashtabXecRewardSats / SATOSHIS_PER_XEC;
+            tgMsg.push(
+                `${cashtabXecRewardCount.toLocaleString(
+                    'en-US',
+                )} new Cashtab user${
+                    cashtabXecRewardCount > 1 ? 's' : ''
+                } claimed ${xecClaimed.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                })} free XEC`,
+            );
+        }
+
+        if (cashtabCachetRewardCount > 0) {
+            const CACHET_REWARD_SIZE = 100;
+            tgMsg.push(
+                `${cashtabCachetRewardCount.toLocaleString(
+                    'en-US',
+                )} Cashtab user${
+                    cashtabCachetRewardCount > 1 ? 's' : ''
+                } claimed ${(
+                    cashtabXecRewardCount * CACHET_REWARD_SIZE
+                ).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                })} CACHET`,
+            );
+        }
+
+        const cashFusionTxs = opReturnMap.get('CashFusion');
+        if (typeof cashFusionTxs !== 'undefined') {
+            tgMsg.push(
+                `${cashFusionTxs.toLocaleString('en-US')} CashFusion tx${
+                    cashtabXecRewardCount > 1 ? 's' : ''
+                }`,
+            );
+        }
+
+        if (tokenTxs > 0) {
+            tgMsg.push(
+                `${tokenTxs.toLocaleString('en-US')} token tx${
+                    tokenTxs > 1 ? 's' : ''
+                }`,
+            );
+        }
+
+        if (opReturnTxs > 0) {
+            tgMsg.push(
+                `${tokenTxs.toLocaleString('en-US')} app tx${
+                    opReturnTxs > 1 ? 's' : ''
+                }`,
+            );
+        }
+
+        tgMsg.push('');
+
+        if (binanceWithdrawalCount > 0) {
+            // Binance hot wallet
+            const binanceWithdrawalXec =
+                binanceWithdrawalSats / SATOSHIS_PER_XEC;
+            const renderedBinanceWithdrawalSats =
+                typeof xecPriceUsd !== 'undefined'
+                    ? `$${(binanceWithdrawalXec * xecPriceUsd).toLocaleString(
+                          'en-US',
+                          {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                          },
+                      )}`
+                    : `${binanceWithdrawalXec.toLocaleString('en-US', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                      })} XEC`;
+            tgMsg.push('Binance Hot Wallet');
+            tgMsg.push(
+                `${binanceWithdrawalCount} withdrawals totaling ${renderedBinanceWithdrawalSats}`,
+            );
+        }
+
+        return splitOverflowTgMsg(tgMsg);
     },
 };

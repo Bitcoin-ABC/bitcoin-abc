@@ -81,7 +81,7 @@ module.exports = {
         tgMsgStrings,
         telegramBot,
         channelId,
-        blockheight = false,
+        blockheightOrMsgDesc = false,
     ) {
         /* sendBlockSummary
          *
@@ -129,10 +129,14 @@ module.exports = {
             }
         }
         if (msgSuccessArray.length === tgMsgStrings.length) {
-            if (typeof blockheight === 'number') {
-                console.log('\x1b[32m%s\x1b[0m', `✔ ${blockheight}`);
+            if (typeof blockheightOrMsgDesc === 'number') {
+                console.log('\x1b[32m%s\x1b[0m', `✔ ${blockheightOrMsgDesc}`);
+            } else if (blockheightOrMsgDesc === 'daily') {
+                console.log(
+                    '\x1b[32m%s\x1b[0m',
+                    `✔ Sent daily summary of last 144 blocks`,
+                );
             }
-
             return msgSuccessArray;
         }
         // Catch potential edge case
