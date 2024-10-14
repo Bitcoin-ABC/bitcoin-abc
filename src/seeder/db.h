@@ -273,7 +273,6 @@ private:
     std::set<int> unkId;
     // set of good nodes  (d, good e)
     std::set<int> goodId;
-    int nDirty;
 
 protected:
     // internal routines that assume proper locks are acquired
@@ -389,7 +388,6 @@ public:
                 }
             }
         }
-        db->nDirty++;
 
         s >> banned;
     }

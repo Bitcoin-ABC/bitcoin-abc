@@ -74,7 +74,6 @@ bool CAddrDb::Get_(CServiceResult &ip) {
         }
     } while (1);
 
-    nDirty++;
     return true;
 }
 
@@ -104,7 +103,6 @@ void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
         //    tfm::format(std::cout, "%s: good; %i good nodes now\n",
         //    ToString(addr), (int)goodId.size());
     }
-    nDirty++;
     ourId.push_back(id);
 }
 
@@ -139,7 +137,6 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
         }
         ourId.push_back(id);
     }
-    nDirty++;
 }
 
 void CAddrDb::Add_(const CAddress &addr, bool force) {
@@ -185,7 +182,6 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     //  tfm::format(std::cout, "%s: added\n", ToString(ipp),
     //  ipToId[ipp]);
     unkId.insert(id);
-    nDirty++;
 }
 
 void CAddrDb::GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags,
