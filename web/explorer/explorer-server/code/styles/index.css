@@ -267,14 +267,35 @@ a:hover {
 
 .inner_faucet_response {
     width: 100%;
-    background-color: var(--accent);
+    background-color: #029b18;
     display: flex;
     align-items: flex-start;
     flex-direction: column;
     text-align: left;
     margin-top: 20px;
-    padding: 10px 20px;
+    padding: 20px;
     font-size: 16px;
+    border-radius: 3px;
+}
+
+.inner_faucet_response h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 24px;
+}
+
+.inner_faucet_response a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.inner_faucet_response a:hover {
+    color: #b0f6ff;
+}
+
+.inner_faucet_response span {
+    margin-top: 30px;
+    word-break: break-all;
 }
 
 .inner_faucet_response > div {
