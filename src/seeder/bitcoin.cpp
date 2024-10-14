@@ -78,6 +78,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         if (vAddr) {
             MessageWriter::WriteMessage(vSend, NetMsgType::GETADDR);
             doneAfterDelta = GetTimeout();
+            needAddrReply = true;
         }
 
         // request headers starting after last checkpoint (only if we have
@@ -94,6 +95,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
     }
 
     if (strCommand == NetMsgType::ADDR && vAddr) {
+        needAddrReply = false;
         std::vector<CAddress> vAddrNew;
         recv >> vAddrNew;
         // tfm::format(std::cout, "%s: got %i addresses\n",
@@ -102,8 +104,9 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         auto now = Now<NodeSeconds>();
         std::vector<CAddress>::iterator it = vAddrNew.begin();
         if (vAddrNew.size() > 1) {
-            if (TicksSinceEpoch<std::chrono::seconds>(doneAfter) == 0 ||
-                doneAfter > now + 1s) {
+            if (checkpointVerified &&
+                (TicksSinceEpoch<std::chrono::seconds>(doneAfter) == 0 ||
+                 doneAfter > now + 1s)) {
                 doneAfter = now + 1s;
             }
         }
@@ -124,7 +127,14 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
             // ToString(you),
             //        addr.ToString(), (int)(vAddr->size()));
             if (vAddr->size() > ADDR_SOFT_CAP) {
-                doneAfter = NodeSeconds{1s};
+                if (!checkpointVerified) {
+                    // stop processing addresses now since we hit the soft cap,
+                    // but we will continue to await headers
+                    break;
+                }
+                // stop processing addresses and since we aren't waiting for
+                // headers, stop processing immediately
+                doneAfter = now;
                 return PeerMessagingState::Finished;
             }
         }
@@ -163,6 +173,11 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
                 return PeerMessagingState::Finished;
             }
             checkpointVerified = true;
+            if (!needAddrReply) {
+                // we are no longer waiting for headers or addr, so we can
+                // stop processing this node
+                doneAfter = Now<NodeSeconds>();
+            }
         }
     }
 

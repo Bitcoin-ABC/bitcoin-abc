@@ -50,6 +50,7 @@ private:
     CService you;
     ServiceFlags yourServices{ServiceFlags(NODE_NETWORK)};
     bool checkpointVerified{false};
+    bool needAddrReply{false};
 
     std::chrono::seconds GetTimeout() { return you.IsTor() ? 120s : 30s; }
 

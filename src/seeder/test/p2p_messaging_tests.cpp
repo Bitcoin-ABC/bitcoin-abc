@@ -130,7 +130,30 @@ static CDataStream CreateAddrMessage(std::vector<CAddress> sendAddrs,
     return payload;
 }
 
-BOOST_AUTO_TEST_CASE(process_addr_msg) {
+BOOST_FIXTURE_TEST_CASE(process_addr_msg, MainNetSeederTestingSetup) {
+    // First, must send headers to satisfy the criteria that both ADDR/ADDRV2
+    // *and* HEADERS must arrive before TestNode can advance to the Finished
+    // state
+    BlockHash recentCheckpoint =
+        ::Params().Checkpoints().mapCheckpoints.rbegin()->second;
+    int recentCheckpointHeight =
+        ::Params().Checkpoints().mapCheckpoints.rbegin()->first;
+    auto header = CBlockHeader{};
+    header.hashPrevBlock = recentCheckpoint;
+    testNode->setStartingHeight(recentCheckpointHeight + 1);
+    CDataStream headersMsg(SER_NETWORK, 0);
+    headersMsg.SetVersion(INIT_PROTO_VERSION);
+    WriteCompactSize(headersMsg, 1);
+    headersMsg << header;
+    // sanity check: node is expecting headers
+    BOOST_CHECK(!testNode->IsCheckpointVerified());
+    testNode->TestProcessMessage(NetMsgType::HEADERS, headersMsg,
+                                 PeerMessagingState::AwaitingMessages);
+    BOOST_CHECK_EQUAL(testNode->GetBan(), 0);
+    // node got the checkpointed header; it can advance to Finished after
+    // addr message
+    BOOST_CHECK(testNode->IsCheckpointVerified());
+
     // vAddrs starts with 1 entry.
     std::vector<CAddress> sendAddrs(ADDR_SOFT_CAP - 1, vAddr[0]);
 
