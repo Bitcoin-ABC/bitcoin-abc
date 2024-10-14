@@ -24,12 +24,10 @@ PACKAGES=(
   dput
   g++-9
   g++-9-aarch64-linux-gnu
-  g++-9-arm-linux-gnueabihf
   g++-9-multilib
   g++-mingw-w64
   gcc-9
   gcc-9-aarch64-linux-gnu
-  gcc-9-arm-linux-gnueabihf
   gcc-9-multilib
   gettext-base
   git
@@ -133,9 +131,6 @@ update-alternatives --install /usr/bin/g++ g++ "$(command -v g++-9)" 100
 update-alternatives --install /usr/bin/aarch64-linux-gnu-gcc aarch64-linux-gnu-gcc "$(command -v aarch64-linux-gnu-gcc-9)" 100
 update-alternatives --install /usr/bin/aarch64-linux-gnu-g++ aarch64-linux-gnu-g++ "$(command -v aarch64-linux-gnu-g++-9)" 100
 
-update-alternatives --install /usr/bin/arm-linux-gnueabihf-gcc arm-linux-gnueabihf-gcc "$(command -v arm-linux-gnueabihf-gcc-9)" 100
-update-alternatives --install /usr/bin/arm-linux-gnueabihf-g++ arm-linux-gnueabihf-g++ "$(command -v arm-linux-gnueabihf-g++-9)" 100
-
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
 update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32-gcc-posix)
@@ -184,7 +179,6 @@ RUST_NIGHTLY_DATE=2023-12-29
 "${RUST_HOME}/rustup" target add "i686-unknown-linux-gnu" \
                                  "x86_64-unknown-linux-gnu" \
                                  "aarch64-unknown-linux-gnu" \
-                                 "arm-unknown-linux-gnueabihf" \
                                  "x86_64-apple-darwin" \
                                  "x86_64-pc-windows-gnu" \
                                  "wasm32-unknown-unknown"

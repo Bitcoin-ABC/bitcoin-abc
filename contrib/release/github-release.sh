@@ -108,7 +108,6 @@ if [ -n "${ASSET_DIR}" ]; then
   if [ -d "${ASSET_DIR}" ]; then
     # Linux binaries
     ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-aarch64-linux-gnu.tar.gz")
-    ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-arm-linux-gnueabihf.tar.gz")
     ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-x86_64-linux-gnu.tar.gz")
 
     # OSX binaries

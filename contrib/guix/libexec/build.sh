@@ -164,7 +164,6 @@ case "$HOST" in
         glibc_dynamic_linker=$(
             case "$HOST" in
                 x86_64-linux-gnu)      echo /lib64/ld-linux-x86-64.so.2 ;;
-                arm-linux-gnueabihf)   echo /lib/ld-linux-armhf.so.3 ;;
                 aarch64-linux-gnu)     echo /lib/ld-linux-aarch64.so.1 ;;
                 *)                     exit 1 ;;
             esac
@@ -218,10 +217,6 @@ case "$HOST" in
     aarch64-linux-gnu)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/LinuxAArch64.cmake"
         RUST_TARGET="aarch64-unknown-linux-gnu"
-        ;;
-    arm-linux-gnueabihf)
-        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/LinuxARM.cmake"
-        RUST_TARGET="arm-unknown-linux-gnueabihf"
         ;;
     x86_64-linux-gnu)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Linux64.cmake"
@@ -304,10 +299,6 @@ esac
 
 # CXXFLAGS
 HOST_CXXFLAGS="$HOST_CFLAGS"
-
-case "$HOST" in
-    arm-linux-gnueabihf) HOST_CXXFLAGS="${HOST_CXXFLAGS} -Wno-psabi" ;;
-esac
 
 # LDFLAGS
 case "$HOST" in

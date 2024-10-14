@@ -73,7 +73,7 @@ fi
 
 # Default to building for all supported HOSTs (overridable by environment)
 # TODO: support arm64-apple-darwin,
-export HOSTS="${HOSTS:-x86_64-linux-gnu x86_64-w64-mingw32 x86_64-apple-darwin arm-linux-gnueabihf aarch64-linux-gnu}"
+export HOSTS="${HOSTS:-x86_64-linux-gnu x86_64-w64-mingw32 x86_64-apple-darwin aarch64-linux-gnu}"
 
 # Usage: distsrc_for_host HOST
 #

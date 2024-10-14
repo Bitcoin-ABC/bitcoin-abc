@@ -266,7 +266,7 @@ non-wallet distribution of the latest changes on Arch Linux:
     cmake -GNinja .. -DBUILD_BITCOIN_WALLET=OFF -DBUILD_BITCOIN_QT=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF -DUSE_JEMALLOC=OFF
     ninja
 
-ARM Cross-compilation
+AArch64 Cross-compilation
 -------------------
 These steps can be performed on, for example, a Debian VM. The depends system
 will also work on other Linux distributions, however the commands for
@@ -275,16 +275,16 @@ installing the toolchain will be different.
 Make sure you install all the build requirements mentioned above.
 Then, install the toolchain and some additional dependencies:
 
-    sudo apt-get install autoconf automake curl g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf gperf pkg-config
+    sudo apt-get install autoconf automake curl g++-aarch64-linux-gnueabihf gcc-aarch64-linux-gnueabihf gperf pkg-config
 
-To build executables for ARM:
+To build executables for AArch64:
 
     cd depends
-    make build-linux-arm
+    make build-linux-aarch64
     cd ..
     mkdir build
     cd build
-    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/LinuxARM.cmake -DENABLE_GLIBC_BACK_COMPAT=ON -DENABLE_STATIC_LIBSTDCXX=ON
+    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/LinuxAArch64.cmake -DENABLE_GLIBC_BACK_COMPAT=ON -DENABLE_STATIC_LIBSTDCXX=ON
     ninja
 
 

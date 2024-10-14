@@ -482,38 +482,6 @@ builds:
     env:
       QEMU_LD_PREFIX: /usr/aarch64-linux-gnu
 
-  build-linux-arm:
-    cross_build:
-      static_depends: linux-arm
-      toolchain: LinuxARM
-      emulator: qemu-arm-static
-    cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
-      # The ZMQ functional test will fail with qemu (due to a qemu limitation),
-      # so disable it to avoid the failure.
-      # Extracted from stderr:
-      #   Unknown host QEMU_IFLA type: 50
-      #   Unknown host QEMU_IFLA type: 51
-      #   Unknown QEMU_IFLA_BRPORT type 33
-      - "-DBUILD_BITCOIN_ZMQ=OFF"
-      # This is an horrible hack to workaround a qemu bug:
-      # https://bugs.launchpad.net/qemu/+bug/1748612
-      # Qemu emits a message for unsupported features called by the guest.
-      # Because the output filtering is not working at all, it causes the
-      # qemu stderr to end up in the node stderr and fail the functional
-      # tests.
-      # Disabling the unsupported feature (here bypassing the config
-      # detection) fixes the issue.
-      # FIXME: get rid of the hack, either by using a better qemu version
-      # or by filtering stderr at the framework level.
-      - "-DHAVE_DECL_GETIFADDRS=OFF"
-    templates:
-      - check+secp256k1
-    timeout: 3600
-    env:
-      QEMU_LD_PREFIX: /usr/arm-linux-gnueabihf
-
   build-make-generator:
     generator:
       name: 'Unix Makefiles'
@@ -738,7 +706,7 @@ builds:
     templates:
       - guix_builds
     env:
-      HOSTS: "x86_64-linux-gnu aarch64-linux-gnu arm-linux-gnueabihf"
+      HOSTS: "x86_64-linux-gnu aarch64-linux-gnu"
 
   guix-osx:
     templates:
