@@ -72,17 +72,24 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
         // tfm::format(std::cout, "\n%s: version %i\n", ToString(you),
         // nVersion);
+        auto doneAfterDelta{1s};
+        // Note in the current codebase: vAddr is non-nullptr only once per day
+        // for each node we check
         if (vAddr) {
             MessageWriter::WriteMessage(vSend, NetMsgType::GETADDR);
+            doneAfterDelta = GetTimeout();
+        }
+
+        // request headers starting after last checkpoint (only if we have
+        // checkpoints for this network)
+        if (HasCheckpoint()) {
             std::vector<BlockHash> locatorHash(
                 1, Params().Checkpoints().mapCheckpoints.rbegin()->second);
             MessageWriter::WriteMessage(vSend, NetMsgType::GETHEADERS,
                                         CBlockLocator(std::move(locatorHash)),
                                         uint256());
-            doneAfter = Now<NodeSeconds>() + GetTimeout();
-        } else {
-            doneAfter = Now<NodeSeconds>() + 1s;
         }
+        doneAfter = Now<NodeSeconds>() + doneAfterDelta;
         return PeerMessagingState::AwaitingMessages;
     }
 
@@ -143,19 +150,19 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // that the first header it will send will be the one just after
         // that checkpoint, as we claim to have the checkpoint as our starting
         // height in the version message.
-        if (!Params().Checkpoints().mapCheckpoints.empty() &&
-            nStartingHeight > GetRequireHeight() &&
-            header.hashPrevBlock !=
+        if (HasCheckpoint() && nStartingHeight > GetRequireHeight()) {
+            if (header.hashPrevBlock !=
                 Params().Checkpoints().mapCheckpoints.rbegin()->second) {
-            // This node is synced higher than the last checkpoint height but
-            // does not have the checkpoint block in its chain.
-            // This means it must be on the wrong chain. We treat these nodes
-            // the same as nodes with the wrong net magic.
-            // std::fprintf(stdout, "%s: BAD \"%s\" (wrong chain)\n",
-            //              ToString(you).c_str(), strSubVer.c_str());
-
-            ban = 100000;
-            return PeerMessagingState::Finished;
+                // This node is synced higher than the last checkpoint height
+                // but does not have the checkpoint block in its chain.
+                // This means it must be on the wrong chain. We treat these
+                // nodes the same as nodes with the wrong net magic.
+                // std::fprintf(stdout, "%s: BAD \"%s\" (wrong chain)\n",
+                //              ToString(you).c_str(), strSubVer.c_str());
+                ban = 100000;
+                return PeerMessagingState::Finished;
+            }
+            checkpointVerified = true;
         }
     }
 
@@ -225,7 +232,8 @@ bool CSeederNode::ProcessMessages() {
 }
 
 CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-    : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), vAddr(vAddrIn), you(ip) {
+    : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), vAddr(vAddrIn), you(ip),
+      checkpointVerified(!HasCheckpoint()) {
     if (GetTime() > 1329696000) {
         vSend.SetVersion(209);
         vRecv.SetVersion(209);

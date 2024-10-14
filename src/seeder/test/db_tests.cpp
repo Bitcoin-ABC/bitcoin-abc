@@ -14,11 +14,12 @@ static CNetAddr ResolveIP(const std::string &ip) {
 
 static SeederAddrInfo BuildSeederAddrInfo(const CService &ip, bool good,
                                           uint64_t services = NODE_NETWORK,
-                                          int clientVersion = REQUIRE_VERSION) {
+                                          int clientVersion = REQUIRE_VERSION,
+                                          bool checkpointVerified = true) {
     SeederAddrInfo info{};
     CDataStream info_stream(SER_NETWORK, PROTOCOL_VERSION);
 
-    uint8_t version{4};
+    uint8_t version{5};
 
     // tried must be 1 if we want the deserialization to not abort.
     uint8_t tried{1};
@@ -43,7 +44,7 @@ static SeederAddrInfo BuildSeederAddrInfo(const CService &ip, bool good,
     info_stream << version << ip << services << lastTry << tried << ourLastTry
                 << ignoreTill << stat2H << stat8H << stat1D << stat1W << stat1M
                 << total << success << clientVersion << clientSubVersion
-                << blocks << ourLastSuccess;
+                << blocks << ourLastSuccess << checkpointVerified;
 
     info_stream >> info;
     info.Update(good);
@@ -86,6 +87,14 @@ BOOST_AUTO_TEST_CASE(seederaddrinfo_test) {
     BOOST_CHECK(!info.IsReliable());
     BOOST_CHECK(info.GetReliabilityStatus() ==
                 ReliabilityStatus::NOT_REQUIRED_VERSION);
+
+    // The checkpoint must be verified
+    info = BuildSeederAddrInfo(ip, /*good=*/true, /*services=*/NODE_NETWORK,
+                               /*clientVersion=*/REQUIRE_VERSION,
+                               /*checkpointVerified=*/false);
+    BOOST_CHECK(!info.IsReliable());
+    BOOST_CHECK(info.GetReliabilityStatus() ==
+                ReliabilityStatus::UNVERIFIED_CHECKPOINT);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

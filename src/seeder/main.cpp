@@ -67,6 +67,7 @@ extern "C" void *ThreadCrawler(void *data) {
                 res.strClientV = node.GetClientSubVersion();
                 res.nHeight = node.GetStartingHeight();
                 res.services = node.GetServices();
+                res.checkpointVerified = node.IsCheckpointVerified();
                 // tfm::format(std::cout, "%s: %s!!!\n", cip.ToString(),
                 // ret ? "GOOD" : "BAD");
                 res.fGood = ret;

@@ -29,6 +29,11 @@ static inline int GetRequireHeight() {
     return Params().Checkpoints().mapCheckpoints.rbegin()->first;
 }
 
+static inline bool HasCheckpoint() {
+    return !Params().Checkpoints().mapCheckpoints.empty() &&
+           GetRequireHeight() > 0;
+}
+
 static inline std::string ToString(const CService &ip) {
     std::string str = ip.ToString();
     while (str.size() < 22) {
@@ -67,6 +72,7 @@ enum class ReliabilityStatus {
     NOT_REQUIRED_VERSION,
     NOT_REQUIRED_HEIGHT,
     BAD_UPTIME,
+    UNVERIFIED_CHECKPOINT,
 };
 
 class CAddrReport {
@@ -99,6 +105,7 @@ private:
     int total;
     int success;
     std::string clientSubVersion;
+    bool checkpointVerified;
 
 public:
     SeederAddrInfo()
@@ -150,7 +157,9 @@ public:
             (stat1M.reliability <= 0.35 || stat1M.count <= 32)) {
             return ReliabilityStatus::BAD_UPTIME;
         }
-
+        if (!checkpointVerified) {
+            return ReliabilityStatus::UNVERIFIED_CHECKPOINT;
+        }
         return ReliabilityStatus::OK;
     }
 
@@ -204,7 +213,7 @@ public:
     friend class CAddrDb;
 
     SERIALIZE_METHODS(SeederAddrInfo, obj) {
-        uint8_t version = 4;
+        uint8_t version = 5;
         READWRITE(version, obj.ip, obj.services, obj.lastTry);
         uint8_t tried = obj.ourLastTry != 0;
         READWRITE(tried);
@@ -229,6 +238,15 @@ public:
         if (version >= 4) {
             READWRITE(obj.ourLastSuccess);
         }
+        if (version >= 5) {
+            READWRITE(obj.checkpointVerified);
+        } else {
+            // To avoid a sudden drop of all nodes when seeders upgrade,
+            // initially mark all nodes as having their checkpoints verified,
+            // to keep previously considered good nodes live until they are
+            // later proven bad
+            SER_READ(obj, obj.checkpointVerified = true);
+        }
     }
 };
 
@@ -251,6 +269,7 @@ struct CServiceResult {
     int nClientV;
     std::string strClientV;
     int64_t ourLastSuccess;
+    bool checkpointVerified;
 };
 
 /**
@@ -286,7 +305,7 @@ protected:
     bool Get_(CServiceResult &ip);
     // mark an IP as good (must have been returned by Get_)
     void Good_(const CService &ip, int clientV, std::string clientSV,
-               int blocks, uint64_t services);
+               int blocks, uint64_t services, bool checkpointVerified);
     // mark an IP as bad (and optionally ban it) (must have been returned by
     // Get_)
     void Bad_(const CService &ip, int ban);
@@ -425,7 +444,8 @@ public:
         for (size_t i = 0; i < ips.size(); i++) {
             if (ips[i].fGood) {
                 Good_(ips[i].service, ips[i].nClientV, ips[i].strClientV,
-                      ips[i].nHeight, ips[i].services);
+                      ips[i].nHeight, ips[i].services,
+                      ips[i].checkpointVerified);
             } else {
                 Bad_(ips[i].service, ips[i].nBanTime);
             }
