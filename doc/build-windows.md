@@ -62,7 +62,7 @@ First, install the general dependencies:
 
     sudo apt update
     sudo apt upgrade
-    sudo apt install autoconf automake build-essential bsdmainutils curl git libboost-dev libevent-dev libssl-dev libtool ninja-build pkg-config python3
+    sudo apt install autoconf automake build-essential bsdmainutils curl git libboost-dev libevent-dev libssl-dev libtool ninja-build pkg-config python3 python-pytest
 
 The cmake version packaged with Ubuntu Bionic is too old for building Building Bitcoin ABC.
 To install the latest version:

@@ -22,6 +22,7 @@ Dependencies
 Install dependencies:
 
     brew install berkeley-db boost cmake jemalloc libevent librsvg miniupnpc libnatpmp ninja openssl protobuf python qrencode qt@5 sqlite zeromq
+    pip install pytest
 
 See [dependencies.md](dependencies.md) for a complete overview.
 

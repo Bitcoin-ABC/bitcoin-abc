@@ -63,7 +63,7 @@ Dependency Build Instructions: Ubuntu & Debian
 ----------------------------------------------
 Build requirements:
 
-    sudo apt-get install bsdmainutils build-essential cmake libssl-dev libevent-dev lld ninja-build python3
+    sudo apt-get install bsdmainutils build-essential cmake libssl-dev libevent-dev lld ninja-build python3 python3-pytest
 
 **Installing cmake on older distribution (Debian < 11 or Ubuntu < 20.04):**
 
