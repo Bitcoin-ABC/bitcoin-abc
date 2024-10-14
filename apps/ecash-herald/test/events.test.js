@@ -11,7 +11,6 @@ const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
 const blockInvalidated = require('./mocks/blockInvalidated');
 const cashaddr = require('ecashaddrjs');
 const {
-    handleBlockConnected,
     handleBlockFinalized,
     handleBlockInvalidated,
 } = require('../src/events');
@@ -25,7 +24,7 @@ const FakeTimers = require('@sinonjs/fake-timers');
 describe('ecash-herald events.js', async function () {
     let memoryCache;
     before(async () => {
-        const CACHE_TTL = 2 * config.waitForFinalizationMsecs;
+        const CACHE_TTL = config.cacheTtlMsecs;
         memoryCache = await caching('memory', {
             max: 100,
             ttl: CACHE_TTL,
@@ -39,56 +38,6 @@ describe('ecash-herald events.js', async function () {
     afterEach(() => {
         // Restore timers
         clock.uninstall();
-    });
-    it('handleBlockConnected creates and sends a tg msg that the block was not avalanche finalized if the block was not finalized within expected timeframe', async function () {
-        const telegramBot = new MockTelegramBot();
-        const channelId = mockChannelId;
-
-        handleBlockConnected(
-            telegramBot,
-            channelId,
-            '000000000000000000000000000000000000000000000000000000000000000000000000',
-            800000,
-            memoryCache,
-        );
-        // The message is not sent
-        assert.strictEqual(telegramBot.messageSent, false);
-
-        // Advance timer
-        await clock.tickAsync(config.waitForFinalizationMsecs + 1);
-
-        // A message was sent
-        assert.strictEqual(telegramBot.messageSent, true);
-    });
-    it('handleBlockConnected does not send an "avalanche not finalized" msg if the block is avalanche finalized within the expected timeframe', async function () {
-        const telegramBot = new MockTelegramBot();
-        const channelId = mockChannelId;
-
-        const MOCK_INCOMING_BLOCKHEIGHT = 800000;
-        const MOCK_INCOMING_BLOCKHASH =
-            '000000000000000000000000000000000000000000000000000000000000000000000000';
-
-        handleBlockConnected(
-            telegramBot,
-            channelId,
-            MOCK_INCOMING_BLOCKHASH,
-            MOCK_INCOMING_BLOCKHEIGHT,
-            memoryCache,
-        );
-        // The message is not sent
-        assert.strictEqual(telegramBot.messageSent, false);
-
-        // Set the block status in cache to finalized
-        await memoryCache.set(
-            `${MOCK_INCOMING_BLOCKHEIGHT}${MOCK_INCOMING_BLOCKHASH}`,
-            'BLK_FINALIZED',
-        );
-
-        // Advance timer
-        await clock.tickAsync(config.waitForFinalizationMsecs + 1);
-
-        // No message sent
-        assert.strictEqual(telegramBot.messageSent, false);
     });
     it('handleBlockFinalized creates and sends a telegram msg with price and token send info for mocked block if api call succeeds', async function () {
         // Initialize chronik mock

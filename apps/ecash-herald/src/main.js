@@ -10,10 +10,10 @@ const { initializeWebsocket } = require('./chronikWsHandler');
 module.exports = {
     main: async function (chronik, telegramBot, telegramChannelId) {
         // Initialize a cache
-        // Store data for 2*config.waitForFinalizationMsecs. For now, this is only used
-        // to determine if a block connected and subsequently did not finalize
-        // within config.waitForFinalizationMsecs
-        const CACHE_TTL = 2 * config.waitForFinalizationMsecs;
+        // Store data for config.cacheTtlMsecs
+        // We need to have staking reward data for the next block, which could be
+        // more than 10 minutes out pre-heartbeat
+        const CACHE_TTL = config.cacheTtlMsecs;
         const memoryCache = await caching('memory', {
             max: 100,
             ttl: CACHE_TTL,

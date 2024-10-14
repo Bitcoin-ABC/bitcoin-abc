@@ -45,9 +45,6 @@ module.exports = {
         memoryCache,
         returnMocks = false,
     ) {
-        // Set to cache that this block has finalized
-        // This will call off the "Block not confirmed by avalanche" msg
-        await memoryCache.set(`${blockHeight}${blockHash}`, 'BLK_FINALIZED');
         // Get block txs
         // TODO blockTxs are paginated, need a function to get them all
         let blockTxs;
@@ -138,65 +135,6 @@ module.exports = {
         );
     },
     /**
-     * Handle block connected event
-     * @param {object} telegramBot
-     * @param {string} channelId
-     * @param {string} blockHash
-     * @param {number} blockHeight
-     * @param {object} memoryCache
-     */
-    handleBlockConnected: async function (
-        telegramBot,
-        channelId,
-        blockHash,
-        blockHeight,
-        memoryCache,
-    ) {
-        // Set to cache that this block has connected
-        await memoryCache.set(`${blockHeight}${blockHash}`, 'BLK_CONNECTED');
-
-        await new Promise(resolve =>
-            setTimeout(resolve, config.waitForFinalizationMsecs),
-        );
-
-        const cacheStatusAfterFinalizationWait = await memoryCache.get(
-            `${blockHeight}${blockHash}`,
-        );
-
-        if (cacheStatusAfterFinalizationWait === 'BLK_FINALIZED') {
-            // If the block in finalized by now, take no action
-            return;
-        }
-
-        console.log(
-            `Block ${blockHeight} not finalized after ${
-                config.waitForFinalizationMsecs / 1000
-            }s.`,
-        );
-        // Default Telegram message if chronik API error
-        const errorTgMsg =
-            `Block connected, but not finalized by Avalanche after ${
-                config.waitForFinalizationMsecs / 1000
-            }s\n` +
-            `\n` +
-            `${blockHeight.toLocaleString('en-US')}\n` +
-            `\n` +
-            `${blockHash}`;
-
-        try {
-            return await telegramBot.sendMessage(
-                channelId,
-                errorTgMsg,
-                config.tgMsgOptions,
-            );
-        } catch (err) {
-            console.log(
-                `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions}) called from handleBlockConnected`,
-                err,
-            );
-        }
-    },
-    /**
      * Handle block invalidated event
      * @param {ChronikClient} chronik
      * @param {object} telegramBot
@@ -217,9 +155,6 @@ module.exports = {
         coinbaseData,
         memoryCache,
     ) {
-        // Set to cache that this block was invalidated
-        await memoryCache.set(`${blockHeight}${blockHash}`, 'BLK_INVALIDATED');
-
         const miner = getMinerFromCoinbaseTx(
             coinbaseData.scriptsig,
             coinbaseData.outputs,

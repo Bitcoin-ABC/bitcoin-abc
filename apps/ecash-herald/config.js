@@ -4,7 +4,7 @@
 
 'use strict';
 module.exports = {
-    waitForFinalizationMsecs: 10000,
+    cacheTtlMsecs: 1000 * 60 * 60 * 4, // 4 hours
     xecSendDisplayCount: 12,
     chronik: [
         'https://chronik-native1.fabien.cash',

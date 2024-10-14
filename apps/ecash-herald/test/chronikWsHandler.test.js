@@ -23,7 +23,7 @@ const { caching } = require('cache-manager');
 describe('ecash-herald chronikWsHandler.js', async function () {
     let memoryCache;
     before(async () => {
-        const CACHE_TTL = 2 * config.waitForFinalizationMsecs;
+        const CACHE_TTL = config.cacheTtlMsecs;
         memoryCache = await caching('memory', {
             max: 100,
             ttl: CACHE_TTL,

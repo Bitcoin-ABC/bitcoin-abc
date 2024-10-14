@@ -3,11 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const {
-    handleBlockConnected,
-    handleBlockFinalized,
-    handleBlockInvalidated,
-} = require('./events');
+const { handleBlockFinalized, handleBlockInvalidated } = require('./events');
 
 module.exports = {
     initializeWebsocket: async function (
@@ -55,16 +51,6 @@ module.exports = {
         } = wsMsg;
 
         switch (msgType) {
-            case 'BLK_CONNECTED': {
-                handleBlockConnected(
-                    telegramBot,
-                    channelId,
-                    blockHash,
-                    blockHeight,
-                    memoryCache,
-                );
-                break;
-            }
             case 'BLK_FINALIZED': {
                 return handleBlockFinalized(
                     chronik,
