@@ -41,11 +41,10 @@ void SeederAddrInfo::Update(bool good) {
     //  + 1.0 - stat1W.weight), stat1W.count);
 }
 
-bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
+bool CAddrDb::Get_(CServiceResult &ip) {
     int64_t now = GetTime();
     size_t tot = unkId.size() + ourId.size();
     if (tot == 0) {
-        wait = 5;
         return false;
     }
 

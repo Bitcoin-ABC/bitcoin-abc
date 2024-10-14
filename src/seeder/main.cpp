@@ -38,13 +38,11 @@ extern "C" void *ThreadCrawler(void *data) {
     int *nThreads = (int *)data;
     do {
         std::vector<CServiceResult> ips;
-        int wait = 5;
-        db.GetMany(ips, 16, wait);
+        db.GetMany(ips, 16);
         int64_t now = GetTime();
         if (ips.empty()) {
-            wait *= 1000;
-            wait += rand() % (500 * *nThreads);
-            UninterruptibleSleep(std::chrono::milliseconds(wait));
+            UninterruptibleSleep(std::chrono::milliseconds(
+                5000 + std::rand() % (500 * *nThreads)));
             continue;
         }
 

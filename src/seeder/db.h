@@ -280,7 +280,7 @@ protected:
     // add an address
     void Add_(const CAddress &addr, bool force);
     // get an IP to test (must call Good_ or Bad_ on result afterwards)
-    bool Get_(CServiceResult &ip, int &wait);
+    bool Get_(CServiceResult &ip);
     // mark an IP as good (must have been returned by Get_)
     void Good_(const CService &ip, int clientV, std::string clientSV,
                int blocks, uint64_t services);
@@ -406,11 +406,11 @@ public:
         }
     }
 
-    void GetMany(std::vector<CServiceResult> &ips, int max, int &wait) {
+    void GetMany(std::vector<CServiceResult> &ips, int max) {
         LOCK(cs);
         while (max > 0) {
             CServiceResult ip = {};
-            if (!Get_(ip, wait)) {
+            if (!Get_(ip)) {
                 return;
             }
             ips.push_back(ip);
