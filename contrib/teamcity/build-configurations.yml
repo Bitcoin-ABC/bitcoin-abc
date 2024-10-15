@@ -908,6 +908,7 @@ builds:
   ecash-lib-tests:
     runOnDiffRegex:
       - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
       - cashtab/
       - modules/ecashaddrjs/
     env:
@@ -923,6 +924,7 @@ builds:
     runOnDiffRegex:
       - modules/ecash-agora/
       - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
       DEPENDS_ECASHADDRJS: "true"
@@ -943,6 +945,7 @@ builds:
       - modules/chronik-client/
       - modules/ecash-agora/
       - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
@@ -962,6 +965,7 @@ builds:
       - chronik/
       - modules/chronik-client/
       - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
