@@ -268,7 +268,8 @@ TxDownloadManagerImpl::Find1P1CPackage(const CTransactionRef &ptx,
     for (const auto &child : cpfp_candidates_same_peer) {
         Package maybe_cpfp_package{ptx, child};
         if (!RecentRejectsPackageReconsiderableFilter().contains(
-                GetPackageHash(maybe_cpfp_package))) {
+                GetPackageHash(maybe_cpfp_package)) &&
+            !RecentRejectsFilter().contains(child->GetId())) {
             return PackageToValidate{ptx, child, nodeid, nodeid};
         }
     }
@@ -303,7 +304,8 @@ TxDownloadManagerImpl::Find1P1CPackage(const CTransactionRef &ptx,
             cpfp_candidates_different_peer.at(index);
         Package maybe_cpfp_package{ptx, child_tx};
         if (!RecentRejectsPackageReconsiderableFilter().contains(
-                GetPackageHash(maybe_cpfp_package))) {
+                GetPackageHash(maybe_cpfp_package)) &&
+            !RecentRejectsFilter().contains(child_tx->GetId())) {
             return PackageToValidate{ptx, child_tx, nodeid, child_sender};
         }
     }

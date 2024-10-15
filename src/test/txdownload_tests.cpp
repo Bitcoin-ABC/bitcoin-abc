@@ -515,4 +515,64 @@ BOOST_AUTO_TEST_CASE(orphan_in_recent_rejects) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(find_1p1c_child_in_recent_rejects) {
+    CTxMemPool &pool = *Assert(m_node.mempool);
+    FastRandomContext det_rand{true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
+                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    NodeId nodeid{0};
+    NodeId other_nodeid{1};
+    node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
+                                                /*m_relay_permissions=*/false};
+
+    const auto ptx_parent = CreatePlaceholderTx();
+    const auto ptx_child = CreatePlaceholderTx();
+
+    TxValidationState state_orphan;
+    state_orphan.Invalid(TxValidationResult::TX_MISSING_INPUTS, "");
+    TxValidationState state_parent;
+    state_parent.Invalid(TxValidationResult::TX_PACKAGE_RECONSIDERABLE, "");
+
+    // When the parent fails as reconsiderable, a 1p1c package is looked for
+    // in the orphanage. Children that are in RecentRejectsFilter are skipped,
+    // whether they were received from the same peer as the parent or not.
+    for (const bool same_peer : {true, false}) {
+        for (const bool child_in_rejects : {false, true}) {
+            TestTxDownloadManagerImpl txdownload_impl{DEFAULT_OPTS, nodeid,
+                                                      DEFAULT_CONN};
+            const NodeId child_sender{same_peer ? nodeid : other_nodeid};
+            if (!same_peer) {
+                txdownload_impl.ConnectedPeer(other_nodeid, DEFAULT_CONN);
+            }
+
+            txdownload_impl.MempoolRejectedTx(ptx_child, state_orphan,
+                                              child_sender,
+                                              /*first_time_failure=*/true);
+            BOOST_CHECK(txdownload_impl.HaveOrphan(ptx_child->GetId()));
+            if (child_in_rejects) {
+                txdownload_impl.RecentRejectsFilter().insert(
+                    ptx_child->GetId());
+            }
+
+            const auto ret = txdownload_impl.MempoolRejectedTx(
+                ptx_parent, state_parent, nodeid, /*first_time_failure=*/true);
+            if (child_in_rejects) {
+                BOOST_CHECK(!ret.m_package_to_validate.has_value());
+            } else {
+                BOOST_REQUIRE(ret.m_package_to_validate.has_value());
+                const auto &package = ret.m_package_to_validate.value();
+                BOOST_CHECK(package.m_txns.front() == ptx_parent);
+                BOOST_CHECK(package.m_txns.back() == ptx_child);
+                BOOST_CHECK_EQUAL(package.m_senders.front(), nodeid);
+                BOOST_CHECK_EQUAL(package.m_senders.back(), child_sender);
+            }
+
+            if (!same_peer) {
+                // Clear the orphans from the other peer.
+                txdownload_impl.DisconnectedPeer(other_nodeid);
+            }
+        }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
