@@ -4233,7 +4233,8 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                         m_mempool.withOrphanage(
                             [&](TxOrphanage &orphanage)
                                 NO_THREAD_SAFETY_ANALYSIS {
-                                    if (orphanage.AddTx(ptx, nodeid)) {
+                                    if (orphanage.AddTx(ptx, nodeid) &&
+                                        RecursiveDynamicUsage(*ptx) < 100000) {
                                         AddToCompactExtraTransactions(ptx);
                                     }
                                     return orphanage.LimitTxs(
