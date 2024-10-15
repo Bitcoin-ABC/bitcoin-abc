@@ -134,7 +134,7 @@ module.exports = {
             } else if (blockheightOrMsgDesc === 'daily') {
                 console.log(
                     '\x1b[32m%s\x1b[0m',
-                    `✔ Sent daily summary of last 144 blocks`,
+                    `✔ Sent daily summary of last 24 hrs`,
                 );
             }
             return msgSuccessArray;

@@ -5,7 +5,11 @@
 'use strict';
 const assert = require('assert');
 const { MockChronikClient } = require('../../../modules/mock-chronik-client');
-const { getTokenInfoMap, getAllBlockTxs } = require('../src/chronik');
+const {
+    getTokenInfoMap,
+    getAllBlockTxs,
+    getBlocksAgoFromChaintipByTimestamp,
+} = require('../src/chronik');
 const { tx } = require('./mocks/chronikResponses');
 // Initialize chronik on app startup
 
@@ -221,5 +225,250 @@ describe('chronik.js functions', function () {
         // Call with pageSize smaller than tx size
         const txsInBlock = await getAllBlockTxs(mockedChronik, MOCK_HEIGHT, 2);
         assert.deepEqual(txsInBlock, MOCK_TXS);
+    });
+    it('getBlocksAgoFromChaintipByTimestamp will get start and end blockheights for a given timestamp and window if we have fewer than expected blocks in that window', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock the chaintip
+        const mockChaintip = 800000;
+        mockedChronik.setMock('blockchainInfo', {
+            output: { tipHeight: mockChaintip },
+        });
+
+        // Arbitrary timestamp to test
+        const now = 17290290190;
+
+        // Test for 24 hour window
+        const SECONDS_PER_DAY = 86400;
+        const secondsAgo = SECONDS_PER_DAY;
+
+        const SECONDS_PER_BLOCK = 600;
+        const guessedBlockheight =
+            mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
+
+        // Guessed block is older than secondsAgo
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
+        });
+
+        // Set 2 newer blocks
+        // So this one, at guessedBlockheight + 1, is in the window
+        const expectedStartBlockheight = guessedBlockheight + 1;
+        mockedChronik.setMock('block', {
+            input: expectedStartBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo + 2 } },
+        });
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight + 2,
+            output: { blockInfo: { timestamp: now - secondsAgo + 3 } },
+        });
+
+        assert.deepEqual(
+            await getBlocksAgoFromChaintipByTimestamp(
+                mockedChronik,
+                now,
+                secondsAgo,
+            ),
+            {
+                chaintip: mockChaintip,
+                startBlockheight: expectedStartBlockheight,
+            },
+        );
+    });
+    it('getBlocksAgoFromChaintipByTimestamp will get start and end blockheights for a given timestamp and window if we have more than expected blocks in that window', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock the chaintip
+        const mockChaintip = 800000;
+        mockedChronik.setMock('blockchainInfo', {
+            output: { tipHeight: mockChaintip },
+        });
+
+        // Arbitrary timestamp to test
+        const now = 17290290190;
+
+        // Test for 24 hour window
+        const SECONDS_PER_DAY = 86400;
+        const secondsAgo = SECONDS_PER_DAY;
+
+        const SECONDS_PER_BLOCK = 600;
+        const guessedBlockheight =
+            mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
+
+        // Guessed block is NEWER than secondsAgo
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
+        });
+
+        // Set 3 older blocks, with 1 still in the window
+        const expectedStartBlockheight = guessedBlockheight - 1;
+        mockedChronik.setMock('block', {
+            input: expectedStartBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo + 4 } },
+        });
+        // Since this block is out of the window, we expect the start height to be proceeding block
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight - 2,
+            output: { blockInfo: { timestamp: now - secondsAgo - 3 } },
+        });
+
+        assert.deepEqual(
+            await getBlocksAgoFromChaintipByTimestamp(
+                mockedChronik,
+                now,
+                secondsAgo,
+            ),
+            {
+                chaintip: mockChaintip,
+                startBlockheight: expectedStartBlockheight,
+            },
+        );
+    });
+    it('getBlocksAgoFromChaintipByTimestamp will get start and end blockheights for a given timestamp and window if we have exactly the expected blocks in that window', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock the chaintip
+        const mockChaintip = 800000;
+        mockedChronik.setMock('blockchainInfo', {
+            output: { tipHeight: mockChaintip },
+        });
+
+        // Arbitrary timestamp to test
+        const now = 17290290190;
+
+        // Test for 24 hour window
+        const SECONDS_PER_DAY = 86400;
+        const secondsAgo = SECONDS_PER_DAY;
+
+        const SECONDS_PER_BLOCK = 600;
+        const guessedBlockheight =
+            mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
+
+        // Guessed block is exactly secondsAgo
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo } },
+        });
+
+        // Set 1 older block
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight - 1,
+            output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
+        });
+
+        assert.deepEqual(
+            await getBlocksAgoFromChaintipByTimestamp(
+                mockedChronik,
+                now,
+                secondsAgo,
+            ),
+            {
+                chaintip: mockChaintip,
+                startBlockheight: guessedBlockheight,
+            },
+        );
+    });
+    it('getBlocksAgoFromChaintipByTimestamp will throw expected error if we cannot find startHeight in more than 100 guesses of more recent blocks', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock the chaintip
+        const mockChaintip = 800000;
+        mockedChronik.setMock('blockchainInfo', {
+            output: { tipHeight: mockChaintip },
+        });
+
+        // Arbitrary timestamp to test
+        const now = 17290290190;
+
+        // Test for 24 hour window
+        const SECONDS_PER_DAY = 86400;
+        const secondsAgo = SECONDS_PER_DAY;
+
+        const SECONDS_PER_BLOCK = 600;
+        const guessedBlockheight =
+            mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
+
+        // Guessed block is older than secondsAgo
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
+        });
+
+        // Set 100 newer blocks, all of them still outside the window
+        for (let i = 0; i < 100; i += 1) {
+            mockedChronik.setMock('block', {
+                input: guessedBlockheight + 1 + i,
+                output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
+            });
+        }
+
+        await assert.rejects(
+            async () => {
+                await getBlocksAgoFromChaintipByTimestamp(
+                    mockedChronik,
+                    now,
+                    secondsAgo,
+                );
+            },
+            {
+                name: 'Error',
+                message: 'Start block more than 100 off our original guess',
+            },
+        );
+    });
+    it('getBlocksAgoFromChaintipByTimestamp will throw expected error if we cannot find startHeight in more than 100 guesses of older blocks', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock the chaintip
+        const mockChaintip = 800000;
+        mockedChronik.setMock('blockchainInfo', {
+            output: { tipHeight: mockChaintip },
+        });
+
+        // Arbitrary timestamp to test
+        const now = 17290290190;
+
+        // Test for 24 hour window
+        const SECONDS_PER_DAY = 86400;
+        const secondsAgo = SECONDS_PER_DAY;
+
+        const SECONDS_PER_BLOCK = 600;
+        const guessedBlockheight =
+            mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
+
+        // Guessed block is newer than secondsAgo, i.e. within the window
+        mockedChronik.setMock('block', {
+            input: guessedBlockheight,
+            output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
+        });
+
+        // Set 100 older blocks, all of them still within the window
+        for (let i = 0; i < 100; i += 1) {
+            mockedChronik.setMock('block', {
+                input: guessedBlockheight - 1 - i,
+                output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
+            });
+        }
+
+        await assert.rejects(
+            async () => {
+                await getBlocksAgoFromChaintipByTimestamp(
+                    mockedChronik,
+                    now,
+                    secondsAgo,
+                );
+            },
+            {
+                name: 'Error',
+                message: 'Start block more than 100 off our original guess',
+            },
+        );
     });
 });

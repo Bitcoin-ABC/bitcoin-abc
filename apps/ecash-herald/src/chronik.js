@@ -164,4 +164,81 @@ module.exports = {
         // Combine all txs into an array
         return txs.concat(remainingTxs.flat());
     },
+    /**
+     * Get the start and end blockheights that will include all txs within a specified time period
+     * Note: This function only works for time intervals relative to "right now"
+     * We always return chaintip as the end height
+     * @param {ChronikClient} chronik
+     * @param {number} now unix timestamp in seconds
+     * @param {number} secondsAgo how far back we are interested in getting blocks
+     */
+    getBlocksAgoFromChaintipByTimestamp: async function (
+        chronik,
+        now,
+        secondsAgo,
+    ) {
+        // Get the chaintip
+        const chaintip = (await chronik.blockchainInfo()).tipHeight;
+
+        // Make an educated guess about how many blocks ago the first block we want should be
+        // = 10 minutes per block * 60 seconds per minute
+        const SECONDS_PER_BLOCK = 600;
+        const guessedBlocksAgo = Math.floor(secondsAgo / SECONDS_PER_BLOCK);
+        const guessedBlockheight = chaintip - guessedBlocksAgo;
+
+        // Get the block from blocksAgo and check its timestamp
+        const guessedBlock = (await chronik.block(guessedBlockheight))
+            .blockInfo;
+
+        let guessedBlockTimestampDelta = now - guessedBlock.timestamp;
+
+        // We won't keep guessing forever
+        const ADDITIONAL_BLOCKS_TO_GUESS = 100;
+
+        let startBlockheight;
+        if (guessedBlockTimestampDelta > secondsAgo) {
+            // If the guessed block was further back in time than desired secondsAgo
+            // Then we need to guess a higher block
+            for (
+                let i = guessedBlockheight + 1;
+                i <= guessedBlockheight + ADDITIONAL_BLOCKS_TO_GUESS;
+                i += 1
+            ) {
+                const guessedBlock = (await chronik.block(i)).blockInfo;
+                const thisBlockTimestampDelta = now - guessedBlock.timestamp;
+                if (thisBlockTimestampDelta <= secondsAgo) {
+                    startBlockheight = i;
+                    break;
+                }
+            }
+        } else {
+            // We might already be looking at the right block
+            // But mb we some previous blocks are also in this acceptable window
+            // If the guessed block was NOT further back in time than desired secondsAgo
+            // Then we need to guess a LOWER block
+            for (
+                let i = guessedBlockheight - 1;
+                i >= guessedBlockheight - ADDITIONAL_BLOCKS_TO_GUESS;
+                i -= 1
+            ) {
+                const guessedBlock = (await chronik.block(i)).blockInfo;
+                guessedBlockTimestampDelta = now - guessedBlock.timestamp;
+                if (guessedBlockTimestampDelta > secondsAgo) {
+                    // We keep looking for blocks until we find one that is "too old"
+                    // Then we take the immediately newer block
+                    startBlockheight = i + 1;
+                    break;
+                }
+            }
+        }
+
+        if (typeof startBlockheight === 'undefined') {
+            console.log(`Did not find startBlockheight in 100 blocks`);
+            throw new Error(
+                `Start block more than ${ADDITIONAL_BLOCKS_TO_GUESS} off our original guess`,
+            );
+        }
+
+        return { chaintip, startBlockheight };
+    },
 };

@@ -21,6 +21,7 @@ const {
     getTokenInfoMap,
     getOutputscriptInfoMap,
     getAllBlockTxs,
+    getBlocksAgoFromChaintipByTimestamp,
 } = require('./chronik');
 const knownMinersJson = require('../constants/miners');
 
@@ -102,42 +103,93 @@ module.exports = {
             outputScriptInfoMap,
         );
 
-        // Send a daily summary every 144 blocks
-        const BLOCKS_PER_DAY = 144;
-        if (blockHeight % BLOCKS_PER_DAY === 0) {
-            // If this block is a multiple of 144
+        // Send a daily summary every 24 hrs
+        // To avoid using memoryCache, we use block timestamps
+        // In this way, even when we start up the app, we can be sure we only send a daily summary
+        // when we find a block on a "new day"
+        try {
+            const lastBlockTimestamp = (await chronik.block(blockHeight - 1))
+                .blockInfo.timestamp;
+            const thisBlockTimestamp = (await chronik.block(blockHeight))
+                .blockInfo.timestamp;
 
-            const startHeight = blockHeight - BLOCKS_PER_DAY;
+            // .toDateString() gives results like
+            // 'Mon Oct 14 2024'
+            // 'Tue Oct 15 2024'
+            // expects input in ms
+            const MS_PER_S = 1000;
+            const lastBlockDateString = new Date(
+                MS_PER_S * thisBlockTimestamp,
+            ).toDateString();
 
-            const getAllBlockTxPromises = [];
-            for (let i = 1; i <= BLOCKS_PER_DAY; i += 1) {
-                getAllBlockTxPromises.push(
-                    getAllBlockTxs(chronik, startHeight + i),
+            const thisBlockDateString = new Date(
+                MS_PER_S * lastBlockTimestamp,
+            ).toDateString();
+
+            if (lastBlockDateString !== thisBlockDateString) {
+                // It is a new day
+                // Send the daily summary
+
+                // Get a timestamp that for this new day
+                // Will always be divisible by 1000 as will always be a midnight UTC date
+                const newDayTimestamp =
+                    new Date(thisBlockDateString).getTime() / MS_PER_S;
+
+                const SECONDS_PER_DAY = 86400;
+
+                // Chaintip is probably the same as this block, but mb not at this point
+                const { startBlockheight, chaintip } =
+                    await getBlocksAgoFromChaintipByTimestamp(
+                        chronik,
+                        newDayTimestamp,
+                        SECONDS_PER_DAY,
+                    );
+
+                const getAllBlockTxPromises = [];
+                for (let i = startBlockheight; i <= chaintip; i += 1) {
+                    getAllBlockTxPromises.push(getAllBlockTxs(chronik, i));
+                }
+
+                const allBlockTxs = (
+                    await Promise.all(getAllBlockTxPromises)
+                ).flat();
+
+                // We only want txs in the specified window
+                // NB coinbase txs have timeFirstSeen of 0. We include all of them as the block
+                // timestamps are in the window
+                const timeFirstSeenTxs = allBlockTxs.filter(
+                    tx =>
+                        (tx.timeFirstSeen > newDayTimestamp - SECONDS_PER_DAY &&
+                            tx.timeFirstSeen <= newDayTimestamp) ||
+                        tx.isCoinbase,
+                );
+
+                // Get XEC price
+                let price;
+                if (typeof coingeckoPrices !== 'undefined') {
+                    price = coingeckoPrices[0].price;
+                }
+
+                const dailySummaryTgMsgs = summarizeTxHistory(
+                    newDayTimestamp,
+                    timeFirstSeenTxs,
+                    price,
+                );
+
+                // Send msg with successful price API call
+                await sendBlockSummary(
+                    dailySummaryTgMsgs,
+                    telegramBot,
+                    channelId,
+                    'daily',
                 );
             }
-
-            const allBlockTxs = (
-                await Promise.all(getAllBlockTxPromises)
-            ).flat();
-
-            // Get XEC price
-            let price;
-            if (typeof coingeckoPrices !== 'undefined') {
-                price = coingeckoPrices[0].price;
-            }
-
-            const dailySummaryTgMsgs = summarizeTxHistory(
-                blockHeight,
-                allBlockTxs,
-                price,
-            );
-
-            // Send msg with successful price API call
-            await sendBlockSummary(
-                dailySummaryTgMsgs,
-                telegramBot,
-                channelId,
-                'daily',
+        } catch (err) {
+            console.error(
+                `Error getting timestamps for blocks ${blockHeight} and ${
+                    blockHeight - 1
+                }`,
+                err,
             );
         }
         if (returnMocks) {

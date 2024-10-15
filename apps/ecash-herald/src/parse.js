@@ -2142,11 +2142,12 @@ module.exports = {
      * Biggest token sales
      * Whale alerts
      *
+     * @param {number} now unix timestamp in seconds
      * @param {Tx[]} txs array of CONFIRMED Txs
      * @param {number} xecPriceUsd
      * @param {number} blockheight height of the most recently finalized block
      */
-    summarizeTxHistory: function (blockheight, txs, xecPriceUsd) {
+    summarizeTxHistory: function (now, txs, xecPriceUsd) {
         // Throw out any unconfirmed txs
         txs.filter(tx => tx.block !== 'undefined');
 
@@ -2188,11 +2189,9 @@ module.exports = {
         let opReturnTxs = 0;
 
         for (const tx of txs) {
-            const { inputs, outputs, block, tokenEntries } = tx;
+            const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
 
-            const senderOutputScript = inputs[0].outputScript;
-
-            if (typeof senderOutputScript === 'undefined') {
+            if (isCoinbase) {
                 // Coinbase tx - get miner and staker info
                 const miner = module.exports.getMinerFromCoinbaseTx(
                     tx.inputs[0].inputScript,
@@ -2241,6 +2240,7 @@ module.exports = {
                 // No further analysis for this tx
                 continue;
             }
+            const senderOutputScript = inputs[0].outputScript;
             if (senderOutputScript === TOKEN_SERVER_OUTPUTSCRIPT) {
                 // If this tx was sent by token-server
                 if (tokenEntries.length > 0) {
@@ -2336,10 +2336,19 @@ module.exports = {
 
         // Build your msg
         const tgMsg = [];
+
         tgMsg.push(
-            `<b>eCash on-chain: ${blockCount} blocks thru ${blockheight.toLocaleString(
-                'en-US',
-            )}</b>`,
+            `<b>${blockCount} blocks in 24 hours thru ${new Date(
+                now * 1000,
+            ).toLocaleTimeString('en-GB', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'UTC',
+            })}</b>`,
         );
         tgMsg.push('');
 
@@ -2425,7 +2434,7 @@ module.exports = {
                 )} Cashtab user${
                     cashtabCachetRewardCount > 1 ? 's' : ''
                 } claimed ${(
-                    cashtabXecRewardCount * CACHET_REWARD_SIZE
+                    cashtabCachetRewardCount * CACHET_REWARD_SIZE
                 ).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
@@ -2452,7 +2461,7 @@ module.exports = {
 
         if (opReturnTxs > 0) {
             tgMsg.push(
-                `${tokenTxs.toLocaleString('en-US')} app tx${
+                `${opReturnTxs.toLocaleString('en-US')} app tx${
                     opReturnTxs > 1 ? 's' : ''
                 }`,
             );

@@ -350,15 +350,15 @@ describe('parse.js functions', function () {
         }
     });
     it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices', function () {
-        const mockLatestFinalizedBlockheight = 800000;
+        const mockUtcNewDayTimestampSeconds = 1728950400;
         assert.deepEqual(
             summarizeTxHistory(
-                mockLatestFinalizedBlockheight,
+                mockUtcNewDayTimestampSeconds,
                 dailyTxs,
                 0.000033,
             ),
             [
-                '<b>eCash on-chain: 74 blocks thru 800,000</b>\n' +
+                '<b>74 blocks in 24 hours thru 15 Oct 2024, 00:00</b>\n' +
                     '\n' +
                     '3 miners found blocks\n' +
                     '<u>Top 3</u>\n' +
@@ -385,11 +385,11 @@ describe('parse.js functions', function () {
         );
     });
     it('summarizeTxHistory summarizes a collection of txs across multiple blocks without fiat price', function () {
-        const mockLatestFinalizedBlockheight = 800000;
+        const mockUtcNewDayTimestampSeconds = 1728950400;
         assert.deepEqual(
-            summarizeTxHistory(mockLatestFinalizedBlockheight, dailyTxs),
+            summarizeTxHistory(mockUtcNewDayTimestampSeconds, dailyTxs),
             [
-                '<b>eCash on-chain: 74 blocks thru 800,000</b>\n' +
+                '<b>74 blocks in 24 hours thru 15 Oct 2024, 00:00</b>\n' +
                     '\n' +
                     '3 miners found blocks\n' +
                     '<u>Top 3</u>\n' +
