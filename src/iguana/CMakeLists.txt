@@ -32,7 +32,7 @@ endif()
 add_to_symbols_check(iguana)
 add_to_security_check(iguana)
 
-install_target(iguana EXCLUDE_FROM_ALL)
+install_target(iguana)
 
 find_package(Python COMPONENTS Interpreter)
 
