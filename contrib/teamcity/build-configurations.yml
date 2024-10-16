@@ -429,16 +429,6 @@ builds:
     templates:
       - ibd-no-assumevalid-checkpoint
 
-  build-linux32:
-    cross_build:
-      static_depends: linux32
-      toolchain: Linux32
-    cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-    templates:
-      - check+secp256k1
-    timeout: 3600
-
   build-linux64:
     cross_build:
       static_depends: linux64

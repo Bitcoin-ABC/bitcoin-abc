@@ -4,6 +4,7 @@ export LC_ALL=C.UTF-8
 
 set -euxo pipefail
 
+# Required for wine
 dpkg --add-architecture i386
 
 PACKAGES=(
@@ -42,7 +43,6 @@ PACKAGES=(
   lib32stdc++-10-dev
   libboost-dev
   libbz2-dev
-  libc6-dev:i386
   libcap-dev
   libdb++-dev
   libdb-dev
@@ -176,8 +176,7 @@ RUST_NIGHTLY_DATE=2023-12-29
 "${RUST_HOME}/rustup" toolchain link abc-nightly "$(${RUST_HOME}/rustc +nightly-${RUST_NIGHTLY_DATE} --print sysroot)"
 
 # Install required compile platform targets on stable
-"${RUST_HOME}/rustup" target add "i686-unknown-linux-gnu" \
-                                 "x86_64-unknown-linux-gnu" \
+"${RUST_HOME}/rustup" target add "x86_64-unknown-linux-gnu" \
                                  "aarch64-unknown-linux-gnu" \
                                  "x86_64-apple-darwin" \
                                  "x86_64-pc-windows-gnu" \
