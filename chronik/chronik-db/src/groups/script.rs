@@ -51,15 +51,20 @@ impl<'a> Iterator for ScriptGroupIter<'a> {
         if self.is_coinbase && !self.is_outputs {
             return None;
         }
+        let script = if self.is_outputs {
+            // Skip OP_RETURN scripts
+            while self.tx.outputs.get(self.idx)?.script.is_opreturn() {
+                self.idx += 1;
+            }
+            &self.tx.outputs[self.idx].script
+        } else {
+            &self.tx.inputs.get(self.idx)?.coin.as_ref()?.output.script
+        };
         let idx = self.idx;
         self.idx += 1;
         Some(MemberItem {
             idx,
-            member: if self.is_outputs {
-                &self.tx.outputs.get(idx)?.script
-            } else {
-                &self.tx.inputs.get(idx)?.coin.as_ref()?.output.script
-            },
+            member: script,
         })
     }
 }
@@ -147,7 +152,7 @@ mod tests {
                         ..Default::default()
                     })
                     .collect(),
-                outputs: [[0x53].as_ref(), &[0x51]]
+                outputs: [[0x53].as_ref(), &[0x6a], &[0x6a], &[0x51], &[0x6a]]
                     .into_iter()
                     .map(|script| TxOutput {
                         script: Script::new(script.into()),
@@ -191,7 +196,7 @@ mod tests {
             script_group.output_members(query, &()).collect::<Vec<_>>(),
             vec![
                 make_member_item(0, &make_script(vec![0x53])),
-                make_member_item(1, &make_script(vec![0x51])),
+                make_member_item(3, &make_script(vec![0x51])),
             ],
         );
 
@@ -214,7 +219,7 @@ mod tests {
             script_group.output_members(query, &()).collect::<Vec<_>>(),
             vec![
                 make_member_item(0, &make_script(vec![0x53])),
-                make_member_item(1, &make_script(vec![0x51])),
+                make_member_item(3, &make_script(vec![0x51])),
             ],
         );
 

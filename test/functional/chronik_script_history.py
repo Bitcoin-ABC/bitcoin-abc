@@ -18,6 +18,7 @@ from test_framework.blocktools import (
 )
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
+from test_framework.script import OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, iter_chunks
@@ -195,6 +196,7 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
             coinblock = node.getblock(coinblockhash)
             cointxids.append(coinblock["tx"][0])
 
+        op_return_script = CScript([OP_RETURN, b"hello"])
         mempool_txs = []
         mempool_txids = []
         # Send 10 mempool txs, each with their own mocktime
@@ -209,12 +211,20 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
                     scriptSig=SCRIPTSIG_OP_TRUE,
                 )
             ]
-            tx.vout = [CTxOut(coinvalue - 1000, P2SH_OP_TRUE)]
+            tx.vout = [
+                CTxOut(coinvalue - 1000, P2SH_OP_TRUE),
+                CTxOut(0, op_return_script),
+            ]
             pad_tx(tx)
             mempool_txs.append(tx)
             node.setmocktime(mocktime + mocktime_offset)
             txid = node.sendrawtransaction(tx.serialize().hex())
             mempool_txids.append(txid)
+
+        assert_equal(
+            chronik.script("other", op_return_script.hex()).history().ok(),
+            pb.TxHistoryPage(),
+        )
 
         def tx_sort_key(entry):
             time_first_seen = entry["time_first_seen"]
@@ -270,6 +280,12 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
 
         check_tx_history([], newblocktxs + blocktxs, page_size=25)
         check_tx_history([], newblocktxs + blocktxs, page_size=200)
+
+        # Still no OP_RETURN outputs indexed
+        assert_equal(
+            chronik.script("other", op_return_script.hex()).history().ok(),
+            pb.TxHistoryPage(),
+        )
 
         # Order for different page sizes is not guaranteed within blocks.
         txs_individually = [

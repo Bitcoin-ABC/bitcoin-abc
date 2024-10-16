@@ -20,6 +20,7 @@ from test_framework.blocktools import (
 )
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
+from test_framework.script import OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
@@ -167,12 +168,13 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
             pb.ScriptUtxos(script=bytes(P2SH_OP_TRUE), utxos=expected_utxos),
         )
 
-        # Make tx spending the 3rd UTXO, and creating 1 UTXO
+        # Make tx spending the 3rd UTXO, and creating 1 UTXO, and one OP_RETURN
+        op_return_script = CScript([OP_RETURN, b"hello"])
         tx2 = CTransaction()
         tx2.vin = [
             CTxIn(outpoint=COutPoint(int(txid, 16), 3), scriptSig=SCRIPTSIG_OP_TRUE)
         ]
-        tx2.vout = [CTxOut(2500, P2SH_OP_TRUE)]
+        tx2.vout = [CTxOut(2500, P2SH_OP_TRUE), CTxOut(0, op_return_script)]
         pad_tx(tx2)
         txid2 = node.sendrawtransaction(tx2.serialize().hex())
 
@@ -193,6 +195,11 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
         assert_equal(
             chronik.script(script_type, payload_hex).utxos().ok(),
             pb.ScriptUtxos(script=bytes(P2SH_OP_TRUE), utxos=expected_utxos),
+        )
+
+        assert_equal(
+            chronik.script("other", op_return_script.hex()).utxos().ok(),
+            pb.ScriptUtxos(script=bytes(op_return_script), utxos=[]),
         )
 
         # Make tx spending a DB UTXO and a mempool UTXO
