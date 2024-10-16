@@ -488,12 +488,13 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                 true, txdata, m_node.chainman->m_validation_cache,
                 nSigChecksDummy, &scriptchecks1, &sigchecklimiter1));
             // the first check passes but it did consume the limit.
-            BOOST_CHECK(scriptchecks1[1]());
+            auto result1 = scriptchecks1[1]();
+            BOOST_CHECK(!result1.has_value());
             BOOST_CHECK(sigchecklimiter1.check());
             // the second check (the first input) fails due to the limiter.
-            BOOST_CHECK(!scriptchecks1[0]());
-            BOOST_CHECK_EQUAL(scriptchecks1[0].GetScriptError(),
-                              ScriptError::SIGCHECKS_LIMIT_EXCEEDED);
+            auto result2 = scriptchecks1[0]();
+            BOOST_REQUIRE(result2.has_value());
+            BOOST_CHECK_EQUAL(*result2, ScriptError::SIGCHECKS_LIMIT_EXCEEDED);
             BOOST_CHECK(!sigchecklimiter1.check());
 
             // Serial validation fails with the limiter.
@@ -521,8 +522,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                 &m_node.chainman->ActiveChainstate().CoinsTip(), flags, true,
                 true, txdata, m_node.chainman->m_validation_cache,
                 nSigChecksDummy, &scriptchecks3, &sigchecklimiter3));
-            BOOST_CHECK(scriptchecks3[1]());
-            BOOST_CHECK(scriptchecks3[0]());
+            BOOST_CHECK(!scriptchecks3[1]().has_value());
+            BOOST_CHECK(!scriptchecks3[0]().has_value());
             BOOST_CHECK(sigchecklimiter3.check());
             // then in serial, caching the result.
             CheckInputsLimiter sigchecklimiter4(2);
@@ -604,14 +605,14 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         BOOST_CHECK_EQUAL(scriptchecks.size(), 2U);
 
         // Execute the first check, and check its result
-        BOOST_CHECK(scriptchecks[0]());
-        BOOST_CHECK_EQUAL(scriptchecks[0].GetScriptError(), ScriptError::OK);
+        auto result1 = scriptchecks[0]();
+        BOOST_CHECK(!result1.has_value());
         BOOST_CHECK_EQUAL(
             scriptchecks[0].GetScriptExecutionMetrics().nSigChecks, 1);
         // The second check does fail
-        BOOST_CHECK(!scriptchecks[1]());
-        BOOST_CHECK_EQUAL(scriptchecks[1].GetScriptError(),
-                          ScriptError::INVALID_STACK_OPERATION);
+        auto result2 = scriptchecks[1]();
+        BOOST_REQUIRE(result2.has_value());
+        BOOST_CHECK_EQUAL(*result2, ScriptError::INVALID_STACK_OPERATION);
     }
 }
 

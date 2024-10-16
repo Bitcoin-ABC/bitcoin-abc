@@ -1737,14 +1737,15 @@ std::vector<Coin> GetSpentCoins(const CTransactionRef &ptx,
     return spent_coins;
 }
 
-bool CScriptCheck::operator()() {
+std::optional<ScriptError> CScriptCheck::operator()() {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
+    ScriptError error{ScriptError::UNKNOWN};
     if (!VerifyScript(scriptSig, m_tx_out.scriptPubKey, nFlags,
                       CachingTransactionSignatureChecker(
                           ptxTo, nIn, m_tx_out.nValue, cacheStore,
                           *m_signature_cache, txdata),
                       metrics, &error)) {
-        return false;
+        return error;
     }
     if ((pTxLimitSigChecks &&
          !pTxLimitSigChecks->consume_and_check(metrics.nSigChecks)) ||
@@ -1753,10 +1754,9 @@ bool CScriptCheck::operator()() {
         // we can't assign a meaningful script error (since the script
         // succeeded), but remove the ScriptError::OK which could be
         // misinterpreted.
-        error = ScriptError::SIGCHECKS_LIMIT_EXCEEDED;
-        return false;
+        return ScriptError::SIGCHECKS_LIMIT_EXCEEDED;
     }
-    return true;
+    return std::nullopt;
 }
 
 ValidationCache::ValidationCache(const size_t script_execution_cache_bytes,
@@ -1837,8 +1837,7 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
             continue;
         }
 
-        if (!check()) {
-            ScriptError scriptError = check.GetScriptError();
+        if (auto result = check(); result.has_value()) {
             // Compute flags without the optional standardness flags.
             // This differs from MANDATORY_SCRIPT_VERIFY_FLAGS as it contains
             // additional upgrade flags (see AcceptToMemoryPoolWorker variable
@@ -1854,14 +1853,21 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
                 CScriptCheck check2(coin.GetTxOut(), tx,
                                     validation_cache.m_signature_cache, i,
                                     mandatoryFlags, sigCacheStore, txdata);
-                if (check2()) {
+                auto mandatory_result = check2();
+                if (!mandatory_result.has_value()) {
                     return state.Invalid(
                         TxValidationResult::TX_NOT_STANDARD,
                         strprintf("non-mandatory-script-verify-flag (%s)",
-                                  ScriptErrorString(scriptError)));
+                                  ScriptErrorString(*result)));
                 }
-                // update the error message to reflect the mandatory violation.
-                scriptError = check2.GetScriptError();
+                // If the second check failed, it failed due to a mandatory
+                // script verification flag, but the first check might have
+                // failed on a non-mandatory script verification flag.
+                //
+                // Avoid reporting a mandatory script check failure with a
+                // non-mandatory error string by reporting the error from the
+                // second check.
+                result = mandatory_result;
             }
 
             // MANDATORY flag failures correspond to
@@ -1874,7 +1880,7 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
             return state.Invalid(
                 TxValidationResult::TX_CONSENSUS,
                 strprintf("mandatory-script-verify-flag-failed (%s)",
-                          ScriptErrorString(scriptError)));
+                          ScriptErrorString(*result)));
         }
 
         nSigChecksTotal += check.GetScriptExecutionMetrics().nSigChecks;
@@ -2508,7 +2514,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         *blockFees = nFees;
     }
 
-    if (!control.Wait()) {
+    auto parallel_result = control.Complete();
+    if (parallel_result.has_value()) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                              "blk-bad-inputs", "parallel script check failed");
     }

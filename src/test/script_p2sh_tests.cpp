@@ -120,11 +120,12 @@ BOOST_AUTO_TEST_CASE(sign) {
             CScript sigSave = txTo[i].vin[0].scriptSig;
             txTo[i].vin[0].scriptSig = txTo[j].vin[0].scriptSig;
             bool sigOK =
-                CScriptCheck(txFrom.vout[txTo[i].vin[0].prevout.GetN()],
-                             CTransaction(txTo[i]), signature_cache, 0,
-                             SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
-                                 SCRIPT_ENABLE_SIGHASH_FORKID,
-                             false, txdata)();
+                !CScriptCheck(txFrom.vout[txTo[i].vin[0].prevout.GetN()],
+                              CTransaction(txTo[i]), signature_cache, 0,
+                              SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
+                                  SCRIPT_ENABLE_SIGHASH_FORKID,
+                              false, txdata)()
+                     .has_value();
             if (i == j) {
                 BOOST_CHECK_MESSAGE(sigOK,
                                     strprintf("VerifySignature %d %d", i, j));

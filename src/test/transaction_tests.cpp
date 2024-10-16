@@ -453,7 +453,7 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
         control.Add(std::move(vChecks));
     }
 
-    bool controlCheck = control.Wait();
+    bool controlCheck = !control.Complete().has_value();
     BOOST_CHECK(controlCheck);
     scriptcheckqueue.StopWorkerThreads();
 }

@@ -29,7 +29,7 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
         explicit PrevectorJob(FastRandomContext &insecure_rand) {
             p.resize(insecure_rand.randrange(CScriptBase::STATIC_SIZE * 2));
         }
-        bool operator()() { return true; }
+        std::optional<int> operator()() { return std::nullopt; }
     };
     CCheckQueue<PrevectorJob> queue{QUEUE_BATCH_SIZE};
     queue.StartWorkerThreads(std::max(MIN_CORES, GetNumCores()));
@@ -56,7 +56,7 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
             }
             // control waits for completion by RAII, but it is done explicitly
             // here for clarity
-            control.Wait();
+            control.Complete();
         });
     queue.StopWorkerThreads();
     ECC_Stop();
