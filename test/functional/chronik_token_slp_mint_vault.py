@@ -84,7 +84,8 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
         vault_setup_tx.vout = [
             CTxOut(10000, CScript([OP_HASH160, mint_vault_scripthash, OP_EQUAL])),
             CTxOut(10000, CScript([OP_HASH160, mint_vault_scripthash, OP_EQUAL])),
-            CTxOut(79000, CScript([OP_HASH160, mint_vault_scripthash, OP_EQUAL])),
+            CTxOut(10000, CScript([OP_HASH160, mint_vault_scripthash, OP_EQUAL])),
+            CTxOut(69000, CScript([OP_HASH160, mint_vault_scripthash, OP_EQUAL])),
         ]
         pad_tx(vault_setup_tx)
         vault_setup_txid = node.sendrawtransaction(vault_setup_tx.serialize().hex())
@@ -241,6 +242,49 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
         )
         mint2.send(chronik)
         mint2.test(chronik)
+
+        # MINT VAULT with 0 quantity is still indexed correctly
+        tx = CTransaction()
+        tx.vin = [
+            CTxIn(
+                COutPoint(int(vault_setup_txid, 16), 2),
+                CScript([bytes(CScript([OP_12]))]),
+            )
+        ]
+        tx.vout = [
+            CTxOut(
+                0,
+                slp_mint_vault(
+                    token_id=genesis.txid,
+                    mint_amounts=[0],
+                ),
+            ),
+            CTxOut(546, P2SH_OP_TRUE),
+        ]
+        mint3 = TokenTx(
+            tx=tx,
+            status=pb.TOKEN_STATUS_NORMAL,
+            entries=[
+                pb.TokenEntry(
+                    token_id=genesis.txid,
+                    token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
+                    tx_type=pb.MINT,
+                    actual_burn_amount="0",
+                ),
+            ],
+            inputs=[pb.Token()],
+            outputs=[
+                pb.Token(),
+                pb.Token(),
+            ],
+        )
+        mint3.send(chronik)
+        mint3.test(chronik)
+
+        # Also still valid even after it's been mined
+        block_mint3 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
+        mint3.test(chronik, block_mint3)
+        node.invalidateblock(block_mint3)
 
         # Reorg block with the GENESIS tx
         node.invalidateblock(block.hash)
