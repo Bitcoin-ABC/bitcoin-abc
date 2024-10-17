@@ -108,6 +108,15 @@ const SvgButtonOrLinkCss = css`
         width: 24px;
         fill: ${props => props.theme.eCashBlue};
     }
+    &:hover {
+        svg {
+            fill: ${props => props.theme.eCashPurple};
+            stroke: ${props => props.theme.eCashPurple};
+            path {
+                fill: ${props => props.theme.eCashPurple};
+            }
+        }
+    }
 `;
 const SvgButton = styled.button`
     ${SvgButtonOrLinkCss}
