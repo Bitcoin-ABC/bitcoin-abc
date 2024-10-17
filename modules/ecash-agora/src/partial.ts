@@ -441,10 +441,11 @@ export class AgoraPartial {
         }
 
         // Scale + truncate the minimum accepted tokens
-        let minAcceptedScaledTruncTokens =
+        const minAcceptedScaledTruncTokens =
             (params.minAcceptedTokens * tokenScaleFactor) >>
             (8n * numTokenTruncBytes);
 
+        const dustAmount = params.dustAmount ?? DEFAULT_DUST_LIMIT;
         const agoraPartial = new AgoraPartial({
             truncTokens,
             numTokenTruncBytes: Number(numTokenTruncBytes),
@@ -458,11 +459,20 @@ export class AgoraPartial {
             tokenProtocol: params.tokenProtocol,
             scriptLen: 0x7f,
             enforcedLockTime: params.enforcedLockTime,
-            dustAmount: params.dustAmount ?? DEFAULT_DUST_LIMIT,
+            dustAmount,
         });
-        if (agoraPartial.minAcceptedTokens() < 1n) {
+        const minAcceptedTokens = agoraPartial.minAcceptedTokens();
+        if (minAcceptedTokens < 1n) {
             throw new Error('minAcceptedTokens too small, got truncated to 0');
         }
+
+        const minAskedSats = agoraPartial.askedSats(minAcceptedTokens);
+        if (minAskedSats < dustAmount) {
+            throw new Error(
+                'minAcceptedTokens would cost less than dust at this price',
+            );
+        }
+
         agoraPartial.updateScriptLen();
         return agoraPartial;
     }
@@ -491,11 +501,23 @@ export class AgoraPartial {
      * to approximate this AgoraPartial.
      **/
     public minAcceptedTokens(): bigint {
-        return (
+        const minAcceptedTokens =
             (this.minAcceptedScaledTruncTokens <<
                 BigInt(8 * this.numTokenTruncBytes)) /
-            this.tokenScaleFactor
-        );
+            this.tokenScaleFactor;
+
+        let preparedMinAcceptedTokens =
+            this.prepareAcceptedTokens(minAcceptedTokens);
+        if (preparedMinAcceptedTokens < minAcceptedTokens) {
+            // It's possible that, after adjusting for acceptable discrete intervals,
+            // minAcceptedTokens becomes less than the script minimum
+            // In this case, we "round up" to the true min accepted tokens
+            const tickSize =
+                (this.tokenScaleFactor << BigInt(8 * this.numTokenTruncBytes)) /
+                this.tokenScaleFactor;
+            preparedMinAcceptedTokens += tickSize;
+        }
+        return preparedMinAcceptedTokens;
     }
 
     /**
