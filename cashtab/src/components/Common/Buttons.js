@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 
 const BaseButtonOrLinkCss = css`
     font-size: 24px;
-    padding: 20px 0;
+    padding: 20px 12px;
     border-radius: 9px;
     transition: all 0.5s ease;
     width: 100%;
