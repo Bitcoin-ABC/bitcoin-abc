@@ -115,7 +115,7 @@ export class AgoraOneshot {
             OP_SPLIT, // split into actual_hash_outputs and preimage_9_10
             OP_DROP, // drop preimage_9_10
 
-            OP_EQUALVERIFY, // expected_hash_outputs == actual_hash_outputs
+            OP_EQUALVERIFY, // expected_hash_outputs === actual_hash_outputs
             OP_2, // push tx version
             // length of BIP143 preimage parts 1 to 3
             pushBytesOp(new Uint8Array([4 + 32 + 32])),

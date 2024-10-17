@@ -248,7 +248,7 @@ export class AgoraOffer {
                     sendAmounts.push(offeredTokens - params.acceptedTokens);
                 }
                 sendAmounts.push(params.acceptedTokens);
-                if (agoraPartial.tokenProtocol == 'SLP') {
+                if (agoraPartial.tokenProtocol === 'SLP') {
                     txBuild.outputs.push({
                         value: 0,
                         script: slpSend(
@@ -257,7 +257,7 @@ export class AgoraOffer {
                             sendAmounts,
                         ),
                     });
-                } else if (agoraPartial.tokenProtocol == 'ALP') {
+                } else if (agoraPartial.tokenProtocol === 'ALP') {
                     txBuild.outputs.push({
                         value: 0,
                         script: emppScript([
@@ -676,7 +676,7 @@ export class Agora {
             const utxos = await this.chronik
                 .script('p2sh', toHex(shaRmd160(agoraScript.bytecode)))
                 .utxos();
-            if (utxos.utxos.length == 0) {
+            if (utxos.utxos.length === 0) {
                 return newParams;
             }
         }

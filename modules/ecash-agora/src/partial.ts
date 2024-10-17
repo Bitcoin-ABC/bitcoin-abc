@@ -325,7 +325,7 @@ export class AgoraPartial {
             throw new Error('minAcceptedTokens must be at least 1');
         }
         if (
-            params.tokenProtocol == 'SLP' &&
+            params.tokenProtocol === 'SLP' &&
             params.offeredTokens > 0xffffffffffffffffn
         ) {
             throw new Error(
@@ -333,7 +333,7 @@ export class AgoraPartial {
             );
         }
         if (
-            params.tokenProtocol == 'ALP' &&
+            params.tokenProtocol === 'ALP' &&
             params.offeredTokens > 0xffffffffffffn
         ) {
             throw new Error(
@@ -348,9 +348,10 @@ export class AgoraPartial {
 
         // Edge case where price can be represented exactly,
         // no need to introduce extra approximation.
-        const isPrecisePrice = 1000000000n % params.priceNanoSatsPerToken == 0n;
+        const isPrecisePrice =
+            1000000000n % params.priceNanoSatsPerToken === 0n;
         // The Script can only handle a maximum level of truncation
-        const maxTokenTruncBytes = params.tokenProtocol == 'SLP' ? 5 : 3;
+        const maxTokenTruncBytes = params.tokenProtocol === 'SLP' ? 5 : 3;
 
         const minTokenScaleFactor = isPrecisePrice
             ? 1n
@@ -550,7 +551,7 @@ export class AgoraPartial {
 
     public adPushdata(): Uint8Array {
         const serAdPushdata = (writer: Writer) => {
-            if (this.tokenProtocol == 'ALP') {
+            if (this.tokenProtocol === 'ALP') {
                 // On ALP, we signal AGR0 in the pushdata
                 writer.putBytes(AGORA_LOKAD_ID);
                 writer.putU8(AgoraPartial.COVENANT_VARIANT.length);
@@ -575,7 +576,7 @@ export class AgoraPartial {
         const adPushdata = this.adPushdata();
         // "Consts" is serialized data with the terms of the offer + the token
         // protocol intros.
-        if (this.tokenProtocol == 'SLP') {
+        if (this.tokenProtocol === 'SLP') {
             const slpSendIntro = slpSend(this.tokenId, this.tokenType, [
                 0,
             ]).bytecode;
@@ -585,7 +586,7 @@ export class AgoraPartial {
             covenantConstsWriter.putBytes(slpSendIntro);
             covenantConstsWriter.putBytes(adPushdata);
             return [covenantConstsWriter.data, slpSendIntro.length];
-        } else if (this.tokenProtocol == 'ALP') {
+        } else if (this.tokenProtocol === 'ALP') {
             const alpSendTemplate = alpSend(this.tokenId, this.tokenType, []);
             // ALP SEND section, but without the num amounts
             const alpSendIntro = alpSendTemplate.slice(
@@ -973,9 +974,9 @@ export class AgoraPartial {
     private _scriptBuildOpReturn(tokenIntroLen: number): Op[] {
         // Script takes in the token amounts and builds the OP_RETURN for the
         // corresponding protocol
-        if (this.tokenProtocol == 'SLP') {
+        if (this.tokenProtocol === 'SLP') {
             return this._scriptBuildSlpOpReturn();
-        } else if (this.tokenProtocol == 'ALP') {
+        } else if (this.tokenProtocol === 'ALP') {
             return this._scriptBuildAlpOpReturn(tokenIntroLen);
         } else {
             throw new Error('Only SLP implemented');
@@ -1190,7 +1191,7 @@ export class AgoraPartial {
 
     private _scriptSerTruncTokens(numSerBytes: number): Op[] {
         // Serialize the number on the stack using the configured truncation
-        if (this.numTokenTruncBytes == numSerBytes - 3) {
+        if (this.numTokenTruncBytes === numSerBytes - 3) {
             // Edge case where we only have 3 bytes space to serialize the
             // number, but if the MSB of the number is set, OP_NUM2BIN will
             // serialize using 4 bytes (with the last byte being just 0x00),
@@ -1214,7 +1215,7 @@ export class AgoraPartial {
     }
 
     private _scriptOutro(): Op[] {
-        if (this.tokenProtocol == 'SLP') {
+        if (this.tokenProtocol === 'SLP') {
             // Verify the sig, and also ensure the first two push ops of the
             // scriptSig are "AGR0" "PARTIAL", which will always have to be the
             // first two ops because of the cleanstack rule.
@@ -1225,7 +1226,7 @@ export class AgoraPartial {
                 pushBytesOp(AGORA_LOKAD_ID),
                 OP_EQUAL,
             ];
-        } else if (this.tokenProtocol == 'ALP') {
+        } else if (this.tokenProtocol === 'ALP') {
             return [OP_CHECKSIG];
         } else {
             throw new Error('Only SLP implemented');
