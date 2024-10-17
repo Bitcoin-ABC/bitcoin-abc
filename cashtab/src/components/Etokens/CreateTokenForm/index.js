@@ -866,7 +866,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                                     <Slider
                                         name="zoom"
                                         value={zoom}
-                                        handleSlide={setZoom}
+                                        handleSlide={e =>
+                                            setZoom(e.target.value)
+                                        }
                                         min={1}
                                         max={10}
                                         step={0.01}
@@ -879,7 +881,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                                     <Slider
                                         name="rotation"
                                         value={rotation}
-                                        handleSlide={setRotation}
+                                        handleSlide={e =>
+                                            setRotation(e.target.value)
+                                        }
                                         min={0}
                                         max={360}
                                         step={1}
