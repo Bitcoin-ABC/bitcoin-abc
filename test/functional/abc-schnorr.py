@@ -49,10 +49,6 @@ NULLFAIL_ERROR = (
     " CHECK(MULTI)SIG operation)"
 )
 
-# Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = "blk-bad-inputs"
-
-
 # This 64-byte signature is used to test exclusion & banning according to
 # the above error messages.
 # Tests of real 64 byte ECDSA signatures can be found in script_tests.
@@ -221,7 +217,7 @@ class SchnorrTest(BitcoinTestFramework):
         self.check_for_ban_on_rejected_tx(schnorrmultisigtx, SCHNORR_MULTISIG_ERROR)
         # And it can't be mined
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorrmultisigtx]), BADINPUTS_ERROR
+            self.build_block(tip, [schnorrmultisigtx]), SCHNORR_MULTISIG_ERROR
         )
 
         self.log.info("Bad 64-byte sig is rejected with mandatory error.")
@@ -238,10 +234,10 @@ class SchnorrTest(BitcoinTestFramework):
         self.check_for_ban_on_rejected_tx(sig64multisigtx, SCHNORR_MULTISIG_ERROR)
         # And they can't be mined either...
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [sig64checksigtx]), BADINPUTS_ERROR
+            self.build_block(tip, [sig64checksigtx]), NULLFAIL_ERROR
         )
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [sig64multisigtx]), BADINPUTS_ERROR
+            self.build_block(tip, [sig64multisigtx]), SCHNORR_MULTISIG_ERROR
         )
 
 

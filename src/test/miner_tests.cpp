@@ -431,7 +431,10 @@ void MinerTestingSetup::TestBasicMining(
     // Should throw blk-bad-inputs
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
-        std::runtime_error, HasReason("blk-bad-inputs"));
+        std::runtime_error,
+        HasReason(
+            "mandatory-script-verify-flag-failed (Script evaluated without "
+            "error but finished with a false/empty top stack element)"));
     m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     // Delete the dummy blocks again.

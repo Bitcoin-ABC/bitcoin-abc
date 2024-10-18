@@ -25,7 +25,7 @@ from test_framework.util import assert_equal, assert_raises_rpc_error
 REPLAY_PROTECTION_START_TIME = 2000000000
 
 # Error due to invalid signature
-RPC_INVALID_SIGNATURE_ERROR = (
+INVALID_SIGNATURE_ERROR = (
     "mandatory-script-verify-flag-failed (Signature must be zero for failed"
     " CHECK(MULTI)SIG operation)"
 )
@@ -137,7 +137,7 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
         send_transaction_to_mempool(replay_txns[0])
         assert_raises_rpc_error(
             -26,
-            RPC_INVALID_SIGNATURE_ERROR,
+            INVALID_SIGNATURE_ERROR,
             node.sendrawtransaction,
             ToHex(replay_txns[1]),
         )
@@ -146,7 +146,7 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
         block(2)
         self.update_block(2, replay_txns)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason="blk-bad-inputs"
+            [self.tip], node, success=False, reject_reason=INVALID_SIGNATURE_ERROR
         )
 
         # Rewind bad block
@@ -171,7 +171,7 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
         # We are just before the fork, replay protected txns still are rejected
         assert_raises_rpc_error(
             -26,
-            RPC_INVALID_SIGNATURE_ERROR,
+            INVALID_SIGNATURE_ERROR,
             node.sendrawtransaction,
             ToHex(replay_txns[1]),
         )
@@ -179,7 +179,7 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
         block(3)
         self.update_block(3, replay_txns)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason="blk-bad-inputs"
+            [self.tip], node, success=False, reject_reason=INVALID_SIGNATURE_ERROR
         )
 
         # Rewind bad block
@@ -207,14 +207,14 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
         # Good old transactions are now invalid.
         send_transaction_to_mempool(txns[0])
         assert_raises_rpc_error(
-            -26, RPC_INVALID_SIGNATURE_ERROR, node.sendrawtransaction, ToHex(txns[1])
+            -26, INVALID_SIGNATURE_ERROR, node.sendrawtransaction, ToHex(txns[1])
         )
 
         # They also cannot be mined
         block(4)
         self.update_block(4, txns)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason="blk-bad-inputs"
+            [self.tip], node, success=False, reject_reason=INVALID_SIGNATURE_ERROR
         )
 
         # Rewind bad block

@@ -71,7 +71,6 @@ class BIP65Test(BitcoinTestFramework):
         self.noban_tx_relay = True
         self.extra_args = [
             [
-                "-par=1",  # Use only one script thread to get the exact reject reason for testing
                 "-acceptnonstdtxn=1",  # cltv_invalidate is nonstandard
             ]
         ]
@@ -173,7 +172,10 @@ class BIP65Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(
-            expected_msgs=[f"ConnectBlock {block.hash_hex} failed, blk-bad-inputs"]
+            expected_msgs=[
+                f"BlockChecked: block hash={block.hash_hex} "
+                f"state=mandatory-script-verify-flag-failed (Negative locktime)"
+            ]
         ):
             peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)

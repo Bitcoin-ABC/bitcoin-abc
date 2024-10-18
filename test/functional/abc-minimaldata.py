@@ -37,9 +37,6 @@ MINIMALPUSH_ERROR = (
     "mandatory-script-verify-flag-failed (Data push larger than necessary)"
 )
 
-# Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = "blk-bad-inputs"
-
 
 class MinimaldataTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -161,7 +158,7 @@ class MinimaldataTest(BitcoinTestFramework):
 
         self.log.info("Trying to mine a minimaldata violation.")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [nonminimaltx]), BADINPUTS_ERROR
+            self.build_block(tip, [nonminimaltx]), MINIMALPUSH_ERROR
         )
         self.log.info("If we try to submit it by mempool or RPC we are banned")
         assert_raises_rpc_error(

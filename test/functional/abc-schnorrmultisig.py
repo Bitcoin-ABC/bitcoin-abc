@@ -52,9 +52,6 @@ SCHNORR_LEGACY_MULTISIG_ERROR = (
     " CHECKMULTISIG)"
 )
 
-# Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = "blk-bad-inputs"
-
 
 class SchnorrMultisigTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -201,7 +198,7 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
         self.log.info("Trying to mine a non-null-dummy ECDSA.")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [ecdsa1tx]), BADINPUTS_ERROR
+            self.build_block(tip, [ecdsa1tx]), ECDSA_NULLDUMMY_ERROR
         )
         self.log.info(
             "If we try to submit it by mempool or RPC, it is rejected and we are banned"
@@ -228,7 +225,7 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         self.log.info("Trying Schnorr in legacy multisig is invalid and banworthy.")
         self.check_for_ban_on_rejected_tx(schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorr0tx]), BADINPUTS_ERROR
+            self.build_block(tip, [schnorr0tx]), SCHNORR_LEGACY_MULTISIG_ERROR
         )
 
 

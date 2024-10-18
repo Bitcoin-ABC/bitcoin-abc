@@ -30,6 +30,8 @@ from test_framework.util import (
 START_TIME = 1_900_000_000
 ACTIVATION_TIME = 2_000_000_000
 
+OVERFLOW_ERROR = "mandatory-script-verify-flag-failed (Integer overflow)"
+
 
 class Script63BitIntsTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -78,7 +80,7 @@ class Script63BitIntsTest(BitcoinTestFramework):
             bad_tx = self.make_tx(spendable_tx, script_sig=script_sig)
             assert_raises_rpc_error(
                 -26,
-                "mandatory-script-verify-flag-failed (Integer overflow)",
+                OVERFLOW_ERROR,
                 node.sendrawtransaction,
                 ToHex(bad_tx),
             )
@@ -93,7 +95,7 @@ class Script63BitIntsTest(BitcoinTestFramework):
             [block],
             node,
             success=False,
-            reject_reason="state=blk-bad-inputs, parallel script check failed",
+            reject_reason=OVERFLOW_ERROR,
         )
 
         self.log.info("Activate Shibusawa, mine 6 blocks starting at ACTIVATION_TIME")
@@ -132,7 +134,7 @@ class Script63BitIntsTest(BitcoinTestFramework):
             [block],
             node,
             success=False,
-            reject_reason="state=blk-bad-inputs, parallel script check failed",
+            reject_reason=OVERFLOW_ERROR,
         )
 
     def make_tx(self, spend_tx, script_sig=None):

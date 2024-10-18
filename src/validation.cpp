@@ -2471,9 +2471,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
             state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                           tx_state.GetRejectReason(),
                           tx_state.GetDebugMessage());
-            return error(
-                "ConnectBlock(): CheckInputScripts on %s failed with %s",
-                tx.GetId().ToString(), state.ToString());
+            return error("Script validation error in block: %s\n",
+                         tx_state.GetRejectReason());
         }
 
         control.Add(std::move(vChecks));
@@ -2516,8 +2515,10 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     auto parallel_result = control.Complete();
     if (parallel_result.has_value()) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                             "blk-bad-inputs", "parallel script check failed");
+        return state.Invalid(
+            BlockValidationResult::BLOCK_CONSENSUS,
+            strprintf("mandatory-script-verify-flag-failed (%s)",
+                      ScriptErrorString(*parallel_result)));
     }
     const auto time_4{SteadyClock::now()};
     time_verify += time_4 - time_2;
