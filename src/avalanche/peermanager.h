@@ -444,6 +444,7 @@ public:
     bool saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                          const bool present);
     std::vector<RemoteProof> getRemoteProofs(const NodeId nodeid) const;
+    bool isRemoteProof(const ProofId &proofid) const;
 
     bool setFlaky(const ProofId &proofid);
     bool unsetFlaky(const ProofId &proofid);

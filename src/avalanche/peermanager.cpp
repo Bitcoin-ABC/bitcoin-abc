@@ -696,6 +696,11 @@ PeerManager::getRemoteProofs(const NodeId nodeid) const {
     return nodeRemoteProofs;
 }
 
+bool PeerManager::isRemoteProof(const ProofId &proofid) const {
+    auto &view = remoteProofs.get<by_proofid>();
+    return view.count(proofid) > 0;
+}
+
 bool PeerManager::removePeer(const PeerId peerid) {
     auto it = peers.find(peerid);
     if (it == peers.end()) {
