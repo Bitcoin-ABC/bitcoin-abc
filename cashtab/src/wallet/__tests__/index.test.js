@@ -18,6 +18,7 @@ import {
     removeLeadingZeros,
     getHashes,
     hasUnfinalizedTxsInHistory,
+    getAgoraPartialFuelInput,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
@@ -247,6 +248,28 @@ describe('Cashtab wallet methods', () => {
             it(`Converts overprecise or < 1 nanosat XEC values to nanosatoshis: ${description}`, () => {
                 const xecResult = xecToNanoSatoshis(xec);
                 expect(xecResult).toBe(returned);
+            });
+        });
+    });
+    describe('We can get a fuel input for an AgoraOffer (partial) accept or cancel tx', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getAgoraPartialFuelInput;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, xecUtxos, requiredSats, returned } =
+                expectedReturn;
+            it(`getFuelInput: ${description}`, () => {
+                expect(
+                    getAgoraPartialFuelInput(xecUtxos, requiredSats),
+                ).toStrictEqual(returned);
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, xecUtxos, requiredSats, error } =
+                expectedError;
+            it(`getFuelInput throws error for: ${description}`, () => {
+                expect(() =>
+                    getAgoraPartialFuelInput(xecUtxos, requiredSats),
+                ).toThrow(error);
             });
         });
     });

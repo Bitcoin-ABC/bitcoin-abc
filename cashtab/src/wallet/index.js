@@ -434,3 +434,28 @@ export const hasUnfinalizedTxsInHistory = wallet => {
     );
     return unfinalizedTxs.length > 0;
 };
+
+/**
+ * Find a utxo that has enough value to cover requiredSats
+ * of an AgoraPartial offer
+ * This method is useful in building minimum-fee accept and
+ * cancel txs that are constructed by an AgoraOffer object
+ * with type === "PARTIAL"
+ * It is possible that edge cases could exist where the user
+ * "has enough" XEC to cancel a tx or take an offer, but must
+ * combine utxos to do so
+ * For now, we do not support this
+ * @param {array} xecUtxos
+ * @param {integer} requiredSats
+ */
+export const getAgoraPartialFuelInput = (xecUtxos, requiredSats) => {
+    // Iterate over utxos until you find a suitable one
+    for (const utxo of xecUtxos) {
+        if (utxo.value >= requiredSats) {
+            return utxo;
+        }
+    }
+    throw new Error(
+        `You do not have a fuel utxo that can cover ${requiredSats} satoshis`,
+    );
+};

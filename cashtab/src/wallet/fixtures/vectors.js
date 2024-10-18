@@ -581,4 +581,45 @@ export default {
             },
         ],
     },
+    getAgoraPartialFuelInput: {
+        expectedReturns: [
+            {
+                description: 'A single utxo that is exactly sufficient',
+                xecUtxos: [{ value: 1000 }],
+                requiredSats: 1000,
+                returned: { value: 1000 },
+            },
+            {
+                description: 'We ignore an insufficient utxo',
+                xecUtxos: [{ value: 999 }, { value: 1000 }],
+                requiredSats: 1000,
+                returned: { value: 1000 },
+            },
+            {
+                description: 'We return the first good utxo',
+                xecUtxos: [
+                    { value: 998 },
+                    { value: 999 },
+                    { value: 1000 },
+                    { value: 1001 },
+                ],
+                requiredSats: 1000,
+                returned: { value: 1000 },
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'We throw an error if no fuel inputs are available',
+                xecUtxos: [
+                    { value: 998 },
+                    { value: 999 },
+                    { value: 1000 },
+                    { value: 1001 },
+                ],
+                requiredSats: 1002,
+                error: `You do not have a fuel utxo that can cover 1002 satoshis`,
+            },
+        ],
+    },
 };
