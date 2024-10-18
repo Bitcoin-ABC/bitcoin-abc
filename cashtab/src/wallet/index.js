@@ -10,6 +10,7 @@ import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
 
 const SATOSHIS_PER_XEC = 100;
+const NANOSATS_PER_XEC = new BN(1e11);
 const STRINGIFIED_INTEGER_REGEX = /^[0-9]+$/;
 export const STRINGIFIED_DECIMALIZED_REGEX = /^\d*\.?\d*$/;
 
@@ -55,6 +56,33 @@ export const toXec = satoshis => {
         throw new Error('Input param satoshis must be an integer');
     }
     return new BN(satoshis).div(SATOSHIS_PER_XEC).toNumber();
+};
+
+/**
+ * Convert an amount in nanosatoshis to XEC
+ * @param {Integer} nanosats
+ * @returns {Number}
+ */
+export const nanoSatoshisToXec = nanosats => {
+    if (!Number.isInteger(nanosats)) {
+        throw new Error('Input param nanosats must be an integer');
+    }
+    return new BN(nanosats).div(NANOSATS_PER_XEC).toNumber();
+};
+
+/**
+ * xecToNanoSatoshis
+ * Note that, because this function may accept prices much lower than one XEC
+ * xecAmount may not be in units of XEC
+ * Given over-precise XEC values, this function will round to the nearest nanosat
+ * @param {Number | BN} xecAmount
+ * @returns {Number}
+ */
+export const xecToNanoSatoshis = xecAmount => {
+    const nanosats = Math.round(
+        new BN(xecAmount).times(NANOSATS_PER_XEC).toNumber(),
+    );
+    return nanosats;
 };
 
 /**

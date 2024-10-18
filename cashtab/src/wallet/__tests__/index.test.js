@@ -6,6 +6,8 @@ import {
     getBalanceSats,
     toXec,
     toSatoshis,
+    nanoSatoshisToXec,
+    xecToNanoSatoshis,
     hasEnoughToken,
     createCashtabWallet,
     fiatToSatoshis,
@@ -210,6 +212,41 @@ describe('Cashtab wallet methods', () => {
             const { description, wallet, returned } = expectedReturn;
             it(`hasUnfinalizedTxsInHistory: ${description}`, () => {
                 expect(hasUnfinalizedTxsInHistory(wallet)).toBe(returned);
+            });
+        });
+    });
+    describe('Converts nanosatoshis to XEC and XEC to nanosatoshis', () => {
+        const { expectedReturns, expectedErrors } = vectors.nanoSatoshisToXec;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, xec, nanosatoshis } = expectedReturn;
+            it(`Converts nanosatoshis to xec: ${description}`, () => {
+                const satsResult = nanoSatoshisToXec(nanosatoshis);
+                expect(satsResult).toBe(xec);
+                // Check string equality as well as JS floating point comparisons
+                // are unreliable for large numbers
+                expect(satsResult.toString()).toBe(xec.toString());
+            });
+            it(`Converts xec to nanosatoshis: ${description}`, () => {
+                const xecResult = xecToNanoSatoshis(xec);
+                expect(xecResult).toBe(nanosatoshis);
+                // Check string equality as well as JS floating point comparisons
+                // are unreliable for large numbers
+                expect(xecResult.toString()).toBe(nanosatoshis.toString());
+            });
+        });
+        // nanoSatoshisToXec does not accept non-integer input
+        expectedErrors.forEach(expectedError => {
+            const { description, satoshis, errorMsg } = expectedError;
+            it(`nanoSatoshisToXec throws error for: ${description}`, () => {
+                expect(() => nanoSatoshisToXec(satoshis)).toThrow(errorMsg);
+            });
+        });
+        // xecToNanoSatoshis will round non-integer input
+        vectors.xecToNanoSatoshis.expectedReturns.forEach(expectedReturn => {
+            const { description, xec, returned } = expectedReturn;
+            it(`Converts overprecise or < 1 nanosat XEC values to nanosatoshis: ${description}`, () => {
+                const xecResult = xecToNanoSatoshis(xec);
+                expect(xecResult).toBe(returned);
             });
         });
     });
