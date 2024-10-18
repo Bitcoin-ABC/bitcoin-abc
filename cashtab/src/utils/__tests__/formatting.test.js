@@ -8,6 +8,8 @@ import {
     formatBalance,
     decimalizedTokenQtyToLocaleFormat,
     toFormattedXec,
+    getMinimumFractionDigits,
+    getFormattedFiatPrice,
 } from 'utils/formatting';
 import vectors from 'utils/fixtures/vectors';
 
@@ -129,6 +131,38 @@ describe('Correctly executes formatting functions', () => {
             const { description, satoshis, userLocale, returned } = vector;
             it(`toFormattedXec: ${description}`, () => {
                 expect(toFormattedXec(satoshis, userLocale)).toBe(returned);
+            });
+        });
+    });
+    describe('We can format the price of a listed token in fiat or XEC', () => {
+        const { expectedReturns } = vectors.getFormattedFiatPrice;
+        expectedReturns.forEach(vector => {
+            const {
+                description,
+                settings,
+                userLocale,
+                priceXec,
+                fiatPrice,
+                returned,
+            } = vector;
+            it(`getFormattedFiatPrice: ${description}`, () => {
+                expect(
+                    getFormattedFiatPrice(
+                        settings,
+                        userLocale,
+                        priceXec,
+                        fiatPrice,
+                    ),
+                ).toBe(returned);
+            });
+        });
+    });
+    describe('We can determine how many decimal places we need to show at least 2 places of precision', () => {
+        const { expectedReturns } = vectors.getMinimumFractionDigits;
+        expectedReturns.forEach(vector => {
+            const { description, number, returned } = vector;
+            it(`getMinimumFractionDigits: ${description}`, () => {
+                expect(getMinimumFractionDigits(number)).toBe(returned);
             });
         });
     });
