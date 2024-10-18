@@ -504,6 +504,17 @@ it('We can set and return expected values for supported Agora query methods', as
         mockOfferedTokenIds,
     );
 
+    // offeredFungibleTokenIds
+    const mockOfferedFungibleTokenIds = [
+        '0000000000000000000000000000000000000000000000000000000000000000',
+        '1111111111111111111111111111111111111111111111111111111111111111',
+    ];
+    mockedAgora.setOfferedFungibleTokenIds(mockOfferedFungibleTokenIds);
+    assert.deepEqual(
+        await mockedAgora.offeredFungibleTokenIds(),
+        mockOfferedTokenIds,
+    );
+
     // activeOffersByPubKey
     const mockPubKey = '01020304';
     const mockActiveOffersByPubKey = [{ test: 'test' }, { test: 'test' }];
@@ -527,6 +538,19 @@ it('We can set and return expected values for supported Agora query methods', as
     assert.deepEqual(
         await mockedAgora.activeOffersByGroupTokenId(mockGroupTokenId),
         mockActiveOffersByGroupTokenId,
+    );
+
+    // activeOffersByTokenId
+    const mockTokenId =
+        '3333333333333333333333333333333333333333333333333333333333333333';
+    const mockActiveOffersByTokenId = [{ test: 'test2' }, { test: 'test2' }];
+    mockedAgora.setActiveOffersByTokenId(
+        mockTokenId,
+        mockActiveOffersByTokenId,
+    );
+    assert.deepEqual(
+        await mockedAgora.activeOffersByTokenId(mockTokenId),
+        mockActiveOffersByTokenId,
     );
 
     // We can also set and throw errors

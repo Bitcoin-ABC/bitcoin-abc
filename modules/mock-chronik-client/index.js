@@ -20,13 +20,18 @@ module.exports = {
             // Can be set with self.setMock
             self.mockedResponses = {
                 offeredGroupTokenIds: {},
+                offeredFungibleTokenIds: {},
                 activeOffersByPubKey: {},
                 activeOffersByGroupTokenId: {},
+                activeOffersByTokenId: {},
             };
 
             // Allow user to set supported agora query responses
             self.setOfferedGroupTokenIds = function (response) {
                 self.mockedResponses.offeredGroupTokenIds = response;
+            };
+            self.setOfferedFungibleTokenIds = function (response) {
+                self.mockedResponses.offeredFungibleTokenIds = response;
             };
             self.setActiveOffersByPubKey = function (pubKey, response) {
                 self.mockedResponses.activeOffersByPubKey[pubKey] = response;
@@ -37,6 +42,9 @@ module.exports = {
             ) {
                 self.mockedResponses.activeOffersByGroupTokenId[groupTokenId] =
                     response;
+            };
+            self.setActiveOffersByTokenId = function (tokenId, response) {
+                self.mockedResponses.activeOffersByTokenId[tokenId] = response;
             };
 
             // Checks whether the user set this mock response to be an error.
@@ -53,6 +61,11 @@ module.exports = {
                     self.mockedResponses.offeredGroupTokenIds,
                 );
             };
+            self.offeredFungibleTokenIds = async function () {
+                return throwOrReturnValue(
+                    self.mockedResponses.offeredFungibleTokenIds,
+                );
+            };
             self.activeOffersByPubKey = async function (pubKey) {
                 return throwOrReturnValue(
                     self.mockedResponses.activeOffersByPubKey[pubKey],
@@ -63,6 +76,11 @@ module.exports = {
                     self.mockedResponses.activeOffersByGroupTokenId[
                         groupTokenId
                     ],
+                );
+            };
+            self.activeOffersByTokenId = async function (tokenId) {
+                return throwOrReturnValue(
+                    self.mockedResponses.activeOffersByTokenId[tokenId],
                 );
             };
         }

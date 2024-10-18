@@ -152,3 +152,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.11.0
 
 -   Add support for `MockAgora`, a simple set-and-return mock for some `ecash-agora` class methods [D16737](https://reviews.bitcoinabc.org/D16737)
+
+1.12.0
+
+-   Extend `MockAgora` support to cover `offeredFungibleTokenIds()` and `activeOffersByTokenId()` methods [D16929](https://reviews.bitcoinabc.org/D16929)
