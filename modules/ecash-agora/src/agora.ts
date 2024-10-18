@@ -661,7 +661,8 @@ export class Agora {
         // even 4%, so we definitely have to check for duplicates.
         // See https://www.bdayprob.com/, where D = 1200000000 and N = 1000
         // (or 10000), and solve for P(D,N).
-        while (true) {
+
+        for (;;) {
             const enforcedLockTime =
                 Math.floor(Math.random() * (maxLockTime - minLockTime)) +
                 minLockTime;
@@ -696,7 +697,7 @@ export class Agora {
     }
 
     private async _allTokenIdsByPrefix(prefixHex: string): Promise<string[]> {
-        let tokenIds: string[] = [];
+        const tokenIds: string[] = [];
         let nextStart: string | undefined = undefined;
         while (nextStart !== '') {
             const groups = await this.plugin.groups(
