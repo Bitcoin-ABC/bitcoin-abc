@@ -358,29 +358,32 @@ describe('parse.js functions', function () {
                 0.000033,
             ),
             [
-                '<b>74 blocks in 24 hours thru 15 Oct 2024, 00:00</b>\n' +
+                '<b>24 hours thru 15 Oct 2024, 00:00</b>\n' +
+                    '📦74 blocks\n' +
+                    '➡️8 txs\n' +
                     '\n' +
-                    '3 miners found blocks\n' +
+                    '<b><i>⛏️3 miners found blocks</i></b>\n' +
                     '<u>Top 3</u>\n' +
-                    '1. Mining-Dutch, 1 (1%)\n' +
-                    '2. solopool.org, 1 (1%)\n' +
-                    '3. ViaBTC, 1 (1%)\n' +
+                    '1. Mining-Dutch, 1 <i>(1%)</i>\n' +
+                    '2. solopool.org, 1 <i>(1%)</i>\n' +
+                    '3. ViaBTC, 1 <i>(1%)</i>\n' +
                     '\n' +
-                    '3 stakers earned $31\n' +
+                    '<b><i>💰3 stakers earned $31</i></b>\n' +
                     '<u>Top 3</u>\n' +
-                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 (1%)\n' +
-                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 (1%)\n' +
-                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 (1%)\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(1%)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(1%)</i>\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(1%)</i>\n' +
                     '\n' +
-                    '8 txs\n' +
-                    '1 new Cashtab user claimed 42 free XEC\n' +
-                    '1 Cashtab user claimed 100.00 CACHET\n' +
-                    '1 CashFusion tx\n' +
-                    '1 token tx\n' +
-                    '1 app tx\n' +
+                    '<a href="https://cashtab.com/">Cashtab</a>\n' +
+                    '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
+                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    'Binance Hot Wallet\n' +
-                    '1 withdrawals totaling $1',
+                    '⚛️ <b>1</b> CashFusion tx\n' +
+                    '🪙 <b>1</b> token tx\n' +
+                    '📱 <b>1</b> app tx\n' +
+                    '\n' +
+                    '🏦 <b><i>Binance</i></b>\n' +
+                    '<b>1</b> withdrawal, $1',
             ],
         );
     });
@@ -389,29 +392,32 @@ describe('parse.js functions', function () {
         assert.deepEqual(
             summarizeTxHistory(mockUtcNewDayTimestampSeconds, dailyTxs),
             [
-                '<b>74 blocks in 24 hours thru 15 Oct 2024, 00:00</b>\n' +
+                '<b>24 hours thru 15 Oct 2024, 00:00</b>\n' +
+                    '📦74 blocks\n' +
+                    '➡️8 txs\n' +
                     '\n' +
-                    '3 miners found blocks\n' +
+                    '<b><i>⛏️3 miners found blocks</i></b>\n' +
                     '<u>Top 3</u>\n' +
-                    '1. Mining-Dutch, 1 (1%)\n' +
-                    '2. solopool.org, 1 (1%)\n' +
-                    '3. ViaBTC, 1 (1%)\n' +
+                    '1. Mining-Dutch, 1 <i>(1%)</i>\n' +
+                    '2. solopool.org, 1 <i>(1%)</i>\n' +
+                    '3. ViaBTC, 1 <i>(1%)</i>\n' +
                     '\n' +
-                    '3 stakers earned 937,620 XEC\n' +
+                    '<b><i>💰3 stakers earned 937,620 XEC</i></b>\n' +
                     '<u>Top 3</u>\n' +
-                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 (1%)\n' +
-                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 (1%)\n' +
-                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 (1%)\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(1%)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(1%)</i>\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(1%)</i>\n' +
                     '\n' +
-                    '8 txs\n' +
-                    '1 new Cashtab user claimed 42 free XEC\n' +
-                    '1 Cashtab user claimed 100.00 CACHET\n' +
-                    '1 CashFusion tx\n' +
-                    '1 token tx\n' +
-                    '1 app tx\n' +
+                    '<a href="https://cashtab.com/">Cashtab</a>\n' +
+                    '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
+                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    'Binance Hot Wallet\n' +
-                    '1 withdrawals totaling 19,720 XEC',
+                    '⚛️ <b>1</b> CashFusion tx\n' +
+                    '🪙 <b>1</b> token tx\n' +
+                    '📱 <b>1</b> app tx\n' +
+                    '\n' +
+                    '🏦 <b><i>Binance</i></b>\n' +
+                    '<b>1</b> withdrawal, 19,720 XEC',
             ],
         );
     });

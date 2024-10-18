@@ -2338,23 +2338,32 @@ module.exports = {
         const tgMsg = [];
 
         tgMsg.push(
-            `<b>${blockCount} blocks in 24 hours thru ${new Date(
-                now * 1000,
-            ).toLocaleTimeString('en-GB', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'UTC',
-            })}</b>`,
+            `<b>24 hours thru ${new Date(now * 1000).toLocaleTimeString(
+                'en-GB',
+                {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: 'UTC',
+                },
+            )}</b>`,
+        );
+        tgMsg.push(`${config.emojis.block}${blockCount} blocks`);
+        tgMsg.push(
+            `${config.emojis.arrowRight}${txs.length.toLocaleString(
+                'en-US',
+            )} txs`,
         );
         tgMsg.push('');
 
         // Top miners
         const MINERS_TO_SHOW = 3;
-        tgMsg.push(`${sortedMinerMap.size} miners found blocks`);
+        tgMsg.push(
+            `<b><i>${config.emojis.miner}${sortedMinerMap.size} miners found blocks</i></b>`,
+        );
         tgMsg.push(`<u>Top ${MINERS_TO_SHOW}</u>`);
 
         const topMiners = [...sortedMinerMap.entries()].slice(
@@ -2364,7 +2373,9 @@ module.exports = {
         for (let i = 0; i < topMiners.length; i += 1) {
             const count = topMiners[i][1];
             const pct = (100 * (count / blockCount)).toFixed(0);
-            tgMsg.push(`${i + 1}. ${topMiners[i][0]}, ${count} (${pct}%)`);
+            tgMsg.push(
+                `${i + 1}. ${topMiners[i][0]}, ${count} <i>(${pct}%)</i>`,
+            );
         }
         tgMsg.push('');
 
@@ -2388,7 +2399,7 @@ module.exports = {
         // Top stakers
         const STAKERS_TO_SHOW = 3;
         tgMsg.push(
-            `${sortedStakerMap.size} stakers earned ${renderedTotalStakingRewards}`,
+            `<b><i>${config.emojis.staker}${sortedStakerMap.size} stakers earned ${renderedTotalStakingRewards}</i></b>`,
         );
         tgMsg.push(`<u>Top ${STAKERS_TO_SHOW}</u>`);
         const topStakers = [...sortedStakerMap.entries()].slice(
@@ -2405,65 +2416,70 @@ module.exports = {
                     config.blockExplorer
                 }/address/${addr}">${returnAddressPreview(addr)}</a>`}, ${
                     staker[1].count
-                } (${pct}%)`,
-            );
-        }
-        tgMsg.push('');
-
-        // Txs
-        tgMsg.push(`${txs.length.toLocaleString('en-US')} txs`);
-        if (cashtabXecRewardCount > 0) {
-            const xecClaimed = cashtabXecRewardSats / SATOSHIS_PER_XEC;
-            tgMsg.push(
-                `${cashtabXecRewardCount.toLocaleString(
-                    'en-US',
-                )} new Cashtab user${
-                    cashtabXecRewardCount > 1 ? 's' : ''
-                } claimed ${xecClaimed.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                })} free XEC`,
+                } <i>(${pct}%)</i>`,
             );
         }
 
-        if (cashtabCachetRewardCount > 0) {
-            const CACHET_REWARD_SIZE = 100;
-            tgMsg.push(
-                `${cashtabCachetRewardCount.toLocaleString(
-                    'en-US',
-                )} Cashtab user${
-                    cashtabCachetRewardCount > 1 ? 's' : ''
-                } claimed ${(
-                    cashtabCachetRewardCount * CACHET_REWARD_SIZE
-                ).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                })} CACHET`,
-            );
+        // Tx breakdown
+
+        // Cashtab rewards
+        if (cashtabXecRewardCount > 0 || cashtabCachetRewardCount > 0) {
+            tgMsg.push('');
+            tgMsg.push(`<a href="https://cashtab.com/">Cashtab</a>`);
+            // Cashtab XEC rewards
+            if (cashtabXecRewardCount > 0) {
+                // 1 new user received 42 XEC
+                // or
+                // <n> new users received <...>
+                tgMsg.push(
+                    `${
+                        config.emojis.gift
+                    } <b>${cashtabXecRewardCount}</b> new user${
+                        cashtabXecRewardCount > 1 ? `s` : ''
+                    } received <b>${satsToFormattedValue(
+                        cashtabXecRewardSats,
+                    )}</b>`,
+                );
+            }
+            if (cashtabCachetRewardCount > 0) {
+                // 1 CACHET reward:
+                // or
+                // <n> CACHET rewards:
+                tgMsg.push(
+                    `${
+                        config.emojis.tokenSend
+                    } <b>${cashtabCachetRewardCount}</b> <a href="${
+                        config.blockExplorer
+                    }/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward${
+                        cashtabCachetRewardCount > 1 ? `s` : ''
+                    }`,
+                );
+            }
+            tgMsg.push('');
         }
 
         const cashFusionTxs = opReturnMap.get('CashFusion');
         if (typeof cashFusionTxs !== 'undefined') {
             tgMsg.push(
-                `${cashFusionTxs.toLocaleString('en-US')} CashFusion tx${
-                    cashtabXecRewardCount > 1 ? 's' : ''
-                }`,
+                `${config.emojis.fusion} <b>${cashFusionTxs.toLocaleString(
+                    'en-US',
+                )}</b> CashFusion tx${cashtabXecRewardCount > 1 ? 's' : ''}`,
             );
         }
 
         if (tokenTxs > 0) {
             tgMsg.push(
-                `${tokenTxs.toLocaleString('en-US')} token tx${
-                    tokenTxs > 1 ? 's' : ''
-                }`,
+                `${config.emojis.token} <b>${tokenTxs.toLocaleString(
+                    'en-US',
+                )}</b> token tx${tokenTxs > 1 ? 's' : ''}`,
             );
         }
 
         if (opReturnTxs > 0) {
             tgMsg.push(
-                `${opReturnTxs.toLocaleString('en-US')} app tx${
-                    opReturnTxs > 1 ? 's' : ''
-                }`,
+                `${config.emojis.app} <b>${opReturnTxs.toLocaleString(
+                    'en-US',
+                )}</b> app tx${opReturnTxs > 1 ? 's' : ''}`,
             );
         }
 
@@ -2486,9 +2502,11 @@ module.exports = {
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0,
                       })} XEC`;
-            tgMsg.push('Binance Hot Wallet');
+            tgMsg.push(`${config.emojis.bank} <b><i>Binance</i></b>`);
             tgMsg.push(
-                `${binanceWithdrawalCount} withdrawals totaling ${renderedBinanceWithdrawalSats}`,
+                `<b>${binanceWithdrawalCount}</b> withdrawal${
+                    binanceWithdrawalCount > 1 ? 's' : ''
+                }, ${renderedBinanceWithdrawalSats}`,
             );
         }
 
