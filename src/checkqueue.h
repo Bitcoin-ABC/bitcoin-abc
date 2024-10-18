@@ -75,8 +75,7 @@ private:
         std::vector<T> vChecks;
         vChecks.reserve(nBatchSize);
         unsigned int nNow = 0;
-        bool has_local_result{false};
-        R local_result;
+        std::optional<R> local_result;
         bool do_work;
         do {
             {
@@ -84,9 +83,8 @@ private:
                 // first do the clean-up of the previous loop run (allowing us
                 // to do it in the same critsect)
                 if (nNow) {
-                    if (has_local_result && !m_result.has_value()) {
-                        m_result = local_result;
-                        has_local_result = false;
+                    if (local_result.has_value() && !m_result.has_value()) {
+                        std::swap(local_result, m_result);
                     }
                     nTodo -= nNow;
                     if (nTodo == 0 && !fMaster) {
@@ -139,10 +137,8 @@ private:
             // execute work
             if (do_work) {
                 for (T &check : vChecks) {
-                    auto tmp = check();
-                    if (tmp.has_value()) {
-                        local_result = *tmp;
-                        has_local_result = true;
+                    local_result = check();
+                    if (local_result.has_value()) {
                         break;
                     }
                 }

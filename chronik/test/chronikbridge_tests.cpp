@@ -320,10 +320,11 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
         BOOST_CHECK_EXCEPTION(
             bridge.broadcast_tx(raw_tx, 10000), std::runtime_error,
             [](const std::runtime_error &ex) {
-                BOOST_CHECK_EQUAL(
-                    ex.what(), "Transaction rejected by mempool: "
-                               "mandatory-script-verify-flag-failed (Operation "
-                               "not valid with the current stack size)");
+                std::string_view error{ex.what()};
+                BOOST_CHECK(error.starts_with(
+                    "Transaction rejected by mempool: "
+                    "mandatory-script-verify-flag-failed (Operation "
+                    "not valid with the current stack size)"));
                 return true;
             });
     }

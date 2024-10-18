@@ -169,10 +169,10 @@ Reason(s): Insufficient token input output sum: 3000 < 3001.""",
         ).err(400)
         assert_equal(
             error.msg,
-            """\
-400: Broadcast failed: Transaction rejected by mempool: \
-mandatory-script-verify-flag-failed (Operation not valid with the current stack size)\
-""",
+            "400: Broadcast failed: Transaction rejected by mempool: "
+            "mandatory-script-verify-flag-failed (Operation not valid with the "
+            f"current stack size), input 0 of {wrong_sig_tx.txid_hex}, spending "
+            f"{genesis.txid}:4",
         )
         chronik.tx(ok_tx.txid_hex).ok()
         chronik.tx(ok2_tx.txid_hex).err(404)

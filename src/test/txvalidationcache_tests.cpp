@@ -494,7 +494,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
             // the second check (the first input) fails due to the limiter.
             auto result2 = scriptchecks1[0]();
             BOOST_REQUIRE(result2.has_value());
-            BOOST_CHECK_EQUAL(*result2, ScriptError::SIGCHECKS_LIMIT_EXCEEDED);
+            BOOST_CHECK_EQUAL(result2->first,
+                              ScriptError::SIGCHECKS_LIMIT_EXCEEDED);
             BOOST_CHECK(!sigchecklimiter1.check());
 
             // Serial validation fails with the limiter.
@@ -612,7 +613,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // The second check does fail
         auto result2 = scriptchecks[1]();
         BOOST_REQUIRE(result2.has_value());
-        BOOST_CHECK_EQUAL(*result2, ScriptError::INVALID_STACK_OPERATION);
+        BOOST_CHECK_EQUAL(result2->first, ScriptError::INVALID_STACK_OPERATION);
     }
 }
 
