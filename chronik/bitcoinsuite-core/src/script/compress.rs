@@ -5,7 +5,8 @@ use crate::{
     script::{PubKey, PubKeyVariant, ScriptVariant, UncompressedPubKey},
 };
 
-const NUM_SPECIAL_SCRIPTS: usize = 6;
+/// Number of special script for compression
+pub const COMPRESS_NUM_SPECIAL_SCRIPTS: usize = 6;
 
 /// Compresses the given script, which results in a shorter bytestring for
 /// common script variants.
@@ -41,7 +42,7 @@ pub fn compress_script_variant(script_variant: &ScriptVariant) -> Bytes {
                 BytesMut::with_capacity(script.bytecode().len() + 1);
             write_var_int(
                 &mut bytes,
-                (script.bytecode().len() + NUM_SPECIAL_SCRIPTS) as u64,
+                (script.bytecode().len() + COMPRESS_NUM_SPECIAL_SCRIPTS) as u64,
             );
             bytes.put_slice(script.bytecode());
             bytes.freeze()
@@ -49,7 +50,8 @@ pub fn compress_script_variant(script_variant: &ScriptVariant) -> Bytes {
     }
 }
 
-fn write_var_int(bytes: &mut BytesMut, mut n: u64) {
+/// Write a VARINT (not to be confused with CompactSize).
+pub fn write_var_int(bytes: &mut BytesMut, mut n: u64) {
     let mut tmp = [0u8; 10];
     let mut len = 0;
     loop {

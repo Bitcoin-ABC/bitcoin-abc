@@ -29,7 +29,7 @@ use chronik_db::{
         BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
         DbBlock, GroupHistoryMemData, GroupUtxoMemData, MetadataReader,
         MetadataWriter, SchemaVersion, SpentByWriter, TxEntry, TxNum, TxReader,
-        TxWriter,
+        TxWriter, UpgradeWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
     plugins::{PluginMeta, PluginsGroup, PluginsReader, PluginsWriter},
@@ -53,7 +53,7 @@ use crate::{
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 12;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 12; // UPGRADE13: SET TO 13
 const LAST_UPGRADABLE_VERSION: SchemaVersion = 10;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
@@ -271,7 +271,7 @@ impl ChronikIndexer {
             &db,
             schema_version,
             params.enable_token_index,
-            load_tx,
+            &load_tx,
         )?;
         let plugin_name_map = update_plugins_index(
             &db,
@@ -1103,6 +1103,14 @@ fn upgrade_db_if_needed(
     // DB has version 11, upgrade to 12
     if schema_version == 11 {
         upgrade_11_to_12(db, enable_token_index, &load_tx)?;
+        // schema_version = 12; // UPGRADE13: UNCOMMENT
+    }
+    // DB has version 12, upgrade to 13
+    // Automatic upgrade disabled for now until all parts are implemented
+    // if schema_version == 12 { // UPGRADE13: UNCOMMENT
+    // UPGRADE13: COMMENT NEXT LINE
+    if false {
+        upgrade_12_to_13(db, enable_token_index, &load_tx)?;
     }
     Ok(())
 }
@@ -1138,6 +1146,24 @@ fn upgrade_11_to_12(
     metadata_writer.update_schema_version(&mut batch, 12)?;
     db.write_batch(batch)?;
     log!("Successfully upgraded Chronik DB from version 11 to 12.\n");
+    Ok(())
+}
+
+fn upgrade_12_to_13(
+    db: &Db,
+    enable_token_index: bool,
+    load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+) -> Result<()> {
+    log!("Upgrading Chronik DB from version 12 to 13...\n");
+    if enable_token_index {
+        let upgrade_writer = UpgradeWriter::new(db)?;
+        upgrade_writer.fix_mint_vault_txs(load_tx)?;
+    }
+    let mut batch = WriteBatch::default();
+    let metadata_writer = MetadataWriter::new(db)?;
+    metadata_writer.update_schema_version(&mut batch, 13)?;
+    db.write_batch(batch)?;
+    log!("Successfully upgraded Chronik DB from version 12 to 13.\n");
     Ok(())
 }
 
