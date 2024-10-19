@@ -373,7 +373,7 @@ describe('chronik.js functions', function () {
             },
         );
     });
-    it('getBlocksAgoFromChaintipByTimestamp will throw expected error if we cannot find startHeight in more than 100 guesses of more recent blocks', async function () {
+    it('getBlocksAgoFromChaintipByTimestamp will throw expected error if we cannot find startHeight in more than 200 guesses of more recent blocks', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
@@ -401,7 +401,7 @@ describe('chronik.js functions', function () {
         });
 
         // Set 100 newer blocks, all of them still outside the window
-        for (let i = 0; i < 100; i += 1) {
+        for (let i = 0; i < 200; i += 1) {
             mockedChronik.setMock('block', {
                 input: guessedBlockheight + 1 + i,
                 output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
@@ -418,11 +418,11 @@ describe('chronik.js functions', function () {
             },
             {
                 name: 'Error',
-                message: 'Start block more than 100 off our original guess',
+                message: 'Start block more than 200 off our original guess',
             },
         );
     });
-    it('getBlocksAgoFromChaintipByTimestamp will throw expected error if we cannot find startHeight in more than 100 guesses of older blocks', async function () {
+    it('getBlocksAgoFromChaintipByTimestamp will throw expected error if we cannot find startHeight in more than 200 guesses of older blocks', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
@@ -449,8 +449,8 @@ describe('chronik.js functions', function () {
             output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
         });
 
-        // Set 100 older blocks, all of them still within the window
-        for (let i = 0; i < 100; i += 1) {
+        // Set 200 older blocks, all of them still within the window
+        for (let i = 0; i < 200; i += 1) {
             mockedChronik.setMock('block', {
                 input: guessedBlockheight - 1 - i,
                 output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
@@ -467,7 +467,7 @@ describe('chronik.js functions', function () {
             },
             {
                 name: 'Error',
-                message: 'Start block more than 100 off our original guess',
+                message: 'Start block more than 200 off our original guess',
             },
         );
     });

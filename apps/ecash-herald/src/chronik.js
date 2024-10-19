@@ -193,7 +193,7 @@ module.exports = {
         let guessedBlockTimestampDelta = now - guessedBlock.timestamp;
 
         // We won't keep guessing forever
-        const ADDITIONAL_BLOCKS_TO_GUESS = 100;
+        const ADDITIONAL_BLOCKS_TO_GUESS = 200;
 
         let startBlockheight;
         if (guessedBlockTimestampDelta > secondsAgo) {
@@ -233,7 +233,14 @@ module.exports = {
         }
 
         if (typeof startBlockheight === 'undefined') {
-            console.log(`Did not find startBlockheight in 100 blocks`);
+            console.log(
+                `Did not find startBlockheight in ${ADDITIONAL_BLOCKS_TO_GUESS} blocks`,
+            );
+            console.log(`Chaintip: ${chaintip}`);
+            console.log(`guessedBlockheight: ${guessedBlockheight}`);
+            console.log(
+                `guessedBlockTimestampDelta: ${guessedBlockTimestampDelta}`,
+            );
             throw new Error(
                 `Start block more than ${ADDITIONAL_BLOCKS_TO_GUESS} off our original guess`,
             );
