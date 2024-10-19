@@ -53,7 +53,7 @@ use crate::{
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 12; // UPGRADE13: SET TO 13
+const CURRENT_INDEXER_VERSION: SchemaVersion = 13;
 const LAST_UPGRADABLE_VERSION: SchemaVersion = 10;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
@@ -1107,13 +1107,10 @@ fn upgrade_db_if_needed(
     // DB has version 11, upgrade to 12
     if schema_version == 11 {
         upgrade_11_to_12(db, enable_token_index, &load_tx)?;
-        // schema_version = 12; // UPGRADE13: UNCOMMENT
+        schema_version = 12;
     }
     // DB has version 12, upgrade to 13
-    // Automatic upgrade disabled for now until all parts are implemented
-    // if schema_version == 12 { // UPGRADE13: UNCOMMENT
-    // UPGRADE13: COMMENT NEXT LINE
-    if false {
+    if schema_version == 12 {
         upgrade_12_to_13(
             db,
             enable_token_index,
@@ -1170,6 +1167,7 @@ fn upgrade_12_to_13(
         upgrade_writer.fix_mint_vault_txs(&load_tx)?;
     }
     upgrade_writer.fix_p2pk_compression(&load_tx, &shutdown_requested)?;
+    upgrade_writer.remove_opreturn_scripts()?;
     let mut batch = WriteBatch::default();
     let metadata_writer = MetadataWriter::new(db)?;
     metadata_writer.update_schema_version(&mut batch, 13)?;

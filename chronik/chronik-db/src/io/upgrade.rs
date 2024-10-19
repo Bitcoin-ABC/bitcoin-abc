@@ -372,6 +372,65 @@ impl<'a> UpgradeWriter<'a> {
 
         Ok(())
     }
+
+    /// Remove all OP_RETURN scripts from the script index.
+    /// See https://reviews.bitcoinabc.org/D16917 for a rationale.
+    pub fn remove_opreturn_scripts(&self) -> Result<()> {
+        let mut batch = WriteBatch::default();
+
+        log!("Deleting OP_RETURN scripts from the script index...\n");
+        // Iterate all allowed Script sizes
+        for opreturn_size in 0..=10000 {
+            // Build the DB prefix for OP_RETURNs Scripts
+            let size_prefix = opreturn_size + COMPRESS_NUM_SPECIAL_SCRIPTS;
+            let mut prefix = BytesMut::with_capacity(10 + opreturn_size);
+            write_var_int(&mut prefix, size_prefix as u64);
+            prefix.put_slice(&[OP_RETURN::N]);
+
+            // Build the lexicographic ranges to delete all OP_RETURN scripts
+            // of that size
+            let mut from = prefix.clone();
+            from.put_bytes(0x00, opreturn_size);
+            let from = from.freeze();
+
+            let mut to = prefix;
+            to.put_bytes(0xff, opreturn_size);
+            let to = to.freeze();
+
+            batch.delete_range_cf(self.cf_script_history_num_txs, &from, &to);
+            batch.delete_range_cf(self.cf_script_history, &from, &to);
+            batch.delete_range_cf(self.cf_script_utxo, &from, &to);
+        }
+
+        self.db.write_batch(batch)?;
+        log!("OP_RETURN scripts deleted.\n");
+
+        // Technically, Scripts exceeding 10000 bytes can be mined, but there's
+        // no such scripts in the blockchain, so we just report on it.
+        let size_prefix = 10001 + COMPRESS_NUM_SPECIAL_SCRIPTS;
+        let mut oversize_prefix = BytesMut::with_capacity(10);
+        write_var_int(&mut oversize_prefix, size_prefix as u64);
+        let oversize_prefix = oversize_prefix.freeze();
+        let mut oversize_iterator = self.db.iterator(
+            self.cf_script_history_num_txs,
+            &oversize_prefix,
+            rocksdb::Direction::Forward,
+        );
+        if let Some((key, _)) = oversize_iterator.next().transpose()? {
+            log!(
+                "Warning! Found oversized Script in the DB, there might still \
+                 be OP_RETURNs left\n",
+            );
+            log_chronik!("Script entry: {}\n", hex::encode(&key));
+        } else {
+            log_chronik!(
+                "Note: No oversized Scripts found in the DB, all OP_RETURNs \
+                 cleared\n"
+            );
+        }
+
+        Ok(())
+    }
 }
 
 impl std::fmt::Debug for UpgradeWriter<'_> {
