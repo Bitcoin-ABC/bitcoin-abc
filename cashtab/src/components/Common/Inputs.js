@@ -612,10 +612,10 @@ export const Slider = ({
 Slider.propTypes = {
     name: PropTypes.string,
     placeholder: PropTypes.string,
-    value: PropTypes.number,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    min: PropTypes.number,
-    max: PropTypes.number,
+    min: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     step: PropTypes.number,
     handleSlide: PropTypes.func,
     fixedWidth: PropTypes.bool,
