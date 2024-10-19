@@ -170,6 +170,12 @@ impl std::ops::Deref for Tx {
     }
 }
 
+impl From<Tx> for TxMut {
+    fn from(value: Tx) -> Self {
+        value.tx
+    }
+}
+
 impl BitcoinSer for TxMut {
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
         self.version.ser_to(bytes);

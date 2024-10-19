@@ -460,7 +460,10 @@ impl<'a, G: Group> GroupHistoryReader<'a, G> {
     }
 }
 
-fn key_for_member_page(member_ser: &[u8], page_num: PageNum) -> Vec<u8> {
+pub(crate) fn key_for_member_page(
+    member_ser: &[u8],
+    page_num: PageNum,
+) -> Vec<u8> {
     [member_ser, &page_num.to_be_bytes()].concat()
 }
 

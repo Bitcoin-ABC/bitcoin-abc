@@ -106,6 +106,7 @@ fn try_setup_chronik(
         |file_num, data_pos, undo_pos| {
             Ok(Tx::from(bridge_ref.load_tx(file_num, data_pos, undo_pos)?))
         },
+        || bridge_ref.shutdown_requested(),
     )?;
     indexer.resync_indexer(bridge_ref)?;
     if bridge.shutdown_requested() {

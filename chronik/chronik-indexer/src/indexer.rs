@@ -240,6 +240,7 @@ impl ChronikIndexer {
     pub fn setup(
         params: ChronikIndexerParams,
         load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+        shutdown_requested: impl Fn() -> bool,
     ) -> Result<Self> {
         let indexes_path = params.datadir_net.join("indexes");
         let perf_path = params.datadir_net.join("perf");
@@ -272,7 +273,9 @@ impl ChronikIndexer {
             schema_version,
             params.enable_token_index,
             &load_tx,
+            &shutdown_requested,
         )?;
+
         let plugin_name_map = update_plugins_index(
             &db,
             &params.plugin_ctx,
@@ -1094,6 +1097,7 @@ fn upgrade_db_if_needed(
     mut schema_version: u64,
     enable_token_index: bool,
     load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+    shutdown_requested: impl Fn() -> bool,
 ) -> Result<()> {
     // DB has version 10, upgrade to 11
     if schema_version == 10 {
@@ -1110,7 +1114,12 @@ fn upgrade_db_if_needed(
     // if schema_version == 12 { // UPGRADE13: UNCOMMENT
     // UPGRADE13: COMMENT NEXT LINE
     if false {
-        upgrade_12_to_13(db, enable_token_index, &load_tx)?;
+        upgrade_12_to_13(
+            db,
+            enable_token_index,
+            &load_tx,
+            &shutdown_requested,
+        )?;
     }
     Ok(())
 }
@@ -1153,12 +1162,14 @@ fn upgrade_12_to_13(
     db: &Db,
     enable_token_index: bool,
     load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+    shutdown_requested: impl Fn() -> bool,
 ) -> Result<()> {
     log!("Upgrading Chronik DB from version 12 to 13...\n");
+    let upgrade_writer = UpgradeWriter::new(db)?;
     if enable_token_index {
-        let upgrade_writer = UpgradeWriter::new(db)?;
-        upgrade_writer.fix_mint_vault_txs(load_tx)?;
+        upgrade_writer.fix_mint_vault_txs(&load_tx)?;
     }
+    upgrade_writer.fix_p2pk_compression(&load_tx, &shutdown_requested)?;
     let mut batch = WriteBatch::default();
     let metadata_writer = MetadataWriter::new(db)?;
     metadata_writer.update_schema_version(&mut batch, 13)?;
@@ -1408,6 +1419,7 @@ mod tests {
         use bitcoinsuite_core::tx::{Tx, TxId, TxMut};
 
         let load_tx = |_, _, _| unreachable!();
+        let shutdown_requested = || false;
 
         let tempdir = tempdir::TempDir::new("chronik-indexer--indexer")?;
         let datadir_net = tempdir.path().join("regtest");
@@ -1422,7 +1434,7 @@ mod tests {
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx)
+            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CreateDirFailed(datadir_net.join("indexes")),
@@ -1430,7 +1442,8 @@ mod tests {
 
         // create regtest folder, setup will work now
         std::fs::create_dir(&datadir_net)?;
-        let mut indexer = ChronikIndexer::setup(params.clone(), load_tx)?;
+        let mut indexer =
+            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)?;
         // indexes and indexes/chronik folder now exist
         assert!(datadir_net.join("indexes").exists());
         assert!(datadir_net.join("indexes").join("chronik").exists());
@@ -1478,6 +1491,7 @@ mod tests {
                 ..params
             },
             load_tx,
+            shutdown_requested,
         )?;
         assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
 
@@ -1487,6 +1501,7 @@ mod tests {
     #[test]
     fn test_schema_version() -> Result<()> {
         let load_tx = |_, _, _| unreachable!();
+        let shutdown_requested = || false;
         let dir = tempdir::TempDir::new("chronik-indexer--schema_version")?;
         let chronik_path = dir.path().join("indexes").join("chronik");
         let params = ChronikIndexerParams {
@@ -1500,7 +1515,7 @@ mod tests {
         };
 
         // Setting up DB first time sets the schema version
-        ChronikIndexer::setup(params.clone(), load_tx)?;
+        ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)?;
         {
             let db = Db::open(&chronik_path)?;
             assert_eq!(
@@ -1509,7 +1524,7 @@ mod tests {
             );
         }
         // Opening DB again works fine
-        ChronikIndexer::setup(params.clone(), load_tx)?;
+        ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)?;
 
         // Override DB schema version to 0
         {
@@ -1520,7 +1535,7 @@ mod tests {
         }
         // -> DB too old
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx)
+            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::DatabaseOutdated(0),
@@ -1538,7 +1553,7 @@ mod tests {
         }
         // -> Chronik too old
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx)
+            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::ChronikOutdated(CURRENT_INDEXER_VERSION + 1),
@@ -1553,7 +1568,7 @@ mod tests {
             db.write_batch(batch)?;
         }
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx)
+            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CorruptedSchemaVersion,
@@ -1577,9 +1592,13 @@ mod tests {
         }
         // Error: non-empty DB without schema version
         assert_eq!(
-            ChronikIndexer::setup(new_params.clone(), load_tx)
-                .unwrap_err()
-                .downcast::<ChronikIndexerError>()?,
+            ChronikIndexer::setup(
+                new_params.clone(),
+                load_tx,
+                shutdown_requested
+            )
+            .unwrap_err()
+            .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::MissingSchemaVersion,
         );
         // with wipe it works
@@ -1589,6 +1608,7 @@ mod tests {
                 ..new_params
             },
             load_tx,
+            shutdown_requested,
         )?;
 
         Ok(())
