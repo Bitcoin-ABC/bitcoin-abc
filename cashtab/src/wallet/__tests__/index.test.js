@@ -18,13 +18,19 @@ import {
     removeLeadingZeros,
     getHashes,
     hasUnfinalizedTxsInHistory,
-    getAgoraPartialFuelInput,
+    getAgoraPartialAcceptFuelInputs,
+    getAgoraPartialCancelFuelInputs,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import vectors from '../fixtures/vectors';
+import { initWasm } from 'ecash-lib';
 
 describe('Cashtab wallet methods', () => {
+    beforeAll(async () => {
+        // Need this to use AgoraOffer methods
+        await initWasm();
+    });
     describe('Calculates total balance in satoshis from a valid set of chronik utxos', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getBalanceSatsVectors;
@@ -251,24 +257,76 @@ describe('Cashtab wallet methods', () => {
             });
         });
     });
-    describe('We can get a fuel input for an AgoraOffer (partial) accept or cancel tx', () => {
+    describe('We can get fuel inputs for an AgoraOffer (partial) accept tx', () => {
         const { expectedReturns, expectedErrors } =
-            vectors.getAgoraPartialFuelInput;
+            vectors.getAgoraPartialAcceptFuelInputs;
         expectedReturns.forEach(expectedReturn => {
-            const { description, xecUtxos, requiredSats, returned } =
-                expectedReturn;
-            it(`getFuelInput: ${description}`, () => {
+            const {
+                description,
+                agoraOffer,
+                utxos,
+                acceptedTokens,
+                feePerKb,
+                returned,
+            } = expectedReturn;
+            it(`getAgoraPartialAcceptFuelInputs: ${description}`, () => {
                 expect(
-                    getAgoraPartialFuelInput(xecUtxos, requiredSats),
+                    getAgoraPartialAcceptFuelInputs(
+                        agoraOffer,
+                        utxos,
+                        acceptedTokens,
+                        feePerKb,
+                    ),
                 ).toStrictEqual(returned);
             });
         });
         expectedErrors.forEach(expectedError => {
-            const { description, xecUtxos, requiredSats, error } =
-                expectedError;
-            it(`getFuelInput throws error for: ${description}`, () => {
+            const {
+                description,
+                agoraOffer,
+                utxos,
+                acceptedTokens,
+                feePerKb,
+                error,
+            } = expectedError;
+            it(`getAgoraPartialAcceptFuelInputs throws error for: ${description}`, () => {
                 expect(() =>
-                    getAgoraPartialFuelInput(xecUtxos, requiredSats),
+                    getAgoraPartialAcceptFuelInputs(
+                        agoraOffer,
+                        utxos,
+                        acceptedTokens,
+                        feePerKb,
+                    ),
+                ).toThrow(error);
+            });
+        });
+    });
+    describe('We can get fuel inputs for an AgoraOffer (partial) cancel tx', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getAgoraPartialCancelFuelInputs;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, agoraOffer, utxos, feePerKb, returned } =
+                expectedReturn;
+            it(`getAgoraPartialCancelFuelInputs: ${description}`, () => {
+                expect(
+                    getAgoraPartialCancelFuelInputs(
+                        agoraOffer,
+                        utxos,
+                        feePerKb,
+                    ),
+                ).toStrictEqual(returned);
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, agoraOffer, utxos, feePerKb, error } =
+                expectedError;
+            it(`getAgoraPartialCancelFuelInputs throws error for: ${description}`, () => {
+                expect(() =>
+                    getAgoraPartialCancelFuelInputs(
+                        agoraOffer,
+                        utxos,
+                        feePerKb,
+                    ),
                 ).toThrow(error);
             });
         });

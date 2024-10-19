@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { agoraOfferCachetAlphaOne } from 'components/Agora/fixtures/mocks';
 
 export const UNSAFE_INTEGER_STRING = '10000000000000000';
 export default {
@@ -581,44 +582,112 @@ export default {
             },
         ],
     },
-    getAgoraPartialFuelInput: {
+    getAgoraPartialAcceptFuelInputs: {
         expectedReturns: [
             {
-                description: 'A single utxo that is exactly sufficient',
-                xecUtxos: [{ value: 1000 }],
-                requiredSats: 1000,
-                returned: { value: 1000 },
+                description:
+                    'We can get a single fuel input to accept the offer, if the wallet has one exactly covering the price + fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // acceptFeeSats 1182n
+                // askedSats 5460736n
+                // requiredSats 5461918n
+                utxos: [{ value: 5461918 }],
+                acceptedTokens: 546n,
+                feePerKb: 1000,
+                returned: [{ value: 5461918 }],
             },
             {
-                description: 'We ignore an insufficient utxo',
-                xecUtxos: [{ value: 999 }, { value: 1000 }],
-                requiredSats: 1000,
-                returned: { value: 1000 },
+                description:
+                    'We can get a single fuel input to accept the offer, if the wallet has one exactly covering the price + fee, at a higher than min fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // acceptFeeSats 2376n
+                // askedSats 5460736n
+                // requiredSats 5463112
+                utxos: [{ value: 5463112 }],
+                acceptedTokens: 546n,
+                feePerKb: 2010,
+                returned: [{ value: 5463112 }],
             },
             {
-                description: 'We return the first good utxo',
-                xecUtxos: [
-                    { value: 998 },
-                    { value: 999 },
-                    { value: 1000 },
-                    { value: 1001 },
-                ],
-                requiredSats: 1000,
-                returned: { value: 1000 },
+                description: 'Two inputs exactly covering the price + fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // acceptFeeSats 1323n
+                // askedSats 5460736n
+                // requiredSats 5462059n
+                utxos: [{ value: 5461917 }, { value: 142 }],
+                acceptedTokens: 546n,
+                feePerKb: 1000,
+                returned: [{ value: 5461917 }, { value: 142 }],
+            },
+            {
+                description: 'Three inputs exactly covering the price + fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // acceptFeeSats 1464n
+                // askedSats 5460736n
+                // requiredSats 5462059n
+                utxos: [{ value: 5461917 }, { value: 141 }, { value: 142 }],
+                acceptedTokens: 546n,
+                feePerKb: 1000,
+                returned: [{ value: 5461917 }, { value: 141 }, { value: 142 }],
             },
         ],
         expectedErrors: [
             {
                 description:
-                    'We throw an error if no fuel inputs are available',
-                xecUtxos: [
-                    { value: 998 },
-                    { value: 999 },
-                    { value: 1000 },
-                    { value: 1001 },
-                ],
-                requiredSats: 1002,
-                error: `You do not have a fuel utxo that can cover 1002 satoshis`,
+                    'We throw an error if available utxos can only cover 1 satoshi less than price + fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                utxos: [{ value: 5461917 }],
+                acceptedTokens: 546n,
+                feePerKb: 1000,
+                error: 'Insufficient utxos to accept this offer',
+            },
+        ],
+    },
+    getAgoraPartialCancelFuelInputs: {
+        expectedReturns: [
+            {
+                description:
+                    'We can get a single fuel input to cancel the offer, if the wallet has one exactly covering the fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // cancelFeeSats 719n
+                utxos: [{ value: 719 }],
+                feePerKb: 1000,
+                returned: [{ value: 719 }],
+            },
+            {
+                description:
+                    'We can get a single fuel input to cancel the offer, if the wallet has one exactly covering the fee, at a higher than min fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // cancelFeeSats 1446
+                utxos: [{ value: 1446 }],
+                feePerKb: 2010,
+                returned: [{ value: 1446 }],
+            },
+            {
+                description: 'Two inputs exactly covering the fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // cancelFeeSats 860n
+                utxos: [{ value: 718 }, { value: 142 }],
+                feePerKb: 1000,
+                returned: [{ value: 718 }, { value: 142 }],
+            },
+            {
+                description: 'Three inputs exactly covering the fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                // cancelFeeSats 1001n
+                utxos: [{ value: 718 }, { value: 141 }, { value: 142 }],
+                feePerKb: 1000,
+                returned: [{ value: 718 }, { value: 141 }, { value: 142 }],
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'We throw an error if available utxos can only cover 1 satoshi less than fee',
+                agoraOffer: agoraOfferCachetAlphaOne,
+                utxos: [{ value: 1 }],
+                feePerKb: 1000,
+                error: 'Insufficient utxos to cancel this offer',
             },
         ],
     },
