@@ -50,6 +50,7 @@ import {
     initWasm,
     shaRmd160,
     toHex,
+    ALL_BIP143,
 } from 'ecash-lib';
 
 // Download and compile WebAssembly
@@ -71,7 +72,7 @@ const walletUtxo = {
 const txBuild = new TxBuilder({
     inputs: [
         {
-            inputs: {
+            input: {
                 prevOut: walletUtxo,
                 signData: {
                     value: 1000,
