@@ -548,6 +548,48 @@ export class AgoraPartial {
     }
 
     /**
+     * Throw an error if accept amount is invalid
+     * Note we do not prepare amounts in this function
+     * @param acceptedTokens
+     */
+    public preventUnacceptableRemainder(acceptedTokens: bigint) {
+        // Validation to avoid creating an offer that cannot be accepted
+        //
+        // 1 - confirm the remaining offer amount is more than the
+        //     min accept amount for this agora partial
+        //
+        // 2 - Confirm the cost of accepting the (full) remainder is
+        //     at least dust. This is already confirmed...for offers
+        //     created by this lib... as minAcceptedTokens() must
+        //     cost more than dust
+        //
+        //
+        // If these condtions are not met, an AgoraOffer would be created
+        // that is impossible to accept; can only be canceld by its maker
+
+        // Get the token qty that would remain after this accept
+        const offeredTokens = this.offeredTokens();
+        const remainingTokens = offeredTokens - acceptedTokens;
+        if (remainingTokens <= 0n) {
+            return;
+        }
+        // Full accepts are always ok
+
+        const minAcceptedTokens = this.minAcceptedTokens();
+        const priceOfRemainingTokens = this.askedSats(remainingTokens);
+        if (remainingTokens < minAcceptedTokens) {
+            throw new Error(
+                `Accepting ${acceptedTokens} token satoshis would leave an amount lower than the min acceptable by the terms of this contract, and hence unacceptable. Accept fewer tokens or the full offer.`,
+            );
+        }
+        if (priceOfRemainingTokens < this.dustAmount) {
+            throw new Error(
+                `Accepting ${acceptedTokens} token satoshis would leave an amount priced lower than dust. Accept fewer tokens or the full offer.`,
+            );
+        }
+    }
+
+    /**
      * Prepare the given acceptedTokens amount for the Script; `acceptedTokens`
      * must have the lowest numTokenTruncBytes bytes set to 0 and this function
      * does this for us.

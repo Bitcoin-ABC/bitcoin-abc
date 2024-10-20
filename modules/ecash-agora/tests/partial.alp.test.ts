@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { expect, use } from 'chai';
+import { expect, use, assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChronikClient } from 'chronik-client';
 import {
@@ -103,6 +103,7 @@ describe('AgoraPartial ALP', () => {
         priceNanoSatsPerToken: bigint;
         acceptedTokens: bigint;
         askedSats: number;
+        allowUnspendable?: boolean;
     }
     const TEST_CASES: TestCase[] = [
         {
@@ -118,6 +119,7 @@ describe('AgoraPartial ALP', () => {
             priceNanoSatsPerToken: 1000000000n,
             acceptedTokens: 546n,
             askedSats: 546,
+            allowUnspendable: true,
         },
         {
             offeredTokens: 1000n,
@@ -460,6 +462,7 @@ describe('AgoraPartial ALP', () => {
                 offer,
                 takerInput,
                 acceptedTokens: testCase.acceptedTokens,
+                allowUnspendable: testCase.allowUnspendable,
             });
             const acceptTx = await chronik.tx(acceptTxid);
             const offeredTokens = agoraPartial.offeredTokens();
@@ -601,4 +604,117 @@ describe('AgoraPartial ALP', () => {
             });
         });
     }
+    it('Without manually setting an over-ride, we are unable to accept an agora partial if the remaining offer would be unacceptable due to the terms of the contract', async () => {
+        const thisTestCase: TestCase = {
+            offeredTokens: 1000n,
+            info: '1sat/token, dust accept',
+            priceNanoSatsPerToken: 1000000000n,
+            acceptedTokens: 546n,
+            askedSats: 546,
+            allowUnspendable: true,
+        };
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
+            offeredTokens: thisTestCase.offeredTokens,
+            priceNanoSatsPerToken: thisTestCase.priceNanoSatsPerToken,
+            minAcceptedTokens: thisTestCase.acceptedTokens,
+            makerPk,
+            ...BASE_PARAMS_ALP,
+        });
+        const askedSats = agoraPartial.askedSats(thisTestCase.acceptedTokens);
+        const requiredSats = askedSats + 2000n;
+        const [fuelInput, takerInput] = await makeBuilderInputs([
+            4000,
+            Number(requiredSats),
+        ]);
+
+        const offer = await makeAlpOffer({
+            chronik,
+            ecc,
+            agoraPartial,
+            makerSk,
+            fuelInput,
+        });
+
+        const expectedError = `Accepting ${thisTestCase.acceptedTokens} token satoshis would leave an amount lower than the min acceptable by the terms of this contract, and hence unacceptable. Accept fewer tokens or the full offer.`;
+
+        // We can get the error from the isolated method
+        expect(() =>
+            agoraPartial.preventUnacceptableRemainder(
+                thisTestCase.acceptedTokens,
+            ),
+        ).to.throw(Error, expectedError);
+
+        // We get an error for test cases that would result in unspendable amounts
+        // if we do not pass allowUnspendable to agoraOffer.acceptTx
+        await assert.isRejected(
+            takeAlpOffer({
+                chronik,
+                ecc,
+                takerSk,
+                offer,
+                takerInput,
+                acceptedTokens: thisTestCase.acceptedTokens,
+                allowUnspendable: false,
+            }),
+            expectedError,
+        );
+    });
+    it('Without manually setting an over-ride, we are unable to accept an agora partial if the remaining offer would be unacceptable due to a price less than dust', async () => {
+        // ecash-agora does not support creating an agora partial with min accept amount priced less than dust
+        // from the approximateParams method
+        // However we can still do this if we manually create a new AgoraPartial
+        // I think it is okay to preserve this, as the protocol does technically allow it,
+        // and perhaps a power user wants to do this for some reason
+
+        // Manually build an offer equivalent to previous test but accepting 500 tokens
+        const agoraPartial = new AgoraPartial({
+            truncTokens: 1000n,
+            numTokenTruncBytes: 0,
+            tokenScaleFactor: 2145336n,
+            scaledTruncTokensPerTruncSat: 2145336n,
+            numSatsTruncBytes: 0,
+            minAcceptedScaledTruncTokens: 1072668000n,
+            scriptLen: 209,
+            enforcedLockTime: 1333546081,
+            makerPk,
+            ...BASE_PARAMS_ALP,
+        });
+        const acceptedTokens = 500n;
+        const askedSats = agoraPartial.askedSats(acceptedTokens);
+        const requiredSats = askedSats + 2000n;
+        const [fuelInput, takerInput] = await makeBuilderInputs([
+            4000,
+            Number(requiredSats),
+        ]);
+
+        const offer = await makeAlpOffer({
+            chronik,
+            ecc,
+            agoraPartial,
+            makerSk,
+            fuelInput,
+        });
+
+        const expectedError = `Accepting 500 token satoshis would leave an amount priced lower than dust. Accept fewer tokens or the full offer.`;
+
+        // We can get the error from the isolated method
+        expect(() =>
+            agoraPartial.preventUnacceptableRemainder(acceptedTokens),
+        ).to.throw(Error, expectedError);
+
+        // And from attempting to accept
+        await assert.isRejected(
+            takeAlpOffer({
+                chronik,
+                ecc,
+                takerSk,
+                offer,
+                takerInput,
+                acceptedTokens: acceptedTokens,
+                allowUnspendable: false,
+            }),
+            expectedError,
+        );
+    });
 });

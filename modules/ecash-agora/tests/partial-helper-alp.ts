@@ -132,6 +132,7 @@ export async function takeAlpOffer(params: {
     takerSk: Uint8Array;
     takerInput: TxBuilderInput;
     acceptedTokens: bigint;
+    allowUnspendable?: boolean;
 }) {
     const takerSk = params.takerSk;
     const takerPk = params.ecc.derivePubkey(takerSk);
@@ -144,6 +145,7 @@ export async function takeAlpOffer(params: {
         fuelInputs: [params.takerInput],
         recipientScript: takerP2pkh,
         acceptedTokens: params.acceptedTokens,
+        allowUnspendable: params.allowUnspendable,
     });
     const acceptTxid = (await params.chronik.broadcastTx(acceptTx.ser())).txid;
     return acceptTxid;

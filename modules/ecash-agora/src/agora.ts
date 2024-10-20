@@ -140,9 +140,12 @@ export class AgoraOffer {
         dustAmount?: number;
         /** Fee per kB to use when building the tx. */
         feePerKb?: number;
+        /**  Allow accepting an offer such that the remaining quantity is unacceptable */
+        allowUnspendable?: boolean;
     }): Tx {
         const dustAmount = params.dustAmount ?? DEFAULT_DUST_LIMIT;
         const feePerKb = params.feePerKb ?? DEFAULT_FEE_PER_KB;
+        const allowUnspendable = params.allowUnspendable ?? false;
         const txBuild = this._acceptTxBuilder({
             covenantSk: params.covenantSk,
             covenantPk: params.covenantPk,
@@ -155,6 +158,7 @@ export class AgoraOffer {
                 params.recipientScript,
             ],
             acceptedTokens: params.acceptedTokens,
+            allowUnspendable,
         });
         return txBuild.sign(params.ecc, feePerKb, dustAmount);
     }
@@ -197,6 +201,7 @@ export class AgoraOffer {
         fuelInputs: TxBuilderInput[];
         extraOutputs: TxBuilderOutput[];
         acceptedTokens?: bigint;
+        allowUnspendable?: boolean;
     }): TxBuilder {
         switch (this.variant.type) {
             case 'ONESHOT':
@@ -232,6 +237,17 @@ export class AgoraOffer {
                         `Must acceptedTokens must be a multiple of ${truncFactor}`,
                     );
                 }
+
+                if (
+                    params.allowUnspendable === false ||
+                    typeof params.allowUnspendable === 'undefined'
+                ) {
+                    // Prevent creation of unacceptable offer
+                    agoraPartial.preventUnacceptableRemainder(
+                        params.acceptedTokens,
+                    );
+                }
+
                 txBuild.inputs.push({
                     input: this.txBuilderInput,
                     signatory: AgoraPartialSignatory(
