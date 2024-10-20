@@ -119,11 +119,11 @@ module.exports = {
             // expects input in ms
             const MS_PER_S = 1000;
             const lastBlockDateString = new Date(
-                MS_PER_S * thisBlockTimestamp,
+                MS_PER_S * lastBlockTimestamp,
             ).toDateString();
 
             const thisBlockDateString = new Date(
-                MS_PER_S * lastBlockTimestamp,
+                MS_PER_S * thisBlockTimestamp,
             ).toDateString();
 
             if (lastBlockDateString !== thisBlockDateString) {
