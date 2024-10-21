@@ -968,6 +968,12 @@ export const isValidTokenSendOrBurnAmount = (
         return `Amount ${amount} exceeds balance of ${tokenBalance}`;
     }
 
+    // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
+    const maxQty = getMaxDecimalizedSlpQty(decimals);
+    if (amountBN.gt(maxQty)) {
+        return `Amount ${amount} exceeds max supported SLP qty for this token in one tx (${maxQty})`;
+    }
+
     if (amount.includes('.')) {
         if (amount.toString().split('.')[1].length > decimals) {
             if (decimals === 0) {

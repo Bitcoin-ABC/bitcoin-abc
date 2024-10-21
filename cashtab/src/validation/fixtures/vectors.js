@@ -1944,6 +1944,40 @@ export default {
                 decimals: 0,
                 returned: true,
             },
+            {
+                description:
+                    'We accept the max supported list, send, or burn amount for a 0-decimal token',
+                amount: '18446744073709551615',
+                tokenBalance: '19000000000000000000',
+                decimals: 0,
+                returned: true,
+            },
+            {
+                description:
+                    'We accept the max supported list, send, or burn amount for a 9-decimal token',
+                amount: '18446744073.709551615',
+                tokenBalance: '19000000000',
+                decimals: 9,
+                returned: true,
+            },
+            {
+                description:
+                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 0-decimal token',
+                amount: '18446744073709551616',
+                tokenBalance: '19000000000000000000',
+                decimals: 0,
+                returned:
+                    'Amount 18446744073709551616 exceeds max supported SLP qty for this token in one tx (18446744073709551615)',
+            },
+            {
+                description:
+                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 9-decimal token',
+                amount: '18446744073.709551616',
+                tokenBalance: '19000000000',
+                decimals: 9,
+                returned:
+                    'Amount 18446744073.709551616 exceeds max supported SLP qty for this token in one tx (18446744073.709551615)',
+            },
         ],
     },
     isValidTokenMintAmount: {
