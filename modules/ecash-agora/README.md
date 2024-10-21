@@ -116,6 +116,27 @@ const acceptTx = txBuilder.sign(ecc);
 await chronik.broadcastTx(acceptTx.ser());
 ```
 
+## Development
+
+### Running the integration tests locally
+
+1. Build the node software from source with chronik and plugins enabled
+
+```
+mkdir build/
+cd build/
+cmake -GNinja .. -DBUILD_BITCOIN_CHRONIK=ON -DBUILD_BITCOIN_CHRONIK_PLUGINS=ON
+ninja
+```
+
+2. You may need to [adjust](https://stackoverflow.com/questions/72409563/unsupported-hash-type-ripemd160-with-hashlib-in-python/72508879#72508879) your `openssl` settings
+
+3. Specify the location of your built chronik-with-plugins node with the `BUILD_DIR` env variable, e.g.
+
+Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc/build/`:
+
+`BUILD_DIR="${PWD}/../../build" npm run integration-tests`
+
 ## Changelog
 
 -   0.1.0 - MVP [D16087](https://reviews.bitcoinabc.org/D16087) [D16111](https://reviews.bitcoinabc.org/D16111)
