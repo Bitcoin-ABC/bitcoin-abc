@@ -1,6 +1,6 @@
 # Copyright (c) 2017 The Bitcoin developers
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 project(secp256k1 LANGUAGES C VERSION 0.1.0)
 
 option(SECP256K1_BUILD_SHARED "Build secp256k1 (only) as a shared library" OFF)

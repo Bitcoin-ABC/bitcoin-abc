@@ -1,6 +1,6 @@
 # Copyright (c) 2017 The Bitcoin developers
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 project(univalue)
 
 option(UNIVALUE_BUILD_TESTS "Build univalue's unit tests" ON)

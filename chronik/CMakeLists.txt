@@ -169,9 +169,8 @@ target_link_libraries(chronik
 
 # Plugins require us to link agains libpython
 if(BUILD_BITCOIN_CHRONIK_PLUGINS)
-    find_package(Python COMPONENTS Interpreter Development)
-    message("Adding Python_LIBRARIES: ${Python_LIBRARIES}")
-    target_link_libraries(chronik ${Python_LIBRARIES})
+    find_package(Python 3.9 COMPONENTS Development.Embed REQUIRED)
+    target_link_libraries(chronik Python::Python)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
