@@ -1198,7 +1198,7 @@ export default {
             },
         ],
     },
-    getMaxMintAmount: {
+    getMaxDecimalizedSlpQty: {
         expectedReturns: [
             {
                 description: '0 decimals',

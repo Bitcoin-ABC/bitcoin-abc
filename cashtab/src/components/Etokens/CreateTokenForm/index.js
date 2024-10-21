@@ -31,7 +31,7 @@ import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
 import {
     getSlpGenesisTargetOutput,
-    getMaxMintAmount,
+    getMaxDecimalizedSlpQty,
     getNftParentGenesisTargetOutputs,
     getNftChildGenesisTargetOutputs,
 } from 'slpv1';
@@ -422,7 +422,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         // Use 0 for decimals if user has not input decimals yet
         const usedDecimals =
             formData.decimals === '' ? 0 : parseInt(formData.decimals);
-        const maxGenesisAmount = getMaxMintAmount(usedDecimals);
+        const maxGenesisAmount = getMaxDecimalizedSlpQty(usedDecimals);
 
         handleInput({
             target: {

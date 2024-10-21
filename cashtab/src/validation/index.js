@@ -19,7 +19,7 @@ import { getAliasByteCount } from 'opreturn';
 import { fiatToSatoshis } from 'wallet';
 import { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
-import { getMaxMintAmount } from 'slpv1';
+import { getMaxDecimalizedSlpQty } from 'slpv1';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -1016,7 +1016,7 @@ export const isValidTokenMintAmount = (amount, decimals) => {
     // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
     const amountBN = new BN(amount);
     // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
-    const maxMintAmount = getMaxMintAmount(decimals);
+    const maxMintAmount = getMaxDecimalizedSlpQty(decimals);
     if (amountBN.gt(maxMintAmount)) {
         return `Amount ${amount} exceeds max mint amount for this token (${maxMintAmount})`;
     }

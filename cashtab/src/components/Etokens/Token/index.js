@@ -36,7 +36,7 @@ import {
     getSlpBurnTargetOutputs,
     getMintBatons,
     getMintTargetOutputs,
-    getMaxMintAmount,
+    getMaxDecimalizedSlpQty,
     getNftChildGenesisInput,
     getNftParentFanInputs,
     getNftParentFanTxTargetOutputs,
@@ -668,7 +668,7 @@ const Token = () => {
     };
 
     const onMaxMint = () => {
-        const maxMintAmount = getMaxMintAmount(decimals);
+        const maxMintAmount = getMaxDecimalizedSlpQty(decimals);
 
         handleMintAmountChange({
             target: {

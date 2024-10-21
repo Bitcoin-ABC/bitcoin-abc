@@ -311,7 +311,13 @@ export const getMintTargetOutputs = (tokenId, decimals, mintQty) => {
     ];
 };
 
-export const getMaxMintAmount = decimals => {
+/**
+ * Get the maximum (decimalized) qty of SLP tokens that can be
+ * represented in a single SLP tx (mint, send, burn, or agora partial list)
+ * @param {0|1|2|3|4|5|6|7|8|9} decimals
+ * @returns {string} decimalized max amount
+ */
+export const getMaxDecimalizedSlpQty = decimals => {
     // The max amount depends on token decimals
     // e.g. if decimals are 0, it's the same
     // if decimals are 9, it's 18446744073.709551615

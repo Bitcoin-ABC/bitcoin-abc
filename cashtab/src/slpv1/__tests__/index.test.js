@@ -10,7 +10,7 @@ import {
     getSendTokenInputs,
     getMintBatons,
     getMintTargetOutputs,
-    getMaxMintAmount,
+    getMaxDecimalizedSlpQty,
     getNftParentGenesisTargetOutputs,
     getNftParentMintTargetOutputs,
     getNftParentFanInputs,
@@ -235,12 +235,12 @@ describe('slpv1 methods', () => {
             });
         });
     });
-    describe('Gets max mint amount, decimalized', () => {
-        const { expectedReturns } = vectors.getMaxMintAmount;
+    describe('Gets max mint/send/burn SLP amount, decimalized', () => {
+        const { expectedReturns } = vectors.getMaxDecimalizedSlpQty;
         expectedReturns.forEach(vector => {
             const { description, decimals, returned } = vector;
-            it(`getMaxMintAmount: ${description}`, () => {
-                expect(getMaxMintAmount(decimals)).toBe(returned);
+            it(`getMaxDecimalizedSlpQty: ${description}`, () => {
+                expect(getMaxDecimalizedSlpQty(decimals)).toBe(returned);
             });
         });
     });
