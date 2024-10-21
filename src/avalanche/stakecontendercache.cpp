@@ -4,6 +4,8 @@
 
 #include <avalanche/stakecontendercache.h>
 
+#include <avalanche/peermanager.h>
+
 namespace avalanche {
 
 void StakeContenderCache::cleanup(const int minHeight) {
@@ -37,6 +39,26 @@ bool StakeContenderCache::add(const CBlockIndex *pindex, const ProofRef &proof,
         .emplace(pindex->GetBlockHash(), pindex->nHeight, proof->getId(),
                  status, proof->getPayoutScript(), proof->getScore())
         .second;
+}
+
+void StakeContenderCache::promoteToBlock(const CBlockIndex *activeTip,
+                                         PeerManager &pm) {
+    // "Promote" past contenders to activeTip and check that those contenders
+    // are still valid proofs to be stake winners. This is done because new
+    // stake contenders are only added when a new proof is seen for the first
+    // time. We need to persist the cached payout scripts and proof scores since
+    // they are not guaranteed to be stored by peerManager.
+    const BlockHash &blockhash = activeTip->GetBlockHash();
+    const int height = activeTip->nHeight;
+    for (auto &contender : contenders) {
+        const ProofId &proofid = contender.proofid;
+        if (pm.isRemoteProof(proofid) &&
+            (pm.isBoundToPeer(proofid) || pm.isDangling(proofid))) {
+            contenders.emplace(blockhash, height, proofid,
+                               StakeContenderStatus::UNKNOWN,
+                               contender.payoutScriptPubkey, contender.score);
+        }
+    }
 }
 
 bool StakeContenderCache::setWinners(

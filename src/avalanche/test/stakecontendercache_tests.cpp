@@ -4,17 +4,30 @@
 
 #include <avalanche/stakecontendercache.h>
 
+#include <avalanche/peermanager.h>
 #include <script/script.h>
 
 #include <avalanche/test/util.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
+#include <util/time.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <limits>
 
 using namespace avalanche;
+
+namespace {
+struct PeerManagerFixture : public TestChain100Setup {
+    PeerManagerFixture() {
+        gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
+    }
+    ~PeerManagerFixture() {
+        gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
+    }
+};
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(stakecontendercache_tests, TestChain100Setup)
 
@@ -373,6 +386,124 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
         CheckWinners(cache, blockhashes[1], {}, {});
         CheckWinners(cache, blockhashes[2], {}, {});
     }
+}
+
+BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
+    StakeContenderCache cache;
+
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, *Assert(m_node.chainman));
+    std::vector<ProofRef> proofs;
+    for (size_t i = 0; i < 3; i++) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        proofs.push_back(proof);
+        const ProofId &proofid = proof->getId();
+
+        // Register the proof so that it is a peer
+        BOOST_CHECK(pm.registerProof(proof));
+        pm.addNode(0, proofid);
+        BOOST_CHECK(pm.isBoundToPeer(proofid));
+
+        // Our peers also have this proof
+        pm.saveRemoteProof(proofid, 0, true);
+    }
+
+    CBlockIndex *pindex = active_chainstate.m_chain.Tip();
+    const CBlockIndex *tip = pindex;
+    std::vector<BlockHash> blockhashes;
+    for (size_t i = 0; i < 3; i++) {
+        blockhashes.push_back(pindex->GetBlockHash());
+        pindex = pindex->pprev;
+    }
+
+    // Add one proof each to the cache for some early blocks
+    for (size_t i = 0; i < 3; i++) {
+        BlockHash blockhash = pindex->GetBlockHash();
+        blockhashes.push_back(blockhash);
+        cache.add(pindex, proofs[i], StakeContenderStatus::IN_WINNER_SET);
+        CheckWinners(cache, blockhash, {}, {proofs[i]});
+        pindex = pindex->pprev;
+    }
+
+    // Promote contenders, but they are not winners at that block yet
+    cache.promoteToBlock(tip->pprev->pprev, pm);
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {});
+    for (auto &proof : proofs) {
+        // Contenders are unknown for blocks with no cache entries
+        CheckVoteStatus(cache, blockhashes[0], proof, -1);
+        CheckVoteStatus(cache, blockhashes[1], proof, -1);
+        // Contenders are not winners yet at the promoted block
+        CheckVoteStatus(cache, blockhashes[2], proof, 1);
+    }
+
+    // The contenders are still winners for their respective blocks
+    CheckWinners(cache, blockhashes[3], {}, {proofs[0]});
+    CheckWinners(cache, blockhashes[4], {}, {proofs[1]});
+    CheckWinners(cache, blockhashes[5], {}, {proofs[2]});
+
+    // Cleaning up the cache leaves most recent promoted entries alone
+    cache.cleanup(98);
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {});
+    for (auto &proof : proofs) {
+        // Contenders are unknown for blocks with no cache entries
+        CheckVoteStatus(cache, blockhashes[0], proof, -1);
+        CheckVoteStatus(cache, blockhashes[1], proof, -1);
+        // Contenders at the promoted block are rejected
+        CheckVoteStatus(cache, blockhashes[2], proof, 1);
+    }
+    CheckWinners(cache, blockhashes[3], {}, {});
+    CheckWinners(cache, blockhashes[4], {}, {});
+    CheckWinners(cache, blockhashes[5], {}, {});
+
+    // Finalize those proofs
+    for (auto &proof : proofs) {
+        cache.finalize(StakeContenderId(blockhashes[2], proof->getId()));
+        // Contenders are unknown for blocks with no cache entries
+        CheckVoteStatus(cache, blockhashes[0], proof, -1);
+        CheckVoteStatus(cache, blockhashes[1], proof, -1);
+        // Contenders at the promoted block are now accepted
+        CheckVoteStatus(cache, blockhashes[2], proof, 0);
+    }
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, proofs);
+
+    // Now advance the tip and invalidate a proof
+    pm.rejectProof(proofs[2]->getId(),
+                   avalanche::PeerManager::RejectionMode::INVALIDATE);
+    cache.promoteToBlock(tip->pprev, pm);
+    for (auto &proof : proofs) {
+        // Contenders are unknown for blocks with no cache entries
+        CheckVoteStatus(cache, blockhashes[0], proof, -1);
+    }
+    CheckVoteStatus(cache, blockhashes[1], proofs[0], 1);
+    CheckVoteStatus(cache, blockhashes[1], proofs[1], 1);
+    CheckVoteStatus(cache, blockhashes[1], proofs[2], -1);
+
+    // Make the other proofs dangling
+    pm.removeNode(0);
+    SetMockTime(GetTime() + 15 * 60);
+    std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
+    pm.cleanupDanglingProofs(registeredProofs);
+    BOOST_CHECK(pm.isDangling(proofs[0]->getId()));
+    BOOST_CHECK(pm.isDangling(proofs[1]->getId()));
+
+    // Re-add those proofs as remote proofs
+    pm.saveRemoteProof(proofs[0]->getId(), 0, true);
+    pm.saveRemoteProof(proofs[1]->getId(), 0, true);
+
+    // Dangling remote proofs still promote like peers do
+    cache.promoteToBlock(tip, pm);
+    CheckVoteStatus(cache, blockhashes[0], proofs[0], 1);
+    CheckVoteStatus(cache, blockhashes[0], proofs[1], 1);
+    CheckVoteStatus(cache, blockhashes[0], proofs[2], -1);
+
+    // But they aren't winners yet and that's expected
+    CheckWinners(cache, blockhashes[0], {}, {});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

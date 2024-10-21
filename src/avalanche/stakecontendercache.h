@@ -20,6 +20,8 @@
 
 namespace avalanche {
 
+class PeerManager;
+
 enum StakeContenderStatus : uint8_t {
     UNKNOWN = 0,
     // Set according to avalanche acceptance
@@ -138,6 +140,12 @@ public:
      */
     bool add(const CBlockIndex *pindex, const ProofRef &proof,
              uint8_t status = StakeContenderStatus::UNKNOWN);
+
+    /**
+     * Promote cache entries to a the active chain tip.
+     */
+    void promoteToBlock(const CBlockIndex *activeTip, PeerManager &pm);
+
     /**
      * Set proof(s) that should be treated as winners (already finalized). This
      * should only be used for manually added winners via RPC.
