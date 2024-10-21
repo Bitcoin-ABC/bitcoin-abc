@@ -40,8 +40,13 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(__NO_USER_CMAKE_BUILD_TYPE ON CACHE BOOL "True if the user didn't set a build type on the command line")
 endif()
 
-# Find the python interpreter. This is required for several targets.
+# Find the host python interpreter. This is required for several targets.
+# Make sure we don't pick the python version that is built in the native depends
+# as we need the libraries as well.
+set(CMAKE_PREFIX_PATH_SAVED "${CMAKE_PREFIX_PATH}")
+unset(CMAKE_PREFIX_PATH)
 find_package(Python 3.9 COMPONENTS Interpreter REQUIRED)
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH_SAVED}")
 
 # Add the magic targets `check-*`
 add_custom_target(check-all)

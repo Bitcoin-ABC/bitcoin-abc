@@ -32,3 +32,8 @@ endif
 endif
 
 jemalloc_packages = jemalloc
+
+ifeq ($(host_os),linux)
+cpython_native_packages = native_cpython
+cpython_packages = cpython
+endif

@@ -1,0 +1,25 @@
+From 3be99ab31485956637fc6eb0b116c265eff07744 Mon Sep 17 00:00:00 2001
+From: Fabien <fabcien@gmail.com>
+Date: Tue, 22 Oct 2024 12:43:40 +0200
+Subject: [PATCH] Fix OpenSSL pthread linkage
+
+---
+ configure | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure b/configure
+index 1c75810d9e8..718ccdf44bf 100755
+--- a/configure
++++ b/configure
+@@ -28069,7 +28069,7 @@ printf %s "checking for include/openssl/ssl.h in $ssldir... " >&6; }
+             if test -f "$ssldir/include/openssl/ssl.h"; then
+                 OPENSSL_INCLUDES="-I$ssldir/include"
+                 OPENSSL_LDFLAGS="-L$ssldir/lib"
+-                OPENSSL_LIBS="-lssl -lcrypto"
++                OPENSSL_LIBS="-lssl -lcrypto -lpthread"
+                 found=true
+                 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ printf "%s\n" "yes" >&6; }
+-- 
+2.47.0
+
