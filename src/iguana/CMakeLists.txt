@@ -34,8 +34,6 @@ add_to_security_check(iguana)
 
 install_target(iguana)
 
-find_package(Python COMPONENTS Interpreter)
-
 include(TestSuite)
 add_test_custom_target(check-iguana
 	TEST_COMMAND
