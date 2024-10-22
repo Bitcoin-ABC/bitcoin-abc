@@ -26,9 +26,8 @@ ripemd = "0.1"
 # Implementation of SHA-256 etc. cryptographic hash functions
 sha2 = "0.10"
 
-[dependencies.secp256k1-abc]
+[dependencies.ecash-secp256k1]
 # libsecp256k1 with support for BCH/XEC/XPI Schnorr signatures
-git = "https://github.com/raipay/secp256k1-abc"
-rev = "b23e742"
+path = "../ecash-secp256k1"
 default-features = false
 features = ["alloc"]

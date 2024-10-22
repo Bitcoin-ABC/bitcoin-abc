@@ -15,6 +15,17 @@ export CARGO_TERM_VERBOSE=true
 
 main() {
     ecash_secp256k1_sys
+    ecash_secp256k1
+}
+
+ecash_secp256k1() {
+    FEATURES_WITH_STD="hashes global-context global-context-less-secure lowmemory rand recovery serde"
+    FEATURES_WITHOUT_STD="hashes global-context global-context-less-secure lowmemory rand recovery serde alloc"
+
+    # Navigate to ecash-secp256k1
+    pushd "${TOPLEVEL}/modules/ecash-secp256k1/"
+    run_tests
+    popd
 }
 
 ecash_secp256k1_sys() {
@@ -25,6 +36,7 @@ ecash_secp256k1_sys() {
     pushd "${TOPLEVEL}/modules/ecash-secp256k1/ecash-secp256k1-sys"
 
     run_tests
+    popd
 }
 
 run_tests() {
@@ -48,8 +60,6 @@ run_tests() {
 
     build_docs
     build_wasm
-
-    popd
 }
 
 # Build with each feature as well as all combinations of two features.

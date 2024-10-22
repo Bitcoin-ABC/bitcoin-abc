@@ -4,9 +4,7 @@
 
 //! Module for [`Ecc`] for signing secp256k1 signatures.
 
-use secp256k1_abc::{
-    constants::SECRET_KEY_SIZE, All, Message, PublicKey, Secp256k1, SecretKey,
-};
+use ecash_secp256k1::{All, Message, PublicKey, Secp256k1, SecretKey};
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
 
@@ -42,16 +40,18 @@ impl From<EccError> for String {
 }
 
 fn parse_secret_key(seckey: &[u8]) -> Result<SecretKey, String> {
-    Ok(SecretKey::from_slice(seckey).map_err(|_| {
-        if seckey.len() != SECRET_KEY_SIZE {
-            return InvalidSeckeySize(seckey.len());
-        }
-        InvalidSeckey
-    })?)
+    Ok(SecretKey::from_byte_array(
+        &seckey
+            .try_into()
+            .map_err(|_| InvalidSeckeySize(seckey.len()))?,
+    )
+    .map_err(|_| InvalidSeckey)?)
 }
 
 fn parse_msg(msg: &[u8]) -> Result<Message, String> {
-    Ok(Message::from_slice(msg).map_err(|_| InvalidMessageSize(msg.len()))?)
+    Ok(Message::from_digest(
+        msg.try_into().map_err(|_| InvalidMessageSize(msg.len()))?,
+    ))
 }
 
 #[wasm_bindgen]
@@ -82,7 +82,7 @@ impl Ecc {
     ) -> Result<Vec<u8>, String> {
         let seckey = parse_secret_key(seckey)?;
         let msg = parse_msg(msg)?;
-        let sig = self.curve.sign(&msg, &seckey);
+        let sig = self.curve.sign_ecdsa(&msg, &seckey);
         Ok(sig.serialize_der().to_vec())
     }
 
@@ -95,7 +95,7 @@ impl Ecc {
     ) -> Result<Vec<u8>, String> {
         let seckey = parse_secret_key(seckey)?;
         let msg = parse_msg(msg)?;
-        let sig = self.curve.schnorrabc_sign_no_aux_rand(&msg, &seckey);
+        let sig = self.curve.sign_schnorrabc_no_aux_rand(&msg, &seckey);
         Ok(sig.as_ref().to_vec())
     }
 }
