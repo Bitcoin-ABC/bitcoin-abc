@@ -41,6 +41,9 @@ MAX_VERSIONS = {
 
 # Ignore symbols that are exported as part of every executable
 IGNORE_EXPORTS = {
+    "environ",
+    "_environ",
+    "__environ",
     "_fini",
     "_init",
     "stdin",
@@ -87,7 +90,8 @@ ELF_ALLOWED_LIBRARIES = {
     "libpthread.so.0",  # threading
     "libanl.so.1",  # DNS resolve
     "libm.so.6",  # math library
-    "libatomic.so.1",
+    "libatomic.so.1",  # atomic library, from gcc
+    "libutil.so.1",  # util library, distributed with libc6
     "ld-linux-x86-64.so.2",  # 64-bit dynamic linker
     "ld-linux.so.2",  # 32-bit dynamic linker
     "ld-linux-aarch64.so.1",  # 64-bit ARM dynamic linker
@@ -100,6 +104,7 @@ ELF_ALLOWED_LIBRARIES = {
     "libfreetype.so.6",  # font parsing
     "libdl.so.2",  # programming interface to dynamic linker
     "libdl.so.2",  # programming interface to dynamic linker
+    "librt.so.1",  # Posix realtime extensions library
     "libxcb-icccm.so.4",
     "libxcb-image.so.0",
     "libxcb-shm.so.0",

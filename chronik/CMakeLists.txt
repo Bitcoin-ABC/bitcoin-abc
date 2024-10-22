@@ -167,10 +167,45 @@ target_link_libraries(chronik
     chronik_lib
 )
 
-# Plugins require us to link agains libpython
+# Plugins require us to link against libpython
 if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+    # Plugins require us to link against libpython, but we need the right lib
+    # when cross compiling, i.e. not the host one nor the depends native one,
+    # but the depends sysrooted one. The easiest way to tell cmake to look at
+    # right path in the absence of a package config file is to supply to root.
+    if (CMAKE_CROSSCOMPILING)
+        set(Python_ROOT_DIR "${CMAKE_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX}")
+    endif()
+
     find_package(Python 3.9 COMPONENTS Development.Embed REQUIRED)
     target_link_libraries(chronik Python::Python)
+
+    if (CMAKE_CROSSCOMPILING)
+        get_target_property(CROSS_PYTHON_LIB Python::Python IMPORTED_LOCATION)
+        get_filename_component(CROSS_PYTHON_LIB_DIR "${CROSS_PYTHON_LIB}" DIRECTORY)
+
+        # We need to set some environment variables in order to cross compile
+        # the pyo3 crate. See
+        # https://pyo3.rs/v0.22.2/building-and-distribution.html#cross-compiling
+        corrosion_set_env_vars(
+            chronik_lib
+            PYO3_CROSS=1
+            PYO3_CROSS_PYTHON_VERSION=${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}
+            PYO3_CROSS_LIB_DIR=${CROSS_PYTHON_LIB_DIR}
+        )
+
+        # Our cross compiled cpython requires libutil. Beware that it's not the
+        # same as our util library ! So we need to pass the flag to avoid
+        # ambiguity.
+        target_link_libraries(chronik -lutil)
+
+        # For the hashlib module, we need openssl
+        find_package(OpenSSL REQUIRED)
+        target_link_libraries(chronik OpenSSL::SSL OpenSSL::Crypto)
+        # We also need to link the hacl library (built with CPython)
+        find_library(PYTHON_HACL_HASH_SHA2 Hacl_Hash_SHA2 REQUIRED)
+        target_link_libraries(chronik ${PYTHON_HACL_HASH_SHA2})
+    endif()
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
