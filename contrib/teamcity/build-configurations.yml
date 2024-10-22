@@ -552,6 +552,14 @@ builds:
       - - bench-secp256k1
     timeout: 1200
 
+  build-ecash-secp256k1:
+    runOnDiffRegex:
+      - src/secp256k1/
+      - modules/ecash-secp256k1/
+    script: |
+      "${TOPLEVEL}/modules/ecash-secp256k1/contrib/test.sh"
+    timeout: 1200
+
   build-tsan:
     Werror: true
     clang: true

@@ -593,6 +593,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecash-secp256k1-sys"
+version = "0.10.0"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
 name = "either"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

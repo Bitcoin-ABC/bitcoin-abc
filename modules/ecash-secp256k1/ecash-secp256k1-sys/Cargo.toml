@@ -1,0 +1,38 @@
+[package]
+name = "ecash-secp256k1-sys"
+version = "0.10.0"
+authors = [
+    "Dawid Ciężarkiewicz <dpc@ucore.info>",
+    "Andrew Poelstra <apoelstra@wpsoftware.net>",
+    "Steven Roose <steven@stevenroose.org>",
+    "Tobias Ruck <tobias.ruck@be.cash>",
+]
+license = "CC0-1.0"
+homepage = "https://e.cash"
+repository = "https://github.com/Bitcoin-ABC/bitcoin-abc/"
+description = "FFI for the Bitcoin ABC version of Pieter Wuille's `libsecp256k1` library."
+readme = "README.md"
+build = "build.rs"
+edition = "2021"
+rust-version.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[build-dependencies]
+cc = "1.0.28"
+
+[dev-dependencies]
+libc = "0.2"
+
+[features]
+default = ["std"]
+recovery = []
+lowmemory = []
+std = ["alloc"]
+alloc = []
+
+[lints.rust.unexpected_cfgs]
+level = "deny"
+check-cfg = ['cfg(bench)', 'cfg(secp256k1_fuzz)']

@@ -18,6 +18,7 @@ members = [
     "chronik/chronik-proto",
     "chronik/chronik-util",
     "modules/ecash-lib-wasm",
+    "modules/ecash-secp256k1/ecash-secp256k1-sys",
 ]
 
 [workspace.package]
