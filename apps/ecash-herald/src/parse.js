@@ -26,6 +26,7 @@ const {
     returnAddressPreview,
     containsOnlyPrintableAscii,
 } = require('./utils');
+const lokadMap = require('../constants/lokad');
 
 // Constants for SLP 1 token types as returned by chronik-client
 const SLP_1_PROTOCOL_NUMBER = 1;
@@ -2176,7 +2177,7 @@ module.exports = {
         // senderMap
 
         // lokad name => count
-        const opReturnMap = new Map();
+        const appTxMap = new Map();
 
         let totalStakingRewardSats = 0;
         let cashtabXecRewardCount = 0;
@@ -2186,7 +2187,8 @@ module.exports = {
         let binanceWithdrawalSats = 0;
 
         let tokenTxs = 0;
-        let opReturnTxs = 0;
+        let appTxs = 0;
+        let unknownLokadTxs = 0;
 
         for (const tx of txs) {
             const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
@@ -2301,20 +2303,22 @@ module.exports = {
                 // if output size dust and to a p2sh, call it a listing (mb a partial buy?)
             }
             const firstOutputScript = outputs[0].outputScript;
-            if (firstOutputScript.startsWith('6a')) {
-                const { app } = module.exports.parseOpReturn(
-                    firstOutputScript.slice(2),
+            const LOKAD_OPRETURN_STARTSWITH = '6a04';
+            if (firstOutputScript.startsWith(LOKAD_OPRETURN_STARTSWITH)) {
+                appTxs += 1;
+                // We only parse minimally-pushed lokad ids
+
+                // Get the lokadId (the 4-byte first push)
+                const lokadId = firstOutputScript.slice(4, 12);
+
+                // Add to map
+                const countThisLokad = appTxMap.get(lokadId);
+                appTxMap.set(
+                    lokadId,
+                    typeof countThisLokad === 'undefined'
+                        ? 1
+                        : countThisLokad + 1,
                 );
-                if (app === 'unknown') {
-                    // See if there is a lokad
-                }
-                opReturnTxs += 1;
-                let appTxCount = opReturnMap.get(app);
-                if (typeof appTxCount === 'undefined') {
-                    opReturnMap.set(app, 1);
-                } else {
-                    opReturnMap.set(app, appTxCount + 1);
-                }
             }
         }
 
@@ -2351,7 +2355,11 @@ module.exports = {
                 },
             )}</b>`,
         );
-        tgMsg.push(`${config.emojis.block}${blockCount} blocks`);
+        tgMsg.push(
+            `${config.emojis.block}${blockCount.toLocaleString(
+                'en-US',
+            )} blocks`,
+        );
         tgMsg.push(
             `${config.emojis.arrowRight}${txs.length.toLocaleString(
                 'en-US',
@@ -2458,32 +2466,65 @@ module.exports = {
             tgMsg.push('');
         }
 
-        const cashFusionTxs = opReturnMap.get('CashFusion');
-        if (typeof cashFusionTxs !== 'undefined') {
-            tgMsg.push(
-                `${config.emojis.fusion} <b>${cashFusionTxs.toLocaleString(
-                    'en-US',
-                )}</b> CashFusion tx${cashtabXecRewardCount > 1 ? 's' : ''}`,
-            );
-        }
-
         if (tokenTxs > 0) {
             tgMsg.push(
                 `${config.emojis.token} <b>${tokenTxs.toLocaleString(
                     'en-US',
                 )}</b> token tx${tokenTxs > 1 ? 's' : ''}`,
             );
+            tgMsg.push('');
         }
 
-        if (opReturnTxs > 0) {
-            tgMsg.push(
-                `${config.emojis.app} <b>${opReturnTxs.toLocaleString(
-                    'en-US',
-                )}</b> app tx${opReturnTxs > 1 ? 's' : ''}`,
+        if (appTxs > 0) {
+            // Sort appTxMap by most common app txs
+            const sortedAppTxMap = new Map(
+                [...appTxMap.entries()].sort(
+                    (keyValueArrayA, keyValueArrayB) =>
+                        keyValueArrayB[1] - keyValueArrayA[1],
+                ),
             );
+            tgMsg.push(
+                `${config.emojis.app} <b><i>${appTxs.toLocaleString(
+                    'en-US',
+                )} app tx${appTxs > 1 ? 's' : ''}</i></b>`,
+            );
+            sortedAppTxMap.forEach((count, lokadId) => {
+                // Do we recognize this app?
+                const supportedLokadApp = lokadMap.get(lokadId);
+                if (typeof supportedLokadApp === 'undefined') {
+                    unknownLokadTxs += count;
+                    // Go to the next lokadId
+                    return;
+                }
+                const { name, emoji, url } = supportedLokadApp;
+                if (typeof url === 'undefined') {
+                    tgMsg.push(
+                        `${emoji} <b>${count.toLocaleString(
+                            'en-US',
+                        )}</b> ${name}${count > 1 ? 's' : ''}`,
+                    );
+                } else {
+                    tgMsg.push(
+                        `${emoji} <b>${count.toLocaleString(
+                            'en-US',
+                        )}</b> <a href="${url}">${name}${
+                            count > 1 ? 's' : ''
+                        }</a>`,
+                    );
+                }
+            });
+            // Add line for unknown txs
+            if (unknownLokadTxs > 0) {
+                tgMsg.push(
+                    `${
+                        config.emojis.unknown
+                    } <b>${unknownLokadTxs.toLocaleString(
+                        'en-US',
+                    )}</b> Unknown app tx${unknownLokadTxs > 1 ? 's' : ''}`,
+                );
+            }
+            tgMsg.push('');
         }
-
-        tgMsg.push('');
 
         if (binanceWithdrawalCount > 0) {
             // Binance hot wallet

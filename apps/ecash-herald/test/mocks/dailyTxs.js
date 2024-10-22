@@ -326,8 +326,370 @@ module.exports = [
             timestamp: 1728988376,
         },
     },
+    // App txs
+    // eCashChat
+    // e40fec30e3e9854553b3c9e5b68cd431722e45ff00366136e77c8f457ebd7d90
+    {
+        txid: 'e40fec30e3e9854553b3c9e5b68cd431722e45ff00366136e77c8f457ebd7d90',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '8db67429be0cd65c002e8898bae4712b3098bb68a9cd578e18660fad07a784b2',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '4194fe416801d0ae6f2ed87fcf3e66e74de77ca425040678df43971201f264c7cf01414e773a53be4f36b230fc4c5ee07be6c85073551f5bf3c9a1ae93e85d6c3f41210290b50035060622db41171ef7f9704efd881d4beed12222f807bcc627c94570da',
+                value: 550,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91481a14c64a81f0a9c35b17499b355de9856fe1c5c88ac',
+            },
+            {
+                prevOut: {
+                    txid: '8db67429be0cd65c002e8898bae4712b3098bb68a9cd578e18660fad07a784b2',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41a59a9d4eb3449ef6ef8c3a99256711022b4cf24aec72e8ce7a132ba01428a27d2e671f0c38adfe36a9011556b2859fb7dd5bcf3518eab66474f633c079de1e5a41210290b50035060622db41171ef7f9704efd881d4beed12222f807bcc627c94570da',
+                value: 49493,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91481a14c64a81f0a9c35b17499b355de9856fe1c5c88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04636861740468617368203130294bfa5ba853cc17d90afe4ae7a2df7de011ed8713ed7eb90bf016cbb6083065636173683a717a71367a6e727934713073343870346b3936666e7636346d367639646c737574736536686d65783765',
+            },
+            {
+                value: 550,
+                outputScript:
+                    '76a91470a784633e942b7e1c9947255910c8132623225c88ac',
+            },
+            {
+                value: 48564,
+                outputScript:
+                    '76a91481a14c64a81f0a9c35b17499b355de9856fe1c5c88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729617077,
+        size: 462,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 867696,
+            hash: '00000000000000001bb60e61a63510639c0a7117cef60589f1cbb591b2ac8bd4',
+            timestamp: 1729618823,
+        },
+    },
+    // Articles and Replies (eCashChat)
+    // cff787e0134a39f79378fcdd67b6b0145a630a432ee70758fc74b10fdffe5b39
+    {
+        txid: 'cff787e0134a39f79378fcdd67b6b0145a630a432ee70758fc74b10fdffe5b39',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '80661ce76d82ece424ffc25804735000d39365a9075dfdc69d4573ff99b22faa',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '4148e8628c19bd048ba199221ead5dc7f43fb50385cc4190bc556f2a0229b153945e653cfe49072566bc13d1f5b77ef9aa6ef8dcc70f112e57ca1ab0ad6d2273f44121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
+                value: 25000,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04626c6f674c6c3938383164646139616530613065623038373238323236303638663231353138653530623630636453756e204f637420313320323032342032313a31343a303220474d542b3131303020284175737472616c69616e204561737465726e204461796c696768742054696d6529',
+            },
+            {
+                value: 550,
+                outputScript:
+                    '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                spentBy: {
+                    txid: 'd8372db66496105919611a623c211cd39032f312222c075c086e7d90d98dca92',
+                    outIdx: 3,
+                },
+            },
+            {
+                value: 23758,
+                outputScript:
+                    '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                spentBy: {
+                    txid: 'd8372db66496105919611a623c211cd39032f312222c075c086e7d90d98dca92',
+                    outIdx: 4,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1728814492,
+        size: 344,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 866388,
+            hash: '00000000000000001ff6bdcfc2d78ea092a8dcfddfb41122f10c5473eaedb34b',
+            timestamp: 1728814777,
+        },
+    },
+    // Airdrop
+    // 75f29368afe079e58ff950e384249190359137464261065fd8fc329b38051f55
+    {
+        txid: '75f29368afe079e58ff950e384249190359137464261065fd8fc329b38051f55',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '9cd18a4852a8e900514cfae551f34f441270c484bbb64aab7adbca1c5e9bf42a',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41d1e05374149017f7a14f8cb6978350035aaaba5d24723b959cd44c214796964540cdfce6b593ff850f2eb4336174b038b17e7fe8d5e2a3c7b92c6e78d5625b08412103643c1ca0e8480cf7b8be96ea475714c0122f92e4f9a0b22fbbd3bcf0e302d58c',
+                value: 10000,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914c8080b00b32aba4977c9a9af56b9d9226f147e1688ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a0464726f702009c53c9a9fe0df2cb729dd6f99f2b836c59b842d6652becd85658e277caab611',
+            },
+            {
+                value: 1000,
+                outputScript:
+                    '76a9143d1a781059c9915716091c90f0be3e77e02b6bba88ac',
+            },
+            {
+                value: 8463,
+                outputScript:
+                    '76a914c8080b00b32aba4977c9a9af56b9d9226f147e1688ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729568158,
+        size: 267,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 867624,
+            hash: '00000000000000000ce7ec8b675b84c722675df33c48979375a0c652abda52e5',
+            timestamp: 1729570217,
+        },
+    },
+    // Cashtab msg
+    // b4faa2df37c8802a3998df635e28dccd327a04c39502954acf06d56bfd2d0e9f
+    {
+        txid: 'b4faa2df37c8802a3998df635e28dccd327a04c39502954acf06d56bfd2d0e9f',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'c5b54449a8881c833ace3511e44fae405f7e6386a24bf74a88e4697fc78be3c6',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '414979186503256f02393cbf767fa533f7bfabb35ab14114842807bb7bc9e52a0a0ba0d87806449ae35f23c0b6fdb2e2ddf19e7c5594ccaa0ba74bfbcaba28d2d0412102cbce237226bd8bba1a02def66085cfff2427042a98d8bf9590ccced8207d233b',
+                value: 4628,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9140f81c58578bd5ecc95a82ed0a89bc7061f0c04b488ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04007461621a5468616e6b732062726f2e200a49206170707265636961746520',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a914a805a320360fa685f83605d8e56de6f9d8a7a99988ac',
+            },
+            {
+                value: 3557,
+                outputScript:
+                    '76a9140f81c58578bd5ecc95a82ed0a89bc7061f0c04b488ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729582375,
+        size: 261,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 867641,
+            hash: '00000000000000000e5aaa59d2a19e420be897014fc9e03343273e85fdf295a3',
+            timestamp: 1729587484,
+        },
+    },
+    // eCashChat Auth
+    // 27517286f1b7f159da4db93ed96e6be9bb01dad94179ea889211ef32ebb1a3b4
+    {
+        txid: '27517286f1b7f159da4db93ed96e6be9bb01dad94179ea889211ef32ebb1a3b4',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '2733f060666ce21d0eff1080a71cf168074a8284e2e6fd36ddfae95868dc942b',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '411f507db40c8fb326008146f0e4d95e172e3e32c817f74e891b357e8a8ba6e21ac6ff0e3a391cf2395dfa8d5168fee9cb8b8d03812d47f29f76482dac8c7175f341210349c0d5569a0a43c4473bdcd11889de00327303007e24972941ccbf3a3dc61ccc',
+                value: 50000,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9148b48669ce8873c71698151db0453e6285aeb07c588ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a046175746814619e0bb30cc23b2879f7b1131a858ea9f0d3d873',
+            },
+            {
+                value: 550,
+                outputScript:
+                    '76a914b20298c1b5d6a82a61f6c8cd708fa87a1ce1a97a88ac',
+            },
+            {
+                value: 48937,
+                outputScript:
+                    '76a9148b48669ce8873c71698151db0453e6285aeb07c588ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729618002,
+        size: 255,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 867696,
+            hash: '00000000000000001bb60e61a63510639c0a7117cef60589f1cbb591b2ac8bd4',
+            timestamp: 1729618823,
+        },
+    },
+    // PayButton
+    // bfce47f2403031f5465982b821e8e14c78deff2dd5986ca0c21cebb5ed946b4d
+    {
+        txid: 'bfce47f2403031f5465982b821e8e14c78deff2dd5986ca0c21cebb5ed946b4d',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'b7f22481b53c0c0eb46a61640324c0ef872acc6cb0d5a62a33364d7036995004',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41c4a70b96af0dc94bb5cafd6d847ea6b8d7c509b0914a90fbffb35dcabe119c0a61e5cd376baab1128c44c89d09ca98c84ed2e695d706329f170b3a18c6bc08cf4121039f0061726e4fed07061f705d34707b7f9c2f175bfa2ca7fe7df0a81e9efe1e8b',
+                value: 2903745,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript: '6a045041590000000863a9892c7792fbfd',
+            },
+            {
+                value: 5000,
+                outputScript:
+                    '76a914631dde3df001e09c9cfde6c72c8ae02849f2c0c388ac',
+            },
+            {
+                value: 2898252,
+                outputScript:
+                    '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729364288,
+        size: 245,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 867294,
+            hash: '00000000000000001635b16e32855d303e148a18c3cd8abf76fe4abbdbf3771b',
+            timestamp: 1729364661,
+        },
+    },
+    // Paywall
+    // 77502089ae5f89ef941a3f71360da13efa8e1c8aedf79a637a505ca09065e5e2
+    {
+        txid: '77502089ae5f89ef941a3f71360da13efa8e1c8aedf79a637a505ca09065e5e2',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '01a8723ddb110adc71c38f236099a28ebc6cfae48fb0db7134fc41a97aed8c96',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41fe808a1d825c384785d0e3e37be0f3af10670e075f61be1c12cd14ed89ae7f01a3af3a21ff1931326058df7cb530b84a430ac9dc65ee73734494b2010f682bc14121031febf12ea22d33cb6da0599c3fcb29b80c88efaf16c1c024192f9c2e03ce4675',
+                value: 18500,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914c2b4edba79887da00c8022187195caf7da6ef03788ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a0470617977204999ccb611ae9d9c28b06215d42e8695cf5230db8c21707b0d36268bc68ffc76',
+            },
+            {
+                value: 550,
+                outputScript:
+                    '76a914c4d76949bd98d3a2f7d0b63322c1d4a5c2139a8b88ac',
+            },
+            {
+                value: 17413,
+                outputScript:
+                    '76a914c2b4edba79887da00c8022187195caf7da6ef03788ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729623047,
+        size: 267,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 867718,
+            hash: '000000000000000008e954e690fa6b69077938de8bc0c22997830c8fcfb8028d',
+            timestamp: 1729623297,
+        },
+    },
     // CashFusion tx
-    // Note, this is also an app tx
     // cae3e4bffeddbea25e74115a69e63bcf36e23d22b30bd30487e5e5a732d9ec78
     {
         txid: 'cae3e4bffeddbea25e74115a69e63bcf36e23d22b30bd30487e5e5a732d9ec78',
