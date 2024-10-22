@@ -61,6 +61,8 @@ import {
     FanOutIcon,
     MintNftIcon,
     PaywallPaymentIcon,
+    AgoraTxIcon,
+    AgoraOfferIcon,
 } from 'components/Common/CustomIcons';
 import PropTypes from 'prop-types';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
@@ -87,6 +89,7 @@ import {
     SLP_1_NFT_PROTOCOL_NUMBER,
 } from 'slpv1';
 import { CopyIconButton } from 'components/Common/Buttons';
+import appConfig from 'config/app';
 
 const Tx = ({
     tx,
@@ -106,6 +109,7 @@ const Tx = ({
     const { cashtabCache, contactList } = cashtabState;
 
     let replyAddress, replyAddressPreview, knownSender;
+    let isAgoraAdSetup = false;
     if (xecTxType === 'Received') {
         // If Sent from Cashtab, then the sender will be the outputScript at the 0-index input
         // If Received, we assume that it is "from" the outputScript of the 0-index input
@@ -659,12 +663,38 @@ const Tx = ({
         // Other txTypes have an associated quantity
         // We will render this if we can get the token's decimals from cache
 
+        // Parse for an agora ad setup tx
+        // These are SLP1 SEND txs where
+        // 1. token utxo is > dust
+        // 2. recipient is p2sh address
+        if (satoshisSent > appConfig.dustSats) {
+            if (recipients.length === 1) {
+                // Ad setup tx has 1 recipient
+
+                // Ad setup tx has p2sh recipient
+                const listingScript = recipients[0];
+                try {
+                    const { type } = cashaddr.decode(listingScript, true);
+                    isAgoraAdSetup = type === 'p2sh';
+                } catch (err) {
+                    console.error(
+                        `Error in cashaddr.decode(${listingScript}, true)`,
+                        err,
+                    );
+                    // Continue parsing as token tx
+                }
+            }
+        }
+
         const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
         const renderedTxType =
             txType === 'SEND' &&
             !isUnintentionalBurn &&
-            parsedTokenType !== 'NFT Collection'
+            parsedTokenType !== 'NFT Collection' &&
+            !isAgoraAdSetup
                 ? xecTxType
+                : isAgoraAdSetup
+                ? 'Agora Offer'
                 : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
                 txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
                 ? 'Fan-out'
@@ -681,6 +711,7 @@ const Tx = ({
                 <TokenAction tokenTxType={renderedTxType}>
                     <IconAndLabel>
                         {renderedTxType === 'Fan-out' && <FanOutIcon />}
+                        {renderedTxType === 'Agora Offer' && <AgoraOfferIcon />}
                         {txType === 'GENESIS' && parsedTokenType !== 'NFT' && (
                             <GenesisIcon />
                         )}
@@ -697,7 +728,11 @@ const Tx = ({
                             <TokenType>{txType}</TokenType>
                         </TokenInfoCol>
                     </IconAndLabel>
-                    <TokenDesc>{renderedTxType}</TokenDesc>
+                    <TokenDesc>
+                        {renderedTxType === 'Agora Offer'
+                            ? `Listed`
+                            : renderedTxType}
+                    </TokenDesc>
                 </TokenAction>,
             );
             continue;
@@ -759,6 +794,7 @@ const Tx = ({
             tokenActions.push(
                 <TokenAction tokenTxType={renderedTxType}>
                     <IconAndLabel>
+                        {renderedTxType === 'Agora Offer' && <AgoraOfferIcon />}
                         {txType === 'GENESIS' && parsedTokenType !== 'NFT' && (
                             <GenesisIcon />
                         )}
@@ -790,6 +826,8 @@ const Tx = ({
                             ? `Created ${qtyOneInputsCreated} NFT Mint Input${
                                   qtyOneInputsCreated > 1 ? 's' : ''
                               }`
+                            : renderedTxType === 'Agora Offer'
+                            ? `Listed ${formattedAmount} ${tokenTicker}`
                             : `${renderedTxType} ${formattedAmount} ${tokenTicker}`}
                     </TokenDesc>
                 </TokenAction>,
@@ -928,6 +966,8 @@ const Tx = ({
                         <MainRowLeft>
                             {xecTxType === 'Received' && !isSelfSendTx ? (
                                 <ReceiveIcon />
+                            ) : isAgoraAdSetup ? (
+                                <AgoraTxIcon />
                             ) : xecTxType === 'Sent' && !isSelfSendTx ? (
                                 <SendIcon />
                             ) : isSelfSendTx ? (

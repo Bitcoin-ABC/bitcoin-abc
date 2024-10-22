@@ -45,6 +45,8 @@ import { ReactComponent as SelfSend } from 'assets/selfsend.svg';
 import { ReactComponent as FanOut } from 'assets/fanout.svg';
 import { ReactComponent as MintNft } from 'assets/mintnft.svg';
 import { ReactComponent as Nft } from 'assets/nft.svg';
+import { ReactComponent as AgoraOffer } from 'assets/agora-offer.svg';
+import { ReactComponent as AgoraTx } from 'assets/agora-tx.svg';
 
 import appConfig from 'config/app';
 
@@ -214,6 +216,8 @@ export const SelfSendIcon = () => <SelfSend title="Self Send" />;
 export const FanOutIcon = () => <FanOut title="Fan Out" />;
 export const MintNftIcon = () => <MintNft title="Mint NFT" />;
 export const NftIcon = () => <Nft title="NFT" />;
+export const AgoraOfferIcon = () => <AgoraOffer title="Agora Offer" />;
+export const AgoraTxIcon = () => <AgoraTx title="Agora Tx" />;
 
 const GithubIconWrapper = styled.div`
     svg {

@@ -9631,6 +9631,157 @@ export const eCashChatAuthenticationTx = {
     },
 };
 
+export const agoraAdSetupTxSlpNft = {
+    tx: {
+        txid: '972fd1322542740835a3f7e6d0917e5ac1ab6f20c5bfb40edbfb4ca73a144194',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'c886d9d73b0c2592fb2df95cf0bb832c8077ff8adec132ee3cff5ba576f4ed1e',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '419d3ac0b32abebc181c55e5a45c25d5050f73ba1269348829f4d5677131e3c627f73a552bf003de5d86423ce3f47fd4fd116eba837be72a3cef6f002158b0482a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: '03672250bda1410ffa9b1c2cf3dc8c456bcb7a54e8dff0a7686bcce6ba82cf1b',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41f444904158cb70106321dc09161d7bf3dde584e541c73d21f46a19c176c10e1c3ea79252e52878a0f11f5c6b896d8adc5c75d1c6039e750c31ab07114d2f3bca412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 1748,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3080000000000000001',
+            },
+            {
+                value: 860,
+                outputScript: 'a91463b7313157fb1d054919364c837d8af927fa569987',
+                token: {
+                    tokenId:
+                        'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: 'c7fe7ac1f29c34e0795786b609622f6439cfde52246f31cba89aa0b28c8542ee',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 1012,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729632267,
+        size: 422,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+                groupTokenId:
+                    'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 867731,
+            hash: '000000000000000023e84eda63a1c6cce9c8e1d8b6484ee3dba0bf13b38d9116',
+            timestamp: 1729632495,
+        },
+    },
+    parsed: {
+        satoshisSent: 860,
+        stackArray: [
+            '534c5000',
+            '41',
+            '53454e44',
+            'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            '0000000000000001',
+        ],
+        xecTxType: 'Sent',
+        recipients: ['ecash:pp3mwvf32la36p2frymyeqma3tuj07jknyhljj09qd'],
+    },
+    // 1 Nile Kinnick
+    cache: [
+        [
+            'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                timeFirstSeen: 1713828197,
+                genesisInfo: {
+                    tokenTicker: 'NK',
+                    tokenName: 'Nile Kinnick',
+                    url: 'cashtab.com',
+                    decimals: 0,
+                    hash: 'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                },
+                block: {
+                    height: 841418,
+                    hash: '000000000000000015c94349a2ec777da460e8d8d48a220bbf9d6a6e6e9df66f',
+                    timestamp: 1713829166,
+                },
+                genesisSupply: '1',
+                genesisOutputScripts: [
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                ],
+                genesisMintBatons: 0,
+            },
+        ],
+    ],
+};
+
 export const paywallPaymentTx = {
     tx: {
         txid: 'e9692335fdb3b75f2e319cbda1396f7f32c02c3d172e58148abeb2952c7e2460',

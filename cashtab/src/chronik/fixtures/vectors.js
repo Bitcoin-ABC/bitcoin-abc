@@ -43,6 +43,7 @@ import {
     SlpNftMint,
     SlpParentGenesisTxMock,
     oneOutputReceivedTx,
+    agoraAdSetupTxSlpNft,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -227,6 +228,13 @@ export default {
                 tx: oneOutputReceivedTx.tx,
                 hashes: ['601efc2aa406fe9eaedd41d2b5d95d1f4db9041d'],
                 parsed: oneOutputReceivedTx.parsed,
+            },
+            {
+                description: 'SLP ad setup tx, NFT',
+                tx: agoraAdSetupTxSlpNft.tx,
+                // Cashtab alpha one sent hash
+                hashes: ['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d'],
+                parsed: agoraAdSetupTxSlpNft.parsed,
             },
         ],
     },

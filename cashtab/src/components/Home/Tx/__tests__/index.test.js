@@ -51,6 +51,7 @@ import {
     eCashChatArticleTx,
     eCashChatArticleReplyTx,
     eCashChatAuthenticationTx,
+    agoraAdSetupTxSlpNft,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -2584,5 +2585,124 @@ describe('<Tx />', () => {
         expect(
             screen.getByText('eCash Chat Authentication'),
         ).toBeInTheDocument();
+    });
+    it('Ad setup tx for an SLP1 NFT Agora offer (cached)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraAdSetupTxSlpNft.tx}
+                        hashes={[
+                            agoraAdSetupTxSlpNft.tx.inputs[0].outputScript,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(agoraAdSetupTxSlpNft.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 22, 2024, 21:24:27')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-8.6 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Offer icon
+        expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(NK)')).toBeInTheDocument();
+
+        // We see the expected token action for listing this NFT
+        expect(screen.getByText('Listed 1 NK')).toBeInTheDocument();
+    });
+    it('Ad setup tx for an SLP1 NFT Agora offer (uncached)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraAdSetupTxSlpNft.tx}
+                        hashes={[
+                            agoraAdSetupTxSlpNft.tx.inputs[0].outputScript,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 22, 2024, 21:24:27')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-8.6 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Offer icon
+        expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+
+        // We see SEND but not the token name (uncached)
+        expect(screen.getByText('SEND')).toBeInTheDocument();
+
+        // We do not see the token ticker in parenthesis in the summary column
+        expect(screen.queryByText('(NK)')).not.toBeInTheDocument();
+
+        // We see the expected token action text for a listed SLPv1 fungible token tx, but no quantity
+        expect(screen.getByText('Listed')).toBeInTheDocument();
     });
 });
