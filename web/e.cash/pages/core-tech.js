@@ -173,25 +173,25 @@ export default function CoreTech() {
                     >
                         <p>
                             Subnets are customized networks linked to the main
-                            eCash network. They will allow developers to build
-                            networks with unique or experimental properties
-                            &mdash; while tethering value to the main eCash
-                            network.
+                            eCash blockchain. They will allow developers to
+                            build protocols with unique or experimental
+                            properties &mdash; while tethering value to the main
+                            eCash network.
                         </p>
                         <p>
-                            The technology is powered by subsets of Avalanche
-                            validators, who monitor the subnets to validate
-                            token tranfers to and from the subnet. This enables
-                            decentralized and trustless setup.
+                            Each subnet is powered by a set of Avalanche nodes.
+                            These nodes monitor the subnets to validate token
+                            transfers. This enables decentralized and trustless
+                            setup.
                         </p>
                         <p>
-                            Subnets enable eCash to natively connect with the
-                            wider DeFi ecosystem. Services can run their subnets
-                            with customized rules and properties according to
-                            their business requirements, including privately
-                            owned ones. Two subnets planned by the eCash team
-                            are an Ethereum Virtual Machine (EVM) and a
-                            Zero-Knowledge (ZK) privacy subnet.
+                            Services can run subnets permissionlessly with
+                            customized rules and properties according to their
+                            business requirements, including privately owned
+                            ones. Two subnets planned by the eCash team are an
+                            Ethereum Virtual Machine (EVM) that enables eCash to
+                            interoperate with the wider DeFi ecosystem and a
+                            Zero-Knowledge (ZK) subnet for bulletproof privacy.
                         </p>
                     </TextImageBlock>
 
