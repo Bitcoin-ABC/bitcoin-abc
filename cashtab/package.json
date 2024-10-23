@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.45.14",
+    "version": "2.45.15",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -25,7 +25,7 @@
         ]
     },
     "dependencies": {
-        "@bitgo/utxo-lib": "^9.33.0",
+        "@bitgo/utxo-lib": "^11.0.0",
         "@zxing/browser": "^0.1.4",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",
@@ -66,7 +66,7 @@
         "buffer": "^6.0.3",
         "camelcase": "^6.2.1",
         "case-sensitive-paths-webpack-plugin": "^2.4.0",
-        "crypto-browserify": "^3.12.0",
+        "crypto-browserify": "^3.12.1",
         "css-loader": "^6.5.1",
         "css-minimizer-webpack-plugin": "^3.2.0",
         "dotenv": "^10.0.0",
