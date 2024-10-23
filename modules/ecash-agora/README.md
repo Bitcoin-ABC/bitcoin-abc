@@ -141,3 +141,20 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 
 -   0.1.0 - MVP [D16087](https://reviews.bitcoinabc.org/D16087) [D16111](https://reviews.bitcoinabc.org/D16111)
 -   0.1.1 - Upgrading dependencies [D16374](https://reviews.bitcoinabc.org/D16374)
+
+### 0.2.0
+
+-   Add agora.py plugin [D16544](https://reviews.bitcoinabc.org/D16544)
+-   Plugin support [D16745](https://reviews.bitcoinabc.org/D16745)|[D16753](https://reviews.bitcoinabc.org/D16753)|[D16754](https://reviews.bitcoinabc.org/D16754)|[D16755](https://reviews.bitcoinabc.org/D16755)
+-   Improve test framework [D16741](https://reviews.bitcoinabc.org/D16741)
+-   Websocket subscriptions [D16845](https://reviews.bitcoinabc.org/D16845)
+-   Build script for partial SLP offers [D16743](https://reviews.bitcoinabc.org/D16743)
+-   Approximation logic for partial offers [D16735](https://reviews.bitcoinabc.org/D16735)
+-   Add `historicOffers` function to `Agora` [D16819](https://reviews.bitcoinabc.org/D16819)
+-   Patch burned tokens issue in agora partial scripts [D16821](https://reviews.bitcoinabc.org/D16821)
+-   Export partial modules [D16820](https://reviews.bitcoinabc.org/D16820)
+-   Syntax linting [D16919](https://reviews.bitcoinabc.org/D16919)|[D16928](https://reviews.bitcoinabc.org/D16928)
+-   README patch for local integration testing [D16952](https://reviews.bitcoinabc.org/D16952)
+-   Patch minAcceptedTokens() to return true minimum (prepared value) [D16920](https://reviews.bitcoinabc.org/D16920)
+-   Add validation to acceptTx method of AgoraPartial to prevent creation of unspendable offers [D16944](https://reviews.bitcoinabc.org/D16944)
+-   Export `scriptOps` helper function [D16972](https://reviews.bitcoinabc.org/D16972)
