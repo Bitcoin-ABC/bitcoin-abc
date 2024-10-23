@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('../config');
+const axios = require('axios');
 const {
     parseBlockTxs,
     getBlockTgMessage,
@@ -164,16 +165,25 @@ module.exports = {
                         tx.isCoinbase,
                 );
 
-                // Get XEC price
-                let price;
-                if (typeof coingeckoPrices !== 'undefined') {
-                    price = coingeckoPrices[0].price;
+                // Get XEC price and market info
+                let priceInfo;
+                try {
+                    priceInfo = (
+                        await axios.get(
+                            `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
+                        )
+                    ).data.ecash;
+                } catch (err) {
+                    console.error(
+                        `Error getting daily summary price info`,
+                        err,
+                    );
                 }
 
                 const dailySummaryTgMsgs = summarizeTxHistory(
                     newDayTimestamp,
                     timeFirstSeenTxs,
-                    price,
+                    priceInfo,
                 );
 
                 // Send msg with successful price API call

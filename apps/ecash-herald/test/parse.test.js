@@ -352,15 +352,20 @@ describe('parse.js functions', function () {
     it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices', function () {
         const mockUtcNewDayTimestampSeconds = 1728950400;
         assert.deepEqual(
-            summarizeTxHistory(
-                mockUtcNewDayTimestampSeconds,
-                dailyTxs,
-                0.000033,
-            ),
+            summarizeTxHistory(mockUtcNewDayTimestampSeconds, dailyTxs, {
+                usd: 0.00003487,
+                usd_market_cap: 689047177.8128564,
+                usd_24h_vol: 5957332.9687223025,
+                usd_24h_change: -0.3973642442197056,
+            }),
             [
                 '<b>24 hours thru 15 Oct 2024, 00:00</b>\n' +
                     '📦1,331 blocks\n' +
                     '➡️15 txs\n' +
+                    '\n' +
+                    '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
+                    'Trading volume: $5,957,333\n' +
+                    'Market cap: $689,047,178\n' +
                     '\n' +
                     '<b><i>⛏️3 miners found blocks</i></b>\n' +
                     '<u>Top 3</u>\n' +
@@ -368,7 +373,7 @@ describe('parse.js functions', function () {
                     '2. solopool.org, 1 <i>(0%)</i>\n' +
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
-                    '<b><i>💰3 stakers earned $31</i></b>\n' +
+                    '<b><i>💰3 stakers earned $33</i></b>\n' +
                     '<u>Top 3</u>\n' +
                     '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
                     '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +

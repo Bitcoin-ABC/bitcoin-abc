@@ -85,5 +85,7 @@ module.exports = {
         crab: '🦀',
         // Most addresses seen by the app are shrimp, so use empty string
         shrimp: '',
+        priceUp: '📈',
+        priceDown: '📉',
     },
 };

@@ -18,13 +18,12 @@
 // Initialize chronik
 const config = require('../config');
 const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient(config.chronik);
+const axios = require('axios');
 const {
     getAllBlockTxs,
     getBlocksAgoFromChaintipByTimestamp,
 } = require('../src/chronik');
 const { summarizeTxHistory } = require('../src/parse');
-const { getCoingeckoPrices } = require('../src/utils');
 const { sendBlockSummary } = require('../src/telegram');
 // Initialize telegram bot to send msgs to dev channel
 const secrets = require('../secrets');
@@ -40,6 +39,8 @@ const blockheight =
         ? process.argv[2]
         : false;
 
+const chronik = new ChronikClient(config.chronik);
+
 /**
  * Build a summary of eCash onchain activity over the last 24 hours
  * @param {number | undefined} timestamp unix timestamp in seconds
@@ -48,10 +49,15 @@ const blockheight =
  */
 const getDailySummary = async (timestamp, telegramBot, channelId) => {
     // Get price info for tg msg, if available
-    const { coingeckoPrices } = await getCoingeckoPrices(config.priceApi);
-    let price;
-    if (typeof coingeckoPrices !== 'undefined') {
-        price = coingeckoPrices[0].price;
+    let priceInfo;
+    try {
+        priceInfo = (
+            await axios.get(
+                `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
+            )
+        ).data.ecash;
+    } catch (err) {
+        console.error(`Error getting daily summary price info`, err);
     }
 
     if (timestamp === false) {
@@ -94,7 +100,7 @@ const getDailySummary = async (timestamp, telegramBot, channelId) => {
     const dailySummaryTgMsgs = summarizeTxHistory(
         timestamp,
         timeFirstSeenTxs,
-        price,
+        priceInfo,
     );
 
     // Send msg with successful price API call

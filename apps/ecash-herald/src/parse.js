@@ -2145,10 +2145,12 @@ module.exports = {
      *
      * @param {number} now unix timestamp in seconds
      * @param {Tx[]} txs array of CONFIRMED Txs
-     * @param {number} xecPriceUsd
+     * @param {object} priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
      * @param {number} blockheight height of the most recently finalized block
      */
-    summarizeTxHistory: function (now, txs, xecPriceUsd) {
+    summarizeTxHistory: function (now, txs, priceInfo) {
+        const xecPriceUsd =
+            typeof priceInfo !== 'undefined' ? priceInfo.usd : undefined;
         // Throw out any unconfirmed txs
         txs.filter(tx => tx.block !== 'undefined');
 
@@ -2366,6 +2368,32 @@ module.exports = {
             )} txs`,
         );
         tgMsg.push('');
+
+        // Market summary
+        if (typeof priceInfo !== 'undefined') {
+            const { usd_market_cap, usd_24h_vol, usd_24h_change } = priceInfo;
+            tgMsg.push(
+                `${
+                    usd_24h_change > 0
+                        ? config.emojis.priceUp
+                        : config.emojis.priceDown
+                }<b>1 XEC = ${formatPrice(
+                    xecPriceUsd,
+                    'usd',
+                )}</b> <i>(${usd_24h_change.toFixed(2)}%)</i>`,
+            );
+            tgMsg.push(
+                `Trading volume: $${usd_24h_vol.toLocaleString('en-US', {
+                    maximumFractionDigits: 0,
+                })}`,
+            );
+            tgMsg.push(
+                `Market cap: $${usd_market_cap.toLocaleString('en-US', {
+                    maximumFractionDigits: 0,
+                })}`,
+            );
+            tgMsg.push('');
+        }
 
         // Top miners
         const MINERS_TO_SHOW = 3;
