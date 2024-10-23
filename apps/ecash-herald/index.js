@@ -19,7 +19,9 @@ const { handleUtcMidnight } = require('./src/events');
 
 // Cron job for daily summaries
 const job = new cron.CronJob(
-    '0 0 * * * *', // cronTime
+    // see https://www.npmjs.com/package/cron
+    // seconds[0-59] minutes[0-59] hours[0-23] day-of-month[1-31] month[1-12] day-of-week[0-7]
+    '0 0 0 * * *', // cronTime
     () => handleUtcMidnight(chronik, telegramBot, dailyChannelId), // onTick
     null, // onComplete
     false, // start
