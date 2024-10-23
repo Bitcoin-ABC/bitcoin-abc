@@ -2344,18 +2344,12 @@ module.exports = {
         const tgMsg = [];
 
         tgMsg.push(
-            `<b>24 hours thru ${new Date(now * 1000).toLocaleTimeString(
-                'en-GB',
-                {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour12: false,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    timeZone: 'UTC',
-                },
-            )}</b>`,
+            `<b>${new Date(now * 1000).toLocaleDateString('en-GB', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+            })}</b>`,
         );
         tgMsg.push(
             `${config.emojis.block}${blockCount.toLocaleString(

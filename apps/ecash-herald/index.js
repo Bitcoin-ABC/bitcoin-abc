@@ -10,9 +10,21 @@ const chronik = new ChronikClient(config.chronik);
 // Initialize telegram bot on app startup
 const secrets = require('./secrets');
 const TelegramBot = require('node-telegram-bot-api');
-const { botId, channelId } = secrets.prod.telegram;
+const { botId, channelId, dailyChannelId } = secrets.prod.telegram;
+const cron = require('cron');
 // Create a bot that uses 'polling' to fetch new updates
 const telegramBot = new TelegramBot(botId, { polling: true });
 const { main } = require('./src/main');
+const { handleUtcMidnight } = require('./src/events');
+
+// Cron job for daily summaries
+const job = new cron.CronJob(
+    '0 0 * * * *', // cronTime
+    () => handleUtcMidnight(chronik, telegramBot, dailyChannelId), // onTick
+    null, // onComplete
+    false, // start
+    'UTC', // timeZone
+);
+job.start();
 
 main(chronik, telegramBot, channelId);

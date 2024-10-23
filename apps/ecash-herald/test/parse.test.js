@@ -359,7 +359,7 @@ describe('parse.js functions', function () {
                 usd_24h_change: -0.3973642442197056,
             }),
             [
-                '<b>24 hours thru 15 Oct 2024, 00:00</b>\n' +
+                '<b>15 Oct 2024</b>\n' +
                     '📦1,331 blocks\n' +
                     '➡️15 txs\n' +
                     '\n' +
@@ -405,7 +405,7 @@ describe('parse.js functions', function () {
         assert.deepEqual(
             summarizeTxHistory(mockUtcNewDayTimestampSeconds, dailyTxs),
             [
-                '<b>24 hours thru 15 Oct 2024, 00:00</b>\n' +
+                '<b>15 Oct 2024</b>\n' +
                     '📦1,331 blocks\n' +
                     '➡️15 txs\n' +
                     '\n' +

@@ -293,4 +293,69 @@ module.exports = {
             );
         }
     },
+    handleUtcMidnight: async function (chronik, telegramBot, channelId) {
+        // It is a new day
+        // Send the daily summary
+
+        // Get a datestring
+        // e.g. Wed Oct 23 2024
+        const dateString = new Date().toDateString();
+
+        // Get timestamp for UTC midnight
+        // Will always be divisible by 1000 as will always be a midnight UTC date
+        const MS_PER_S = 1000;
+        const newDayTimestamp = new Date(dateString).getTime() / MS_PER_S;
+
+        const SECONDS_PER_DAY = 86400;
+
+        const { startBlockheight, chaintip } =
+            await getBlocksAgoFromChaintipByTimestamp(
+                chronik,
+                newDayTimestamp,
+                SECONDS_PER_DAY,
+            );
+
+        const getAllBlockTxPromises = [];
+        for (let i = startBlockheight; i <= chaintip; i += 1) {
+            getAllBlockTxPromises.push(getAllBlockTxs(chronik, i));
+        }
+
+        const allBlockTxs = (await Promise.all(getAllBlockTxPromises)).flat();
+
+        // We only want txs in the specified window
+        // NB coinbase txs have timeFirstSeen of 0. We include all of them as the block
+        // timestamps are in the window
+        const timeFirstSeenTxs = allBlockTxs.filter(
+            tx =>
+                (tx.timeFirstSeen > newDayTimestamp - SECONDS_PER_DAY &&
+                    tx.timeFirstSeen <= newDayTimestamp) ||
+                tx.isCoinbase,
+        );
+
+        // Get XEC price and market info
+        let priceInfo;
+        try {
+            priceInfo = (
+                await axios.get(
+                    `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
+                )
+            ).data.ecash;
+        } catch (err) {
+            console.error(`Error getting daily summary price info`, err);
+        }
+
+        const dailySummaryTgMsgs = summarizeTxHistory(
+            newDayTimestamp,
+            timeFirstSeenTxs,
+            priceInfo,
+        );
+
+        // Send msg with successful price API call
+        await sendBlockSummary(
+            dailySummaryTgMsgs,
+            telegramBot,
+            channelId,
+            'daily',
+        );
+    },
 };

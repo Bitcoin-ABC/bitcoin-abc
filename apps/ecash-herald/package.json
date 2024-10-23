@@ -27,6 +27,7 @@
         "bignumber.js": "^9.1.1",
         "cache-manager": "^5.5.2",
         "chronik-client": "file:../../modules/chronik-client",
+        "cron": "^3.1.7",
         "ecash-script": "file:../../modules/ecash-script",
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
         "node-telegram-bot-api": "^0.66.0"
