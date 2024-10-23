@@ -4,6 +4,13 @@ Bitcoin ABC version 0.30.3 is now available from:
 
   <https://download.bitcoinabc.org/0.30.3/>
 
+This release includes the following features and fixes:
+ - Several minor Chronik bugs have been fixed that could return wrong data for
+   some SLP type 2 mint transactions, or store extraneous content to the
+   database. It is advised to upgrade if you are affected by these issues on
+   your current chronik instance. No reindex is required but the first start
+   will upgrade the database automatically which will take about 15 minutes.
+
 Iguana Debugger
 ---------------
 
