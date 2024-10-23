@@ -52,6 +52,8 @@ import {
     eCashChatArticleReplyTx,
     eCashChatAuthenticationTx,
     agoraAdSetupTxSlpNft,
+    agoraOneshotSaleTx,
+    AgoraOneshotCancelTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -2704,5 +2706,329 @@ describe('<Tx />', () => {
 
         // We see the expected token action text for a listed SLPv1 fungible token tx, but no quantity
         expect(screen.getByText('Listed')).toBeInTheDocument();
+    });
+    it('Agora one-shot buy tx (token info available in cache)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraOneshotSaleTx.tx}
+                        // See mock
+                        // Buy from this wallet
+                        // You can't reference the usual 0 input outputScript bc it's an agora p2sh
+                        hashes={['76458db0ed96fe9863fc1ccec9fa2cfab884b0f6']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(agoraOneshotSaleTx.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 23, 2024, 19:57:57')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-720.67k XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$21.62')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Purchase icon
+        expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(NK)')).toBeInTheDocument();
+
+        // We see the expected token action for buying this NFT
+        expect(screen.getByText('Bought 1 NK')).toBeInTheDocument();
+    });
+    it('Agora one-shot buy tx (uncached)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraOneshotSaleTx.tx}
+                        // See mock
+                        // Buy from this wallet
+                        // You can't reference the usual 0 input outputScript bc it's an agora p2sh
+                        hashes={['76458db0ed96fe9863fc1ccec9fa2cfab884b0f6']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 23, 2024, 19:57:57')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-720.67k XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$21.62')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Purchase icon
+        expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+    });
+    it('Agora one-shot sell tx (token info available in cache)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraOneshotSaleTx.tx}
+                        // See mock
+                        // Buy from this wallet
+                        // You can't reference the usual 0 input outputScript bc it's an agora p2sh
+                        hashes={['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(agoraOneshotSaleTx.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 23, 2024, 19:57:57')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('720.67k XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('$21.62')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Purchase icon
+        expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(NK)')).toBeInTheDocument();
+
+        // We see the expected token action for selling this NFT
+        expect(screen.getByText('Sold 1 NK')).toBeInTheDocument();
+    });
+    it('Agora one-shot sell tx (uncached)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraOneshotSaleTx.tx}
+                        // See mock
+                        // Buy from this wallet
+                        // You can't reference the usual 0 input outputScript bc it's an agora p2sh
+                        hashes={['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 23, 2024, 19:57:57')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('720.67k XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('$21.62')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Purchase icon
+        expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+    });
+    it('Agora one-shot cancel tx (token info available in cache)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={AgoraOneshotCancelTx.tx}
+                        // See mock
+                        // Buy from this wallet
+                        // You can't reference the usual 0 input outputScript bc it's an agora p2sh
+                        hashes={['76458db0ed96fe9863fc1ccec9fa2cfab884b0f6']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(AgoraOneshotCancelTx.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 23, 2024, 21:52:26')).toBeInTheDocument();
+
+        // We see the expected sent to self amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Cancel icon
+        expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(NK)')).toBeInTheDocument();
+
+        // We see the expected token action for canceling this NFT listing
+        expect(screen.getByText('Canceled offer of 1 NK')).toBeInTheDocument();
+    });
+    it('Agora one-shot cancel tx (uncached)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={AgoraOneshotCancelTx.tx}
+                        // See mock
+                        // Buy from this wallet
+                        // You can't reference the usual 0 input outputScript bc it's an agora p2sh
+                        hashes={['76458db0ed96fe9863fc1ccec9fa2cfab884b0f6']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 23, 2024, 21:52:26')).toBeInTheDocument();
+
+        // We see the expected sent to self amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the Agora Cancel icon
+        expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
     });
 });

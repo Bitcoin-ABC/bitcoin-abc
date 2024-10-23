@@ -44,6 +44,8 @@ import {
     SlpParentGenesisTxMock,
     oneOutputReceivedTx,
     agoraAdSetupTxSlpNft,
+    agoraOneshotSaleTx,
+    AgoraOneshotCancelTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -235,6 +237,30 @@ export default {
                 // Cashtab alpha one sent hash
                 hashes: ['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d'],
                 parsed: agoraAdSetupTxSlpNft.parsed,
+            },
+            {
+                description: 'Agora one-shot buy',
+                tx: agoraOneshotSaleTx.tx,
+                hashes: ['76458db0ed96fe9863fc1ccec9fa2cfab884b0f6'],
+                parsed: agoraOneshotSaleTx.parsed,
+            },
+            {
+                description: 'Agora one-shot sale',
+                tx: agoraOneshotSaleTx.tx,
+                hashes: ['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d'],
+                parsed: {
+                    ...agoraOneshotSaleTx.parsed,
+                    recipients: [
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    ],
+                    xecTxType: 'Received',
+                },
+            },
+            {
+                description: 'Agora one-shot listing cancellation',
+                tx: AgoraOneshotCancelTx.tx,
+                hashes: ['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d'],
+                parsed: AgoraOneshotCancelTx.parsed,
             },
         ],
     },

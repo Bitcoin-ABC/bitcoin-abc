@@ -63,6 +63,9 @@ import {
     PaywallPaymentIcon,
     AgoraTxIcon,
     AgoraOfferIcon,
+    AgoraBuyIcon,
+    AgoraSaleIcon,
+    AgoraCancelIcon,
 } from 'components/Common/CustomIcons';
 import PropTypes from 'prop-types';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
@@ -90,6 +93,8 @@ import {
 } from 'slpv1';
 import { CopyIconButton } from 'components/Common/Buttons';
 import appConfig from 'config/app';
+import { scriptOps } from 'ecash-agora';
+import { Script, fromHex, OP_0 } from 'ecash-lib';
 
 const Tx = ({
     tx,
@@ -110,6 +115,9 @@ const Tx = ({
 
     let replyAddress, replyAddressPreview, knownSender;
     let isAgoraAdSetup = false;
+    let isAgoraCancel = false;
+    let isAgoraPurchase = false;
+
     if (xecTxType === 'Received') {
         // If Sent from Cashtab, then the sender will be the outputScript at the 0-index input
         // If Received, we assume that it is "from" the outputScript of the 0-index input
@@ -686,32 +694,79 @@ const Tx = ({
             }
         }
 
+        // Parse for an agora buy/sell/cancel
+        // Will have the token input coming from a p2sh script
+        // The input will be at inputs[0]
+        if (typeof inputs[0].token !== 'undefined') {
+            try {
+                const { type } = cashaddr.getTypeAndHashFromOutputScript(
+                    inputs[0].outputScript,
+                );
+                if (type === 'p2sh') {
+                    // Check if this is a cancellation
+                    // See agora.ts from ecash-agora lib
+                    // For now, I don't think it makes sense to have an 'isCanceled' method from ecash-agora
+                    // This is a pretty specific application
+                    const ops = scriptOps(
+                        new Script(fromHex(inputs[0].inputScript)),
+                    );
+                    // isCanceled is always the last pushop (before redeemScript)
+                    const opIsCanceled = ops[ops.length - 2];
+                    const isCanceled = opIsCanceled === OP_0;
+
+                    if (isCanceled) {
+                        isAgoraCancel = true;
+                    } else {
+                        // We have a cashtab-created agora-offered input going to a Cashtab wallet
+                        // Buy or sell depends on whether the XEC is sent or received
+                        isAgoraPurchase = true;
+                    }
+                }
+            } catch (err) {
+                console.error(
+                    `Error in cashaddr.getTypeAndHashFromOutputScript(${inputs[0].outputScript}) from txid ${txid}`,
+                );
+                // Do not parse it as an agora tx
+            }
+        }
+
         const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
-        const renderedTxType =
-            txType === 'SEND' &&
-            !isUnintentionalBurn &&
-            parsedTokenType !== 'NFT Collection' &&
-            !isAgoraAdSetup
-                ? xecTxType
-                : isAgoraAdSetup
-                ? 'Agora Offer'
-                : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
-                txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
-                ? 'Fan-out'
-                : txType === 'GENESIS' && parsedTokenType !== 'NFT'
-                ? 'Created'
-                : isUnintentionalBurn || txType === 'BURN'
-                ? 'Burned'
-                : txType === 'MINT' ||
-                  (txType === 'GENESIS' && parsedTokenType === 'NFT')
-                ? 'Minted'
-                : txType;
+        const renderedTxType = isAgoraCancel
+            ? 'Agora Cancel'
+            : isAgoraAdSetup
+            ? 'Agora Offer'
+            : isAgoraPurchase && xecTxType === 'Sent'
+            ? 'Agora Buy'
+            : isAgoraPurchase && xecTxType === 'Received'
+            ? 'Agora Sale'
+            : txType === 'SEND' &&
+              !isUnintentionalBurn &&
+              parsedTokenType !== 'NFT Collection' &&
+              !isAgoraAdSetup &&
+              !isAgoraPurchase
+            ? xecTxType
+            : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
+            txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
+            ? 'Fan-out'
+            : txType === 'GENESIS' && parsedTokenType !== 'NFT'
+            ? 'Created'
+            : isUnintentionalBurn || txType === 'BURN'
+            ? 'Burned'
+            : txType === 'MINT' ||
+              (txType === 'GENESIS' && parsedTokenType === 'NFT')
+            ? 'Minted'
+            : txType;
         if (typeof cachedTokenInfo === 'undefined') {
             tokenActions.push(
                 <TokenAction tokenTxType={renderedTxType}>
                     <IconAndLabel>
                         {renderedTxType === 'Fan-out' && <FanOutIcon />}
                         {renderedTxType === 'Agora Offer' && <AgoraOfferIcon />}
+                        {renderedTxType === 'Agora Cancel' && (
+                            <AgoraCancelIcon />
+                        )}
+                        {renderedTxType === 'Agora Buy' && <AgoraBuyIcon />}
+                        {renderedTxType === 'Agora Sale' && <AgoraSaleIcon />}
                         {txType === 'GENESIS' && parsedTokenType !== 'NFT' && (
                             <GenesisIcon />
                         )}
@@ -779,7 +834,9 @@ const Tx = ({
                 renderedTxType === 'Received'
                     ? amountThisWallet
                     : renderedTxType === 'Created' ||
-                      renderedTxType === 'Minted'
+                      renderedTxType === 'Minted' ||
+                      renderedTxType === 'Agora Buy' ||
+                      renderedTxType === 'Agora Cancel'
                     ? amountTotal
                     : amountTotal - amountThisWallet;
 
@@ -795,6 +852,11 @@ const Tx = ({
                 <TokenAction tokenTxType={renderedTxType}>
                     <IconAndLabel>
                         {renderedTxType === 'Agora Offer' && <AgoraOfferIcon />}
+                        {renderedTxType === 'Agora Cancel' && (
+                            <AgoraCancelIcon />
+                        )}
+                        {renderedTxType === 'Agora Buy' && <AgoraBuyIcon />}
+                        {renderedTxType === 'Agora Sale' && <AgoraSaleIcon />}
                         {txType === 'GENESIS' && parsedTokenType !== 'NFT' && (
                             <GenesisIcon />
                         )}
@@ -828,6 +890,12 @@ const Tx = ({
                               }`
                             : renderedTxType === 'Agora Offer'
                             ? `Listed ${formattedAmount} ${tokenTicker}`
+                            : renderedTxType === 'Agora Buy'
+                            ? `Bought ${formattedAmount} ${tokenTicker}`
+                            : renderedTxType === 'Agora Sale'
+                            ? `Sold ${formattedAmount} ${tokenTicker}`
+                            : renderedTxType === 'Agora Cancel'
+                            ? `Canceled offer of ${formattedAmount} ${tokenTicker}`
                             : `${renderedTxType} ${formattedAmount} ${tokenTicker}`}
                     </TokenDesc>
                 </TokenAction>,
@@ -964,10 +1032,12 @@ const Tx = ({
                 <Collapse onClick={() => setShowPanel(!showPanel)}>
                     <MainRow type={xecTxType}>
                         <MainRowLeft>
-                            {xecTxType === 'Received' && !isSelfSendTx ? (
-                                <ReceiveIcon />
-                            ) : isAgoraAdSetup ? (
+                            {isAgoraAdSetup ||
+                            isAgoraPurchase ||
+                            isAgoraCancel ? (
                                 <AgoraTxIcon />
+                            ) : xecTxType === 'Received' && !isSelfSendTx ? (
+                                <ReceiveIcon />
                             ) : xecTxType === 'Sent' && !isSelfSendTx ? (
                                 <SendIcon />
                             ) : isSelfSendTx ? (

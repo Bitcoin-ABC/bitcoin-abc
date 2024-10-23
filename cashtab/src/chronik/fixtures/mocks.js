@@ -9782,6 +9782,308 @@ export const agoraAdSetupTxSlpNft = {
     ],
 };
 
+// 8880046b7b34da75f405abf8e76237082ed83f6a6293b378f83629320bf57097
+// buy from 76458db0ed96fe9863fc1ccec9fa2cfab884b0f6
+// sale for 95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d
+export const agoraOneshotSaleTx = {
+    tx: {
+        txid: '8880046b7b34da75f405abf8e76237082ed83f6a6293b378f83629320bf57097',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'c7fe7ac1f29c34e0795786b609622f6439cfde52246f31cba89aa0b28c8542ee',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '2102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd879540c4da30dce1304b58ad7e2b8f87729d2b7c5f7c2390e8bbc33bebcc7c80503c992801df01dad963adb737892e0d3499875b99477f65786c45e9146610a219fe104c5aee42858cb2a09aa8cb316f2452decf39642f6209b6865779e0349cf2c17afec70100000001ac2202000000000000ffffffffc996989ea840ccd9e2f0324dc0accbe26a32c3c8bd5d710ce18f68acaafdb3d300000000c10000004422020000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac7a3d160c000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac514cb0634c6b0000000000000000406a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df30800000000000000000800000000000000013ea74b04000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac7c7eaa7801327f7701207f7588520144807c7ea86f7bbb7501c17e7c672103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba668abac',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript: 'a914dec4855b83573e56312d9f3852697a48c09ee6b087',
+            },
+            {
+                prevOut: {
+                    txid: 'd8a564b6aa82861ea16864ef83d0ec81ecf8cb13c0a59c2737a444c7b880368d',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '414964793d1de39477192d9ee1491c49973303b18b594b249cfb0b9b752826f0ccc9da5ebf1dde9de63f5e5825b3e7257f48e1310920e30e28e83beada1f21be58412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 19360,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: '4fdcf99a029298ca1e3a692c4485711d22e7eb6aeb76d58354666e0a87260a4a',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41c60f1f0f70dd45780f5b5a48e7e8e823ab04ae5f2b652c68d36856d7999e65423c88f4315bde6eeebe1c263e27b5275453a52c33962eddd704ec63330482cbde412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 11007,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: '9191385318562f9b9491cb51dd336054ff48086effdb603ce4d070ec27b0a310',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '418a65da44dc054c90c718cafe5a8eb1a58a40f1c2864a356152eadb6ad439f66f7e457f09821fb53b07bd50d68baa64abed6134f98d18c2da4050496c54341a4c412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 5235,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: 'e85c851664f633ac3888908be544d379b6a300ecd7e3ba3b7d8895ff4bcd2907',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41db37e18dda29041f7f931bb895777ec8bea1f6341dc48a144a2deac2545519892c19c050bfe8eb32143a5860ef4343079cb0b6705f2b72e8555f3b96badd3e82412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 4201,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: '2bec8ef2b93a4cc859d2b5eef36516d5e559ed6c8ba14437ebd910d7110e8e7b',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41f5ad3937e27b09550dfac33838bb0acfe61bf69378c3fbd6fb145ce48cf0cd9fc7e2b4abfcb17616dedecd33e84a860c5f2ceea50ea0e59a59e7fa4e87b478ce412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 19901,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: '528fc61b8fe7131dcba81c99a4604c409aafe6faaf4286e21da07cae92bdf586',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41346e924f1a559129de3bb6f8bfb9358aae0401ab6dcc49c9e974bed7b94b246f001ec19ed7c682d945426882abce9f5bebdd984845b2c127c0f2549fcee5aec9412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 12964,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: '5963aebb41910aee8014cbbf2e2fb487dcbecb8b4a66b26e07f5b6542355bbf7',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41f5295566cdf6a64102474a4cf1a90c0be1f734a01a7c553d28d79543de93991633b67473c7cd859f14f4682942ea08b8f399abc3d9aba4d3017931ae61f677d4412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 274781657,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3080000000000000000080000000000000001',
+            },
+            {
+                value: 72066878,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                token: {
+                    tokenId:
+                        'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 202784122,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729713477,
+        size: 1654,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+                groupTokenId:
+                    'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+    },
+    parsed: {
+        recipients: ['ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035'],
+        satoshisSent: 72066878,
+        stackArray: [
+            '534c5000',
+            '41',
+            '53454e44',
+            'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            '0000000000000000',
+            '0000000000000001',
+        ],
+        xecTxType: 'Sent',
+    },
+    cache: agoraAdSetupTxSlpNft.cache,
+};
+
+// Canceling an agora oneshot NFT listing slp1
+// a57b6b00b328f0c6a916f6469dcc4e05ab202e7eca82f4cda5dbd736064910d9
+export const AgoraOneshotCancelTx = {
+    tx: {
+        txid: 'a57b6b00b328f0c6a916f6469dcc4e05ab202e7eca82f4cda5dbd736064910d9',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '9dad6def1241cea3ef1942e53ed0a34163da41fc726feb304fbd4d27482ce063',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '419b8ec92ca5701691d9f5e75d525532cbec6ed9d9ed81f8f982b5af76090289d001ce2022ec82ba096c99beb00b0d9b0a92f2ef8da269a7967e6856170796beac41004cb0634c6b0000000000000000406a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df308000000000000000008000000000000000164594e05000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac7c7eaa7801327f7701207f7588520144807c7ea86f7bbb7501c17e7c672102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd879568abac',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript: 'a91451a5d608ff31c1585d7aba3a2afcd2ae02898abd87',
+            },
+            {
+                prevOut: {
+                    txid: '9cf904c798295bfee43670162dc816e25d129ae9a0b13a41f11560cf7dbbb5b8',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '41ccbca2638a68145ecc38c8a96c058dff2619b8d495360e0b5866de555f1c6b621ef147df1a9e0f5bee006d1db94e1e2670915265d38f3ba801114037ed0d441d412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 1153,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3080000000000000001',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                token: {
+                    tokenId:
+                        'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729720346,
+        size: 535,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+                groupTokenId:
+                    'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+    },
+    parsed: {
+        recipients: ['ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj'],
+        satoshisSent: 0,
+        stackArray: [
+            '534c5000',
+            '41',
+            '53454e44',
+            'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
+            '0000000000000001',
+        ],
+        xecTxType: 'Received',
+    },
+    cache: agoraAdSetupTxSlpNft.cache,
+};
+
 export const paywallPaymentTx = {
     tx: {
         txid: 'e9692335fdb3b75f2e319cbda1396f7f32c02c3d172e58148abeb2952c7e2460',

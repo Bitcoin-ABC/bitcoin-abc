@@ -47,6 +47,9 @@ import { ReactComponent as MintNft } from 'assets/mintnft.svg';
 import { ReactComponent as Nft } from 'assets/nft.svg';
 import { ReactComponent as AgoraOffer } from 'assets/agora-offer.svg';
 import { ReactComponent as AgoraTx } from 'assets/agora-tx.svg';
+import { ReactComponent as AgoraBuy } from 'assets/agora-buy.svg';
+import { ReactComponent as AgoraSale } from 'assets/agora-sale.svg';
+import { ReactComponent as AgoraCancel } from 'assets/agora-cancel.svg';
 
 import appConfig from 'config/app';
 
@@ -218,6 +221,9 @@ export const MintNftIcon = () => <MintNft title="Mint NFT" />;
 export const NftIcon = () => <Nft title="NFT" />;
 export const AgoraOfferIcon = () => <AgoraOffer title="Agora Offer" />;
 export const AgoraTxIcon = () => <AgoraTx title="Agora Tx" />;
+export const AgoraBuyIcon = () => <AgoraBuy title="Agora Purchase" />;
+export const AgoraSaleIcon = () => <AgoraSale title="Agora Sale" />;
+export const AgoraCancelIcon = () => <AgoraCancel title="Agora Cancel" />;
 
 const GithubIconWrapper = styled.div`
     svg {

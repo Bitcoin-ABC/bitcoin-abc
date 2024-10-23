@@ -887,7 +887,7 @@ export class Agora {
     }
 }
 
-function scriptOps(script: Script): Op[] {
+export function scriptOps(script: Script): Op[] {
     const opsIter = script.ops();
     const ops: Op[] = [];
     let op;
