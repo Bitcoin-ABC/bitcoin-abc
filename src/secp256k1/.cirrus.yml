@@ -207,7 +207,6 @@ task:
     ECDH: yes
     RECOVERY: yes
     SCHNORRSIG: yes
-  << : *MERGE_BASE
   test_script:
-    - ./ci/cirrus.sh
+    - ./ci/build_autotools.sh
   << : *CAT_LOGS
