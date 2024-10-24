@@ -343,10 +343,10 @@ def test_script_pub_key_cleanstack():
 OP  0: OP_0
 ======= scriptPubKey =======
        Stack (1 item):
-         0:\x20
+         0: ""
 OP  0: OP_1
        Stack (2 items):
-         0:\x20
+         0: ""
          1: 01
 """
     )
@@ -666,10 +666,10 @@ OP  2: OP_EQUAL
        Stack (0 items): (empty stack)
 OP  0: OP_0
        Stack (1 item):
-         0:\x20
+         0: ""
 OP  1: OP_1
        Stack (2 items):
-         0:\x20
+         0: ""
          1: 01
 """
     )

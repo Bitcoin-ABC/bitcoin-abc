@@ -50,6 +50,14 @@ std::string FormatOpcode(opcodetype opcode) {
     }
 }
 
+std::string FormatStackItem(const std::vector<uint8_t> &data) {
+    if (data.empty()) {
+        return "\"\"";
+    } else {
+        return HexStr(data);
+    }
+}
+
 bool FormatterHumanReadable::FormatTrace(
     const std::string &title, const IguanaTrace &trace,
     const ScriptExecutionMetrics &metrics) {
@@ -102,7 +110,7 @@ void FormatterHumanReadable::FormatStacks(const IguanaStacks &stacks) {
     std::cout << std::endl;
     for (size_t itemIdx = 0; itemIdx < stacks.stack.size(); ++itemIdx) {
         std::cout << strprintf("        %2d: %s", itemIdx,
-                               HexStr(stacks.stack[itemIdx]))
+                               FormatStackItem(stacks.stack[itemIdx]))
                   << std::endl;
     }
     if (!stacks.altstack.empty()) {
@@ -112,7 +120,7 @@ void FormatterHumanReadable::FormatStacks(const IguanaStacks &stacks) {
                   << std::endl;
         for (size_t itemIdx = 0; itemIdx < stacks.altstack.size(); ++itemIdx) {
             std::cout << strprintf("        %2d: %s", itemIdx,
-                                   HexStr(stacks.altstack[itemIdx]))
+                                   FormatStackItem(stacks.altstack[itemIdx]))
                       << std::endl;
         }
     }
