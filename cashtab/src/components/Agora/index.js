@@ -94,10 +94,12 @@ const Agora = () => {
 
                             const askedNanoSats = askedSats * BigInt(1e9);
 
-                            const spotPriceNanoSats =
+                            // Note this price is nanosatoshis per token satoshi
+                            const spotPriceNanoSatsPerTokenSat =
                                 askedNanoSats / maxOfferTokens;
 
-                            activeOffer.spotPriceNanoSats = spotPriceNanoSats;
+                            activeOffer.spotPriceNanoSats =
+                                spotPriceNanoSatsPerTokenSat;
                         }
                         // Add relative depth to each offer. If you only have one offer, it's 1.
                         // This helps us to style the orderbook

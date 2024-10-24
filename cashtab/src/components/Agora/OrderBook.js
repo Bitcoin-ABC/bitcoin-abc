@@ -546,7 +546,7 @@ const OrderBook = ({
                                         nanoSatoshisToXec(
                                             Number(
                                                 activeOffer.spotPriceNanoSats,
-                                            ),
+                                            ) * parseFloat(`1e${decimals}`),
                                         ),
                                         fiatPrice,
                                     )}

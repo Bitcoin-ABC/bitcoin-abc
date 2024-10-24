@@ -452,7 +452,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.0036 USD'));
+        await userEvent.click(screen.getByText('$0.36 USD'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
@@ -625,7 +625,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.0036 USD'));
+        await userEvent.click(screen.getByText('$0.36 USD'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
@@ -779,7 +779,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.0036 USD'));
+        await userEvent.click(screen.getByText('$0.36 USD'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
