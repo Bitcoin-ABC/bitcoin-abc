@@ -5,8 +5,6 @@ export LC_ALL=C
 set -euo pipefail
 
 DEFAULT_DISTROS=()
-# Focal: Ubuntu 20.04 LTS
-DEFAULT_DISTROS+=("focal")
 # Jammy: Ubuntu 22.04 LTS
 DEFAULT_DISTROS+=("jammy")
 # Noble: Ubuntu 24.04 LTS
