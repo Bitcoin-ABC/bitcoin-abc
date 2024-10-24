@@ -23,7 +23,7 @@
             const loading = document.getElementById("faucet_loading")
             loading.style.display = 'flex';
 
-            const apiUrl = `https://faucet.fabien.cash/claim/${inputValue}`
+            const apiUrl = `https://testnet-faucet.fabien.cash/claim/${inputValue}`
 
             fetch(apiUrl)
                 .then(response => response.json())
