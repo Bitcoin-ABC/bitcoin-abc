@@ -730,6 +730,10 @@ builds:
       - cashtab/
       - modules/mock-chronik-client/
       - modules/ecashaddrjs/
+      - modules/ecash-agora/
+      - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
+      - src/secp256k1/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
     env:
@@ -875,8 +879,8 @@ builds:
     runOnDiffRegex:
       - modules/ecash-lib/
       - modules/ecash-lib-wasm/
-      - cashtab/
       - modules/ecashaddrjs/
+      - src/secp256k1/
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       RUN_NPM_BUILD: "true"
@@ -891,6 +895,7 @@ builds:
       - modules/ecash-agora/
       - modules/ecash-lib/
       - modules/ecash-lib-wasm/
+      - src/secp256k1/
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
       DEPENDS_ECASHADDRJS: "true"
@@ -913,6 +918,7 @@ builds:
       - modules/ecash-lib/
       - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
+      - src/secp256k1/
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
       DEPENDS_ECASHADDRJS: "true"
@@ -933,6 +939,7 @@ builds:
       - modules/ecash-lib/
       - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
+      - src/secp256k1/
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       DEPENDS_ECASHADDRJS: "true"
