@@ -139,6 +139,7 @@ initWasm().then(async () => {
             limit: 1, // requests per IP per `window`
             standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
             legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+            skipFailedRequests: true, // If the request was rejected (e.g. due to address typo), don't block
             handler: (req: Request, res: Response) => {
                 console.log(
                     `${req.url} from ip="${getIp(req)}" blocked by rate limit`,
