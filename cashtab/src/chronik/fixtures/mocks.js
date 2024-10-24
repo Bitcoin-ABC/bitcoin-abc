@@ -9975,6 +9975,152 @@ export const agoraOneshotSaleTx = {
     cache: agoraAdSetupTxSlpNft.cache,
 };
 
+// e9d594e054bf9a7cead11cdc31953f0e45782c97c6298513f41b70eb408aa1a8
+export const agoraPartialBuyTx = {
+    tx: {
+        txid: 'e9d594e054bf9a7cead11cdc31953f0e45782c97c6298513f41b70eb408aa1a8',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '58ec58688cef1d0abe2ee30c15f84af51833e61e998841fac3ecbcadafc31233',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41fd18138ab17386e9599e54d9d5f1994d1c4add3af860b1ece44b71d04bc7e7cd799e1234e2959236cd38558713d7fdb797a894c527906b0235a38519ad63fbea4121024f624d04900c2e3b7ea6014cb257f525b6d229db274bceeadbb1f06c07776e82',
+                value: 975251,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+            },
+            // Note that the p2sh is not necessarily input 0 for an agora partial cancel tx
+            {
+                prevOut: {
+                    txid: '0c580a7dbfb7f160f0e4623faa24eb0475b2220704c8c46f279a479a477433f8',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '0441475230075041525449414c4113bb98283dc7a2f69957940bb3a45f4ec6050b61bcc1b1134d786727e379c8793107bf0d0b0e051665ab3eed2cca34901646cf564a1ab52cb32668da229eef0b41004d5f014c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8080000000000000000030276a4000000000000e815000000000000a24a2600000000004b4a343a024f624d04900c2e3b7ea6014cb257f525b6d229db274bceeadbb1f06c07776e8208948eff7f00000000ab7b63817b6ea2697603a24a26a269760376a4009700887d94527901377f75789263587e780376a400965580bc030000007e7e68587e52790376a400965580bc030000007e7e825980bc7c7e0200007e7b02e7159302e8159656807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702dd007f5c7f7701207f547f75044b4a343a886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '855738679296',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript: 'a914cb61d733f8e99b1b40d40a53a59aca8a08368a6f87',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f808000000c73e000000',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+                token: {
+                    tokenId:
+                        '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '855738679296',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 973723,
+                outputScript:
+                    '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729789538,
+        size: 760,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 867971,
+            hash: '000000000000000013f3d459ae121dc1494e7e9fe57c2e60cf393184d7ab6dc9',
+            timestamp: 1729793460,
+        },
+    },
+    parsed: {
+        recipients: [],
+        satoshisSent: 974269,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
+            '000000c73e000000',
+        ],
+        xecTxType: 'Sent',
+    },
+    cache: [
+        [
+            '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                genesisInfo: {
+                    tokenTicker: 'VSP',
+                    tokenName: 'Vespene Gas',
+                    url: 'https://simple.wikipedia.org/wiki/StarCraft#Gameplay',
+                    decimals: 9,
+                    hash: '',
+                },
+                timeFirstSeen: 0,
+                genesisSupply: '3000000000.000000000',
+                genesisOutputScripts: [
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                ],
+                genesisMintBatons: 0,
+                block: {
+                    height: 763087,
+                    hash: '0000000000000000015abcebc15e74036598855a9fdd976868ad99bb23b87a89',
+                    timestamp: 1666631359,
+                },
+            },
+        ],
+    ],
+};
+
 // Canceling an agora oneshot NFT listing slp1
 // a57b6b00b328f0c6a916f6469dcc4e05ab202e7eca82f4cda5dbd736064910d9
 export const AgoraOneshotCancelTx = {

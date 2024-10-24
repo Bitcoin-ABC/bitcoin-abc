@@ -46,6 +46,7 @@ import {
     agoraAdSetupTxSlpNft,
     agoraOneshotSaleTx,
     AgoraOneshotCancelTx,
+    agoraPartialBuyTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -261,6 +262,12 @@ export default {
                 tx: AgoraOneshotCancelTx.tx,
                 hashes: ['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d'],
                 parsed: AgoraOneshotCancelTx.parsed,
+            },
+            {
+                description: 'Agora partial listing purchase',
+                tx: agoraPartialBuyTx.tx,
+                hashes: ['7847fe7070bec8567b3e810f543f2f80cc3e03be'],
+                parsed: agoraPartialBuyTx.parsed,
             },
         ],
     },

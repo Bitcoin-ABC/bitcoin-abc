@@ -697,36 +697,41 @@ const Tx = ({
         // Parse for an agora buy/sell/cancel
         // Will have the token input coming from a p2sh script
         // The input will be at inputs[0]
-        if (typeof inputs[0].token !== 'undefined') {
-            try {
-                const { type } = cashaddr.getTypeAndHashFromOutputScript(
-                    inputs[0].outputScript,
-                );
-                if (type === 'p2sh') {
-                    // Check if this is a cancellation
-                    // See agora.ts from ecash-agora lib
-                    // For now, I don't think it makes sense to have an 'isCanceled' method from ecash-agora
-                    // This is a pretty specific application
-                    const ops = scriptOps(
-                        new Script(fromHex(inputs[0].inputScript)),
+        // Iterate over inputs to find p2sh
+        for (const input of inputs) {
+            if (typeof input.token !== 'undefined') {
+                try {
+                    const { type } = cashaddr.getTypeAndHashFromOutputScript(
+                        input.outputScript,
                     );
-                    // isCanceled is always the last pushop (before redeemScript)
-                    const opIsCanceled = ops[ops.length - 2];
-                    const isCanceled = opIsCanceled === OP_0;
+                    if (type === 'p2sh') {
+                        // Check if this is a cancellation
+                        // See agora.ts from ecash-agora lib
+                        // For now, I don't think it makes sense to have an 'isCanceled' method from ecash-agora
+                        // This is a pretty specific application
+                        const ops = scriptOps(
+                            new Script(fromHex(inputs[0].inputScript)),
+                        );
+                        // isCanceled is always the last pushop (before redeemScript)
+                        const opIsCanceled = ops[ops.length - 2];
+                        const isCanceled = opIsCanceled === OP_0;
 
-                    if (isCanceled) {
-                        isAgoraCancel = true;
-                    } else {
-                        // We have a cashtab-created agora-offered input going to a Cashtab wallet
-                        // Buy or sell depends on whether the XEC is sent or received
-                        isAgoraPurchase = true;
+                        if (isCanceled) {
+                            isAgoraCancel = true;
+                        } else {
+                            // We have a cashtab-created agora-offered input going to a Cashtab wallet
+                            // Buy or sell depends on whether the XEC is sent or received
+                            isAgoraPurchase = true;
+                        }
                     }
+                } catch (err) {
+                    console.error(
+                        `Error in cashaddr.getTypeAndHashFromOutputScript(${inputs[0].outputScript}) from txid ${txid}`,
+                    );
+                    // Do not parse it as an agora tx
                 }
-            } catch (err) {
-                console.error(
-                    `Error in cashaddr.getTypeAndHashFromOutputScript(${inputs[0].outputScript}) from txid ${txid}`,
-                );
-                // Do not parse it as an agora tx
+                // We don't need to find any other inputs for this case
+                continue;
             }
         }
 

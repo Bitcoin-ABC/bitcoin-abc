@@ -54,6 +54,7 @@ import {
     agoraAdSetupTxSlpNft,
     agoraOneshotSaleTx,
     AgoraOneshotCancelTx,
+    agoraPartialBuyTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3030,5 +3031,110 @@ describe('<Tx />', () => {
 
         // We see the token type
         expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+    });
+    it('Agora partial buy tx (token info available in cache)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraPartialBuyTx.tx}
+                        hashes={['7847fe7070bec8567b3e810f543f2f80cc3e03be']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(agoraPartialBuyTx.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 24, 2024, 17:05:38')).toBeInTheDocument();
+
+        // We see the expected sent to self amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${agoraPartialBuyTx.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // We see the Agora Sale icon
+        expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(
+            screen.getByText(
+                agoraPartialBuyTx.cache[0][1].genesisInfo.tokenName,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(
+            screen.getByText(
+                `(${agoraPartialBuyTx.cache[0][1].genesisInfo.tokenTicker})`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the expected token action
+        expect(
+            screen.getByText(
+                `Bought 855.738679296 ${agoraPartialBuyTx.cache[0][1].genesisInfo.tokenTicker}`,
+            ),
+        ).toBeInTheDocument();
+    });
+    it('Agora partial buy tx (uncached)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraPartialBuyTx.tx}
+                        hashes={['7847fe7070bec8567b3e810f543f2f80cc3e03be']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 24, 2024, 17:05:38')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        expect(
+            screen.getByAltText(`icon for ${agoraPartialBuyTx.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // We see the Agora Sale icon
+        expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
     });
 });
