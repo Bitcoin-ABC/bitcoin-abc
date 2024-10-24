@@ -161,6 +161,114 @@ describe('Agora Partial Param Approximation', () => {
         expect(params.priceNanoSatsPerToken(1000n)).to.equal(1000225000000n);
     });
 
+    it('AgoraPartial.approximateParams 1 BUX', () => {
+        const params = AgoraPartial.approximateParams({
+            offeredTokens: 10000n,
+            priceNanoSatsPerToken: 291970802919n, // $0.0001 / token @ $0.00003425 / XEC
+            minAcceptedTokens: 100n,
+            ...BASE_PARAMS_SLP,
+        });
+        expect(params).to.deep.equal(
+            new AgoraPartial({
+                truncTokens: 10000n,
+                numTokenTruncBytes: 0,
+                tokenScaleFactor: 214748n,
+                scaledTruncTokensPerTruncSat: 735n,
+                numSatsTruncBytes: 0,
+                minAcceptedScaledTruncTokens: 21474800n,
+                ...BASE_PARAMS_SLP,
+                scriptLen: params.scriptLen,
+            }),
+        );
+        expect(params.offeredTokens()).to.equal(10000n);
+        expect(params.minAcceptedTokens()).to.equal(100n);
+        expect(params.askedSats(100n)).to.equal(29218n);
+        expect(params.askedSats(10000n)).to.equal(2921742n);
+        expect(params.priceNanoSatsPerToken(100n)).to.equal(292180000000n);
+        expect(params.priceNanoSatsPerToken(10000n)).to.equal(292174200000n);
+    });
+
+    it('AgoraPartial.approximateParams 50 BUX', () => {
+        const params = AgoraPartial.approximateParams({
+            offeredTokens: 500000n,
+            priceNanoSatsPerToken: 291970802919n, // $0.0001 / token
+            minAcceptedTokens: 10000n,
+            ...BASE_PARAMS_SLP,
+        });
+        expect(params).to.deep.equal(
+            new AgoraPartial({
+                truncTokens: 1953n,
+                numTokenTruncBytes: 1,
+                tokenScaleFactor: 1099580n,
+                scaledTruncTokensPerTruncSat: 3766n,
+                numSatsTruncBytes: 1,
+                minAcceptedScaledTruncTokens: 42952343n,
+                ...BASE_PARAMS_SLP,
+                scriptLen: params.scriptLen,
+            }),
+        );
+        expect(params.offeredTokens()).to.equal(499968n);
+        expect(params.minAcceptedTokens()).to.equal(10240n);
+        expect(params.askedSats(9984n)).to.equal(2915328n);
+        expect(params.askedSats(499968n)).to.equal(145978624n);
+        expect(params.priceNanoSatsPerToken(9984n)).to.equal(292000000000n);
+        expect(params.priceNanoSatsPerToken(499968n)).to.equal(291975934459n);
+    });
+
+    it('AgoraPartial.approximateParams 1000 BUX', () => {
+        const params = AgoraPartial.approximateParams({
+            offeredTokens: 10000000n,
+            priceNanoSatsPerToken: 291970802919n, // $0.0001 / token
+            minAcceptedTokens: 10000n,
+            ...BASE_PARAMS_SLP,
+        });
+        expect(params).to.deep.equal(
+            new AgoraPartial({
+                truncTokens: 39062n,
+                numTokenTruncBytes: 1,
+                tokenScaleFactor: 54976n,
+                scaledTruncTokensPerTruncSat: 188n,
+                numSatsTruncBytes: 1,
+                minAcceptedScaledTruncTokens: 2147500n,
+                ...BASE_PARAMS_SLP,
+                scriptLen: params.scriptLen,
+            }),
+        );
+        expect(params.offeredTokens()).to.equal(9999872n);
+        expect(params.minAcceptedTokens()).to.equal(10240n);
+        expect(params.askedSats(9984n)).to.equal(2919680n);
+        expect(params.askedSats(499968n)).to.equal(146203648n);
+        expect(params.priceNanoSatsPerToken(9984n)).to.equal(292435897435n);
+        expect(params.priceNanoSatsPerToken(499968n)).to.equal(292426011264n);
+    });
+
+    it('AgoraPartial.approximateParams 10000 BUX', () => {
+        const params = AgoraPartial.approximateParams({
+            offeredTokens: 100000000n,
+            priceNanoSatsPerToken: 291970802919n, // $0.0001 / token
+            minAcceptedTokens: 100000n,
+            ...BASE_PARAMS_SLP,
+        });
+        expect(params).to.deep.equal(
+            new AgoraPartial({
+                truncTokens: 1525n,
+                numTokenTruncBytes: 2,
+                tokenScaleFactor: 1408182n,
+                scaledTruncTokensPerTruncSat: 4823n,
+                numSatsTruncBytes: 2,
+                minAcceptedScaledTruncTokens: 2148715n,
+                ...BASE_PARAMS_SLP,
+                scriptLen: params.scriptLen,
+            }),
+        );
+        expect(params.offeredTokens()).to.equal(99942400n);
+        expect(params.minAcceptedTokens()).to.equal(131072n);
+        expect(params.askedSats(131072n)).to.equal(38273024n);
+        expect(params.askedSats(9961472n)).to.equal(2908487680n);
+        expect(params.priceNanoSatsPerToken(131072n)).to.equal(292000000000n);
+        expect(params.priceNanoSatsPerToken(9961472n)).to.equal(291973684210n);
+    });
+
     it('AgoraPartial.approximateParams 1000 for 1000000sat/token', () => {
         const params = AgoraPartial.approximateParams({
             offeredTokens: 1000n,
@@ -285,24 +393,24 @@ describe('Agora Partial Param Approximation', () => {
         });
         expect(params).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 1000000n,
-                numTokenTruncBytes: 0,
-                tokenScaleFactor: 2147n,
-                scaledTruncTokensPerTruncSat: 549n,
-                numSatsTruncBytes: 1,
-                minAcceptedScaledTruncTokens: 429400n,
+                truncTokens: 3906n,
+                numTokenTruncBytes: 1,
+                tokenScaleFactor: 549754n,
+                scaledTruncTokensPerTruncSat: 140737n,
+                numSatsTruncBytes: 2,
+                minAcceptedScaledTruncTokens: 429495n,
                 ...BASE_PARAMS_SLP,
                 scriptLen: params.scriptLen,
             }),
         );
-        expect(params.offeredTokens()).to.equal(1000000n);
-        expect(params.minAcceptedTokens()).to.equal(200n);
-        expect(params.askedSats(1n)).to.equal(1024n);
-        expect(params.askedSats(1000n)).to.equal(1001216n);
-        expect(params.askedSats(1000000n)).to.equal(1001151232n);
-        expect(params.priceNanoSatsPerToken(1n)).to.equal(1024000000000n);
-        expect(params.priceNanoSatsPerToken(1000n)).to.equal(1001216000000n);
-        expect(params.priceNanoSatsPerToken(1000000n)).to.equal(1001151232000n);
+        expect(params.offeredTokens()).to.equal(999936n);
+        expect(params.minAcceptedTokens()).to.equal(256n);
+        expect(params.askedSats(256n)).to.equal(262144n);
+        expect(params.askedSats(1024n)).to.equal(1048576n);
+        expect(params.askedSats(999936n)).to.equal(999948288n);
+        expect(params.priceNanoSatsPerToken(256n)).to.equal(1024000000000n);
+        expect(params.priceNanoSatsPerToken(1024n)).to.equal(1024000000000n);
+        expect(params.priceNanoSatsPerToken(999936n)).to.equal(1000012288786n);
     });
 
     it('AgoraPartial.approximateParams 1000000 for 1000sat/token 64-bit', () => {
@@ -341,30 +449,28 @@ describe('Agora Partial Param Approximation', () => {
         const params = AgoraPartial.approximateParams({
             offeredTokens: 1000000n,
             priceNanoSatsPerToken: 1000000n * 1000000000n,
-            minAcceptedTokens: 1n,
+            minAcceptedTokens: 1000n,
             ...BASE_PARAMS_SLP,
         });
         expect(params).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 1000000n,
-                numTokenTruncBytes: 0,
-                tokenScaleFactor: 2147n,
-                scaledTruncTokensPerTruncSat: 140n,
-                numSatsTruncBytes: 2,
-                minAcceptedScaledTruncTokens: 2147n,
+                truncTokens: 3906n,
+                numTokenTruncBytes: 1,
+                tokenScaleFactor: 549781n,
+                scaledTruncTokensPerTruncSat: 36030n,
+                numSatsTruncBytes: 3,
+                minAcceptedScaledTruncTokens: 2147582n,
                 ...BASE_PARAMS_SLP,
                 scriptLen: params.scriptLen,
             }),
         );
-        expect(params.offeredTokens()).to.equal(1000000n);
-        expect(params.minAcceptedTokens()).to.equal(1n);
-        expect(params.askedSats(1n)).to.equal(1048576n);
-        expect(params.askedSats(1000n)).to.equal(1005060096n);
-        expect(params.askedSats(1000000n)).to.equal(1005041418240n);
-        expect(params.priceNanoSatsPerToken(1n)).to.equal(1048576000000000n);
-        expect(params.priceNanoSatsPerToken(1000n)).to.equal(1005060096000000n);
-        expect(params.priceNanoSatsPerToken(1000000n)).to.equal(
-            1005041418240000n,
+        expect(params.offeredTokens()).to.equal(999936n);
+        expect(params.minAcceptedTokens()).to.equal(1024n);
+        expect(params.askedSats(1024n)).to.equal(1040187392n);
+        expect(params.askedSats(999936n)).to.equal(999955628032n);
+        expect(params.priceNanoSatsPerToken(1024n)).to.equal(1015808000000000n);
+        expect(params.priceNanoSatsPerToken(999936n)).to.equal(
+            1000019629288274n,
         );
     });
 
@@ -406,32 +512,30 @@ describe('Agora Partial Param Approximation', () => {
         const params = AgoraPartial.approximateParams({
             offeredTokens: 1000000n,
             priceNanoSatsPerToken: 1000000000n * 1000000000n,
-            minAcceptedTokens: 1n,
+            minAcceptedTokens: 1000n,
             ...BASE_PARAMS_SLP,
         });
         expect(params).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 1000000n,
-                numTokenTruncBytes: 0,
-                tokenScaleFactor: 2147n,
-                scaledTruncTokensPerTruncSat: 36n,
-                numSatsTruncBytes: 3,
-                minAcceptedScaledTruncTokens: 2147n,
+                truncTokens: 3906n,
+                numTokenTruncBytes: 1,
+                tokenScaleFactor: 549788n,
+                scaledTruncTokensPerTruncSat: 9223n,
+                numSatsTruncBytes: 4,
+                minAcceptedScaledTruncTokens: 2147609n,
                 ...BASE_PARAMS_SLP,
                 scriptLen: params.scriptLen,
             }),
         );
-        expect(params.offeredTokens()).to.equal(1000000n);
-        expect(params.minAcceptedTokens()).to.equal(1n);
-        expect(params.askedSats(1n)).to.equal(1006632960n);
-        expect(params.askedSats(1000n)).to.equal(1000576385024n);
-        expect(params.askedSats(1000000n)).to.equal(1000574522753024n);
-        expect(params.priceNanoSatsPerToken(1n)).to.equal(1006632960000000000n);
-        expect(params.priceNanoSatsPerToken(1000n)).to.equal(
-            1000576385024000000n,
+        expect(params.offeredTokens()).to.equal(999936n);
+        expect(params.minAcceptedTokens()).to.equal(1024n);
+        expect(params.askedSats(1024n)).to.equal(1026497183744n);
+        expect(params.askedSats(999936n)).to.equal(1000035890233344n);
+        expect(params.priceNanoSatsPerToken(1024n)).to.equal(
+            1002438656000000000n,
         );
-        expect(params.priceNanoSatsPerToken(1000000n)).to.equal(
-            1000574522753024000n,
+        expect(params.priceNanoSatsPerToken(999936n)).to.equal(
+            1000099896626728110n,
         );
     });
 

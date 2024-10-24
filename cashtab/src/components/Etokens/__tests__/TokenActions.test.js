@@ -242,9 +242,9 @@ describe('<Token /> available actions rendered', () => {
 
         // SLP1 ad prep
         const adPrepHex =
-            '0200000002666de5d5852807a13612b6ea0373643266d435822daeb39c29e5d4b67e893cda01000000644197cae3a028dc79f0b0a3f4c9e11b05caf6732f4538cfe5e8dbb998e2a72a2a192406989de5bfc9d1fd5ec5e81ba2f3d51d65efbcfa02cd905074a4c2d592aa484121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064411e69f2336f646e8897a6580eeb009f18e1e7ade89984e34f3d21604ece51dd92783110a4d6f24e81870bbb590f24a5cb322743ceaec0b9b52e812d00c7b0a0eb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d0000080000000000009600060500000000000017a914db8f807dea2033241c8e4fe1f05553a7db8bc07d8722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '0200000002666de5d5852807a13612b6ea0373643266d435822daeb39c29e5d4b67e893cda0100000064414feb64ffdf50b0eb40a6fe0c34da65e94e0cbbbc2e58f2b290f3b2bf31480b34a57c4862ee177129dc8a1ce645573cd240e5e83d336d19ff22c3a7675bc903564121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064410f0461f0e843cc5b78196e3fdb3b89d64948629645f3b44ea960c2a5ac8f5835189697165a01cc259a0f4eff931c83e110019ee5c7721a43e0dde11ba04e068d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d80000000800000000001d9600060500000000000017a914e49e695e2f466e34447cb253567b8b277b60e3908722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const adPrepTxid =
-            '48af9c248cd0ed7eed8d889691ff808df632cde00f3a9b351bcfab2630a3f1fa';
+            '280b6fda5a11a94145f3b4203fb4f199d875d3621c8e4cc9d63501e73b9649bc';
 
         mockedChronik.setMock('broadcastTx', {
             input: adPrepHex,
@@ -253,9 +253,9 @@ describe('<Token /> available actions rendered', () => {
 
         // SLP1 ad list
         const adListHex =
-            '0200000001faf1a33026abcf1b359b3a0fe0cd32f68d80ff9196888ded7eedd08c249caf4801000000dd0441475230075041525449414c41b574bf2d1a36ad5eb14d605779cb7254955783747be944eff689eb4336eef70cc2e869a24926478c4e4dcb879fb3c5f9241335ce8c1db869106357d9a53697e2414c8c4c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000000000000000200f304000000000000efc6010000000000eff5ac0c000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d0000220200000000000017a9141350b9a081c552c6ed69ad734b59ab13bb1a713d8700000000';
+            '0200000001bc49963be70135d6c94c8e1c62d375d899f1b43f20b4f34541a9115ada6f0b2801000000dd0441475230075041525449414c41b11b013fb8140dcce13f93ee99584b1c6b547ee076ed63f9ec0a6c0068ad84c5420ecd608af68134366576bae4196a83f6a8f521c50dea4acc75dda6215c7fec414c8c4c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000000000000000300dbf30400000000003dc7010000000000d226af0c000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d8000000220200000000000017a91472df09389a835adb0e13e32bf1c91144ed107eef8700000000';
         const adListTxid =
-            '5ccf6377013065350be6dc4ff13cc2d18484e150c89a5ab841ac36e17e8f7566';
+            '823f652e22d154fc7bdd77ee9d9fa37c77e9649235f1430958bef68b7428b9ae';
 
         mockedChronik.setMock('broadcastTx', {
             input: adListHex,
@@ -272,7 +272,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '1350b9a081c552c6ed69ad734b59ab13bb1a713d';
+        const EXPECTED_OFFER_P2SH = '72df09389a835adb0e13e32bf1c91144ed107eef';
 
         mockedChronik.setScript('p2sh', EXPECTED_OFFER_P2SH);
         // We mock no existing utxos
@@ -389,10 +389,10 @@ describe('<Token /> available actions rendered', () => {
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
         // Offered qty (actual, calculated from AgoraOffer)
-        const actualOfferedQty = '110.999961600';
+        const actualOfferedQty = '110.998061056';
         expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
         // Min by (actual, calculated from AgoraOffer)
-        expect(screen.getByText('11.000020992')).toBeInTheDocument();
+        expect(screen.getByText('11.005853696')).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
         const actualPricePerTokenForMinBuy = '1.66 XEC';
         expect(
@@ -422,8 +422,7 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
 
         // We see the expected toast notification for the successful listing tx
-        // Note: I'm not sure why 0111 is appearing in this integration test instead of 111
-        // I'm not able to repeat this in prod
+        screen.debug(null, Infinity);
         expect(
             await screen.findByText(
                 `${actualOfferedQty} Vespene Gas listed for ${actualPricePerTokenForMinBuy} per token`,

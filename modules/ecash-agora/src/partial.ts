@@ -355,7 +355,7 @@ export class AgoraPartial {
 
         const minTokenScaleFactor = isPrecisePrice
             ? 1n
-            : params.minTokenScaleFactor ?? 1000n;
+            : params.minTokenScaleFactor ?? 10000n;
 
         // If we can't represent the offered tokens in a script int, we truncate 8
         // bits at a time until it fits.

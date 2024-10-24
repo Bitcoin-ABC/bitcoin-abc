@@ -158,3 +158,4 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 -   Patch minAcceptedTokens() to return true minimum (prepared value) [D16920](https://reviews.bitcoinabc.org/D16920)
 -   Add validation to acceptTx method of AgoraPartial to prevent creation of unspendable offers [D16944](https://reviews.bitcoinabc.org/D16944)
 -   Export `scriptOps` helper function [D16972](https://reviews.bitcoinabc.org/D16972)
+-   Improve approximation for USD-esque tokens [D16995](https://reviews.bitcoinabc.org/D16995)
