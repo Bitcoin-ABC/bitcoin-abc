@@ -58,17 +58,17 @@ export const wallets = [
     },
     {
         name: 'Unstoppable Wallet',
-        text: 'A privacy-oriented non-custodial wallet for eCash (XEC). Unstoppable is a highly secure, decentralized, and open-source wallet, available for Android and iOS smartphones.',
+        text: 'A privacy-oriented non-custodial wallet for eCash (XEC). Unstoppable Wallet is a highly secure, decentralized, and open-source wallet, available for Android and iOS smartphones.',
         image: '/images/unstoppable-wallet.png',
         link: 'https://unstoppable.money/',
         availableOn: ['iOS', 'Android'],
     },
     {
         name: 'Stack Wallet',
-        text: 'An open-source, non-custodial multichain wallet for eCash (XEC). Stack is a highly secure, privacy-first mobile wallet for XEC, available for Android and iOS smartphones.',
+        text: 'An open-source, non-custodial multichain wallet for eCash (XEC). Stack Wallet is a highly secure, privacy-first mobile wallet for XEC, available for Android and iOS smartphones as well as Windows, MacOS, and Linux.',
         image: '/images/stack-wallet.png',
         link: 'https://stackwallet.com/',
-        availableOn: ['iOS', 'Android'],
+        availableOn: ['iOS', 'Android', 'Desktop'],
     },
     {
         name: 'Guarda Wallet',
