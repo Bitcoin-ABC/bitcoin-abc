@@ -32,7 +32,9 @@
 
                     let htmlContent = `<div class="inner_faucet_response ${data.error ? 'error' : ''}">`;
                     if (data.amount && data.address && data.txid) {
-                        htmlContent += `<h3>Successfully sent ${data.amount.toLocaleString()} tXEC!</h3>
+                        // Amount is in satoshi, display the value in tXEC
+                        const amountTXec = data.amount / 100;
+                        htmlContent += `<h3>Successfully sent ${amountTXec.toLocaleString()} tXEC!</h3>
                             <span>to: <a href='/address/${data.address}'>${data.address}</a></span>
                             <span>txid: <a href='/tx/${data.txid}'>${data.txid}</a></div></span>`
                     } else {
