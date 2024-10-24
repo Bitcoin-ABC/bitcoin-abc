@@ -40,7 +40,7 @@ RUN ./build-wasm.sh
 
 # 2) Node image for prod deployment of token-server
 
-FROM node:20-buster-slim
+FROM node:20-bookworm-slim
 
 # Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
 WORKDIR /app/modules

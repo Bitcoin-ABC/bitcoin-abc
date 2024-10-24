@@ -35,7 +35,7 @@ COPY modules/ecash-lib-wasm .
 RUN ./build-wasm.sh
 
 # Stage 2 - Node image for running npm publish
-FROM node:20-buster-slim
+FROM node:20-bookworm-slim
 
 # Copy static assets from WasmBuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
 WORKDIR /app/modules

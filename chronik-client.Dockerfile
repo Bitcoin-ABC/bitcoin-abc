@@ -4,7 +4,7 @@
 
 # Node image for running npm publish
 
-FROM node:20-buster-slim
+FROM node:20-bookworm-slim
 
 # Build chronik-client
 WORKDIR /app/modules/chronik-client

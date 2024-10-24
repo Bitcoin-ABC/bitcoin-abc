@@ -4,7 +4,7 @@
 
 # Node image for prod deployment of ecash-herald
 
-FROM node:20-buster-slim
+FROM node:20-bookworm-slim
 
 # Build all local ecash-herald dependencies
 
