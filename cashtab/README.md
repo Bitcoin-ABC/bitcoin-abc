@@ -94,6 +94,8 @@ This includes but is not limited to:
 
 ## Production
 
+Define any environment variables important for deployment, e.g. your Google Analytics key in `.env.`
+
 In the project directory, run:
 
 ```
