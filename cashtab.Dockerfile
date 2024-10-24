@@ -20,6 +20,10 @@ COPY Cargo.toml .
 WORKDIR /app/chronik/
 COPY chronik/ .
 
+# Copy secp256k1 to same directory structure as monorepo
+WORKDIR /app/src/secp256k1
+COPY src/secp256k1/ .
+
 # Copy ecash-secp256k1, ecash-lib and ecash-lib-wasm files to same directory structure as monorepo
 WORKDIR /app/modules/ecash-secp256k1
 COPY modules/ecash-secp256k1 .
