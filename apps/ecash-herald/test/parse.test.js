@@ -45,7 +45,7 @@ const {
     paywallTxs,
     authenticationTxs,
 } = require('./mocks/appTxSamples');
-const dailyTxs = require('./mocks/dailyTxs');
+const { dailyTxs, tokenInfoMap } = require('./mocks/dailyTxs');
 
 describe('parse.js functions', function () {
     it('Parses the master test block', function () {
@@ -352,16 +352,21 @@ describe('parse.js functions', function () {
     it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices', function () {
         const mockUtcNewDayTimestampSeconds = 1728950400;
         assert.deepEqual(
-            summarizeTxHistory(mockUtcNewDayTimestampSeconds, dailyTxs, {
-                usd: 0.00003487,
-                usd_market_cap: 689047177.8128564,
-                usd_24h_vol: 5957332.9687223025,
-                usd_24h_change: -0.3973642442197056,
-            }),
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                tokenInfoMap,
+                {
+                    usd: 0.00003487,
+                    usd_market_cap: 689047177.8128564,
+                    usd_24h_vol: 5957332.9687223025,
+                    usd_24h_change: -0.3973642442197056,
+                },
+            ),
             [
                 '<b>15 Oct 2024</b>\n' +
-                    '📦1,331 blocks\n' +
-                    '➡️15 txs\n' +
+                    '📦56,311 blocks\n' +
+                    '➡️23 txs\n' +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
                     'Trading volume: $5,957,333\n' +
@@ -383,7 +388,76 @@ describe('parse.js functions', function () {
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    '🪙 <b>1</b> token tx\n' +
+                    '🪙 <b><i>9 token txs</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
+                    '🗻 <b>1</b> ALP tx\n' +
+                    '🧩 <b>1</b> Mint Vault tx\n' +
+                    '🖼 <b>1</b> NFT tx\n' +
+                    '❌ <b>1</b> invalid token tx\n' +
+                    '\n' +
+                    '📱 <b><i>8 app txs</i></b>\n' +
+                    '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
+                    '⚛️ <b>1</b> CashFusion\n' +
+                    '🛒 <b>1</b> PayButton tx\n' +
+                    '🪂 <b>1</b> Airdrop\n' +
+                    '✏️ <b>1</b> Cashtab Msg\n' +
+                    '💬 <b>1</b> <a href="https://www.ecashchat.com/">eCashChat tx</a>\n' +
+                    '🔓 <b>1</b> eCashChat Auth\n' +
+                    '💸 <b>1</b> Paywall tx\n' +
+                    '\n' +
+                    '🏦 <b><i>Binance</i></b>\n' +
+                    '<b>1</b> withdrawal, $1',
+            ],
+        );
+    });
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices with no token cache info', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        assert.deepEqual(
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                // we can't get any token cache info
+                new Map(),
+                {
+                    usd: 0.00003487,
+                    usd_market_cap: 689047177.8128564,
+                    usd_24h_vol: 5957332.9687223025,
+                    usd_24h_change: -0.3973642442197056,
+                },
+            ),
+            [
+                '<b>15 Oct 2024</b>\n' +
+                    '📦56,311 blocks\n' +
+                    '➡️23 txs\n' +
+                    '\n' +
+                    '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
+                    'Trading volume: $5,957,333\n' +
+                    'Market cap: $689,047,178\n' +
+                    '\n' +
+                    '<b><i>⛏️3 miners found blocks</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. Mining-Dutch, 1 <i>(0%)</i>\n' +
+                    '2. solopool.org, 1 <i>(0%)</i>\n' +
+                    '3. ViaBTC, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<b><i>💰3 stakers earned $33</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<a href="https://cashtab.com/">Cashtab</a>\n' +
+                    '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
+                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '\n' +
+                    '🪙 <b><i>9 token txs</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">040...103</a>: 🧪➡️🔥🔨\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ➡️\n' +
+                    '🗻 <b>1</b> ALP tx\n' +
+                    '🧩 <b>1</b> Mint Vault tx\n' +
+                    '🖼 <b>1</b> NFT tx\n' +
+                    '❌ <b>1</b> invalid token tx\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
@@ -403,11 +477,15 @@ describe('parse.js functions', function () {
     it('summarizeTxHistory summarizes a collection of txs across multiple blocks without fiat price', function () {
         const mockUtcNewDayTimestampSeconds = 1728950400;
         assert.deepEqual(
-            summarizeTxHistory(mockUtcNewDayTimestampSeconds, dailyTxs),
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                tokenInfoMap,
+            ),
             [
                 '<b>15 Oct 2024</b>\n' +
-                    '📦1,331 blocks\n' +
-                    '➡️15 txs\n' +
+                    '📦56,311 blocks\n' +
+                    '➡️23 txs\n' +
                     '\n' +
                     '<b><i>⛏️3 miners found blocks</i></b>\n' +
                     '<u>Top 3</u>\n' +
@@ -425,7 +503,13 @@ describe('parse.js functions', function () {
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    '🪙 <b>1</b> token tx\n' +
+                    '🪙 <b><i>9 token txs</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
+                    '🗻 <b>1</b> ALP tx\n' +
+                    '🧩 <b>1</b> Mint Vault tx\n' +
+                    '🖼 <b>1</b> NFT tx\n' +
+                    '❌ <b>1</b> invalid token tx\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +

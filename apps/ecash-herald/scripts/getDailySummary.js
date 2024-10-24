@@ -22,6 +22,7 @@ const axios = require('axios');
 const {
     getAllBlockTxs,
     getBlocksAgoFromChaintipByTimestamp,
+    getTokenInfoMap,
 } = require('../src/chronik');
 const { summarizeTxHistory } = require('../src/parse');
 const { sendBlockSummary } = require('../src/telegram');
@@ -83,6 +84,16 @@ const getDailySummary = async (timestamp, telegramBot, channelId) => {
 
     const allBlockTxs = (await Promise.all(getAllBlockTxPromises)).flat();
 
+    const tokensToday = new Set();
+    for (const tx of allBlockTxs) {
+        const { tokenEntries } = tx;
+        for (const tokenEntry of tokenEntries) {
+            tokensToday.add(tokenEntry.tokenId);
+        }
+    }
+    // Get all the token info of tokens from today
+    const tokenInfoMap = await getTokenInfoMap(chronik, tokensToday);
+
     console.log(`${allBlockTxs.length} txs from blocks in the window`);
 
     // We only want txs in the specified window
@@ -100,6 +111,7 @@ const getDailySummary = async (timestamp, telegramBot, channelId) => {
     const dailySummaryTgMsgs = summarizeTxHistory(
         timestamp,
         timeFirstSeenTxs,
+        tokenInfoMap,
         priceInfo,
     );
 

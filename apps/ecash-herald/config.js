@@ -53,6 +53,10 @@ module.exports = {
     },
     emojis: {
         alias: '👾',
+        alp: '🗻',
+        invalid: '❌',
+        nft: '🖼',
+        mintvault: '🧩',
         block: '📦',
         miner: '⛏️',
         staker: '💰',
@@ -61,6 +65,7 @@ module.exports = {
         tokenBurn: '🔥',
         tokenGenesis: '🧪',
         tokenSend: '🎟',
+        tokenMint: '🔨',
         gift: '🎁',
         bank: '🏦',
         app: '📱',

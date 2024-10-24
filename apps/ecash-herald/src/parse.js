@@ -2145,10 +2145,10 @@ module.exports = {
      *
      * @param {number} now unix timestamp in seconds
      * @param {Tx[]} txs array of CONFIRMED Txs
-     * @param {object} priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
-     * @param {number} blockheight height of the most recently finalized block
+     * @param {Map} tokenInfoMap tokenId => genesisInfo
+     * @param {object | undefined} priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
      */
-    summarizeTxHistory: function (now, txs, priceInfo) {
+    summarizeTxHistory: function (now, txs, tokenInfoMap, priceInfo) {
         const xecPriceUsd =
             typeof priceInfo !== 'undefined' ? priceInfo.usd : undefined;
         // Throw out any unconfirmed txs
@@ -2191,6 +2191,13 @@ module.exports = {
         let tokenTxs = 0;
         let appTxs = 0;
         let unknownLokadTxs = 0;
+
+        // tokenId => {info, listings, adPreps, sends, burns, mints, genesis: {genesisQty: <>, hasBaton: <>}}
+        const tokenActions = new Map();
+        let invalidTokenEntries = 0;
+        let nftTokenEntries = 0;
+        let mintVaultTokenEntries = 0;
+        let alpTokenEntries = 0;
 
         for (const tx of txs) {
             const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
@@ -2283,6 +2290,243 @@ module.exports = {
             // Other token actions
             if (tokenEntries.length > 0) {
                 tokenTxs += 1;
+
+                for (const tokenEntry of tokenEntries) {
+                    // Get the tokenId
+                    // Note that groupTokenId is only defined for NFT child
+                    const {
+                        tokenId,
+                        tokenType,
+                        txType,
+                        groupTokenId,
+                        isInvalid,
+                        actualBurnAmount,
+                    } = tokenEntry;
+                    const { type } = tokenType;
+
+                    if (isInvalid) {
+                        // TODO find this for test tx
+                        invalidTokenEntries += 1;
+                        // Log to console so if we see this tx, we can analyze it for parsing
+                        console.info(
+                            `Unparsed isInvalid tokenEntry in tx: ${tx.txid}`,
+                        );
+                        // No other parsing for this tokenEntry
+                        continue;
+                    }
+
+                    if (type === 'ALP_TOKEN_TYPE_STANDARD') {
+                        // TODO ALP parsing
+                        alpTokenEntries += 1;
+                        // Log to console so if we see this tx, we can analyze it for parsing
+                        console.info(
+                            `Unparsed ALP_TOKEN_TYPE_STANDARD tokenEntry in tx: ${tx.txid}`,
+                        );
+                        // No other parsing for this tokenEntry
+                        continue;
+                    }
+
+                    if (type === 'SLP_TOKEN_TYPE_MINT_VAULT') {
+                        // TODO mint valt parsing
+                        mintVaultTokenEntries += 1;
+                        // Log to console so if we see this tx, we can analyze it for parsing
+                        console.info(
+                            `Unparsed SLP_TOKEN_TYPE_MINT_VAULT tokenEntry in tx: ${tx.txid}`,
+                        );
+                        // No other parsing for this tokenEntry
+                        continue;
+                    }
+
+                    if (typeof groupTokenId !== 'undefined') {
+                        // TODO NFT parsing
+                        nftTokenEntries += 1;
+                        // No need to log, plenty of available examples
+                        // Just save for another diff
+                        // No other parsing for this tokenEntry
+                        continue;
+                    }
+                    if (type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
+                        switch (txType) {
+                            case 'NONE': {
+                                invalidTokenEntries += 1;
+                                // Log to console so if we see this tx, we can analyze it for parsing
+                                console.info(
+                                    `Unparsed SLP_TOKEN_TYPE_FUNGIBLE txType NONE tokenEntry in tx: ${tx.txid}`,
+                                );
+                                // No other parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'UNKNOWN': {
+                                invalidTokenEntries += 1;
+                                // Log to console so if we see this tx, we can analyze it for parsing
+                                console.info(
+                                    `Unparsed SLP_TOKEN_TYPE_FUNGIBLE txType UNKNOWN tokenEntry in tx: ${tx.txid}`,
+                                );
+                                // No other parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'GENESIS': {
+                                const genesis = {
+                                    amount: '0',
+                                    hasBaton: false,
+                                };
+                                // See if we already have tokenActions at this tokenId
+                                const existingActions =
+                                    tokenActions.get(tokenId);
+                                for (const output of outputs) {
+                                    if (typeof output.token !== 'undefined') {
+                                        if (output.token.tokenId === tokenId) {
+                                            // Per spec, SLP 1 genesis qty is always at output index 1
+                                            // But we iterate over all outputs to check for mint batons
+                                            const { amount, isMintBaton } =
+                                                output.token;
+                                            if (isMintBaton) {
+                                                // TODO this is var supply token
+                                                genesis.hasBaton = true;
+                                            } else {
+                                                genesis.amount = amount;
+                                                // TODO this is the genesis qty
+                                            }
+                                        }
+                                        tokenActions.set(
+                                            tokenId,
+                                            typeof existingActions ===
+                                                'undefined'
+                                                ? { genesis, actionCount: 1 }
+                                                : {
+                                                      ...existingActions,
+                                                      genesis,
+                                                      actionCount:
+                                                          existingActions.actionCount +
+                                                          1,
+                                                  },
+                                        );
+                                        // No further parsing for this tokenEntry
+                                        continue;
+                                    }
+                                }
+                                break;
+                            }
+                            case 'SEND': {
+                                // SEND may be Agora or Burn
+                                const existingActions =
+                                    tokenActions.get(tokenId);
+
+                                // TODO parse agora
+
+                                // Parse as burn
+                                if (actualBurnAmount !== '0') {
+                                    tokenActions.set(
+                                        tokenId,
+                                        typeof existingActions === 'undefined'
+                                            ? {
+                                                  burn: { count: 1 },
+                                                  actionCount: 1,
+                                              }
+                                            : {
+                                                  ...existingActions,
+                                                  burn: {
+                                                      count:
+                                                          'burn' in
+                                                          existingActions
+                                                              ? existingActions
+                                                                    .burn
+                                                                    .count + 1
+                                                              : 1,
+                                                  },
+                                                  actionCount:
+                                                      existingActions.actionCount +
+                                                      1,
+                                              },
+                                    );
+                                    // No further parsing
+                                    continue;
+                                }
+
+                                // Parse as send
+                                tokenActions.set(
+                                    tokenId,
+                                    typeof existingActions === 'undefined'
+                                        ? { send: { count: 1 }, actionCount: 1 }
+                                        : {
+                                              ...existingActions,
+                                              send: {
+                                                  count:
+                                                      'send' in existingActions
+                                                          ? existingActions.send
+                                                                .count + 1
+                                                          : 1,
+                                              },
+                                              actionCount:
+                                                  existingActions.actionCount +
+                                                  1,
+                                          },
+                                );
+                                // No further parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'MINT': {
+                                const existingActions =
+                                    tokenActions.get(tokenId);
+                                tokenActions.set(
+                                    tokenId,
+                                    typeof existingActions === 'undefined'
+                                        ? { mint: { count: 1 }, actionCount: 1 }
+                                        : {
+                                              ...existingActions,
+                                              mint: {
+                                                  count:
+                                                      'mint' in existingActions
+                                                          ? existingActions.mint
+                                                                .count + 1
+                                                          : 1,
+                                              },
+                                              actionCount:
+                                                  existingActions.actionCount +
+                                                  1,
+                                          },
+                                );
+                                // No further parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'BURN': {
+                                const existingActions =
+                                    tokenActions.get(tokenId);
+                                tokenActions.set(
+                                    tokenId,
+                                    typeof existingActions === 'undefined'
+                                        ? { burn: { count: 1 }, actionCount: 1 }
+                                        : {
+                                              ...existingActions,
+                                              burn: {
+                                                  count:
+                                                      'burn' in existingActions
+                                                          ? existingActions.burn
+                                                                .count + 1
+                                                          : 1,
+                                              },
+                                              actionCount:
+                                                  existingActions.actionCount +
+                                                  1,
+                                          },
+                                );
+                                // No further parsing for this tokenEntry
+                                continue;
+                            }
+                            default:
+                                // Can we get here?
+                                // Log for analysis if it happens
+                                invalidTokenEntries += 1;
+                                console.info(
+                                    `Switch default token action in tx: ${tx.txid}`,
+                                );
+                                // No further analysis this tokenEntry
+                                continue;
+                        }
+                    }
+                }
+
+                // No further action this tx
                 continue;
                 /**
                  * Token tx
@@ -2488,12 +2732,99 @@ module.exports = {
             tgMsg.push('');
         }
 
+        // Token summary
         if (tokenTxs > 0) {
-            tgMsg.push(
-                `${config.emojis.token} <b>${tokenTxs.toLocaleString(
-                    'en-US',
-                )}</b> token tx${tokenTxs > 1 ? 's' : ''}`,
+            // Sort tokenActions map by number of token actions
+            const sortedTokenActions = new Map(
+                [...tokenActions.entries()].sort(
+                    (keyValueArrayA, keyValueArrayB) =>
+                        keyValueArrayB[1].actionCount -
+                        keyValueArrayA[1].actionCount,
+                ),
             );
+            tgMsg.push(
+                `${config.emojis.token} <b><i>${tokenTxs.toLocaleString(
+                    'en-US',
+                )} token tx${tokenTxs > 1 ? 's' : ''}</i></b>`,
+            );
+            sortedTokenActions.forEach((tokenActionInfo, tokenId) => {
+                const genesisInfo = tokenInfoMap.get(tokenId);
+
+                const { send, genesis, burn, mint } = tokenActionInfo;
+
+                tgMsg.push(
+                    `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                        typeof genesisInfo === 'undefined'
+                            ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
+                            : genesisInfo.tokenName
+                    }</a>${
+                        typeof genesisInfo === 'undefined'
+                            ? ''
+                            : genesisInfo.tokenTicker !== ''
+                            ? ` (${genesisInfo.tokenTicker})`
+                            : ''
+                    }: ${
+                        typeof genesis !== 'undefined'
+                            ? config.emojis.tokenGenesis
+                            : ''
+                    }${
+                        typeof send !== 'undefined'
+                            ? `${config.emojis.arrowRight}${
+                                  send.count > 1 ? `x${send.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        typeof burn !== 'undefined'
+                            ? `${config.emojis.tokenBurn}${
+                                  burn.count > 1 ? `x${burn.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        typeof mint !== 'undefined'
+                            ? `${config.emojis.tokenMint}${
+                                  mint.count > 1 ? `x${mint.count}` : ''
+                              }`
+                            : ''
+                    }`,
+                );
+            });
+            if (alpTokenEntries > 0) {
+                tgMsg.push(
+                    `${config.emojis.alp} <b>${alpTokenEntries.toLocaleString(
+                        'en-US',
+                    )}</b> ALP tx${alpTokenEntries > 1 ? 's' : ''}`,
+                );
+            }
+            if (mintVaultTokenEntries > 0) {
+                tgMsg.push(
+                    `${
+                        config.emojis.mintvault
+                    } <b>${mintVaultTokenEntries.toLocaleString(
+                        'en-US',
+                    )}</b> Mint Vault tx${
+                        mintVaultTokenEntries > 1 ? 's' : ''
+                    }`,
+                );
+            }
+            if (nftTokenEntries > 0) {
+                tgMsg.push(
+                    `${config.emojis.nft} <b>${nftTokenEntries.toLocaleString(
+                        'en-US',
+                    )}</b> NFT tx${nftTokenEntries > 1 ? 's' : ''}`,
+                );
+            }
+            if (invalidTokenEntries > 0) {
+                tgMsg.push(
+                    `${
+                        config.emojis.invalid
+                    } <b>${invalidTokenEntries.toLocaleString(
+                        'en-US',
+                    )}</b> invalid token tx${
+                        invalidTokenEntries > 1 ? 's' : ''
+                    }`,
+                );
+            }
+            // Line break for new section
             tgMsg.push('');
         }
 

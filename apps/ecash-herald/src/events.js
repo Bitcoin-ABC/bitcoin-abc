@@ -234,6 +234,17 @@ module.exports = {
                 tx.isCoinbase,
         );
 
+        // Get tokenIds of all tokens seen in this batch of txs
+        const tokensToday = new Set();
+        for (const tx of timeFirstSeenTxs) {
+            const { tokenEntries } = tx;
+            for (const tokenEntry of tokenEntries) {
+                tokensToday.add(tokenEntry.tokenId);
+            }
+        }
+        // Get all the token info of tokens from today
+        const tokenInfoMap = await getTokenInfoMap(chronik, tokensToday);
+
         // Get XEC price and market info
         let priceInfo;
         try {
@@ -249,6 +260,7 @@ module.exports = {
         const dailySummaryTgMsgs = summarizeTxHistory(
             newDayTimestamp,
             timeFirstSeenTxs,
+            tokenInfoMap,
             priceInfo,
         );
 
