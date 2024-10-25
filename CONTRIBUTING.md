@@ -182,7 +182,7 @@ rustup toolchain link abc-nightly "$(rustc +nightly-2023-08-23 --print sysroot)"
 Contributing to the web projects
 --------------------------------
 
-To contribute to web projects, you will need `nodejs` > 16 and `npm` > 8.5.0.
+To contribute to web projects, you will need `nodejs` > 20 and `npm` > 10.8.3.
 Follow these [installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating)
 to install `nodejs` with node version manager.
 
@@ -190,7 +190,7 @@ Then:
 
 ```
 cd bitcoin-abc
-[sudo] nvm install 16
+[sudo] nvm install 20
 [sudo] npm install -g npm@latest
 [sudo] npm install -g prettier@2.6.0
 [sudo] npm install -g eslint@8.3.0
