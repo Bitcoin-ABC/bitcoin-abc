@@ -886,7 +886,9 @@ const Tx = ({
 
                     <TokenInfoCol>
                         <TokenName>{tokenName}</TokenName>
-                        <TokenTicker>({tokenTicker})</TokenTicker>
+                        {tokenTicker !== '' && (
+                            <TokenTicker>({tokenTicker})</TokenTicker>
+                        )}
                     </TokenInfoCol>
                     <TokenDesc>
                         {renderedTxType === 'Fan-out'
