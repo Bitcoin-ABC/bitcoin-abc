@@ -29,7 +29,6 @@ import { explorer } from 'config/explorer';
 import {
     nanoSatoshisToXec,
     decimalizeTokenAmount,
-    undecimalizeTokenAmount,
     toXec,
     getAgoraPartialAcceptFuelInputs,
     getAgoraPartialCancelFuelInputs,
@@ -204,11 +203,6 @@ const OrderBook = ({
     };
 
     const acceptOffer = async agoraPartial => {
-        // Get user-selected accept amount in units of token satoshis
-        const acceptedTokens = BigInt(
-            undecimalizeTokenAmount(takeTokenQty, decimals),
-        );
-
         // Determine tx fee from settings
         const satsPerKb =
             settings.minFeeSends &&
@@ -237,7 +231,7 @@ const OrderBook = ({
             acceptFuelInputs = getAgoraPartialAcceptFuelInputs(
                 agoraPartial,
                 eligibleUtxos,
-                acceptedTokens,
+                BigInt(takeTokenSatoshis),
                 satsPerKb,
             );
         } catch (err) {
@@ -284,7 +278,7 @@ const OrderBook = ({
                     fromHex(wallet.paths.get(appConfig.derivationPath).hash),
                 ),
                 feePerKb: satsPerKb,
-                acceptedTokens,
+                acceptedTokens: BigInt(takeTokenSatoshis),
             })
             .ser();
 
@@ -300,7 +294,10 @@ const OrderBook = ({
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    {`Bought ${takeTokenQty} ${tokenName} ${tokenTicker} for
+                    {`Bought ${decimalizeTokenAmount(
+                        takeTokenSatoshis,
+                        decimals,
+                    )} ${tokenName} ${tokenTicker} for
                     ${toXec(askedSats).toLocaleString(userLocale)} XEC
                     ${
                         fiatPrice !== null
@@ -329,7 +326,7 @@ const OrderBook = ({
     // In Cashtab, offers are sorted by spot price; so this is the spot offer
     const [selectedIndex, setSelectedIndex] = useState(0);
     const selectedOffer = activeOffers[selectedIndex];
-    const maxTokens = selectedOffer.token.amount;
+    const tokenSatoshisMax = BigInt(selectedOffer.token.amount);
 
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
     const [showAcceptedQtyInfo, setShowAcceptedQtyInfo] = useState(false);
@@ -337,8 +334,8 @@ const OrderBook = ({
     const [showConfirmBuyModal, setShowConfirmBuyModal] = useState(false);
     const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
 
-    const handleTakeTokenQtySlide = e => {
-        setTakeTokenQty(e.target.value);
+    const handleTakeTokenSatoshisSlide = e => {
+        setTakeTokenSatoshis(e.target.value);
     };
 
     const { params } = selectedOffer.variant;
@@ -353,7 +350,7 @@ const OrderBook = ({
             : toHex(activePk) === toHex(makerPk);
 
     // See public minAcceptedTokens() in partial.ts, from ecash-agora
-    const preparedMinAcceptedTokens = params.minAcceptedTokens();
+    const tokenSatoshisMin = params.minAcceptedTokens();
 
     // Handle case of token info not available in cache
     let tokenName = <InlineLoader />;
@@ -363,6 +360,7 @@ const OrderBook = ({
     // We will not allow fungible token sales if we do not have
     // token cached info
     // This is because we need the decimals to really know the quantity
+    let tokenSatoshisStep;
     let decimalizedTokenMin = false;
     let decimalizedTokenMax = false;
     let decimalizedStep = false;
@@ -375,27 +373,36 @@ const OrderBook = ({
                 ? ''
                 : ` (${cachedTokenInfo.genesisInfo.tokenTicker})`;
 
+        // We need undecimimalized amounts as BigInts so we do not have JS number math effects
+        // The sliders need to work under the hood with token sats as BigInts
+        // But we need decimalized amounts to show the user
+
         // We calculate decimalized values to show the user what he is buying
         decimalizedTokenMin = decimalizeTokenAmount(
-            preparedMinAcceptedTokens.toString(),
+            tokenSatoshisMin.toString(),
             decimals,
         );
-        decimalizedTokenMax = decimalizeTokenAmount(maxTokens, decimals);
 
         // Agora Partial offers may only be accepted in discrete amounts
         // We configure the slider to render only these amounts
-        const tokenSatoshisGranularity = BigInt(maxTokens) / truncTokens;
+        tokenSatoshisStep = BigInt(tokenSatoshisMax) / truncTokens;
         decimalizedStep = decimalizeTokenAmount(
-            tokenSatoshisGranularity.toString(),
+            tokenSatoshisStep.toString(),
+            decimals,
+        );
+
+        decimalizedTokenMax = decimalizeTokenAmount(
+            tokenSatoshisMax.toString(),
             decimals,
         );
     }
 
     // Initialize accepted qty as the minimum
-    const [takeTokenQty, setTakeTokenQty] = useState(
-        decimalizedTokenMin === false ? '0' : decimalizedTokenMin,
+    // Note that takeTokenSatoshis is a string because slider values are strings
+    const [takeTokenSatoshis, setTakeTokenSatoshis] = useState(
+        tokenSatoshisMin.toString(),
     );
-    const [takeTokenQtyError, setTakeTokenQtyError] = useState(false);
+    const [takeTokenSatoshisError, setTakeTokenSatoshisError] = useState(false);
 
     /**
      * Update validation and asking price if the selected offer or qty
@@ -406,31 +413,34 @@ const OrderBook = ({
             // If we are still loading token info, do nothing
             return;
         }
-        setTakeTokenQtyError(
+        setTakeTokenSatoshisError(
             getAgoraPartialAcceptTokenQtyError(
-                takeTokenQty,
-                Number(decimalizedTokenMin),
-                Number(decimalizedTokenMax),
+                BigInt(takeTokenSatoshis),
+                tokenSatoshisMin,
+                tokenSatoshisMax,
                 decimals,
             ),
         );
 
-        const tokenSats = undecimalizeTokenAmount(
-            takeTokenQty.toString(),
-            decimals,
-        );
-
         // Note you must prepareAcceptedTokens for the price
-        const spotPriceSatsThisQty = selectedOffer.askedSats(BigInt(tokenSats));
+        // Note, this amount is be prepared as the slider has a step corresponding
+        // with the granularity of the token offer, and all the math is done with BigInt
+        const spotPriceSatsThisQty = selectedOffer.askedSats(
+            BigInt(takeTokenSatoshis),
+        );
         setAskedSats(Number(spotPriceSatsThisQty));
 
         // Update when token qty or selectedOffer changes
-    }, [takeTokenQty]);
+    }, [takeTokenSatoshis]);
 
     // Update the slider when the user selects a different offer
     useEffect(() => {
         // Select the minAcceptedTokens amount every time the order changes
-        setTakeTokenQty(decimalizedTokenMin);
+        setTakeTokenSatoshis(
+            activeOffers[selectedIndex].variant.params
+                .minAcceptedTokens()
+                .toString(),
+        );
     }, [selectedIndex]);
 
     return (
@@ -456,7 +466,7 @@ const OrderBook = ({
             {showConfirmBuyModal && (
                 <Modal
                     title={`Buy ${decimalizedTokenQtyToLocaleFormat(
-                        takeTokenQty,
+                        decimalizeTokenAmount(takeTokenSatoshis, decimals),
                         userLocale,
                     )} ${tokenName}${tokenTicker} for ${toXec(
                         askedSats,
@@ -560,9 +570,13 @@ const OrderBook = ({
                                     {index === selectedIndex && (
                                         <TentativeAcceptBar
                                             acceptPercent={
-                                                (activeOffer.depthPercent *
-                                                    takeTokenQty) /
-                                                Number(decimalizedTokenMax)
+                                                Number(
+                                                    activeOffer.depthPercent,
+                                                ) *
+                                                Number(
+                                                    BigInt(takeTokenSatoshis) /
+                                                        tokenSatoshisMax,
+                                                )
                                             }
                                         ></TentativeAcceptBar>
                                     )}
@@ -574,22 +588,29 @@ const OrderBook = ({
             </OfferRow>
             {decimalizedTokenMin !== false &&
                 decimalizedTokenMax !== false &&
-                decimalizedStep !== false && (
+                decimalizedStep !== false &&
+                typeof tokenSatoshisMin !== 'undefined' &&
+                typeof tokenSatoshisMax !== 'undefined' &&
+                typeof tokenSatoshisStep !== 'undefined' &&
+                typeof takeTokenSatoshis !== 'undefined' && (
                     <>
                         <SliderRow>
                             <Slider
                                 name={`Select buy qty ${tokenId}`}
-                                value={takeTokenQty}
-                                error={takeTokenQtyError}
-                                handleSlide={handleTakeTokenQtySlide}
-                                min={Number(decimalizedTokenMin)}
-                                max={Number(decimalizedTokenMax)}
-                                step={Number(decimalizedStep)}
+                                value={takeTokenSatoshis}
+                                error={takeTokenSatoshisError}
+                                handleSlide={handleTakeTokenSatoshisSlide}
+                                min={tokenSatoshisMin.toString()}
+                                max={tokenSatoshisMax.toString()}
+                                step={tokenSatoshisStep.toString()}
                                 fixedWidth
                             />
                             <DataAndQuestionButton>
                                 {decimalizedTokenQtyToLocaleFormat(
-                                    takeTokenQty,
+                                    decimalizeTokenAmount(
+                                        takeTokenSatoshis,
+                                        decimals,
+                                    ),
                                     userLocale,
                                 )}{' '}
                                 <IconButton
@@ -624,7 +645,7 @@ const OrderBook = ({
                             ) : (
                                 <PrimaryButton
                                     onClick={() => setShowConfirmBuyModal(true)}
-                                    disabled={takeTokenQtyError}
+                                    disabled={takeTokenSatoshisError}
                                 >
                                     Buy {tokenName}
                                     {tokenTicker}

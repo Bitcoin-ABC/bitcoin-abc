@@ -616,7 +616,7 @@ Slider.propTypes = {
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     min: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    step: PropTypes.number,
+    step: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     handleSlide: PropTypes.func,
     fixedWidth: PropTypes.bool,
     allowTypedInput: PropTypes.bool,

@@ -3,7 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { BN } from 'slp-mdm';
-import { toXec, toSatoshis, xecToNanoSatoshis } from 'wallet';
+import {
+    toXec,
+    toSatoshis,
+    xecToNanoSatoshis,
+    decimalizeTokenAmount,
+} from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import {
@@ -1164,9 +1169,9 @@ export const getAgoraPartialListPriceError = (
 };
 
 export const getAgoraPartialAcceptTokenQtyError = (
-    acceptTokenQty,
-    offerMinAcceptTokenQty,
-    offerMaxAcceptTokenQty,
+    acceptTokenSatoshis,
+    offerMinAcceptTokenSatoshis,
+    offerMaxAcceptSatoshis,
     decimals,
 ) => {
     /**
@@ -1191,9 +1196,13 @@ export const getAgoraPartialAcceptTokenQtyError = (
      * So, in Cashtab, we only test for case 2 here
      */
 
-    const threshold = offerMaxAcceptTokenQty - offerMinAcceptTokenQty;
-    if (acceptTokenQty > threshold && acceptTokenQty < offerMaxAcceptTokenQty) {
-        return `Must accept <= ${threshold.toFixed(
+    const threshold = offerMaxAcceptSatoshis - offerMinAcceptTokenSatoshis;
+    if (
+        acceptTokenSatoshis > threshold &&
+        acceptTokenSatoshis < offerMaxAcceptSatoshis
+    ) {
+        return `Must accept <= ${decimalizeTokenAmount(
+            threshold.toString(),
             decimals,
         )} or the full offer`;
     }
