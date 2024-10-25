@@ -580,6 +580,7 @@ add_library(script
 	script/bitfield.cpp
 	script/descriptor.cpp
 	script/interpreter.cpp
+	script/intmath.cpp
 	script/script.cpp
 	script/script_error.cpp
 	script/sigencoding.cpp
