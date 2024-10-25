@@ -982,6 +982,56 @@ export const agoraOfferCachetBetaOne = new AgoraOffer({
     },
 });
 
+export const scamAgoraPartial = new AgoraPartial({
+    dustAmount: 546,
+    enforcedLockTime: 1174486988,
+    minAcceptedScaledTruncTokens: 260100n,
+    numSatsTruncBytes: 1,
+    numTokenTruncBytes: 0,
+    scaledTruncTokensPerTruncSat: 26n,
+    scriptLen: 209,
+    tokenId: '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+    tokenProtocol: 'SLP',
+    tokenScaleFactor: 2601n,
+    tokenType: 1,
+    truncTokens: 825472n,
+    // Does not correspond with real offer but do this for testing
+    makerPk: agoraPartialAlphaKeypair.pk,
+});
+export const scamAgoraOffer = new AgoraOffer({
+    outpoint: {
+        txid: '0c063e07319536f2ae46103f77c171b64ede1a64c3994f6e45531ee6d3daad0d',
+        outIdx: 1,
+    },
+    status: 'OPEN',
+    token: {
+        amount: '825472',
+        isMintBaton: false,
+        tokenId:
+            '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+        tokenType: {
+            number: 1,
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        },
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 1,
+            txid: '0c063e07319536f2ae46103f77c171b64ede1a64c3994f6e45531ee6d3daad0d',
+        },
+        signData: {
+            // "redeemScript" key is calculated from the built AgoraPartial
+            redeemScript: scamAgoraPartial.script(),
+            value: 546,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: scamAgoraPartial,
+    },
+});
+
 export const cachetCacheMocks = {
     token: {
         tokenId:
@@ -1216,6 +1266,131 @@ export const bullCacheMocks = {
             height: 835482,
             hash: '0000000000000000133bf16cb7fdab5c6ff64a874632eb2fe80265e34a6ad99f',
             timestamp: 1710174132,
+        },
+    },
+};
+export const scamCacheMocks = {
+    token: {
+        tokenId:
+            '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            number: 1,
+        },
+        timeFirstSeen: 1729800176,
+        genesisInfo: {
+            tokenTicker: 'BUX',
+            tokenName: 'Badger Universal Token',
+            url: 'https://bux.digital',
+            decimals: 2,
+            hash: '',
+        },
+        block: {
+            height: 867981,
+            hash: '00000000000000001d559ee486061f5157292d0409643b530945824b29f4efe7',
+            timestamp: 1729801148,
+        },
+    },
+    tx: {
+        txid: '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'cf7204ea08d44df721df0a1174bb089f70fa702e48522e10c4109dcf6e22ba99',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41c49a217049062d517dbf6884fc4d34c1e29b39e387782de7be7214fb3aefdea3f875e70cab2aacf570084a8332c89cf3c2fe01b43007cd35991a4d4f0dd403f9412103e8f234ebcc6d04a7046f53b2fae4c2dd2904de5da609632f50277b90af57a9d5',
+                value: 4200,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001010747454e45534953034255581642616467657220556e6976657273616c20546f6b656e1368747470733a2f2f6275782e6469676974616c4c0001020102080000000000989680',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
+                token: {
+                    tokenId:
+                        '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '10000000',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '982e300279bc9e626ad726f71e44733335ab91789aff1f650a5197c75bb19228',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
+                token: {
+                    tokenId:
+                        '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 2424,
+                outputScript:
+                    '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
+                spentBy: {
+                    txid: '982e300279bc9e626ad726f71e44733335ab91789aff1f650a5197c75bb19228',
+                    outIdx: 1,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1729800176,
+        size: 340,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 867981,
+            hash: '00000000000000001d559ee486061f5157292d0409643b530945824b29f4efe7',
+            timestamp: 1729801148,
         },
     },
 };

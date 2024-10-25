@@ -7,7 +7,6 @@ import { WalletContext } from 'wallet/context';
 import { LoadingCtn, SwitchLabel } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
-
 import { toHex } from 'ecash-lib';
 import {
     ActiveOffers,
@@ -21,6 +20,7 @@ import * as wif from 'wif';
 import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
 import OrderBook from './OrderBook';
+import { token as tokenConfig } from 'config/token';
 
 const Agora = () => {
     const userLocale = getUserLocale(navigator);
@@ -205,23 +205,33 @@ const Agora = () => {
         // Initialize a counter object for logging total open agora partials
         // We use an object so we can do the counting with promise.all()
         const activeOfferCounter = { count: 0 };
+        let blacklistedOffers = 0;
         for (const offeredTokenId of offeredFungibleTokenIds) {
             if (
                 typeof cashtabCache.tokens.get(offeredTokenId) === 'undefined'
             ) {
                 // If we do not have token info for this collection cached, keep track of it
+                // Note that we cache blacklisted offers
                 tokenIdsWeNeedToCache.add(offeredTokenId);
             }
-            getActiveOffersByTokenIdAndAddToMapPromises.push(
-                returnGetActiveOffersByTokenIdAndAddToMapPromise(
-                    cashtabCache,
-                    offeredTokenId,
-                    activeOffersByTokenId,
-                    tokenIdsWeNeedToCache,
-                    activeOfferCounter,
-                ),
-            );
+            // We only render non-blacklisted offers
+            if (tokenConfig.blacklist.includes(offeredTokenId)) {
+                blacklistedOffers += 1;
+            } else {
+                getActiveOffersByTokenIdAndAddToMapPromises.push(
+                    returnGetActiveOffersByTokenIdAndAddToMapPromise(
+                        cashtabCache,
+                        offeredTokenId,
+                        activeOffersByTokenId,
+                        tokenIdsWeNeedToCache,
+                        activeOfferCounter,
+                    ),
+                );
+            }
         }
+        console.info(
+            `${blacklistedOffers} blacklisted tokens have active offers`,
+        );
 
         // Iterate over activeOffersByPubKey and build a map, organizing user offers by tokenId
         for (const offer of activeOffersByPubKey) {

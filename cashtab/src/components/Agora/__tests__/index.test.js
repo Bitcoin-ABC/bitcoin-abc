@@ -21,8 +21,10 @@ import {
     agoraOfferCachetAlphaTwo,
     agoraOfferCachetBetaOne,
     agoraOfferBullAlphaOne,
+    scamAgoraOffer,
     cachetCacheMocks,
     bullCacheMocks,
+    scamCacheMocks,
     agoraPartialBetaWallet,
     agoraPartialAlphaKeypair,
     agoraPartialBetaKeypair,
@@ -61,6 +63,7 @@ describe('<Agora />', () => {
     let ecc;
     const CACHET_TOKEN_ID = cachetCacheMocks.token.tokenId;
     const BULL_TOKEN_ID = bullCacheMocks.token.tokenId;
+    const SCAM_TOKEN_ID = scamCacheMocks.token.tokenId;
     beforeAll(async () => {
         await initWasm();
         ecc = new Ecc();
@@ -82,7 +85,11 @@ describe('<Agora />', () => {
 
         // Mock chronik calls used to build token cache to show
         // the user can load a page without having the token info cached
-        for (const tokenCacheMock of [cachetCacheMocks, bullCacheMocks]) {
+        for (const tokenCacheMock of [
+            cachetCacheMocks,
+            bullCacheMocks,
+            scamCacheMocks,
+        ]) {
             mockedChronik.setMock('token', {
                 input: tokenCacheMock.token.tokenId,
                 output: tokenCacheMock.token,
@@ -265,6 +272,70 @@ describe('<Agora />', () => {
 
         // We see the token name and ticker above its PartialOffer
         expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
+
+        // Because this offer was created by this wallet, we have the option to cancel it
+        expect(
+            screen.getByRole('button', { name: 'Cancel your offer' }),
+        ).toBeInTheDocument();
+    });
+    it('A blacklisted offer does not render in all offers, but will render in My offers', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // mock await agora.offeredFungibleTokenIds();
+        mockedAgora.setOfferedFungibleTokenIds([SCAM_TOKEN_ID]);
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(SCAM_TOKEN_ID, [scamAgoraOffer]);
+        // also mock await agora.activeOffersByPubKey(toHex(activePk))
+        mockedAgora.setActiveOffersByPubKey(
+            toHex(agoraPartialAlphaKeypair.pk),
+            [scamAgoraOffer],
+        );
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                route={`/agora/`}
+            />,
+        );
+
+        // Wait for the screen to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for agora offers to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading active offers'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for element to get token info and load
+        expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
+
+        // We see the Token Offers section
+        expect(screen.getByText('Token Offers')).toBeInTheDocument();
+
+        // But we have no offers
+        expect(
+            screen.getByText('No tokens are currently listed for sale'),
+        ).toBeInTheDocument();
+
+        // We switch to see our created offers
+        await userEvent.click(screen.getByTitle('Toggle Active Offers'));
+
+        expect(screen.getByText('Manage your listings')).toBeInTheDocument();
+
+        // We see the token name and ticker above its PartialOffer
+        expect(
+            screen.getByText('Badger Universal Token (BUX)'),
+        ).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(
