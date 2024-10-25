@@ -21,5 +21,10 @@ export const token = {
         '2a328dbe125bd0ef8d199b2b4f20ce84bb36a7c0d12246668163a6077d4f494b',
         '3387978c85f382632ecb5cdc23c4912c4c22688790d9264f84c3c1351c049719',
         '07da70e787181ac67a34f9292b4e13a93cd081e4ca540a8ddafe4cc86ee26e2d',
+        // meta coin submitted with meta corp logo
+        '7c14895521c158798478a64d146f67f22e1c8c5b962422ed47636fda71d82f1d',
+        // "coca cola" submitted with coca colo logo
+        'a6a16ac38d37e35c9f9eb81e9014827cef9da105a94607ec16a2c6e76224d098',
+        'db2e95abe66f6b1f21a860a177b7a73565182185a99b6043b5183f59df7ecfbf',
     ],
 };
