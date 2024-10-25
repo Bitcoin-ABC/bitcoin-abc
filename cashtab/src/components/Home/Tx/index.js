@@ -714,7 +714,12 @@ const Tx = ({
                         );
                         // isCanceled is always the last pushop (before redeemScript)
                         const opIsCanceled = ops[ops.length - 2];
-                        const isCanceled = opIsCanceled === OP_0;
+                        // I am not sure if this the best way to distinguish sales from cancels for partials but this
+                        // does work with known examples
+                        const isCanceled =
+                            opIsCanceled === OP_0 ||
+                            (typeof opIsCanceled.opcode !== 'undefined' &&
+                                opIsCanceled.opcode === 65);
 
                         if (isCanceled) {
                             isAgoraCancel = true;
@@ -836,11 +841,10 @@ const Tx = ({
             // For a genesis tx -- cashtab will only create outputs at this wallet. So, just render this.
             // For a sent tx, we want amountTotal - amountThisWallet (amountThisWallet is change)
             const renderedTokenAmount =
-                renderedTxType === 'Received'
+                renderedTxType === 'Received' || renderedTxType === 'Agora Buy'
                     ? amountThisWallet
                     : renderedTxType === 'Created' ||
                       renderedTxType === 'Minted' ||
-                      renderedTxType === 'Agora Buy' ||
                       renderedTxType === 'Agora Cancel'
                     ? amountTotal
                     : amountTotal - amountThisWallet;

@@ -47,6 +47,8 @@ import {
     agoraOneshotSaleTx,
     AgoraOneshotCancelTx,
     agoraPartialBuyTx,
+    agoraPartialBuxBuyTx,
+    agoraPartialCancelTwo,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -268,6 +270,18 @@ export default {
                 tx: agoraPartialBuyTx.tx,
                 hashes: ['7847fe7070bec8567b3e810f543f2f80cc3e03be'],
                 parsed: agoraPartialBuyTx.parsed,
+            },
+            {
+                description: 'Buy 14 bux is rendered as buy 14',
+                tx: agoraPartialBuxBuyTx.tx,
+                hashes: ['76458db0ed96fe9863fc1ccec9fa2cfab884b0f6'],
+                parsed: agoraPartialBuxBuyTx.parsed,
+            },
+            {
+                description: 'Another agora partial cancel',
+                tx: agoraPartialCancelTwo.tx,
+                hashes: [agoraPartialCancelTwo.hash],
+                parsed: agoraPartialCancelTwo.parsed,
             },
         ],
     },
