@@ -12,7 +12,9 @@
 namespace {
 /// Internal RIPEMD-160 implementation.
 namespace ripemd160 {
-    inline uint32_t f1(uint32_t x, uint32_t y, uint32_t z) { return x ^ y ^ z; }
+    inline uint32_t f1(uint32_t x, uint32_t y, uint32_t z) {
+        return x ^ y ^ z;
+    }
     inline uint32_t f2(uint32_t x, uint32_t y, uint32_t z) {
         return (x & y) | (~x & z);
     }

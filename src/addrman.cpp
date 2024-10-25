@@ -131,8 +131,8 @@ double AddrInfo::GetChance(NodeSeconds now) const {
 
 AddrManImpl::AddrManImpl(std::vector<bool> &&asmap,
                          int32_t consistency_check_ratio)
-    : m_consistency_check_ratio{consistency_check_ratio}, m_asmap{std::move(
-                                                              asmap)} {}
+    : m_consistency_check_ratio{consistency_check_ratio},
+      m_asmap{std::move(asmap)} {}
 
 AddrManImpl::~AddrManImpl() {
     nKey.SetNull();

@@ -221,7 +221,9 @@ public:
 private:                                                                       \
     mutable std::atomic<T> refcount{0};                                        \
                                                                                \
-    void incrementRefCount() const { refcount++; }                             \
+    void incrementRefCount() const {                                           \
+        refcount++;                                                            \
+    }                                                                          \
                                                                                \
     bool tryDecrement() const {                                                \
         T count = refcount.load();                                             \

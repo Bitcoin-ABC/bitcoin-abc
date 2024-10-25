@@ -110,17 +110,17 @@ add-apt-repository "deb https://apt.llvm.org/bullseye/   llvm-toolchain-bullseye
 apt-get update
 
 LLVM_PACKAGES=(
-  clang-12
-  clang-format-12
-  clang-tidy-12
-  clang-tools-12
+  clang-16
+  clang-format-16
+  clang-tidy-16
+  clang-tools-16
 )
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${LLVM_PACKAGES[@]}")
 
 # Make sure our specific llvm and clang versions have highest priority
-update-alternatives --install /usr/bin/clang clang "$(command -v clang-12)" 100
-update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-12)" 100
-update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-12)" 100
+update-alternatives --install /usr/bin/clang clang "$(command -v clang-16)" 100
+update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-16)" 100
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-16)" 100
 
 # Use gcc-9/g++-9 by default so it uses libstdc++-9. This prevents from pulling
 # the new pthread_cond_clockwait symbol from GLIBC_30 and ensure we are testing

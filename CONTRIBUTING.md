@@ -137,23 +137,21 @@ enforce Bitcoin ABC code formatting standards, and often suggests changes.
 If code formatting tools do not install automatically on your system, you
 will have to install the following:
 
-Install all the code formatting tools on Debian Bullseye (11) or Ubuntu 20.04:
+Install all the code formatting tools on Debian Bullseye/Bookworm (11/12) or
+Ubuntu 24.04:
 ```
-sudo apt-get install python3-pip php-codesniffer shellcheck yamllint
+sudo apt-get install clang-format-16 clang-tidy-16 python3-pip php-codesniffer shellcheck yamllint
+
+# Depending on your distribution policy you might need to pass the
+# --break-system-packages to the below pip3 call
 pip3 install "black>=24.0" "isort>=5.6.4" "mypy>=0.910" "flynt>=0.78" "flake8>=5" flake8-comprehensions flake8-builtins "djlint>=1.34.1"
+
 echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-If not available in the distribution, `clang-format-12` and `clang-tidy-12` can be
+If not available in the distribution, `clang-format-16` and `clang-tidy-16` can be
 installed from <https://releases.llvm.org/download.html> or <https://apt.llvm.org>.
-
-For example, for macOS:
-```
-curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/clang+llvm-12.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
-ln -s $PWD/clang+llvm-12.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
-ln -s $PWD/clang+llvm-12.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
-```
 
 If you are modifying a shell script, you will need to install the `shellcheck` linter.
 A recent version is required and may not be packaged for your distribution.

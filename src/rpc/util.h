@@ -287,10 +287,10 @@ struct RPCResult {
 
     RPCResult(std::string cond, Type type, std::string key_name, bool optional,
               std::string description, std::vector<RPCResult> inner = {})
-        : m_type{std::move(type)},
-          m_key_name{std::move(key_name)}, m_inner{std::move(inner)},
-          m_optional{optional}, m_skip_type_check{false},
-          m_description{std::move(description)}, m_cond{std::move(cond)} {
+        : m_type{std::move(type)}, m_key_name{std::move(key_name)},
+          m_inner{std::move(inner)}, m_optional{optional},
+          m_skip_type_check{false}, m_description{std::move(description)},
+          m_cond{std::move(cond)} {
         CHECK_NONFATAL(!m_cond.empty());
         CheckInnerDoc();
     }
@@ -304,9 +304,9 @@ struct RPCResult {
     RPCResult(Type type, std::string key_name, bool optional,
               std::string description, std::vector<RPCResult> inner = {},
               bool skip_type_check = false)
-        : m_type{std::move(type)},
-          m_key_name{std::move(key_name)}, m_inner{std::move(inner)},
-          m_optional{optional}, m_skip_type_check{skip_type_check},
+        : m_type{std::move(type)}, m_key_name{std::move(key_name)},
+          m_inner{std::move(inner)}, m_optional{optional},
+          m_skip_type_check{skip_type_check},
           m_description{std::move(description)}, m_cond{} {
         CheckInnerDoc();
     }

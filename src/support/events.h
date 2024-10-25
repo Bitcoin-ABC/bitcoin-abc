@@ -14,7 +14,9 @@
 #define MAKE_RAII(type)                                                        \
     /* deleter */                                                              \
     struct type##_deleter {                                                    \
-        void operator()(struct type *ob) { type##_free(ob); }                  \
+        void operator()(struct type *ob) {                                     \
+            type##_free(ob);                                                   \
+        }                                                                      \
     };                                                                         \
     /* unique ptr typedef */                                                   \
     typedef std::unique_ptr<struct type, type##_deleter> raii_##type

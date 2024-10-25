@@ -5,9 +5,9 @@
         },
         "clang-format": {
             "type": "clang-format",
-            "version": ">=12.0",
+            "version": ">=16.0",
             "bin": [
-                "clang-format-12",
+                "clang-format-16",
                 "clang-format"
             ],
             "include": "(^(src|chronik)/.*\\.(h|c|cpp|mm)$)",

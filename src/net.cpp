@@ -3450,9 +3450,8 @@ CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
              bool inbound_onion)
     : m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
-      addrBind(addrBindIn), m_addr_name{addrNameIn.empty()
-                                            ? addr.ToStringIPPort()
-                                            : addrNameIn},
+      addrBind(addrBindIn),
+      m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
       m_inbound_onion(inbound_onion), nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these

@@ -102,10 +102,9 @@ private:
 public:
     CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee, int64_t time,
                     unsigned int entry_height, int64_t sigchecks, LockPoints lp)
-        : tx{_tx}, nFee{fee},
-          nTxSize(tx->GetTotalSize()), nUsageSize{RecursiveDynamicUsage(tx)},
-          nTime(time), entryHeight{entry_height}, sigChecks(sigchecks),
-          lockPoints(lp) {}
+        : tx{_tx}, nFee{fee}, nTxSize(tx->GetTotalSize()),
+          nUsageSize{RecursiveDynamicUsage(tx)}, nTime(time),
+          entryHeight{entry_height}, sigChecks(sigchecks), lockPoints(lp) {}
 
     CTxMemPoolEntry(const CTxMemPoolEntry &other) = delete;
     CTxMemPoolEntry(CTxMemPoolEntry &&other)

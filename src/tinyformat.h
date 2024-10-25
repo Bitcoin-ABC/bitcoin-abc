@@ -1024,8 +1024,8 @@ namespace detail {
 #ifdef TINYFORMAT_USE_VARIADIC_TEMPLATES
         template <typename... Args>
         explicit FormatListN(const Args &...args)
-            : FormatList(&m_formatterStore[0], N), m_formatterStore{
-                                                       FormatArg(args)...} {
+            : FormatList(&m_formatterStore[0], N),
+              m_formatterStore{FormatArg(args)...} {
             static_assert(sizeof...(args) == N, "Number of args must be N");
         }
 #else // C++98 version
