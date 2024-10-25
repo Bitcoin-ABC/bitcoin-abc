@@ -9976,7 +9976,7 @@ export const agoraOneshotSaleTx = {
 };
 
 // e9d594e054bf9a7cead11cdc31953f0e45782c97c6298513f41b70eb408aa1a8
-export const agoraPartialBuyTx = {
+export const agoraPartialCancelTx = {
     tx: {
         txid: 'e9d594e054bf9a7cead11cdc31953f0e45782c97c6298513f41b70eb408aa1a8',
         version: 2,

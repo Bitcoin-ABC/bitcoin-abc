@@ -46,7 +46,7 @@ import {
     agoraAdSetupTxSlpNft,
     agoraOneshotSaleTx,
     AgoraOneshotCancelTx,
-    agoraPartialBuyTx,
+    agoraPartialCancelTx,
     agoraPartialBuxBuyTx,
     agoraPartialCancelTwo,
 } from './mocks';
@@ -266,10 +266,10 @@ export default {
                 parsed: AgoraOneshotCancelTx.parsed,
             },
             {
-                description: 'Agora partial listing purchase',
-                tx: agoraPartialBuyTx.tx,
+                description: 'Agora partial listing cancellation',
+                tx: agoraPartialCancelTx.tx,
                 hashes: ['7847fe7070bec8567b3e810f543f2f80cc3e03be'],
-                parsed: agoraPartialBuyTx.parsed,
+                parsed: agoraPartialCancelTx.parsed,
             },
             {
                 description: 'Buy 14 bux is rendered as buy 14',

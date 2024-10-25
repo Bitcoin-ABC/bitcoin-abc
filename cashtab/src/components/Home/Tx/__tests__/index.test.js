@@ -55,7 +55,7 @@ import {
     agoraOneshotSaleTx,
     AgoraOneshotCancelTx,
     agoraPartialCancelTwo,
-    agoraPartialBuyTx,
+    agoraPartialCancelTx,
     agoraPartialBuxBuyTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
@@ -3035,18 +3035,19 @@ describe('<Tx />', () => {
         expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
     });
     it('Agora partial cancel tx (token info available in cache)', async () => {
+        const thisMock = agoraPartialCancelTx;
         render(
             <MemoryRouter>
                 <ThemeProvider theme={theme}>
                     <Tx
-                        tx={agoraPartialBuyTx.tx}
+                        tx={thisMock.tx}
                         hashes={['7847fe7070bec8567b3e810f543f2f80cc3e03be']}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
                             ...new CashtabState(),
                             cashtabCache: {
-                                tokens: new Map(agoraPartialBuyTx.cache),
+                                tokens: new Map(thisMock.cache),
                             },
                         }}
                         chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
@@ -3070,7 +3071,7 @@ describe('<Tx />', () => {
 
         // We see the token icon
         expect(
-            screen.getByAltText(`icon for ${agoraPartialBuyTx.cache[0][0]}`),
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
         ).toBeInTheDocument();
 
         // We see the Agora Sale icon
@@ -3081,31 +3082,30 @@ describe('<Tx />', () => {
 
         // We see the token name
         expect(
-            screen.getByText(
-                agoraPartialBuyTx.cache[0][1].genesisInfo.tokenName,
-            ),
+            screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
         ).toBeInTheDocument();
 
         // We see the token ticker in parenthesis in the summary column
         expect(
             screen.getByText(
-                `(${agoraPartialBuyTx.cache[0][1].genesisInfo.tokenTicker})`,
+                `(${thisMock.cache[0][1].genesisInfo.tokenTicker})`,
             ),
         ).toBeInTheDocument();
 
         // We see the expected token action
         expect(
             screen.getByText(
-                `Canceled offer of 855.738679296 ${agoraPartialBuyTx.cache[0][1].genesisInfo.tokenTicker}`,
+                `Canceled offer of 855.738679296 ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
             ),
         ).toBeInTheDocument();
     });
     it('Agora partial cancel tx (uncached)', async () => {
+        const thisMock = agoraPartialCancelTx;
         render(
             <MemoryRouter>
                 <ThemeProvider theme={theme}>
                     <Tx
-                        tx={agoraPartialBuyTx.tx}
+                        tx={thisMock.tx}
                         hashes={['7847fe7070bec8567b3e810f543f2f80cc3e03be']}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
@@ -3130,7 +3130,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('-')).toBeInTheDocument();
 
         expect(
-            screen.getByAltText(`icon for ${agoraPartialBuyTx.cache[0][0]}`),
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
         ).toBeInTheDocument();
 
         // We see the Agora Sale icon
