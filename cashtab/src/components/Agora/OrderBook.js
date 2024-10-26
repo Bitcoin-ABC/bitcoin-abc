@@ -551,6 +551,10 @@ const OrderBook = ({
                 </OfferIconCol>
                 <DepthBarCol>
                     {activeOffers.map((activeOffer, index) => {
+                        const { depthPercent } = activeOffer;
+                        const acceptPercent =
+                            (depthPercent * Number(takeTokenSatoshis)) /
+                            Number(tokenSatoshisMax);
                         return (
                             <OrderBookRow
                                 key={index}
@@ -569,19 +573,11 @@ const OrderBook = ({
                                         fiatPrice,
                                     )}
                                     <DepthBar
-                                        depthPercent={activeOffer.depthPercent}
+                                        depthPercent={depthPercent}
                                     ></DepthBar>
                                     {index === selectedIndex && (
                                         <TentativeAcceptBar
-                                            acceptPercent={
-                                                Number(
-                                                    activeOffer.depthPercent,
-                                                ) *
-                                                Number(
-                                                    BigInt(takeTokenSatoshis) /
-                                                        tokenSatoshisMax,
-                                                )
-                                            }
+                                            acceptPercent={acceptPercent}
                                         ></TentativeAcceptBar>
                                     )}
                                 </OrderbookPrice>
