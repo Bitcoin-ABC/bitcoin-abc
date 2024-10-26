@@ -710,16 +710,12 @@ const Tx = ({
                         // For now, I don't think it makes sense to have an 'isCanceled' method from ecash-agora
                         // This is a pretty specific application
                         const ops = scriptOps(
-                            new Script(fromHex(inputs[0].inputScript)),
+                            new Script(fromHex(input.inputScript)),
                         );
                         // isCanceled is always the last pushop (before redeemScript)
                         const opIsCanceled = ops[ops.length - 2];
-                        // I am not sure if this the best way to distinguish sales from cancels for partials but this
-                        // does work with known examples
-                        const isCanceled =
-                            opIsCanceled === OP_0 ||
-                            (typeof opIsCanceled.opcode !== 'undefined' &&
-                                opIsCanceled.opcode === 65);
+
+                        const isCanceled = opIsCanceled === OP_0;
 
                         if (isCanceled) {
                             isAgoraCancel = true;
