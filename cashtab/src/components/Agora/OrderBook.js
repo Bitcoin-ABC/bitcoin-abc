@@ -344,10 +344,14 @@ const OrderBook = ({
     // Determine if the active wallet created this offer
     // Used to render Buy or Cancel option to the user
     // Validate activePk as it could be null from Agora/index.js (not yet calculated)
-    const isMaker =
-        typeof activePk.length === 'undefined'
-            ? false
-            : toHex(activePk) === toHex(makerPk);
+    let isMaker = false;
+    try {
+        isMaker = toHex(activePk) === toHex(makerPk);
+    } catch (err) {
+        console.error(`Error comparing activePk with makerPk`);
+        console.error(`activePk`, activePk);
+        console.error(`makerPk`, makerPk);
+    }
 
     // See public minAcceptedTokens() in partial.ts, from ecash-agora
     const tokenSatoshisMin = params.minAcceptedTokens();
