@@ -52,6 +52,10 @@ module.exports = {
         shrimp: 0,
     },
     emojis: {
+        agora: '🏛',
+        agoraBuy: '💰',
+        agoraList: '🏷',
+        agoraCancel: '❌',
         alias: '👾',
         alp: '🗻',
         invalid: '❌',

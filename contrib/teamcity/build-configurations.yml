@@ -60,6 +60,8 @@ templates:
   #    to be built, otherwise unset
   #  - DEPENDS_ECASH_LIB: "true" if these tests require ecash-lib to be
   #    built, otherwise unset
+  #  - DEPENDS_ECASH_AGORA: "true" if these tests require ecash-agora to be built,
+  #    otherwise unset
   #  - DEPENDS_CHRONIK_CLIENT: "true" if these tests require chronik-client
   #    to be build, otherwise unset
   js-mocha:
@@ -117,6 +119,15 @@ templates:
       else
         echo "Test depends on ecash-lib. Building TypeScript..."
         pushd "${TOPLEVEL}/modules/ecash-lib"
+        npm ci
+        npm run build
+      fi
+
+      if [ -z "${DEPENDS_ECASH_AGORA+x}" ] ; then
+        echo "Test does not depend on ecash-agora"
+      else
+        echo "Test depends on ecash-agora. Building TypeScript..."
+        pushd "${TOPLEVEL}/modules/ecash-agora"
         npm ci
         npm run build
       fi
@@ -836,6 +847,9 @@ builds:
       DEPENDS_CHRONIK_CLIENT: "true"
       DEPENDS_ECASH_SCRIPT: "true"
       DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_ECASH_LIB: "true"
+      DEPENDS_ECASH_AGORA: "true"
     templates:
       - js-mocha
 

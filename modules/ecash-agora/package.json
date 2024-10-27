@@ -3,7 +3,6 @@
     "version": "0.1.1",
     "description": "Library for interacting with the eCash Agora protocol",
     "main": "./dist/index.js",
-    "type": "module",
     "scripts": {
         "build": "tsc && tsc -p ./tsconfig.build.json",
         "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts",

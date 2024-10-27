@@ -27,6 +27,8 @@ const {
     containsOnlyPrintableAscii,
 } = require('./utils');
 const lokadMap = require('../constants/lokad');
+const { scriptOps } = require('ecash-agora');
+const { Script, fromHex, OP_0 } = require('ecash-lib');
 
 // Constants for SLP 1 token types as returned by chronik-client
 const SLP_1_PROTOCOL_NUMBER = 1;
@@ -2192,12 +2194,16 @@ module.exports = {
         let appTxs = 0;
         let unknownLokadTxs = 0;
 
-        // tokenId => {info, listings, adPreps, sends, burns, mints, genesis: {genesisQty: <>, hasBaton: <>}}
+        // tokenId => {info, list, cancel, buy, adPrep, send, burn, mint, genesis: {genesisQty: <>, hasBaton: <>}}
         const tokenActions = new Map();
         let invalidTokenEntries = 0;
         let nftTokenEntries = 0;
         let mintVaultTokenEntries = 0;
         let alpTokenEntries = 0;
+
+        // Agora vars
+        let agoraTxs = 0;
+        const agoraActions = new Map();
 
         for (const tx of txs) {
             const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
@@ -2388,6 +2394,9 @@ module.exports = {
                                                 // TODO this is the genesis qty
                                             }
                                         }
+                                        // We do not use initializeOrIncrementTokenData here
+                                        // genesis does not follow the same structure
+                                        // Count is not important but we have more info for genesis
                                         tokenActions.set(
                                             tokenId,
                                             typeof existingActions ===
@@ -2409,106 +2418,195 @@ module.exports = {
                             }
                             case 'SEND': {
                                 // SEND may be Agora or Burn
-                                const existingActions =
+                                const existingTokenActions =
                                     tokenActions.get(tokenId);
+                                const existingAgoraActions =
+                                    agoraActions.get(tokenId);
 
-                                // TODO parse agora
+                                // For now, we assume that any p2sh token input is agora buy/cancel
+                                // and any p2sh token output is an ad setup tx
+                                // No other known cases of p2sh for token txs on ecash today
+                                // tho multisig is possible, no supporting wallets
+
+                                // mb parse for ad setup first, which is p2sh output?
+
+                                let isAgoraBuySellList = false;
+                                for (const input of inputs) {
+                                    if (typeof input.token !== 'undefined') {
+                                        const { outputScript, inputScript } =
+                                            input;
+                                        // A token input that is p2sh may be
+                                        // a listing, an ad setup, a buy, or a cancel
+                                        try {
+                                            const { type } =
+                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                    outputScript,
+                                                );
+                                            if (type === 'p2sh') {
+                                                // We are only parsing SLP agora txs here
+                                                // A listing will have AGR0 lokad in input script
+                                                const AGORA_LOKAD_STARTSWITH =
+                                                    '0441475230';
+
+                                                if (
+                                                    inputScript.startsWith(
+                                                        AGORA_LOKAD_STARTSWITH,
+                                                    )
+                                                ) {
+                                                    // Agora tx
+                                                    // For now, we know all listing txs only have a single p2sh input
+
+                                                    if (inputs.length === 1) {
+                                                        // Agora listing
+                                                        module.exports.initializeOrIncrementTokenData(
+                                                            agoraActions,
+                                                            existingAgoraActions,
+                                                            tokenId,
+                                                            'list',
+                                                        );
+                                                        isAgoraBuySellList = true;
+                                                        // Stop processing inputs for this tx
+                                                        break;
+                                                    }
+                                                    // Check if this is a cancellation
+                                                    // See agora.ts from ecash-agora lib
+                                                    // For now, I don't think it makes sense to have an 'isCanceled' method from ecash-agora
+                                                    // This is a pretty specific application
+                                                    const ops = scriptOps(
+                                                        new Script(
+                                                            fromHex(
+                                                                inputScript,
+                                                            ),
+                                                        ),
+                                                    );
+                                                    // isCanceled is always the last pushop (before redeemScript)
+                                                    const opIsCanceled =
+                                                        ops[ops.length - 2];
+
+                                                    const isCanceled =
+                                                        opIsCanceled === OP_0;
+
+                                                    if (isCanceled) {
+                                                        // Agora cancel
+                                                        module.exports.initializeOrIncrementTokenData(
+                                                            agoraActions,
+                                                            existingAgoraActions,
+                                                            tokenId,
+                                                            'cancel',
+                                                        );
+                                                        isAgoraBuySellList = true;
+                                                        // Stop processing inputs for this tx
+                                                        break;
+                                                    } else {
+                                                        // Agora purchase
+                                                        module.exports.initializeOrIncrementTokenData(
+                                                            agoraActions,
+                                                            existingAgoraActions,
+                                                            tokenId,
+                                                            'buy',
+                                                        );
+                                                        isAgoraBuySellList = true;
+                                                        // Stop processing inputs for this tx
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error(
+                                                `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
+                                            );
+                                            // Do not parse it as an agora tx
+                                        }
+                                        // We don't need to find any other inputs for this case
+                                        break;
+                                    }
+                                }
+                                if (isAgoraBuySellList) {
+                                    agoraTxs += 1;
+                                    // We have already processed this token tx
+                                    continue;
+                                }
+
+                                // Check for ad prep tx
+                                let isAdPrep = false;
+                                for (const output of outputs) {
+                                    if (typeof output.token !== 'undefined') {
+                                        const { outputScript } = output;
+                                        // We assume a p2sh token output is an ad setup tx
+                                        // No other known use cases at the moment
+                                        try {
+                                            const { type } =
+                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                    outputScript,
+                                                );
+                                            if (type === 'p2sh') {
+                                                // Agora ad setup tx for SLP1
+                                                module.exports.initializeOrIncrementTokenData(
+                                                    agoraActions,
+                                                    existingAgoraActions,
+                                                    tokenId,
+                                                    'adPrep',
+                                                );
+                                                break;
+                                                // Stop iterating over outputs
+                                            }
+                                        } catch (err) {
+                                            console.error(
+                                                `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
+                                            );
+                                            // Do not parse it as an agora tx
+                                        }
+                                    }
+                                }
+                                if (isAdPrep) {
+                                    agoraTxs += 1;
+                                    // We have processed this tx as an Agora Ad setup tx
+                                    // No further processing
+                                    continue;
+                                }
 
                                 // Parse as burn
                                 if (actualBurnAmount !== '0') {
-                                    tokenActions.set(
+                                    module.exports.initializeOrIncrementTokenData(
+                                        tokenActions,
+                                        existingTokenActions,
                                         tokenId,
-                                        typeof existingActions === 'undefined'
-                                            ? {
-                                                  burn: { count: 1 },
-                                                  actionCount: 1,
-                                              }
-                                            : {
-                                                  ...existingActions,
-                                                  burn: {
-                                                      count:
-                                                          'burn' in
-                                                          existingActions
-                                                              ? existingActions
-                                                                    .burn
-                                                                    .count + 1
-                                                              : 1,
-                                                  },
-                                                  actionCount:
-                                                      existingActions.actionCount +
-                                                      1,
-                                              },
+                                        'burn',
                                     );
                                     // No further parsing
                                     continue;
                                 }
 
                                 // Parse as send
-                                tokenActions.set(
+                                module.exports.initializeOrIncrementTokenData(
+                                    tokenActions,
+                                    existingTokenActions,
                                     tokenId,
-                                    typeof existingActions === 'undefined'
-                                        ? { send: { count: 1 }, actionCount: 1 }
-                                        : {
-                                              ...existingActions,
-                                              send: {
-                                                  count:
-                                                      'send' in existingActions
-                                                          ? existingActions.send
-                                                                .count + 1
-                                                          : 1,
-                                              },
-                                              actionCount:
-                                                  existingActions.actionCount +
-                                                  1,
-                                          },
+                                    'send',
                                 );
                                 // No further parsing for this tokenEntry
                                 continue;
                             }
                             case 'MINT': {
-                                const existingActions =
+                                const existingTokenActions =
                                     tokenActions.get(tokenId);
-                                tokenActions.set(
+                                module.exports.initializeOrIncrementTokenData(
+                                    tokenActions,
+                                    existingTokenActions,
                                     tokenId,
-                                    typeof existingActions === 'undefined'
-                                        ? { mint: { count: 1 }, actionCount: 1 }
-                                        : {
-                                              ...existingActions,
-                                              mint: {
-                                                  count:
-                                                      'mint' in existingActions
-                                                          ? existingActions.mint
-                                                                .count + 1
-                                                          : 1,
-                                              },
-                                              actionCount:
-                                                  existingActions.actionCount +
-                                                  1,
-                                          },
+                                    'mint',
                                 );
                                 // No further parsing for this tokenEntry
                                 continue;
                             }
                             case 'BURN': {
-                                const existingActions =
+                                const existingTokenActions =
                                     tokenActions.get(tokenId);
-                                tokenActions.set(
+                                module.exports.initializeOrIncrementTokenData(
+                                    tokenActions,
+                                    existingTokenActions,
                                     tokenId,
-                                    typeof existingActions === 'undefined'
-                                        ? { burn: { count: 1 }, actionCount: 1 }
-                                        : {
-                                              ...existingActions,
-                                              burn: {
-                                                  count:
-                                                      'burn' in existingActions
-                                                          ? existingActions.burn
-                                                                .count + 1
-                                                          : 1,
-                                              },
-                                              actionCount:
-                                                  existingActions.actionCount +
-                                                  1,
-                                          },
+                                    'burn',
                                 );
                                 // No further parsing for this tokenEntry
                                 continue;
@@ -2528,25 +2626,6 @@ module.exports = {
 
                 // No further action this tx
                 continue;
-                /**
-                 * Token tx
-                 *
-                 * Possibilities
-                 *
-                 * GENESIS, SEND, MINT, BURN
-                 * agora list, agora ad prep, agora buy
-                 *
-                 * So first, check if it is agora-related or not
-                 *
-                 * ad prep example
-                 * https://explorer.e.cash/tx/e7ca2e9e9c778f130206520eebfa7244c300ca95e90284782ed54a8b376406da
-                 *
-                 * listing example
-                 * https://explorer.e.cash/tx/d142c4d3ee2fc09bca13314f9b5b1476b6bc3806f6db989b003e2d57a96c6cc5
-                 */
-                // Burn, mint, or genesis
-                // send -- if output size is not dust and it's to a p2sh, call it ad prep tx
-                // if output size dust and to a p2sh, call it a listing (mb a partial buy?)
             }
             const firstOutputScript = outputs[0].outputScript;
             const LOKAD_OPRETURN_STARTSWITH = '6a04';
@@ -2732,6 +2811,111 @@ module.exports = {
             tgMsg.push('');
         }
 
+        // Agora summary
+        if (agoraTxs > 0) {
+            // Zero out counters for sorting purposes
+            agoraActions.forEach((agoraActionInfo, tokenId) => {
+                // Note we do not check adPrep as any token with adPrep has listing
+                const { buy, list, cancel } = agoraActionInfo;
+
+                if (typeof buy === 'undefined') {
+                    agoraActionInfo.buy = { count: 0 };
+                }
+                if (typeof list === 'undefined') {
+                    agoraActionInfo.list = { count: 0 };
+                }
+                if (typeof cancel === 'undefined') {
+                    agoraActionInfo.cancel = { count: 0 };
+                }
+                agoraActions.set(tokenId, agoraActionInfo);
+            });
+
+            // Sort agoraActions by buys
+            const sortedAgoraActions = new Map(
+                [...agoraActions.entries()].sort(
+                    (keyValueArrayA, keyValueArrayB) =>
+                        keyValueArrayB[1].buy.count -
+                        keyValueArrayA[1].buy.count,
+                ),
+            );
+
+            const agoraTokens = Array.from(sortedAgoraActions.keys());
+            const agoraTokenCount = agoraTokens.length;
+
+            tgMsg.push(
+                `${config.emojis.agora} <b><i>${agoraTxs.toLocaleString(
+                    'en-US',
+                )} Agora tx${
+                    agoraTxs > 1 ? 's' : ''
+                } from ${agoraTokenCount} token${
+                    agoraTokenCount > 1 ? 's' : ''
+                }</i></b>`,
+            );
+
+            const AGORA_TOKENS_TO_SHOW = 10;
+
+            // Handle case where we do not see as many agora tokens as our max
+            const agoraTokensToShow =
+                agoraTokenCount < AGORA_TOKENS_TO_SHOW
+                    ? agoraTokenCount
+                    : AGORA_TOKENS_TO_SHOW;
+            const newsworthyAgoraTokens = agoraTokens.slice(
+                0,
+                agoraTokensToShow,
+            );
+
+            if (agoraTokenCount > AGORA_TOKENS_TO_SHOW) {
+                tgMsg.push(`<u>Top ${AGORA_TOKENS_TO_SHOW}</u>`);
+            }
+
+            // Emoji key
+            tgMsg.push(
+                `${config.emojis.agoraBuy}Buy, ${config.emojis.agoraList}List, ${config.emojis.agoraCancel}Cancel`,
+            );
+
+            for (let i = 0; i < newsworthyAgoraTokens.length; i += 1) {
+                const tokenId = newsworthyAgoraTokens[i];
+                const tokenActionInfo = sortedAgoraActions.get(tokenId);
+                const genesisInfo = tokenInfoMap.get(tokenId);
+
+                const { buy, list, cancel } = tokenActionInfo;
+
+                tgMsg.push(
+                    `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                        typeof genesisInfo === 'undefined'
+                            ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
+                            : genesisInfo.tokenName
+                    }</a>${
+                        typeof genesisInfo === 'undefined'
+                            ? ''
+                            : genesisInfo.tokenTicker !== ''
+                            ? ` (${genesisInfo.tokenTicker})`
+                            : ''
+                    }: ${
+                        buy.count > 0
+                            ? `${config.emojis.agoraBuy}${
+                                  buy.count > 1 ? `x${buy.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        list.count > 0
+                            ? `${config.emojis.agoraList}${
+                                  list.count > 1 ? `x${list.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        cancel.count > 0
+                            ? `${config.emojis.agoraCancel}${
+                                  cancel.count > 1 ? `x${cancel.count}` : ''
+                              }`
+                            : ''
+                    }`,
+                );
+            }
+            // Newline after agora section
+            tgMsg.push('');
+        }
+
         // Token summary
         if (tokenTxs > 0) {
             // Sort tokenActions map by number of token actions
@@ -2742,12 +2926,39 @@ module.exports = {
                         keyValueArrayA[1].actionCount,
                 ),
             );
+
+            // Note we may have some agora tokens here, which is fine
+            // If agora tokens are also the top for other actions, want to demonstrate that
+            const nonAgoraTokens = Array.from(sortedTokenActions.keys());
+
+            const nonAgoraTokenCount = nonAgoraTokens.length;
             tgMsg.push(
                 `${config.emojis.token} <b><i>${tokenTxs.toLocaleString(
                     'en-US',
-                )} token tx${tokenTxs > 1 ? 's' : ''}</i></b>`,
+                )} token tx${
+                    tokenTxs > 1 ? 's' : ''
+                } from ${nonAgoraTokenCount} token${
+                    nonAgoraTokenCount > 1 ? 's' : ''
+                }</i></b>`,
             );
-            sortedTokenActions.forEach((tokenActionInfo, tokenId) => {
+
+            const NON_AGORA_TOKENS_TO_SHOW = 5;
+            const nonAgoraTokensToShow =
+                nonAgoraTokenCount < NON_AGORA_TOKENS_TO_SHOW
+                    ? nonAgoraTokenCount
+                    : NON_AGORA_TOKENS_TO_SHOW;
+            const newsworthyTokens = nonAgoraTokens.slice(
+                0,
+                nonAgoraTokensToShow,
+            );
+
+            if (nonAgoraTokenCount > NON_AGORA_TOKENS_TO_SHOW) {
+                tgMsg.push(`<u>Top ${NON_AGORA_TOKENS_TO_SHOW}</u>`);
+            }
+
+            for (let i = 0; i < newsworthyTokens.length; i += 1) {
+                const tokenId = newsworthyTokens[i];
+                const tokenActionInfo = sortedTokenActions.get(tokenId);
                 const genesisInfo = tokenInfoMap.get(tokenId);
 
                 const { send, genesis, burn, mint } = tokenActionInfo;
@@ -2787,7 +2998,7 @@ module.exports = {
                             : ''
                     }`,
                 );
-            });
+            }
             if (alpTokenEntries > 0) {
                 tgMsg.push(
                     `${config.emojis.alp} <b>${alpTokenEntries.toLocaleString(
@@ -2905,5 +3116,40 @@ module.exports = {
         }
 
         return splitOverflowTgMsg(tgMsg);
+    },
+    /**
+     * Initialize action data for a token if not yet intialized
+     * Update action count if initialized
+     * @param {map} tokenActionMap
+     * @param {object | undefined} existingAction result from tokenActionMap.get(tokenId)
+     * @param {string} tokenId
+     * @param {string} action
+     */
+    initializeOrIncrementTokenData: function (
+        tokenActionMap,
+        existingActions,
+        tokenId,
+        action,
+    ) {
+        tokenActionMap.set(
+            tokenId,
+            typeof existingActions === 'undefined'
+                ? {
+                      [action]: {
+                          count: 1,
+                      },
+                      actionCount: 1,
+                  }
+                : {
+                      ...existingActions,
+                      [action]: {
+                          count:
+                              action in existingActions
+                                  ? existingActions[action].count + 1
+                                  : 1,
+                      },
+                      actionCount: existingActions.actionCount + 1,
+                  },
+        );
     },
 };
