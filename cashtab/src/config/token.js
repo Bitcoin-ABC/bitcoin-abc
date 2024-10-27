@@ -26,5 +26,7 @@ export const token = {
         // "coca cola" submitted with coca colo logo
         'a6a16ac38d37e35c9f9eb81e9014827cef9da105a94607ec16a2c6e76224d098',
         'db2e95abe66f6b1f21a860a177b7a73565182185a99b6043b5183f59df7ecfbf',
+        // fake raipay
+        '4c008a1cd5002063d2942daed16ff0e118bc3e41c7c0a4155ac096ee5a389c21',
     ],
 };
