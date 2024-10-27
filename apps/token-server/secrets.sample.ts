@@ -10,6 +10,12 @@ interface Secrets {
     approvedMods: number[];
     wallet: ServerWallet;
     recaptchaSecret: string;
+    db: {
+        username: string;
+        password: string;
+        containerName: string;
+        port: number;
+    };
 }
 
 interface TokenServerSecrets {
@@ -32,6 +38,12 @@ const secrets: TokenServerSecrets = {
             ),
         },
         recaptchaSecret: 'reCAPTCHA_COPY_SECRET_KEY',
+        db: {
+            username: 'username',
+            password: 'password',
+            containerName: 'localhost',
+            port: 27017,
+        },
     },
     prod: {
         botId: 'yourBotId',
@@ -50,6 +62,12 @@ const secrets: TokenServerSecrets = {
             ),
         },
         recaptchaSecret: 'reCAPTCHA_COPY_SECRET_KEY',
+        db: {
+            username: 'username',
+            password: 'password',
+            containerName: 'localhost',
+            port: 27017,
+        },
     },
 };
 

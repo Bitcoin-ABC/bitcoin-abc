@@ -13,8 +13,18 @@ interface TokenServerRateLimits {
     handler: RateLimitExceededEventHandler;
 }
 
+interface DbCollections {
+    blacklist: { name: string };
+}
+
+interface DatabaseConfig {
+    name: string;
+    collections: DbCollections;
+}
+
 interface TokenServerConfig {
     port: Number;
+    db: DatabaseConfig;
     chronikUrls: string[];
     eligibilityResetSeconds: number;
     rewardsTokenId: string;
@@ -33,6 +43,10 @@ interface TokenServerConfig {
 
 const config: TokenServerConfig = {
     port: 3333,
+    db: {
+        name: 'tokenServerDb',
+        collections: { blacklist: { name: 'blacklist' } },
+    },
     chronikUrls: [
         'https://chronik-native1.fabien.cash',
         'https://chronik-native2.fabien.cash',

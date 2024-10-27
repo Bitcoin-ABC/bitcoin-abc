@@ -14,14 +14,16 @@ import { getHistoryAfterTimestamp } from './chronik/clientHandler';
 import { isAddressEligibleForTokenReward } from './rewards';
 import { sendReward, sendXecAirdrop } from './transactions';
 import { ChronikClient } from 'chronik-client';
-import { isTokenImageRequest } from './validation';
+import { isTokenImageRequest, isValidTokenId } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
 import TelegramBot from 'node-telegram-bot-api';
-import { alertNewTokenIcon } from '../src/telegram';
+import { alertNewTokenIcon } from './telegram';
+import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
 import cashaddr from 'ecashaddrjs';
 import { Ecc } from 'ecash-lib';
 import { RateLimitRequestHandler } from 'express-rate-limit';
 import axios from 'axios';
+import { Db } from 'mongodb';
 
 /**
  * routes.ts
@@ -62,6 +64,7 @@ function logIpInfo(req: Request) {
 
 export const startExpressServer = (
     port: Number,
+    db: Db,
     chronik: ChronikClient,
     telegramBot: TelegramBot,
     fs: any,
@@ -100,6 +103,58 @@ export const startExpressServer = (
             status: 'running',
         });
     });
+
+    app.get('/blacklist', async function (req: Request, res: Response) {
+        logIpInfo(req);
+        try {
+            const tokenIds = await getBlacklistedTokenIds(db);
+            return res.status(200).json({ status: 'success', tokenIds });
+        } catch (err) {
+            console.error('Error retrieving tokenIds:', err);
+            return res.status(500).json({
+                status: 'error',
+                message: 'Failed to retrieve tokenIds',
+            });
+        }
+    });
+
+    app.get(
+        '/blacklist/:tokenId',
+        async function (req: Request, res: Response) {
+            logIpInfo(req);
+            const tokenId = req.params.tokenId;
+
+            if (!isValidTokenId(tokenId)) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: `Invalid tokenId: ${tokenId}`,
+                });
+            }
+            try {
+                // Check the blacklist
+                const entry = await getOneBlacklistEntry(db, tokenId);
+                console.log(`entry`, entry);
+                if (entry) {
+                    return res.status(200).json({
+                        status: 'success',
+                        isBlacklisted: true,
+                        entry,
+                    });
+                } else {
+                    return res.status(200).json({
+                        status: 'success',
+                        isBlacklisted: false,
+                    });
+                }
+            } catch (err) {
+                console.error(`Error retrieving /blacklist/${tokenId}`, err);
+                return res.status(500).json({
+                    status: 'error',
+                    message: `Failed to retrieve tokenId ${tokenId} from the database`,
+                });
+            }
+        },
+    );
 
     app.get(
         '/is-eligible/:address',

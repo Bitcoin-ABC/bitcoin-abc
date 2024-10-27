@@ -11,55 +11,93 @@ import { initializeTelegramBot } from './src/telegram';
 import fs from 'fs';
 import { Ecc, initWasm } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
+import { MongoClient } from 'mongodb';
+import { initializeDb } from './src/db';
 
 // Connect to available in-node chronik servers
 const chronik = new ChronikClient(config.chronikUrls);
 
+// Connect to database
+// Connection URL (default)
+const MONGODB_URL = `mongodb://${secrets.prod.db.username}:${secrets.prod.db.password}@${secrets.prod.db.containerName}:${secrets.prod.db.port}`;
+const client = new MongoClient(MONGODB_URL);
+// Check if database exists
+
 // Initialize websocket connection and log incoming blocks
 initWasm().then(
     () => {
-        const ecc = new Ecc();
-        // Initialize telegramBot
-        const telegramBot = initializeTelegramBot(
-            secrets.prod.botId,
-            secrets.prod.approvedMods,
-            fs,
+        initializeDb(client).then(
+            db => {
+                const ecc = new Ecc();
+                // Initialize telegramBot
+                const telegramBot = initializeTelegramBot(
+                    secrets.prod.botId,
+                    secrets.prod.approvedMods,
+                    fs,
+                );
+
+                // Start the express app to expose API endpoints
+                const server = startExpressServer(
+                    config.port,
+                    db,
+                    chronik,
+                    telegramBot,
+                    fs,
+                    ecc,
+                    rateLimit(config.limiter),
+                    rateLimit(config.tokenLimiter),
+                );
+                console.log(`Express server started on port ${config.port}`);
+
+                // Gracefully shut down on app termination
+                process.on('SIGTERM', () => {
+                    // kill <pid> from terminal
+                    server.close();
+                    console.log('token-server shut down by SIGTERM');
+                    // Shut down the telegram bot
+                    telegramBot.stopPolling();
+
+                    // Shut down the database
+                    client.close().then(() => {
+                        console.log('MongoDB connection closed');
+                        // Shut down token-server in non-error condition
+                        process.exit(0);
+                    });
+                });
+
+                process.on('SIGINT', () => {
+                    // ctrl + c in nodejs
+                    server.close();
+                    console.log('token-server shut down by ctrl+c');
+                    // Shut down the telegram bot
+                    telegramBot.stopPolling();
+
+                    // Shut down the database
+                    client.close().then(() => {
+                        console.log('MongoDB connection closed');
+                        // Shut down token-server in non-error condition
+                        process.exit(0);
+                    });
+                });
+            },
+            err => {
+                console.log(`Error initializing database`, err);
+                // Shut down the database
+                client.close().then(() => {
+                    console.log('MongoDB connection closed');
+                    // Shut down token-server in error condition
+                    process.exit(1);
+                });
+            },
         );
-
-        // Start the express app to expose API endpoints
-        const server = startExpressServer(
-            config.port,
-            chronik,
-            telegramBot,
-            fs,
-            ecc,
-            rateLimit(config.limiter),
-            rateLimit(config.tokenLimiter),
-        );
-        console.log(`Express server started on port ${config.port}`);
-
-        // Gracefully shut down on app termination
-        process.on('SIGTERM', () => {
-            // kill <pid> from terminal
-            server.close();
-            console.log('token-server shut down by SIGTERM');
-            // Shut down the telegram bot
-            telegramBot.stopPolling();
-            process.exit(0);
-        });
-
-        process.on('SIGINT', () => {
-            // ctrl + c in nodejs
-            server.close();
-            console.log('token-server shut down by ctrl+c');
-            // Shut down the telegram bot
-            telegramBot.stopPolling();
-            process.exit(0);
-        });
     },
     err => {
-        console.log(`Error initializing websocket in token-server`, err);
-        // Shut down in error condition
-        process.exit(1);
+        console.log(`Error initializing webassembly in token-server`, err);
+        // Shut down the database
+        client.close().then(() => {
+            console.log('MongoDB connection closed');
+            // Shut down token-server in error condition
+            process.exit(1);
+        });
     },
 );

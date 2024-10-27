@@ -20,19 +20,42 @@ import {
 } from './vectors';
 import { Ecc, initWasm } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
+import { MongoClient, Db } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import {
+    initializeDb,
+    initialBlacklist,
+    getBlacklistedTokenIds,
+} from '../src/db';
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 
+// Clone initialBlacklist before initializing the database
+// initializeDb(initialBlacklist) will modify the entries by adding an "_id" key
+const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
+
 describe('routes.js', async function () {
     let ecc: Ecc;
+    let mongoServer: MongoMemoryServer, testMongoClient: MongoClient;
     before(async () => {
         // Initialize web assembly
         await initWasm();
         // Initialize Ecc
         ecc = new Ecc();
+        // Start mongo memory server before running this suite of unit tests
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        testMongoClient = new MongoClient(mongoUri);
+    });
+
+    after(async () => {
+        // Shut down mongo memory server after running this suite of unit tests
+        await testMongoClient.close();
+        await mongoServer.stop();
     });
 
     let app: http.Server;
+    let badDbApp: http.Server;
     const SERVER_WALLET_ADDRESS = secrets.prod.wallet.address;
     const SERVER_WALLET_OUTPUTSCRIPT = cashaddr.getOutputScriptFromAddress(
         SERVER_WALLET_ADDRESS,
@@ -146,7 +169,9 @@ describe('routes.js', async function () {
 
     // Initialize fs, to be memfs in these tests
     let fs: any;
+    let testDb: Db;
     beforeEach(async () => {
+        testDb = await initializeDb(testMongoClient, initialBlacklist);
         // Mock expected file structure for fs
         const fileStructureJson: any = {};
         // Create mock empty directories for all supported sizes
@@ -158,6 +183,32 @@ describe('routes.js', async function () {
         const TEST_PORT = 5000;
         app = startExpressServer(
             TEST_PORT,
+            testDb,
+            mockedChronikClient,
+            mockedTgBot as unknown as TelegramBot,
+            fs,
+            ecc,
+            // We need higher rate limits so we do not rate limit ourselves in the tests
+            rateLimit({
+                windowMs: 60000,
+                limit: 100, // Limit each IP to 10 requests per `window`
+                standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+                legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+                message: 'You have rate limited your own unit tests.',
+            }),
+            // In tests, keep the same rate limits for token rewards
+            rateLimit({
+                windowMs: 60000,
+                limit: 100, // Limit each IP to 10 requests per `window`
+                standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+                legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+                message: 'You have rate limited your own unit tests.',
+            }),
+        );
+        const TEST_PORT_BAD_DB = 5001;
+        badDbApp = startExpressServer(
+            TEST_PORT_BAD_DB,
+            {} as unknown as Db,
             mockedChronikClient,
             mockedTgBot as unknown as TelegramBot,
             fs,
@@ -185,6 +236,9 @@ describe('routes.js', async function () {
         vol.reset();
         // Stop express server
         app.close();
+        badDbApp.close();
+        // Wipe the database after each unit test
+        await testDb.dropDatabase();
     });
     it('/status returns expected status', function () {
         return request(app)
@@ -857,6 +911,72 @@ describe('routes.js', async function () {
             .expect({
                 status: 'error',
                 msg: 'Error resizing uploaded token icon',
+            });
+    });
+    it('/blacklist returns tokenIds of the blacklist', function () {
+        return request(app)
+            .get(`/blacklist`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'success',
+                tokenIds: mockBlacklist.map(entry => entry.tokenId),
+            });
+    });
+    it('/blacklist returns tokenIds of the blacklist', function () {
+        return request(badDbApp)
+            .get(`/blacklist`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                message: 'Failed to retrieve tokenIds',
+            });
+    });
+    it('/blacklist/:tokenId returns expected entry for a valid tokenId in the blacklist', function () {
+        const tokenId = mockBlacklist[0].tokenId;
+        return request(app)
+            .get(`/blacklist/${tokenId}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'success',
+                isBlacklisted: true,
+                entry: mockBlacklist[0],
+            });
+    });
+    it('/blacklist/:tokenId returns expected error for an invalid tokenId', function () {
+        const tokenId = 'not a token id';
+        return request(app)
+            .get(`/blacklist/${tokenId}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                message: `Invalid tokenId: ${tokenId}`,
+            });
+    });
+    it('/blacklist/:tokenId returns expected entry for a valid tokenId NOT in the blacklist', function () {
+        const tokenId =
+            '0000000000000000000000000000000000000000000000000000000000000000';
+        return request(app)
+            .get(`/blacklist/${tokenId}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'success',
+                isBlacklisted: false,
+            });
+    });
+    it('/blacklist/:tokenId returns expected error if database fails to lookup a valid tokenId', function () {
+        const tokenId = mockBlacklist[0].tokenId;
+        return request(badDbApp)
+            .get(`/blacklist/${tokenId}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                message: `Failed to retrieve tokenId ${tokenId} from the database`,
             });
     });
 });

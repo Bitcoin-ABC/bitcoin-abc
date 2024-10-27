@@ -320,6 +320,16 @@ interface SendXecAirdropError {
     error: Error;
 }
 
+interface IsValidTokenIdVector {
+    returns: IsValidTokenIdReturn[];
+}
+
+interface IsValidTokenIdReturn {
+    description: string;
+    string: string;
+    returned: boolean;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
@@ -332,6 +342,7 @@ interface TestVectors {
     getSlpInputsAndOutputs: GetSlpInputsAndOutputsVector;
     sendReward: SendRewardVector;
     sendXecAirdrop: SendXecAirdropVector;
+    isValidTokenId: IsValidTokenIdVector;
 }
 
 const vectors: TestVectors = {
@@ -1233,6 +1244,45 @@ const vectors: TestVectors = {
                 error: new Error(
                     'Insufficient XEC utxos to complete XEC airdrop tx',
                 ),
+            },
+        ],
+    },
+    isValidTokenId: {
+        returns: [
+            {
+                description: 'Valid tokenId',
+                string: '0000000000000000000000000000000000000000000000000000000000000000',
+                returned: true,
+            },
+            {
+                description: 'Valid hex but 63 chars is invalid',
+                string: '000000000000000000000000000000000000000000000000000000000000000',
+                returned: false,
+            },
+            {
+                description: 'Valid hex but 31 bytes (62 chars) is invalid',
+                string: '00000000000000000000000000000000000000000000000000000000000000',
+                returned: false,
+            },
+            {
+                description: 'Valid hex but 65 chars is invalid',
+                string: '00000000000000000000000000000000000000000000000000000000000000000',
+                returned: true,
+            },
+            {
+                description: 'Valid hex but 33 bytes (66 chars) is invalid',
+                string: '000000000000000000000000000000000000000000000000000000000000000000',
+                returned: true,
+            },
+            {
+                description: 'Valid length but invalid hex is invalid',
+                string: 'g000000000000000000000000000000000000000000000000000000000000000',
+                returned: false,
+            },
+            {
+                description: 'Empty string is invalid',
+                string: '',
+                returned: false,
             },
         ],
     },
