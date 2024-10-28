@@ -2392,23 +2392,93 @@ BOOST_AUTO_TEST_CASE(reconcileOrFinalize) {
 }
 
 BOOST_AUTO_TEST_CASE(stake_contenders) {
+    setArg("-avalanchestakingpreconsensus", "1");
+    bilingual_str error;
+    m_processor = Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(),
+        *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
+        error);
+    BOOST_CHECK(m_processor);
+
     ChainstateManager &chainman = *Assert(m_node.chainman);
     Chainstate &active_chainstate = chainman.ActiveChainstate();
-    const CBlockIndex *chaintip =
+    CBlockIndex *chaintip =
         WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
 
-    auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
-    StakeContenderId contenderId(chaintip->GetBlockHash(), proof->getId());
+    auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    const ProofId proofid1 = proof1->getId();
+    const StakeContenderId contender1_block1(chaintip->GetBlockHash(),
+                                             proofid1);
 
-    // Stake contender isn't in the cache yet
-    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contenderId), -1);
+    auto proof2 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    const ProofId proofid2 = proof2->getId();
+    const StakeContenderId contender2_block1(chaintip->GetBlockHash(),
+                                             proofid2);
 
-    // Add stake contender to the cache. It defaults to rejected.
+    // Add stake contenders and sanity check they default to rejected.
     {
         LOCK(cs_main);
-        m_processor->addStakeContender(proof);
+        m_processor->addStakeContender(proof1);
+        m_processor->addStakeContender(proof2);
     }
-    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contenderId), 1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block1),
+                      1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block1),
+                      1);
+
+    // Register proof2 and save it as a remote proof so that it will be promoted
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        ConnectNode(NODE_AVALANCHE);
+        pm.registerProof(proof2);
+        pm.addNode(0, proofid2);
+        pm.saveRemoteProof(proofid2, 0, true);
+    });
+
+    // Need to have finalization tip set for contenders to be promoted
+    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
+
+    // Advance chaintip
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    chaintip =
+        WITH_LOCK(cs_main, return Assert(m_node.chainman)
+                               ->m_blockman.LookupBlockIndex(block.GetHash()));
+    AvalancheTest::updatedBlockTip(*m_processor);
+
+    // Old contender cache entries unaffected
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block1),
+                      1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block1),
+                      1);
+
+    // contender1 was not promoted
+    const StakeContenderId contender1_block2 =
+        StakeContenderId(chaintip->GetBlockHash(), proofid1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block2),
+                      -1);
+
+    // contender2 was promoted
+    const StakeContenderId contender2_block2 =
+        StakeContenderId(chaintip->GetBlockHash(), proofid2);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
+                      1);
+
+    // Advance the finalization tip
+    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
+
+    // Now that the finalization point has passed the block where contender1 was
+    // added, cleaning up the cache will remove its entry. contender2 will have
+    // its old entry cleaned up, but the promoted one remains.
+    m_processor->cleanupStakingRewards(chaintip->nHeight);
+
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block1),
+                      -1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block2),
+                      -1);
+
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block1),
+                      -1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
+                      1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

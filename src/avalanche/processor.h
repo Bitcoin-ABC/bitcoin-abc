@@ -255,10 +255,11 @@ class Processor final : public NetEventsInterface {
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
               uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn,
-              bool preConsensus);
+              bool preConsensus, bool stakingPreConsensus);
 
 public:
     const bool m_preConsensus{false};
+    const bool m_stakingPreConsensus{false};
 
     ~Processor();
 
@@ -342,7 +343,7 @@ public:
     bool eraseStakingRewardWinner(const BlockHash &prevBlockHash)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     void cleanupStakingRewards(const int minHeight)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_stakeContenderCache);
     bool getStakingRewardWinners(
         const BlockHash &prevBlockHash,
         std::vector<std::pair<ProofId, CScript>> &winners) const
@@ -376,9 +377,15 @@ public:
     int getStakeContenderStatus(const StakeContenderId &contenderId) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
 
+    /** Promote stake contender cache entries to the latest chain tip */
+    void promoteStakeContendersToTip()
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_peerManager,
+                                 !cs_finalizationTip);
+
 private:
     void updatedBlockTip()
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
+                                 !cs_finalizationTip, !cs_stakeContenderCache);
     void transactionAddedToMempool(const CTransactionRef &tx)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     void runEventLoop()

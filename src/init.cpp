@@ -1457,6 +1457,7 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
 
     hidden_args.emplace_back("-avalanchepreconsensus");
+    hidden_args.emplace_back("-avalanchestakingpreconsensus");
 
     // Add the hidden options
     argsman.AddHiddenArgs(hidden_args);

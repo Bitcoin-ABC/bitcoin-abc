@@ -146,7 +146,8 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      double minQuorumConnectedScoreRatioIn,
                      int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn,
-                     Amount stakeUtxoDustThreshold, bool preConsensus)
+                     Amount stakeUtxoDustThreshold, bool preConsensus,
+                     bool stakingPreConsensus)
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
       chainman(chainmanIn), mempool(mempoolIn), round(0),
       peerManager(std::make_unique<PeerManager>(
@@ -157,7 +158,8 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
       minAvaproofsNodeCount(minAvaproofsNodeCountIn),
       staleVoteThreshold(staleVoteThresholdIn),
-      staleVoteFactor(staleVoteFactorIn), m_preConsensus(preConsensus) {
+      staleVoteFactor(staleVoteFactorIn), m_preConsensus(preConsensus),
+      m_stakingPreConsensus(stakingPreConsensus) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
@@ -395,7 +397,9 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor,
         stakeUtxoDustThreshold,
         argsman.GetBoolArg("-avalanchepreconsensus",
-                           DEFAULT_AVALANCHE_PRECONSENSUS)));
+                           DEFAULT_AVALANCHE_PRECONSENSUS),
+        argsman.GetBoolArg("-avalanchestakingpreconsensus",
+                           DEFAULT_AVALANCHE_STAKING_PRECONSENSUS)));
 }
 
 static bool isNull(const AnyVoteItem &item) {
@@ -914,6 +918,11 @@ void Processor::cleanupStakingRewards(const int minHeight) {
             ++it;
         }
     }
+
+    if (m_stakingPreConsensus) {
+        WITH_LOCK(cs_stakeContenderCache,
+                  return stakeContenderCache.cleanup(minHeight));
+    }
 }
 
 bool Processor::getStakingRewardWinners(
@@ -983,6 +992,23 @@ int Processor::getStakeContenderStatus(
                      return stakeContenderCache.getVoteStatus(contenderId));
 }
 
+void Processor::promoteStakeContendersToTip() {
+    const CBlockIndex *activeTip =
+        WITH_LOCK(cs_main, return chainman.ActiveTip());
+    assert(activeTip);
+
+    if (!hasFinalizedTip()) {
+        // Avoid growing the contender cache until we have finalized a block
+        return;
+    }
+
+    LOCK(cs_stakeContenderCache);
+    LOCK(cs_peerManager);
+    stakeContenderCache.promoteToBlock(activeTip, *peerManager);
+
+    // TODO reconcile remoteProofs contenders
+}
+
 void Processor::updatedBlockTip() {
     const bool registerLocalProof = canShareLocalProof();
     auto registerProofs = [&]() {
@@ -1028,6 +1054,10 @@ void Processor::updatedBlockTip() {
     auto registeredProofs = registerProofs();
     for (const auto &proof : registeredProofs) {
         reconcileOrFinalize(proof);
+    }
+
+    if (m_stakingPreConsensus) {
+        promoteStakeContendersToTip();
     }
 }
 
