@@ -332,6 +332,8 @@ class MyPluginPlugin(Plugin):
         block.solve()
         peer.send_blocks_and_test([block], node)
 
+        node.syncwithvalidationinterfacequeue()
+
         yield True
 
         self.log.info("Step 10: Send a tx that spends all 'all' utxos")
