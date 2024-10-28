@@ -131,7 +131,7 @@ public:
     /**
      * For tests.
      */
-    size_t isEmpty() const {
+    bool isEmpty() const {
         return (contenders.size() + manualWinners.size()) == 0;
     }
 
