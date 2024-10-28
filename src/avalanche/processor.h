@@ -10,6 +10,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
+#include <avalanche/stakecontendercache.h>
 #include <avalanche/voterecord.h> // For AVALANCHE_MAX_INFLIGHT_POLL
 #include <blockindex.h>
 #include <blockindexcomparators.h>
@@ -244,6 +245,9 @@ class Processor final : public NetEventsInterface {
     std::unordered_map<BlockHash, StakingReward, SaltedUint256Hasher>
         stakingRewards GUARDED_BY(cs_stakingRewards);
 
+    mutable Mutex cs_stakeContenderCache;
+    StakeContenderCache stakeContenderCache GUARDED_BY(cs_stakeContenderCache);
+
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CTxMemPool *mempoolIn,
               CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
@@ -365,6 +369,12 @@ public:
     void FinalizeNode(const ::Config &config,
                       const CNode &node) override LOCKS_EXCLUDED(cs_main)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_delayedAvahelloNodeIds);
+
+    /** Track votes on stake contenders */
+    void addStakeContender(const ProofRef &proof)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_stakeContenderCache);
+    int getStakeContenderStatus(const StakeContenderId &contenderId) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
 
 private:
     void updatedBlockTip()

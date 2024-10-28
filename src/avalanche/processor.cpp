@@ -970,6 +970,19 @@ void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     WITH_LOCK(cs_delayedAvahelloNodeIds, delayedAvahelloNodeIds.erase(nodeid));
 }
 
+void Processor::addStakeContender(const ProofRef &proof) {
+    AssertLockHeld(cs_main);
+    const CBlockIndex *activeTip = chainman.ActiveTip();
+    WITH_LOCK(cs_stakeContenderCache,
+              return stakeContenderCache.add(activeTip, proof));
+}
+
+int Processor::getStakeContenderStatus(
+    const StakeContenderId &contenderId) const {
+    return WITH_LOCK(cs_stakeContenderCache,
+                     return stakeContenderCache.getVoteStatus(contenderId));
+}
+
 void Processor::updatedBlockTip() {
     const bool registerLocalProof = canShareLocalProof();
     auto registerProofs = [&]() {

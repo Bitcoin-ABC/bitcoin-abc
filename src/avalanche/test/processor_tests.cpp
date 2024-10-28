@@ -2391,4 +2391,24 @@ BOOST_AUTO_TEST_CASE(reconcileOrFinalize) {
     BOOST_CHECK(m_processor->reconcileOrFinalize(betterProof));
 }
 
+BOOST_AUTO_TEST_CASE(stake_contenders) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+    const CBlockIndex *chaintip =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
+
+    auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    StakeContenderId contenderId(chaintip->GetBlockHash(), proof->getId());
+
+    // Stake contender isn't in the cache yet
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contenderId), -1);
+
+    // Add stake contender to the cache. It defaults to rejected.
+    {
+        LOCK(cs_main);
+        m_processor->addStakeContender(proof);
+    }
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contenderId), 1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

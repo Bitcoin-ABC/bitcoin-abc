@@ -963,6 +963,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		avalanche/proof.cpp
 		avalanche/proofid.cpp
 		avalanche/proofpool.cpp
+		avalanche/stakecontendercache.cpp
 		avalanche/voterecord.cpp
 		cashaddr.cpp         # via cashaddrenc.cpp
 		cashaddrenc.cpp      # via key_io.cpp
