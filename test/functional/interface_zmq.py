@@ -5,7 +5,6 @@
 
 import struct
 from io import BytesIO
-from time import sleep
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import create_block, create_coinbase
@@ -607,13 +606,8 @@ class ZMQTest(BitcoinTestFramework):
         mempool_snapshot = self.nodes[0].getrawmempool(mempool_sequence=True)
         mempool_view = set(mempool_snapshot["txids"])
         get_raw_seq = mempool_snapshot["mempool_sequence"]
-        assert_equal(get_raw_seq, 6)
-        # Snapshot may be too old compared to zmq message we read off latest
-        while zmq_mem_seq >= get_raw_seq:
-            sleep(2)
-            mempool_snapshot = self.nodes[0].getrawmempool(mempool_sequence=True)
-            mempool_view = set(mempool_snapshot["txids"])
-            get_raw_seq = mempool_snapshot["mempool_sequence"]
+        assert_equal(get_raw_seq, num_txs + 1)
+        assert zmq_mem_seq < get_raw_seq
 
         # Things continue to happen in the "interim" while waiting for
         # snapshot results
