@@ -4,7 +4,7 @@
 
 import styled from 'styled-components';
 import { token as tokenConfig } from 'config/token';
-import { Alert, CashtabScroll } from 'components/Common/Atoms';
+import { CashtabScroll } from 'components/Common/Atoms';
 
 export const ActiveOffers = styled.div`
     color: ${props => props.theme.contrast};
@@ -100,9 +100,6 @@ export const OfferIconCol = styled.div`
     flex-direction: column;
     justify-content: center;
     gap: 3px;
-`;
-export const ChronikErrorAlert = styled(Alert)`
-    margin-top: 12px;
 `;
 export const DepthBar = styled.div`
     display: flex;

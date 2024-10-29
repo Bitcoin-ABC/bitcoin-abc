@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from 'wallet/context';
-import { LoadingCtn, SwitchLabel } from 'components/Common/Atoms';
+import { LoadingCtn, SwitchLabel, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
 import {
@@ -19,7 +19,6 @@ import {
     OfferCol,
     OfferRow,
     OfferIcon,
-    ChronikErrorAlert,
 } from './styled';
 import {
     NftTokenIdAndCopyIcon,
@@ -546,10 +545,10 @@ const Nfts = () => {
                     )}
                     {chronikQueryError ? (
                         <NftsCtn title="Chronik Query Error">
-                            <ChronikErrorAlert>
+                            <Alert>
                                 Error querying listed NFTs. Please try again
                                 later.
-                            </ChronikErrorAlert>
+                            </Alert>
                         </NftsCtn>
                     ) : (
                         <NftsCtn title="Listed NFTs">

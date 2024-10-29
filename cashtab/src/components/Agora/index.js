@@ -4,16 +4,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from 'wallet/context';
-import { SwitchLabel } from 'components/Common/Atoms';
+import { SwitchLabel, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
 import { toHex } from 'ecash-lib';
-import {
-    ActiveOffers,
-    OfferTitle,
-    OfferTable,
-    ChronikErrorAlert,
-} from './styled';
+import { ActiveOffers, OfferTitle, OfferTable } from './styled';
 import { SwitchHolder } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
 import * as wif from 'wif';
@@ -196,9 +191,9 @@ const Agora = () => {
         <>
             {chronikQueryError ? (
                 <ActiveOffers title="Chronik Query Error">
-                    <ChronikErrorAlert>
+                    <Alert>
                         Error querying listed tokens. Please try again later.
-                    </ChronikErrorAlert>
+                    </Alert>
                 </ActiveOffers>
             ) : (
                 <>

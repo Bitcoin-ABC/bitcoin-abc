@@ -4,7 +4,6 @@
 
 import styled from 'styled-components';
 import { token as tokenConfig } from 'config/token';
-import { Alert } from 'components/Common/Atoms';
 
 export const NftsCtn = styled.div`
     color: ${props => props.theme.contrast};
@@ -59,7 +58,4 @@ export const OfferCol = styled.div`
     min-width: 128px;
     display: flex;
     flex-direction: column;
-`;
-export const ChronikErrorAlert = styled(Alert)`
-    margin-top: 12px;
 `;

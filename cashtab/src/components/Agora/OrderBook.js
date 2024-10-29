@@ -57,7 +57,6 @@ import {
     OrderbookPrice,
     SliderRow,
     SliderInfoRow,
-    ChronikErrorAlert,
 } from './styled';
 import PrimaryButton, {
     SecondaryButton,
@@ -72,6 +71,7 @@ import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { QuestionIcon } from 'components/Common/CustomIcons';
+import { Alert } from 'components/Common/Atoms';
 
 const OrderBook = ({
     tokenId,
@@ -668,9 +668,9 @@ const OrderBook = ({
                     </OfferRow>
                 </OfferIconCol>
                 {agoraQueryError && (
-                    <ChronikErrorAlert>
+                    <Alert>
                         Error querying agora for active offers. Try again later.
-                    </ChronikErrorAlert>
+                    </Alert>
                 )}
                 {canRenderOrderbook && (
                     <DepthBarCol>
