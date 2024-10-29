@@ -83,7 +83,6 @@ PACKAGES=(
   software-properties-common
   swig
   tar
-  wine
   wget
   xorriso
   xvfb
@@ -185,6 +184,14 @@ RUST_NIGHTLY_DATE=2023-12-29
 
 # Install wasm-bindgen to extract type info from .wasm files
 "${RUST_HOME}/cargo" install -f wasm-bindgen-cli@0.2.92
+
+# Installation instructions are from https://wiki.winehq.org/Debian
+mkdir -p /etc/apt/keyrings
+wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bookworm/winehq-bookworm.sources
+apt-get update
+# Use the stable version so we don't get a rolling release
+DEBIAN_FRONTEND=noninteractive apt-get install -y winehq-stable
 
 # shellcheck source=/dev/null
 source ~/.bashrc
