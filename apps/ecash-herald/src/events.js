@@ -5,10 +5,12 @@
 'use strict';
 const config = require('../config');
 const axios = require('axios');
+const cashaddr = require('ecashaddrjs');
 const {
     parseBlockTxs,
     getBlockTgMessage,
     getMinerFromCoinbaseTx,
+    getStakerFromCoinbaseTx,
     guessRejectReason,
     summarizeTxHistory,
 } = require('./parse');
@@ -164,6 +166,22 @@ module.exports = {
             miners,
         );
 
+        const stakingRewardWinner = getStakerFromCoinbaseTx(
+            blockHeight,
+            coinbaseData.outputs,
+        );
+        let stakingRewardWinnerAddress = 'unknown';
+        if (stakingRewardWinner !== false) {
+            try {
+                stakingRewardWinnerAddress = cashaddr.encodeOutputScript(
+                    stakingRewardWinner.staker,
+                );
+            } catch (err) {
+                // Use the script
+                stakingRewardWinnerAddress = `script ${stakingRewardWinner.staker}`;
+            }
+        }
+
         const reason = await guessRejectReason(
             chronik,
             blockHeight,
@@ -180,6 +198,7 @@ module.exports = {
             `\n` +
             `Timestamp: ${blockTimestamp}\n` +
             `Mined by ${miner}\n` +
+            `Staking reward winner: ${stakingRewardWinnerAddress}\n` +
             `Guessed reject reason: ${reason}`;
 
         try {
