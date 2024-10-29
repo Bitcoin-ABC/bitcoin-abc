@@ -10,6 +10,7 @@ export const token = {
     tokenDbUrl: 'https://tokendb.kingbch.com',
     newTokenDefaultUrl: 'cashtab.com',
     rewardsServerBaseUrl: 'https://rewards.etokens.cash',
+    blacklistServerUrl: 'https://etokens.cash',
     blacklist: [
         // fake blazer
         '09c53c9a9fe0df2cb729dd6f99f2b836c59b842d6652becd85658e277caab611',

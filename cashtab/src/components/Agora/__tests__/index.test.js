@@ -31,6 +31,7 @@ import {
 } from 'components/Agora/fixtures/mocks';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
+import { token as tokenConfig } from 'config/token';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -278,7 +279,84 @@ describe('<Agora />', () => {
             await screen.findByRole('button', { name: 'Cancel your offer' }),
         ).toBeInTheDocument();
     });
-    it('A blacklisted offer does not render in all offers, but will render in My offers', async () => {
+    it('We can fetch and use the blacklist from token server', async () => {
+        when(fetch)
+            .calledWith(`${tokenConfig.blacklistServerUrl}/blacklist`)
+            .mockResolvedValue({
+                json: () => Promise.resolve({ tokenIds: [SCAM_TOKEN_ID] }),
+            });
+
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // mock await agora.offeredFungibleTokenIds();
+        mockedAgora.setOfferedFungibleTokenIds([SCAM_TOKEN_ID]);
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(SCAM_TOKEN_ID, [scamAgoraOffer]);
+        // also mock await agora.activeOffersByPubKey(toHex(activePk))
+        mockedAgora.setActiveOffersByPubKey(
+            toHex(agoraPartialAlphaKeypair.pk),
+            [scamAgoraOffer],
+        );
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                route={`/agora/`}
+            />,
+        );
+
+        // Wait for the screen to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for agora offers to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading active offers'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for element to get token info and load
+        expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
+
+        // We see the Token Offers section
+        expect(screen.getByText('Token Offers')).toBeInTheDocument();
+
+        // But we have no offers
+        expect(
+            screen.getByText('No tokens are currently listed for sale'),
+        ).toBeInTheDocument();
+
+        // We switch to see our created offers
+        await userEvent.click(screen.getByTitle('Toggle Active Offers'));
+
+        expect(screen.getByText('Manage your listings')).toBeInTheDocument();
+
+        // We see the token name and ticker above its PartialOffer
+        expect(
+            screen.getByText('Badger Universal Token (BUX)'),
+        ).toBeInTheDocument();
+
+        // Because this offer was created by this wallet, we have the option to cancel it
+        expect(
+            screen.getByRole('button', { name: 'Cancel your offer' }),
+        ).toBeInTheDocument();
+    });
+    it('On token server API fail, we fall back to locally maintained blacklist. A blacklisted offer does not render in all offers, but will render in My offers', async () => {
+        when(fetch)
+            .calledWith(`${tokenConfig.blacklistServerUrl}/blacklist`)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve(new Error('some token server api error')),
+            });
+
         // Need to mock agora API endpoints
         const mockedAgora = new MockAgora();
 

@@ -85,10 +85,29 @@ const Agora = () => {
             }
         }
 
+        // Fetch server-maintained blacklist
+        let blacklist;
+        try {
+            const serverBlacklistResponse = await (
+                await fetch(`${tokenConfig.blacklistServerUrl}/blacklist`)
+            ).json();
+            blacklist = serverBlacklistResponse.tokenIds;
+            if (!Array.isArray(blacklist)) {
+                throw new Error('Error parsing server response');
+            }
+        } catch (err) {
+            console.error(
+                `Error fetching blacklist from ${tokenConfig.blacklistServerUrl}`,
+                err,
+            );
+            // Fall back to locally maintained blacklist
+            blacklist = tokenConfig.blacklist;
+        }
+
         // Filter offeredFungibleTokenIds for blacklisted tokens
         const noBlacklistedOfferedFungibleTokenIds =
             offeredFungibleTokenIds.filter(
-                tokenId => !tokenConfig.blacklist.includes(tokenId),
+                tokenId => !blacklist.includes(tokenId),
             );
         const activeBlacklistedOffers =
             offeredFungibleTokenIds.length -
