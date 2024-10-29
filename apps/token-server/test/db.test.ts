@@ -10,6 +10,8 @@ import {
     getBlacklistedTokenIds,
     initialBlacklist,
     getOneBlacklistEntry,
+    removeBlacklistEntry,
+    insertBlacklistEntry,
 } from '../src/db';
 import * as assert from 'assert';
 import config from '../config';
@@ -64,5 +66,61 @@ describe('db.ts, token-server database unit tests', async function () {
             '0000000000000000000000000000000000000000000000000000000000000000';
         const entry = await getOneBlacklistEntry(testDb, blacklistedTokenId);
         assert.equal(entry, null);
+    });
+    it('removeBlacklistEntry successfully removes an entry from the database', async function () {
+        const tokenIdToBeUnblacklisted = mockBlacklist[0].tokenId;
+        // The entry is in the collection
+        assert.deepEqual(
+            await getOneBlacklistEntry(testDb, tokenIdToBeUnblacklisted),
+            mockBlacklist[0],
+        );
+
+        // Remove entry and get expected status
+        assert.deepEqual(
+            await removeBlacklistEntry(testDb, tokenIdToBeUnblacklisted),
+            {
+                acknowledged: true,
+                deletedCount: 1,
+            },
+        );
+
+        // If we try to find the entry now, we get null
+        assert.equal(
+            await getOneBlacklistEntry(testDb, tokenIdToBeUnblacklisted),
+            null,
+        );
+    });
+    it('insertBlacklistEntry successfully inserts an entry onto the blacklist', async function () {
+        const tokenIdToBeBlacklisted =
+            'b5fd908eb70768d7b780ebacfdcc5af64aa5bc7a53274fb3e6010baa71840b83';
+        // The entry is not in the collection
+        assert.deepEqual(
+            await getOneBlacklistEntry(testDb, tokenIdToBeBlacklisted),
+            null,
+        );
+        const blacklistMetadata = {
+            reason: 'Impersonates Metamask',
+            timestamp: Math.round(new Date(1730090292122).getTime() / 1000),
+            addedBy: 'Integration test',
+        };
+
+        // Insert the entry and get expected status
+        const insertResult = await insertBlacklistEntry(
+            testDb,
+            tokenIdToBeBlacklisted,
+            blacklistMetadata,
+        );
+        // We get a result like {acknoledged: true, insertedId: new ObjectId(<string>)}
+        assert.equal(insertResult.acknowledged, true);
+        assert.equal('insertedId' in insertResult, true);
+
+        // Now we can find the entry in the collection
+        assert.deepEqual(
+            await getOneBlacklistEntry(testDb, tokenIdToBeBlacklisted),
+            {
+                tokenId: tokenIdToBeBlacklisted,
+                ...blacklistMetadata,
+            },
+        );
     });
 });

@@ -34,6 +34,7 @@ initWasm().then(
                     secrets.prod.botId,
                     secrets.prod.approvedMods,
                     fs,
+                    db,
                 );
 
                 // Start the express app to expose API endpoints

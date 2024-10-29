@@ -2,7 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { MongoClient, Db, Collection, CollectionInfo } from 'mongodb';
+import {
+    MongoClient,
+    Db,
+    Collection,
+    CollectionInfo,
+    InsertOneResult,
+    DeleteResult,
+} from 'mongodb';
 import config from '../config';
 
 interface BlacklistEntry {
@@ -173,4 +180,38 @@ export const getOneBlacklistEntry = async (
     const result = await collection.findOne({ tokenId }, { projection });
 
     return result as BlacklistEntry | null;
+};
+
+export const insertBlacklistEntry = async (
+    db: Db,
+    tokenId: string,
+    entryData: Omit<BlacklistEntry, 'tokenId'>,
+): Promise<InsertOneResult<Document>> => {
+    const collection = db.collection(config.db.collections.blacklist.name);
+
+    // Prepare the document to insert
+    const documentToInsert: BlacklistEntry = {
+        tokenId,
+        ...entryData,
+    };
+
+    // Insert the document into the collection
+    const result = await collection.insertOne(documentToInsert);
+
+    return result;
+};
+
+export const removeBlacklistEntry = async (
+    db: Db,
+    tokenId: string,
+): Promise<DeleteResult> => {
+    const collection = db.collection(config.db.collections.blacklist.name);
+
+    // Define the criteria to match the document for deletion
+    const filter = { tokenId };
+
+    // Delete the document that matches the filter
+    const result = await collection.deleteOne(filter);
+
+    return result;
 };
