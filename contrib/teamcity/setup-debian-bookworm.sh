@@ -16,3 +16,6 @@ git config --global user.email "no-email-abc-bot@bitcoinabc.org"
 
 # npm uses ssh to connect to github by default, use https instead
 git config --global url."https://github.com".insteadOf ssh://git@github.com
+
+# Set the default branch to master to match our repos
+git config --global init.defaultBranch master

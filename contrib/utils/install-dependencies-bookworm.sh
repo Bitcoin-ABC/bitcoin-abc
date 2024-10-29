@@ -8,7 +8,6 @@ set -euxo pipefail
 dpkg --add-architecture i386
 
 PACKAGES=(
-  arcanist
   automake
   autotools-dev
   binutils
@@ -69,6 +68,7 @@ PACKAGES=(
   nsis
   pandoc
   php-codesniffer
+  php-curl
   pkg-config
   protobuf-compiler
   python3
@@ -98,6 +98,15 @@ function join_by() {
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}")
+
+# Install arcanist from we.phorge.it. The packaged version is buggy with PHP 8.
+mkdir -p /opt
+pushd /opt
+# Pinpoint the version to the latest tag at the time of writing
+git clone --depth 1 --branch 2024.19 https://we.phorge.it/source/arcanist.git
+git config --system --add safe.directory /opt/arcanist
+echo "export PATH=\"/opt/arcanist/bin:\$PATH\"" >> ~/.bashrc
+popd
 
 # Make sure our specific llvm and clang versions have highest priority (Bookworm
 # default is version 14, other packages will not create the clang symlink)
@@ -144,8 +153,6 @@ pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-
 # Required python linters
 pip3 install black==24.4.2 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0 flake8-builtins==2.5.0 flake8-comprehensions==3.14.0 djlint==1.34.1
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
-# shellcheck source=/dev/null
-source ~/.bashrc
 
 # Install npm v10.x and nodejs v20.x
 wget https://deb.nodesource.com/setup_20.x -O nodesetup.sh
@@ -179,3 +186,5 @@ RUST_NIGHTLY_DATE=2023-12-29
 # Install wasm-bindgen to extract type info from .wasm files
 "${RUST_HOME}/cargo" install -f wasm-bindgen-cli@0.2.92
 
+# shellcheck source=/dev/null
+source ~/.bashrc
