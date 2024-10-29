@@ -86,12 +86,14 @@ export const Alert = styled.div`
     border-radius: 12px;
     color: red;
     padding: 12px;
+    margin: 12px 0;
 `;
 export const Info = styled.div`
     background-color: #fff2f0;
     border-radius: 12px;
     color: ${props => props.theme.eCashBlue};
     padding: 12px;
+    margin: 12px 0;
 `;
 export const BlockNotification = styled.div`
     display: flex;
