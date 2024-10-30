@@ -2190,16 +2190,27 @@ module.exports = {
         let binanceWithdrawalCount = 0;
         let binanceWithdrawalSats = 0;
 
-        let tokenTxs = 0;
+        let slpFungibleTxs = 0;
         let appTxs = 0;
         let unknownLokadTxs = 0;
 
         // tokenId => {info, list, cancel, buy, adPrep, send, burn, mint, genesis: {genesisQty: <>, hasBaton: <>}}
         const tokenActions = new Map();
         let invalidTokenEntries = 0;
-        let nftTokenEntries = 0;
+        let nftNonAgoraTokenEntries = 0;
         let mintVaultTokenEntries = 0;
         let alpTokenEntries = 0;
+
+        let newSlpTokensFixedSupply = 0;
+        let newSlpTokensVariableSupply = 0;
+
+        // Nft vars
+        const nftActions = new Map();
+        const nftAgoraActions = new Map();
+        const uniqueAgoraNfts = new Set();
+        const uniqueNonAgoraNfts = new Set();
+        let agoraOneshotTxs = 0;
+        let nftMints = 0;
 
         // Agora vars
         let agoraTxs = 0;
@@ -2295,8 +2306,6 @@ module.exports = {
 
             // Other token actions
             if (tokenEntries.length > 0) {
-                tokenTxs += 1;
-
                 for (const tokenEntry of tokenEntries) {
                     // Get the tokenId
                     // Note that groupTokenId is only defined for NFT child
@@ -2343,15 +2352,279 @@ module.exports = {
                         continue;
                     }
 
-                    if (typeof groupTokenId !== 'undefined') {
-                        // TODO NFT parsing
-                        nftTokenEntries += 1;
-                        // No need to log, plenty of available examples
-                        // Just save for another diff
-                        // No other parsing for this tokenEntry
-                        continue;
+                    if (type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+                        if (typeof groupTokenId === 'undefined') {
+                            // Should never happen
+                            invalidTokenEntries += 1;
+                            // Log to console so if we see this tx, we can analyze it for parsing
+                            console.info(
+                                `Unparsed SLP_TOKEN_TYPE_NFT1_CHILD with undefined groupTokenId: ${tx.txid}`,
+                            );
+                            // No other parsing for this tokenEntry
+                            continue;
+                        }
+                        // Note that we organize all NFT1 children by their collection for herald purposes
+                        // Parse NFT child tx
+
+                        switch (txType) {
+                            case 'NONE': {
+                                invalidTokenEntries += 1;
+                                // Log to console so if we see this tx, we can analyze it for parsing
+                                console.info(
+                                    `Unparsed SLP_TOKEN_TYPE_NFT1_CHILD txType NONE tokenEntry in tx: ${tx.txid}`,
+                                );
+                                // No other parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'UNKNOWN': {
+                                invalidTokenEntries += 1;
+                                // Log to console so if we see this tx, we can analyze it for parsing
+                                console.info(
+                                    `Unparsed SLP_TOKEN_TYPE_NFT1_CHILD txType UNKNOWN tokenEntry in tx: ${tx.txid}`,
+                                );
+                                // No other parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'GENESIS': {
+                                // NFT1 NFTs have special genesis, in that they burn 1 of the group
+                                // their txType is still genesis
+                                // For the herald, these are better represented as "NFT mints" than
+                                // "NFT1 Child Genesis"
+                                // But coding side, we organize them this way
+                                nftMints += 1;
+                                nftNonAgoraTokenEntries += 1;
+
+                                // See if we already have tokenActions at this tokenId
+                                const existingNftActions =
+                                    nftActions.get(groupTokenId);
+                                module.exports.initializeOrIncrementTokenData(
+                                    nftActions,
+                                    existingNftActions,
+                                    groupTokenId,
+                                    'genesis',
+                                );
+                                uniqueNonAgoraNfts.add(tokenId);
+                                // No further parsing for this token entry
+                                continue;
+                            }
+                            case 'SEND': {
+                                // SEND may be Agora ONESHOT or Burn
+                                const existingNftActions =
+                                    nftActions.get(groupTokenId);
+                                const existingNftAgoraActions =
+                                    nftAgoraActions.get(groupTokenId);
+
+                                // For now, we assume that any p2sh token input is agora buy/cancel
+                                // and any p2sh token output is an ad setup tx
+                                // No other known cases of p2sh for token txs on ecash today
+                                // tho multisig is possible, no supporting wallets
+
+                                let isAgoraBuySellList = false;
+                                for (const input of inputs) {
+                                    if (typeof input.token !== 'undefined') {
+                                        const { outputScript, inputScript } =
+                                            input;
+                                        // A token input that is p2sh may be
+                                        // a listing, an ad setup, a buy, or a cancel
+                                        try {
+                                            const { type } =
+                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                    outputScript,
+                                                );
+                                            if (type === 'p2sh') {
+                                                // Note that a ONESHOT agora tx does not necessarily
+                                                // have 0441475230 in the inputscript
+                                                // But we do not have any other p2sh token input txs, so parse
+
+                                                // Agora tx
+                                                // For now, we know all listing txs only have a single p2sh input
+
+                                                if (inputs.length === 1) {
+                                                    // Agora ONESHOT listing in collection groupTokenId
+                                                    module.exports.initializeOrIncrementTokenData(
+                                                        nftAgoraActions,
+                                                        existingNftAgoraActions,
+                                                        groupTokenId,
+                                                        'list',
+                                                    );
+                                                    isAgoraBuySellList = true;
+                                                    // Stop processing inputs for this tx
+                                                    break;
+                                                }
+                                                // Check if this is a cancellation
+                                                // See agora.ts from ecash-agora lib
+                                                // For now, I don't think it makes sense to have an 'isCanceled' method from ecash-agora
+                                                // This is a pretty specific application
+                                                const ops = scriptOps(
+                                                    new Script(
+                                                        fromHex(inputScript),
+                                                    ),
+                                                );
+                                                // isCanceled is always the last pushop (before redeemScript)
+                                                const opIsCanceled =
+                                                    ops[ops.length - 2];
+
+                                                const isCanceled =
+                                                    opIsCanceled === OP_0;
+
+                                                if (isCanceled) {
+                                                    // Agora ONESHOT cancel in collection groupTokenId
+                                                    module.exports.initializeOrIncrementTokenData(
+                                                        nftAgoraActions,
+                                                        existingNftAgoraActions,
+                                                        groupTokenId,
+                                                        'cancel',
+                                                    );
+                                                    isAgoraBuySellList = true;
+                                                    // Stop processing inputs for this tx
+                                                    break;
+                                                } else {
+                                                    // Agora ONESHOT purchase
+                                                    module.exports.initializeOrIncrementTokenData(
+                                                        nftAgoraActions,
+                                                        existingNftAgoraActions,
+                                                        groupTokenId,
+                                                        'buy',
+                                                    );
+                                                    isAgoraBuySellList = true;
+                                                    // Stop processing inputs for this tx
+                                                    break;
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error(
+                                                `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
+                                            );
+                                            // Do not parse it as an agora tx
+                                        }
+                                        // We don't need to find any other inputs for this case
+                                        break;
+                                    }
+                                }
+                                if (isAgoraBuySellList) {
+                                    agoraOneshotTxs += 1;
+                                    uniqueAgoraNfts.add(tokenId);
+                                    // We have already processed this token tx
+                                    continue;
+                                }
+
+                                // Check for ad prep tx
+                                let isAdPrep = false;
+                                for (const output of outputs) {
+                                    if (typeof output.token !== 'undefined') {
+                                        const { outputScript } = output;
+                                        // We assume a p2sh token output is an ad setup tx
+                                        // No other known use cases at the moment
+                                        try {
+                                            const { type } =
+                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                    outputScript,
+                                                );
+
+                                            if (type === 'p2sh') {
+                                                // Agora ONESHOT ad setup tx for collection groupTokenId
+                                                module.exports.initializeOrIncrementTokenData(
+                                                    nftAgoraActions,
+                                                    existingNftAgoraActions,
+                                                    groupTokenId,
+                                                    'adPrep',
+                                                );
+                                                isAdPrep = true;
+                                                break;
+                                                // Stop iterating over outputs
+                                            }
+                                        } catch (err) {
+                                            console.error(
+                                                `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
+                                            );
+                                            // Do not parse it as an agora tx
+                                        }
+                                    }
+                                }
+                                if (isAdPrep) {
+                                    agoraOneshotTxs += 1;
+                                    uniqueAgoraNfts.add(tokenId);
+                                    // We have processed this tx as an Agora Ad setup tx
+                                    // No further processing
+                                    continue;
+                                }
+
+                                if (actualBurnAmount !== '0') {
+                                    nftNonAgoraTokenEntries += 1;
+                                    // Parse as burn
+                                    // Note this is not currently supported in Cashtab
+                                    module.exports.initializeOrIncrementTokenData(
+                                        nftActions,
+                                        existingNftActions,
+                                        groupTokenId,
+                                        'burn',
+                                    );
+                                    uniqueNonAgoraNfts.add(tokenId);
+                                    // No further parsing
+                                    continue;
+                                }
+
+                                // Parse as send
+                                module.exports.initializeOrIncrementTokenData(
+                                    nftActions,
+                                    existingNftActions,
+                                    groupTokenId,
+                                    'send',
+                                );
+                                nftNonAgoraTokenEntries += 1;
+                                uniqueNonAgoraNfts.add(tokenId);
+                                // No further parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'MINT': {
+                                // We do not expect to see any MINT txs for NFT1 children
+                                // Some confusion as what crypto colloquially calls an "NFT Mint"
+                                // is NOT this type of mint, but a genesis tx
+                                // Run the map anyway in case we get it
+                                invalidTokenEntries += 1;
+                                // Log to console so if we see this tx, we can analyze it for parsing
+                                console.info(
+                                    `Unparsed SLP_TOKEN_TYPE_NFT1_CHILD txType MINT tokenEntry in tx: ${tx.txid}`,
+                                );
+                                const existingNftActions =
+                                    nftActions.get(groupTokenId);
+                                module.exports.initializeOrIncrementTokenData(
+                                    nftActions,
+                                    existingNftActions,
+                                    tokenId,
+                                    'mint',
+                                );
+                                uniqueNonAgoraNfts.add(tokenId);
+                                // No further parsing for this tokenEntry
+                                continue;
+                            }
+                            case 'BURN': {
+                                const existingNftActions =
+                                    nftActions.get(tokenId);
+                                module.exports.initializeOrIncrementTokenData(
+                                    nftActions,
+                                    existingNftActions,
+                                    tokenId,
+                                    'burn',
+                                );
+                                nftNonAgoraTokenEntries += 1;
+                                uniqueNonAgoraNfts.add(tokenId);
+                                // No further parsing for this tokenEntry
+                                continue;
+                            }
+                            default:
+                                // Can we get here?
+                                // Log for analysis if it happens
+                                invalidTokenEntries += 1;
+                                console.info(
+                                    `Switch default token action for SLP_TOKEN_TYPE_NFT1_CHILD in tx: ${tx.txid}`,
+                                );
+                                // No further analysis this tokenEntry
+                                continue;
+                        }
                     }
                     if (type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
+                        slpFungibleTxs += 1;
                         switch (txType) {
                             case 'NONE': {
                                 invalidTokenEntries += 1;
@@ -2387,11 +2660,11 @@ module.exports = {
                                             const { amount, isMintBaton } =
                                                 output.token;
                                             if (isMintBaton) {
-                                                // TODO this is var supply token
+                                                newSlpTokensVariableSupply += 1;
                                                 genesis.hasBaton = true;
                                             } else {
+                                                newSlpTokensFixedSupply += 1;
                                                 genesis.amount = amount;
-                                                // TODO this is the genesis qty
                                             }
                                         }
                                         // We do not use initializeOrIncrementTokenData here
@@ -2547,6 +2820,7 @@ module.exports = {
                                                     tokenId,
                                                     'adPrep',
                                                 );
+                                                isAdPrep = true;
                                                 break;
                                                 // Stop iterating over outputs
                                             }
@@ -2811,7 +3085,7 @@ module.exports = {
             tgMsg.push('');
         }
 
-        // Agora summary
+        // Agora partials
         if (agoraTxs > 0) {
             // Zero out counters for sorting purposes
             agoraActions.forEach((agoraActionInfo, tokenId) => {
@@ -2843,9 +3117,9 @@ module.exports = {
             const agoraTokenCount = agoraTokens.length;
 
             tgMsg.push(
-                `${config.emojis.agora} <b><i>${agoraTxs.toLocaleString(
-                    'en-US',
-                )} Agora tx${
+                `${config.emojis.agora}${
+                    config.emojis.token
+                } <b><i>${agoraTxs.toLocaleString('en-US')} Agora token tx${
                     agoraTxs > 1 ? 's' : ''
                 } from ${agoraTokenCount} token${
                     agoraTokenCount > 1 ? 's' : ''
@@ -2915,9 +3189,121 @@ module.exports = {
             // Newline after agora section
             tgMsg.push('');
         }
+        // Agora ONESHOT (NFTs)
+        if (agoraOneshotTxs > 0) {
+            // Zero out counters for sorting purposes
+            nftAgoraActions.forEach((agoraActionInfo, tokenId) => {
+                // Note we do not check adPrep as any token with adPrep has listing
+                const { buy, list, cancel } = agoraActionInfo;
 
-        // Token summary
-        if (tokenTxs > 0) {
+                if (typeof buy === 'undefined') {
+                    agoraActionInfo.buy = { count: 0 };
+                }
+                if (typeof list === 'undefined') {
+                    agoraActionInfo.list = { count: 0 };
+                }
+                if (typeof cancel === 'undefined') {
+                    agoraActionInfo.cancel = { count: 0 };
+                }
+                nftAgoraActions.set(tokenId, agoraActionInfo);
+            });
+
+            // Sort agoraActions by buys
+            const sortedNftAgoraActions = new Map(
+                [...nftAgoraActions.entries()].sort(
+                    (keyValueArrayA, keyValueArrayB) =>
+                        keyValueArrayB[1].buy.count -
+                        keyValueArrayA[1].buy.count,
+                ),
+            );
+
+            const agoraNftCollections = Array.from(
+                sortedNftAgoraActions.keys(),
+            );
+
+            const agoraCollectionCount = agoraNftCollections.length;
+            const agoraNftCount = uniqueAgoraNfts.size;
+
+            tgMsg.push(
+                `${config.emojis.agora}${
+                    config.emojis.nft
+                } <b><i>${agoraOneshotTxs.toLocaleString(
+                    'en-US',
+                )} Agora NFT tx${
+                    agoraTxs > 1 ? 's' : ''
+                } from ${agoraNftCount} NFT${
+                    agoraNftCount > 1 ? 's' : ''
+                } in ${agoraCollectionCount} collection${
+                    agoraCollectionCount > 1 ? 's' : ''
+                }</i></b>`,
+            );
+
+            const AGORA_COLLECTIONS_TO_SHOW = 10;
+
+            // Handle case where we do not see as many agora tokens as our max
+            const agoraCollectionsToShow =
+                agoraCollectionCount < AGORA_COLLECTIONS_TO_SHOW
+                    ? agoraCollectionCount
+                    : AGORA_COLLECTIONS_TO_SHOW;
+            const newsworthyAgoraCollections = agoraNftCollections.slice(
+                0,
+                agoraCollectionsToShow,
+            );
+
+            if (agoraCollectionCount > AGORA_COLLECTIONS_TO_SHOW) {
+                tgMsg.push(`<u>Top ${AGORA_COLLECTIONS_TO_SHOW}</u>`);
+            }
+
+            // Repeat emoji key
+            tgMsg.push(
+                `${config.emojis.agoraBuy}Buy, ${config.emojis.agoraList}List, ${config.emojis.agoraCancel}Cancel`,
+            );
+
+            for (let i = 0; i < newsworthyAgoraCollections.length; i += 1) {
+                const tokenId = newsworthyAgoraCollections[i];
+                const tokenActionInfo = sortedNftAgoraActions.get(tokenId);
+                const genesisInfo = tokenInfoMap.get(tokenId);
+
+                const { buy, list, cancel } = tokenActionInfo;
+
+                tgMsg.push(
+                    `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                        typeof genesisInfo === 'undefined'
+                            ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
+                            : genesisInfo.tokenName
+                    }</a>${
+                        typeof genesisInfo === 'undefined'
+                            ? ''
+                            : genesisInfo.tokenTicker !== ''
+                            ? ` (${genesisInfo.tokenTicker})`
+                            : ''
+                    }: ${
+                        buy.count > 0
+                            ? `${config.emojis.agoraBuy}${
+                                  buy.count > 1 ? `x${buy.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        list.count > 0
+                            ? `${config.emojis.agoraList}${
+                                  list.count > 1 ? `x${list.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        cancel.count > 0
+                            ? `${config.emojis.agoraCancel}${
+                                  cancel.count > 1 ? `x${cancel.count}` : ''
+                              }`
+                            : ''
+                    }`,
+                );
+            }
+            // Newline after agora section
+            tgMsg.push('');
+        }
+
+        // SLP 1 fungible summary
+        if (slpFungibleTxs > 0) {
             // Sort tokenActions map by number of token actions
             const sortedTokenActions = new Map(
                 [...tokenActions.entries()].sort(
@@ -2927,16 +3313,16 @@ module.exports = {
                 ),
             );
 
-            // Note we may have some agora tokens here, which is fine
-            // If agora tokens are also the top for other actions, want to demonstrate that
+            // nonAgoraTokens will probably include tokens with agora actions
+            // It's just that we want to present how many tokens had non-agora actions
             const nonAgoraTokens = Array.from(sortedTokenActions.keys());
 
             const nonAgoraTokenCount = nonAgoraTokens.length;
             tgMsg.push(
-                `${config.emojis.token} <b><i>${tokenTxs.toLocaleString(
+                `${config.emojis.token} <b><i>${slpFungibleTxs.toLocaleString(
                     'en-US',
                 )} token tx${
-                    tokenTxs > 1 ? 's' : ''
+                    slpFungibleTxs > 1 ? 's' : ''
                 } from ${nonAgoraTokenCount} token${
                     nonAgoraTokenCount > 1 ? 's' : ''
                 }</i></b>`,
@@ -2999,39 +3385,104 @@ module.exports = {
                     }`,
                 );
             }
-            if (alpTokenEntries > 0) {
-                tgMsg.push(
-                    `${config.emojis.alp} <b>${alpTokenEntries.toLocaleString(
-                        'en-US',
-                    )}</b> ALP tx${alpTokenEntries > 1 ? 's' : ''}`,
-                );
+
+            // Line break for new section
+            tgMsg.push('');
+        }
+
+        // NFT summary
+        if (nftNonAgoraTokenEntries > 0) {
+            // Sort tokenActions map by number of token actions
+            const sortedNftActions = new Map(
+                [...nftActions.entries()].sort(
+                    (keyValueArrayA, keyValueArrayB) =>
+                        keyValueArrayB[1].actionCount -
+                        keyValueArrayA[1].actionCount,
+                ),
+            );
+            const collectionsWithNonAgoraActions = Array.from(
+                sortedNftActions.keys(),
+            );
+            const collectionsWithNonAgoraActionsCount =
+                collectionsWithNonAgoraActions.length;
+
+            // Note that uniqueNonAgoraNfts and uniqueAgoraNfts can have some of the same members
+            // Some NFTs will have both agora actions and non-agora actions
+
+            tgMsg.push(
+                `${
+                    config.emojis.nft
+                } <b><i>${nftNonAgoraTokenEntries.toLocaleString(
+                    'en-US',
+                )} NFT tx${nftNonAgoraTokenEntries > 1 ? 's' : ''} from ${
+                    uniqueNonAgoraNfts.size
+                } NFT${
+                    uniqueNonAgoraNfts.size > 1 ? 's' : ''
+                } in ${collectionsWithNonAgoraActionsCount} collection${
+                    collectionsWithNonAgoraActionsCount > 1 ? 's' : ''
+                }</i></b>`,
+            );
+
+            const NON_AGORA_COLLECTIONS_TO_SHOW = 5;
+            const nonAgoraCollectionsToShow =
+                collectionsWithNonAgoraActionsCount <
+                NON_AGORA_COLLECTIONS_TO_SHOW
+                    ? collectionsWithNonAgoraActionsCount
+                    : NON_AGORA_COLLECTIONS_TO_SHOW;
+            const newsworthyCollections = collectionsWithNonAgoraActions.slice(
+                0,
+                nonAgoraCollectionsToShow,
+            );
+
+            if (
+                collectionsWithNonAgoraActionsCount >
+                NON_AGORA_COLLECTIONS_TO_SHOW
+            ) {
+                tgMsg.push(`<u>Top ${NON_AGORA_COLLECTIONS_TO_SHOW}</u>`);
             }
-            if (mintVaultTokenEntries > 0) {
+
+            for (let i = 0; i < newsworthyCollections.length; i += 1) {
+                const tokenId = newsworthyCollections[i];
+                const tokenActionInfo = sortedNftActions.get(tokenId);
+                const genesisInfo = tokenInfoMap.get(tokenId);
+
+                const { send, genesis, burn, mint } = tokenActionInfo;
+
                 tgMsg.push(
-                    `${
-                        config.emojis.mintvault
-                    } <b>${mintVaultTokenEntries.toLocaleString(
-                        'en-US',
-                    )}</b> Mint Vault tx${
-                        mintVaultTokenEntries > 1 ? 's' : ''
-                    }`,
-                );
-            }
-            if (nftTokenEntries > 0) {
-                tgMsg.push(
-                    `${config.emojis.nft} <b>${nftTokenEntries.toLocaleString(
-                        'en-US',
-                    )}</b> NFT tx${nftTokenEntries > 1 ? 's' : ''}`,
-                );
-            }
-            if (invalidTokenEntries > 0) {
-                tgMsg.push(
-                    `${
-                        config.emojis.invalid
-                    } <b>${invalidTokenEntries.toLocaleString(
-                        'en-US',
-                    )}</b> invalid token tx${
-                        invalidTokenEntries > 1 ? 's' : ''
+                    `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                        typeof genesisInfo === 'undefined'
+                            ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
+                            : genesisInfo.tokenName
+                    }</a>${
+                        typeof genesisInfo === 'undefined'
+                            ? ''
+                            : genesisInfo.tokenTicker !== ''
+                            ? ` (${genesisInfo.tokenTicker})`
+                            : ''
+                    }: ${
+                        typeof genesis !== 'undefined'
+                            ? `${config.emojis.tokenGenesis}${
+                                  genesis.count > 1 ? `x${genesis.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        typeof send !== 'undefined'
+                            ? `${config.emojis.arrowRight}${
+                                  send.count > 1 ? `x${send.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        typeof burn !== 'undefined'
+                            ? `${config.emojis.tokenBurn}${
+                                  burn.count > 1 ? `x${burn.count}` : ''
+                              }`
+                            : ''
+                    }${
+                        typeof mint !== 'undefined'
+                            ? `${config.emojis.tokenMint}${
+                                  mint.count > 1 ? `x${mint.count}` : ''
+                              }`
+                            : ''
                     }`,
                 );
             }
@@ -3039,6 +3490,75 @@ module.exports = {
             tgMsg.push('');
         }
 
+        // Genesis and mints token summary
+        const unparsedTokenEntries =
+            alpTokenEntries > 0 ||
+            mintVaultTokenEntries > 0 ||
+            invalidTokenEntries > 0;
+        const hasTokenSummaryLines =
+            nftMints > 0 ||
+            newSlpTokensFixedSupply > 0 ||
+            newSlpTokensVariableSupply > 0 ||
+            unparsedTokenEntries;
+        if (nftMints > 0) {
+            tgMsg.push(
+                `${config.emojis.nft} <b><i>${nftMints} NFT mint${
+                    nftMints > 1 ? 's' : ''
+                }</i></b>`,
+            );
+        }
+        if (newSlpTokensFixedSupply > 0) {
+            tgMsg.push(
+                `${
+                    config.emojis.tokenFixed
+                } <b><i>${newSlpTokensFixedSupply} new fixed-supply token${
+                    newSlpTokensFixedSupply > 1 ? 's' : ''
+                }</i></b>`,
+            );
+        }
+        if (newSlpTokensVariableSupply > 0) {
+            tgMsg.push(
+                `${
+                    config.emojis.tokenMint
+                } <b><i>${newSlpTokensVariableSupply} new variable-supply token${
+                    newSlpTokensVariableSupply > 1 ? 's' : ''
+                }</i></b>`,
+            );
+        }
+
+        // Unparsed token summary
+        if (alpTokenEntries > 0) {
+            tgMsg.push(
+                `${config.emojis.alp} <b><i>${alpTokenEntries.toLocaleString(
+                    'en-US',
+                )} ALP tx${alpTokenEntries > 1 ? 's' : ''}</i></b>`,
+            );
+        }
+        if (mintVaultTokenEntries > 0) {
+            tgMsg.push(
+                `${
+                    config.emojis.mintvault
+                } <b><i>${mintVaultTokenEntries.toLocaleString(
+                    'en-US',
+                )} Mint Vault tx${
+                    mintVaultTokenEntries > 1 ? 's' : ''
+                }</i></b>`,
+            );
+        }
+        if (invalidTokenEntries > 0) {
+            tgMsg.push(
+                `${
+                    config.emojis.invalid
+                } <b><i>${invalidTokenEntries.toLocaleString(
+                    'en-US',
+                )} invalid token tx${
+                    invalidTokenEntries > 1 ? 's' : ''
+                }</i></b>`,
+            );
+        }
+        if (hasTokenSummaryLines) {
+            tgMsg.push('');
+        }
         if (appTxs > 0) {
             // Sort appTxMap by most common app txs
             const sortedAppTxMap = new Map(

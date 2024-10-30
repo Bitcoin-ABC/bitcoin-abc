@@ -365,8 +365,8 @@ describe('parse.js functions', function () {
             ),
             [
                 '<b>15 Oct 2024</b>\n' +
-                    '📦56,900 blocks\n' +
-                    '➡️26 txs\n' +
+                    '📦57,430 blocks\n' +
+                    '➡️30 txs\n' +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
                     'Trading volume: $5,957,333\n' +
@@ -388,19 +388,30 @@ describe('parse.js functions', function () {
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    '🏛 <b><i>3 Agora txs from 3 tokens</i></b>\n' +
+                    '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
                     '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
+                    '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
                     '\n' +
-                    '🪙 <b><i>12 token txs from 2 tokens</i></b>\n' +
+                    '🪙 <b><i>8 token txs from 2 tokens</i></b>\n' +
                     '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
-                    '🗻 <b>1</b> ALP tx\n' +
-                    '🧩 <b>1</b> Mint Vault tx\n' +
-                    '🖼 <b>1</b> NFT tx\n' +
-                    '❌ <b>1</b> invalid token tx\n' +
+                    '\n' +
+                    '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>1 NFT mint</i></b>\n' +
+                    '🔒 <b><i>1 new fixed-supply token</i></b>\n' +
+                    '🔨 <b><i>1 new variable-supply token</i></b>\n' +
+                    '🗻 <b><i>1 ALP tx</i></b>\n' +
+                    '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
+                    '❌ <b><i>1 invalid token tx</i></b>\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
@@ -434,8 +445,8 @@ describe('parse.js functions', function () {
             ),
             [
                 '<b>15 Oct 2024</b>\n' +
-                    '📦56,900 blocks\n' +
-                    '➡️26 txs\n' +
+                    '📦57,430 blocks\n' +
+                    '➡️30 txs\n' +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
                     'Trading volume: $5,957,333\n' +
@@ -457,19 +468,30 @@ describe('parse.js functions', function () {
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    '🏛 <b><i>3 Agora txs from 3 tokens</i></b>\n' +
+                    '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">aed...cb1</a>: 💰\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ❌\n' +
                     '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">01d...896</a>: 🏷\n' +
+                    '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">0fb...316</a>: 🏷❌\n' +
                     '\n' +
-                    '🪙 <b><i>12 token txs from 2 tokens</i></b>\n' +
+                    '🪙 <b><i>8 token txs from 2 tokens</i></b>\n' +
                     '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">040...103</a>: 🧪➡️🔥🔨\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ➡️\n' +
-                    '🗻 <b>1</b> ALP tx\n' +
-                    '🧩 <b>1</b> Mint Vault tx\n' +
-                    '🖼 <b>1</b> NFT tx\n' +
-                    '❌ <b>1</b> invalid token tx\n' +
+                    '\n' +
+                    '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">8fd...e09</a>: 🧪\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>1 NFT mint</i></b>\n' +
+                    '🔒 <b><i>1 new fixed-supply token</i></b>\n' +
+                    '🔨 <b><i>1 new variable-supply token</i></b>\n' +
+                    '🗻 <b><i>1 ALP tx</i></b>\n' +
+                    '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
+                    '❌ <b><i>1 invalid token tx</i></b>\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
@@ -496,8 +518,8 @@ describe('parse.js functions', function () {
             ),
             [
                 '<b>15 Oct 2024</b>\n' +
-                    '📦56,900 blocks\n' +
-                    '➡️26 txs\n' +
+                    '📦57,430 blocks\n' +
+                    '➡️30 txs\n' +
                     '\n' +
                     '<b><i>⛏️3 miners found blocks</i></b>\n' +
                     '<u>Top 3</u>\n' +
@@ -515,19 +537,30 @@ describe('parse.js functions', function () {
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
-                    '🏛 <b><i>3 Agora txs from 3 tokens</i></b>\n' +
+                    '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
                     '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
+                    '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
                     '\n' +
-                    '🪙 <b><i>12 token txs from 2 tokens</i></b>\n' +
+                    '🪙 <b><i>8 token txs from 2 tokens</i></b>\n' +
                     '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
-                    '🗻 <b>1</b> ALP tx\n' +
-                    '🧩 <b>1</b> Mint Vault tx\n' +
-                    '🖼 <b>1</b> NFT tx\n' +
-                    '❌ <b>1</b> invalid token tx\n' +
+                    '\n' +
+                    '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>1 NFT mint</i></b>\n' +
+                    '🔒 <b><i>1 new fixed-supply token</i></b>\n' +
+                    '🔨 <b><i>1 new variable-supply token</i></b>\n' +
+                    '🗻 <b><i>1 ALP tx</i></b>\n' +
+                    '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
+                    '❌ <b><i>1 invalid token tx</i></b>\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +

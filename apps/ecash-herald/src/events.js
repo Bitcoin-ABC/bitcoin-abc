@@ -258,7 +258,12 @@ module.exports = {
         for (const tx of timeFirstSeenTxs) {
             const { tokenEntries } = tx;
             for (const tokenEntry of tokenEntries) {
-                tokensToday.add(tokenEntry.tokenId);
+                const { tokenId, groupTokenId } = tokenEntry;
+                tokensToday.add(tokenId);
+                if (typeof groupTokenId !== 'undefined') {
+                    // We want the groupTokenId info even if we only have child txs in this window
+                    tokensToday.add(groupTokenId);
+                }
             }
         }
         // Get all the token info of tokens from today

@@ -70,6 +70,7 @@ module.exports = {
         tokenGenesis: '🧪',
         tokenSend: '🎟',
         tokenMint: '🔨',
+        tokenFixed: '🔒',
         gift: '🎁',
         bank: '🏦',
         app: '📱',
