@@ -4,6 +4,15 @@
 
 import styled from 'styled-components';
 
+export const TokenScreenWrapper = styled.div`
+    color: ${props => props.theme.contrast};
+    width: 100%;
+    h2 {
+        margin: 0 0 20px;
+        margin-top: 10px;
+    }
+`;
+
 export const InfoModalParagraph = styled.p`
     color: ${props => props.theme.contrast};
     text-align: left;

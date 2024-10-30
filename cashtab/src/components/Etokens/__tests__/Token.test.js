@@ -797,4 +797,139 @@ describe('<Token />', () => {
             ),
         );
     });
+    it('For an uncached token with no balance, we show a spinner while loading the token info, then show an info screen and open agora offers', async () => {
+        // Set mock tokeninfo call
+        const CACHET_TOKENID = slp1FixedCachet.tokenId;
+        mockedChronik.setMock('token', {
+            input: CACHET_TOKENID,
+            output: slp1FixedCachet.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: CACHET_TOKENID,
+            output: slp1FixedCachet.tx,
+        });
+        mockedChronik.setTokenId(CACHET_TOKENID);
+        mockedChronik.setUtxosByTokenId(CACHET_TOKENID, {
+            tokenId: slp1FixedCachet.tokenId,
+            utxos: slp1FixedCachet.utxos,
+        });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route={`/token/${CACHET_TOKENID}`}
+            />,
+        );
+
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // We see a spinner while token info is loading
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // Cashtab pings chronik to build token cache info and displays token summary table
+        expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
+
+        // We see the token supply
+        expect(screen.getByText('Supply:')).toBeInTheDocument();
+        expect(
+            await screen.findByText('29,999,987,980,000,000.00 (fixed)'),
+        ).toBeInTheDocument();
+
+        // We see a notice that we do not hold this token
+        expect(
+            screen.getByText('You do not hold this token.'),
+        ).toBeInTheDocument();
+
+        // We do not see token actions
+        expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
+    });
+    it('For an uncached token with no balance, we show a chronik query error if we are unable to fetch the token info', async () => {
+        // Set mock tokeninfo call
+        const CACHET_TOKENID = slp1FixedCachet.tokenId;
+        mockedChronik.setMock('token', {
+            input: CACHET_TOKENID,
+            output: new Error('some error'),
+        });
+        mockedChronik.setMock('tx', {
+            input: CACHET_TOKENID,
+            output: new Error('some error'),
+        });
+        mockedChronik.setTokenId(CACHET_TOKENID);
+        mockedChronik.setUtxosByTokenId(CACHET_TOKENID, {
+            tokenId: slp1FixedCachet.tokenId,
+            utxos: new Error('some error'),
+        });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route={`/token/${CACHET_TOKENID}`}
+            />,
+        );
+
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // We see a spinner while token info is loading
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // We see expected chronik query error
+        expect(
+            await screen.findByText(
+                'Error querying token info. Please try again later.',
+            ),
+        ).toBeInTheDocument();
+
+        // We see a notice that we do not hold this token
+        expect(
+            screen.getByText('You do not hold this token.'),
+        ).toBeInTheDocument();
+
+        // We do not see token actions
+        expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
+    });
+    it('For an invalid tokenId, we do not query chronik, and we show an invalid tokenId notice', async () => {
+        const invalidTokenId = '012345';
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route={`/token/${invalidTokenId}`}
+            />,
+        );
+
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // We never see a spinner as we never make a chronik token info call
+        expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
+
+        // We see expected invalid tokenId error
+        expect(
+            await screen.findByText(`Invalid tokenId ${invalidTokenId}`),
+        ).toBeInTheDocument();
+
+        // We DO NOT see a notice that we do not hold this token
+        expect(
+            screen.queryByText('You do not hold this token.'),
+        ).not.toBeInTheDocument();
+
+        // We do not see token actions
+        expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
+    });
 });

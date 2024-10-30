@@ -87,6 +87,7 @@ export const Alert = styled.div`
     color: red;
     padding: 12px;
     margin: 12px 0;
+    word-break: break-all;
 `;
 export const Info = styled.div`
     background-color: #fff2f0;

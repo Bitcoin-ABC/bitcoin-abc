@@ -340,6 +340,10 @@ const App = () => {
                                                 </Route>
                                                 <Route path="/token">
                                                     <Route
+                                                        index
+                                                        element={<Etokens />}
+                                                    />
+                                                    <Route
                                                         path=":tokenId"
                                                         element={<Token />}
                                                     />
