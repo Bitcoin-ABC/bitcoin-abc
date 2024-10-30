@@ -523,6 +523,57 @@ export default {
             },
         ],
     },
+    sciToDecimal: {
+        expectedReturns: [
+            {
+                description: 'Converts basic positive exponent',
+                amount: '1e2',
+                returned: '100',
+            },
+            {
+                description: 'Handles leading zeros in the mantissa',
+                amount: '01.2e3',
+                returned: '1200',
+            },
+            {
+                description: 'Handles positive exponents with multiple digits',
+                amount: '1.23e21',
+                returned: '1230000000000000000000',
+            },
+            {
+                description: 'Handles amount causing problems in agora',
+                amount: '1.74733288374534143e+18',
+                returned: '1747332883745341430',
+            },
+            {
+                description: 'Handles zero',
+                amount: '0e3',
+                returned: '0',
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'We see expected error for negative exponents',
+                amount: '1e-22',
+                error: 'Negative exponents require special handling beyond simple conversion',
+            },
+            {
+                description: 'Not scientific notation',
+                amount: '17234',
+                error: 'Invalid scientific notation format',
+            },
+            {
+                description: 'Handles invalid format due to missing e',
+                amount: '1.23',
+                error: 'Invalid scientific notation format',
+            },
+            {
+                description: 'Handles invalid format due to double e',
+                amount: '1e2e3',
+                error: 'Invalid scientific notation format',
+            },
+        ],
+    },
     removeLeadingZeros: {
         expectedReturns: [
             {
@@ -688,6 +739,33 @@ export default {
                 utxos: [{ value: 1 }],
                 feePerKb: 1000,
                 error: 'Insufficient utxos to cancel this offer',
+            },
+        ],
+    },
+    toBigInt: {
+        expectedReturns: [
+            {
+                description: 'Converts scientific notation integer to BigInt',
+                str: '1.40577399462323814e18',
+                returned: 1405773994623238140n,
+            },
+            {
+                description: 'Converts stringified decimal to BigInt',
+                str: '1405773994623238140',
+                returned: 1405773994623238140n,
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'Scientific notation that is not an integer is rejected',
+                str: '1.40577399462323814e3',
+                error: 'Value is not an integer',
+            },
+            {
+                description: 'JS natively rejects stringified non-integers',
+                str: '1.40',
+                error: 'Cannot convert 1.40 to a BigInt',
             },
         ],
     },

@@ -20,6 +20,8 @@ import {
     hasUnfinalizedTxsInHistory,
     getAgoraPartialAcceptFuelInputs,
     getAgoraPartialCancelFuelInputs,
+    sciToDecimal,
+    toBigInt,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
@@ -163,6 +165,29 @@ describe('Cashtab wallet methods', () => {
                     amount,
                 );
             });
+        });
+        // We can decimalize amounts in scientific notation
+        // Note we do not expect undecimalizeTokenAmount to return these to sci notation
+        it(`decimalizeTokenAmount can handle large numbers in scientific notation`, () => {
+            expect(decimalizeTokenAmount('1.40577399462323814e18', 9)).toBe(
+                '1405773994.623238140',
+            );
+        });
+        it(`decimalizeTokenAmount can handle larger numbers in scientific notation`, () => {
+            expect(
+                decimalizeTokenAmount(
+                    '1.234567898765432101234567898765432e33',
+                    9,
+                ),
+            ).toBe('1234567898765432101234567.898765432');
+        });
+        it(`decimalizeTokenAmount can handle larger numbers in scientific notation for zero decimals`, () => {
+            expect(
+                decimalizeTokenAmount(
+                    '1.234567898765432101234567898765432e33',
+                    0,
+                ),
+            ).toBe('1234567898765432101234567898765432');
         });
         expectedErrors.forEach(expectedError => {
             const { description, amount, decimals, error } = expectedError;
@@ -328,6 +353,36 @@ describe('Cashtab wallet methods', () => {
                         feePerKb,
                     ),
                 ).toThrow(error);
+            });
+        });
+    });
+    describe('We can convert scientific notation numbers to stringified decimals', () => {
+        const { expectedReturns, expectedErrors } = vectors.sciToDecimal;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, amount, returned } = expectedReturn;
+            it(`sciToDecimal: ${description}`, () => {
+                expect(sciToDecimal(amount)).toBe(returned);
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, amount, error } = expectedError;
+            it(`sciToDecimal throws error for: ${description}`, () => {
+                expect(() => sciToDecimal(amount)).toThrow(error);
+            });
+        });
+    });
+    describe('We can convert stringified scientific notation numbers to bigint', () => {
+        const { expectedReturns, expectedErrors } = vectors.toBigInt;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, str, returned } = expectedReturn;
+            it(`toBigInt: ${description}`, () => {
+                expect(toBigInt(str)).toBe(returned);
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, str, error } = expectedError;
+            it(`toBigInt throws error for: ${description}`, () => {
+                expect(() => toBigInt(str)).toThrow(error);
             });
         });
     });

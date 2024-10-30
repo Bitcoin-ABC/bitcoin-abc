@@ -34,6 +34,7 @@ import {
     getAgoraPartialCancelFuelInputs,
     hasEnoughToken,
     DUMMY_KEYPAIR,
+    toBigInt,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import {
@@ -232,7 +233,7 @@ const OrderBook = ({
             acceptFuelInputs = getAgoraPartialAcceptFuelInputs(
                 agoraPartial,
                 eligibleUtxos,
-                BigInt(takeTokenSatoshis),
+                toBigInt(takeTokenSatoshis),
                 satsPerKb,
             );
         } catch (err) {
@@ -279,7 +280,8 @@ const OrderBook = ({
                     fromHex(wallet.paths.get(appConfig.derivationPath).hash),
                 ),
                 feePerKb: satsPerKb,
-                acceptedTokens: BigInt(takeTokenSatoshis),
+                // Need to use Number() to deal with values in scientific notation
+                acceptedTokens: toBigInt(takeTokenSatoshis),
             })
             .ser();
 
@@ -343,7 +345,15 @@ const OrderBook = ({
     const [agoraQueryError, setAgoraQueryError] = useState(false);
 
     const handleTakeTokenSatoshisSlide = e => {
-        setTakeTokenSatoshis(e.target.value);
+        // JS slider components will only take string input, and only convert to number
+        // So, unless you build your own custom component, you cannot avoid precision loss
+        // TODO custom component
+        // Prepare value before setting
+        const preparedTokenSatoshis =
+            selectedOffer.variant.params.prepareAcceptedTokens(
+                toBigInt(e.target.value),
+            );
+        setTakeTokenSatoshis(preparedTokenSatoshis.toString());
     };
 
     // We can only calculate params to render the orderbook depth chart and slider after
@@ -525,18 +535,16 @@ const OrderBook = ({
 
         setTakeTokenSatoshisError(
             getAgoraPartialAcceptTokenQtyError(
-                BigInt(takeTokenSatoshis),
+                toBigInt(takeTokenSatoshis),
                 tokenSatoshisMin,
                 tokenSatoshisMax,
                 decimals,
             ),
         );
 
-        // Note you must prepareAcceptedTokens for the price
-        // Note, this amount is be prepared as the slider has a step corresponding
-        // with the granularity of the token offer, and all the math is done with BigInt
+        // takeTokenSatoshis is only set to state by agora methods that prepareAcceptedTokens
         const spotPriceSatsThisQty = selectedOffer.askedSats(
-            BigInt(takeTokenSatoshis),
+            toBigInt(takeTokenSatoshis),
         );
 
         // The state parameter "askedSats" is only used for rendering pricing information,

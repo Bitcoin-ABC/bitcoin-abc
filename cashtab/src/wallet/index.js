@@ -13,6 +13,8 @@ import { fromHex, Script, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
 const SATOSHIS_PER_XEC = 100;
 const NANOSATS_PER_XEC = new BN(1e11);
 const STRINGIFIED_INTEGER_REGEX = /^[0-9]+$/;
+
+const SCI_REGEX_POSTIIVE = /^(\d*\.?\d+)e([+-]?\d+)$/i;
 export const STRINGIFIED_DECIMALIZED_REGEX = /^\d*\.?\d*$/;
 
 const DUMMY_TXID =
@@ -305,7 +307,15 @@ export const decimalizeTokenAmount = (amount, decimals) => {
     if (typeof amount !== 'string') {
         throw new Error('amount must be a string');
     }
+
+    // Test for scientific notation
+    if (SCI_REGEX_POSTIIVE.test(amount)) {
+        amount = sciToDecimal(amount);
+    }
+
     if (!STRINGIFIED_INTEGER_REGEX.test(amount)) {
+        // If scientific notation, use a different aproach
+        //TODO
         throw new Error('amount must be a stringified integer');
     }
     if (!Number.isInteger(decimals)) {
@@ -338,6 +348,63 @@ export const decimalizeTokenAmount = (amount, decimals) => {
         amount.length - stringAfterDecimalPoint.length,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
+};
+
+/**
+ * JS cannot convert stringified scientific notation to bigint
+ * @param {*} str stringified number from slider or user input
+ */
+export const toBigInt = str => {
+    if (SCI_REGEX_POSTIIVE.test(str)) {
+        str = sciToDecimal(str);
+    }
+    return BigInt(str);
+};
+
+/**
+ * Get a stringified decimal representation of sci notation number
+ * @param {string} str
+ * @returns {string}
+ */
+export const sciToDecimal = str => {
+    // Regular expression to match scientific notation
+    let [, mantissa, exponent] = str.match(SCI_REGEX_POSTIIVE) || [];
+
+    if (!mantissa || !exponent) {
+        throw new Error('Invalid scientific notation format');
+    }
+
+    // Remove any leading zeros from mantissa
+    mantissa = removeLeadingZeros(mantissa);
+
+    const mantissaDecimalPlaces = mantissa.includes('.')
+        ? mantissa.split('.')[1].length
+        : 0;
+    const mantissaWithoutDot = mantissa.replace(/\./, '');
+    let exponentValue = parseInt(exponent, 10);
+    // If the exponent is negative, we need to handle it differently
+    if (exponentValue < 0) {
+        throw new Error(
+            'Negative exponents require special handling beyond simple conversion',
+        );
+        // Cashtab is only doing integer conversion
+    }
+    if (mantissaDecimalPlaces > 0) {
+        exponentValue -= mantissaDecimalPlaces;
+    }
+    if (exponentValue < 0) {
+        throw new Error('Value is not an integer');
+    }
+
+    // Handle zero case
+    if (parseInt(mantissaWithoutDot) === 0) {
+        return '0';
+    }
+
+    // Construct the decimal number by padding with zeros
+    let decimalString = mantissaWithoutDot + '0'.repeat(exponentValue);
+
+    return decimalString;
 };
 
 /**
