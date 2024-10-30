@@ -23,6 +23,7 @@ Protocol identifiers below are listed how they appear in eCash transaction outpu
 | 63686174            | eCash Chat                 | eCashChat                           | ecash:qz9aa3yeuspe569xqtmn0f8aaxwmdjz4l58z6hzv9u | N/A                                                           | `<63686174> <utf8 msg>`                      |
 | 70617977            | Paywall tx                 | eCashChat                           | ecash:qz9aa3yeuspe569xqtmn0f8aaxwmdjz4l58z6hzv9u | N/A                                                           | `<70617977> <txid>`                          |
 | 61757468            | Authentication via dust tx | eCashChat                           | ecash:qz9aa3yeuspe569xqtmn0f8aaxwmdjz4l58z6hzv9u | N/A                                                           | `<61757468> <utf8 identifier>`               |
+| 54424F58            | Token trollbox             | Cashtab                             | ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l | N/A                                                           | `<54424F58> <tokenId> <msg>`                 |
 
 ---
 
