@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 /**
- * OrderBook.js
+ * OrderBook
  *
  * Component renders all open AgoraOffers type === 'PARTIAL' for a given tokenId
  * Offers are rendered as depth bars
