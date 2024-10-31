@@ -86,6 +86,7 @@ const OrderBook = ({
     chronik,
     agora,
     chaintipBlockheight,
+    noIcon,
 }) => {
     const cancelOffer = async agoraPartial => {
         // Get user fee from settings
@@ -392,7 +393,9 @@ const OrderBook = ({
     // Used to render Buy or Cancel option to the user
     // Validate activePk as it could be null from Agora/index.js (not yet calculated)
     let isMaker;
+    let lessThanFourOffers = false;
     if (activeOffers.length > 0) {
+        lessThanFourOffers = activeOffers.length < 4;
         selectedOffer = activeOffers[selectedIndex];
         tokenSatoshisMax = BigInt(selectedOffer.token.amount);
         const { params } = selectedOffer.variant;
@@ -641,47 +644,53 @@ const OrderBook = ({
                         handleCancel={() => setShowConfirmCancelModal(false)}
                     />
                 )}
+            {!noIcon && (
+                <OfferRow>
+                    {tokenName}
+                    {tokenTicker}
+                </OfferRow>
+            )}
             <OfferRow>
-                {tokenName}
-                {tokenTicker}
-            </OfferRow>
-            <OfferRow>
-                <OfferIconCol>
-                    <OfferIcon
-                        title={tokenId}
-                        size={64}
-                        tokenId={tokenId}
-                        aria-label={`View larger icon for ${
-                            typeof tokenName === 'string' ? tokenName : tokenId
-                        }`}
-                        onClick={() => setShowLargeIconModal(true)}
-                    />
-                    <OfferRow>
-                        <NftTokenIdAndCopyIcon>
-                            <a
-                                href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {tokenId.slice(0, 3)}
-                                ...
-                                {tokenId.slice(-3)}
-                            </a>
-                            <CopyIconButton
-                                data={tokenId}
-                                showToast
-                                customMsg={`Token ID "${tokenId}" copied to clipboard`}
-                            />
-                        </NftTokenIdAndCopyIcon>
-                    </OfferRow>
-                </OfferIconCol>
+                {!noIcon && (
+                    <OfferIconCol lessThanFourOffers={lessThanFourOffers}>
+                        <OfferIcon
+                            title={tokenId}
+                            size={64}
+                            tokenId={tokenId}
+                            aria-label={`View larger icon for ${
+                                typeof tokenName === 'string'
+                                    ? tokenName
+                                    : tokenId
+                            }`}
+                            onClick={() => setShowLargeIconModal(true)}
+                        />
+                        <OfferRow>
+                            <NftTokenIdAndCopyIcon>
+                                <a
+                                    href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {tokenId.slice(0, 3)}
+                                    ...
+                                    {tokenId.slice(-3)}
+                                </a>
+                                <CopyIconButton
+                                    data={tokenId}
+                                    showToast
+                                    customMsg={`Token ID "${tokenId}" copied to clipboard`}
+                                />
+                            </NftTokenIdAndCopyIcon>
+                        </OfferRow>
+                    </OfferIconCol>
+                )}
                 {agoraQueryError && (
                     <Alert>
                         Error querying agora for active offers. Try again later.
                     </Alert>
                 )}
                 {canRenderOrderbook && (
-                    <DepthBarCol>
+                    <DepthBarCol lessThanFourOffers={lessThanFourOffers}>
                         {activeOffers.map((activeOffer, index) => {
                             const { depthPercent } = activeOffer;
                             const acceptPercent =
@@ -730,8 +739,9 @@ const OrderBook = ({
                             min={tokenSatoshisMin.toString()}
                             max={tokenSatoshisMax.toString()}
                             step={tokenSatoshisStep.toString()}
-                            fixedWidth
                         />
+                    </SliderRow>
+                    <SliderRow>
                         <DataAndQuestionButton>
                             {decimalizedTokenQtyToLocaleFormat(
                                 decimalizeTokenAmount(
@@ -746,20 +756,20 @@ const OrderBook = ({
                                 onClick={() => setShowAcceptedQtyInfo(true)}
                             />
                         </DataAndQuestionButton>
-                        <SliderInfoRow>
-                            {toFormattedXec(askedSats, userLocale)} XEC
-                        </SliderInfoRow>
-                        {fiatPrice !== null && (
-                            <SliderInfoRow>
-                                {getFormattedFiatPrice(
-                                    settings,
-                                    userLocale,
-                                    toXec(askedSats),
-                                    fiatPrice,
-                                )}
-                            </SliderInfoRow>
-                        )}
                     </SliderRow>
+                    <SliderInfoRow>
+                        {toFormattedXec(askedSats, userLocale)} XEC
+                    </SliderInfoRow>
+                    {fiatPrice !== null && (
+                        <SliderInfoRow>
+                            {getFormattedFiatPrice(
+                                settings,
+                                userLocale,
+                                toXec(askedSats),
+                                fiatPrice,
+                            )}
+                        </SliderInfoRow>
+                    )}
                     <OfferRow>
                         {isMaker ? (
                             <SecondaryButton
@@ -796,6 +806,7 @@ OrderBook.propTypes = {
     chronik: PropTypes.object,
     agora: PropTypes.object,
     chaintipBlockheight: PropTypes.number,
+    noIcon: PropTypes.bool,
 };
 
 export default OrderBook;
