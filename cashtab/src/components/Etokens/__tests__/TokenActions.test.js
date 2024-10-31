@@ -422,7 +422,6 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
 
         // We see the expected toast notification for the successful listing tx
-        screen.debug(null, Infinity);
         expect(
             await screen.findByText(
                 `${actualOfferedQty} Vespene Gas listed for ${actualPricePerTokenForMinBuy} per token`,
