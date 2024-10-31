@@ -5,12 +5,16 @@
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
 
-export const formatDate = (dateString, userLocale = 'en') => {
-    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+export const formatDate = (dateString: string, userLocale = 'en'): string => {
+    const options: Intl.DateTimeFormatOptions = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    };
     const dateFormattingError = 'Unable to format date.';
     try {
         if (dateString) {
-            return new Date(dateString * 1000).toLocaleDateString(
+            return new Date(Number(dateString) * 1000).toLocaleDateString(
                 userLocale,
                 options,
             );
@@ -21,32 +25,29 @@ export const formatDate = (dateString, userLocale = 'en') => {
     }
 };
 
-export const formatFiatBalance = (fiatBalance, optionalLocale) => {
+export const formatFiatBalance = (
+    fiatBalance: number,
+    userLocale = 'en-US',
+) => {
     try {
         if (fiatBalance === 0) {
             return Number(fiatBalance).toFixed(appConfig.cashDecimals);
         }
-        if (optionalLocale === undefined) {
-            return fiatBalance.toLocaleString({
-                maximumFractionDigits: appConfig.cashDecimals,
-            });
-        }
-        return fiatBalance.toLocaleString(optionalLocale, {
+        const options: Intl.NumberFormatOptions = {
             maximumFractionDigits: appConfig.cashDecimals,
-        });
+        };
+        return fiatBalance.toLocaleString(userLocale, options);
     } catch (err) {
         return fiatBalance;
     }
 };
 
-export const formatBalance = (unformattedBalance, optionalLocale) => {
+export const formatBalance = (
+    unformattedBalance: string,
+    userLocale = 'en-US',
+): string => {
     try {
-        if (optionalLocale === undefined) {
-            return new Number(unformattedBalance).toLocaleString({
-                maximumFractionDigits: appConfig.cashDecimals,
-            });
-        }
-        return new Number(unformattedBalance).toLocaleString(optionalLocale, {
+        return new Number(unformattedBalance).toLocaleString(userLocale, {
             maximumFractionDigits: appConfig.cashDecimals,
         });
     } catch (err) {
@@ -57,14 +58,13 @@ export const formatBalance = (unformattedBalance, optionalLocale) => {
 };
 
 /**
- * Add locale number formatting to a decimalized token quantity
- * @param {string} decimalizedTokenQty e.g. 100.123
- * @param {string} userLocale e.g. 'en-US'
+ * Add locale number formatting to a decimalized
+ * token quantity
  */
 export const decimalizedTokenQtyToLocaleFormat = (
-    decimalizedTokenQty,
-    userLocale,
-) => {
+    decimalizedTokenQty: string,
+    userLocale: string,
+): string => {
     // Note that we cannot parseFloat(decimalizedTokenQty) because it will round some numbers at
     // upper end of possible token quantities
     // So, use a string method
@@ -104,7 +104,10 @@ export const decimalizedTokenQtyToLocaleFormat = (
     return localeTokenString;
 };
 
-export const toFormattedXec = (satoshis, userLocale) => {
+export const toFormattedXec = (
+    satoshis: number,
+    userLocale: string,
+): string => {
     // Get XEC balance
     let xecAmount = toXec(satoshis);
     // Format up to max supply
@@ -133,13 +136,12 @@ export const toFormattedXec = (satoshis, userLocale) => {
 };
 
 /**
- * Determine how many decimal places to render to support at least 2 places of precision
- * @param {number} number
- * @returns {integer}
+ * Determine how many decimal places to render to support
+ * at least 2 places of precision *
  */
 const MAX_DIGITS_TO_RENDER = 20; // max supported by Intl.NumberFormat
 const DESIRED_PRECISION = appConfig.cashDecimals;
-export const getMinimumFractionDigits = number => {
+export const getMinimumFractionDigits = (number: number): number => {
     if (number === 0 || number >= 1) {
         return DESIRED_PRECISION;
     }
@@ -153,28 +155,37 @@ export const getMinimumFractionDigits = number => {
 };
 
 /**
+ * Note
+ * This should not live here
+ * But, as part of gradually implementing ts
+ * needs to live in a ts file until it finds its rightful home
+ */
+export interface CashtabSettings {
+    autoCameraOn: boolean;
+    balanceVisible: boolean;
+    fiatCurrency: string;
+    hideMessagesFromUnknownSenders: boolean;
+    minFeeSends: boolean;
+    sendModal: boolean;
+}
+/**
  * Agora token prices may be much less than $1
- * Format so you have 2 decimals of price precision and account for crazy leading zeros
- * @param {object} settings
- * @param {string} userLocale
- * @param {number} priceXec
- * @param {number | null} fiatPrice
+ * Format so you have 2 decimals of price precision and account for crazy leading zeros *
  */
 export const getFormattedFiatPrice = (
-    settings,
-    userLocale,
-    priceXec,
-    fiatPrice,
-) => {
+    settings: CashtabSettings,
+    userLocale: string,
+    priceXec: number | string,
+    fiatPrice: number | null,
+): string => {
     const renderFiat = typeof fiatPrice === 'number';
-    const renderedPrice = renderFiat
-        ? parseFloat(priceXec) * fiatPrice
-        : parseFloat(priceXec);
+    priceXec = typeof priceXec === 'number' ? priceXec : parseFloat(priceXec);
+    const renderedPrice = renderFiat ? priceXec * fiatPrice : priceXec;
     let ticker = 'XEC';
     if (renderFiat) {
         ticker = settings.fiatCurrency.toUpperCase();
     }
-    let renderedDecimalPlaces = getMinimumFractionDigits(renderedPrice);
+    const renderedDecimalPlaces = getMinimumFractionDigits(renderedPrice);
 
     if (renderFiat) {
         // Note that while some locales will include the currency code

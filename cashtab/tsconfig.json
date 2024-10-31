@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "commonjs",
+        "outDir": "./dist",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "alwaysStrict": true,
+        "skipLibCheck": true,
+        "declaration": true,
+        "baseUrl": "src",
+        "allowJs": true
+    },
+    "include": ["src", ".eslintrc.js"]
+}

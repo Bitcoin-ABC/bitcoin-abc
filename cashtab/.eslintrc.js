@@ -20,23 +20,41 @@ module.exports = {
     },
     extends: [
         'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
         'plugin:react/recommended',
         'plugin:jest/recommended',
     ],
+    parser: '@typescript-eslint/parser',
     parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
         ecmaFeatures: {
             jsx: true,
         },
-        ecmaVersion: 12,
-        sourceType: 'module',
     },
-    plugins: ['etc', 'react', 'jest', 'testing-library', 'header'],
+    plugins: [
+        'etc',
+        'react',
+        'jest',
+        'testing-library',
+        'header',
+        '@typescript-eslint',
+    ],
     rules: {
         'jest/no-mocks-import': 'off',
         'etc/no-commented-out-code': 'error',
         'header/header': [2, 'line', headerArray, 2],
     },
-    settings: { react: { version: 'detect' } },
+    settings: {
+        'react': { version: 'detect' },
+        'import/resolver': {
+            node: {
+                paths: ['src'],
+            },
+        },
+    },
     overrides: [
         {
             // Enable eslint-plugin-testing-library rules or preset only for matching testing files!

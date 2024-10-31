@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.50.3",
+    "version": "2.51.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -51,6 +51,7 @@
     "devDependencies": {
         "@babel/core": "^7.16.0",
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+        "@babel/preset-typescript": "^7.26.0",
         "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
         "@svgr/webpack": "^6.3.1",
         "@testing-library/jest-dom": "^6.4.2",
