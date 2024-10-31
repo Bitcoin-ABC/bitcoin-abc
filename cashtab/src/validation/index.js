@@ -388,19 +388,15 @@ export const isValidCashtabCache = cashtabCache => {
     return isValidCachedInfo;
 };
 
-// XEC airdrop field validations
+// TokenId regex
+const TOKEN_ID_REGEX = new RegExp(/^[a-f0-9]{64}$/);
+/**
+ * Validate a tokenId
+ * @param {string} tokenId
+ * @returns
+ */
 export const isValidTokenId = tokenId => {
-    // disable no-useless-escape for regex
-    //eslint-disable-next-line
-    const format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
-    const specialCharCheck = format.test(tokenId);
-
-    return (
-        typeof tokenId === 'string' &&
-        tokenId.length === 64 &&
-        tokenId.trim() != '' &&
-        !specialCharCheck
-    );
+    return TOKEN_ID_REGEX.test(tokenId);
 };
 
 /**
