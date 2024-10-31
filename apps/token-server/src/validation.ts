@@ -8,7 +8,7 @@ import { Request } from 'express';
 const TOKEN_ICON_REQUEST_REGEX = new RegExp(/^\/([0-9]+)\/[a-f0-9]{64}.png$/);
 
 // TokenId regex
-const TOKEN_ID_REGEX = new RegExp(/[a-f0-9]{64}/);
+const TOKEN_ID_REGEX = new RegExp(/^[a-f0-9]{64}$/);
 
 /**
  * Determine if a request caught by 404 was for a token icon

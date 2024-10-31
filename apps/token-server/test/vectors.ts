@@ -1267,16 +1267,22 @@ const vectors: TestVectors = {
             {
                 description: 'Valid hex but 65 chars is invalid',
                 string: '00000000000000000000000000000000000000000000000000000000000000000',
-                returned: true,
+                returned: false,
             },
             {
                 description: 'Valid hex but 33 bytes (66 chars) is invalid',
                 string: '000000000000000000000000000000000000000000000000000000000000000000',
-                returned: true,
+                returned: false,
             },
             {
                 description: 'Valid length but invalid hex is invalid',
                 string: 'g000000000000000000000000000000000000000000000000000000000000000',
+                returned: false,
+            },
+            {
+                description:
+                    'Cashtab test that passes without regex anchors (invalid length)',
+                string: '111111111c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
                 returned: false,
             },
             {
