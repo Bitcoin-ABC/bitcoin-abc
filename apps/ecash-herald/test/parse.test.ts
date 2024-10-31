@@ -1,0 +1,588 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+import assert from 'assert';
+import opReturn from '../constants/op_return';
+import unrevivedBlock from './mocks/block';
+import minersJson, { KnownMiners } from '../constants/miners';
+import minerTestFixtures from './fixtures/miners';
+import stakerTestFixtures from './fixtures/stakers';
+import invalidatedBlocksTestFixtures from './fixtures/invalidatedBlocks';
+import { jsonReviver } from '../src/utils';
+import memoFixtures from './mocks/memo';
+import { consumeNextPush } from 'ecash-script';
+import { MockChronikClient } from '../../../modules/mock-chronik-client';
+import { TxOutput } from 'chronik-client';
+import { caching } from 'cache-manager';
+import { StoredMock } from '../src/events';
+import {
+    parseBlockTxs,
+    getStakerFromCoinbaseTx,
+    getMinerFromCoinbaseTx,
+    parseMemoOutputScript,
+    getBlockTgMessage,
+    parseOpReturn,
+    getSwapTgMsg,
+    getAirdropTgMsg,
+    getEncryptedCashtabMsg,
+    parseMultipushStack,
+    parseSlpTwo,
+    guessRejectReason,
+    summarizeTxHistory,
+} from '../src/parse';
+import appTxSamples from './mocks/appTxSamples';
+import { dailyTxs, tokenInfoMap } from './mocks/dailyTxs';
+
+const {
+    swaps,
+    airdrops,
+    encryptedCashtabMsgs,
+    slp2PushVectors,
+    slp2TxVectors,
+    aliasRegistrations,
+    cashtabMsgs,
+    payButtonTxs,
+    paywallTxs,
+    authenticationTxs,
+} = appTxSamples;
+
+const block: StoredMock = JSON.parse(
+    JSON.stringify(unrevivedBlock),
+    jsonReviver,
+);
+const miners: KnownMiners = JSON.parse(JSON.stringify(minersJson), jsonReviver);
+
+describe('parse.js functions', function () {
+    it('Parses the master test block', function () {
+        const thisBlock = block;
+        const {
+            blockTxs,
+            parsedBlock,
+            coingeckoPrices,
+            tokenInfoMap,
+            outputScriptInfoMap,
+            blockSummaryTgMsgs,
+        } = thisBlock;
+        assert.deepEqual(
+            parseBlockTxs(parsedBlock.hash, parsedBlock.height, blockTxs),
+            parsedBlock,
+        );
+        assert.deepEqual(
+            getBlockTgMessage(
+                parsedBlock,
+                coingeckoPrices,
+                tokenInfoMap,
+                outputScriptInfoMap,
+            ),
+            blockSummaryTgMsgs,
+        );
+    });
+    it('parseOpReturn handles all types of SWaP txs', function () {
+        for (let i = 0; i < swaps.length; i += 1) {
+            const { hex, stackArray, tokenId } = swaps[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.swap.app,
+                msg: '',
+                stackArray,
+                tokenId,
+            });
+        }
+    });
+    it('getSwapTgMsg handles all types of SWaP txs', function () {
+        for (let i = 0; i < swaps.length; i += 1) {
+            const { stackArray, msg, tokenInfo } = swaps[i];
+            const result = getSwapTgMsg(stackArray, tokenInfo);
+            assert.strictEqual(result, msg);
+        }
+    });
+    it('parseOpReturn handles alias registration txs', function () {
+        for (let i = 0; i < aliasRegistrations.length; i += 1) {
+            const { hex, stackArray, msg } = aliasRegistrations[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.alias.app,
+                msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles Cashtab Msgs', function () {
+        for (let i = 0; i < cashtabMsgs.length; i += 1) {
+            const { hex, stackArray, msg } = cashtabMsgs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.cashtabMsg.app,
+                msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles PayButton txs', function () {
+        for (let i = 0; i < payButtonTxs.length; i += 1) {
+            const { hex, stackArray, msg } = payButtonTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.payButton.app,
+                msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles airdrop txs with and without a cashtab msg', function () {
+        for (let i = 0; i < airdrops.length; i += 1) {
+            const { hex, stackArray, tokenId } = airdrops[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.airdrop.app,
+                msg: '',
+                stackArray,
+                tokenId,
+            });
+        }
+    });
+    it('getAirdropMsg handles airdrop txs with and without a cashtab msg', function () {
+        for (let i = 0; i < airdrops.length; i += 1) {
+            const {
+                stackArray,
+                airdropSendingAddress,
+                airdropRecipientsKeyValueArray,
+                msg,
+                msgApiFailure,
+                tokenInfo,
+                coingeckoPrices,
+            } = airdrops[i];
+            const xecReceivingOutputs = new Map(airdropRecipientsKeyValueArray);
+            let totalSatsSent = 0;
+            for (const satoshis of xecReceivingOutputs.values()) {
+                totalSatsSent += satoshis;
+            }
+            const result = getAirdropTgMsg(
+                stackArray,
+                airdropSendingAddress,
+                xecReceivingOutputs,
+                totalSatsSent,
+                tokenInfo,
+                coingeckoPrices,
+            );
+            const resultApiFailure = getAirdropTgMsg(
+                stackArray,
+                airdropSendingAddress,
+                xecReceivingOutputs,
+                totalSatsSent,
+                false,
+                false,
+            );
+            assert.strictEqual(result, msg);
+            assert.strictEqual(resultApiFailure, msgApiFailure);
+        }
+    });
+    it('parseOpReturn handles encrypted cashtab msg txs', function () {
+        for (let i = 0; i < encryptedCashtabMsgs.length; i += 1) {
+            const { hex, stackArray } = encryptedCashtabMsgs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.cashtabMsgEncrypted.app,
+                msg: '',
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles paywall payment txs', function () {
+        for (let i = 0; i < paywallTxs.length; i += 1) {
+            const { hex, stackArray, msg } = paywallTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.paywall.app,
+                msg: msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('getEncryptedCashtabMsg handles encrypted cashtab msg txs with and without price info', function () {
+        for (let i = 0; i < encryptedCashtabMsgs.length; i += 1) {
+            const {
+                sendingAddress,
+                xecReceivingOutputsKeyValueArray,
+                msg,
+                msgApiFailure,
+                coingeckoPrices,
+            } = encryptedCashtabMsgs[i];
+
+            const xecReceivingOutputs = new Map(
+                xecReceivingOutputsKeyValueArray,
+            );
+            let totalSatsSent = 0;
+            for (const satoshis of xecReceivingOutputs.values()) {
+                totalSatsSent += satoshis;
+            }
+            const result = getEncryptedCashtabMsg(
+                sendingAddress,
+                xecReceivingOutputs,
+                totalSatsSent,
+                coingeckoPrices,
+            );
+            const resultApiFailure = getEncryptedCashtabMsg(
+                sendingAddress,
+                xecReceivingOutputs,
+                totalSatsSent,
+                false,
+            );
+            assert.strictEqual(result, msg);
+            assert.strictEqual(resultApiFailure, msgApiFailure);
+        }
+    });
+    it('parseOpReturn handles slp2 txs', function () {
+        for (let i = 0; i < slp2TxVectors.length; i += 1) {
+            const { hex, msg } = slp2TxVectors[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: 'EMPP',
+                msg,
+            });
+        }
+    });
+    it('parseOpReturn handles authentication txs', function () {
+        for (let i = 0; i < authenticationTxs.length; i += 1) {
+            const { hex, stackArray, msg } = authenticationTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.authentication.app,
+                msg: msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseMultipushStack handles a range of observed slp2 empp pushes', function () {
+        for (let i = 0; i < slp2TxVectors.length; i += 1) {
+            const { emppStackArray, msg } = slp2TxVectors[i];
+            assert.deepEqual(parseMultipushStack(emppStackArray), {
+                app: 'EMPP',
+                msg,
+            });
+        }
+    });
+    it('parseSlpTwo handles a range of observed slp2 empp pushes', function () {
+        for (let i = 0; i < slp2PushVectors.length; i += 1) {
+            const { push, msg } = slp2PushVectors[i];
+
+            assert.strictEqual(parseSlpTwo(push.slice(8)), msg);
+        }
+    });
+    it('parseOpReturn recognizes legacy Cash Fusion prefix', function () {
+        assert.deepEqual(
+            parseOpReturn(
+                '0446555a0020771c2fa0d402fe15ba0aa2e98660facf4a8ab6801b5baf3c0b08ced685dd85ed',
+            ),
+            {
+                app: opReturn.knownApps.fusionLegacy.app,
+                msg: '',
+                tokenId: false,
+                stackArray: [
+                    '46555a00',
+                    '771c2fa0d402fe15ba0aa2e98660facf4a8ab6801b5baf3c0b08ced685dd85ed',
+                ],
+            },
+        );
+    });
+    it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
+        memoFixtures.map(memoTestObj => {
+            const { outputScript, msg } = memoTestObj;
+            // Get array of pushes
+            let stack = { remainingHex: outputScript.slice(2) };
+            let stackArray = [];
+            while (stack.remainingHex.length > 0) {
+                stackArray.push(consumeNextPush(stack).data);
+            }
+            assert.deepEqual(parseMemoOutputScript(stackArray), {
+                app: opReturn.memo.app,
+                msg,
+            });
+        });
+    });
+    it('getStakerFromCoinbaseTx parses miner for all test vectors', function () {
+        for (let i = 0; i < stakerTestFixtures.length; i += 1) {
+            const { coinbaseTx, staker } = stakerTestFixtures[i];
+
+            assert.deepEqual(
+                getStakerFromCoinbaseTx(
+                    coinbaseTx.block.height,
+                    coinbaseTx.outputs as TxOutput[],
+                ),
+                staker,
+            );
+        }
+    });
+    it('getMinerFromCoinbaseTx parses miner for all test vectors', function () {
+        for (let i = 0; i < minerTestFixtures.length; i += 1) {
+            const { parsed, coinbaseHex, payoutOutputScript } =
+                minerTestFixtures[i];
+            // Minimally mock the coinbase tx
+            const inputScript = coinbaseHex;
+            const outputs = [
+                { outputScript: payoutOutputScript },
+            ] as TxOutput[];
+
+            assert.strictEqual(
+                getMinerFromCoinbaseTx(inputScript, outputs, miners),
+                parsed,
+            );
+        }
+    });
+    it('guessRejectReason returns the expected guess for all test vectors', async function () {
+        for (let i = 0; i < invalidatedBlocksTestFixtures.length; i += 1) {
+            const {
+                height,
+                coinbaseData,
+                expectedRejectReason,
+                expectedCacheData,
+                mockedBlock,
+            } = invalidatedBlocksTestFixtures[i];
+
+            const mockedChronik = new MockChronikClient();
+            mockedChronik.mockedResponses.block = mockedBlock;
+
+            const testMemoryCache = await caching('memory', {
+                max: 100,
+                ttl: 60,
+            });
+            testMemoryCache.set(`${height}`, expectedCacheData);
+
+            assert.strictEqual(
+                await guessRejectReason(
+                    mockedChronik,
+                    height,
+                    coinbaseData,
+                    testMemoryCache,
+                ),
+                expectedRejectReason,
+            );
+        }
+    });
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        assert.deepEqual(
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                tokenInfoMap,
+                {
+                    usd: 0.00003487,
+                    usd_market_cap: 689047177.8128564,
+                    usd_24h_vol: 5957332.9687223025,
+                    usd_24h_change: -0.3973642442197056,
+                },
+            ),
+            [
+                '<b>15 Oct 2024</b>\n' +
+                    '📦57,430 blocks\n' +
+                    '➡️30 txs\n' +
+                    '\n' +
+                    '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
+                    'Trading volume: $5,957,333\n' +
+                    'Market cap: $689,047,178\n' +
+                    '\n' +
+                    '<b><i>⛏️3 miners found blocks</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. Mining-Dutch, 1 <i>(0%)</i>\n' +
+                    '2. solopool.org, 1 <i>(0%)</i>\n' +
+                    '3. ViaBTC, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<b><i>💰3 stakers earned $33</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<a href="https://cashtab.com/">Cashtab</a>\n' +
+                    '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
+                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '\n' +
+                    '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
+                    '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
+                    '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
+                    '\n' +
+                    '🪙 <b><i>8 token txs from 2 tokens</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>1 NFT mint</i></b>\n' +
+                    '🔒 <b><i>1 new fixed-supply token</i></b>\n' +
+                    '🔨 <b><i>1 new variable-supply token</i></b>\n' +
+                    '🗻 <b><i>1 ALP tx</i></b>\n' +
+                    '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
+                    '❌ <b><i>1 invalid token tx</i></b>\n' +
+                    '\n' +
+                    '📱 <b><i>8 app txs</i></b>\n' +
+                    '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
+                    '⚛️ <b>1</b> CashFusion\n' +
+                    '🛒 <b>1</b> PayButton tx\n' +
+                    '🪂 <b>1</b> Airdrop\n' +
+                    '✏️ <b>1</b> Cashtab Msg\n' +
+                    '💬 <b>1</b> <a href="https://www.ecashchat.com/">eCashChat tx</a>\n' +
+                    '🔓 <b>1</b> eCashChat Auth\n' +
+                    '💸 <b>1</b> Paywall tx\n' +
+                    '\n' +
+                    '🏦 <b><i>Binance</i></b>\n' +
+                    '<b>1</b> withdrawal, $1',
+            ],
+        );
+    });
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks including fiat prices with no token cache info', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        assert.deepEqual(
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                // we can't get any token cache info
+                new Map(),
+                {
+                    usd: 0.00003487,
+                    usd_market_cap: 689047177.8128564,
+                    usd_24h_vol: 5957332.9687223025,
+                    usd_24h_change: -0.3973642442197056,
+                },
+            ),
+            [
+                '<b>15 Oct 2024</b>\n' +
+                    '📦57,430 blocks\n' +
+                    '➡️30 txs\n' +
+                    '\n' +
+                    '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
+                    'Trading volume: $5,957,333\n' +
+                    'Market cap: $689,047,178\n' +
+                    '\n' +
+                    '<b><i>⛏️3 miners found blocks</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. Mining-Dutch, 1 <i>(0%)</i>\n' +
+                    '2. solopool.org, 1 <i>(0%)</i>\n' +
+                    '3. ViaBTC, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<b><i>💰3 stakers earned $33</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<a href="https://cashtab.com/">Cashtab</a>\n' +
+                    '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
+                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '\n' +
+                    '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">aed...cb1</a>: 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ❌\n' +
+                    '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">01d...896</a>: 🏷\n' +
+                    '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">0fb...316</a>: 🏷❌\n' +
+                    '\n' +
+                    '🪙 <b><i>8 token txs from 2 tokens</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">040...103</a>: 🧪➡️🔥🔨\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">8fd...e09</a>: 🧪\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>1 NFT mint</i></b>\n' +
+                    '🔒 <b><i>1 new fixed-supply token</i></b>\n' +
+                    '🔨 <b><i>1 new variable-supply token</i></b>\n' +
+                    '🗻 <b><i>1 ALP tx</i></b>\n' +
+                    '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
+                    '❌ <b><i>1 invalid token tx</i></b>\n' +
+                    '\n' +
+                    '📱 <b><i>8 app txs</i></b>\n' +
+                    '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
+                    '⚛️ <b>1</b> CashFusion\n' +
+                    '🛒 <b>1</b> PayButton tx\n' +
+                    '🪂 <b>1</b> Airdrop\n' +
+                    '✏️ <b>1</b> Cashtab Msg\n' +
+                    '💬 <b>1</b> <a href="https://www.ecashchat.com/">eCashChat tx</a>\n' +
+                    '🔓 <b>1</b> eCashChat Auth\n' +
+                    '💸 <b>1</b> Paywall tx\n' +
+                    '\n' +
+                    '🏦 <b><i>Binance</i></b>\n' +
+                    '<b>1</b> withdrawal, $1',
+            ],
+        );
+    });
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks without fiat price', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        assert.deepEqual(
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                tokenInfoMap,
+            ),
+            [
+                '<b>15 Oct 2024</b>\n' +
+                    '📦57,430 blocks\n' +
+                    '➡️30 txs\n' +
+                    '\n' +
+                    '<b><i>⛏️3 miners found blocks</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. Mining-Dutch, 1 <i>(0%)</i>\n' +
+                    '2. solopool.org, 1 <i>(0%)</i>\n' +
+                    '3. ViaBTC, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<b><i>💰3 stakers earned 937,620 XEC</i></b>\n' +
+                    '<u>Top 3</u>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +
+                    '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(0%)</i>\n' +
+                    '\n' +
+                    '<a href="https://cashtab.com/">Cashtab</a>\n' +
+                    '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
+                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '\n' +
+                    '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
+                    '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
+                    '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '💰Buy, 🏷List, ❌Cancel\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰\n' +
+                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
+                    '\n' +
+                    '🪙 <b><i>8 token txs from 2 tokens</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
+                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
+                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
+                    '\n' +
+                    '🖼 <b><i>1 NFT mint</i></b>\n' +
+                    '🔒 <b><i>1 new fixed-supply token</i></b>\n' +
+                    '🔨 <b><i>1 new variable-supply token</i></b>\n' +
+                    '🗻 <b><i>1 ALP tx</i></b>\n' +
+                    '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
+                    '❌ <b><i>1 invalid token tx</i></b>\n' +
+                    '\n' +
+                    '📱 <b><i>8 app txs</i></b>\n' +
+                    '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
+                    '⚛️ <b>1</b> CashFusion\n' +
+                    '🛒 <b>1</b> PayButton tx\n' +
+                    '🪂 <b>1</b> Airdrop\n' +
+                    '✏️ <b>1</b> Cashtab Msg\n' +
+                    '💬 <b>1</b> <a href="https://www.ecashchat.com/">eCashChat tx</a>\n' +
+                    '🔓 <b>1</b> eCashChat Auth\n' +
+                    '💸 <b>1</b> Paywall tx\n' +
+                    '\n' +
+                    '🏦 <b><i>Binance</i></b>\n' +
+                    '<b>1</b> withdrawal, 19,720 XEC',
+            ],
+        );
+    });
+});

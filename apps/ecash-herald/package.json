@@ -1,16 +1,16 @@
 {
     "name": "ecash-herald",
-    "version": "1.0.2",
+    "version": "2.0.0",
     "description": "A telegram bot to broadcast ecash chain events",
     "main": "index.js",
     "scripts": {
         "test": "mocha",
         "coverage": "nyc mocha",
+        "build": "tsc",
         "junit": "mocha test --reporter mocha-junit-reporter",
         "generateMock": "node scripts/generateMock",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices",
-        "sendMsgByBlock": "node scripts/sendMsgByBlock",
-        "getSlpTwoTokenInfo": "node scripts/getSlpTwoTokenInfo"
+        "sendMsgByBlock": "node scripts/sendMsgByBlock"
     },
     "keywords": [
         "ecash",
@@ -36,11 +36,18 @@
     },
     "devDependencies": {
         "@sinonjs/fake-timers": "^11.2.2",
+        "@types/mocha": "^10.0.9",
+        "@types/node-telegram-bot-api": "^0.64.7",
+        "@types/sinonjs__fake-timers": "^8.1.5",
+        "@typescript-eslint/eslint-plugin": "^8.12.2",
+        "@typescript-eslint/parser": "^8.12.2",
         "eslint": "^8.37.0",
         "eslint-plugin-header": "^3.1.1",
         "mocha": "^10.2.0",
         "mocha-junit-reporter": "^2.2.0",
         "mocha-suppress-logs": "^0.3.1",
-        "nyc": "^15.1.0"
+        "nyc": "^15.1.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.6.3"
     }
 }

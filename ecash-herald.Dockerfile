@@ -78,6 +78,11 @@ COPY modules/ecash-agora/ .
 RUN npm ci
 RUN npm run build
 
+# mock-chronik-client
+WORKDIR /app/modules/mock-chronik-client
+COPY modules/mock-chronik-client/ .
+RUN npm ci
+
 # Now that local dependencies are ready, build ecash-herald
 WORKDIR /app/apps/ecash-herald
 
@@ -90,5 +95,8 @@ RUN npm ci
 # Copy the rest of the project files
 COPY apps/ecash-herald/ .
 
-# ecash-herald runs with "node index.js"
-CMD [ "node", "index.js" ]
+# Compile typescript. Outputs to dist/ dir
+RUN npm run build
+
+# ecash-herald runs with "node dist/index.js"
+CMD [ "node", "dist/index.js" ]

@@ -1,9 +1,12 @@
 node_modules/
+dist/
 generated/
 secrets.js
+secrets.ts
 
 # Coverage reports with  nyc
 .nyc_output/
 
 # junit test results
 test-results.xml
+test_results/
