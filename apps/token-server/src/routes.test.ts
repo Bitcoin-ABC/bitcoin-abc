@@ -17,7 +17,7 @@ import {
     MOCK_SPENDABLE_TOKEN_UTXO,
     MOCK_OUTPOINT,
     MOCK_UTXO_TOKEN,
-} from './vectors';
+} from '../test/vectors';
 import { Ecc, initWasm } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
 import { MongoClient, Db } from 'mongodb';

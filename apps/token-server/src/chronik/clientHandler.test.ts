@@ -5,7 +5,7 @@
 import * as assert from 'assert';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import { getHistoryAfterTimestamp } from '../../src/chronik/clientHandler';
-import vectors from '../vectors';
+import vectors from '../../test/vectors';
 
 describe('chronik/clientHandler.js', function () {
     describe('We can get all tx history from after a given timestamp', function () {

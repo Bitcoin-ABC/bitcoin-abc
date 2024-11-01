@@ -9,5 +9,5 @@
         "alwaysStrict": true,
         "skipLibCheck": true
     },
-    "exclude": ["test/"]
+    "exclude": ["node_modules/"]
 }

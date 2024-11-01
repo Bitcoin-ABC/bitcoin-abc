@@ -4,7 +4,7 @@
 
 import * as assert from 'assert';
 import { getWalletFromSeed, syncWallet } from '../src/wallet';
-import vectors from './vectors';
+import vectors from '../test/vectors';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 
 describe('wallet.ts', function () {

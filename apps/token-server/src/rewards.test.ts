@@ -4,7 +4,7 @@
 
 import * as assert from 'assert';
 import { isAddressEligibleForTokenReward } from '../src/rewards';
-import vectors from './vectors';
+import vectors from '../test/vectors';
 
 describe('rewards.js', function () {
     describe('We can evaluate if an outputScript is eligible for a reward based on its tx history', function () {

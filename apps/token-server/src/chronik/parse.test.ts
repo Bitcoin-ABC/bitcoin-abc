@@ -8,7 +8,7 @@ import {
     addressReceivedToken,
     getTxTimestamp,
 } from '../../src/chronik/parse';
-import vectors from '../vectors';
+import vectors from '../../test/vectors';
 
 describe('chronik/parse.ts', function () {
     describe('We can determine if a given tx contains any input from a given outputScript', function () {

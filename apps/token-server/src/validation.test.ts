@@ -4,7 +4,7 @@
 
 import * as assert from 'assert';
 import { isTokenImageRequest, isValidTokenId } from '../src/validation';
-import vectors from './vectors';
+import vectors from '../test/vectors';
 
 describe('validation.ts', function () {
     describe('We can tell if an API request was for a token icon', function () {

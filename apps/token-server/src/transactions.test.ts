@@ -9,7 +9,7 @@ import {
     sendXecAirdrop,
 } from '../src/transactions';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
-import vectors from './vectors';
+import vectors from '../test/vectors';
 import { Ecc, initWasm } from 'ecash-lib';
 
 describe('transactions.ts', function () {
