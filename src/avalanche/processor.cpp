@@ -1002,8 +1002,8 @@ void Processor::promoteStakeContendersToTip() {
         return;
     }
 
-    LOCK(cs_stakeContenderCache);
     LOCK(cs_peerManager);
+    LOCK(cs_stakeContenderCache);
     stakeContenderCache.promoteToBlock(activeTip, *peerManager);
 
     // TODO reconcile remoteProofs contenders
