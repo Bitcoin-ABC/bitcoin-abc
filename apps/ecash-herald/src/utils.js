@@ -402,13 +402,11 @@ module.exports = {
 
         while (retries > 0) {
             try {
-                const nextStakingReward = await axios.get(
-                    config.stakingRewardApiUrl,
-                );
+                const nextStakingReward = (
+                    await axios.get(config.stakingRewardApiUrl)
+                ).data;
 
-                if (
-                    nextStakingReward.data.nextBlockHeight === nextBlockHeight
-                ) {
+                if (nextStakingReward.nextBlockHeight === nextBlockHeight) {
                     const { address, scriptHex } = nextStakingReward;
 
                     const cachedObject = {
