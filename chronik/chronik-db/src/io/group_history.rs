@@ -126,6 +126,10 @@ pub enum GroupHistoryError {
         hex::encode(.1),
     )]
     UnknownOperandPrefix(u8, Vec<u8>),
+
+    /// Tried to access member_hash column family via a non-script group.
+    #[error("Tried to access member hash db via non-script group")]
+    GroupDoesNotImplementMemberHash,
 }
 
 struct FetchedNumTxs<'tx, G: Group> {
@@ -212,6 +216,18 @@ impl<'a> GroupHistoryColumn<'a> {
             None => return Ok(None),
         };
         Ok(Some(db_deserialize_vec::<TxNum>(&value)?))
+    }
+
+    fn get_member_ser_by_member_hash(
+        &self,
+        member_hash: Sha256,
+    ) -> Result<Option<Vec<u8>>> {
+        let cf_member_hash =
+            self.cf_member_hash.ok_or(GroupDoesNotImplementMemberHash)?;
+        match self.db.get(cf_member_hash, member_hash.to_be_bytes())? {
+            Some(value) => Ok(Some(value.to_vec())),
+            None => Ok(None),
+        }
     }
 }
 
@@ -573,6 +589,15 @@ impl<'a, G: Group> GroupHistoryReader<'a, G> {
     /// Size of pages the data is stored in.
     pub fn page_size(&self) -> usize {
         self.conf.page_size as usize
+    }
+
+    /// Serialized member from member_hash (only implemented for
+    /// ScriptHistoryReader)
+    pub fn member_ser_by_member_hash(
+        &self,
+        member_hash: Sha256,
+    ) -> Result<Option<Vec<u8>>> {
+        self.col.get_member_ser_by_member_hash(member_hash)
     }
 }
 

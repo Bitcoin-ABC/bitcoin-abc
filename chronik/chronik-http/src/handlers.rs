@@ -3,8 +3,12 @@
 use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use abc_rust_error::{Report, Result};
+use bitcoinsuite_core::{
+    hash::{Hashed, Sha256},
+    script::Script,
+};
 use bitcoinsuite_slp::token_id::TokenId;
-use chronik_db::plugins::PluginMember;
+use chronik_db::{group::GroupMember, plugins::PluginMember};
 use chronik_indexer::indexer::{ChronikIndexer, Node};
 use chronik_plugin::data::{PluginIdx, PluginNameMap};
 use chronik_proto::proto;
@@ -37,6 +41,10 @@ pub enum ChronikHandlerError {
     /// Plugin with the given name not loaded.
     #[error("404: Plugin {0:?} not loaded")]
     PluginNotLoaded(String),
+
+    /// Could not parse script hash.
+    #[error("400: Unable to parse script hash {0:?}")]
+    InvalidScriptHash(String),
 }
 
 use self::ChronikHandlerError::*;
@@ -85,6 +93,21 @@ pub async fn handle_block_txs(
     blocks.block_txs(hash_or_height, page_num as usize, page_size as usize)
 }
 
+fn get_group_member(
+    script_type: &str,
+    payload: &str,
+) -> Result<GroupMember<Script>> {
+    if script_type == "scripthash" {
+        let script_hash = Sha256::from_be_hex(payload)
+            .map_err(|_| InvalidScriptHash(payload.to_string()))?;
+        Ok(GroupMember::MemberHash(script_hash))
+    } else {
+        let script =
+            parse_script_variant_hex(script_type, payload)?.to_script();
+        Ok(GroupMember::Member(script))
+    }
+}
+
 /// Return a page of the confirmed txs of the given script.
 /// Scripts are identified by script_type and payload.
 pub async fn handle_script_confirmed_txs(
@@ -94,12 +117,15 @@ pub async fn handle_script_confirmed_txs(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let script_variant = parse_script_variant_hex(script_type, payload)?;
     let script_history = indexer.script_history(node)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
-    let script = script_variant.to_script();
-    script_history.confirmed_txs(&script, page_num as usize, page_size as usize)
+    let member = get_group_member(script_type, payload)?;
+    script_history.confirmed_txs(
+        member.as_ref(),
+        page_num as usize,
+        page_size as usize,
+    )
 }
 
 /// Return a page of the tx history of the given script, in reverse
@@ -112,12 +138,15 @@ pub async fn handle_script_history(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let script_variant = parse_script_variant_hex(script_type, payload)?;
     let script_history = indexer.script_history(node)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
-    let script = script_variant.to_script();
-    script_history.rev_history(&script, page_num as usize, page_size as usize)
+    let member = get_group_member(script_type, payload)?;
+    script_history.rev_history(
+        member.as_ref(),
+        page_num as usize,
+        page_size as usize,
+    )
 }
 
 /// Return a page of the unconfirmed txs of the given script.
@@ -128,10 +157,9 @@ pub async fn handle_script_unconfirmed_txs(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let script_variant = parse_script_variant_hex(script_type, payload)?;
     let script_history = indexer.script_history(node)?;
-    let script = script_variant.to_script();
-    script_history.unconfirmed_txs(&script)
+    let member = get_group_member(script_type, payload)?;
+    script_history.unconfirmed_txs(member.as_ref())
 }
 
 /// Return the UTXOs of the given script.
@@ -163,7 +191,7 @@ pub async fn handle_token_id_confirmed_txs(
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     token_id_history.confirmed_txs(
-        token_id,
+        GroupMember::Member(token_id),
         page_num as usize,
         page_size as usize,
     )
@@ -183,7 +211,7 @@ pub async fn handle_token_id_history(
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     token_id_history.rev_history(
-        token_id,
+        GroupMember::Member(token_id),
         page_num as usize,
         page_size as usize,
     )
@@ -197,7 +225,7 @@ pub async fn handle_token_id_unconfirmed_txs(
 ) -> Result<proto::TxHistoryPage> {
     let token_id = token_id_hex.parse::<TokenId>()?;
     let token_id_history = indexer.token_id_history(node);
-    token_id_history.unconfirmed_txs(token_id)
+    token_id_history.unconfirmed_txs(GroupMember::Member(token_id))
 }
 
 /// Return the UTXOs of the given token ID.
@@ -223,7 +251,7 @@ pub async fn handle_lokad_id_confirmed_txs(
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     lokad_id_history.confirmed_txs(
-        lokad_id,
+        GroupMember::Member(lokad_id),
         page_num as usize,
         page_size as usize,
     )
@@ -243,7 +271,7 @@ pub async fn handle_lokad_id_history(
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     lokad_id_history.rev_history(
-        lokad_id,
+        GroupMember::Member(lokad_id),
         page_num as usize,
         page_size as usize,
     )
@@ -257,7 +285,7 @@ pub async fn handle_lokad_id_unconfirmed_txs(
 ) -> Result<proto::TxHistoryPage> {
     let lokad_id = parse_lokad_id_hex(lokad_id_hex)?;
     let lokad_id_history = indexer.lokad_id_history(node);
-    lokad_id_history.unconfirmed_txs(lokad_id)
+    lokad_id_history.unconfirmed_txs(GroupMember::Member(lokad_id))
 }
 
 /// Return the UTXOs of the given plugin and group.
@@ -293,7 +321,7 @@ pub async fn handle_plugin_confirmed_txs(
         group: &group,
     };
     plugin_history.confirmed_txs(
-        member.ser(),
+        GroupMember::Member(member.ser()),
         page_num as usize,
         page_size as usize,
     )
@@ -313,7 +341,7 @@ pub async fn handle_plugin_unconfirmed_txs(
         plugin_idx,
         group: &group,
     };
-    plugin_history.unconfirmed_txs(member.ser())
+    plugin_history.unconfirmed_txs(GroupMember::Member(member.ser()))
 }
 
 /// Return a page of the tx history of the given group of the given plugin, in
@@ -336,7 +364,7 @@ pub async fn handle_plugin_history(
         group: &group,
     };
     plugin_history.rev_history(
-        member.ser(),
+        GroupMember::Member(member.ser()),
         page_num as usize,
         page_size as usize,
     )

@@ -4,7 +4,10 @@
 
 //! Module for [`Group`] and [`GroupQuery`].
 
-use bitcoinsuite_core::tx::{Tx, TxOutput};
+use bitcoinsuite_core::{
+    hash::Sha256,
+    tx::{Tx, TxOutput},
+};
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +30,25 @@ pub struct MemberItem<M> {
     pub idx: usize,
     /// Member of this item.
     pub member: M,
+}
+
+/// Various ways of querying a the db for a group member
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum GroupMember<M> {
+    /// By member
+    Member(M),
+    /// By member hash
+    MemberHash(Sha256),
+}
+
+impl<M> GroupMember<M> {
+    /// Converts from &GroupMember<M> to GroupMember<&M>.
+    pub fn as_ref(&self) -> GroupMember<&M> {
+        match self {
+            GroupMember::Member(member) => GroupMember::Member(member),
+            GroupMember::MemberHash(hash) => GroupMember::MemberHash(*hash),
+        }
+    }
 }
 
 /// Groups txs and determines which members they are.

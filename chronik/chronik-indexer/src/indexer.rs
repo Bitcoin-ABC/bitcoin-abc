@@ -94,6 +94,7 @@ pub struct ChronikIndexer {
     /// Whether the LOKAD ID index needs to be reindexed, will be set to
     /// `false` after it caught up with the rest of Chronik.
     needs_lokad_id_reindex: bool,
+    is_scripthash_index_enabled: bool,
     needs_scripthash_reindex: bool,
     plugin_ctx: Arc<PluginContext>,
     plugin_name_map: PluginNameMap,
@@ -312,6 +313,7 @@ impl ChronikIndexer {
             is_token_index_enabled: params.enable_token_index,
             is_lokad_id_index_enabled: params.enable_lokad_id_index,
             needs_lokad_id_reindex,
+            is_scripthash_index_enabled: params.enable_scripthash_index,
             needs_scripthash_reindex,
             plugin_ctx: params.plugin_ctx,
             plugin_name_map,
@@ -907,6 +909,7 @@ impl ChronikIndexer {
             group: self.script_group.clone(),
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            is_scripthash_index_enabled: self.is_scripthash_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         })
     }
@@ -941,6 +944,7 @@ impl ChronikIndexer {
             group: TokenIdGroup,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            is_scripthash_index_enabled: self.is_scripthash_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         }
     }
@@ -975,6 +979,7 @@ impl ChronikIndexer {
             group: LokadIdGroup,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            is_scripthash_index_enabled: self.is_scripthash_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         }
     }
@@ -1003,6 +1008,7 @@ impl ChronikIndexer {
             group: PluginsGroup,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            is_scripthash_index_enabled: self.is_scripthash_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         }
     }

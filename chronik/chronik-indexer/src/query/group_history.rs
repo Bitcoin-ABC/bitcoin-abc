@@ -7,10 +7,14 @@
 use std::collections::BTreeSet;
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{Tx, TxId};
+use bitcoinsuite_core::{
+    hash::Hashed,
+    tx::{Tx, TxId},
+};
+use bytes::Bytes;
 use chronik_db::{
     db::Db,
-    group::Group,
+    group::{Group, GroupMember},
     io::{BlockReader, GroupHistoryReader, SpentByReader, TxNum, TxReader},
     mem::{Mempool, MempoolGroupHistory},
 };
@@ -52,6 +56,8 @@ pub struct QueryGroupHistory<'a, G: Group> {
     pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
+    /// Whether the script hash index is enabled
+    pub is_scripthash_index_enabled: bool,
     /// Map plugin name <-> plugin idx of all loaded plugins
     pub plugin_name_map: &'a PluginNameMap,
 }
@@ -84,18 +90,47 @@ pub enum QueryGroupHistoryError {
         MIN_HISTORY_PAGE_SIZE
     )]
     RequestPageSizeTooSmall(usize),
+
+    /// Script hash not found
+    #[error("404: Script hash {0:?} not found")]
+    ScriptHashNotFound(String),
+
+    /// Script hash index not enabled
+    #[error("400: Script hash index disabled")]
+    ScriptHashIndexDisabled,
 }
 
 use self::QueryGroupHistoryError::*;
 
 impl<'a, G: Group> QueryGroupHistory<'a, G> {
+    fn member_ser_from_member(
+        &self,
+        member: &GroupMember<G::Member<'_>>,
+        db_reader: &GroupHistoryReader<'_, G>,
+    ) -> Result<Bytes> {
+        match member {
+            GroupMember::Member(member) => Ok(Bytes::copy_from_slice(
+                self.group.ser_member(member).as_ref(),
+            )),
+            GroupMember::MemberHash(memberhash) => {
+                if !self.is_scripthash_index_enabled {
+                    return Err(ScriptHashIndexDisabled.into());
+                }
+                let script_ser = db_reader
+                    .member_ser_by_member_hash(*memberhash)?
+                    .ok_or_else(|| ScriptHashNotFound(memberhash.hex_be()))?;
+                Ok(Bytes::from(script_ser))
+            }
+        }
+    }
+
     /// Return the confirmed txs of the group in the order as txs occur on the
     /// blockchain, i.e.:
     /// - Sorted by block height ascendingly.
     /// - Within a block, sorted as txs occur in the block.
     pub fn confirmed_txs(
         &self,
-        member: G::Member<'_>,
+        member: GroupMember<G::Member<'_>>,
         request_page_num: usize,
         request_page_size: usize,
     ) -> Result<proto::TxHistoryPage> {
@@ -106,8 +141,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             return Err(RequestPageSizeTooBig(request_page_size).into());
         }
         let db_reader = GroupHistoryReader::<G>::new(self.db)?;
-        let member_ser = self.group.ser_member(&member);
-
+        let member_ser = self.member_ser_from_member(&member, &db_reader)?;
         let (num_db_pages, num_db_txs) =
             db_reader.member_num_pages_and_txs(member_ser.as_ref())?;
         let num_request_pages =
@@ -195,7 +229,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
     /// are mostly interested in the "latest" txs of the address.
     pub fn rev_history(
         &self,
-        member: G::Member<'_>,
+        member: GroupMember<G::Member<'_>>,
         request_page_num: usize,
         request_page_size: usize,
     ) -> Result<proto::TxHistoryPage> {
@@ -207,7 +241,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         }
 
         let db_reader = GroupHistoryReader::<G>::new(self.db)?;
-        let member_ser = self.group.ser_member(&member);
+        let member_ser = self.member_ser_from_member(&member, &db_reader)?;
         let (_, num_db_txs) =
             db_reader.member_num_pages_and_txs(member_ser.as_ref())?;
 
@@ -355,9 +389,10 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
     /// pagination later.
     pub fn unconfirmed_txs(
         &self,
-        member: G::Member<'_>,
+        member: GroupMember<G::Member<'_>>,
     ) -> Result<proto::TxHistoryPage> {
-        let member_ser = self.group.ser_member(&member);
+        let db_reader = GroupHistoryReader::<G>::new(self.db)?;
+        let member_ser = self.member_ser_from_member(&member, &db_reader)?;
         let txs = match self.mempool_history.member_history(member_ser.as_ref())
         {
             Some(mempool_txs) => mempool_txs
