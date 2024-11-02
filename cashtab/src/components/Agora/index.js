@@ -120,14 +120,14 @@ const Agora = () => {
 
         // 2. Get all offers listed from the active wallet
         let activeOffersByPubKey;
-        let offeredFungibleTokenIdsThisWallet = [];
+        let offeredFungibleTokenIdsThisWallet = new Set();
         try {
             activeOffersByPubKey = await agora.activeOffersByPubKey(
                 toHex(activePk),
             );
             // Just get the tokenIds as the Orderbook will load and prepare the offers by tokenId
             for (const activeOffer of activeOffersByPubKey) {
-                offeredFungibleTokenIdsThisWallet.push(
+                offeredFungibleTokenIdsThisWallet.add(
                     activeOffer.token.tokenId,
                 );
             }
@@ -140,8 +140,9 @@ const Agora = () => {
         // This keeps the order fixed for every user
         // TODO sort by trading volume
         noBlacklistedOfferedFungibleTokenIds.sort();
-        offeredFungibleTokenIdsThisWallet =
-            offeredFungibleTokenIdsThisWallet.sort();
+        offeredFungibleTokenIdsThisWallet = Array.from(
+            offeredFungibleTokenIdsThisWallet,
+        ).sort();
 
         setActiveOffersCashtab({
             offeredFungibleTokenIds: noBlacklistedOfferedFungibleTokenIds,
