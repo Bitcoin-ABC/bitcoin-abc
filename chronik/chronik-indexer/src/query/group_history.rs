@@ -116,6 +116,14 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 if !self.is_scripthash_index_enabled {
                     return Err(ScriptHashIndexDisabled.into());
                 }
+                // Check the mempool first, then the db. The script is more
+                // likely to be in the db, but accessing the mempool's
+                // hashmap is faster.
+                if let Some(member_ser) =
+                    self.mempool_history.member_ser_by_member_hash(*memberhash)
+                {
+                    return Ok(Bytes::copy_from_slice(member_ser));
+                }
                 let script_ser = db_reader
                     .member_ser_by_member_hash(*memberhash)?
                     .ok_or_else(|| ScriptHashNotFound(memberhash.hex_be()))?;

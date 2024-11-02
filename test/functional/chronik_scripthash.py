@@ -10,13 +10,22 @@ from test_framework.address import (
     ADDRESS_ECREG_UNSPENDABLE,
     P2SH_OP_TRUE,
 )
-from test_framework.blocktools import GENESIS_CB_PK, GENESIS_CB_SCRIPT_PUBKEY
+from test_framework.blocktools import (
+    GENESIS_CB_PK,
+    GENESIS_CB_SCRIPT_PUBKEY,
+    create_block,
+    make_conform_to_ctor,
+)
 from test_framework.hash import hex_be_sha256
+from test_framework.messages import CTransaction, FromHex, ToHex
+from test_framework.p2p import P2PDataStore
+from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.wallet import MiniWallet, MiniWalletMode
 
 GENESIS_CB_SCRIPTHASH = hex_be_sha256(GENESIS_CB_SCRIPT_PUBKEY)
+SCRIPTHASH_P2SH_OP_TRUE_HEX = hex_be_sha256(P2SH_OP_TRUE)
 
 
 class ChronikScriptHashTest(BitcoinTestFramework):
@@ -32,10 +41,14 @@ class ChronikScriptHashTest(BitcoinTestFramework):
     def run_test(self):
         self.node = self.nodes[0]
         self.chronik = self.node.get_chronik_client()
-        self.wallet = MiniWallet(self.node, mode=MiniWalletMode.ADDRESS_OP_TRUE)
+        self.op_true_wallet = MiniWallet(self.node, mode=MiniWalletMode.ADDRESS_OP_TRUE)
+
+        # We add a connection to make getblocktemplate work
+        self.node.add_p2p_connection(P2PDataStore())
 
         self.test_invalid_requests()
         self.test_valid_requests()
+        self.test_conflicts()
         self.test_wipe_index()
 
     def test_invalid_requests(self):
@@ -108,25 +121,23 @@ class ChronikScriptHashTest(BitcoinTestFramework):
             pb.TxHistoryPage(num_pages=0, num_txs=0),
         )
 
-        scripthash_payload_hex = hex_be_sha256(P2SH_OP_TRUE)
-
         def check_num_txs(num_block_txs, num_mempool_txs):
             page_size = 200
             page_num = 0
             script_conf_txs = (
-                self.chronik.script("scripthash", scripthash_payload_hex)
+                self.chronik.script("scripthash", SCRIPTHASH_P2SH_OP_TRUE_HEX)
                 .confirmed_txs(page_num, page_size)
                 .ok()
             )
             assert_equal(script_conf_txs.num_txs, num_block_txs)
             script_history = (
-                self.chronik.script("scripthash", scripthash_payload_hex)
+                self.chronik.script("scripthash", SCRIPTHASH_P2SH_OP_TRUE_HEX)
                 .history(page_num, page_size)
                 .ok()
             )
             assert_equal(script_history.num_txs, num_block_txs + num_mempool_txs)
             script_unconf_txs = (
-                self.chronik.script("scripthash", scripthash_payload_hex)
+                self.chronik.script("scripthash", SCRIPTHASH_P2SH_OP_TRUE_HEX)
                 .unconfirmed_txs()
                 .ok()
             )
@@ -153,10 +164,10 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         check_num_txs(num_block_txs=len(blockhashes) - 1, num_mempool_txs=0)
 
         # Add mempool txs
-        self.wallet.rescan_utxos()
+        self.op_true_wallet.rescan_utxos()
         num_mempool_txs = 0
         for _ in range(10):
-            self.wallet.send_self_transfer(from_node=self.node)
+            self.op_true_wallet.send_self_transfer(from_node=self.node)
             num_mempool_txs += 1
             check_num_txs(
                 num_block_txs=len(blockhashes) - 1, num_mempool_txs=num_mempool_txs
@@ -167,6 +178,183 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         check_num_txs(
             num_block_txs=len(blockhashes) + num_mempool_txs - 1, num_mempool_txs=0
         )
+
+        self.log.info(
+            "Test a mempool transaction whose script is not already in the confirmed db"
+        )
+        # This is the example used in the ElectrumX protocol documentation.
+        script = CScript(
+            bytes.fromhex("76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac")
+        )
+        scripthash_hex = hex_be_sha256(script)
+        assert_equal(
+            scripthash_hex,
+            "8b01df4e368ea28f8dc0423bcf7a4923e3a12d307c875e47a0cfbf90b5c39161",
+        )
+
+        # Ensure that this script was never seen before.
+        assert_equal(
+            self.chronik.script("scripthash", scripthash_hex)
+            .unconfirmed_txs()
+            .err(404)
+            .msg,
+            f'404: Script hash "{scripthash_hex}" not found',
+        )
+
+        txid = self.op_true_wallet.send_to(
+            from_node=self.node, scriptPubKey=script, amount=1337
+        )[0]
+
+        # There is no confirmed history for this script, but we do have its scripthash
+        # in the mempool so it no longer triggers a 404 error.
+        assert_equal(
+            self.chronik.script("scripthash", scripthash_hex).confirmed_txs().ok(),
+            pb.TxHistoryPage(num_pages=0, num_txs=0),
+        )
+        # We do have one such unconfirmed tx.
+        proto = self.chronik.script("scripthash", scripthash_hex).unconfirmed_txs().ok()
+        assert_equal(proto.num_txs, 1)
+        assert_equal(proto.txs[0].txid, bytes.fromhex(txid)[::-1])
+
+    def test_conflicts(self):
+        self.log.info("A mempool transaction is replaced by a mined transaction")
+
+        # Use a different wallet to have a clean history
+        wallet = MiniWallet(self.node, mode=MiniWalletMode.RAW_P2PK)
+        script_pubkey = wallet.get_scriptPubKey()
+        scripthash_hex1 = hex_be_sha256(script_pubkey)
+
+        def assert_404(scripthash_hex):
+            assert_equal(
+                self.chronik.script("scripthash", scripthash_hex)
+                .confirmed_txs()
+                .err(404)
+                .msg,
+                f'404: Script hash "{scripthash_hex}" not found',
+            )
+
+        assert_404(scripthash_hex1)
+
+        # Create two spendable utxos with this script and confirm them. Fund them with
+        # the OP_TRUE wallet used in the previous test which should have plenty of
+        # spendable utxos, so we don't need to create and mature additional coinbase
+        # utxos.
+        def get_utxo():
+            funding_txid, _ = self.op_true_wallet.send_to(
+                from_node=self.node, scriptPubKey=script_pubkey, amount=25_000_000
+            )
+            wallet.rescan_utxos()
+            utxo_to_spend = wallet.get_utxo(txid=funding_txid)
+            return utxo_to_spend
+
+        utxo_to_spend1 = get_utxo()
+        utxo_to_spend2 = get_utxo()
+
+        self.generate(self.node, 1)
+
+        def is_txid_in_history(txid: str, history_page) -> bool:
+            return any(tx.txid[::-1].hex() == txid for tx in history_page.txs)
+
+        def check_history(
+            scripthash_hex: str, conf_txids: list[str], unconf_txids: list[str]
+        ):
+            unconf_txs = (
+                self.chronik.script("scripthash", scripthash_hex).unconfirmed_txs().ok()
+            )
+            conf_txs = (
+                self.chronik.script("scripthash", scripthash_hex)
+                .confirmed_txs(page_size=200)
+                .ok()
+            )
+            assert_equal(conf_txs.num_txs, len(conf_txids))
+            assert_equal(unconf_txs.num_txs, len(unconf_txids))
+            assert all(is_txid_in_history(txid, conf_txs) for txid in conf_txids)
+            assert all(is_txid_in_history(txid, unconf_txs) for txid in unconf_txids)
+
+            # Consistency check: None of the txids should be duplicated
+            all_txids = conf_txids + unconf_txids
+            assert len(all_txids) == len(set(all_txids))
+
+        check_history(
+            scripthash_hex1,
+            conf_txids=[utxo_to_spend1["txid"], utxo_to_spend2["txid"]],
+            unconf_txids=[],
+        )
+
+        # Create 2 mempool txs, one of which will later conflict with a block tx.
+        mempool_tx_to_be_replaced = wallet.send_self_transfer(
+            from_node=self.nodes[0], utxo_to_spend=utxo_to_spend1
+        )
+        other_mempool_tx = wallet.send_self_transfer(
+            from_node=self.nodes[0], utxo_to_spend=utxo_to_spend2
+        )
+        check_history(
+            scripthash_hex1,
+            conf_txids=[utxo_to_spend1["txid"], utxo_to_spend2["txid"]],
+            unconf_txids=[
+                mempool_tx_to_be_replaced["txid"],
+                other_mempool_tx["txid"],
+            ],
+        )
+
+        replacement_tx = wallet.create_self_transfer(utxo_to_spend=utxo_to_spend1)
+        assert replacement_tx["txid"] != mempool_tx_to_be_replaced["txid"]
+
+        block = create_block(tmpl=self.node.getblocktemplate())
+        block.vtx.append(replacement_tx["tx"])
+        make_conform_to_ctor(block)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        self.node.submitblock(ToHex(block))
+
+        # The replaced mempool tx was dropped from both histories.
+        # The other one is still in the unconfirmed txs.
+        # The replacement tx is confirmed.
+        check_history(
+            scripthash_hex1,
+            conf_txids=[
+                utxo_to_spend1["txid"],
+                utxo_to_spend2["txid"],
+                replacement_tx["txid"],
+            ],
+            unconf_txids=[other_mempool_tx["txid"]],
+        )
+
+        self.log.info(
+            "A mempool transaction is replaced by a mined transaction to a different "
+            "script, leaving the first script's history blank."
+        )
+        script_pubkey = b"\x21\x03" + 32 * b"\xff" + b"\xac"
+        scripthash_hex2 = hex_be_sha256(script_pubkey)
+
+        funding_txid, _ = self.op_true_wallet.send_to(
+            from_node=self.node, scriptPubKey=script_pubkey, amount=50_000_000
+        )
+        check_history(
+            scripthash_hex2,
+            conf_txids=[],
+            unconf_txids=[funding_txid],
+        )
+
+        # Mine a tx spending the same input to a different output.
+        replacement_tx = FromHex(
+            CTransaction(), self.node.getrawtransaction(funding_txid)
+        )
+        for out_idx, txout in enumerate(replacement_tx.vout):
+            if txout.scriptPubKey == script_pubkey:
+                break
+        replacement_tx.vout[out_idx].scriptPubKey = b"\x21\x03" + 32 * b"\xee" + b"\xac"
+        replacement_tx.rehash()
+
+        block = create_block(tmpl=self.node.getblocktemplate())
+        block.vtx.append(replacement_tx)
+        make_conform_to_ctor(block)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        self.node.submitblock(ToHex(block))
+
+        # There is no transaction left for this script.
+        assert_404(scripthash_hex2)
 
     def test_wipe_index(self):
         self.log.info("Restarting with chronikscripthashindex=0 wipes the index")

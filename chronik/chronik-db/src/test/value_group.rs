@@ -2,9 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use bitcoinsuite_core::{
-    hash::Sha256,
-    tx::{Coin, OutPoint, Tx, TxId, TxInput, TxMut, TxOutput},
+use bitcoinsuite_core::tx::{
+    Coin, OutPoint, Tx, TxId, TxInput, TxMut, TxOutput,
 };
 
 use crate::{

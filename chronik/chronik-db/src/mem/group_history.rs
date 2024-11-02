@@ -4,7 +4,10 @@
 
 use std::collections::{BTreeSet, HashMap};
 
-use bitcoinsuite_core::tx::TxId;
+use bitcoinsuite_core::{
+    hash::{Hashed, Sha256},
+    tx::TxId,
+};
 
 use crate::{
     group::{tx_members_for_group, Group, GroupQuery},
@@ -20,14 +23,20 @@ use crate::{
 pub struct MempoolGroupHistory<G: Group> {
     /// (time_first_seen, txid), so we sort by time
     history: HashMap<Vec<u8>, BTreeSet<(i64, TxId)>>,
+    /// Script hash -> script, None for non-script groups
+    member_hash_index: Option<HashMap<Vec<u8>, Vec<u8>>>,
     group: G,
 }
 
 impl<G: Group> MempoolGroupHistory<G> {
     /// Create a new [`MempoolGroupHistory`] for the given group.
     pub fn new(group: G) -> MempoolGroupHistory<G> {
+        let conf = G::tx_history_conf();
+        let member_hash_index =
+            conf.cf_member_hash_name.is_some().then_some(HashMap::new());
         MempoolGroupHistory {
             history: HashMap::new(),
+            member_hash_index,
             group,
         }
     }
@@ -43,6 +52,13 @@ impl<G: Group> MempoolGroupHistory<G> {
             if !self.history.contains_key(member_ser.as_ref()) {
                 self.history
                     .insert(member_ser.as_ref().to_vec(), BTreeSet::new());
+                if let Some(member_hash_index) = &mut self.member_hash_index {
+                    let member_hash = self.group.ser_hash_member(&member);
+                    member_hash_index.insert(
+                        member_hash.as_ref().to_vec(),
+                        member_ser.as_ref().to_vec(),
+                    );
+                }
             }
             let member_history = self
                 .history
@@ -64,6 +80,11 @@ impl<G: Group> MempoolGroupHistory<G> {
                 entries.remove(&(tx.time_first_seen, tx.tx.txid()));
                 if entries.is_empty() {
                     self.history.remove(member_ser.as_ref());
+                    if let Some(member_hash_index) = &mut self.member_hash_index
+                    {
+                        let member_hash = self.group.ser_hash_member(&member);
+                        member_hash_index.remove(member_hash.as_ref());
+                    }
                 }
             }
         }
@@ -76,6 +97,20 @@ impl<G: Group> MempoolGroupHistory<G> {
         member_ser: &[u8],
     ) -> Option<&BTreeSet<(i64, TxId)>> {
         self.history.get(member_ser)
+    }
+
+    /// Serialized member from member_hash (only relevant for
+    /// MempoolScriptHistory)
+    pub fn member_ser_by_member_hash(
+        &self,
+        member_hash: Sha256,
+    ) -> Option<&[u8]> {
+        if let Some(member_hash_index) = &self.member_hash_index {
+            return member_hash_index
+                .get(member_hash.to_be_bytes().as_ref())
+                .map(|member_ser| member_ser.as_ref());
+        }
+        None
     }
 }
 
