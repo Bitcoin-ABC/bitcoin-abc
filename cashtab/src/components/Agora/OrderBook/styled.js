@@ -6,6 +6,16 @@ import styled from 'styled-components';
 import { token as tokenConfig } from 'config/token';
 import { CashtabScroll } from 'components/Common/Atoms';
 
+export const OrderBookLoading = styled.div`
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 12px auto;
+`;
+export const OrderBookContainer = styled.div`
+    width: 100%;
+    color: ${props => props.theme.contrast};
+`;
 export const OfferIconCol = styled.div`
     min-width: 64px;
     display: flex;
@@ -122,4 +132,7 @@ export const SliderInfoRow = styled.div`
     flex-direction: row;
     width: 100%;
     justify-content: center;
+`;
+export const ButtonRow = styled.div`
+    margin-top: 12px;
 `;

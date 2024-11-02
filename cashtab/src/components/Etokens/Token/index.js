@@ -30,6 +30,7 @@ import { BN } from 'slp-mdm';
 import { formatDate, getFormattedFiatPrice } from 'utils/formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
+import { token as tokenConfig } from 'config/token';
 import { queryAliasServer } from 'alias';
 import aliasSettings from 'config/alias';
 import cashaddr from 'ecashaddrjs';
@@ -128,6 +129,7 @@ import {
     AgoraPartialAdSignatory,
 } from 'ecash-agora';
 import * as wif from 'wif';
+import OrderBook from 'components/Agora/OrderBook';
 
 const Token = () => {
     let navigate = useNavigate();
@@ -143,6 +145,13 @@ const Token = () => {
     } = useContext(WalletContext);
     const { settings, wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
+    // We get public key when wallet changes
+    const sk =
+        wallet === false
+            ? false
+            : wif.decode(wallet.paths.get(appConfig.derivationPath).wif)
+                  .privateKey;
+    const pk = sk === false ? false : ecc.derivePubkey(sk);
     const walletState = getWalletState(wallet);
     const { tokens, balanceSats } = walletState;
 
@@ -224,6 +233,7 @@ const Token = () => {
         }
     }
 
+    const [isBlacklisted, setIsBlacklisted] = useState(null);
     const [chronikQueryError, setChronikQueryError] = useState(false);
     const [nftTokenIds, setNftTokenIds] = useState([]);
     const [nftChildGenesisInput, setNftChildGenesisInput] = useState([]);
@@ -403,6 +413,28 @@ const Token = () => {
               )}) per token`;
     };
 
+    const getTokenBlacklistStatus = async () => {
+        // Fetch server-maintained blacklist
+        let blacklistStatus;
+        try {
+            blacklistStatus = (
+                await (
+                    await fetch(
+                        `${tokenConfig.blacklistServerUrl}/blacklist/${tokenId}`,
+                    )
+                ).json()
+            ).isBlacklisted;
+            setIsBlacklisted(blacklistStatus);
+        } catch (err) {
+            console.error(
+                `Error fetching blacklistStatus from ${tokenConfig.blacklistServerUrl}/blacklist/${tokenId}`,
+                err,
+            );
+            // Assume it's ok
+            setIsBlacklisted(false);
+        }
+    };
+
     const getUncachedTokenInfo = async () => {
         let tokenUtxos;
         try {
@@ -477,6 +509,9 @@ const Token = () => {
             // Get token info that is not practical to cache as it is subject to change
             // Note that we need decimals from cache for supply to be accurate
             getUncachedTokenInfo();
+
+            // Get token blacklist status
+            getTokenBlacklistStatus();
         }
     }, [tokenId, cashtabCache.tokens.get(tokenId)]);
 
@@ -2063,7 +2098,32 @@ const Token = () => {
                             )}
                         </TokenStatsCol>
                     </TokenStatsTable>
-
+                    {isBlacklisted && (
+                        <Alert>
+                            Cashtab does not support trading this token
+                        </Alert>
+                    )}
+                    {isSupportedToken &&
+                        pk !== false &&
+                        isBlacklisted !== null &&
+                        !isBlacklisted && (
+                            <OrderBook
+                                tokenId={tokenId}
+                                noIcon
+                                cachedTokenInfo={cashtabCache.tokens.get(
+                                    tokenId,
+                                )}
+                                settings={settings}
+                                userLocale={userLocale}
+                                fiatPrice={fiatPrice}
+                                activePk={pk}
+                                wallet={wallet}
+                                ecc={ecc}
+                                chronik={chronik}
+                                agora={agora}
+                                chaintipBlockheight={chaintipBlockheight}
+                            />
+                        )}
                     {isNftParent && nftTokenIds.length > 0 && (
                         <>
                             <NftTitle>NFTs in this Collection</NftTitle>

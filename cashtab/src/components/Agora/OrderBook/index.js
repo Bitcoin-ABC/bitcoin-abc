@@ -58,6 +58,9 @@ import {
     OrderbookPrice,
     SliderRow,
     SliderInfoRow,
+    OrderBookContainer,
+    ButtonRow,
+    OrderBookLoading,
 } from './styled';
 import PrimaryButton, {
     SecondaryButton,
@@ -72,7 +75,7 @@ import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { QuestionIcon } from 'components/Common/CustomIcons';
-import { Alert } from 'components/Common/Atoms';
+import { Alert, Info } from 'components/Common/Atoms';
 
 const OrderBook = ({
     tokenId,
@@ -333,7 +336,7 @@ const OrderBook = ({
     const [showConfirmBuyModal, setShowConfirmBuyModal] = useState(false);
     const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
 
-    const [activeOffers, setActiveOffers] = useState([]);
+    const [activeOffers, setActiveOffers] = useState(null);
     // On load, we select the offer at the 0-index
     // This component sorts offers by spot price; so this is the spot offer
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -394,7 +397,7 @@ const OrderBook = ({
     // Validate activePk as it could be null from Agora/index.js (not yet calculated)
     let isMaker;
     let lessThanFourOffers = false;
-    if (activeOffers.length > 0) {
+    if (Array.isArray(activeOffers) && activeOffers.length > 0) {
         lessThanFourOffers = activeOffers.length < 4;
         selectedOffer = activeOffers[selectedIndex];
         tokenSatoshisMax = BigInt(selectedOffer.token.amount);
@@ -443,6 +446,7 @@ const OrderBook = ({
     // Shorthand variable to let us know we have all the info we need to successfully render the orderbook
     // let decimals, decimalizedTokenQtyMin, decimalizedTokenQtyMax, decimalizedTokenQtyStep;
     const canRenderOrderbook =
+        Array.isArray(activeOffers) &&
         activeOffers.length > 0 &&
         typeof selectedOffer !== 'undefined' &&
         typeof tokenSatoshisMin !== 'undefined' &&
@@ -521,7 +525,7 @@ const OrderBook = ({
 
     // When activeOffers loads, select the spot price and make necessary calcs
     useEffect(() => {
-        if (activeOffers.length > 0) {
+        if (Array.isArray(activeOffers) && activeOffers.length > 0) {
             // Set selected offer to spot price when activeOffers changes from [] to active offers
         }
     }, [activeOffers]);
@@ -564,7 +568,7 @@ const OrderBook = ({
 
     // Update the slider when the user selects a different offer
     useEffect(() => {
-        if (activeOffers.length > 0) {
+        if (Array.isArray(activeOffers) && activeOffers.length > 0) {
             // Select the minAcceptedTokens amount every time the order changes
             setTakeTokenSatoshis(
                 activeOffers[selectedIndex].variant.params
@@ -644,150 +648,182 @@ const OrderBook = ({
                         handleCancel={() => setShowConfirmCancelModal(false)}
                     />
                 )}
-            {!noIcon && (
-                <OfferRow>
-                    {tokenName}
-                    {tokenTicker}
-                </OfferRow>
-            )}
-            <OfferRow>
-                {!noIcon && (
-                    <OfferIconCol lessThanFourOffers={lessThanFourOffers}>
-                        <OfferIcon
-                            title={tokenId}
-                            size={64}
-                            tokenId={tokenId}
-                            aria-label={`View larger icon for ${
-                                typeof tokenName === 'string'
-                                    ? tokenName
-                                    : tokenId
-                            }`}
-                            onClick={() => setShowLargeIconModal(true)}
-                        />
+            {Array.isArray(activeOffers) && activeOffers.length > 0 ? (
+                <OrderBookContainer>
+                    {!noIcon && (
                         <OfferRow>
-                            <NftTokenIdAndCopyIcon>
-                                <a
-                                    href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {tokenId.slice(0, 3)}
-                                    ...
-                                    {tokenId.slice(-3)}
-                                </a>
-                                <CopyIconButton
-                                    data={tokenId}
-                                    showToast
-                                    customMsg={`Token ID "${tokenId}" copied to clipboard`}
-                                />
-                            </NftTokenIdAndCopyIcon>
+                            {tokenName}
+                            {tokenTicker}
                         </OfferRow>
-                    </OfferIconCol>
-                )}
-                {agoraQueryError && (
-                    <Alert>
-                        Error querying agora for active offers. Try again later.
-                    </Alert>
-                )}
-                {canRenderOrderbook && (
-                    <DepthBarCol lessThanFourOffers={lessThanFourOffers}>
-                        {activeOffers.map((activeOffer, index) => {
-                            const { depthPercent } = activeOffer;
-                            const acceptPercent =
-                                (depthPercent * Number(takeTokenSatoshis)) /
-                                Number(tokenSatoshisMax);
-                            return (
-                                <OrderBookRow
-                                    key={index}
-                                    onClick={() => setSelectedIndex(index)}
-                                    selected={index === selectedIndex}
-                                >
-                                    <OrderbookPrice>
-                                        {getFormattedFiatPrice(
-                                            settings,
-                                            userLocale,
-                                            nanoSatoshisToXec(
-                                                Number(
-                                                    activeOffer.spotPriceNanoSatsPerTokenSat,
-                                                ) * parseFloat(`1e${decimals}`),
-                                            ),
-                                            fiatPrice,
-                                        )}
-                                        <DepthBar
-                                            depthPercent={depthPercent}
-                                        ></DepthBar>
-                                        {index === selectedIndex && (
-                                            <TentativeAcceptBar
-                                                acceptPercent={acceptPercent}
-                                            ></TentativeAcceptBar>
-                                        )}
-                                    </OrderbookPrice>
-                                </OrderBookRow>
-                            );
-                        })}
-                    </DepthBarCol>
-                )}
-            </OfferRow>
-            {canRenderOrderbook && (
-                <>
-                    <SliderRow>
-                        <Slider
-                            name={`Select buy qty ${tokenId}`}
-                            value={takeTokenSatoshis}
-                            error={takeTokenSatoshisError}
-                            handleSlide={handleTakeTokenSatoshisSlide}
-                            min={tokenSatoshisMin.toString()}
-                            max={tokenSatoshisMax.toString()}
-                            step={tokenSatoshisStep.toString()}
-                        />
-                    </SliderRow>
-                    <SliderRow>
-                        <DataAndQuestionButton>
-                            {decimalizedTokenQtyToLocaleFormat(
-                                decimalizeTokenAmount(
-                                    takeTokenSatoshis,
-                                    decimals,
-                                ),
-                                userLocale,
-                            )}{' '}
-                            <IconButton
-                                name={`Click for more info about agora partial sales`}
-                                icon={<QuestionIcon />}
-                                onClick={() => setShowAcceptedQtyInfo(true)}
-                            />
-                        </DataAndQuestionButton>
-                    </SliderRow>
-                    <SliderInfoRow>
-                        {toFormattedXec(askedSats, userLocale)} XEC
-                    </SliderInfoRow>
-                    {fiatPrice !== null && (
-                        <SliderInfoRow>
-                            {getFormattedFiatPrice(
-                                settings,
-                                userLocale,
-                                toXec(askedSats),
-                                fiatPrice,
-                            )}
-                        </SliderInfoRow>
                     )}
                     <OfferRow>
-                        {isMaker ? (
-                            <SecondaryButton
-                                onClick={() => setShowConfirmCancelModal(true)}
+                        {!noIcon && (
+                            <OfferIconCol
+                                lessThanFourOffers={lessThanFourOffers}
                             >
-                                Cancel your offer
-                            </SecondaryButton>
-                        ) : (
-                            <PrimaryButton
-                                onClick={() => setShowConfirmBuyModal(true)}
-                                disabled={takeTokenSatoshisError}
+                                <OfferIcon
+                                    title={tokenId}
+                                    size={64}
+                                    tokenId={tokenId}
+                                    aria-label={`View larger icon for ${
+                                        typeof tokenName === 'string'
+                                            ? tokenName
+                                            : tokenId
+                                    }`}
+                                    onClick={() => setShowLargeIconModal(true)}
+                                />
+                                <OfferRow>
+                                    <NftTokenIdAndCopyIcon>
+                                        <a
+                                            href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {tokenId.slice(0, 3)}
+                                            ...
+                                            {tokenId.slice(-3)}
+                                        </a>
+                                        <CopyIconButton
+                                            data={tokenId}
+                                            showToast
+                                            customMsg={`Token ID "${tokenId}" copied to clipboard`}
+                                        />
+                                    </NftTokenIdAndCopyIcon>
+                                </OfferRow>
+                            </OfferIconCol>
+                        )}
+                        {canRenderOrderbook && (
+                            <DepthBarCol
+                                lessThanFourOffers={lessThanFourOffers}
                             >
-                                Buy {tokenName}
-                                {tokenTicker}
-                            </PrimaryButton>
+                                {activeOffers.map((activeOffer, index) => {
+                                    const { depthPercent } = activeOffer;
+                                    const acceptPercent =
+                                        (depthPercent *
+                                            Number(takeTokenSatoshis)) /
+                                        Number(tokenSatoshisMax);
+                                    return (
+                                        <OrderBookRow
+                                            key={index}
+                                            onClick={() =>
+                                                setSelectedIndex(index)
+                                            }
+                                            selected={index === selectedIndex}
+                                        >
+                                            <OrderbookPrice>
+                                                {getFormattedFiatPrice(
+                                                    settings,
+                                                    userLocale,
+                                                    nanoSatoshisToXec(
+                                                        Number(
+                                                            activeOffer.spotPriceNanoSatsPerTokenSat,
+                                                        ) *
+                                                            parseFloat(
+                                                                `1e${decimals}`,
+                                                            ),
+                                                    ),
+                                                    fiatPrice,
+                                                )}
+                                                <DepthBar
+                                                    depthPercent={depthPercent}
+                                                ></DepthBar>
+                                                {index === selectedIndex && (
+                                                    <TentativeAcceptBar
+                                                        acceptPercent={
+                                                            acceptPercent
+                                                        }
+                                                    ></TentativeAcceptBar>
+                                                )}
+                                            </OrderbookPrice>
+                                        </OrderBookRow>
+                                    );
+                                })}
+                            </DepthBarCol>
                         )}
                     </OfferRow>
+                    {canRenderOrderbook && (
+                        <>
+                            <SliderRow>
+                                <Slider
+                                    name={`Select buy qty ${tokenId}`}
+                                    value={takeTokenSatoshis}
+                                    error={takeTokenSatoshisError}
+                                    handleSlide={handleTakeTokenSatoshisSlide}
+                                    min={tokenSatoshisMin.toString()}
+                                    max={tokenSatoshisMax.toString()}
+                                    step={tokenSatoshisStep.toString()}
+                                />
+                            </SliderRow>
+                            <SliderRow>
+                                <DataAndQuestionButton>
+                                    {decimalizedTokenQtyToLocaleFormat(
+                                        decimalizeTokenAmount(
+                                            takeTokenSatoshis,
+                                            decimals,
+                                        ),
+                                        userLocale,
+                                    )}{' '}
+                                    <IconButton
+                                        name={`Click for more info about agora partial sales`}
+                                        icon={<QuestionIcon />}
+                                        onClick={() =>
+                                            setShowAcceptedQtyInfo(true)
+                                        }
+                                    />
+                                </DataAndQuestionButton>
+                            </SliderRow>
+                            <SliderInfoRow>
+                                {toFormattedXec(askedSats, userLocale)} XEC
+                            </SliderInfoRow>
+                            {fiatPrice !== null && (
+                                <SliderInfoRow>
+                                    {getFormattedFiatPrice(
+                                        settings,
+                                        userLocale,
+                                        toXec(askedSats),
+                                        fiatPrice,
+                                    )}
+                                </SliderInfoRow>
+                            )}
+                            <ButtonRow>
+                                {isMaker ? (
+                                    <SecondaryButton
+                                        onClick={() =>
+                                            setShowConfirmCancelModal(true)
+                                        }
+                                    >
+                                        Cancel your offer
+                                    </SecondaryButton>
+                                ) : (
+                                    <PrimaryButton
+                                        onClick={() =>
+                                            setShowConfirmBuyModal(true)
+                                        }
+                                        disabled={takeTokenSatoshisError}
+                                    >
+                                        Buy {tokenName}
+                                        {tokenTicker}
+                                    </PrimaryButton>
+                                )}
+                            </ButtonRow>
+                        </>
+                    )}
+                </OrderBookContainer>
+            ) : activeOffers === null ? (
+                <>
+                    {agoraQueryError ? (
+                        <Alert>
+                            Error querying agora for active offers. Try again
+                            later.
+                        </Alert>
+                    ) : (
+                        <OrderBookLoading>
+                            <InlineLoader />
+                        </OrderBookLoading>
+                    )}
                 </>
+            ) : (
+                <Info>No active offers for this token</Info>
             )}
         </>
     );

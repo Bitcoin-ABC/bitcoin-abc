@@ -271,8 +271,8 @@ describe('<Agora />', () => {
         // We have an offer
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
-        // We see the token name and ticker above its PartialOffer
-        expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
+        // We see the token name and ticker above its PartialOffer after OrderBooks load
+        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(
@@ -496,8 +496,8 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see all token names and tickers above their PartialOffers
-        expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
-        expect(screen.getByText('Bull (BULL)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Bull (BULL)')).toBeInTheDocument();
 
         // For BULL, there is only one offer, so that offer is the spot price
         const BULL_SPOT_MIN_QTY = '8';
@@ -786,8 +786,8 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see all token names and tickers above their PartialOffers
-        expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
-        expect(screen.getByText('Bull (BULL)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Bull (BULL)')).toBeInTheDocument();
 
         // We see the expected spot offer for CACHET
         const CACHET_SPOT_MIN_QTY = '.20';
@@ -943,8 +943,8 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see all token names and tickers above their PartialOffers
-        expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
-        expect(screen.getByText('Bull (BULL)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Bull (BULL)')).toBeInTheDocument();
 
         // We see the expected spot offer for CACHET
         const CACHET_SPOT_MIN_QTY = '.20';

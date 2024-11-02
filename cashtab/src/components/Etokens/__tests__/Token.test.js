@@ -23,6 +23,8 @@ import {
     slp1FixedCachet,
 } from 'components/Etokens/fixtures/mocks';
 import { Ecc, initWasm } from 'ecash-lib';
+import { MockAgora } from '../../../../../modules/mock-chronik-client';
+import { token as tokenConfig } from 'config/token';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -130,10 +132,26 @@ describe('<Token />', () => {
     });
 
     it('For a fungible SLP token, renders the Token screen with sale by default and expected inputs', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // No active offers
+        mockedAgora.setActiveOffersByTokenId(SEND_TOKEN_TOKENID, []);
+
+        // Mock not blacklisted
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${SEND_TOKEN_TOKENID}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: false }),
+            });
+
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
                 ecc={ecc}
+                agora={mockedAgora}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -167,6 +185,75 @@ describe('<Token />', () => {
         expect(
             screen.getByRole('button', { name: /List BearNip/ }),
         ).toHaveProperty('disabled', true);
+
+        // OrderBook is rendered
+        // NB OrderBook behavior is tested independently, we only test that it appears as expected here
+        expect(
+            await screen.findByText('No active offers for this token'),
+        ).toBeInTheDocument();
+    });
+    it('We show an alert and do not render the Orderbook for a blacklisted token', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // No active offers
+        mockedAgora.setActiveOffersByTokenId(SEND_TOKEN_TOKENID, []);
+
+        // Mock blacklisted
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${SEND_TOKEN_TOKENID}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: true }),
+            });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
+            />,
+        );
+
+        // Wait for element to get token info and load
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
+
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const totalQtyInput = screen.getByPlaceholderText('Offered qty');
+        const minQtyInput = screen.getByPlaceholderText('Min buy');
+
+        // Input fields are rendered
+        expect(totalQtyInput).toBeInTheDocument();
+        expect(minQtyInput).toBeInTheDocument();
+
+        // Qty inputs are not disabled
+        expect(totalQtyInput).toHaveProperty('disabled', false);
+        expect(minQtyInput).toHaveProperty('disabled', false);
+
+        // Price input is disabled as qty inputs are at 0 value
+        expect(
+            screen.getByPlaceholderText('Enter SLP list price (per token)'),
+        ).toHaveProperty('disabled', true);
+
+        // List button is present and disabled
+        expect(
+            screen.getByRole('button', { name: /List BearNip/ }),
+        ).toHaveProperty('disabled', true);
+
+        // OrderBook is NOT rendered
+        // We show expected blacklist notice
+        expect(
+            await screen.findByText(
+                'Cashtab does not support trading this token',
+            ),
+        ).toBeInTheDocument();
     });
     it('Accepts a valid ecash: prefixed address', async () => {
         render(

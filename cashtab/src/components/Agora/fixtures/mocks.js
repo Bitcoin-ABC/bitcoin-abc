@@ -1394,3 +1394,37 @@ export const scamCacheMocks = {
         },
     },
 };
+
+export const CachedCachet = {
+    tokenType: { protocol: 'SLP', type: 'SLP_TOKEN_TYPE_FUNGIBLE', number: 1 },
+    genesisInfo: {
+        tokenTicker: 'CACHET',
+        tokenName: 'Cachet',
+        url: 'https://cashtab.com/',
+        decimals: 2,
+        hash: '',
+    },
+    timeFirstSeen: 1711776546,
+    genesisSupply: '100000.00',
+    genesisOutputScripts: [
+        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+    ],
+    genesisMintBatons: 1,
+    block: {
+        height: 838192,
+        hash: '0000000000000000132232769161d6211f7e6e20cf63b26e5148890aacd26962',
+        timestamp: 1711779364,
+    },
+};
+
+export const SettingsUsd = {
+    autoCameraOff: false,
+    autoCameraOn: false,
+    balanceVisible: true,
+    fiatCurrency: 'usd',
+    hideMessagesFromUnknownSenders: false,
+    minFeeSends: true,
+    sendModal: false,
+    showMessages: false,
+    toggleHideBalance: false,
+};
