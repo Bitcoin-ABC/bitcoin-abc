@@ -1,0 +1,5 @@
+/** tsconfig for building ecash-herald */
+{
+    "extends": "./tsconfig.json",
+    "exclude": ["test", "**/*.test.ts"]
+}

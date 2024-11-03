@@ -6,7 +6,7 @@
     "scripts": {
         "test": "mocha",
         "coverage": "nyc mocha",
-        "build": "tsc",
+        "build": "tsc -p ./tsconfig.build.json",
         "junit": "mocha test --reporter mocha-junit-reporter",
         "generateMock": "node scripts/generateMock",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices",

@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "mocha",
-        "build": "tsc",
+        "build": "tsc -p ./tsconfig.build.json",
         "prebuild": "ts-node scripts/prepSecrets.ts",
         "pretest": "ts-node scripts/prepSecrets.ts",
         "coverage": "nyc mocha",
