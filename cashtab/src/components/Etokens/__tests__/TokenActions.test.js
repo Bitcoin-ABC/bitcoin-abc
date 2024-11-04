@@ -993,7 +993,9 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
 
         // We route to the NFTs page
-        expect(await screen.findByTitle('Listed NFTs')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Listed Collections'),
+        ).toBeInTheDocument();
     });
     it('We can send an SLP1 NFT', async () => {
         // NFT send

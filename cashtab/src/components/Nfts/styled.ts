@@ -14,6 +14,14 @@ export const NftsCtn = styled.div`
     }
 `;
 
+export const SubHeader = styled.div`
+    width: 100%;
+    color: ${props => props.theme.contrast};
+    font-size: 24px;
+    line-height: 24px;
+    margin-bottom: 12px;
+`;
+
 export const OfferTitle = styled.div`
     margin-top: 12px;
     margin-bottom: 12px;
@@ -31,7 +39,7 @@ export const OfferTable = styled.div`
     width: 100%;
     gap: 9px;
 `;
-export const OfferIcon = styled.div`
+export const OfferIcon = styled.div<{ tokenId: string; size: number }>`
     display: flex;
     width: 128px;
     height: 128px;

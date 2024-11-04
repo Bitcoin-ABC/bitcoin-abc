@@ -51,6 +51,7 @@ import { ReactComponent as AgoraBuy } from 'assets/agora-buy.svg';
 import { ReactComponent as AgoraSale } from 'assets/agora-sale.svg';
 import { ReactComponent as AgoraCancel } from 'assets/agora-cancel.svg';
 import { ReactComponent as Doge } from 'assets/doge.svg';
+import { ReactComponent as CollapseDown } from 'assets/collapse-down.svg';
 
 import appConfig from 'config/app';
 
@@ -226,6 +227,7 @@ export const AgoraBuyIcon = () => <AgoraBuy title="Agora Purchase" />;
 export const AgoraSaleIcon = () => <AgoraSale title="Agora Sale" />;
 export const AgoraCancelIcon = () => <AgoraCancel title="Agora Cancel" />;
 export const DogeIcon = () => <Doge title="Meme Agora" />;
+export const CollapseDownIcon = () => <CollapseDown title="Expand" />;
 
 const GithubIconWrapper = styled.div`
     svg {

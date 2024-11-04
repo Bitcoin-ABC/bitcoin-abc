@@ -130,6 +130,7 @@ import {
 } from 'ecash-agora';
 import * as wif from 'wif';
 import OrderBook from 'components/Agora/OrderBook';
+import Collection from 'components/Agora/Collection';
 
 const Token = () => {
     let navigate = useNavigate();
@@ -2113,7 +2114,8 @@ const Token = () => {
                     {isSupportedToken &&
                         pk !== false &&
                         isBlacklisted !== null &&
-                        !isBlacklisted && (
+                        !isBlacklisted &&
+                        !isNftParent && (
                             <OrderBook
                                 tokenId={tokenId}
                                 noIcon
@@ -2201,6 +2203,29 @@ const Token = () => {
                                     );
                                 })}
                             </NftTable>
+                            {pk !== false && (
+                                <>
+                                    <NftTitle>
+                                        Listings in this Collection
+                                    </NftTitle>
+                                    <Collection
+                                        groupTokenId={tokenId}
+                                        agora={agora}
+                                        chronik={chronik}
+                                        cashtabCache={cashtabCache}
+                                        settings={settings}
+                                        fiatPrice={fiatPrice}
+                                        userLocale={userLocale}
+                                        wallet={wallet}
+                                        activePk={pk}
+                                        chaintipBlockheight={
+                                            chaintipBlockheight
+                                        }
+                                        ecc={ecc}
+                                        noCollectionInfo
+                                    />
+                                </>
+                            )}
                         </>
                     )}
                     {apiError && <ApiError />}

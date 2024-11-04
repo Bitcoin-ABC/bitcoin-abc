@@ -364,7 +364,7 @@ describe('<App />', () => {
 
         // Now we see the NFTs screen
         expect(
-            await screen.findByText('No NFTs are currently listed for sale'),
+            await screen.findByText('Listed Collections'),
         ).toBeInTheDocument();
 
         // Navigate to Agora screen

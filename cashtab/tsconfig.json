@@ -13,5 +13,12 @@
         "allowJs": true,
         "jsx": "react-jsx"
     },
-    "include": ["src", ".eslintrc.js", "jest.config.js", "jest.setup.js"]
+    "include": [
+        "src",
+        ".eslintrc.js",
+        "babel.config.js",
+        "jest.config.js",
+        "config",
+        "jest.setup.js"
+    ]
 }

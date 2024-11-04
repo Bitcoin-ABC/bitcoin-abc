@@ -2,8 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import React from 'react';
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
+import { CopyIconButton } from 'components/Common/Buttons';
+import { explorer } from 'config/explorer';
 
 export const CashtabScroll = css`
     &::-webkit-scrollbar {
@@ -112,3 +115,44 @@ export const BlockNotificationDesc = styled.div`
     justify-content: flex-start;
     width: 100%;
 `;
+
+export const TokenIdAndCopyIcon = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+        width: 18px;
+        height: 18px;
+        :hover {
+            g {
+                fill: ${props => props.theme.eCashPurple};
+            }
+            fill: ${props => props.theme.eCashPurple};
+        }
+    }
+`;
+
+interface TokenIdPreviewProps {
+    tokenId: string;
+}
+export const TokenIdPreview: React.FC<TokenIdPreviewProps> = ({ tokenId }) => {
+    return (
+        <TokenIdAndCopyIcon>
+            <a
+                href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {tokenId.slice(0, 3)}
+                ...
+                {tokenId.slice(-3)}
+            </a>
+            <CopyIconButton
+                name={`Copy Token ID`}
+                data={tokenId}
+                showToast
+                customMsg={`Token ID "${tokenId}" copied to clipboard`}
+            />
+        </TokenIdAndCopyIcon>
+    );
+};
