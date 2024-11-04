@@ -39,6 +39,7 @@ class AddrReceiver(P2PInterface):
     def __init__(self):
         super().__init__()
         self.received_addrs = None
+        self.addr_message_count = 0
 
     def get_received_addrs(self):
         with p2p_lock:
@@ -46,11 +47,15 @@ class AddrReceiver(P2PInterface):
 
     def on_addr(self, message):
         self.received_addrs = []
+        self.addr_message_count += 1
         for addr in message.addrs:
             self.received_addrs.append(f"{addr.ip}:{addr.port}")
 
     def addr_received(self):
         return self.received_addrs is not None
+
+    def addr_count(self):
+        return self.addr_message_count
 
 
 class MutedAvaP2PInterface(AvaP2PInterface):
@@ -127,20 +132,24 @@ class AvaAddrTest(BitcoinTestFramework):
         mock_time = int(time.time())
         node.setmocktime(mock_time)
 
+        peers = [AllYesAvaP2PInterface(self, node) for _ in range(10)]
+
         # Add some avalanche peers to the node
-        for _ in range(10):
-            node.add_p2p_connection(AllYesAvaP2PInterface(self, node))
+        for p in peers[:8]:
+            node.add_p2p_connection(p)
 
         # Build some statistics to ensure some addresses will be returned
-        def all_peers_received_poll():
+        def all_peers_received_poll(avapeers):
             with p2p_lock:
-                return all(avanode.poll_received > 0 for avanode in node.p2ps)
+                return all(avapeer.poll_received > 0 for avapeer in avapeers)
 
-        self.wait_until(all_peers_received_poll)
+        self.wait_until(lambda: all_peers_received_poll(peers[:8]))
         node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         requester = node.add_p2p_connection(AddrReceiver())
         requester.send_message(msg_getavaaddr())
+        # Make sure the message is processed
+        requester.sync_with_ping()
         # Remember the time we sent the getavaaddr message
         getavaddr_time = mock_time
 
@@ -154,17 +163,30 @@ class AvaAddrTest(BitcoinTestFramework):
         # Move the time so we get an addr response
         mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
+        requester.sync_with_ping()
         requester.wait_until(requester.addr_received)
+
+        requester.received_addrs = None
+        # Add some more address so the node has something to respond
+        for p in peers[8:]:
+            node.add_p2p_connection(p)
+        self.wait_until(lambda: all_peers_received_poll(peers))
+        node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         # Check our message is now accepted again now that the getavaaddr
         # interval is elapsed
         assert mock_time >= getavaddr_time + GETAVAADDR_INTERVAL
         requester.send_message(msg_getavaaddr())
+        requester.sync_with_ping()
 
         # We can get an addr message again
         mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
+        requester.sync_with_ping()
         requester.wait_until(requester.addr_received)
+
+        # We only got 2 responses, other messages have been ignored
+        assert_equal(requester.addr_count(), 2)
 
     def address_test(self, maxaddrtosend, num_proof, num_avanode):
         self.restart_node(
