@@ -6575,9 +6575,11 @@ void PeerManagerImpl::ProcessMessage(
                                 const std::string &voteItemTypeStr,
                                 const auto &voteItemId) {
             std::string voteOutcome;
+            bool alwaysPrint = false;
             switch (voteUpdate.getStatus()) {
                 case avalanche::VoteStatus::Invalid:
                     voteOutcome = "invalidated";
+                    alwaysPrint = true;
                     break;
                 case avalanche::VoteStatus::Rejected:
                     voteOutcome = "rejected";
@@ -6587,17 +6589,25 @@ void PeerManagerImpl::ProcessMessage(
                     break;
                 case avalanche::VoteStatus::Finalized:
                     voteOutcome = "finalized";
+                    alwaysPrint = true;
                     break;
                 case avalanche::VoteStatus::Stale:
                     voteOutcome = "stalled";
+                    alwaysPrint = true;
                     break;
 
                     // No default case, so the compiler can warn about missing
                     // cases
             }
 
-            LogPrint(BCLog::AVALANCHE, "Avalanche %s %s %s\n", voteOutcome,
-                     voteItemTypeStr, voteItemId.ToString());
+            if (alwaysPrint) {
+                LogPrintf("Avalanche %s %s %s\n", voteOutcome, voteItemTypeStr,
+                          voteItemId.ToString());
+            } else {
+                // Only print these messages if -debug=avalanche is set
+                LogPrint(BCLog::AVALANCHE, "Avalanche %s %s %s\n", voteOutcome,
+                         voteItemTypeStr, voteItemId.ToString());
+            }
         };
 
         bool shouldActivateBestChain = false;
