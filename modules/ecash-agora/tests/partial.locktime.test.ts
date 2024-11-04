@@ -11,7 +11,6 @@ import {
     DEFAULT_DUST_LIMIT,
     Ecc,
     P2PKHSignatory,
-    SLP_FUNGIBLE,
     Script,
     TxBuilder,
     TxBuilderInput,
@@ -20,13 +19,10 @@ import {
     fromHex,
     initWasm,
     shaRmd160,
-    slpSend,
-    toHex,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 
 import { AgoraPartial, AgoraPartialSignatory } from '../src/partial.js';
-import { makeSlpOffer, takeSlpOffer } from './partial-helper-slp.js';
 import { Agora, AgoraOffer } from '../src/agora.js';
 import { makeAlpGenesis } from './partial-helper-alp.js';
 
@@ -52,12 +48,10 @@ describe('AgoraPartial enforcedLockTime', () => {
     let makerPk: Uint8Array;
     let makerPkh: Uint8Array;
     let makerScript: Script;
-    let makerScriptHex: string;
     let takerSk: Uint8Array;
     let takerPk: Uint8Array;
     let takerPkh: Uint8Array;
     let takerScript: Script;
-    let takerScriptHex: string;
 
     async function makeBuilderInputs(
         values: number[],
@@ -89,12 +83,10 @@ describe('AgoraPartial enforcedLockTime', () => {
         makerPk = ecc.derivePubkey(makerSk);
         makerPkh = shaRmd160(makerPk);
         makerScript = Script.p2pkh(makerPkh);
-        makerScriptHex = toHex(makerScript.bytecode);
         takerSk = fromHex('44'.repeat(32));
         takerPk = ecc.derivePubkey(takerSk);
         takerPkh = shaRmd160(takerPk);
         takerScript = Script.p2pkh(takerPkh);
-        takerScriptHex = toHex(takerScript.bytecode);
     });
 
     after(() => {
@@ -181,7 +173,9 @@ describe('AgoraPartial enforcedLockTime', () => {
 
         const agora = new Agora(chronik);
         const offers: (AgoraOffer & { variant: { type: 'PARTIAL' } })[] =
-            (await agora.activeOffersByTokenId(tokenId)) as any;
+            (await agora.activeOffersByTokenId(tokenId)) as (AgoraOffer & {
+                variant: { type: 'PARTIAL' };
+            })[];
         expect(offers.length).to.equal(3);
 
         const offersLocktime1 = offers.filter(

@@ -11,14 +11,12 @@ import {
     Ecc,
     P2PKHSignatory,
     SLP_FUNGIBLE,
-    SLP_LOKAD_ID,
     Script,
     TxBuilderInput,
     fromHex,
     initWasm,
     shaRmd160,
     slpSend,
-    strToBytes,
     toHex,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';

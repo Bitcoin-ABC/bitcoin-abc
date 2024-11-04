@@ -160,3 +160,4 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 -   Export `scriptOps` helper function [D16972](https://reviews.bitcoinabc.org/D16972)
 -   Improve approximation for USD-esque tokens [D16995](https://reviews.bitcoinabc.org/D16995)
 -   Update tsconfig to support use in nodejs [D17019](https://reviews.bitcoinabc.org/D17019)
+-   Monorepo linting [D17072](https://reviews.bitcoinabc.org/D17072)

@@ -222,7 +222,7 @@ export class AgoraOffer {
                         ...params.extraOutputs,
                     ],
                 });
-            case 'PARTIAL':
+            case 'PARTIAL': {
                 if (params.acceptedTokens === undefined) {
                     throw new Error(
                         'Must set acceptedTokens for partial offers',
@@ -309,6 +309,7 @@ export class AgoraOffer {
                 txBuild.outputs.push(...params.extraOutputs);
                 txBuild.locktime = agoraPartial.enforcedLockTime;
                 return txBuild;
+            }
             default:
                 throw new Error('Not implemented');
         }
