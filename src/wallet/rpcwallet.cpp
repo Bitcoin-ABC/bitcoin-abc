@@ -95,7 +95,7 @@ static void WalletTxToJSON(const CWallet &wallet, const CWalletTx &wtx,
 static RPCHelpMan getnewaddress() {
     return RPCHelpMan{
         "getnewaddress",
-        "Returns a new Bitcoin address for receiving payments.\n"
+        "Returns a new eCash address for receiving payments.\n"
         "If 'label' is specified, it is added to the address book \n"
         "so payments received with the address will be associated with "
         "'label'.\n",
@@ -106,11 +106,15 @@ static RPCHelpMan getnewaddress() {
              "string \"\" to represent the default label. The label does not "
              "need to exist, it will be created if there is no label by the "
              "given name."},
-            {"address_type", RPCArg::Type::STR,
-             RPCArg::DefaultHint{"set by -addresstype"},
-             "The address type to use. Options are \"legacy\"."},
+            // Deprecated in v0.30.4
+            {"address_type", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+             "DEPRECATED: The Bitcoin address type to use. Only available for "
+             "compatibility with Bitcoin and will be removed in the future. "
+             "The only valid value is \"legacy\". Note that this does not "
+             "change the output of this RPC; in order to get a Bitcoin address "
+             "the -usecashaddr option should be disabled."},
         },
-        RPCResult{RPCResult::Type::STR, "address", "The new bitcoin address"},
+        RPCResult{RPCResult::Type::STR, "address", "The new eCash address"},
         RPCExamples{HelpExampleCli("getnewaddress", "") +
                     HelpExampleRpc("getnewaddress", "")},
         [&](const RPCHelpMan &self, const Config &config,
