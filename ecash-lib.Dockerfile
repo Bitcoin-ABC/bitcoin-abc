@@ -32,7 +32,7 @@ WORKDIR /app/modules/ecash-lib-wasm
 COPY modules/ecash-lib-wasm .
 
 # Build web assembly for ecash-lib
-RUN ./build-wasm.sh
+RUN CC=clang ./build-wasm.sh
 
 # Stage 2 - Node image for running npm publish
 FROM node:20-bookworm-slim

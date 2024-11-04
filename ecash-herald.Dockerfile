@@ -36,7 +36,7 @@ WORKDIR /app/modules/ecash-lib-wasm
 COPY modules/ecash-lib-wasm .
 
 # Build web assembly for ecash-lib
-RUN ./build-wasm.sh
+RUN CC=clang ./build-wasm.sh
 
 # 2) Node image for prod deployment of token-server
 
