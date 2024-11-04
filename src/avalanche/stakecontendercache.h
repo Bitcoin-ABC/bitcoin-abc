@@ -88,6 +88,8 @@ namespace bmi = boost::multi_index;
  * Cache to track stake contenders for recent blocks.
  */
 class StakeContenderCache {
+    int lastPromotedHeight{0};
+
     using ContenderSet = boost::multi_index_container<
         StakeContenderCacheEntry,
         bmi::indexed_by<
@@ -126,7 +128,7 @@ class StakeContenderCache {
 public:
     StakeContenderCache() {}
 
-    void cleanup(const int minHeight);
+    void cleanup(const int requestedMinHeight);
 
     /**
      * For tests.

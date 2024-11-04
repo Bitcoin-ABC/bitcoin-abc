@@ -6,9 +6,15 @@
 
 #include <avalanche/peermanager.h>
 
+#include <algorithm>
+
 namespace avalanche {
 
-void StakeContenderCache::cleanup(const int minHeight) {
+void StakeContenderCache::cleanup(const int requestedMinHeight) {
+    // Do not cleanup past the last promoted height, otherwise we lose cached
+    // remote proof data.
+    const int minHeight = std::min(lastPromotedHeight, requestedMinHeight);
+
     std::set<BlockHash> hashesToErase;
     auto &mwHeightView = manualWinners.get<by_blockheight>();
     for (auto it = mwHeightView.begin();
@@ -50,6 +56,7 @@ void StakeContenderCache::promoteToBlock(const CBlockIndex *activeTip,
     // they are not guaranteed to be stored by peerManager.
     const BlockHash &blockhash = activeTip->GetBlockHash();
     const int height = activeTip->nHeight;
+    lastPromotedHeight = height;
     for (auto &contender : contenders) {
         const ProofId &proofid = contender.proofid;
         if (pm.isRemoteProof(proofid) &&

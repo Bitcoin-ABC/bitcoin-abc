@@ -283,6 +283,7 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
 BOOST_AUTO_TEST_CASE(cleanup_tests) {
     Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
     StakeContenderCache cache;
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, *Assert(m_node.chainman));
 
     std::vector<ProofRef> proofs;
     for (int i = 0; i < 10; i++) {
@@ -291,7 +292,8 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
     }
 
     CBlockIndex *pindex = active_chainstate.m_chain.Tip();
-    std::vector<BlockHash> blockhashes;
+    std::vector<BlockHash> blockhashes{pindex->GetBlockHash()};
+    pindex = pindex->pprev;
     for (int i = 0; i < 3; i++) {
         BlockHash blockhash = pindex->GetBlockHash();
         blockhashes.push_back(blockhash);
@@ -302,70 +304,101 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
         pindex = pindex->pprev;
     }
 
+    // Promote up to the height that we will allow cleanup of the cache. Note
+    // that no entries are actually promoted since it uses a dummy peer manager.
+    pindex = active_chainstate.m_chain.Tip()->pprev->pprev->pprev;
+    BOOST_CHECK_EQUAL(pindex->nHeight, 97);
+    cache.promoteToBlock(pindex, pm);
+
     // Cleaning up nonexistant entries has no impact
-    for (int height : {0, 10, 50, 90, 98}) {
+    for (int height : {0, 10, 50, 90, 97}) {
         cache.cleanup(height);
-        CheckWinners(cache, blockhashes[0], {}, proofs);
+        CheckWinners(cache, blockhashes[0], {}, {});
         CheckWinners(cache, blockhashes[1], {}, proofs);
         CheckWinners(cache, blockhashes[2], {}, proofs);
+        CheckWinners(cache, blockhashes[3], {}, proofs);
     }
 
-    // Cleanup oldest block in the cache
-    cache.cleanup(99);
-    CheckWinners(cache, blockhashes[0], {}, proofs);
+    // Try to cleanup oldest block in the cache, except promotion at that height
+    // hasn't happened yet so cleanup has no effect.
+    cache.cleanup(98);
+    CheckWinners(cache, blockhashes[0], {}, {});
     CheckWinners(cache, blockhashes[1], {}, proofs);
-    CheckWinners(cache, blockhashes[2], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, proofs);
+    CheckWinners(cache, blockhashes[3], {}, proofs);
+
+    // Promote up to that height
+    cache.promoteToBlock(active_chainstate.m_chain.Tip()->pprev->pprev, pm);
+
+    // Cleaning up the oldest block in the cache succeeds now
+    cache.cleanup(98);
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, proofs);
+    CheckWinners(cache, blockhashes[2], {}, proofs);
+    CheckWinners(cache, blockhashes[3], {}, {});
 
     // Add only a local winner to the recently cleared block
-    cache.setWinners(active_chainstate.m_chain.Tip()->pprev->pprev,
+    cache.setWinners(active_chainstate.m_chain.Tip()->pprev->pprev->pprev,
                      {CScript()});
-    CheckWinners(cache, blockhashes[0], {}, proofs);
+    CheckWinners(cache, blockhashes[0], {}, {});
     CheckWinners(cache, blockhashes[1], {}, proofs);
-    CheckWinners(cache, blockhashes[2], {CScript()}, {});
+    CheckWinners(cache, blockhashes[2], {}, proofs);
+    CheckWinners(cache, blockhashes[3], {CScript()}, {});
 
     // Clean it up again
-    cache.cleanup(99);
-    CheckWinners(cache, blockhashes[0], {}, proofs);
+    cache.cleanup(98);
+    CheckWinners(cache, blockhashes[0], {}, {});
     CheckWinners(cache, blockhashes[1], {}, proofs);
-    CheckWinners(cache, blockhashes[2], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, proofs);
+    CheckWinners(cache, blockhashes[3], {}, {});
 
     // Add a local winner to a block with winners already there, then clear it
-    cache.setWinners(active_chainstate.m_chain.Tip()->pprev, {CScript()});
-    CheckWinners(cache, blockhashes[0], {}, proofs);
-    CheckWinners(cache, blockhashes[1], {CScript()}, proofs);
-    CheckWinners(cache, blockhashes[2], {}, {});
+    cache.setWinners(active_chainstate.m_chain.Tip()->pprev->pprev,
+                     {CScript()});
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, proofs);
+    CheckWinners(cache, blockhashes[2], {CScript()}, proofs);
+    CheckWinners(cache, blockhashes[3], {}, {});
 
-    cache.cleanup(100);
-    CheckWinners(cache, blockhashes[0], {}, proofs);
-    CheckWinners(cache, blockhashes[1], {}, {});
+    cache.promoteToBlock(active_chainstate.m_chain.Tip()->pprev, pm);
+    cache.cleanup(99);
+    CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, proofs);
     CheckWinners(cache, blockhashes[2], {}, {});
+    CheckWinners(cache, blockhashes[3], {}, {});
 
     // Invalidate proofs so they are no longer in the winner set
     for (const auto &proof : proofs) {
-        cache.invalidate(StakeContenderId(blockhashes[0], proof->getId()));
+        cache.invalidate(StakeContenderId(blockhashes[1], proof->getId()));
     }
     CheckWinners(cache, blockhashes[0], {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {});
+    CheckWinners(cache, blockhashes[3], {}, {});
     BOOST_CHECK(!cache.isEmpty());
 
     // Clean up the remaining block and the cache should be empty now
-    cache.cleanup(101);
+    cache.promoteToBlock(active_chainstate.m_chain.Tip(), pm);
+    cache.cleanup(100);
     BOOST_CHECK(cache.isEmpty());
     CheckWinners(cache, blockhashes[0], {}, {});
     CheckWinners(cache, blockhashes[1], {}, {});
     CheckWinners(cache, blockhashes[2], {}, {});
+    CheckWinners(cache, blockhashes[3], {}, {});
 
     // Cleaning up again has no effect
-    cache.cleanup(101);
+    cache.cleanup(100);
     BOOST_CHECK(cache.isEmpty());
     CheckWinners(cache, blockhashes[0], {}, {});
     CheckWinners(cache, blockhashes[1], {}, {});
     CheckWinners(cache, blockhashes[2], {}, {});
+    CheckWinners(cache, blockhashes[3], {}, {});
 
     // Add winners back with random states and sanity check that higher heights
     // clear the cache as we expect.
     for (int height : {102, 200, 1000, 1000000}) {
-        pindex = active_chainstate.m_chain.Tip();
-        for (size_t i = 0; i < 2; i++) {
+        pindex = active_chainstate.m_chain.Tip()->pprev;
+        for (size_t i = 1; i < 3; i++) {
             for (const auto &proof : proofs) {
                 cache.add(pindex, proof, InsecureRandBits(2));
                 cache.setWinners(pindex, {CScript()});
@@ -378,13 +411,26 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
             pindex = pindex->pprev;
         }
 
-        // Cleaning up the cache at a height higher than any block results in an
-        // empty cache and no winners.
+        // Cleaning up the cache at a height higher than any cache entry results
+        // in an empty cache and no winners.
         cache.cleanup(height);
         BOOST_CHECK(cache.isEmpty());
         CheckWinners(cache, blockhashes[0], {}, {});
         CheckWinners(cache, blockhashes[1], {}, {});
         CheckWinners(cache, blockhashes[2], {}, {});
+        CheckWinners(cache, blockhashes[3], {}, {});
+    }
+
+    // But note that the cache will never cleanup higher than the last promoted
+    // block.
+    cache.add(active_chainstate.m_chain.Tip(), proofs[0],
+              StakeContenderStatus::IN_WINNER_SET);
+    for (int height : {102, 200, 1000, 1000000}) {
+        cache.cleanup(height);
+        CheckWinners(cache, blockhashes[0], {}, {proofs[0]});
+        CheckWinners(cache, blockhashes[1], {}, {});
+        CheckWinners(cache, blockhashes[2], {}, {});
+        CheckWinners(cache, blockhashes[3], {}, {});
     }
 }
 
@@ -423,6 +469,18 @@ BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
         cache.add(pindex, proofs[i], StakeContenderStatus::IN_WINNER_SET);
         CheckWinners(cache, blockhash, {}, {proofs[i]});
         pindex = pindex->pprev;
+    }
+
+    // Attempting to cleanup the cache before promotion has occurred has no
+    // effect.
+    for (int height = 95; height <= 100; height++) {
+        cache.cleanup(height);
+        CheckWinners(cache, blockhashes[0], {}, {});
+        CheckWinners(cache, blockhashes[1], {}, {});
+        CheckWinners(cache, blockhashes[2], {}, {});
+        CheckWinners(cache, blockhashes[3], {}, {proofs[0]});
+        CheckWinners(cache, blockhashes[4], {}, {proofs[1]});
+        CheckWinners(cache, blockhashes[5], {}, {proofs[2]});
     }
 
     // Promote contenders, but they are not winners at that block yet
