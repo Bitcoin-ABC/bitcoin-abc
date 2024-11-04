@@ -155,10 +155,8 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Spamming more get getavaaddr has no effect
         for _ in range(2):
-            with node.assert_debug_log(
-                ["Ignoring repeated getavaaddr from peer"], timeout=10
-            ):
-                requester.send_message(msg_getavaaddr())
+            requester.send_message(msg_getavaaddr())
+            requester.sync_with_ping()
 
         # Move the time so we get an addr response
         mock_time += MAX_ADDR_SEND_DELAY

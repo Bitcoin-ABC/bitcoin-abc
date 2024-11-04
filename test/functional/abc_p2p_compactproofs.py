@@ -397,8 +397,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         msg = build_msg_avaproofs([])
         sender = add_avalanche_p2p_outbound()
-        with node.assert_debug_log(["Got an avaproofs message with no shortid"]):
-            sender.send_message(msg)
+        sender.send_message(msg)
         # Make sure we don't get an avaproofsreq message
         sender.sync_with_ping()
         with p2p_lock:

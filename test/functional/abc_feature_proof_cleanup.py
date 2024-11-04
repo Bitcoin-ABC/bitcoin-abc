@@ -124,8 +124,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         sender = get_ava_p2p_interface_no_handshake(node)
         for proof in proofs[1:]:
-            with node.assert_debug_log(["dangling-proof"]):
-                sender.send_avaproof(proof)
+            sender.send_avaproof(proof)
             assert_raises_rpc_error(
                 -8, "dangling-proof", node.sendavalancheproof, proof.serialize().hex()
             )

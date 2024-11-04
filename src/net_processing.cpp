@@ -6992,9 +6992,6 @@ void PeerManagerImpl::ProcessMessage(
         // If there is no shortid, avoid parsing/responding/accounting for the
         // message.
         if (compactProofs.getShortIDs().size() == 0) {
-            LogPrint(BCLog::AVALANCHE,
-                     "Got an avaproofs message with no shortid (peer %d)\n",
-                     pfrom.GetId());
             return;
         }
 
@@ -7162,9 +7159,6 @@ void PeerManagerImpl::ProcessMessage(
         if (now < pfrom.m_nextGetAvaAddr) {
             // Prevent a peer from exhausting our resources by spamming
             // getavaaddr messages.
-            LogPrint(BCLog::AVALANCHE,
-                     "Ignoring repeated getavaaddr from peer %d\n",
-                     pfrom.GetId());
             return;
         }
 
@@ -8977,7 +8971,11 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
         return false;
     }
 
-    if (!m_avalanche->reconcileOrFinalize(proof)) {
+    // Unlike other reasons we can expect lots of peers to send a proof that we
+    // have dangling. In this case we don't want to print a lot of useless debug
+    // message, the proof will be polled as soon as it's considered again.
+    if (!m_avalanche->reconcileOrFinalize(proof) &&
+        state.GetResult() != avalanche::ProofRegistrationResult::DANGLING) {
         LogPrint(BCLog::AVALANCHE,
                  "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
                  state.IsValid() ? "not-worth-polling"
