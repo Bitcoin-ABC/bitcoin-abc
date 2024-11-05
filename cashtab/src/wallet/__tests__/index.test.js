@@ -19,7 +19,8 @@ import {
     getHashes,
     hasUnfinalizedTxsInHistory,
     getAgoraPartialAcceptFuelInputs,
-    getAgoraPartialCancelFuelInputs,
+    getAgoraCancelFuelInputs,
+    getAgoraOneshotAcceptFuelInputs,
     sciToDecimal,
     toBigInt,
 } from 'wallet';
@@ -326,32 +327,24 @@ describe('Cashtab wallet methods', () => {
             });
         });
     });
-    describe('We can get fuel inputs for an AgoraOffer (partial) cancel tx', () => {
+    describe('We can get fuel inputs for an AgoraOffer (partial or oneshot) cancel tx', () => {
         const { expectedReturns, expectedErrors } =
-            vectors.getAgoraPartialCancelFuelInputs;
+            vectors.getAgoraCancelFuelInputs;
         expectedReturns.forEach(expectedReturn => {
             const { description, agoraOffer, utxos, feePerKb, returned } =
                 expectedReturn;
-            it(`getAgoraPartialCancelFuelInputs: ${description}`, () => {
+            it(`getAgoraCancelFuelInputs: ${description}`, () => {
                 expect(
-                    getAgoraPartialCancelFuelInputs(
-                        agoraOffer,
-                        utxos,
-                        feePerKb,
-                    ),
+                    getAgoraCancelFuelInputs(agoraOffer, utxos, feePerKb),
                 ).toStrictEqual(returned);
             });
         });
         expectedErrors.forEach(expectedError => {
             const { description, agoraOffer, utxos, feePerKb, error } =
                 expectedError;
-            it(`getAgoraPartialCancelFuelInputs throws error for: ${description}`, () => {
+            it(`getAgoraCancelFuelInputs throws error for: ${description}`, () => {
                 expect(() =>
-                    getAgoraPartialCancelFuelInputs(
-                        agoraOffer,
-                        utxos,
-                        feePerKb,
-                    ),
+                    getAgoraCancelFuelInputs(agoraOffer, utxos, feePerKb),
                 ).toThrow(error);
             });
         });
@@ -383,6 +376,36 @@ describe('Cashtab wallet methods', () => {
             const { description, str, error } = expectedError;
             it(`toBigInt throws error for: ${description}`, () => {
                 expect(() => toBigInt(str)).toThrow(error);
+            });
+        });
+    });
+    describe('We can get fuel inputs for an AgoraOffer (ONESHOT) accept tx', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getAgoraOneshotAcceptFuelInputs;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, oneshotOffer, utxos, feePerKb, returned } =
+                expectedReturn;
+            it(`getAgoraOneshotAcceptFuelInputs: ${description}`, () => {
+                expect(
+                    getAgoraOneshotAcceptFuelInputs(
+                        oneshotOffer,
+                        utxos,
+                        feePerKb,
+                    ),
+                ).toStrictEqual(returned);
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, oneshotOffer, utxos, feePerKb, error } =
+                expectedError;
+            it(`getAgoraOneshotAcceptFuelInputs throws error for: ${description}`, () => {
+                expect(() =>
+                    getAgoraOneshotAcceptFuelInputs(
+                        oneshotOffer,
+                        utxos,
+                        feePerKb,
+                    ),
+                ).toThrow(error);
             });
         });
     });

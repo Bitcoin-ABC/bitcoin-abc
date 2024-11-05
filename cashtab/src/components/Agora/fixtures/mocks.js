@@ -4,8 +4,8 @@
 
 import * as wif from 'wif';
 import appConfig from 'config/app';
-import { fromHex } from 'ecash-lib';
-import { AgoraPartial, AgoraOffer } from 'ecash-agora';
+import { fromHex, Script } from 'ecash-lib';
+import { AgoraPartial, AgoraOffer, AgoraOneshot } from 'ecash-agora';
 
 /**
  * Mocks for the Agora screen
@@ -1428,3 +1428,86 @@ export const SettingsUsd = {
     showMessages: false,
     toggleHideBalance: false,
 };
+
+/** Mocks for Collections */
+export const heismanCollectionGroupTokenId =
+    'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a';
+export const cachedHeisman = {
+    tokenType: {
+        protocol: 'SLP',
+        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+        number: 129,
+    },
+    genesisInfo: {
+        tokenTicker: 'HSM',
+        tokenName: 'The Heisman',
+        url: 'https://en.wikipedia.org/wiki/Heisman_Trophy',
+        decimals: 0,
+        hash: '73229094743335d380cd7ce479fb38c9dfe77cdd97668aa0c4d9183855fcb976',
+    },
+    timeFirstSeen: 1714048251,
+    genesisSupply: '89',
+    genesisOutputScripts: [
+        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+    ],
+    genesisMintBatons: 0,
+    block: {
+        height: 841852,
+        hash: '00000000000000000cea344b4130a2de214200266ad0d67253eea01eeb34a48d',
+        timestamp: 1714048284,
+    },
+};
+
+/** Oneshot mocks */
+const heismanNftOne = new AgoraOneshot({
+    enforcedOutputs: [
+        {
+            value: 0n,
+            script: new Script(
+                fromHex(
+                    '6a04534c500001410453454e4420be095430a16a024134bea079f235bcd2f79425c42659f9346416f626671f371c080000000000000000080000000000000001',
+                ),
+            ),
+        },
+        {
+            value: 5000000000n,
+            script: new Script(
+                fromHex('76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac'),
+            ),
+        },
+    ],
+    cancelPk: agoraPartialAlphaKeypair.pk,
+});
+const heismanNftOneUtxo = {
+    outpoint: {
+        outIdx: 1,
+        txid: 'd30e55d27ec479d5b683be75321fa6fca2a3b10e8527d6828d30e0ddf67b4b40',
+    },
+    token: {
+        tokenId:
+            'be095430a16a024134bea079f235bcd2f79425c42659f9346416f626671f371c',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+            number: 65,
+        },
+        amount: '1',
+        isMintBaton: false,
+    },
+    value: 546,
+};
+export const heismanNftOneOffer = new AgoraOffer({
+    variant: {
+        type: 'ONESHOT',
+        params: heismanNftOne,
+    },
+    outpoint: heismanNftOneUtxo.outpoint,
+    txBuilderInput: {
+        prevOut: heismanNftOneUtxo.outpoint,
+        signData: {
+            value: heismanNftOneUtxo.value,
+            redeemScript: heismanNftOne.script(),
+        },
+    },
+    token: heismanNftOneUtxo.token,
+});

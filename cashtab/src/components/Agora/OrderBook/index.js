@@ -31,7 +31,7 @@ import {
     decimalizeTokenAmount,
     toXec,
     getAgoraPartialAcceptFuelInputs,
-    getAgoraPartialCancelFuelInputs,
+    getAgoraCancelFuelInputs,
     hasEnoughToken,
     DUMMY_KEYPAIR,
     toBigInt,
@@ -109,7 +109,7 @@ const OrderBook = ({
         // Get utxos to cover the cancel fee
         let fuelUtxos;
         try {
-            fuelUtxos = getAgoraPartialCancelFuelInputs(
+            fuelUtxos = getAgoraCancelFuelInputs(
                 agoraPartial,
                 eligibleUtxos,
                 satsPerKb,

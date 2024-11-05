@@ -648,7 +648,7 @@ export const getAgoraPartialAcceptFuelInputs = (
  * @returns fuelInputs
  * @throws if we cannot afford this tx
  */
-export const getAgoraPartialCancelFuelInputs = (
+export const getAgoraCancelFuelInputs = (
     agoraOffer: AgoraOffer,
     utxos: NonSlpUtxo[],
     feePerKb: number,
@@ -679,4 +679,49 @@ export const getAgoraPartialCancelFuelInputs = (
         }
     }
     throw new Error('Insufficient utxos to cancel this offer');
+};
+
+/**
+ * Determine input utxos to cover an Agora ONESHOT accept offer
+ * Note: we could refactor getAgoraPartialAcceptFuelInputs to work with ONESHOT offers
+ * However there is some ambiguity involved with the acceptedTokens param
+ * I think it's cleaner to just have a separate function for Accept
+ * @param agoraOffer
+ * @param utxos array of utxos as stored in Cashtab wallet object
+ * @param feePerKb in satoshis
+ * @returns fuelInputs
+ * @throws {error} if we cannot afford this tx
+ */
+export const getAgoraOneshotAcceptFuelInputs = (
+    agoraOffer: AgoraOffer,
+    utxos: NonSlpUtxo[],
+    feePerKb: number,
+): NonSlpUtxo[] => {
+    const fuelInputs = [];
+    const dummyInputs = [];
+    let inputSatoshis = 0n;
+    for (const utxo of utxos) {
+        // Accumulative utxo selection
+        fuelInputs.push(utxo);
+        // Match our fuelInput count with dummyInputs
+        dummyInputs.push(DUMMY_INPUT);
+        inputSatoshis += BigInt(utxo.value);
+
+        const askedSats = agoraOffer.askedSats();
+
+        // Get the tx fee for this tx
+        const acceptFeeSats = agoraOffer.acceptFeeSats({
+            recipientScript: DUMMY_SCRIPT,
+            extraInputs: dummyInputs,
+            feePerKb,
+        });
+
+        // We need to cover the tx fee and the asking price
+        const requiredSats = acceptFeeSats + askedSats;
+
+        if (inputSatoshis >= requiredSats) {
+            return fuelInputs;
+        }
+    }
+    throw new Error('Insufficient utxos to accept this offer');
 };
