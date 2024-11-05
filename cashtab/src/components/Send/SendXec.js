@@ -38,7 +38,7 @@ import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'alias';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { isMobile, getUserLocale } from 'helpers';

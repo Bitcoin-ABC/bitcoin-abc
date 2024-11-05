@@ -39,7 +39,7 @@ import {
 import { createCashtabWallet } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import CashtabCache from 'config/CashtabCache';
-import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabSettings from 'config/CashtabSettings';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
 import * as wif from 'wif';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';

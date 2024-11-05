@@ -22,7 +22,7 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabSettings from 'config/CashtabSettings';
 import { Ecc, initWasm } from 'ecash-lib';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function

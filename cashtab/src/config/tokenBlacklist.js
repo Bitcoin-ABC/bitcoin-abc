@@ -6,7 +6,7 @@
 import {
     cashtabSettingsValidation,
     supportedFiatCurrencies,
-} from 'config/cashtabSettings';
+} from 'config/CashtabSettings';
 
 // Get names of fiat currencies
 const fiatObjects = Object.keys(supportedFiatCurrencies);

@@ -9,7 +9,7 @@ import { toXec } from 'wallet';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import { AlertMsg } from 'components/Common/Atoms';
 import ApiError from 'components/Common/ApiError';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 
 const CreateToken = () => {

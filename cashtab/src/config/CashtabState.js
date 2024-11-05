@@ -8,7 +8,7 @@
  * is always a new one
  */
 
-import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabSettings from 'config/CashtabSettings';
 import CashtabCache from 'config/CashtabCache';
 
 class CashtabState {

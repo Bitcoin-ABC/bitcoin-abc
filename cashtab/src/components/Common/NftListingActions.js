@@ -11,7 +11,7 @@ import { explorer } from 'config/explorer';
 import { CopyIconButton } from 'components/Common/Buttons';
 import { NftTokenIdAndCopyIcon } from 'components/Etokens/Token/styled';
 import { toXec } from 'wallet';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 
 const Table = styled.div`

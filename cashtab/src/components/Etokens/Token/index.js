@@ -111,7 +111,7 @@ import {
     getChildNftsFromParent,
     getTokenGenesisInfo,
 } from 'chronik';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     slpSend,
     SLP_NFT1_CHILD,

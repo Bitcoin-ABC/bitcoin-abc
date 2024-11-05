@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import appConfig from 'config/app';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 
 const CashtabInputWrapper = styled.div`
     box-sizing: border-box;

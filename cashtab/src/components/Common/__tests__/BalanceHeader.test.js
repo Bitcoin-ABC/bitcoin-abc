@@ -6,7 +6,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BalanceHeader from 'components/Common/BalanceHeader';
-import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabSettings from 'config/CashtabSettings';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {

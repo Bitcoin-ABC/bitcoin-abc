@@ -2,10 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
-
+interface CashtabSettings {
+    fiatCurrency: string;
+    sendModal: boolean;
+    autoCameraOn: boolean;
+    hideMessagesFromUnknownSenders: boolean;
+    balanceVisible: boolean;
+    minFeeSends: boolean;
+}
 // Default settings which can be modified within Cashtab
-export class CashtabSettings {
+class CashtabSettings {
     constructor(
         fiatCurrency = 'usd',
         sendModal = false,
@@ -22,6 +28,7 @@ export class CashtabSettings {
         this.minFeeSends = minFeeSends;
     }
 }
+export default CashtabSettings;
 
 // Cashtab supported fiat currencies
 export const supportedFiatCurrencies = {
@@ -55,7 +62,7 @@ export const supportedFiatCurrencies = {
     vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
 };
 
-// Validation for cashtabSettings
+// Validation for CashtabSettings
 export const cashtabSettingsValidation = {
     fiatCurrency: Object.keys(supportedFiatCurrencies),
     sendModal: [true, false],

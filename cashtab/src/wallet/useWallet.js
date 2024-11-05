@@ -22,7 +22,7 @@ import { queryAliasServer } from 'alias';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     cashtabCacheToJSON,
     storedCashtabCacheToMap,

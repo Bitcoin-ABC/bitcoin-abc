@@ -7,7 +7,7 @@ import Modal from 'components/Common/Modal';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { toXec } from 'wallet';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import { TokenIconExpandButton } from 'components/Etokens/Token/styled';
 import { token as tokenConfig } from 'config/token';
 

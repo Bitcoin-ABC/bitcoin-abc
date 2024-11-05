@@ -4,10 +4,9 @@
 
 import * as React from 'react';
 import styled from 'styled-components';
-import {
-    CashtabSettings,
+import CashtabSettings, {
     supportedFiatCurrencies,
-} from 'config/cashtabSettings';
+} from 'config/CashtabSettings';
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
 import { CashtabLoader } from 'components/Common/Spinner';

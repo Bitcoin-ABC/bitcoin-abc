@@ -11,7 +11,7 @@ import {
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { chronik as chronikConfig } from 'config/chronik';
-import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabSettings from 'config/CashtabSettings';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON, cashtabWalletsFromJSON } from 'helpers';
 

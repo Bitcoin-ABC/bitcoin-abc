@@ -4,7 +4,7 @@
 
 // Test vectors for validation functions
 import appConfig from 'config/app';
-import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabSettings from 'config/CashtabSettings';
 import CashtabCache from 'config/CashtabCache';
 import {
     mockCashtabCache,

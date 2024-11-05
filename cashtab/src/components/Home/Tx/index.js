@@ -68,7 +68,7 @@ import {
     AgoraCancelIcon,
 } from 'components/Common/CustomIcons';
 import PropTypes from 'prop-types';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
 import { parseTx } from 'chronik';

@@ -11,10 +11,9 @@ import {
 } from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
-import {
-    CashtabSettings,
+import CashtabSettings, {
     cashtabSettingsValidation,
-} from 'config/cashtabSettings';
+} from 'config/CashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
@@ -290,7 +289,7 @@ export const isValidCashtabSettings = settings => {
  * When Cashtab adds a new setting, existing users will not have it set
  * We do not want to force these users to start with fully-wiped default settings
  * Instead, we add the missing key
- * @param {object} settings cashtabSettings object from localforage
+ * @param {CashtabSettings} settings CashtabSettings object from localforage
  * @returns {object} migratedCashtabSettings
  */
 export const migrateLegacyCashtabSettings = settings => {
