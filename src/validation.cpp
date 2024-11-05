@@ -2337,7 +2337,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                     LogPrintf("ERROR: ConnectBlock(): tried to overwrite "
                               "transaction\n");
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                                         "bad-txns-BIP30");
+                                         "bad-txns-BIP30",
+                                         "tried to overwrite transaction");
                 }
             }
         }
@@ -2418,7 +2419,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                 // consensus failure.
                 state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                               tx_state.GetRejectReason(),
-                              tx_state.GetDebugMessage());
+                              tx_state.GetDebugMessage() + " in transaction " +
+                                  tx.GetId().ToString());
 
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
                              tx.GetId().ToString(), state.ToString());
@@ -2430,7 +2432,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
             LogPrintf("ERROR: %s: accumulated fee in the block out of range.\n",
                       __func__);
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                                 "bad-txns-accumulated-fee-outofrange");
+                                 "bad-txns-accumulated-fee-outofrange",
+                                 "accumulated fee in the block out of range");
         }
 
         // The following checks do not apply to the coinbase.
@@ -2450,7 +2453,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
             LogPrintf("ERROR: %s: contains a non-BIP68-final transaction\n",
                       __func__);
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                                 "bad-txns-nonfinal");
+                                 "bad-txns-nonfinal",
+                                 "contains a non-BIP68-final transaction " +
+                                     tx.GetHash().ToString());
         }
 
         // Don't cache results if we're actually connecting blocks (still
@@ -2512,8 +2517,10 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         LogPrintf("ERROR: ConnectBlock(): coinbase pays too much (actual=%d vs "
                   "limit=%d)\n",
                   block.vtx[0]->GetValueOut(), blockReward);
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                             "bad-cb-amount");
+        return state.Invalid(
+            BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+            strprintf("coinbase pays too much (actual=%d vs limit=%d)",
+                      block.vtx[0]->GetValueOut(), blockReward));
     }
 
     if (blockFees) {
