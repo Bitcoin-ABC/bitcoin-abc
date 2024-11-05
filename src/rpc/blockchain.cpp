@@ -461,8 +461,8 @@ static RPCHelpMan getblockfrompeer() {
         "getblockfrompeer",
         "Attempt to fetch block from a given peer.\n"
         "\nWe must have the header for this block, e.g. using submitheader.\n"
-        "Subsequent calls for the same block and a new peer will cause the "
-        "response from the previous peer to be ignored.\n"
+        "Subsequent calls for the same block may cause the response from the "
+        "previous peer to be ignored.\n"
         "\nReturns an empty JSON object if the request was successfully "
         "scheduled.",
         {
