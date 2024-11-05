@@ -4,11 +4,54 @@
 
 import { BN } from 'slp-mdm';
 import * as bip39 from 'bip39';
-import * as randomBytes from 'randombytes';
+import randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { fromHex, Script, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
+import { OutPoint, Token, Tx } from 'chronik-client';
+import { AgoraOffer } from 'ecash-agora';
+
+type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+interface CashtabPathInfo {
+    address: string;
+    hash: string;
+    wif: string;
+}
+interface NonSlpUtxo {
+    blockHeight: number;
+    isCoinbase: boolean;
+    isFinal: boolean;
+    path: number;
+    value: number;
+    outpoint: OutPoint;
+}
+interface SlpUtxo extends NonSlpUtxo {
+    token: Token;
+}
+interface CashtabWalletState {
+    balanceSats: number;
+    nonSlpUtxos: NonSlpUtxo[];
+    slpUtxos: SlpUtxo[];
+    parsedTxHistory: CashtabParsedTx[];
+    tokens: Map<string, string>;
+}
+interface ParsedTx {
+    recipients: string[];
+    satoshisSent: number;
+    stackArray: string[];
+    xecTxType: string;
+    size: number;
+}
+interface CashtabParsedTx extends Tx {
+    parsed: ParsedTx;
+}
+export interface CashtabWallet {
+    name: string;
+    mnemonic: string;
+    paths: Map<number, CashtabPathInfo>;
+    state: CashtabWalletState;
+}
 
 const SATOSHIS_PER_XEC = 100;
 const NANOSATS_PER_XEC = new BN(1e11);
@@ -45,27 +88,26 @@ const DUMMY_INPUT = {
 
 /**
  * Get total value of satoshis associated with an array of chronik utxos
- * @param {array} nonSlpUtxos array of chronik utxos
+ * @param nonSlpUtxos array of chronik utxos
  * (each is an object with an integer as a string
  * stored at 'value' key representing associated satoshis)
  * e.g. {value: '12345'}
- * @throws {error} if nonSlpUtxos does not have a .reduce method
- * @returns {number | NaN} integer, total balance of input utxos in satoshis
+ * @throws if nonSlpUtxos does not have a .reduce method
+ * @returns integer, total balance of input utxos in satoshis
  * or NaN if any utxo is invalid
  */
-export const getBalanceSats = nonSlpUtxos => {
+export const getBalanceSats = (nonSlpUtxos: NonSlpUtxo[]): number => {
     return nonSlpUtxos.reduce(
-        (previousBalance, utxo) => previousBalance + parseInt(utxo.value),
+        (previousBalance, utxo) => previousBalance + utxo.value,
         0,
     );
 };
 
 /**
  * Convert an amount in XEC to satoshis
- * @param {Number} xecAmount a number with no more than 2 decimal places
- * @returns {Integer}
+ * @param xecAmount a number with no more than 2 decimal places
  */
-export const toSatoshis = xecAmount => {
+export const toSatoshis = (xecAmount: number): number => {
     const satoshis = new BN(xecAmount).times(SATOSHIS_PER_XEC).toNumber();
     if (!Number.isInteger(satoshis)) {
         throw new Error(
@@ -77,10 +119,12 @@ export const toSatoshis = xecAmount => {
 
 /**
  * Convert an amount in satoshis to XEC
- * @param {Integer} satoshis
- * @returns {Number}
+ * @param satoshis
  */
-export const toXec = satoshis => {
+export const toXec = (satoshis: bigint | number): number => {
+    if (typeof satoshis === 'bigint') {
+        satoshis = parseInt(satoshis.toString());
+    }
     if (!Number.isInteger(satoshis)) {
         throw new Error('Input param satoshis must be an integer');
     }
@@ -89,10 +133,9 @@ export const toXec = satoshis => {
 
 /**
  * Convert an amount in nanosatoshis to XEC
- * @param {Integer} nanosats
- * @returns {Number}
+ * @param nanosats
  */
-export const nanoSatoshisToXec = nanosats => {
+export const nanoSatoshisToXec = (nanosats: number): number => {
     if (!Number.isInteger(nanosats)) {
         throw new Error('Input param nanosats must be an integer');
     }
@@ -104,10 +147,9 @@ export const nanoSatoshisToXec = nanosats => {
  * Note that, because this function may accept prices much lower than one XEC
  * xecAmount may not be in units of XEC
  * Given over-precise XEC values, this function will round to the nearest nanosat
- * @param {Number | BN} xecAmount
- * @returns {Number}
+ * @param xecAmount
  */
-export const xecToNanoSatoshis = xecAmount => {
+export const xecToNanoSatoshis = (xecAmount: number | BN): number => {
     const nanosats = Math.round(
         new BN(xecAmount).times(NANOSATS_PER_XEC).toNumber(),
     );
@@ -116,11 +158,15 @@ export const xecToNanoSatoshis = xecAmount => {
 
 /**
  * Determine if a given wallet has enough of a certain token to unlock a feature
- * @param {Map} tokens decimalized balance summary tokens reference from wallet.state
- * @param {string} tokenId tokenId of the token we are checking
- * @param {string} tokenQty quantity of the token required for unlock, decimalized string
+ * @param tokens decimalized balance summary tokens reference from wallet.state
+ * @param tokenId tokenId of the token we are checking
+ * @param tokenQty quantity of the token required for unlock, decimalized string
  */
-export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
+export const hasEnoughToken = (
+    tokens: Map<string, string>,
+    tokenId: string,
+    tokenQty: string,
+): boolean => {
     // Filter for tokenId
     const thisTokenBalance = tokens.get(tokenId);
     // Confirm we have this token at all
@@ -132,14 +178,20 @@ export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
 
 /**
  * Create a Cashtab wallet object from a valid bip39 mnemonic
- * @param {string} mnemonic a valid bip39 mnemonic
- * @param {number[]} additionalPaths array of paths in addition to 1899 to add to this wallet
+ * @param mnemonic a valid bip39 mnemonic
+ * @param additionalPaths array of paths in addition to 1899 to add to this wallet
  * Default to 1899-only for all new wallets
  * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
  */
-export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
+export const createCashtabWallet = async (
+    mnemonic: string,
+    additionalPaths: number[] = [],
+): Promise<CashtabWallet> => {
     // Initialize wallet with empty state
-    const wallet = {
+    const wallet: CashtabWallet = {
+        name: '',
+        mnemonic: '',
+        paths: new Map(),
         state: {
             balanceSats: 0,
             slpUtxos: [],
@@ -187,18 +239,21 @@ export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
 /**
  * Get address, hash, and wif for a given derivation path
  *
- * @param {utxolib.bip32Interface} masterHDNode calculated from utxolib
- * @param {number} abbreviatedDerivationPath in practice: 145, 245, or 1899
- * @returns {object} {path, hash, address, wif}
+ * @param masterHDNode calculated from utxolib
+ * @param abbreviatedDerivationPath in practice: 145, 245, or 1899
  */
-const getPathInfo = (masterHDNode, abbreviatedDerivationPath) => {
+const getPathInfo = (
+    masterHDNode: utxolib.BIP32Interface,
+    abbreviatedDerivationPath: number,
+): CashtabPathInfo => {
     const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
     const address = cashaddr.encode(appConfig.prefix, 'P2PKH', node.identifier);
+    // Note the 'true' modifier here means we will always return a string
     const { hash } = cashaddr.decode(address, true);
 
     return {
-        hash,
+        hash: hash.toString(),
         address,
         wif: node.toWIF(),
     };
@@ -208,7 +263,7 @@ const getPathInfo = (masterHDNode, abbreviatedDerivationPath) => {
  * Generate a mnemonic using the bip39 library
  * This function is a conenvience wrapper for a long lib method
  */
-export const generateMnemonic = () => {
+export const generateMnemonic = (): string => {
     const mnemonic = bip39.generateMnemonic(
         128,
         randomBytes,
@@ -219,22 +274,25 @@ export const generateMnemonic = () => {
 
 /**
  * Convert user input send amount to satoshis
- * @param {string | number} sendAmountFiat User input amount of fiat currency to send.
+ * @param sendAmountFiat User input amount of fiat currency to send.
  * Input from an amount field is of type number. If we extend fiat send support to bip21 or
  * webapp txs, we should also handle string inputs
- * @param {number} fiatPrice Price of XEC in units of selectedCurrency / XEC
- * @return {Integer} satoshis value equivalent to this sendAmountFiat at exchange rate fiatPrice
+ * @param fiatPrice Price of XEC in units of selectedCurrency / XEC
+ * @return satoshis value equivalent to this sendAmountFiat at exchange rate fiatPrice
  */
-export const fiatToSatoshis = (sendAmountFiat, fiatPrice) => {
+export const fiatToSatoshis = (
+    sendAmountFiat: string | number,
+    fiatPrice: number,
+): number => {
     return Math.floor((Number(sendAmountFiat) / fiatPrice) * SATOSHIS_PER_XEC);
 };
 
 /**
  * Determine if a legacy wallet includes legacy paths that must be migrated
- * @param {object} wallet a cashtab wallet
- * @returns {number[]} array of legacy paths
+ * @param wallet a cashtab wallet
+ * @returns array of legacy paths
  */
-export const getLegacyPaths = wallet => {
+export const getLegacyPaths = (wallet: CashtabWallet): number[] => {
     const legacyPaths = [];
     if ('paths' in wallet) {
         if (Array.isArray(wallet.paths)) {
@@ -267,12 +325,15 @@ export const getLegacyPaths = wallet => {
 
 /**
  * Re-organize the user's wallets array so that wallets[0] is a new active wallet
- * @param {object} walletToActivate Cashtab wallet object of wallet the user wishes to activate
- * @param {array} wallets Array of all cashtab wallets
- * @returns {array} wallets with walletToActivate at wallets[0] and
+ * @param walletToActivate Cashtab wallet object of wallet the user wishes to activate
+ * @param wallets Array of all cashtab wallets
+ * @returns wallets with walletToActivate at wallets[0] and
  * the rest of the wallets sorted alphabetically by name
  */
-export const getWalletsForNewActiveWallet = (walletToActivate, wallets) => {
+export const getWalletsForNewActiveWallet = (
+    walletToActivate: CashtabWallet,
+    wallets: CashtabWallet[],
+): CashtabWallet[] => {
     // Clone wallets so we do not mutate the app's wallets array
     const currentWallets = [...wallets];
     // Find this wallet in wallets
@@ -299,11 +360,14 @@ export const getWalletsForNewActiveWallet = (walletToActivate, wallets) => {
 
 /**
  * Convert a token amount like one from an in-node chronik utxo to a decimalized string
- * @param {string} amount undecimalized token amount as a string, e.g. 10012345 at 5 decimals
- * @param {Integer} decimals
- * @returns {string} decimalized token amount as a string, e.g. 100.12345
+ * @param amount undecimalized token amount as a string, e.g. 10012345 at 5 decimals
+ * @param decimals
+ * @returns decimalized token amount as a string, e.g. 100.12345
  */
-export const decimalizeTokenAmount = (amount, decimals) => {
+export const decimalizeTokenAmount = (
+    amount: string,
+    decimals: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
+): string => {
     if (typeof amount !== 'string') {
         throw new Error('amount must be a string');
     }
@@ -352,9 +416,9 @@ export const decimalizeTokenAmount = (amount, decimals) => {
 
 /**
  * JS cannot convert stringified scientific notation to bigint
- * @param {*} str stringified number from slider or user input
+ * @param str stringified number from slider or user input
  */
-export const toBigInt = str => {
+export const toBigInt = (str: string): bigint => {
     if (SCI_REGEX_POSTIIVE.test(str)) {
         str = sciToDecimal(str);
     }
@@ -363,12 +427,12 @@ export const toBigInt = str => {
 
 /**
  * Get a stringified decimal representation of sci notation number
- * @param {string} str
- * @returns {string}
+ * @param str
  */
-export const sciToDecimal = str => {
+export const sciToDecimal = (str: string): string => {
     // Regular expression to match scientific notation
-    let [, mantissa, exponent] = str.match(SCI_REGEX_POSTIIVE) || [];
+    let [, mantissa] = str.match(SCI_REGEX_POSTIIVE) || [];
+    const exponent = (str.match(SCI_REGEX_POSTIIVE) || [])[2];
 
     if (!mantissa || !exponent) {
         throw new Error('Invalid scientific notation format');
@@ -402,7 +466,7 @@ export const sciToDecimal = str => {
     }
 
     // Construct the decimal number by padding with zeros
-    let decimalString = mantissaWithoutDot + '0'.repeat(exponentValue);
+    const decimalString = mantissaWithoutDot + '0'.repeat(exponentValue);
 
     return decimalString;
 };
@@ -410,11 +474,14 @@ export const sciToDecimal = str => {
 /**
  * Convert a decimalized token amount to an undecimalized amount
  * Useful to perform integer math as you can use BigInt for amounts greater than Number.MAX_SAFE_INTEGER in js
- * @param {string} decimalizedAmount decimalized token amount as a string, e.g. 100.12345 for a 5-decimals token
- * @param {Integer} decimals
- * @returns {string} undecimalized token amount as a string, e.g. 10012345 for a 5-decimals token
+ * @param decimalizedAmount decimalized token amount as a string, e.g. 100.12345 for a 5-decimals token
+ * @param decimals
+ * @returns undecimalized token amount as a string, e.g. 10012345 for a 5-decimals token
  */
-export const undecimalizeTokenAmount = (decimalizedAmount, decimals) => {
+export const undecimalizeTokenAmount = (
+    decimalizedAmount: string,
+    decimals: SlpDecimals,
+) => {
     if (typeof decimalizedAmount !== 'string') {
         throw new Error('decimalizedAmount must be a string');
     }
@@ -481,9 +548,9 @@ export const undecimalizeTokenAmount = (decimalizedAmount, decimals) => {
 
 /**
  * Remove leading '0' characters from any string
- * @param {string} string
+ * @param givenString
  */
-export const removeLeadingZeros = givenString => {
+export const removeLeadingZeros = (givenString: string): string => {
     let leadingZeroCount = 0;
     // We only iterate up to the 2nd-to-last character
     // i.e. we only iterate over "leading" characters
@@ -501,11 +568,11 @@ export const removeLeadingZeros = givenString => {
 
 /**
  * Get hash values to use for chronik calls and parsing tx history
- * @param {object} wallet valid cashtab wallet
- * @returns {string[]} array of hashes of all addresses in wallet
+ * @param wallet valid cashtab wallet
+ * @returns array of hashes of all addresses in wallet
  */
-export const getHashes = wallet => {
-    const hashArray = [];
+export const getHashes = (wallet: CashtabWallet): string[] => {
+    const hashArray: string[] = [];
     wallet.paths.forEach(pathInfo => {
         hashArray.push(pathInfo.hash);
     });
@@ -514,10 +581,9 @@ export const getHashes = wallet => {
 
 /**
  * Determine if a wallet has unfinalized txs in its state
- * @param {object} wallet
- * @returns {boolean}
+ * @param wallet
  */
-export const hasUnfinalizedTxsInHistory = wallet => {
+export const hasUnfinalizedTxsInHistory = (wallet: CashtabWallet): boolean => {
     if (!Array.isArray(wallet.state?.parsedTxHistory)) {
         // If we do not have a valid wallet, we return false
         // Not expected to ever happen
@@ -531,19 +597,19 @@ export const hasUnfinalizedTxsInHistory = wallet => {
 
 /**
  * Determine input utxos to cover an Agora Partial accept offer
- * @param {AgoraOffer} agoraOffer
- * @param {utxos[]} utxos array of utxos as stored in Cashtab wallet object
- * @param {bigint} acceptedTokens
- * @param {number} feePerKb in satoshis
- * @returns {CashtabUtxo[]} fuelInputs
- * @throws {error} if we cannot afford this tx
+ * @param agoraOffer
+ * @param utxos array of utxos as stored in Cashtab wallet object
+ * @param acceptedTokens
+ * @param feePerKb in satoshis
+ * @returns fuelInputs
+ * @throws if we cannot afford this tx
  */
 export const getAgoraPartialAcceptFuelInputs = (
-    agoraOffer,
-    utxos,
-    acceptedTokens,
-    feePerKb,
-) => {
+    agoraOffer: AgoraOffer,
+    utxos: NonSlpUtxo[],
+    acceptedTokens: bigint,
+    feePerKb: number,
+): NonSlpUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
@@ -575,18 +641,18 @@ export const getAgoraPartialAcceptFuelInputs = (
 };
 
 /**
- * Determine input utxos to cancel an Agora Partial offer
- * @param {AgoraOffer} agoraOffer
- * @param {utxos[]} utxos array of utxos as stored in Cashtab wallet object
- * @param {number} feePerKb in satoshis
- * @returns {CashtabUtxo[]} fuelInputs
- * @throws {error} if we cannot afford this tx
+ * Determine input utxos to cancel an Agora offer (Partial or ONESHOT)
+ * @param agoraOffer
+ * @param utxos array of utxos as stored in Cashtab wallet object
+ * @param feePerKb in satoshis
+ * @returns fuelInputs
+ * @throws if we cannot afford this tx
  */
 export const getAgoraPartialCancelFuelInputs = (
-    agoraOffer,
-    utxos,
-    feePerKb,
-) => {
+    agoraOffer: AgoraOffer,
+    utxos: NonSlpUtxo[],
+    feePerKb: number,
+): NonSlpUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
