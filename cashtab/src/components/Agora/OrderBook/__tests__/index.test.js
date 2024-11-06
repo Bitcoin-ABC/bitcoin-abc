@@ -196,7 +196,7 @@ describe('<OrderBook />', () => {
         expect(screen.getByText('$0.33 USD')).toBeInTheDocument();
 
         // The min offer amount is selected by default
-        expect(screen.getByText('.10')).toBeInTheDocument();
+        expect(screen.getByText('.10 CACHET')).toBeInTheDocument();
         // We see the formatted price in XEC
         expect(await screen.findByText('1k XEC')).toBeInTheDocument();
         // We see the price in fiat
@@ -210,7 +210,7 @@ describe('<OrderBook />', () => {
 
         // We can move the slider and see the price of different quantities
         fireEvent.change(slider, { target: { value: 170 } });
-        expect(screen.getByText('1.70')).toBeInTheDocument();
+        expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
         expect(await screen.findByText('17k XEC')).toBeInTheDocument();
         expect(screen.getByText('$0.56 USD')).toBeInTheDocument();
 
@@ -264,7 +264,7 @@ describe('<OrderBook />', () => {
         expect(screen.queryByTitle(CACHET_TOKEN_ID)).not.toBeInTheDocument();
 
         // The min offer amount is selected by default
-        expect(screen.getByText('.10')).toBeInTheDocument();
+        expect(screen.getByText('.10 CACHET')).toBeInTheDocument();
         // We see the formatted price in XEC
         expect(await screen.findByText('1k XEC')).toBeInTheDocument();
         // We see the price in fiat
@@ -278,7 +278,7 @@ describe('<OrderBook />', () => {
 
         // We can move the slider and see the price of different quantities
         fireEvent.change(slider, { target: { value: 170 } });
-        expect(screen.getByText('1.70')).toBeInTheDocument();
+        expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
         expect(await screen.findByText('17k XEC')).toBeInTheDocument();
         expect(screen.getByText('$0.56 USD')).toBeInTheDocument();
 
@@ -360,7 +360,7 @@ describe('<OrderBook />', () => {
 
         // For tokens with multiple partial offers available, the lowest-priced
         // offer is selected by default ("spot price")
-        const CACHET_SPOT_MIN_QTY = '.20';
+        const CACHET_SPOT_MIN_QTY = '.20 CACHET';
         const CACHET_SPOT_PRICE_MIN_BUY = '240.64 XEC';
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
         // Quantities are not displayed until they load, so we await
@@ -381,7 +381,7 @@ describe('<OrderBook />', () => {
         await userEvent.click(screen.getByText('$0.36 USD'));
 
         // We also see updates to the rendered spot details
-        const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
+        const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
         expect(
@@ -401,7 +401,7 @@ describe('<OrderBook />', () => {
         // Let's select our other offer
         await userEvent.click(screen.getByText('$0.30 USD'));
 
-        const OTHER_CACHET_SPOT_MIN_QTY = '.10';
+        const OTHER_CACHET_SPOT_MIN_QTY = '.10 CACHET';
         const OTHER_CACHET_SPOT_PRICE_MIN_BUY = '1k XEC';
         const OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.030 USD';
         // Quantities are not displayed until they load, so we await
@@ -498,7 +498,7 @@ describe('<OrderBook />', () => {
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
 
         // We see the expected spot offer for CACHET
-        const CACHET_SPOT_MIN_QTY = '.20';
+        const CACHET_SPOT_MIN_QTY = '.20 CACHET';
         const CACHET_SPOT_PRICE_MIN_BUY = '240.64 XEC';
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
 
@@ -515,7 +515,7 @@ describe('<OrderBook />', () => {
         await userEvent.click(screen.getByText('$0.36 USD'));
 
         // We also see updates to the rendered spot details
-        const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
+        const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
         expect(
@@ -590,7 +590,7 @@ describe('<OrderBook />', () => {
         // Notification on successful buy
         expect(
             await screen.findByText(
-                `Bought ${UPDATED_CACHET_SPOT_MIN_QTY} Cachet (CACHET) for 3,601.92 XEC (${UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY})`,
+                `Bought .30 Cachet (CACHET) for 3,601.92 XEC (${UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY})`,
             ),
         ).toBeInTheDocument();
 

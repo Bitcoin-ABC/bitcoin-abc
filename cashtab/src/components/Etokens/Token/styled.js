@@ -53,7 +53,11 @@ export const TokenStatsTable = styled.div`
     width: 100%;
     color: ${props => props.theme.contrast};
     gap: 12px;
-    margin-bottom: 12px;
+    background-color: ${props => props.theme.modal.background};
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    border: 1px solid ${props => props.theme.lightGrey};
+    border-bottom: none;
 `;
 export const TokenStatsRow = styled.div`
     width: 100%;

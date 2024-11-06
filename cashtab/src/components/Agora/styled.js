@@ -22,11 +22,9 @@ export const OfferTitle = styled.div`
 `;
 export const OfferTable = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: center;
+    flex-direction: column;
     width: 100%;
-    gap: 9px;
+    margin-top: 20px;
 `;
 export const OfferCol = styled.div`
     min-width: 128px;

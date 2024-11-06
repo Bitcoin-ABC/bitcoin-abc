@@ -12,60 +12,100 @@ export const OrderBookLoading = styled.div`
     width: 100%;
     margin: 12px auto;
 `;
-export const OrderBookContainer = styled.div`
-    width: 100%;
-    color: ${props => props.theme.contrast};
+
+export const OfferWrapper = styled.div`
+    background-color: ${props => props.theme.modal.background};
+    margin-bottom: 20px;
+    border-radius: ${props => (props.borderRadius ? '20px' : '0 0 20px 20px')};
+    border: 1px solid ${props => props.theme.lightGrey};
 `;
-export const OfferIconCol = styled.div`
-    min-width: 64px;
+
+export const OfferHeader = styled.div`
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 30px 20px;
+    text-align: left;
+`;
+export const OfferTitleCtn = styled.div`
     display: flex;
     flex-direction: column;
-    ${props => props.lessThanFourOffers && `width: 100%`};
-    justify-content: center;
-    gap: 3px;
+    margin-left: 14px;
+    align-items: flex-start;
+    a {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.2em;
+        color: ${props => props.theme.contrast};
+        font-weight: 600;
+        text-decoration: none;
+        :hover {
+            color: ${props => props.theme.eCashBlue};
+        }
+    }
 `;
+
+export const OfferIcon = styled.button`
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    background: url(${props =>
+            `${tokenConfig.tokenIconsUrl}/${props.size}/${props.tokenId}.png`})
+        center no-repeat;
+    background-size: 100% 100%;
+    transition: all ease-in-out 200ms;
+    :hover {
+        transform: scale(1.2);
+    }
+`;
+
+export const OfferDetailsCtn = styled.div`
+    width: 100%;
+`;
+
 export const DepthBarCol = styled.div`
-    min-width: 128px;
-    ${props => !props.lessThanFourOffers && `height: 128px`};
+    width: 100%;
+    max-height: 110px;
     overflow-y: auto;
     ${CashtabScroll}
     display: flex;
-    flex-grow: 1;
     flex-direction: column-reverse;
-    gap: 0px;
-    align-items: flex-end;
-    justify-content: end;
-    flex-wrap: no-wrap;
-    align-content: flex-end;
-    padding-right: 6px;
 `;
+
 export const OrderBookRow = styled.button`
-    border: 3px solid
-        ${props =>
-            props.selected ? `${props.theme.genesisGreen}` : 'transparent'};
-    border-radius: 5px;
-    transition: border 0.5s ease-in-out;
-    color: ${props => props.theme.contrast};
-    height: 30px;
-    padding: 0;
+    color: ${props =>
+        props.selected
+            ? `${props.theme.contrast}!important`
+            : 'rgba(255, 255, 255, 0.6)'};
+    font-weight: ${props => (props.selected ? '600' : '400')};
+    height: 32px !important;
     cursor: pointer;
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.3);
     display: flex;
+    border: none;
     width: 100%;
-    max-height: 30px;
-    flex-direction: row;
-`;
-export const OrderbookPrice = styled.div`
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-color: ${props =>
+        props.selected
+            ? `rgba(0, 231, 129, 0.6)!important`
+            : 'rgba(0,0,0, 0.3)'};
+    flex-shrink: 0;
     position: relative;
-    flex-grow: 1;
-    font-size: 14px;
-    line-height: 25px;
-    text-align: right;
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-    padding-right: 3px;
+    :hover {
+        color: #fff;
+    }
 `;
+
+export const OrderbookPrice = styled.div`
+    font-size: 16px;
+    z-index: 1;
+`;
+
 export const DepthBar = styled.div`
     display: flex;
     flex-direction: row;
@@ -73,10 +113,11 @@ export const DepthBar = styled.div`
     top: 0;
     right: 0;
     background-color: ${props => props.theme.eCashBlue};
+    background-color: rgba(0, 0, 0, 0.3);
     height: 100%;
     width: ${props => props.depthPercent}%;
-    z-index: -2;
 `;
+
 export const TentativeAcceptBar = styled.div`
     display: flex;
     flex-direction: row;
@@ -86,53 +127,43 @@ export const TentativeAcceptBar = styled.div`
     background-color: ${props => props.theme.genesisGreen};
     height: 100%;
     width: ${props => props.acceptPercent}%;
-    z-index: -1;
-`;
-export const OfferRow = styled.div`
-    word-break: break-word;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-`;
-export const OfferIcon = styled.button`
-    cursor: pointer;
-    border: none;
-    background-color: transparent;
-    display: flex;
-    margin: auto;
-    width: 96px;
-    height: 96px;
-    background: url(${props =>
-            `${tokenConfig.tokenIconsUrl}/${props.size}/${props.tokenId}.png`})
-        center no-repeat;
-    background-size: 100% 100%;
-    transition: all ease-in-out 1s;
-    :hover {
-        background-size: 150% 150%;
-    }
 `;
 
 export const SliderRow = styled.div`
-    word-break: break-word;
     display: flex;
-    flex-direction: row;
-    flex-wrap: no-wrap;
-    flex-grow: 1;
-    gap: 3px;
+    justify-content: center;
     align-items: center;
-    justify-content: center;
-    min-width: 256px;
-`;
-export const SliderInfoRow = styled.div`
-    display: flex;
-    flex-direction: row;
     width: 100%;
-    justify-content: center;
+    padding: 30px 20px 0px;
+    /* border-top: 1px solid ${props => props.theme.lightGrey}; */
+    & > span {
+        margin-right: 10px;
+        font-weight: 600;
+        font-size: 18px;
+        color: ${props => props.theme.genesisGreen};
+    }
+    input {
+        accent-color: ${props => props.theme.genesisGreen};
+    }
 `;
-export const ButtonRow = styled.div`
-    margin-top: 12px;
+
+export const BuyOrderCtn = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    color: ${props => props.theme.contrast};
+    & > div {
+        font-size: 18px;
+        opacity: 0.7;
+    }
+    h3 {
+        font-size: 20px;
+        margin: 0;
+    }
+    button {
+        font-size: 16px;
+        padding: 20px 10px;
+        margin-top: 30px;
+        margin-bottom: 0;
+    }
 `;

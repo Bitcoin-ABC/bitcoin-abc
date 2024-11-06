@@ -506,7 +506,9 @@ describe('<Agora />', () => {
 
         // We await this as the component will load and render token info before
         // the offers have finished loading
-        expect(await screen.findByText(BULL_SPOT_MIN_QTY)).toBeInTheDocument();
+        expect(
+            await screen.findByText(`${BULL_SPOT_MIN_QTY} BULL`),
+        ).toBeInTheDocument();
         expect(screen.getByText(BULL_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
             screen.getByText(BULL_SPOT_PRICE_FIAT_MIN_BUY),
@@ -519,7 +521,7 @@ describe('<Agora />', () => {
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
         // Quantities are not displayed until they load, so we await
         expect(
-            await screen.findByText(CACHET_SPOT_MIN_QTY),
+            await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
@@ -581,7 +583,7 @@ describe('<Agora />', () => {
         // The spot price offer is rendered by default
         // This happens to not be our offer
         expect(
-            await screen.findByText(CACHET_SPOT_MIN_QTY),
+            await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         // We can buy this offer from the Manage screen
         expect(
@@ -640,7 +642,7 @@ describe('<Agora />', () => {
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
+            screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
@@ -795,7 +797,7 @@ describe('<Agora />', () => {
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
         // Quantities are not displayed until they load, so we await
         expect(
-            await screen.findByText(CACHET_SPOT_MIN_QTY),
+            await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
@@ -816,7 +818,7 @@ describe('<Agora />', () => {
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
+            screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
@@ -952,7 +954,7 @@ describe('<Agora />', () => {
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
         // Quantities are not displayed until they load, so we await
         expect(
-            await screen.findByText(CACHET_SPOT_MIN_QTY),
+            await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
@@ -973,7 +975,7 @@ describe('<Agora />', () => {
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
+            screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
