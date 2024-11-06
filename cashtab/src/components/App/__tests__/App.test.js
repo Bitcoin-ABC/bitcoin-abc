@@ -44,13 +44,6 @@ import { Ecc, initWasm, toHex } from 'ecash-lib';
 import * as wif from 'wif';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 
-// Mock a valid sideshift object in window
-window.sideshift = {
-    show: jest.fn(),
-    hide: jest.fn(),
-    addEventListener: jest.fn(),
-};
-
 describe('<App />', () => {
     let ecc;
     beforeAll(async () => {

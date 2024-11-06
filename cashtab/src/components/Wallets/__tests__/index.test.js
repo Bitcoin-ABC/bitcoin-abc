@@ -24,16 +24,6 @@ import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import * as bip39 from 'bip39';
 import { cashtabWalletsFromJSON } from 'helpers';
 
-// Mock bip39.generateMnemonic() so we can have a consistent test for wallet name
-jest.mock('bip39', () => ({
-    __esModule: true,
-    ...jest.requireActual('bip39'),
-    generateMnemonic: jest.fn(
-        () =>
-            'grant grass sock faculty behave guitar pepper tiger sustain task occur soon',
-    ),
-}));
-
 describe('<Wallets />', () => {
     let user;
     beforeEach(() => {

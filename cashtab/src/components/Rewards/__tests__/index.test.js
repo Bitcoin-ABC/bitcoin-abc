@@ -28,13 +28,6 @@ jest.mock('recaptcha-v3', () => ({
     }),
 }));
 
-// Mock a valid sideshift object in window
-window.sideshift = {
-    show: jest.fn(),
-    hide: jest.fn(),
-    addEventListener: jest.fn(),
-};
-
 describe('<Rewards />', () => {
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
