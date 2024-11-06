@@ -29,40 +29,6 @@ jest.mock('recaptcha-v3', () => ({
     }),
 }));
 
-// https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
-Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: jest.fn().mockImplementation(query => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(), // Deprecated
-        removeListener: jest.fn(), // Deprecated
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-    })),
-});
-
-// https://stackoverflow.com/questions/64813447/cannot-read-property-addlistener-of-undefined-react-testing-library
-window.matchMedia = query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-});
-
-// Mock a valid sideshift object in window
-window.sideshift = {
-    show: jest.fn(),
-    hide: jest.fn(),
-    addEventListener: jest.fn(),
-};
-
 describe('<Home />', () => {
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API

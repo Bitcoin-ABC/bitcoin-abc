@@ -12,5 +12,5 @@
         "baseUrl": "src",
         "allowJs": true
     },
-    "include": ["src", ".eslintrc.js", "jest.config.js"]
+    "include": ["src", ".eslintrc.js", "jest.config.js", "jest.setup.js"]
 }
