@@ -42,6 +42,7 @@ import Button from '/components/button';
 
 import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
+import ecashpoker from '/public/images/ecash-poker-logo.png';
 
 function TileSection({ title, items, children }) {
     return (
@@ -140,7 +141,7 @@ function UseEcash(props) {
                             memberships, haircuts, and more!
                         </p>
                         <Button
-                            text="eLPS"
+                            text="Learn More"
                             link="https://elpstoken.com/"
                             corner="bottomRight"
                             color="accent"
@@ -164,8 +165,26 @@ function UseEcash(props) {
                             of your websites.
                         </p>
                         <Button
-                            text="PayButton"
+                            text="Get Started"
                             link="https://paybutton.org/"
+                            corner="bottomRight"
+                            color="accent"
+                        />
+                    </TextImageBlock>
+                    <TextImageBlock
+                        id="ecashpoker"
+                        title="eCash Poker"
+                        image={ecashpoker}
+                        alt="eCashPoker logo"
+                    >
+                        <p>
+                            The slickest blockchain poker platform is back.
+                            Hourly free rolls, no signup, no KYC. Play online
+                            poker powered by eCash.
+                        </p>
+                        <Button
+                            text="Play Now"
+                            link="https://ecash.poker/"
                             corner="bottomRight"
                             color="accent"
                         />
