@@ -15,7 +15,7 @@ module.exports = {
             statements: 0,
         },
     },
-    setupFiles: ['react-app-polyfill/jsdom'],
+    setupFiles: ['react-app-polyfill/jsdom', 'jest-canvas-mock'],
     testTimeout: 120000,
     testMatch: [
         '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
