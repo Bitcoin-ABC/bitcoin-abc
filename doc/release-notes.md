@@ -9,3 +9,5 @@ This release includes the following features and fixes:
    removed in the future. This field is actually confusing as it's not setting
    the returned address type and is only there for compatibility reason. The
    documentation has been updated to clarify this behavior.
+ - This release contains a fix for a bug that could cause a node to delay the
+   download of the latest block under certain circumstances.
