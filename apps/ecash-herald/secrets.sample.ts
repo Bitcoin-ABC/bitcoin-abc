@@ -30,4 +30,4 @@ const secrets: Secrets = {
     },
 };
 
-export default Secrets;
+export default secrets;
