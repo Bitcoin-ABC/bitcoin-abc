@@ -124,6 +124,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '6e6f64655374726174756d', // ascii nodeStratum
             },
         ],
+        [
+            '76a9148a60441e461b776d0ede8ec941e7d2aaa4f25a5d88ac',
+            {
+                miner: 'westpool',
+                coinbaseHexFragment: '77657374706f6f6c', // ascii westpool
+            },
+        ],
     ],
 };
 
