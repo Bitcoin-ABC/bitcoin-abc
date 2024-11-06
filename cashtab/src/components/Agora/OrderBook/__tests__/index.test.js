@@ -169,7 +169,7 @@ describe('<OrderBook />', () => {
         expect(screen.getByText('$0.33 USD')).toBeInTheDocument();
 
         // The min offer amount is selected by default
-        expect(screen.getByText('.10 CACHET')).toBeInTheDocument();
+        expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
         // We see the formatted price in XEC
         expect(await screen.findByText('1k XEC')).toBeInTheDocument();
         // We see the price in fiat
@@ -237,7 +237,7 @@ describe('<OrderBook />', () => {
         expect(screen.queryByTitle(CACHET_TOKEN_ID)).not.toBeInTheDocument();
 
         // The min offer amount is selected by default
-        expect(screen.getByText('.10 CACHET')).toBeInTheDocument();
+        expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
         // We see the formatted price in XEC
         expect(await screen.findByText('1k XEC')).toBeInTheDocument();
         // We see the price in fiat
