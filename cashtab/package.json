@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.52.6",
+    "version": "2.52.7",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -58,6 +58,8 @@
         "@testing-library/react": "^16.0.1",
         "@testing-library/user-event": "^14.5.2",
         "@types/randombytes": "^2.0.3",
+        "@types/react": "^18.3.12",
+        "@types/styled-components": "^5.1.34",
         "assert": "^2.0.0",
         "babel-jest": "^29.7.0",
         "babel-loader": "^8.2.3",

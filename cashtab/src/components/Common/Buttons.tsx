@@ -2,14 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { toast } from 'react-toastify';
-import PropTypes from 'prop-types';
 
-const BaseButtonOrLinkCss = css`
+const BaseButtonOrLinkCss = css<{ disabled: boolean }>`
     font-size: 24px;
     padding: 20px 12px;
     border-radius: 9px;
@@ -27,6 +26,8 @@ const BaseButtonOrLinkCss = css`
         font-size: 16px;
         padding: 15px 0;
     }
+    display: flex;
+    justify-content: center;
 `;
 const CashtabBaseButton = styled.button`
     ${BaseButtonOrLinkCss}
@@ -36,7 +37,7 @@ const CashtabBaseLink = styled(Link)`
     ${BaseButtonOrLinkCss}
 `;
 
-const PrimaryButtonOrLinkCss = css`
+const PrimaryButtonOrLinkCss = css<{ disabled: boolean }>`
     color: ${props =>
         props.disabled
             ? props.theme.buttons.disabled.color
@@ -68,7 +69,7 @@ export const PrimaryLink = styled(CashtabBaseLink)`
     }
 `;
 
-const SecondaryButtonOrLinkCss = css`
+const SecondaryButtonOrLinkCss = css<{ disabled: boolean }>`
     color: ${props =>
         props.disabled
             ? props.theme.buttons.disabled.color
@@ -122,38 +123,47 @@ const SvgButton = styled.button`
     ${SvgButtonOrLinkCss}
 `;
 
-const IconButton = ({ name, icon, onClick }) => (
+interface IconButtonProps {
+    name: string;
+    icon: ReactNode;
+    onClick: React.MouseEventHandler;
+}
+const IconButton: React.FC<IconButtonProps> = ({ name, icon, onClick }) => (
     <SvgButton aria-label={name} onClick={onClick}>
         {icon}
     </SvgButton>
 );
-IconButton.propTypes = {
-    name: PropTypes.string,
-    icon: PropTypes.node,
-    onClick: PropTypes.func,
-};
 
 const SvgLink = styled(Link)`
     ${SvgButtonOrLinkCss}
 `;
 
-const IconLink = ({ name, icon, to, state }) => (
+interface IconLinkState {
+    contactSend: string;
+}
+interface IconLinkProps {
+    name: string;
+    icon: ReactNode;
+    to: string;
+    state: IconLinkState;
+}
+const IconLink: React.FC<IconLinkProps> = ({ name, icon, to, state }) => (
     <SvgLink aria-label={name} to={to} state={state}>
         {icon}
     </SvgLink>
 );
-IconLink.propTypes = {
-    name: PropTypes.string,
-    icon: PropTypes.node,
-    to: PropTypes.string,
-    state: PropTypes.object,
-};
 
-const CopyIconButton = ({
+interface CopyIconButtonProps {
+    name: string;
+    data: string;
+    customMsg?: string;
+    showToast: boolean;
+}
+const CopyIconButton: React.FC<CopyIconButtonProps> = ({
     name,
     data,
+    customMsg,
     showToast = false,
-    customMsg = false,
 }) => {
     return (
         <SvgButton
@@ -163,9 +173,10 @@ const CopyIconButton = ({
                     navigator.clipboard.writeText(data);
                 }
                 if (showToast) {
-                    const toastMsg = customMsg
-                        ? customMsg
-                        : `"${data}" copied to clipboard`;
+                    const toastMsg =
+                        typeof customMsg !== 'undefined'
+                            ? customMsg
+                            : `"${data}" copied to clipboard`;
                     toast.success(toastMsg);
                 }
             }}
@@ -173,13 +184,6 @@ const CopyIconButton = ({
             <CopyPasteIcon />
         </SvgButton>
     );
-};
-
-CopyIconButton.propTypes = {
-    name: PropTypes.string,
-    data: PropTypes.string,
-    showToast: PropTypes.bool,
-    customMsg: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
 };
 
 export default PrimaryButton;

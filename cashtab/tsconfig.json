@@ -10,7 +10,8 @@
         "skipLibCheck": true,
         "declaration": true,
         "baseUrl": "src",
-        "allowJs": true
+        "allowJs": true,
+        "jsx": "react-jsx"
     },
     "include": ["src", ".eslintrc.js", "jest.config.js", "jest.setup.js"]
 }
