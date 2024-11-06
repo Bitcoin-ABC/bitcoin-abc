@@ -128,21 +128,19 @@ function UseEcash(props) {
                 <Blob left="0" top="90%" />
                 <Container>
                     <TextImageBlock
-                        id="elps"
-                        title="eLPS"
-                        image={elps}
-                        alt="eLPS logo"
+                        id="ecashpoker"
+                        title="eCash Poker"
+                        image={ecashpoker}
+                        alt="eCashPoker logo"
                     >
                         <p>
-                            Powering the digital economy in the world&apos;s #1
-                            Charter City, the eLempira (eLPS) is a stabletoken
-                            built on eCash. It is used for real-world everyday
-                            payments such as for rent, utilities, food, gym
-                            memberships, haircuts, and more!
+                            The slickest blockchain poker platform is back.
+                            Hourly free rolls, no signup, no KYC. Play online
+                            poker powered by eCash.
                         </p>
                         <Button
-                            text="Learn More"
-                            link="https://elpstoken.com/"
+                            text="Play Now"
+                            link="https://ecash.poker/"
                             corner="bottomRight"
                             color="accent"
                         />
@@ -172,19 +170,21 @@ function UseEcash(props) {
                         />
                     </TextImageBlock>
                     <TextImageBlock
-                        id="ecashpoker"
-                        title="eCash Poker"
-                        image={ecashpoker}
-                        alt="eCashPoker logo"
+                        id="elps"
+                        title="eLPS"
+                        image={elps}
+                        alt="eLPS logo"
                     >
                         <p>
-                            The slickest blockchain poker platform is back.
-                            Hourly free rolls, no signup, no KYC. Play online
-                            poker powered by eCash.
+                            Powering the digital economy in the world&apos;s #1
+                            Charter City, the eLempira (eLPS) is a stabletoken
+                            built on eCash. It is used for real-world everyday
+                            payments such as for rent, utilities, food, gym
+                            memberships, haircuts, and more!
                         </p>
                         <Button
-                            text="Play Now"
-                            link="https://ecash.poker/"
+                            text="Learn More"
+                            link="https://elpstoken.com/"
                             corner="bottomRight"
                             color="accent"
                         />
