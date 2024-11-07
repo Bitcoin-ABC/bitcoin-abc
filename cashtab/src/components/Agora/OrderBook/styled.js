@@ -30,6 +30,7 @@ export const OfferHeader = styled.div`
 export const OfferTitleCtn = styled.div`
     display: flex;
     flex-direction: column;
+    word-break: break-all;
     margin-left: 14px;
     align-items: flex-start;
     a {
@@ -150,6 +151,7 @@ export const SliderRow = styled.div`
 export const BuyOrderCtn = styled.div`
     display: flex;
     flex-direction: column;
+    word-break: break-all;
     padding: 20px;
     color: ${props => props.theme.contrast};
     & > div {
