@@ -131,6 +131,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '77657374706f6f6c', // ascii westpool
             },
         ],
+        [
+            '76a914e2abcdbaa56d6258a483980408a4ecad5d686de288ac',
+            {
+                miner: 'eastpool',
+                coinbaseHexFragment: '65617374706f6f6c', // ascii eastpool
+            },
+        ],
     ],
 };
 
