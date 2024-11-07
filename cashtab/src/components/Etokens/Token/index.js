@@ -1035,6 +1035,10 @@ const Token = () => {
     async function handleMint() {
         Event('SendToken.js', 'Mint eToken', tokenId);
 
+        // We only use 1 mint baton
+        const mintBaton = mintBatons[0];
+        const tokenTypeNumberFromUtxo = mintBaton.token.tokenType.number;
+
         try {
             // Get targetOutputs for an slpv1 burn tx
             // this is NOT like an slpv1 send tx
@@ -1042,6 +1046,7 @@ const Token = () => {
                 tokenId,
                 decimals,
                 formData.mintAmount,
+                tokenTypeNumberFromUtxo,
             );
 
             // We should not be able to get here without at least one mint baton,
@@ -1071,7 +1076,7 @@ const Token = () => {
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
-                [mintBatons[0]], // Only use one mint baton
+                [mintBaton],
             );
             toast(
                 <TokenSentLink

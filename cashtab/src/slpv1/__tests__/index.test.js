@@ -245,19 +245,42 @@ describe('slpv1 methods', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getMintTargetOutputs;
         expectedReturns.forEach(vector => {
-            const { description, tokenId, decimals, mintQty, targetOutputs } =
-                vector;
+            const {
+                description,
+                tokenId,
+                decimals,
+                mintQty,
+                tokenProtocolNumber,
+                targetOutputs,
+            } = vector;
             it(`getMintTargetOutputs: ${description}`, () => {
                 expect(
-                    getMintTargetOutputs(tokenId, decimals, mintQty),
+                    getMintTargetOutputs(
+                        tokenId,
+                        decimals,
+                        mintQty,
+                        tokenProtocolNumber,
+                    ),
                 ).toStrictEqual(targetOutputs);
             });
         });
         expectedErrors.forEach(vector => {
-            const { description, tokenId, decimals, mintQty, error } = vector;
+            const {
+                description,
+                tokenId,
+                decimals,
+                mintQty,
+                tokenProtocolNumber,
+                error,
+            } = vector;
             it(`getMintTargetOutputs throws error for: ${description}`, () => {
                 expect(() =>
-                    getMintTargetOutputs(tokenId, decimals, mintQty),
+                    getMintTargetOutputs(
+                        tokenId,
+                        decimals,
+                        mintQty,
+                        tokenProtocolNumber,
+                    ),
                 ).toThrow(error);
             });
         });

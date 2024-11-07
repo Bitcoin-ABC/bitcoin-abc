@@ -16,11 +16,14 @@ import {
 } from 'ecash-lib';
 import { GenesisInfo } from 'chronik-client';
 import { SlpUtxo, CashtabUtxo, SlpDecimals } from 'wallet';
-
 // Constants for SLP 1 token types as returned by chronik-client
 export const SLP_1_PROTOCOL_NUMBER = 1;
 export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
+
+// Note we have to specify the numbers here and not the constants for ts lint reasons
+type SUPPORTED_MINT_TYPES = 1 | 129;
+
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
 
@@ -312,6 +315,7 @@ export const getMintTargetOutputs = (
     tokenId: string,
     decimals: SlpDecimals,
     mintQty: string,
+    tokenProtocolNumber: SUPPORTED_MINT_TYPES,
 ): SlpTargetOutput[] => {
     // slp-mdm expects values in token satoshis, so we must undecimalize mintQty
 
@@ -320,7 +324,7 @@ export const getMintTargetOutputs = (
 
     const script = slpMint(
         tokenId,
-        SLP_1_PROTOCOL_NUMBER,
+        tokenProtocolNumber,
         tokenSatoshis,
         CASHTAB_SLP1_MINT_MINTBATON_VOUT,
     );

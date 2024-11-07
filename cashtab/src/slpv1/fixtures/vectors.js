@@ -1135,6 +1135,7 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 0,
                 mintQty: '1000',
+                tokenProtocolNumber: 1,
                 targetOutputs: [
                     {
                         value: 0,
@@ -1154,6 +1155,7 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 9,
                 mintQty: '1000.123456789',
+                tokenProtocolNumber: 1,
                 targetOutputs: [
                     {
                         value: 0,
@@ -1173,12 +1175,33 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 0,
                 mintQty: '18446744073709551615',
+                tokenProtocolNumber: 1,
                 targetOutputs: [
                     {
                         value: 0,
                         script: new Script(
                             fromHex(
                                 `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
+                            ),
+                        ),
+                    },
+                    { value: appConfig.dustSats },
+                    { value: appConfig.dustSats },
+                ],
+            },
+            {
+                description:
+                    'Can create a target output for the largest mint qty supported by slpv1 for an NFT1 parent',
+                tokenId: MOCK_TOKEN_ID,
+                decimals: 0,
+                mintQty: '18446744073709551615',
+                tokenProtocolNumber: 0x81,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: new Script(
+                            fromHex(
+                                `6a04534c500001${'81'}044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
                             ),
                         ),
                     },
@@ -1194,6 +1217,7 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 0,
                 mintQty: '18446744073709551616',
+                tokenProtocolNumber: 1,
                 error: 'Amount out of range: 18446744073709551616',
             },
         ],
