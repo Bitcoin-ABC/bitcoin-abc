@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { toast } from 'react-toastify';
 
-const BaseButtonOrLinkCss = css<{ disabled: boolean }>`
+const BaseButtonOrLinkCss = css<{ disabled?: boolean }>`
     font-size: 24px;
     padding: 20px 12px;
     border-radius: 9px;
@@ -37,7 +37,7 @@ const CashtabBaseLink = styled(Link)`
     ${BaseButtonOrLinkCss}
 `;
 
-const PrimaryButtonOrLinkCss = css<{ disabled: boolean }>`
+const PrimaryButtonOrLinkCss = css<{ disabled?: boolean }>`
     color: ${props =>
         props.disabled
             ? props.theme.buttons.disabled.color
@@ -69,7 +69,7 @@ export const PrimaryLink = styled(CashtabBaseLink)`
     }
 `;
 
-const SecondaryButtonOrLinkCss = css<{ disabled: boolean }>`
+const SecondaryButtonOrLinkCss = css<{ disabled?: boolean }>`
     color: ${props =>
         props.disabled
             ? props.theme.buttons.disabled.color

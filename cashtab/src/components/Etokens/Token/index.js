@@ -1992,6 +1992,7 @@ const Token = () => {
                                 </TokenStatsCol>
                                 <TokenStatsCol>
                                     <CopyIconButton
+                                        name={`Copy Token ID`}
                                         data={tokenId}
                                         showToast
                                         customMsg={`Token ID "${tokenId}" copied to clipboard`}
@@ -2094,6 +2095,7 @@ const Token = () => {
                                     </TokenStatsCol>
                                     <TokenStatsCol>
                                         <CopyIconButton
+                                            name={`Copy Token ID`}
                                             data={hash}
                                             showToast
                                             customMsg={`Token document hash "${hash}" copied to clipboard`}
@@ -2164,6 +2166,7 @@ const Token = () => {
                                                         {nftTokenId.slice(-3)}
                                                     </a>
                                                     <CopyIconButton
+                                                        name={`Copy Token ID`}
                                                         data={nftTokenId}
                                                         showToast
                                                         customMsg={`NFT Token ID "${nftTokenId}" copied to clipboard`}
