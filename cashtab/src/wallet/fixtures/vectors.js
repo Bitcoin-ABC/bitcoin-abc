@@ -757,7 +757,7 @@ export default {
                 description:
                     'We throw an error if available utxos can only cover 1 satoshi less than fee',
                 agoraOffer: agoraOfferCachetAlphaOne,
-                utxos: [{ value: 1 }],
+                utxos: [{ value: 718 }],
                 feePerKb: 1000,
                 error: 'Insufficient utxos to cancel this offer',
             },
