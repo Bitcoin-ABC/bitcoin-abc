@@ -12,7 +12,7 @@ import { fromHex, Script, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
 import { OutPoint, Token, Tx } from 'chronik-client';
 import { AgoraOffer } from 'ecash-agora';
 
-type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 interface CashtabPathInfo {
     address: string;
     hash: string;
@@ -26,8 +26,11 @@ interface NonSlpUtxo {
     value: number;
     outpoint: OutPoint;
 }
-interface SlpUtxo extends NonSlpUtxo {
+export interface SlpUtxo extends NonSlpUtxo {
     token: Token;
+}
+export interface CashtabUtxo extends NonSlpUtxo {
+    token?: Token;
 }
 interface CashtabWalletState {
     balanceSats: number;
