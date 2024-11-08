@@ -13,11 +13,12 @@ from test_framework.address import (
 from test_framework.blocktools import (
     GENESIS_CB_PK,
     GENESIS_CB_SCRIPT_PUBKEY,
+    GENESIS_CB_TXID,
     create_block,
     make_conform_to_ctor,
 )
 from test_framework.hash import hex_be_sha256
-from test_framework.messages import CTransaction, FromHex, ToHex
+from test_framework.messages import XEC, CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PDataStore
 from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
@@ -69,6 +70,10 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                 .msg,
                 err_msg,
             )
+            assert_equal(
+                self.chronik.script("scripthash", payload).utxos().err(400).msg,
+                err_msg,
+            )
 
         # Potentially valid sha256 hash, but unlikely to collide with any existing
         # scripthash
@@ -83,16 +88,13 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         )
         assert_equal(
             self.chronik.script("scripthash", valid_payload)
-            .confirmed_txs()
+            .unconfirmed_txs()
             .err(404)
             .msg,
             err_msg,
         )
         assert_equal(
-            self.chronik.script("scripthash", valid_payload)
-            .confirmed_txs()
-            .err(404)
-            .msg,
+            self.chronik.script("scripthash", valid_payload).utxos().err(404).msg,
             err_msg,
         )
 
@@ -113,6 +115,24 @@ class ChronikScriptHashTest(BitcoinTestFramework):
             self.chronik.script("scripthash", GENESIS_CB_SCRIPTHASH).history().ok(),
             expected_cb_history,
         )
+        assert_equal(
+            self.chronik.script("scripthash", GENESIS_CB_SCRIPTHASH).utxos().ok(),
+            pb.ScriptUtxos(
+                script=bytes.fromhex(f"41{GENESIS_CB_PK}ac"),
+                utxos=[
+                    pb.ScriptUtxo(
+                        outpoint=pb.OutPoint(
+                            txid=bytes.fromhex(GENESIS_CB_TXID)[::-1],
+                            out_idx=0,
+                        ),
+                        block_height=0,
+                        is_coinbase=True,
+                        value=50_000_000 * XEC,
+                        is_final=False,
+                    )
+                ],
+            ),
+        )
         # No txs in mempool for the genesis pubkey
         assert_equal(
             self.chronik.script("scripthash", GENESIS_CB_SCRIPTHASH)
@@ -121,7 +141,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
             pb.TxHistoryPage(num_pages=0, num_txs=0),
         )
 
-        def check_num_txs(num_block_txs, num_mempool_txs):
+        def check_num_txs(num_block_txs, num_mempool_txs, num_utxos):
             page_size = 200
             page_num = 0
             script_conf_txs = (
@@ -142,14 +162,28 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                 .ok()
             )
             assert_equal(script_unconf_txs.num_txs, num_mempool_txs)
+            script_utxos = (
+                self.chronik.script("scripthash", SCRIPTHASH_P2SH_OP_TRUE_HEX)
+                .utxos()
+                .ok()
+            )
+            assert_equal(len(script_utxos.utxos), num_utxos)
 
         # Generate blocks to some address and verify the history
         blockhashes = self.generatetoaddress(self.node, 10, ADDRESS_ECREG_P2SH_OP_TRUE)
-        check_num_txs(num_block_txs=len(blockhashes), num_mempool_txs=0)
+        check_num_txs(
+            num_block_txs=len(blockhashes),
+            num_mempool_txs=0,
+            num_utxos=len(blockhashes),
+        )
 
         # Undo last block & check history
         self.node.invalidateblock(blockhashes[-1])
-        check_num_txs(num_block_txs=len(blockhashes) - 1, num_mempool_txs=0)
+        check_num_txs(
+            num_block_txs=len(blockhashes) - 1,
+            num_mempool_txs=0,
+            num_utxos=len(blockhashes) - 1,
+        )
 
         # Create a replacement block (use a different destination address to ensure it
         # has a hash different from the invalidated one)
@@ -161,22 +195,33 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         blockhashes += self.generatetoaddress(
             self.node, 101, ADDRESS_ECREG_P2SH_OP_TRUE
         )
-        check_num_txs(num_block_txs=len(blockhashes) - 1, num_mempool_txs=0)
+        check_num_txs(
+            num_block_txs=len(blockhashes) - 1,
+            num_mempool_txs=0,
+            num_utxos=len(blockhashes) - 1,
+        )
 
         # Add mempool txs
         self.op_true_wallet.rescan_utxos()
         num_mempool_txs = 0
+        # the number of utxos remains constant throughout the loop because we
+        # spend one to create another one
+        num_utxos = len(blockhashes) - 1
         for _ in range(10):
             self.op_true_wallet.send_self_transfer(from_node=self.node)
             num_mempool_txs += 1
             check_num_txs(
-                num_block_txs=len(blockhashes) - 1, num_mempool_txs=num_mempool_txs
+                num_block_txs=len(blockhashes) - 1,
+                num_mempool_txs=num_mempool_txs,
+                num_utxos=num_utxos,
             )
 
         # Mine mempool txs, now they're in confirmed-txs
         blockhashes += self.generatetoaddress(self.node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)
         check_num_txs(
-            num_block_txs=len(blockhashes) + num_mempool_txs - 1, num_mempool_txs=0
+            num_block_txs=len(blockhashes) + num_mempool_txs - 1,
+            num_mempool_txs=0,
+            num_utxos=num_utxos + 1,
         )
 
         self.log.info(
@@ -200,6 +245,10 @@ class ChronikScriptHashTest(BitcoinTestFramework):
             .msg,
             f'404: Script hash "{scripthash_hex}" not found',
         )
+        assert_equal(
+            self.chronik.script("scripthash", scripthash_hex).utxos().err(404).msg,
+            f'404: Script hash "{scripthash_hex}" not found',
+        )
 
         txid = self.op_true_wallet.send_to(
             from_node=self.node, scriptPubKey=script, amount=1337
@@ -216,6 +265,11 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         assert_equal(proto.num_txs, 1)
         assert_equal(proto.txs[0].txid, bytes.fromhex(txid)[::-1])
 
+        proto = self.chronik.script("scripthash", scripthash_hex).utxos().ok()
+        assert_equal(len(proto.utxos), 1)
+        assert_equal(proto.utxos[0].block_height, -1)
+        assert_equal(proto.utxos[0].value, 1337)
+
     def test_conflicts(self):
         self.log.info("A mempool transaction is replaced by a mined transaction")
 
@@ -230,6 +284,10 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                 .confirmed_txs()
                 .err(404)
                 .msg,
+                f'404: Script hash "{scripthash_hex}" not found',
+            )
+            assert_equal(
+                self.chronik.script("scripthash", scripthash_hex).utxos().err(404).msg,
                 f'404: Script hash "{scripthash_hex}" not found',
             )
 
@@ -255,8 +313,18 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         def is_txid_in_history(txid: str, history_page) -> bool:
             return any(tx.txid[::-1].hex() == txid for tx in history_page.txs)
 
+        def is_utxo_in_utxos(utxo: dict, script_utxos) -> bool:
+            return any(
+                txo.outpoint.txid[::-1].hex() == utxo["txid"]
+                and txo.outpoint.out_idx == utxo["vout"]
+                for txo in script_utxos.utxos
+            )
+
         def check_history(
-            scripthash_hex: str, conf_txids: list[str], unconf_txids: list[str]
+            scripthash_hex: str,
+            conf_txids: list[str],
+            unconf_txids: list[str],
+            utxos=None,
         ):
             unconf_txs = (
                 self.chronik.script("scripthash", scripthash_hex).unconfirmed_txs().ok()
@@ -266,10 +334,15 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                 .confirmed_txs(page_size=200)
                 .ok()
             )
+            script_utxos = (
+                self.chronik.script("scripthash", scripthash_hex).utxos().ok()
+            )
             assert_equal(conf_txs.num_txs, len(conf_txids))
             assert_equal(unconf_txs.num_txs, len(unconf_txids))
+            assert_equal(len(script_utxos.utxos), len(utxos))
             assert all(is_txid_in_history(txid, conf_txs) for txid in conf_txids)
             assert all(is_txid_in_history(txid, unconf_txs) for txid in unconf_txids)
+            assert all(is_utxo_in_utxos(utxo, script_utxos) for utxo in utxos)
 
             # Consistency check: None of the txids should be duplicated
             all_txids = conf_txids + unconf_txids
@@ -279,6 +352,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
             scripthash_hex1,
             conf_txids=[utxo_to_spend1["txid"], utxo_to_spend2["txid"]],
             unconf_txids=[],
+            utxos=[utxo_to_spend1, utxo_to_spend2],
         )
 
         # Create 2 mempool txs, one of which will later conflict with a block tx.
@@ -295,6 +369,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                 mempool_tx_to_be_replaced["txid"],
                 other_mempool_tx["txid"],
             ],
+            utxos=[mempool_tx_to_be_replaced["new_utxo"], other_mempool_tx["new_utxo"]],
         )
 
         replacement_tx = wallet.create_self_transfer(utxo_to_spend=utxo_to_spend1)
@@ -318,6 +393,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                 replacement_tx["txid"],
             ],
             unconf_txids=[other_mempool_tx["txid"]],
+            utxos=[other_mempool_tx["new_utxo"], replacement_tx["new_utxo"]],
         )
 
         self.log.info(
@@ -327,13 +403,14 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         script_pubkey = b"\x21\x03" + 32 * b"\xff" + b"\xac"
         scripthash_hex2 = hex_be_sha256(script_pubkey)
 
-        funding_txid, _ = self.op_true_wallet.send_to(
+        funding_txid, funding_out_idx = self.op_true_wallet.send_to(
             from_node=self.node, scriptPubKey=script_pubkey, amount=50_000_000
         )
         check_history(
             scripthash_hex2,
             conf_txids=[],
             unconf_txids=[funding_txid],
+            utxos=[{"txid": funding_txid, "vout": funding_out_idx}],
         )
 
         # Mine a tx spending the same input to a different output.
@@ -362,6 +439,13 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         assert_equal(
             self.chronik.script("scripthash", GENESIS_CB_SCRIPTHASH)
             .confirmed_txs()
+            .err(400)
+            .msg,
+            "400: Script hash index disabled",
+        )
+        assert_equal(
+            self.chronik.script("scripthash", GENESIS_CB_SCRIPTHASH)
+            .utxos()
             .err(400)
             .msg,
             "400: Script hash index disabled",

@@ -56,6 +56,9 @@ use crate::{
 const CURRENT_INDEXER_VERSION: SchemaVersion = 13;
 const LAST_UPGRADABLE_VERSION: SchemaVersion = 10;
 
+/// Function ptr to decompress script scripts
+pub type DecompressScriptFn = fn(&[u8]) -> Result<Vec<u8>>;
+
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone)]
 pub struct ChronikIndexerParams {
@@ -77,6 +80,8 @@ pub struct ChronikIndexerParams {
     pub plugin_ctx: Arc<PluginContext>,
     /// Settings for script history indexing
     pub script_history: GroupHistorySettings,
+    /// Function to decompress scripts
+    pub decompress_script_fn: DecompressScriptFn,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
@@ -99,6 +104,10 @@ pub struct ChronikIndexer {
     plugin_ctx: Arc<PluginContext>,
     plugin_name_map: PluginNameMap,
     block_merkle_tree: Mutex<BlockMerkleTree>,
+    /// Function that can decompress the compressed scripts used as keys in
+    /// the script db. We inject it via the indexer struct to avoid
+    /// introducing a dependency on chronik_bridge in other crates.
+    pub decompress_script_fn: DecompressScriptFn,
 }
 
 /// Access to the bitcoind node.
@@ -318,6 +327,7 @@ impl ChronikIndexer {
             plugin_ctx: params.plugin_ctx,
             plugin_name_map,
             block_merkle_tree: Mutex::new(BlockMerkleTree::new()),
+            decompress_script_fn: params.decompress_script_fn,
         })
     }
 
@@ -513,9 +523,10 @@ impl ChronikIndexer {
         script_history_writer.wipe_member_hash(&mut batch);
         self.db.write_batch(batch)?;
 
-        script_history_writer.reindex_member_hash(decompress_script, || {
-            bridge.shutdown_requested()
-        })?;
+        script_history_writer
+            .reindex_member_hash(self.decompress_script_fn, || {
+                bridge.shutdown_requested()
+            })?;
 
         let mut batch = WriteBatch::default();
         // If the user requested a shutdown, it is very unlikely that the
@@ -926,6 +937,7 @@ impl ChronikIndexer {
             group: self.script_group.clone(),
             utxo_mapper: UtxoProtobufValue,
             is_token_index_enabled: self.is_token_index_enabled,
+            is_scripthash_index_enabled: self.is_scripthash_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         })
     }
@@ -961,6 +973,7 @@ impl ChronikIndexer {
             group: TokenIdGroup,
             utxo_mapper: UtxoProtobufOutput,
             is_token_index_enabled: self.is_token_index_enabled,
+            is_scripthash_index_enabled: self.is_scripthash_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         }
     }
@@ -1470,10 +1483,6 @@ fn verify_plugin_desynced_tx_num(
     Ok(min_tx_num)
 }
 
-fn decompress_script(script: &[u8]) -> Result<Vec<u8>> {
-    Ok(chronik_bridge::ffi::decompress_script(script)?)
-}
-
 impl Node {
     /// If `result` is [`Err`], logs and aborts the node.
     pub fn ok_or_abort<T>(&self, func_name: &str, result: Result<T>) {
@@ -1514,6 +1523,11 @@ mod tests {
         ChronikIndexerError, ChronikIndexerParams, CURRENT_INDEXER_VERSION,
     };
 
+    /// A mock "decompression" that just prefixes with "DECOMPRESS:".
+    fn mock_decompress(script: &[u8]) -> Result<Vec<u8>> {
+        Ok([b"DECOMPRESS:".as_ref(), script.as_ref()].concat())
+    }
+
     #[test]
     fn test_indexer() -> Result<()> {
         use bitcoinsuite_core::tx::{Tx, TxId, TxMut};
@@ -1533,6 +1547,7 @@ mod tests {
             tx_num_cache: Default::default(),
             plugin_ctx: Default::default(),
             script_history: Default::default(),
+            decompress_script_fn: mock_decompress,
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
@@ -1616,6 +1631,7 @@ mod tests {
             tx_num_cache: Default::default(),
             plugin_ctx: Default::default(),
             script_history: Default::default(),
+            decompress_script_fn: mock_decompress,
         };
 
         // Setting up DB first time sets the schema version

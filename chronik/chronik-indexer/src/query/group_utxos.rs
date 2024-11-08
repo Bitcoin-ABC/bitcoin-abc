@@ -7,8 +7,15 @@
 use std::collections::{BTreeSet, HashMap};
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{OutPoint, TxId};
+use bitcoinsuite_core::{
+    hash::Hashed,
+    script::Script,
+    tx::{OutPoint, TxId},
+};
 use bitcoinsuite_slp::verify::SpentToken;
+use bytes::Bytes;
+use chronik_db::group::GroupMember;
+use chronik_db::io::GroupHistoryReader;
 use chronik_db::{
     db::Db,
     group::{Group, UtxoData, UtxoDataOutput, UtxoDataValue},
@@ -51,6 +58,8 @@ where
     pub utxo_mapper: U,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
+    /// Whether the script hash index is enabled
+    pub is_scripthash_index_enabled: bool,
     /// Map plugin name <-> plugin idx of all loaded plugins
     pub plugin_name_map: &'a PluginNameMap,
 }
@@ -149,6 +158,14 @@ pub enum QueryGroupUtxosError {
          but the output doesn't"
     )]
     MempoolTxOutputsOutOfBounds(OutPoint),
+
+    /// Script hash not found
+    #[error("404: Script hash {0:?} not found")]
+    ScriptHashNotFound(String),
+
+    /// Script hash index not enabled
+    #[error("400: Script hash index disabled")]
+    ScriptHashIndexDisabled,
 }
 
 impl<'a, G, U> QueryGroupUtxos<'a, G, U>
@@ -156,6 +173,42 @@ where
     G: Group,
     U: UtxoProtobuf<UtxoData = G::UtxoData>,
 {
+    /// Return a script given a script or a script hash. This should only be
+    /// called when G is ScriptGroup
+    pub fn script(
+        &self,
+        member: GroupMember<Script>,
+        decompress_script_fn: fn(&[u8]) -> Result<Vec<u8>>,
+    ) -> Result<Script> {
+        let history_reader: GroupHistoryReader<'_, G> =
+            GroupHistoryReader::new(self.db)?;
+        match member {
+            GroupMember::Member(member) => Ok(member),
+            GroupMember::MemberHash(member_hash) => {
+                if !self.is_scripthash_index_enabled {
+                    return Err(ScriptHashIndexDisabled.into());
+                }
+                let mempool_script_ser = self
+                    .mempool
+                    .script_history()
+                    .member_ser_by_member_hash(member_hash);
+                let script_ser_db;
+                let script_ser = match mempool_script_ser {
+                    Some(script_ser) => script_ser,
+                    None => {
+                        script_ser_db = history_reader
+                            .member_ser_by_member_hash(member_hash)?
+                            .ok_or_else(|| {
+                                ScriptHashNotFound(member_hash.hex_be())
+                            })?;
+                        &script_ser_db
+                    }
+                };
+                Ok(Script::new(Bytes::from(decompress_script_fn(script_ser)?)))
+            }
+        }
+    }
+
     /// Return the UTXOs of the given member, from both DB and mempool.
     ///
     /// UTXOs are sorted this way:

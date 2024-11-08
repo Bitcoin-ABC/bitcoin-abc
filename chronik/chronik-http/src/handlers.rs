@@ -169,9 +169,9 @@ pub async fn handle_script_utxos(
     payload: &str,
     indexer: &ChronikIndexer,
 ) -> Result<proto::ScriptUtxos> {
-    let script_variant = parse_script_variant_hex(script_type, payload)?;
     let script_utxos = indexer.script_utxos()?;
-    let script = script_variant.to_script();
+    let member = get_group_member(script_type, payload)?;
+    let script = script_utxos.script(member, indexer.decompress_script_fn)?;
     let utxos = script_utxos.utxos(&script)?;
     Ok(proto::ScriptUtxos {
         script: script.bytecode().to_vec(),

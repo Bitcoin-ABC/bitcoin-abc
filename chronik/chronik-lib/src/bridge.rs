@@ -108,6 +108,7 @@ fn try_setup_chronik(
             script_history: GroupHistorySettings {
                 is_member_hash_index_enabled: params.enable_scripthash_index,
             },
+            decompress_script_fn: decompress_script,
         },
         |file_num, data_pos, undo_pos| {
             Ok(Tx::from(bridge_ref.load_tx(file_num, data_pos, undo_pos)?))
@@ -167,6 +168,10 @@ fn parse_socket_addr(host: String, default_port: u16) -> Result<SocketAddr> {
         .parse::<IpAddr>()
         .map_err(|err| InvalidChronikHost(host, err))?;
     Ok(SocketAddr::new(ip_addr, default_port))
+}
+
+fn decompress_script(script: &[u8]) -> Result<Vec<u8>> {
+    Ok(chronik_bridge::ffi::decompress_script(script)?)
 }
 
 /// Contains all db, runtime, tpc, etc. handles needed by Chronik.

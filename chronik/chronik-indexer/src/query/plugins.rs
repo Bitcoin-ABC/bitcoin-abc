@@ -99,6 +99,7 @@ impl<'a> QueryPlugins<'a> {
                 group: PluginsGroup,
                 utxo_mapper: UtxoProtobufOutput,
                 is_token_index_enabled: self.is_token_index_enabled,
+                is_scripthash_index_enabled: false,
                 plugin_name_map: self.plugin_name_map,
             };
         utxos.utxos(PluginMember { plugin_idx, group }.ser())
