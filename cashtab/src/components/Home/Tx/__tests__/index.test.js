@@ -57,6 +57,7 @@ import {
     agoraPartialCancelTwo,
     agoraPartialCancelTx,
     agoraPartialBuxBuyTx,
+    SlpNftParentMintTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3361,5 +3362,136 @@ describe('<Tx />', () => {
 
         // We see the token type
         expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
+    });
+    it('Parse a mint tx for SLP NFT parent distinct from fan-out tx (token info available in cache)', async () => {
+        const thisMock = SlpNftParentMintTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={thisMock.tx}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(thisMock.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see the tx received label
+        expect(screen.getByText(/to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(
+            screen.getByText(
+                `${new Date(
+                    parseInt(`${thisMock.tx.timeFirstSeen}000`),
+                ).toLocaleTimeString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour12: false,
+                })}`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see a null amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // Rendered token type for SLP1 NFT Parent is NFT Collection
+        expect(screen.getByText('NFT Collection')).toBeInTheDocument();
+
+        // We DO NOT see the Fan Out icon
+        expect(screen.queryByTitle('Fan Out')).not.toBeInTheDocument();
+
+        // We see the token name
+        expect(
+            screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
+        ).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(
+            screen.getByText(
+                `(${thisMock.cache[0][1].genesisInfo.tokenTicker})`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the expected token action
+        expect(
+            screen.getByText(
+                `Minted 1 ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
+            ),
+        ).toBeInTheDocument();
+    });
+    it('Parse a mint tx for SLP NFT parent distinct from fan-out tx (uncached)', async () => {
+        const thisMock = SlpNftParentMintTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={thisMock.tx}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see the tx received label
+        expect(screen.getByText(/to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(
+            screen.getByText(
+                `${new Date(
+                    parseInt(`${thisMock.tx.timeFirstSeen}000`),
+                ).toLocaleTimeString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour12: false,
+                })}`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see a null amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // Rendered token type for SLP1 NFT Parent is NFT Collection
+        expect(screen.getByText('NFT Collection')).toBeInTheDocument();
+
+        // We DO NOT see the Fan Out icon
+        expect(screen.queryByTitle('Fan Out')).not.toBeInTheDocument();
+
+        // We see the expected token action without qty or token ticker
+        expect(screen.getByText(`Minted`)).toBeInTheDocument();
     });
 });

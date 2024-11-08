@@ -21349,3 +21349,170 @@ export const eCashChatArticleTx = {
         },
     },
 };
+export const SlpNftParentMintTx = {
+    tx: {
+        txid: 'af8d9508e488e7c9462cb9bb9d9b68f246cec6394676d1f660331bfe1f4e1fd2',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '413bcbae418f71ecbc9b5a2ecbe9d7d7bd61a7473399ccfe4176e62fe51fe4cdba2dc8cb42088207ee4daf8c4a618e7e4a9773f969e681c8e2b552b13fc8ddc8e8412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: '607b7bb1a4d95efbeee42d98fc7b3b2fd3ed3dcfc6aea192f56839b405982889',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41f5fe8b075e9f9ab3b3c69b8e5621c9de49c4daffb698097149bdb57f4d472e0d1a9692df4d07ec64d4102c10a76bdc6bc6ef9df630061b34a1d19f50f1e97ef4412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 71580707,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c50000181044d494e54205a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f86200102080000000000000001',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '5d934ade992707fe126bcd393ad4358b2c10118b635df4b97e3e3f30ca7cc781',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 71579701,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1730953527,
+        size: 460,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                txType: 'MINT',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 869927,
+            hash: '00000000000000001d5912840b0d830c3d491f273b15ac9f5bcd0234456dfb5a',
+            timestamp: 1730954146,
+        },
+    },
+    sendingHash: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+    parsed: {
+        recipients: [],
+        satoshisSent: 71580793,
+        stackArray: [
+            '534c5000',
+            '81',
+            '4d494e54',
+            '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+            '02',
+            '0000000000000001',
+        ],
+        xecTxType: 'Sent',
+    },
+    cache: [
+        [
+            '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                genesisInfo: {
+                    tokenTicker: 'MASCOTS',
+                    tokenName: 'Mascots',
+                    url: 'cashtab.com',
+                    decimals: 0,
+                    hash: '2d0f7be21838551f43872cddda2213659f6603d0aec566dd8f917e49e172f27d',
+                },
+                timeFirstSeen: 1716324228,
+                genesisSupply: '100',
+                genesisOutputScripts: [
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                ],
+                genesisMintBatons: 1,
+                block: {
+                    height: 845656,
+                    hash: '00000000000000001c7f33318a0ac58f2256696b302c2047ab73315943c0c6d7',
+                    timestamp: 1716327571,
+                },
+            },
+        ],
+    ],
+};

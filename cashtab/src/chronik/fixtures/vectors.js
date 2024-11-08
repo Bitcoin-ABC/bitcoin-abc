@@ -49,6 +49,7 @@ import {
     agoraPartialCancelTx,
     agoraPartialBuxBuyTx,
     agoraPartialCancelTwo,
+    SlpNftParentMintTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -282,6 +283,12 @@ export default {
                 tx: agoraPartialCancelTwo.tx,
                 hashes: [agoraPartialCancelTwo.hash],
                 parsed: agoraPartialCancelTwo.parsed,
+            },
+            {
+                description: 'SLP1 NFT Parent mint tx',
+                tx: SlpNftParentMintTx.tx,
+                hashes: [SlpNftParentMintTx.sendingHash],
+                parsed: SlpNftParentMintTx.parsed,
             },
         ],
     },

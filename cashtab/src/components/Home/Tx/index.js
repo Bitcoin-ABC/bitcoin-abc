@@ -751,9 +751,6 @@ const Tx = ({
               !isAgoraAdSetup &&
               !isAgoraPurchase
             ? xecTxType
-            : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
-            txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
-            ? 'Fan-out'
             : txType === 'GENESIS' && parsedTokenType !== 'NFT'
             ? 'Created'
             : isUnintentionalBurn || txType === 'BURN'
@@ -761,6 +758,8 @@ const Tx = ({
             : txType === 'MINT' ||
               (txType === 'GENESIS' && parsedTokenType === 'NFT')
             ? 'Minted'
+            : txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
+            ? 'Fan-out'
             : txType;
         if (typeof cachedTokenInfo === 'undefined') {
             tokenActions.push(
