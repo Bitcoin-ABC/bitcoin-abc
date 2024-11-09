@@ -63,14 +63,17 @@ function Upgrade(props) {
                     id="features"
                 />
                 <p>
-                    The Heartbeat feature, also known as Real Time Targeting,
-                    will activate with this upgrade. This is a block policy that
-                    makes it more difficult to mine blocks faster than the
-                    expected 10 minutes average, preventing large bumps in
-                    difficulty that can lead to inconsistent block intervals.
-                    Miners need to update their setup according to the
-                    instructions on the <Link href="/mining">Mining page</Link>{' '}
-                    .
+                    The{' '}
+                    <Link href="/blog/heartbeat-upgrade-a-steady-pulse-for-ecash">
+                        Heartbeat
+                    </Link>{' '}
+                    feature, also known as Real Time Targeting, will activate
+                    with this upgrade. This is a block policy that makes it more
+                    difficult to mine blocks faster than the expected 10 minutes
+                    average, preventing large bumps in difficulty that can lead
+                    to inconsistent block intervals. Miners need to update their
+                    setup according to the instructions on the{' '}
+                    <Link href="/mining">Mining page</Link> .
                 </p>
                 <H3 text="Do I need to upgrade my wallet?" id="wallet" />
                 <p>
