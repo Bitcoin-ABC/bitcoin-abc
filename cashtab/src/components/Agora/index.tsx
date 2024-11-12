@@ -16,8 +16,19 @@ import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
 import OrderBook from './OrderBook';
 import { token as tokenConfig } from 'config/token';
+import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
-const Agora = () => {
+interface CashtabActiveOffers {
+    offeredFungibleTokenIds: string[];
+    offeredFungibleTokenIdsThisWallet: string[];
+}
+
+interface ServerBlacklistResponse {
+    status: string;
+    tokenIds: string[];
+}
+
+const Agora: React.FC = () => {
     const userLocale = getUserLocale(navigator);
     const ContextValue = React.useContext(WalletContext);
     const {
@@ -33,10 +44,11 @@ const Agora = () => {
     const wallet = wallets.length > 0 ? wallets[0] : false;
 
     // active agora partial offers organized for rendering this screen
-    const [activeOffersCashtab, setActiveOffersCashtab] = useState(null);
-    const [activePk, setActivePk] = useState(null);
-    const [chronikQueryError, setChronikQueryError] = useState(false);
-    const [manageMyOffers, setManageMyOffers] = useState(false);
+    const [activeOffersCashtab, setActiveOffersCashtab] =
+        useState<null | CashtabActiveOffers>(null);
+    const [activePk, setActivePk] = useState<null | Uint8Array>(null);
+    const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
+    const [manageMyOffers, setManageMyOffers] = useState<boolean>(false);
 
     /**
      * Specialized helper function to support use of Promise.all in adding new tokens to cache
@@ -45,16 +57,21 @@ const Agora = () => {
      * As it is extended, this function should be generalized and refactored out of this screen
      * Leave it here for now as a model of how to do it. Ensuring the cache (local storage) is properly
      * updated with the state may need to be handled differently in a different component
-     * @param {object} cashtabCache
-     * @param {string} tokenId
-     * @returns {Promise}
      */
-    const returnGetAndCacheTokenInfoPromise = (cashtabCache, tokenId) => {
+    const returnGetAndCacheTokenInfoPromise = (
+        cashtabCache: CashtabCache,
+        tokenId: string,
+    ): Promise<void> => {
         return new Promise((resolve, reject) => {
-            getTokenGenesisInfo(chronik, tokenId).then(
+            const tokenInfoPromise: Promise<CashtabCachedTokenInfo> =
+                getTokenGenesisInfo(
+                    chronik,
+                    tokenId,
+                ) as Promise<CashtabCachedTokenInfo>;
+            tokenInfoPromise.then(
                 result => {
                     cashtabCache.tokens.set(tokenId, result);
-                    resolve(true);
+                    resolve();
                 },
                 err => {
                     reject(err);
@@ -65,7 +82,7 @@ const Agora = () => {
 
     const getListedTokens = async () => {
         // 1. Get all offered tokens
-        let offeredFungibleTokenIds;
+        let offeredFungibleTokenIds: string[];
         try {
             offeredFungibleTokenIds = await agora.offeredFungibleTokenIds();
         } catch (err) {
@@ -85,9 +102,9 @@ const Agora = () => {
         }
 
         // Fetch server-maintained blacklist
-        let blacklist;
+        let blacklist: string[];
         try {
-            const serverBlacklistResponse = await (
+            const serverBlacklistResponse: ServerBlacklistResponse = await (
                 await fetch(`${tokenConfig.blacklistServerUrl}/blacklist`)
             ).json();
             blacklist = serverBlacklistResponse.tokenIds;
@@ -119,10 +136,11 @@ const Agora = () => {
 
         // 2. Get all offers listed from the active wallet
         let activeOffersByPubKey;
-        let offeredFungibleTokenIdsThisWallet = new Set();
+        let offeredFungibleTokenIdsThisWallet: Set<string> | string[] =
+            new Set();
         try {
             activeOffersByPubKey = await agora.activeOffersByPubKey(
-                toHex(activePk),
+                toHex(activePk as unknown as Uint8Array),
             );
             // Just get the tokenIds as the Orderbook will load and prepare the offers by tokenId
             for (const activeOffer of activeOffersByPubKey) {

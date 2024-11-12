@@ -99,9 +99,12 @@ const SpinnerOverlay = styled.div`
     height: 100%;
 `;
 
-const Spinner = () => {
+interface SpinnerProps {
+    title?: string;
+}
+const Spinner: React.FC<SpinnerProps> = ({ title = 'Loading...' }) => {
     return (
-        <SpinnerOverlay>
+        <SpinnerOverlay title={title}>
             <CashtabLoader />
         </SpinnerOverlay>
     );
