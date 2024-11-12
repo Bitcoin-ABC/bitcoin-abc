@@ -397,11 +397,13 @@ describe('parse.js functions', function () {
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
                     '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
+                    '🔊 <b><i>$0</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
                     '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '🔊 <b><i>$0</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰\n' +
                     '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
@@ -477,11 +479,13 @@ describe('parse.js functions', function () {
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
                     '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
+                    '🔊 <b><i>$0</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">aed...cb1</a>: 💰\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ❌\n' +
                     '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">01d...896</a>: 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '🔊 <b><i>$0</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: 💰\n' +
                     '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">0fb...316</a>: 🏷❌\n' +
@@ -546,11 +550,13 @@ describe('parse.js functions', function () {
                     '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
                     '🏛🪙 <b><i>3 Agora token txs from 3 tokens</i></b>\n' +
+                    '🔊 <b><i>10 XEC</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰\n' +
                     '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
                     '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
+                    '🔊 <b><i>13,333 XEC</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰\n' +
                     '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +

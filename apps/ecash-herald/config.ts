@@ -46,6 +46,7 @@ export interface HeraldConfig {
     };
     emojis: {
         agora: string;
+        volume: string;
         agoraBuy: string;
         agoraList: string;
         agoraCancel: string;
@@ -141,6 +142,7 @@ const config: HeraldConfig = {
     },
     emojis: {
         agora: '🏛',
+        volume: '🔊',
         agoraBuy: '💰',
         agoraList: '🏷',
         agoraCancel: '❌',

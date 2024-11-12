@@ -2329,6 +2329,8 @@ export const summarizeTxHistory = (
     // Agora vars
     let agoraTxs = 0;
     const agoraActions = new Map();
+    let oneshotVolumeSatoshis = 0;
+    let partialVolumeSatoshis = 0;
 
     for (const tx of txs) {
         const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
@@ -2590,6 +2592,19 @@ export const summarizeTxHistory = (
                                                 break;
                                             } else {
                                                 // Agora ONESHOT purchase
+
+                                                // ONESHOT purchases include the purchase price at the
+                                                // 1-indexed output
+                                                if (tx.outputs.length >= 2) {
+                                                    oneshotVolumeSatoshis +=
+                                                        tx.outputs[1].value;
+                                                } else {
+                                                    // Should never happen. Log to review if we see this.
+                                                    console.error(
+                                                        `ONESHOT buy of unexpected type. txid: ${tx.txid}`,
+                                                    );
+                                                }
+
                                                 initializeOrIncrementTokenData(
                                                     nftAgoraActions,
                                                     existingNftAgoraActions,
@@ -2875,7 +2890,22 @@ export const summarizeTxHistory = (
                                                     // Stop processing inputs for this tx
                                                     break;
                                                 } else {
-                                                    // Agora purchase
+                                                    // Agora partial purchase
+
+                                                    // Partial purchases include the purchase price at the
+                                                    // 1-indexed output
+                                                    if (
+                                                        tx.outputs.length >= 2
+                                                    ) {
+                                                        partialVolumeSatoshis +=
+                                                            tx.outputs[1].value;
+                                                    } else {
+                                                        // Should never happen. Log to review if we see this.
+                                                        console.error(
+                                                            `PARTIAL buy of unexpected type. txid: ${tx.txid}`,
+                                                        );
+                                                    }
+
                                                     initializeOrIncrementTokenData(
                                                         agoraActions,
                                                         existingAgoraActions,
@@ -3115,6 +3145,32 @@ export const summarizeTxHistory = (
                   maximumFractionDigits: 0,
               })} XEC`;
 
+    // Conditionally render agora volume the same way
+    // Oneshot volume
+    const oneshotVolumeXec = oneshotVolumeSatoshis / SATOSHIS_PER_XEC;
+    const renderedOneshotVolume =
+        typeof xecPriceUsd !== 'undefined'
+            ? `$${(oneshotVolumeXec * xecPriceUsd).toLocaleString('en-US', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+              })}`
+            : `${oneshotVolumeXec.toLocaleString('en-US', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+              })} XEC`;
+    // Partial volume
+    const partialVolumeXec = partialVolumeSatoshis / SATOSHIS_PER_XEC;
+    const renderedPartialVolume =
+        typeof xecPriceUsd !== 'undefined'
+            ? `$${(partialVolumeXec * xecPriceUsd).toLocaleString('en-US', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+              })}`
+            : `${partialVolumeXec.toLocaleString('en-US', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+              })} XEC`;
+
     // Top stakers
     const STAKERS_TO_SHOW = 3;
     tgMsg.push(
@@ -3213,6 +3269,11 @@ export const summarizeTxHistory = (
                 agoraTokenCount > 1 ? 's' : ''
             }</i></b>`,
         );
+        if (partialVolumeSatoshis > 0) {
+            tgMsg.push(
+                `${config.emojis.volume} <b><i>${renderedPartialVolume}</i></b>`,
+            );
+        }
 
         const AGORA_TOKENS_TO_SHOW = 10;
 
@@ -3318,6 +3379,11 @@ export const summarizeTxHistory = (
                 agoraCollectionCount > 1 ? 's' : ''
             }</i></b>`,
         );
+        if (oneshotVolumeSatoshis > 0) {
+            tgMsg.push(
+                `${config.emojis.volume} <b><i>${renderedOneshotVolume}</i></b>`,
+            );
+        }
 
         const AGORA_COLLECTIONS_TO_SHOW = 10;
 
