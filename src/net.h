@@ -455,6 +455,11 @@ public:
                              std::vector<uint8_t> &header) override;
 };
 
+struct CNodeOptions {
+    NetPermissionFlags permission_flags = NetPermissionFlags::None;
+    bool prefer_evict = false;
+};
+
 /** Information about a peer */
 class CNode {
     friend class CConnman;
@@ -507,7 +512,7 @@ public:
     Mutex m_subver_mutex;
     std::string cleanSubVer GUARDED_BY(m_subver_mutex){};
     // This peer is preferred for eviction.
-    bool m_prefer_evict{false};
+    const bool m_prefer_evict{false};
     bool HasPermission(NetPermissionFlags permission) const {
         return NetPermissions::HasFlag(m_permissionFlags, permission);
     }
@@ -696,7 +701,7 @@ public:
           uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
           uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
           const std::string &addrNameIn, ConnectionType conn_type_in,
-          bool inbound_onion);
+          bool inbound_onion, CNodeOptions &&node_opts = {});
     ~CNode();
     CNode(const CNode &) = delete;
     CNode &operator=(const CNode &) = delete;
@@ -767,7 +772,7 @@ private:
     const ConnectionType m_conn_type;
     std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
 
-    NetPermissionFlags m_permissionFlags{NetPermissionFlags::None};
+    const NetPermissionFlags m_permissionFlags;
     // Used only by SocketHandler thread
     std::list<CNetMessage> vRecvMsg;
 

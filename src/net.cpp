@@ -1392,10 +1392,12 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         m_onion_binds.end();
     CNode *pnode = new CNode(id, hSocket, addr, CalculateKeyedNetGroup(addr),
                              nonce, extra_entropy, addr_bind, "",
-                             ConnectionType::INBOUND, inbound_onion);
+                             ConnectionType::INBOUND, inbound_onion,
+                             CNodeOptions{
+                                 .permission_flags = permissionFlags,
+                                 .prefer_evict = discouraged,
+                             });
     pnode->AddRef();
-    pnode->m_permissionFlags = permissionFlags;
-    pnode->m_prefer_evict = discouraged;
     for (auto interface : m_msgproc) {
         interface->InitializeNode(*config, *pnode, nodeServices);
     }
@@ -3448,16 +3450,18 @@ CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
              uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
-             bool inbound_onion)
+             bool inbound_onion, CNodeOptions &&node_opts)
     : m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn),
       m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
-      m_inbound_onion(inbound_onion), nKeyedNetGroup(nKeyedNetGroupIn),
+      m_inbound_onion(inbound_onion), m_prefer_evict{node_opts.prefer_evict},
+      nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
-      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in) {
+      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
+      m_permissionFlags{node_opts.permission_flags} {
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
     }
