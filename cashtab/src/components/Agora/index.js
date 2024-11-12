@@ -127,9 +127,11 @@ const Agora = () => {
             );
             // Just get the tokenIds as the Orderbook will load and prepare the offers by tokenId
             for (const activeOffer of activeOffersByPubKey) {
-                offeredFungibleTokenIdsThisWallet.add(
-                    activeOffer.token.tokenId,
-                );
+                if (activeOffer.variant.type === 'PARTIAL') {
+                    offeredFungibleTokenIdsThisWallet.add(
+                        activeOffer.token.tokenId,
+                    );
+                }
             }
         } catch (err) {
             console.error(`Error getting agora.activeOffersByPubKey()`, err);
