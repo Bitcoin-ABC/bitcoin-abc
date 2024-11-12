@@ -801,6 +801,7 @@ const Tx = ({
                 cachedTokenInfo.genesisInfo;
             let amountTotal = BigInt(0);
             let amountThisWallet = BigInt(0);
+            let amountSold = 0n;
             // Special case for NFT1 Parent Fan-out tx
             // This can only be a number between 0 and 19, so we do not need BigInt
             let qtyOneInputsCreated = 0;
@@ -810,18 +811,26 @@ const Tx = ({
                 amountTotal = BigInt(actualBurnAmount);
             } else {
                 for (const output of outputs) {
-                    if (
-                        typeof output.token !== 'undefined' &&
-                        typeof output.token.entryIdx !== 'undefined' &&
-                        output.token.entryIdx === i
-                    ) {
+                    if (typeof output.token !== 'undefined') {
                         // Get the amount associated with this token entry
                         // Per ChronikClient, we will always have amount as a string in
                         // the token key of an output, see type Token_InNode
                         amountTotal += BigInt(output.token.amount);
                         for (const hash of hashes) {
+                            // For sales of agora partial txs, we assume the amount sold
+                            // goes to a p2pkh address
+                            if (renderedTxType === 'Agora Sale') {
+                                const { type } =
+                                    cashaddr.getTypeAndHashFromOutputScript(
+                                        output.outputScript,
+                                    );
+                                if (type !== 'p2sh') {
+                                    amountSold += BigInt(output.token.amount);
+                                }
+                            }
                             if (output.outputScript.includes(hash)) {
                                 amountThisWallet += BigInt(output.token.amount);
+
                                 if (output.token.amount === '1') {
                                     qtyOneInputsCreated += 1;
                                 }
@@ -836,7 +845,10 @@ const Tx = ({
             // For a genesis tx -- cashtab will only create outputs at this wallet. So, just render this.
             // For a sent tx, we want amountTotal - amountThisWallet (amountThisWallet is change)
             const renderedTokenAmount =
-                renderedTxType === 'Received' || renderedTxType === 'Agora Buy'
+                renderedTxType === 'Agora Sale'
+                    ? amountSold
+                    : renderedTxType === 'Received' ||
+                      renderedTxType === 'Agora Buy'
                     ? amountThisWallet
                     : renderedTxType === 'Created' ||
                       renderedTxType === 'Minted' ||

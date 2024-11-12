@@ -3235,6 +3235,75 @@ describe('<Tx />', () => {
         // We see the token type
         expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
     });
+    it('Agora partial bux sell tx renders correct bought amount (token info available in cache)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={agoraPartialBuxBuyTx.tx}
+                        // the seller is paid at outputs[1]
+                        hashes={['dee50f576362377dd2f031453c0bb09009acaf81']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(agoraPartialBuxBuyTx.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Oct 24, 2024, 23:21:00')).toBeInTheDocument();
+
+        // We see the purchase price in XEC and fiat, as sale earnings
+        expect(screen.getByText('431.45k XEC')).toBeInTheDocument();
+        expect(screen.getByText('$12.94')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${agoraPartialBuxBuyTx.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // We see the Agora Sale icon
+        expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(
+            screen.getByText(
+                agoraPartialBuxBuyTx.cache[0][1].genesisInfo.tokenName,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(
+            screen.getByText(
+                `(${agoraPartialBuxBuyTx.cache[0][1].genesisInfo.tokenTicker})`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the expected token action
+        const SOLD_AMOUNT = '14.0667';
+        expect(
+            screen.getByText(
+                `Sold ${SOLD_AMOUNT} ${agoraPartialBuxBuyTx.cache[0][1].genesisInfo.tokenTicker}`,
+            ),
+        ).toBeInTheDocument();
+    });
     it('Agora partial CTD cancel tx renders correct bought amount (token info available in cache)', async () => {
         const thisMock = agoraPartialCancelTwo;
         render(
