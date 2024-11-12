@@ -24,7 +24,6 @@ const Agora = () => {
         ecc,
         fiatPrice,
         chronik,
-        loading,
         agora,
         cashtabState,
         updateCashtabState,
@@ -223,9 +222,6 @@ const Agora = () => {
                         <Spinner title="Loading active offers" />
                     ) : (
                         <>
-                            {loading && (
-                                <Spinner title="Updating wallet utxos..." />
-                            )}
                             <ActiveOffers title="Active Offers">
                                 <SwitchHolder>
                                     <Switch
