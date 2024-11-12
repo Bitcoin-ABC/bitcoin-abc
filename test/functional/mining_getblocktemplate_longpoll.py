@@ -7,9 +7,16 @@ import random
 import threading
 from decimal import Decimal
 
+from test_framework.avatools import (
+    AvalancheVoteError,
+    can_find_inv_in_poll,
+    get_ava_p2p_interface,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import get_rpc_proxy
 from test_framework.wallet import MiniWallet
+
+QUORUM_NODE_COUNT = 16
 
 
 class LongpollThread(threading.Thread):
@@ -32,6 +39,17 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.supports_cli = False
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
+            ],
+            [],
+        ]
 
     def run_test(self):
         self.log.info(
@@ -92,6 +110,82 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         # on mainnet and testnet) the mempool is probed, so in 7 seconds it
         # should have returned
         thr.join(7)
+        assert not thr.is_alive()
+
+        self.log.info("Test that avalanche rejecting a block terminates the longpoll")
+
+        # Build a quorum
+        quorum = [
+            get_ava_p2p_interface(self, self.nodes[0]) for _ in range(QUORUM_NODE_COUNT)
+        ]
+        assert self.nodes[0].getavalancheinfo()["ready_to_poll"] is True
+
+        tip = self.nodes[0].getbestblockhash()
+
+        def has_rejected_tip():
+            return (
+                can_find_inv_in_poll(
+                    quorum, int(tip, 16), response=AvalancheVoteError.PARKED
+                )
+                and self.nodes[0].getbestblockhash() != tip
+            )
+
+        thr = LongpollThread(self.nodes[0])
+        thr.start()
+
+        self.wait_until(has_rejected_tip)
+
+        # wait 5 seconds or until thread exits
+        thr.join(5)
+        assert not thr.is_alive()
+
+        self.log.info(
+            "Test that avalanche reconsidering a block terminates the longpoll"
+        )
+
+        def has_accepted_tip():
+            return (
+                can_find_inv_in_poll(
+                    quorum, int(tip, 16), response=AvalancheVoteError.ACCEPTED
+                )
+                and self.nodes[0].getbestblockhash() == tip
+            )
+
+        thr = LongpollThread(self.nodes[0])
+        thr.start()
+
+        self.wait_until(has_accepted_tip)
+
+        # wait 5 seconds or until thread exits
+        thr.join(5)
+        assert not thr.is_alive()
+
+        self.log.info(
+            "Test that avalanche rejecting/reconsidering quickly a block terminates the longpoll"
+        )
+
+        thr = LongpollThread(self.nodes[0])
+        thr.start()
+
+        self.wait_until(has_rejected_tip)
+        self.wait_until(has_accepted_tip)
+
+        # wait 5 seconds or until thread exits
+        thr.join(5)
+        assert not thr.is_alive()
+
+        self.log.info(
+            "Test that avalanche accepting/rejecting quickly a block terminates the longpoll"
+        )
+
+        thr = LongpollThread(self.nodes[0])
+        thr.start()
+
+        tip = self.generate(self.nodes[0], 1, sync_fun=self.no_op)[0]
+        self.wait_until(has_rejected_tip)
+
+        # wait 5 seconds or until thread exits
+        thr.join(5)
         assert not thr.is_alive()
 
 
