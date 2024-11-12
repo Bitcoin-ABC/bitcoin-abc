@@ -105,7 +105,7 @@ export const sendBlockSummary = async (
      */
 
     let msgReplyId;
-    let msgSuccessArray = [];
+    const msgSuccessArray = [];
     for (let i = 0; i < tgMsgStrings.length; i += 1) {
         const thisMsg = tgMsgStrings[i];
         let msgSuccess: Message | SendMessageResponse;

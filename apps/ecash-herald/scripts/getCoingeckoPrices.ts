@@ -31,6 +31,10 @@ const testedPriceObjects = [
     },
 ];
 
+// Use any type as this is an overengineered function from before ts implementation
+// not impactful to improve the types since we never use the feature
+// todo change if we need it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function printGetPricesInfo(priceInfoObj: any) {
     const { cryptos, fiat, precision } = priceInfoObj;
     const resp = await getCoingeckoPrices(priceInfoObj);
@@ -43,6 +47,7 @@ async function printGetPricesInfo(priceInfoObj: any) {
 
     console.log(
         `Price info for ${cryptos
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((crypto: any) => {
                 return crypto.ticker;
             })
@@ -51,7 +56,7 @@ async function printGetPricesInfo(priceInfoObj: any) {
             )} in ${fiat.toUpperCase()} with ${precision}-decimal precision`,
     );
 
-    for (let i in coingeckoPrices) {
+    for (const i in coingeckoPrices) {
         const { fiat, price, ticker } = coingeckoPrices[i];
         const formattedPrice = formatPrice(price, fiat);
         console.log(`1 ${ticker} = ${formattedPrice} ${fiat.toUpperCase()}`);

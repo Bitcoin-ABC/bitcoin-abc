@@ -15,7 +15,7 @@ interface Templates {
     addressPreviews: { address: string; preview: string; sliceSize: number }[];
     mockCoingeckoPrices: CoinGeckoPrice[];
 }
-const templates = {
+const templates: Templates = {
     telegramHtmlStrings: {
         dangerous: '<b>Try to hack the format</b> ${true && <i>yes</i>}',
         safe: '&lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}',

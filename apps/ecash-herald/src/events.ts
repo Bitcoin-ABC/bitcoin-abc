@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
 import config from '../config';
 import axios from 'axios';
 import cashaddr from 'ecashaddrjs';
@@ -20,6 +19,7 @@ import {
     jsonReviver,
     getNextStakingReward,
     CoinGeckoPrice,
+    CoinGeckoResponse,
 } from './utils';
 import { sendBlockSummary } from './telegram';
 import {
@@ -60,7 +60,7 @@ export interface SendMessageResponse {
 export interface StoredMock {
     blockTxs: Tx[];
     parsedBlock: HeraldParsedBlock;
-    coingeckoResponse: any;
+    coingeckoResponse: CoinGeckoResponse;
     coingeckoPrices: CoinGeckoPrice[];
     tokenInfoMap: Map<string, GenesisInfo>;
     outputScriptInfoMap: Map<string, OutputscriptInfo>;
@@ -220,7 +220,7 @@ export const handleBlockInvalidated = async (
             stakingRewardWinnerAddress = cashaddr.encodeOutputScript(
                 stakingRewardWinner.staker,
             );
-        } catch (err) {
+        } catch {
             // Use the script
             stakingRewardWinnerAddress = `script ${stakingRewardWinner.staker}`;
         }

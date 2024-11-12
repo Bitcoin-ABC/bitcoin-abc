@@ -31,6 +31,8 @@ import secrets from '../secrets';
 import TelegramBot from 'node-telegram-bot-api';
 import { caching } from 'cache-manager';
 import { StoredMock } from '../src/events';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
 // Default to the genesis block
 let height = 0;
@@ -53,10 +55,6 @@ const chronik = new ChronikClient(config.chronik);
 const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
 const telegramBotDev = new TelegramBot(botId, { polling: true });
-
-// Mock price API call to prevent rate limiting during testing
-const axios = require('axios');
-const MockAdapter = require('axios-mock-adapter');
 
 async function sendMsgByBlock(
     chronik: ChronikClient,

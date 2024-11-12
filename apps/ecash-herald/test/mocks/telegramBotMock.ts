@@ -15,7 +15,7 @@ interface SendMessageResponse {
     options: SendMessageOptions;
 }
 
-export interface MockTelegramBot {
+export interface MockTelegramBotInterface {
     messageSent: boolean;
     errors: { [key: string]: string | undefined };
     sendMessage: (
@@ -26,22 +26,22 @@ export interface MockTelegramBot {
     setExpectedError: (method: string, error: string) => void;
 }
 
-export class MockTelegramBot implements MockTelegramBot {
-    constructor() {
-        // Use self since it is not a reserved term in js
-        // Can access self from inside a method and still get the class
-        const self = this;
-        self.messageSent = false;
-        self.errors = {};
-        self.sendMessage = function (channelId, msg, options) {
-            if (!self.errors.sendMessage) {
-                self.messageSent = true;
-                return { success: true, channelId, msg, options };
-            }
-            throw new Error(self.errors.sendMessage);
-        };
-        self.setExpectedError = function (method, error) {
-            self.errors[method] = error;
-        };
+export class MockTelegramBot implements MockTelegramBotInterface {
+    public messageSent = false;
+    public errors: { [key: string]: string | undefined } = {};
+    public sendMessage(
+        channelId: string,
+        msg: string,
+        options: SendMessageOptions,
+    ): SendMessageResponse {
+        if (!this.errors.sendMessage) {
+            this.messageSent = true;
+            return { success: true, channelId, msg, options };
+        }
+        throw new Error(this.errors.sendMessage || 'Unknown error');
+    }
+
+    public setExpectedError(method: string, error: string): void {
+        this.errors[method] = error;
     }
 }

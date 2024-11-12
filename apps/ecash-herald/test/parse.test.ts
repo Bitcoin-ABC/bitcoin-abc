@@ -287,8 +287,8 @@ describe('parse.js functions', function () {
         memoFixtures.map(memoTestObj => {
             const { outputScript, msg } = memoTestObj;
             // Get array of pushes
-            let stack = { remainingHex: outputScript.slice(2) };
-            let stackArray = [];
+            const stack = { remainingHex: outputScript.slice(2) };
+            const stackArray = [];
             while (stack.remainingHex.length > 0) {
                 stackArray.push(consumeNextPush(stack).data);
             }

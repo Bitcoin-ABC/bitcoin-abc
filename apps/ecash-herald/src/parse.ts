@@ -128,98 +128,7 @@ interface TokenActions {
         | TokenAction
         | { hasBaton: boolean; amount: string; count?: number };
 }
-/**
- * Parse a finalized block for newsworthy information
- * @param blockHash
- * @param blockHeight
- * @param txs
- */
-export const parseBlockTxs = (
-    blockHash: string,
-    blockHeight: number,
-    txs: Tx[],
-): HeraldParsedBlock => {
-    // Parse coinbase string
-    const coinbaseTx = txs[0];
-    const miner = getMinerFromCoinbaseTx(
-        coinbaseTx.inputs[0].inputScript,
-        coinbaseTx.outputs,
-        miners,
-    );
-    let staker = getStakerFromCoinbaseTx(blockHeight, coinbaseTx.outputs);
-    if (staker !== false) {
-        try {
-            staker.staker = cashaddr.encodeOutputScript(staker.staker);
-        } catch (err) {
-            staker.staker = 'script(' + staker.staker + ')';
-        }
-    }
 
-    // Start with i=1 to skip Coinbase tx
-    let parsedTxs = [];
-    for (let i = 1; i < txs.length; i += 1) {
-        parsedTxs.push(parseTx(txs[i]));
-    }
-
-    // Sort parsedTxs by totalSatsSent, highest to lowest
-    parsedTxs = parsedTxs.sort((a, b) => {
-        return b.totalSatsSent - a.totalSatsSent;
-    });
-
-    // Collect token info needed to parse token send txs
-    const tokenIds: Set<string> = new Set(); // we only need each tokenId once
-    // Collect outputScripts seen in this block to parse for balance
-    let outputScripts: Set<string> = new Set();
-    for (let i = 0; i < parsedTxs.length; i += 1) {
-        const thisParsedTx = parsedTxs[i];
-        if (thisParsedTx.tokenSendInfo) {
-            tokenIds.add(thisParsedTx.tokenSendInfo.tokenId);
-        }
-        if (thisParsedTx.genesisInfo) {
-            tokenIds.add(thisParsedTx.genesisInfo.tokenId);
-        }
-        if (thisParsedTx.tokenBurnInfo) {
-            tokenIds.add(thisParsedTx.tokenBurnInfo.tokenId);
-        }
-        // Some OP_RETURN txs also have token IDs we need to parse
-        // SWaP txs, (TODO: airdrop txs)
-        if (thisParsedTx.opReturnInfo && thisParsedTx.opReturnInfo.tokenId) {
-            tokenIds.add(thisParsedTx.opReturnInfo.tokenId);
-        }
-        const { xecSendingOutputScripts, xecReceivingOutputs } = thisParsedTx;
-
-        // Only add the first sending and receiving output script,
-        // As you will only render balance emojis for these
-        outputScripts.add(xecSendingOutputScripts.values().next().value!);
-
-        // For receiving outputScripts, add the first that is not OP_RETURN
-        // So, get an array of the outputScripts first
-        const xecReceivingOutputScriptsArray: string[] = Array.from(
-            xecReceivingOutputs.keys(),
-        );
-        for (let j = 0; j < xecReceivingOutputScriptsArray.length; j += 1) {
-            if (
-                !xecReceivingOutputScriptsArray[j].startsWith(
-                    opReturn.opReturnPrefix,
-                )
-            ) {
-                outputScripts.add(xecReceivingOutputScriptsArray[j]);
-                // Exit loop after you've added the first non-OP_RETURN outputScript
-                break;
-            }
-        }
-    }
-    return {
-        hash: blockHash,
-        height: blockHeight,
-        miner,
-        staker,
-        numTxs: txs.length,
-        parsedTxs,
-        tokenIds,
-        outputScripts,
-    };
-};
 export const getStakerFromCoinbaseTx = (
     blockHeight: number,
     coinbaseOutputs: TxOutput[],
@@ -233,7 +142,7 @@ export const getStakerFromCoinbaseTx = (
     const totalCoinbaseSats = coinbaseOutputs
         .map(output => output.value)
         .reduce((prev, curr) => prev + curr, 0);
-    for (let output of coinbaseOutputs) {
+    for (const output of coinbaseOutputs) {
         const thisValue = output.value;
         const minStakerValue = Math.floor(
             totalCoinbaseSats * STAKING_REWARDS_PERCENT * 0.01,
@@ -368,506 +277,6 @@ export const getMinerFromCoinbaseTx = (
 };
 
 /**
- * Parse an eCash tx as returned by chronik for newsworthy information
- */
-export const parseTx = (tx: Tx): HeraldParsedTx => {
-    const { txid, inputs, outputs } = tx;
-
-    let isTokenTx = false;
-    let genesisInfo: false | { tokenId: string } = false;
-    let opReturnInfo: false | HeraldOpReturnInfo = false;
-
-    /* Token send parsing info
-     *
-     * Note that token send amounts received from chronik do not account for
-     * token decimals. Decimalized amounts require token genesisInfo
-     * decimals param to calculate
-     */
-
-    /* tokenSendInfo
-     * `false` for txs that are not etoken send txs
-     * an object containing info about the token send for token send txs
-     */
-    let tokenSendInfo: false | TokenSendInfo = false;
-    let tokenSendingOutputScripts: Set<string> = new Set();
-    let tokenReceivingOutputs = new Map();
-    let tokenChangeOutputs = new Map();
-    let undecimalizedTokenInputAmount = new BigNumber(0);
-
-    // tokenBurn parsing variables
-    let tokenBurnInfo:
-        | false
-        | {
-              tokenId: string;
-              undecimalizedTokenBurnAmount: string;
-          } = false;
-
-    /* Collect xecSendInfo for all txs, since all txs are XEC sends
-     * You may later want to render xecSendInfo for tokenSends, appTxs, etc,
-     * maybe on special conditions, e.g.a token send tx that also sends a bunch of xec
-     */
-
-    // xecSend parsing variables
-    let xecSendingOutputScripts: Set<string> = new Set();
-    let xecReceivingOutputs = new Map();
-    let xecInputAmountSats = 0;
-    let xecOutputAmountSats = 0;
-    let totalSatsSent = 0;
-    let changeAmountSats = 0;
-
-    if (
-        tx.tokenStatus !== 'TOKEN_STATUS_NON_TOKEN' &&
-        tx.tokenEntries.length > 0
-    ) {
-        isTokenTx = true;
-
-        // We may have more than one token action in a given tx
-        // chronik will reflect this by having multiple entries in the tokenEntries array
-
-        // For now, just parse the first action
-        // TODO handle txs with multiple tokenEntries
-        const parsedTokenAction = tx.tokenEntries[0];
-
-        const { tokenId, tokenType, txType, burnSummary, actualBurnAmount } =
-            parsedTokenAction;
-        const { protocol, number } = tokenType;
-        const isUnintentionalBurn =
-            burnSummary !== '' && actualBurnAmount !== '0';
-
-        // Get token type
-        // TODO present the token type in msgs
-        let parsedTokenType = '';
-        switch (protocol) {
-            case 'ALP': {
-                parsedTokenType = 'ALP';
-                break;
-            }
-            case 'SLP': {
-                if (number === SLP_1_PROTOCOL_NUMBER) {
-                    parsedTokenType = 'SLP';
-                } else if (number === SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER) {
-                    parsedTokenType = 'NFT Collection';
-                } else if (number === SLP_1_NFT_PROTOCOL_NUMBER) {
-                    parsedTokenType = 'NFT';
-                }
-                break;
-            }
-            default: {
-                parsedTokenType = `${protocol} ${number}`;
-                break;
-            }
-        }
-
-        switch (txType) {
-            case 'GENESIS': {
-                // Note that NNG chronik provided genesisInfo in this tx
-                // Now we get it from chronik.token
-                // Initialize genesisInfo object with tokenId so it can be rendered into a msg later
-                genesisInfo = { tokenId };
-                break;
-            }
-            case 'SEND': {
-                if (isUnintentionalBurn) {
-                    tokenBurnInfo = {
-                        tokenId,
-                        undecimalizedTokenBurnAmount: actualBurnAmount,
-                    };
-                } else {
-                    tokenSendInfo = {
-                        tokenId,
-                        parsedTokenType,
-                        txType,
-                    };
-                }
-                break;
-            }
-            // TODO handle MINT
-            default: {
-                // For now, if we can't parse as above, this will be parsed as an eCash tx (or EMPP)
-                break;
-            }
-        }
-    }
-    for (const input of inputs) {
-        if (typeof input.outputScript !== 'undefined') {
-            xecSendingOutputScripts.add(input.outputScript);
-        }
-
-        xecInputAmountSats += input.value;
-        // The input that sent the token utxos will have key 'slpToken'
-        if (typeof input.token !== 'undefined') {
-            // Add amount to undecimalizedTokenInputAmount
-            // TODO make sure this is for the correct tokenID
-            // Could have mistakes in parsing ALP txs otherwise
-            // For now, this is outside the scope of migration
-            undecimalizedTokenInputAmount = undecimalizedTokenInputAmount.plus(
-                input.token.amount,
-            );
-            // Collect the input outputScripts to identify change output
-            if (typeof input.outputScript !== 'undefined') {
-                tokenSendingOutputScripts.add(input.outputScript);
-            }
-        }
-    }
-
-    // Iterate over outputs to check for OP_RETURN msgs
-    for (const output of outputs) {
-        const { value, outputScript } = output;
-        xecOutputAmountSats += value;
-        // If this output script is the same as one of the sendingOutputScripts
-        if (xecSendingOutputScripts.has(outputScript)) {
-            // Then this XEC amount is change
-            changeAmountSats += value;
-        } else {
-            // Add an xecReceivingOutput
-
-            // Add outputScript and value to map
-            // If this outputScript is already in xecReceivingOutputs, increment its value
-            xecReceivingOutputs.set(
-                outputScript,
-                (xecReceivingOutputs.get(outputScript) ?? 0) + value,
-            );
-
-            // Increment totalSatsSent
-            totalSatsSent += value;
-        }
-        // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
-        if (outputScript.startsWith(opReturn.opReturnPrefix) && !isTokenTx) {
-            opReturnInfo = parseOpReturn(outputScript.slice(2));
-        }
-        // For etoken send txs, parse outputs for tokenSendInfo object
-        if (typeof output.token !== 'undefined') {
-            // TODO handle EMPP and potential token txs with multiple tokens involved
-            // Check output script to confirm does not match tokenSendingOutputScript
-            if (tokenSendingOutputScripts.has(outputScript)) {
-                // change
-                tokenChangeOutputs.set(
-                    outputScript,
-                    (
-                        tokenChangeOutputs.get(outputScript) ?? new BigNumber(0)
-                    ).plus(output.token.amount),
-                );
-            } else {
-                /* This is the sent token qty
-                 *
-                 * Add outputScript and undecimalizedTokenReceivedAmount to map
-                 * If this outputScript is already in tokenReceivingOutputs, increment undecimalizedTokenReceivedAmount
-                 * note that thisOutput.slpToken.amount is a string so you do not want to add it
-                 * BigNumber library is required for token calculations
-                 */
-                tokenReceivingOutputs.set(
-                    outputScript,
-                    (
-                        tokenReceivingOutputs.get(outputScript) ??
-                        new BigNumber(0)
-                    ).plus(output.token.amount),
-                );
-            }
-        }
-    }
-
-    // Determine tx fee
-    const txFee = xecInputAmountSats - xecOutputAmountSats;
-
-    // If this is a token send tx, return token send parsing info and not 'false' for tokenSendInfo
-    if (tokenSendInfo) {
-        tokenSendInfo.tokenChangeOutputs = tokenChangeOutputs;
-        tokenSendInfo.tokenReceivingOutputs = tokenReceivingOutputs;
-        tokenSendInfo.tokenSendingOutputScripts = tokenSendingOutputScripts;
-    }
-
-    // If this tx sent XEC to itself, reassign changeAmountSats to totalSatsSent
-    // Need to do this to prevent self-send txs being sorted at the bottom of msgs
-    if (xecReceivingOutputs.size === 0) {
-        totalSatsSent = changeAmountSats;
-    }
-
-    return {
-        txid,
-        genesisInfo,
-        opReturnInfo,
-        txFee,
-        xecSendingOutputScripts,
-        xecReceivingOutputs,
-        totalSatsSent,
-        tokenSendInfo,
-        tokenBurnInfo,
-    };
-};
-
-/**
- *
- * @param {string} opReturnHex an OP_RETURN outputScript with '6a' removed
- * @returns {object} {app, msg} an object with app and msg params used to generate msg
- */
-export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
-    // Initialize required vars
-    let app;
-    let msg;
-    let tokenId: string | false = false;
-
-    // Get array of pushes
-    let stack = { remainingHex: opReturnHex };
-    let stackArray = [];
-    while (stack.remainingHex.length > 0) {
-        const { data } = consumeNextPush(stack);
-        if (data !== '') {
-            // You may have an empty push in the middle of a complicated tx for some reason
-            // Mb some libraries erroneously create these
-            // e.g. https://explorer.e.cash/tx/70c2842e1b2c7eb49ee69cdecf2d6f3cd783c307c4cbeef80f176159c5891484
-            // has 4c000100 for last characters. 4c00 is just nothing.
-            // But you want to know 00 and have the correct array index
-            stackArray.push(data);
-        }
-    }
-
-    // Get the protocolIdentifier, the first push
-    const protocolIdentifier = stackArray[0];
-
-    // Test for memo
-    // Memo prefixes are special in that they are two bytes instead of the usual four
-    // Also, memo has many prefixes, in that the action is also encoded in these two bytes
-    if (
-        protocolIdentifier.startsWith(opReturn.memo.prefix) &&
-        protocolIdentifier.length === 4
-    ) {
-        // If the protocol identifier is two bytes long (4 characters), parse for memo tx
-        // For now, send the same info to this function that it currently parses
-        // TODO parseMemoOutputScript needs to be refactored to use ecash-script
-        return parseMemoOutputScript(stackArray);
-    }
-
-    // Test for other known apps with known msg processing methods
-    switch (protocolIdentifier) {
-        case opReturn.opReserved: {
-            // Parse for empp OP_RETURN
-            // Spec https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/chronik/bitcoinsuite-slp/src/empp/mod.rs
-            return parseMultipushStack(stackArray);
-        }
-        case opReturn.knownApps.alias.prefix: {
-            app = opReturn.knownApps.alias.app;
-            /*
-                For now, parse and render alias txs by going through OP_RETURN
-                When aliases are live, refactor to use alias-server for validation
-                <protocolIdentifier> <version> <alias> <address type + hash>
-
-                Only parse the msg if the tx is constructed correctly
-                */
-            msg =
-                stackArray.length === 4 && stackArray[1] === '00'
-                    ? prepareStringForTelegramHTML(
-                          Buffer.from(stackArray[2], 'hex').toString('utf8'),
-                      )
-                    : 'Invalid alias registration';
-
-            break;
-        }
-        case opReturn.knownApps.airdrop.prefix: {
-            app = opReturn.knownApps.airdrop.app;
-
-            // Initialize msg as empty string. Need tokenId info to complete.
-            msg = '';
-
-            // Airdrop tx has structure
-            // <prefix> <tokenId>
-
-            // Cashtab allows sending a cashtab msg with an airdrop
-            // These look like
-            // <prefix> <tokenId> <cashtabMsgPrefix> <msg>
-            if (stackArray.length >= 2 && stackArray[1].length === 64) {
-                tokenId = stackArray[1];
-            }
-            break;
-        }
-        case opReturn.knownApps.cashtabMsg.prefix: {
-            app = opReturn.knownApps.cashtabMsg.app;
-            // For a Cashtab msg, the next push on the stack is the Cashtab msg
-            // Cashtab msgs use utf8 encoding
-
-            // Valid Cashtab Msg
-            // <protocol identifier> <msg in utf8>
-            msg =
-                stackArray.length >= 2
-                    ? prepareStringForTelegramHTML(
-                          Buffer.from(stackArray[1], 'hex').toString('utf8'),
-                      )
-                    : `Invalid ${app}`;
-            break;
-        }
-        case opReturn.knownApps.cashtabMsgEncrypted.prefix: {
-            app = opReturn.knownApps.cashtabMsgEncrypted.app;
-            // For an encrypted cashtab msg, you can't parse and display the msg
-            msg = '';
-            // You will add info about the tx when you build the msg
-            break;
-        }
-        case opReturn.knownApps.fusionLegacy.prefix:
-        case opReturn.knownApps.fusion.prefix: {
-            /**
-             * Cash Fusion tx
-             * <protocolIdentifier> <sessionHash>
-             * https://github.com/cashshuffle/spec/blob/master/CASHFUSION.md
-             */
-            app = opReturn.knownApps.fusion.app;
-            // The session hash is not particularly interesting to users
-            // Provide tx info in telegram prep function
-            msg = '';
-            break;
-        }
-        case opReturn.knownApps.swap.prefix: {
-            // Swap txs require special parsing that should be done in getSwapTgMsg
-            // We may need to get info about a token ID before we can
-            // create a good msg
-            app = opReturn.knownApps.swap.app;
-            msg = '';
-
-            if (
-                stackArray.length >= 3 &&
-                stackArray[1] === '01' &&
-                stackArray[2] === '01' &&
-                stackArray[3].length === 64
-            ) {
-                // If this is a signal for buy or sell of a token, save the token id
-                // Ref https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
-                // A buy or sell signal tx will have '01' at stackArray[1] and stackArray[2] and
-                // token id at stackArray[3]
-                tokenId = stackArray[3];
-            }
-            break;
-        }
-        case opReturn.knownApps.payButton.prefix: {
-            app = opReturn.knownApps.payButton.app;
-            // PayButton v0
-            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
-            // <lokad> <OP_0> <data> <nonce>
-            // The data could be interesting, ignore the rest
-            if (stackArray.length >= 3) {
-                // Version byte is at index 1
-                const payButtonTxVersion = stackArray[1];
-                if (payButtonTxVersion !== '00') {
-                    msg = `Unsupported version: 0x${payButtonTxVersion}`;
-                } else {
-                    const dataPush = stackArray[2];
-                    if (dataPush === '00') {
-                        // Per spec, PayButton txs with no data push OP_0 in this position
-                        msg = 'no data';
-                    } else {
-                        // Data is utf8 encoded
-                        msg = prepareStringForTelegramHTML(
-                            Buffer.from(stackArray[2], 'hex').toString('utf8'),
-                        );
-                    }
-                }
-            } else {
-                msg = '[off spec]';
-            }
-            break;
-        }
-        case opReturn.knownApps.paywall.prefix: {
-            app = opReturn.knownApps.paywall.app;
-            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/op_return-prefix-guideline.md
-            // <lokad> <txid of the article this paywall is paying for>
-            if (stackArray.length === 2) {
-                const articleTxid = stackArray[1];
-                if (
-                    typeof articleTxid === 'undefined' ||
-                    articleTxid.length !== 64
-                ) {
-                    msg = `Invalid paywall article txid`;
-                } else {
-                    msg = `<a href="${config.blockExplorer}/tx/${articleTxid}">Article paywall payment</a>`;
-                }
-            } else {
-                msg = '[off spec paywall payment]';
-            }
-            break;
-        }
-        case opReturn.knownApps.authentication.prefix: {
-            app = opReturn.knownApps.authentication.app;
-            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/op_return-prefix-guideline.md
-            // <lokad> <authentication identifier>
-            if (stackArray.length === 2) {
-                const authenticationHex = stackArray[1];
-                if (authenticationHex === '00') {
-                    msg = `Invalid eCashChat authentication identifier`;
-                } else {
-                    msg = 'eCashChat authentication via dust tx';
-                }
-            } else {
-                msg = '[off spec eCashChat authentication]';
-            }
-            break;
-        }
-        default: {
-            // If you do not recognize the protocol identifier, just print the pushes in hex
-            // If it is an app or follows a pattern, can be added later
-            app = 'unknown';
-
-            if (containsOnlyPrintableAscii(stackArray.join(''))) {
-                msg = prepareStringForTelegramHTML(
-                    Buffer.from(stackArray.join(''), 'hex').toString('ascii'),
-                );
-            } else {
-                // If you have non-ascii characters, print each push as a hex number
-                msg = '';
-                for (let i = 0; i < stackArray.length; i += 1) {
-                    msg += `0x${stackArray[i]} `;
-                }
-                // Remove the last space
-                msg = msg.slice(0, -1);
-
-                // Trim the msg for Telegram to avoid 200+ char msgs
-                const unknownMaxChars = 20;
-                if (msg.length > unknownMaxChars) {
-                    msg = msg.slice(0, unknownMaxChars) + '...';
-                }
-            }
-
-            break;
-        }
-    }
-
-    return { app, msg, stackArray, tokenId };
-};
-
-/**
- * Parse an empp stack for a simplified slp v2 description
- * TODO expand for parsing other types of empp txs as specs or examples are known
- * @param {array} emppStackArray an array containing a hex string for every push of this memo OP_RETURN outputScript
- * @returns {object} {app, msg} used to compose a useful telegram msg describing the transaction
- */
-export const parseMultipushStack = (
-    emppStackArray: string[],
-): HeraldOpReturnInfo => {
-    // Note that an empp push may not necessarily include traditionally parsed pushes
-    // i.e. consumeNextPush({remainingHex:<emppPush>}) may throw an error
-    // For example, SLPv2 txs do not include a push for their prefix
-
-    // So, parsing empp txs will require specific rules depending on the type of tx
-    let msgs = [];
-
-    // Start at i=1 because emppStackArray[0] is OP_RESERVED
-    for (let i = 1; i < emppStackArray.length; i += 1) {
-        if (emppStackArray[i].slice(0, 8) === opReturn.knownApps.slp2.prefix) {
-            // Parse string for slp v2
-            const thisMsg = parseSlpTwo(emppStackArray[i].slice(8));
-            msgs.push(`${opReturn.knownApps.slp2.app}:${thisMsg}`);
-        } else {
-            // Since we don't know any spec or parsing rules for other types of EMPP pushes,
-            // Just add an ASCII decode of the whole thing if you see one
-            msgs.push(
-                `${'Unknown App:'}${Buffer.from(
-                    emppStackArray[i],
-                    'hex',
-                ).toString('ascii')}`,
-            );
-        }
-        // Do not parse any other empp (haven't seen any in the wild, no existing specs to follow)
-    }
-    return { app: 'EMPP', msg: msgs.length > 0 ? msgs.join('|') : '' };
-};
-
-/**
  * Stub method to parse slp two empps
  * @param {string} slpTwoPush a string of hex characters in an empp tx representing an slp2 push
  * @returns {string} For now, just the section type, if token type is correct
@@ -881,7 +290,7 @@ export const parseSlpTwo = (slpTwoPush: string): string => {
     // Create a stack to use ecash-script consume function
     // Note: slp2 parsing is not standard op_return parsing, varchar bytes just use a one-byte push
     // So, you can use the 'consume' function of ecash-script, but not consumeNextPush
-    let stack = { remainingHex: slpTwoPush };
+    const stack = { remainingHex: slpTwoPush };
 
     // 1.3: Read token type
     // For now, this can only be 00. If not 00, unknown
@@ -957,6 +366,43 @@ export const parseSlpTwo = (slpTwoPush: string): string => {
 };
 
 /**
+ * Parse an empp stack for a simplified slp v2 description
+ * TODO expand for parsing other types of empp txs as specs or examples are known
+ * @param {array} emppStackArray an array containing a hex string for every push of this memo OP_RETURN outputScript
+ * @returns {object} {app, msg} used to compose a useful telegram msg describing the transaction
+ */
+export const parseMultipushStack = (
+    emppStackArray: string[],
+): HeraldOpReturnInfo => {
+    // Note that an empp push may not necessarily include traditionally parsed pushes
+    // i.e. consumeNextPush({remainingHex:<emppPush>}) may throw an error
+    // For example, SLPv2 txs do not include a push for their prefix
+
+    // So, parsing empp txs will require specific rules depending on the type of tx
+    const msgs = [];
+
+    // Start at i=1 because emppStackArray[0] is OP_RESERVED
+    for (let i = 1; i < emppStackArray.length; i += 1) {
+        if (emppStackArray[i].slice(0, 8) === opReturn.knownApps.slp2.prefix) {
+            // Parse string for slp v2
+            const thisMsg = parseSlpTwo(emppStackArray[i].slice(8));
+            msgs.push(`${opReturn.knownApps.slp2.app}:${thisMsg}`);
+        } else {
+            // Since we don't know any spec or parsing rules for other types of EMPP pushes,
+            // Just add an ASCII decode of the whole thing if you see one
+            msgs.push(
+                `${'Unknown App:'}${Buffer.from(
+                    emppStackArray[i],
+                    'hex',
+                ).toString('ascii')}`,
+            );
+        }
+        // Do not parse any other empp (haven't seen any in the wild, no existing specs to follow)
+    }
+    return { app: 'EMPP', msg: msgs.length > 0 ? msgs.join('|') : '' };
+};
+
+/**
  * Parse a stackArray according to OP_RETURN rules to convert to a useful tg msg
  * @param stackArray an array containing a hex string for every push of this memo OP_RETURN outputScript
  * @returns A useful string to describe this tx in a telegram msg
@@ -964,7 +410,7 @@ export const parseSlpTwo = (slpTwoPush: string): string => {
 export const parseMemoOutputScript = (
     stackArray: string[],
 ): HeraldOpReturnInfo => {
-    let app = opReturn.memo.app;
+    const app = opReturn.memo.app;
     let msg = '';
 
     // Get the action code from stackArray[0]
@@ -1199,6 +645,562 @@ export const parseMemoOutputScript = (
 };
 
 /**
+ *
+ * @param {string} opReturnHex an OP_RETURN outputScript with '6a' removed
+ * @returns {object} {app, msg} an object with app and msg params used to generate msg
+ */
+export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
+    // Initialize required vars
+    let app;
+    let msg;
+    let tokenId: string | false = false;
+
+    // Get array of pushes
+    const stack = { remainingHex: opReturnHex };
+    const stackArray = [];
+    while (stack.remainingHex.length > 0) {
+        const { data } = consumeNextPush(stack);
+        if (data !== '') {
+            // You may have an empty push in the middle of a complicated tx for some reason
+            // Mb some libraries erroneously create these
+            // e.g. https://explorer.e.cash/tx/70c2842e1b2c7eb49ee69cdecf2d6f3cd783c307c4cbeef80f176159c5891484
+            // has 4c000100 for last characters. 4c00 is just nothing.
+            // But you want to know 00 and have the correct array index
+            stackArray.push(data);
+        }
+    }
+
+    // Get the protocolIdentifier, the first push
+    const protocolIdentifier = stackArray[0];
+
+    // Test for memo
+    // Memo prefixes are special in that they are two bytes instead of the usual four
+    // Also, memo has many prefixes, in that the action is also encoded in these two bytes
+    if (
+        protocolIdentifier.startsWith(opReturn.memo.prefix) &&
+        protocolIdentifier.length === 4
+    ) {
+        // If the protocol identifier is two bytes long (4 characters), parse for memo tx
+        // For now, send the same info to this function that it currently parses
+        // TODO parseMemoOutputScript needs to be refactored to use ecash-script
+        return parseMemoOutputScript(stackArray);
+    }
+
+    // Test for other known apps with known msg processing methods
+    switch (protocolIdentifier) {
+        case opReturn.opReserved: {
+            // Parse for empp OP_RETURN
+            // Spec https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/chronik/bitcoinsuite-slp/src/empp/mod.rs
+            return parseMultipushStack(stackArray);
+        }
+        case opReturn.knownApps.alias.prefix: {
+            app = opReturn.knownApps.alias.app;
+            /*
+                For now, parse and render alias txs by going through OP_RETURN
+                When aliases are live, refactor to use alias-server for validation
+                <protocolIdentifier> <version> <alias> <address type + hash>
+
+                Only parse the msg if the tx is constructed correctly
+                */
+            msg =
+                stackArray.length === 4 && stackArray[1] === '00'
+                    ? prepareStringForTelegramHTML(
+                          Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                      )
+                    : 'Invalid alias registration';
+
+            break;
+        }
+        case opReturn.knownApps.airdrop.prefix: {
+            app = opReturn.knownApps.airdrop.app;
+
+            // Initialize msg as empty string. Need tokenId info to complete.
+            msg = '';
+
+            // Airdrop tx has structure
+            // <prefix> <tokenId>
+
+            // Cashtab allows sending a cashtab msg with an airdrop
+            // These look like
+            // <prefix> <tokenId> <cashtabMsgPrefix> <msg>
+            if (stackArray.length >= 2 && stackArray[1].length === 64) {
+                tokenId = stackArray[1];
+            }
+            break;
+        }
+        case opReturn.knownApps.cashtabMsg.prefix: {
+            app = opReturn.knownApps.cashtabMsg.app;
+            // For a Cashtab msg, the next push on the stack is the Cashtab msg
+            // Cashtab msgs use utf8 encoding
+
+            // Valid Cashtab Msg
+            // <protocol identifier> <msg in utf8>
+            msg =
+                stackArray.length >= 2
+                    ? prepareStringForTelegramHTML(
+                          Buffer.from(stackArray[1], 'hex').toString('utf8'),
+                      )
+                    : `Invalid ${app}`;
+            break;
+        }
+        case opReturn.knownApps.cashtabMsgEncrypted.prefix: {
+            app = opReturn.knownApps.cashtabMsgEncrypted.app;
+            // For an encrypted cashtab msg, you can't parse and display the msg
+            msg = '';
+            // You will add info about the tx when you build the msg
+            break;
+        }
+        case opReturn.knownApps.fusionLegacy.prefix:
+        case opReturn.knownApps.fusion.prefix: {
+            /**
+             * Cash Fusion tx
+             * <protocolIdentifier> <sessionHash>
+             * https://github.com/cashshuffle/spec/blob/master/CASHFUSION.md
+             */
+            app = opReturn.knownApps.fusion.app;
+            // The session hash is not particularly interesting to users
+            // Provide tx info in telegram prep function
+            msg = '';
+            break;
+        }
+        case opReturn.knownApps.swap.prefix: {
+            // Swap txs require special parsing that should be done in getSwapTgMsg
+            // We may need to get info about a token ID before we can
+            // create a good msg
+            app = opReturn.knownApps.swap.app;
+            msg = '';
+
+            if (
+                stackArray.length >= 3 &&
+                stackArray[1] === '01' &&
+                stackArray[2] === '01' &&
+                stackArray[3].length === 64
+            ) {
+                // If this is a signal for buy or sell of a token, save the token id
+                // Ref https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
+                // A buy or sell signal tx will have '01' at stackArray[1] and stackArray[2] and
+                // token id at stackArray[3]
+                tokenId = stackArray[3];
+            }
+            break;
+        }
+        case opReturn.knownApps.payButton.prefix: {
+            app = opReturn.knownApps.payButton.app;
+            // PayButton v0
+            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
+            // <lokad> <OP_0> <data> <nonce>
+            // The data could be interesting, ignore the rest
+            if (stackArray.length >= 3) {
+                // Version byte is at index 1
+                const payButtonTxVersion = stackArray[1];
+                if (payButtonTxVersion !== '00') {
+                    msg = `Unsupported version: 0x${payButtonTxVersion}`;
+                } else {
+                    const dataPush = stackArray[2];
+                    if (dataPush === '00') {
+                        // Per spec, PayButton txs with no data push OP_0 in this position
+                        msg = 'no data';
+                    } else {
+                        // Data is utf8 encoded
+                        msg = prepareStringForTelegramHTML(
+                            Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                        );
+                    }
+                }
+            } else {
+                msg = '[off spec]';
+            }
+            break;
+        }
+        case opReturn.knownApps.paywall.prefix: {
+            app = opReturn.knownApps.paywall.app;
+            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/op_return-prefix-guideline.md
+            // <lokad> <txid of the article this paywall is paying for>
+            if (stackArray.length === 2) {
+                const articleTxid = stackArray[1];
+                if (
+                    typeof articleTxid === 'undefined' ||
+                    articleTxid.length !== 64
+                ) {
+                    msg = `Invalid paywall article txid`;
+                } else {
+                    msg = `<a href="${config.blockExplorer}/tx/${articleTxid}">Article paywall payment</a>`;
+                }
+            } else {
+                msg = '[off spec paywall payment]';
+            }
+            break;
+        }
+        case opReturn.knownApps.authentication.prefix: {
+            app = opReturn.knownApps.authentication.app;
+            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/op_return-prefix-guideline.md
+            // <lokad> <authentication identifier>
+            if (stackArray.length === 2) {
+                const authenticationHex = stackArray[1];
+                if (authenticationHex === '00') {
+                    msg = `Invalid eCashChat authentication identifier`;
+                } else {
+                    msg = 'eCashChat authentication via dust tx';
+                }
+            } else {
+                msg = '[off spec eCashChat authentication]';
+            }
+            break;
+        }
+        default: {
+            // If you do not recognize the protocol identifier, just print the pushes in hex
+            // If it is an app or follows a pattern, can be added later
+            app = 'unknown';
+
+            if (containsOnlyPrintableAscii(stackArray.join(''))) {
+                msg = prepareStringForTelegramHTML(
+                    Buffer.from(stackArray.join(''), 'hex').toString('ascii'),
+                );
+            } else {
+                // If you have non-ascii characters, print each push as a hex number
+                msg = '';
+                for (let i = 0; i < stackArray.length; i += 1) {
+                    msg += `0x${stackArray[i]} `;
+                }
+                // Remove the last space
+                msg = msg.slice(0, -1);
+
+                // Trim the msg for Telegram to avoid 200+ char msgs
+                const unknownMaxChars = 20;
+                if (msg.length > unknownMaxChars) {
+                    msg = msg.slice(0, unknownMaxChars) + '...';
+                }
+            }
+
+            break;
+        }
+    }
+
+    return { app, msg, stackArray, tokenId };
+};
+
+/**
+ * Parse an eCash tx as returned by chronik for newsworthy information
+ */
+export const parseTx = (tx: Tx): HeraldParsedTx => {
+    const { txid, inputs, outputs } = tx;
+
+    let isTokenTx = false;
+    let genesisInfo: false | { tokenId: string } = false;
+    let opReturnInfo: false | HeraldOpReturnInfo = false;
+
+    /* Token send parsing info
+     *
+     * Note that token send amounts received from chronik do not account for
+     * token decimals. Decimalized amounts require token genesisInfo
+     * decimals param to calculate
+     */
+
+    /* tokenSendInfo
+     * `false` for txs that are not etoken send txs
+     * an object containing info about the token send for token send txs
+     */
+    let tokenSendInfo: false | TokenSendInfo = false;
+    const tokenSendingOutputScripts: Set<string> = new Set();
+    const tokenReceivingOutputs = new Map();
+    const tokenChangeOutputs = new Map();
+    let undecimalizedTokenInputAmount = new BigNumber(0);
+
+    // tokenBurn parsing variables
+    let tokenBurnInfo:
+        | false
+        | {
+              tokenId: string;
+              undecimalizedTokenBurnAmount: string;
+          } = false;
+
+    /* Collect xecSendInfo for all txs, since all txs are XEC sends
+     * You may later want to render xecSendInfo for tokenSends, appTxs, etc,
+     * maybe on special conditions, e.g.a token send tx that also sends a bunch of xec
+     */
+
+    // xecSend parsing variables
+    const xecSendingOutputScripts: Set<string> = new Set();
+    const xecReceivingOutputs = new Map();
+    let xecInputAmountSats = 0;
+    let xecOutputAmountSats = 0;
+    let totalSatsSent = 0;
+    let changeAmountSats = 0;
+
+    if (
+        tx.tokenStatus !== 'TOKEN_STATUS_NON_TOKEN' &&
+        tx.tokenEntries.length > 0
+    ) {
+        isTokenTx = true;
+
+        // We may have more than one token action in a given tx
+        // chronik will reflect this by having multiple entries in the tokenEntries array
+
+        // For now, just parse the first action
+        // TODO handle txs with multiple tokenEntries
+        const parsedTokenAction = tx.tokenEntries[0];
+
+        const { tokenId, tokenType, txType, burnSummary, actualBurnAmount } =
+            parsedTokenAction;
+        const { protocol, number } = tokenType;
+        const isUnintentionalBurn =
+            burnSummary !== '' && actualBurnAmount !== '0';
+
+        // Get token type
+        // TODO present the token type in msgs
+        let parsedTokenType = '';
+        switch (protocol) {
+            case 'ALP': {
+                parsedTokenType = 'ALP';
+                break;
+            }
+            case 'SLP': {
+                if (number === SLP_1_PROTOCOL_NUMBER) {
+                    parsedTokenType = 'SLP';
+                } else if (number === SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER) {
+                    parsedTokenType = 'NFT Collection';
+                } else if (number === SLP_1_NFT_PROTOCOL_NUMBER) {
+                    parsedTokenType = 'NFT';
+                }
+                break;
+            }
+            default: {
+                parsedTokenType = `${protocol} ${number}`;
+                break;
+            }
+        }
+
+        switch (txType) {
+            case 'GENESIS': {
+                // Note that NNG chronik provided genesisInfo in this tx
+                // Now we get it from chronik.token
+                // Initialize genesisInfo object with tokenId so it can be rendered into a msg later
+                genesisInfo = { tokenId };
+                break;
+            }
+            case 'SEND': {
+                if (isUnintentionalBurn) {
+                    tokenBurnInfo = {
+                        tokenId,
+                        undecimalizedTokenBurnAmount: actualBurnAmount,
+                    };
+                } else {
+                    tokenSendInfo = {
+                        tokenId,
+                        parsedTokenType,
+                        txType,
+                    };
+                }
+                break;
+            }
+            // TODO handle MINT
+            default: {
+                // For now, if we can't parse as above, this will be parsed as an eCash tx (or EMPP)
+                break;
+            }
+        }
+    }
+    for (const input of inputs) {
+        if (typeof input.outputScript !== 'undefined') {
+            xecSendingOutputScripts.add(input.outputScript);
+        }
+
+        xecInputAmountSats += input.value;
+        // The input that sent the token utxos will have key 'slpToken'
+        if (typeof input.token !== 'undefined') {
+            // Add amount to undecimalizedTokenInputAmount
+            // TODO make sure this is for the correct tokenID
+            // Could have mistakes in parsing ALP txs otherwise
+            // For now, this is outside the scope of migration
+            undecimalizedTokenInputAmount = undecimalizedTokenInputAmount.plus(
+                input.token.amount,
+            );
+            // Collect the input outputScripts to identify change output
+            if (typeof input.outputScript !== 'undefined') {
+                tokenSendingOutputScripts.add(input.outputScript);
+            }
+        }
+    }
+
+    // Iterate over outputs to check for OP_RETURN msgs
+    for (const output of outputs) {
+        const { value, outputScript } = output;
+        xecOutputAmountSats += value;
+        // If this output script is the same as one of the sendingOutputScripts
+        if (xecSendingOutputScripts.has(outputScript)) {
+            // Then this XEC amount is change
+            changeAmountSats += value;
+        } else {
+            // Add an xecReceivingOutput
+
+            // Add outputScript and value to map
+            // If this outputScript is already in xecReceivingOutputs, increment its value
+            xecReceivingOutputs.set(
+                outputScript,
+                (xecReceivingOutputs.get(outputScript) ?? 0) + value,
+            );
+
+            // Increment totalSatsSent
+            totalSatsSent += value;
+        }
+        // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
+        if (outputScript.startsWith(opReturn.opReturnPrefix) && !isTokenTx) {
+            opReturnInfo = parseOpReturn(outputScript.slice(2));
+        }
+        // For etoken send txs, parse outputs for tokenSendInfo object
+        if (typeof output.token !== 'undefined') {
+            // TODO handle EMPP and potential token txs with multiple tokens involved
+            // Check output script to confirm does not match tokenSendingOutputScript
+            if (tokenSendingOutputScripts.has(outputScript)) {
+                // change
+                tokenChangeOutputs.set(
+                    outputScript,
+                    (
+                        tokenChangeOutputs.get(outputScript) ?? new BigNumber(0)
+                    ).plus(output.token.amount),
+                );
+            } else {
+                /* This is the sent token qty
+                 *
+                 * Add outputScript and undecimalizedTokenReceivedAmount to map
+                 * If this outputScript is already in tokenReceivingOutputs, increment undecimalizedTokenReceivedAmount
+                 * note that thisOutput.slpToken.amount is a string so you do not want to add it
+                 * BigNumber library is required for token calculations
+                 */
+                tokenReceivingOutputs.set(
+                    outputScript,
+                    (
+                        tokenReceivingOutputs.get(outputScript) ??
+                        new BigNumber(0)
+                    ).plus(output.token.amount),
+                );
+            }
+        }
+    }
+
+    // Determine tx fee
+    const txFee = xecInputAmountSats - xecOutputAmountSats;
+
+    // If this is a token send tx, return token send parsing info and not 'false' for tokenSendInfo
+    if (tokenSendInfo) {
+        tokenSendInfo.tokenChangeOutputs = tokenChangeOutputs;
+        tokenSendInfo.tokenReceivingOutputs = tokenReceivingOutputs;
+        tokenSendInfo.tokenSendingOutputScripts = tokenSendingOutputScripts;
+    }
+
+    // If this tx sent XEC to itself, reassign changeAmountSats to totalSatsSent
+    // Need to do this to prevent self-send txs being sorted at the bottom of msgs
+    if (xecReceivingOutputs.size === 0) {
+        totalSatsSent = changeAmountSats;
+    }
+
+    return {
+        txid,
+        genesisInfo,
+        opReturnInfo,
+        txFee,
+        xecSendingOutputScripts,
+        xecReceivingOutputs,
+        totalSatsSent,
+        tokenSendInfo,
+        tokenBurnInfo,
+    };
+};
+
+/**
+ * Parse a finalized block for newsworthy information
+ * @param blockHash
+ * @param blockHeight
+ * @param txs
+ */
+export const parseBlockTxs = (
+    blockHash: string,
+    blockHeight: number,
+    txs: Tx[],
+): HeraldParsedBlock => {
+    // Parse coinbase string
+    const coinbaseTx = txs[0];
+    const miner = getMinerFromCoinbaseTx(
+        coinbaseTx.inputs[0].inputScript,
+        coinbaseTx.outputs,
+        miners,
+    );
+    const staker = getStakerFromCoinbaseTx(blockHeight, coinbaseTx.outputs);
+    if (staker !== false) {
+        try {
+            staker.staker = cashaddr.encodeOutputScript(staker.staker);
+        } catch {
+            staker.staker = 'script(' + staker.staker + ')';
+        }
+    }
+
+    // Start with i=1 to skip Coinbase tx
+    let parsedTxs = [];
+    for (let i = 1; i < txs.length; i += 1) {
+        parsedTxs.push(parseTx(txs[i]));
+    }
+
+    // Sort parsedTxs by totalSatsSent, highest to lowest
+    parsedTxs = parsedTxs.sort((a, b) => {
+        return b.totalSatsSent - a.totalSatsSent;
+    });
+
+    // Collect token info needed to parse token send txs
+    const tokenIds: Set<string> = new Set(); // we only need each tokenId once
+    // Collect outputScripts seen in this block to parse for balance
+    const outputScripts: Set<string> = new Set();
+    for (let i = 0; i < parsedTxs.length; i += 1) {
+        const thisParsedTx = parsedTxs[i];
+        if (thisParsedTx.tokenSendInfo) {
+            tokenIds.add(thisParsedTx.tokenSendInfo.tokenId);
+        }
+        if (thisParsedTx.genesisInfo) {
+            tokenIds.add(thisParsedTx.genesisInfo.tokenId);
+        }
+        if (thisParsedTx.tokenBurnInfo) {
+            tokenIds.add(thisParsedTx.tokenBurnInfo.tokenId);
+        }
+        // Some OP_RETURN txs also have token IDs we need to parse
+        // SWaP txs, (TODO: airdrop txs)
+        if (thisParsedTx.opReturnInfo && thisParsedTx.opReturnInfo.tokenId) {
+            tokenIds.add(thisParsedTx.opReturnInfo.tokenId);
+        }
+        const { xecSendingOutputScripts, xecReceivingOutputs } = thisParsedTx;
+
+        // Only add the first sending and receiving output script,
+        // As you will only render balance emojis for these
+        outputScripts.add(xecSendingOutputScripts.values().next().value!);
+
+        // For receiving outputScripts, add the first that is not OP_RETURN
+        // So, get an array of the outputScripts first
+        const xecReceivingOutputScriptsArray: string[] = Array.from(
+            xecReceivingOutputs.keys(),
+        );
+        for (let j = 0; j < xecReceivingOutputScriptsArray.length; j += 1) {
+            if (
+                !xecReceivingOutputScriptsArray[j].startsWith(
+                    opReturn.opReturnPrefix,
+                )
+            ) {
+                outputScripts.add(xecReceivingOutputScriptsArray[j]);
+                // Exit loop after you've added the first non-OP_RETURN outputScript
+                break;
+            }
+        }
+    }
+    return {
+        hash: blockHash,
+        height: blockHeight,
+        miner,
+        staker,
+        numTxs: txs.length,
+        parsedTxs,
+        tokenIds,
+        outputScripts,
+    };
+};
+
+/**
  * Build a msg about an encrypted cashtab msg tx
  * @param sendingAddress
  * @param xecReceivingOutputs
@@ -1211,13 +1213,13 @@ export const getEncryptedCashtabMsg = (
     totalSatsSent: number,
     coingeckoPrices: false | CoinGeckoPrice[],
 ): string => {
-    let displayedSentQtyString = satsToFormattedValue(
+    const displayedSentQtyString = satsToFormattedValue(
         totalSatsSent,
         coingeckoPrices,
     );
 
     // Remove OP_RETURNs from xecReceivingOutputs
-    let receivingOutputscripts = [];
+    const receivingOutputscripts = [];
     for (const outputScript of xecReceivingOutputs.keys()) {
         if (!outputScript.startsWith(opReturn.opReturnPrefix)) {
             receivingOutputscripts.push(outputScript);
@@ -1269,7 +1271,7 @@ export const getAirdropTgMsg = (
     // Intialize msg with preview of sending address
     let msg = `${returnAddressPreview(airdropSendingAddress)} airdropped `;
 
-    let displayedAirdroppedQtyString = satsToFormattedValue(
+    const displayedAirdroppedQtyString = satsToFormattedValue(
         totalSatsAirdropped,
         coingeckoPrices,
     );
@@ -1529,7 +1531,8 @@ export const getBlockTgMessage = (
             // The txid of a genesis tx is the tokenId
             const tokenId = txid;
             const genesisInfoForThisToken = tokenInfoMap.get(tokenId);
-            let { tokenTicker, tokenName, url } = genesisInfoForThisToken!;
+            let { tokenTicker, tokenName } = genesisInfoForThisToken!;
+            const { url } = genesisInfoForThisToken!;
             // Make sure tokenName does not contain telegram html escape characters
             tokenName = prepareStringForTelegramHTML(tokenName);
             // Make sure tokenName does not contain telegram html escape characters
@@ -1544,7 +1547,8 @@ export const getBlockTgMessage = (
             continue;
         }
         if (opReturnInfo) {
-            let { app, msg, stackArray, tokenId } = opReturnInfo;
+            let { app, msg } = opReturnInfo;
+            const { stackArray, tokenId } = opReturnInfo;
             let appEmoji = '';
 
             switch (app) {
@@ -1624,7 +1628,7 @@ export const getBlockTgMessage = (
                 }
                 case opReturn.knownApps.fusion.app: {
                     // totalSatsSent is total amount fused
-                    let displayedFusedQtyString = satsToFormattedValue(
+                    const displayedFusedQtyString = satsToFormattedValue(
                         totalSatsSent,
                         coingeckoPrices,
                     );
@@ -1648,7 +1652,7 @@ export const getBlockTgMessage = (
 
         if (tokenSendInfo && tokenInfoMap && !tokenBurnInfo) {
             // If this is a token send tx that does not burn any tokens and you have tokenInfoMap
-            let { tokenId, tokenChangeOutputs, tokenReceivingOutputs } =
+            const { tokenId, tokenChangeOutputs, tokenReceivingOutputs } =
                 tokenSendInfo;
 
             // Special handling for Cashtab rewards
@@ -1672,7 +1676,8 @@ export const getBlockTgMessage = (
                 // Get token info from tokenInfoMap
                 const thisTokenInfo = tokenInfoMap.get(tokenId);
 
-                let { tokenTicker, tokenName, decimals } = thisTokenInfo!;
+                let { tokenTicker, tokenName } = thisTokenInfo!;
+                const { decimals } = thisTokenInfo!;
                 // Note: tokenDocumentUrl and tokenDocumentHash are also available from thisTokenInfo
 
                 // Make sure tokenName does not contain telegram html escape characters
@@ -1681,7 +1686,7 @@ export const getBlockTgMessage = (
                 tokenTicker = prepareStringForTelegramHTML(tokenTicker);
 
                 // Initialize token outputs (could be receiving or change depending on tx type)
-                let tokenOutputs =
+                const tokenOutputs =
                     tokenReceivingOutputs!.size === 0
                         ? tokenChangeOutputs
                         : tokenReceivingOutputs;
@@ -1704,7 +1709,7 @@ export const getBlockTgMessage = (
             } else {
                 // We do have other txs for this token, increment the tx count and amount sent
                 // Initialize token outputs (could be receiving or change depending on tx type)
-                let tokenOutputs =
+                const tokenOutputs =
                     tokenReceivingOutputs!.size === 0
                         ? tokenChangeOutputs
                         : tokenReceivingOutputs;
@@ -1743,7 +1748,8 @@ export const getBlockTgMessage = (
 
                 // Get token info from tokenInfoMap
                 const thisTokenInfo = tokenInfoMap.get(tokenId);
-                let { tokenTicker, decimals } = thisTokenInfo!;
+                let { tokenTicker } = thisTokenInfo!;
+                const { decimals } = thisTokenInfo!;
 
                 // Make sure tokenName does not contain telegram html escape characters
                 tokenTicker = prepareStringForTelegramHTML(tokenTicker);
@@ -1781,7 +1787,7 @@ export const getBlockTgMessage = (
         const displayedTxFee = satsToFormattedValue(txFee, coingeckoPrices);
 
         // Clone xecReceivingOutputs so that you don't modify unit test mocks
-        let xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
+        const xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
 
         // Throw out OP_RETURN outputs for txs parsed as XEC send txs
         xecReceivingAddressOutputs.forEach((value, key, map) => {
@@ -2169,7 +2175,7 @@ export const guessRejectReason = async (
                             wrongWinner.staker,
                         );
                         return `wrong staking reward payout (${wrongWinnerAddress} instead of ${address})`;
-                    } catch (err) {
+                    } catch {
                         // Fallthrough
                     }
                 }
@@ -2187,7 +2193,7 @@ export const guessRejectReason = async (
     try {
         const blockAtSameHeight = await chronik.block(blockHeight);
         return `orphaned by block ${blockAtSameHeight.blockInfo.hash}`;
-    } catch (err) {
+    } catch {
         // Block not found, keep guessing
     }
 
@@ -2196,6 +2202,42 @@ export const guessRejectReason = async (
     // rejected due to RTT violation.
 
     return 'unknown';
+};
+
+/**
+ * Initialize action data for a token if not yet intialized
+ * Update action count if initialized
+ * @param tokenActionMap
+ * @param existingAction result from tokenActionMap.get(tokenId)
+ * @param tokenId
+ * @param action
+ */
+export const initializeOrIncrementTokenData = (
+    tokenActionMap: Map<string, TokenActions>,
+    existingActions: undefined | TokenActions,
+    tokenId: string,
+    action: TrackedTokenAction,
+) => {
+    tokenActionMap.set(
+        tokenId,
+        typeof existingActions === 'undefined'
+            ? {
+                  [action]: {
+                      count: 1,
+                  },
+                  actionCount: 1,
+              }
+            : {
+                  ...existingActions,
+                  [action]: {
+                      count:
+                          action in existingActions
+                              ? existingActions[action]!.count! + 1
+                              : 1,
+                  },
+                  actionCount: existingActions.actionCount + 1,
+              },
+    );
 };
 
 /**
@@ -2301,7 +2343,7 @@ export const summarizeTxHistory = (
             if (miner.includes('ViaBTC')) {
                 viaBtcBlocks += 1;
                 // ViaBTC pool miner
-                let blocksFoundThisViaMiner = viabtcMinerMap.get(miner);
+                const blocksFoundThisViaMiner = viabtcMinerMap.get(miner);
                 if (typeof blocksFoundThisViaMiner === 'undefined') {
                     viabtcMinerMap.set(miner, 1);
                 } else {
@@ -2309,7 +2351,7 @@ export const summarizeTxHistory = (
                 }
             } else {
                 // Other miner
-                let blocksFoundThisMiner = minerMap.get(miner);
+                const blocksFoundThisMiner = minerMap.get(miner);
                 if (typeof blocksFoundThisMiner === 'undefined') {
                     minerMap.set(miner, 1);
                 } else {
@@ -2326,7 +2368,7 @@ export const summarizeTxHistory = (
 
                 totalStakingRewardSats += reward;
 
-                let stakingRewardsThisStaker = stakerMap.get(staker);
+                const stakingRewardsThisStaker = stakerMap.get(staker);
                 if (typeof stakingRewardsThisStaker === 'undefined') {
                     stakerMap.set(staker, { count: 1, reward });
                 } else {
@@ -2559,7 +2601,7 @@ export const summarizeTxHistory = (
                                                 break;
                                             }
                                         }
-                                    } catch (err) {
+                                    } catch {
                                         console.error(
                                             `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
                                         );
@@ -2601,7 +2643,7 @@ export const summarizeTxHistory = (
                                             break;
                                             // Stop iterating over outputs
                                         }
-                                    } catch (err) {
+                                    } catch {
                                         console.error(
                                             `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
                                         );
@@ -2846,7 +2888,7 @@ export const summarizeTxHistory = (
                                                 }
                                             }
                                         }
-                                    } catch (err) {
+                                    } catch {
                                         console.error(
                                             `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
                                         );
@@ -2886,7 +2928,7 @@ export const summarizeTxHistory = (
                                             break;
                                             // Stop iterating over outputs
                                         }
-                                    } catch (err) {
+                                    } catch {
                                         console.error(
                                             `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
                                         );
@@ -3662,40 +3704,4 @@ export const summarizeTxHistory = (
     }
 
     return splitOverflowTgMsg(tgMsg);
-};
-
-/**
- * Initialize action data for a token if not yet intialized
- * Update action count if initialized
- * @param tokenActionMap
- * @param existingAction result from tokenActionMap.get(tokenId)
- * @param tokenId
- * @param action
- */
-export const initializeOrIncrementTokenData = (
-    tokenActionMap: Map<string, TokenActions>,
-    existingActions: undefined | TokenActions,
-    tokenId: string,
-    action: TrackedTokenAction,
-) => {
-    tokenActionMap.set(
-        tokenId,
-        typeof existingActions === 'undefined'
-            ? {
-                  [action]: {
-                      count: 1,
-                  },
-                  actionCount: 1,
-              }
-            : {
-                  ...existingActions,
-                  [action]: {
-                      count:
-                          action in existingActions
-                              ? existingActions[action]!.count! + 1
-                              : 1,
-                  },
-                  actionCount: existingActions.actionCount + 1,
-              },
-    );
 };

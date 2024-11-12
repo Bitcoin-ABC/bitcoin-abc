@@ -1,8 +1,7 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-// Disable as these are "used" to match the expected tg format
-/* eslint no-useless-escape: 0 */
+
 import { GenesisInfo } from 'chronik-client';
 import opReturn from '../../constants/op_return';
 import { CoinGeckoPrice } from '../../src/utils';
@@ -532,7 +531,7 @@ const appTxSamples: AppTxSamples = {
                 '50',
                 '534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd03204e00000000cc7400000000640000000000',
             ],
-            msg: `${opReturn.knownApps.slp2.app}:SEND|<a href=\"https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145\">CRD</a>|0.142`,
+            msg: `${opReturn.knownApps.slp2.app}:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.142`,
         },
         {
             txid: 'f0548510095dfbbe31cbeb27e3c0a340aabaad12f98d4ec6f563602a9f3f5499',
@@ -570,7 +569,7 @@ const appTxSamples: AppTxSamples = {
                 '534c5032c80453454e440748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac63503102700000000584d00000000640000000000',
                 '04007461622846726f6d20467265657865632c207468616e6b20796f7520666f7220796f757220737570706f7274',
             ],
-            msg: `${opReturn.knownApps.slp2.app}:Unknown token type|SEND|<a href=\"https://explorer.e.cash/tx/35c69a8035a43a46172b022a77f060618660dcdead8e8332cfc24773e4da4807\">35c...807</a>|Unknown App:\u0004\u0000tab(From Freexec, thank you for your support`,
+            msg: `${opReturn.knownApps.slp2.app}:Unknown token type|SEND|<a href="https://explorer.e.cash/tx/35c69a8035a43a46172b022a77f060618660dcdead8e8332cfc24773e4da4807">35c...807</a>|Unknown App:\u0004\u0000tab(From Freexec, thank you for your support`,
         },
     ],
     aliasRegistrations: [

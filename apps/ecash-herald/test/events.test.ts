@@ -18,7 +18,7 @@ import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { caching, MemoryCache } from 'cache-manager';
-import FakeTimers from '@sinonjs/fake-timers';
+import FakeTimers, { InstalledClock } from '@sinonjs/fake-timers';
 const block: StoredMock = JSON.parse(
     JSON.stringify(unrevivedBlock),
     jsonReviver,
@@ -34,7 +34,7 @@ describe('ecash-herald events.js', async function () {
         });
     });
 
-    let clock: any;
+    let clock: InstalledClock;
     beforeEach(() => {
         clock = FakeTimers.install();
     });
@@ -57,7 +57,7 @@ describe('ecash-herald events.js', async function () {
         // Tell mockedChronik what response we expect for chronik.script(type, hash).utxos
         const { outputScriptInfoMap } = thisBlock;
         outputScriptInfoMap.forEach((info, outputScript) => {
-            let { type, hash } =
+            const { type, hash } =
                 cashaddr.getTypeAndHashFromOutputScript(outputScript);
             const { utxos } = info;
             mockedChronik.setScript(type, hash);
@@ -110,7 +110,7 @@ describe('ecash-herald events.js', async function () {
         assert.strictEqual(telegramBot.messageSent, true);
 
         // Build expected array of successful msg returns
-        let msgSuccessArray = [];
+        const msgSuccessArray = [];
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
@@ -188,7 +188,7 @@ describe('ecash-herald events.js', async function () {
         assert.strictEqual(telegramBot.messageSent, true);
 
         // Build expected array of successful msg returns
-        let msgSuccessArray = [];
+        const msgSuccessArray = [];
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
@@ -329,7 +329,7 @@ describe('ecash-herald events.js', async function () {
         // Check that sendMessage was called successfully
         assert.strictEqual(telegramBot.messageSent, true);
 
-        let msgSuccess = {
+        const msgSuccess = {
             success: true,
             channelId,
             msg: blockInvalidedTgMsg,

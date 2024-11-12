@@ -121,7 +121,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         // Tell mockedChronik what response we expect for chronik.script(type, hash).utxos
         const { outputScriptInfoMap } = thisBlock;
         outputScriptInfoMap.forEach((info, outputScript) => {
-            let { type, hash } =
+            const { type, hash } =
                 cashaddr.getTypeAndHashFromOutputScript(outputScript);
             const { utxos } = info;
             mockedChronik.setScript(type, hash);
@@ -184,7 +184,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         );
 
         // Build expected array of successful msg returns
-        let msgSuccessArray = [];
+        const msgSuccessArray = [];
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
@@ -273,7 +273,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         );
 
         // Build expected array of successful msg returns
-        let msgSuccessArray = [];
+        const msgSuccessArray = [];
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
@@ -394,7 +394,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
 
         assert.strictEqual(telegramBot.messageSent, true);
 
-        let msgSuccess = {
+        const msgSuccess = {
             success: true,
             channelId,
             msg: blockInvalidedTgMsg,

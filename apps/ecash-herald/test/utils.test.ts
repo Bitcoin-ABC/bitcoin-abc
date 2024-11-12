@@ -376,11 +376,11 @@ describe('ecash-telegram-bot utils.js functions', function () {
         for (let i = 0; i < names.length; i += 1) {
             // Really bad types in the config as app was written without ts
             // TODO fixme
-            // @ts-ignore
+            // @ts-expect-error config object developed before typescript implementation
             const balanceSats = whaleSats[names[i]];
             assert.strictEqual(
                 getEmojiFromBalanceSats(balanceSats),
-                // @ts-ignore
+                // @ts-expect-error config object developed before typescript implementation
                 emojis[names[i]],
             );
         }

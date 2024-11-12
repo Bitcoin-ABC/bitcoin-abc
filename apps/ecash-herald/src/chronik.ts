@@ -20,7 +20,7 @@ export const getTokenInfoMap = async (
     chronik: ChronikClient,
     tokenIdSet: Set<string>,
 ) => {
-    let tokenInfoMap: TokenInfoMap = new Map();
+    const tokenInfoMap: TokenInfoMap = new Map();
     const tokenInfoPromises: Promise<void>[] = [];
     tokenIdSet.forEach(tokenId => {
         tokenInfoPromises.push(
@@ -79,7 +79,7 @@ export const getOutputscriptInfoMap = async (
     chronik: ChronikClient,
     outputScripts: Set<string>,
 ): Promise<false | Map<string, OutputscriptInfo>> => {
-    let outputScriptInfoMap = new Map();
+    const outputScriptInfoMap = new Map();
     const outputScriptInfoPromises: Promise<void>[] = [];
 
     // For each outputScript, create a promise to get its balance and add

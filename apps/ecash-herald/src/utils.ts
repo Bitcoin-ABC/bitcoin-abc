@@ -39,22 +39,26 @@ export const getCoingeckoApiUrl = (config: HeraldConfig): string => {
     }&precision=${config.priceApi.precision.toString()}`;
 };
 
-// CoinGeckoResponse: any
 export interface CoinGeckoPrice {
     fiat: FiatCode;
     price: number;
     ticker: string;
 }
+export interface CoinGeckoResponse {
+    bitcoin: { usd: number };
+    ethereum: { usd: number };
+    ecash: { usd: number };
+}
 interface GetCoingeckPricesResponse {
-    coingeckoResponse: any;
+    coingeckoResponse: CoinGeckoResponse;
     coingeckoPrices: CoinGeckoPrice[];
 }
 export const getCoingeckoPrices = async (
     priceInfoObj: HeraldPriceApi,
 ): Promise<false | GetCoingeckPricesResponse> => {
     const { apiBase, cryptos, fiat, precision } = priceInfoObj;
-    let coingeckoSlugs = cryptos.map(crypto => crypto.coingeckoSlug);
-    let apiUrl = `${apiBase}?ids=${coingeckoSlugs.join(
+    const coingeckoSlugs = cryptos.map(crypto => crypto.coingeckoSlug);
+    const apiUrl = `${apiBase}?ids=${coingeckoSlugs.join(
         ',',
     )}&vs_currencies=${fiat}&precision=${precision.toString()}`;
     // https://api.coingecko.com/api/v3/simple/price?ids=ecash,bitcoin,ethereum&vs_currencies=usd&precision=8
@@ -64,7 +68,7 @@ export const getCoingeckoPrices = async (
         const { data } = coingeckoApiResponse;
         // Validate for expected shape
         // For each key in `cryptoIds`, data must contain {<fiat>: <price>}
-        let coingeckoPriceArray = [];
+        const coingeckoPriceArray = [];
         if (data && typeof data === 'object') {
             for (let i = 0; i < coingeckoSlugs.length; i += 1) {
                 const thisCoingeckoSlug = coingeckoSlugs[i];
@@ -197,7 +201,7 @@ export const satsToFormattedValue = (
     const { fiat, price } = coingeckoPrices[0];
 
     // Get fiat price
-    let fiatAmount = xecAmount * price;
+    const fiatAmount = xecAmount * price;
     const fiatSymbol: string = config.fiatReference[fiat] as string;
 
     // Format fiatAmount for different tiers
@@ -239,7 +243,9 @@ export const satsToFormattedValue = (
         localeOptions,
     )}${descriptor}`;
 };
-export const jsonReplacer = function (key: any, value: any) {
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const jsonReplacer = function (key: string, value: any) {
     if (value instanceof Map) {
         const keyValueArray = Array.from(value.entries());
 
@@ -277,7 +283,9 @@ export const jsonReplacer = function (key: any, value: any) {
         return value;
     }
 };
-export const jsonReviver = (key: any, value: any) => {
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const jsonReviver = (key: string, value: any) => {
     if (typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
             // If the map is not empty
@@ -293,7 +301,7 @@ export const jsonReviver = (key: any, value: any) => {
                 // Iterate over each keyValue of the map
                 for (let i = 0; i < value.value.length; i += 1) {
                     const thisKeyValuePair = value.value[i]; // [key, value]
-                    let thisValue = thisKeyValuePair[1];
+                    const thisValue = thisKeyValuePair[1];
                     if (
                         thisValue &&
                         thisValue.dataType === 'BigNumberReplacer'
@@ -322,8 +330,10 @@ export const jsonReviver = (key: any, value: any) => {
  * @param {map} map
  * @returns array
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mapToKeyValueArray = (map: Map<any, any>): Array<[any, any]> => {
-    let kvArray: Array<[any, any]> = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const kvArray: Array<[any, any]> = [];
     map.forEach((value, key) => {
         kvArray.push([key, value]);
     });
@@ -463,6 +473,7 @@ export const getNextStakingReward = async (
             }
         } catch (err) {
             // Fallthrough
+            console.error(`Error in getting next staking reward`, err);
         }
 
         retries -= 1;

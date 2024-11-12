@@ -1,37 +1,12 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import { ChronikClient, WsEndpoint, WsMsgClient } from 'chronik-client';
 import { handleBlockFinalized, handleBlockInvalidated } from './events';
 import TelegramBot from 'node-telegram-bot-api';
 import { MemoryCache } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
-
-export const initializeWebsocket = async (
-    chronik: ChronikClient,
-    telegramBot: TelegramBot | MockTelegramBot,
-    channelId: string,
-    memoryCache: MemoryCache,
-): Promise<WsEndpoint> => {
-    // Subscribe to chronik websocket
-    const ws = chronik.ws({
-        onMessage: async msg => {
-            await parseWebsocketMessage(
-                chronik,
-                msg,
-                telegramBot,
-                channelId,
-                memoryCache,
-            );
-        },
-    });
-    // Wait for WS to be connected:
-    await ws.waitForOpen();
-    console.log(`Listening for chronik block msgs`);
-    // Subscribe to blocks
-    ws.subscribeToBlocks();
-    return ws;
-};
 
 export const parseWebsocketMessage = async (
     chronik: ChronikClient,
@@ -83,4 +58,30 @@ export const parseWebsocketMessage = async (
             // Do nothing for other events
             return false;
     }
+};
+
+export const initializeWebsocket = async (
+    chronik: ChronikClient,
+    telegramBot: TelegramBot | MockTelegramBot,
+    channelId: string,
+    memoryCache: MemoryCache,
+): Promise<WsEndpoint> => {
+    // Subscribe to chronik websocket
+    const ws = chronik.ws({
+        onMessage: async msg => {
+            await parseWebsocketMessage(
+                chronik,
+                msg,
+                telegramBot,
+                channelId,
+                memoryCache,
+            );
+        },
+    });
+    // Wait for WS to be connected:
+    await ws.waitForOpen();
+    console.log(`Listening for chronik block msgs`);
+    // Subscribe to blocks
+    ws.subscribeToBlocks();
+    return ws;
 };

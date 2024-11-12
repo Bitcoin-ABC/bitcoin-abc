@@ -112,16 +112,16 @@ async function generateMock(
     });
 
     // Determine which, if any, txids need to be added to savedBlock
-    let newTxids = [];
-    for (let i in txids) {
+    const newTxids: string[] = [];
+    for (const i in txids) {
         if (!savedTxids.includes(txids[i])) {
             newTxids.push(txids[i]);
         }
     }
 
     // Build array of promises to get txid info from chronik
-    let chronikTxidPromises = [];
-    for (let i in newTxids) {
+    const chronikTxidPromises = [];
+    for (const i in newTxids) {
         chronikTxidPromises.push(
             new Promise<Tx>((resolve, reject) => {
                 chronik.tx(newTxids[i]).then(
@@ -177,7 +177,7 @@ async function generateMock(
     });
 
     outputScripts.forEach(outputScript => {
-        let { type, hash } =
+        const { type, hash } =
             cashaddr.getTypeAndHashFromOutputScript(outputScript);
         mockedChronik.setScript(type, hash);
 
@@ -237,7 +237,7 @@ async function generateMock(
     // We want this string to appear in the generated blocks.js file,
     // but not in this file, as we want this file to show up in phab diffs
 
-    const mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n\nconst mockedBlock: any =${JSON.stringify(
+    const mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n\n// eslint-disable-next-line @typescript-eslint/no-explicit-any\nconst mockedBlock: any =${JSON.stringify(
         returnedMocks,
         jsonReplacer,
         2,
