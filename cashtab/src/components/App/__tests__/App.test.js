@@ -250,7 +250,7 @@ describe('<App />', () => {
         // We do not expect to see hamburger menu items before the menu is clicked
         // This is handled by dynamic css changes, so test that
         expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-height: 0`,
+            `max-width: 0`,
         );
 
         // Click the hamburger menu
@@ -258,7 +258,7 @@ describe('<App />', () => {
 
         // Now we see these items
         expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-height: 100vh`,
+            `max-width: 100%`,
         );
 
         // Navigate to Airdrop screen
@@ -275,7 +275,7 @@ describe('<App />', () => {
 
         // The hamburger menu closes on nav
         expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-height: 0`,
+            `max-width: 0`,
         );
 
         // ... but, we can still click these items with the testing library, so we do

@@ -4,6 +4,7 @@
 
 import styled, { createGlobalStyle, css } from 'styled-components';
 import { ToastContainer } from 'react-toastify';
+import { CashtabScroll } from 'components/Common/Atoms';
 
 export const ExtensionFrame = createGlobalStyle`
     html, body {
@@ -119,7 +120,10 @@ export const NavIcon = styled.span`
     width: 2rem;
     height: 2px;
     display: inline-block;
-    transition: transform 300ms, top 300ms, background-color 300ms;
+    transition:
+        transform 300ms,
+        top 300ms,
+        background-color 300ms;
     &::before,
     &::after {
         content: '';
@@ -129,7 +133,10 @@ export const NavIcon = styled.span`
         display: inline-block;
         position: absolute;
         left: 0;
-        transition: transform 300ms, top 300ms, background-color 300ms;
+        transition:
+            transform 300ms,
+            top 300ms,
+            background-color 300ms;
     }
     &::before {
         top: ${props => (props.clicked ? '0' : '-0.8rem')};
@@ -143,43 +150,35 @@ export const NavIcon = styled.span`
 `;
 
 export const NavMenu = styled.div`
-    position: fixed;
-    margin-right: 125px;
+    position: absolute;
     bottom: 80px;
+    right: 0px;
     display: flex;
-    width: 225px;
     flex-direction: column;
     border: ${props => (props.open ? '1px solid' : '0px solid')};
     border-color: ${props =>
         props.open ? props.theme.contrast : 'transparent'};
-    justify-content: center;
-    align-items: center;
-    @media (max-width: 768px) {
-        right: 0;
-        margin-right: 0;
-    }
-    overflow: hidden;
-    transition: ${props =>
-        props.open
-            ? 'max-height 250ms ease-in-out , border-color 250ms ease-in-out, border-width 250ms ease-in-out'
-            : 'max-height 250ms cubic-bezier(0, 1, 0, 1), border-color 250ms ease-in-out, border-width 250ms ease-in-out'};
-    max-height: ${props => (props.open ? '100vh' : '0')};
+    overflow: auto;
+    transition: all 250ms ease-in-out;
+    max-height: calc(100vh - 80px);
+    max-width: ${props => (props.open ? '100%' : '0')};
+    background-color: ${props => props.theme.walletBackground};
+    ${CashtabScroll}
 `;
 
 export const NavItem = styled.button`
     display: flex;
     justify-content: space-between;
     text-align: left;
-    font-size: 24px;
-    padding: 12px;
+    font-size: 22px;
+    padding: 10px 20px 10px;
     align-items: center;
     width: 100%;
     white-space: nowrap;
     background-color: ${props => props.theme.walletBackground};
-    border: 1px solid ${props => props.theme.walletBackground};
     color: ${props => props.theme.contrast};
-    gap: 6px;
     cursor: pointer;
+    border: none;
     &:hover {
         color: ${props => props.theme.eCashPurple};
         svg,
@@ -190,9 +189,10 @@ export const NavItem = styled.button`
     }
     svg {
         fill: ${props => props.theme.contrast};
-        max-width: 33px;
+        width: 28px;
         height: auto;
-        flex: 1;
+        flex-shrink: 0;
+        margin-left: 8px;
     }
     g,
     path {
