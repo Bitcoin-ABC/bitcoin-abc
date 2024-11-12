@@ -967,6 +967,11 @@ bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
         stakingReward.winners.push_back({ProofId(), payout});
     }
 
+    if (m_stakingPreConsensus) {
+        LOCK(cs_stakeContenderCache);
+        stakeContenderCache.setWinners(pprev, payouts);
+    }
+
     LOCK(cs_stakingRewards);
     return stakingRewards.insert_or_assign(pprev->GetBlockHash(), stakingReward)
         .second;

@@ -353,7 +353,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     bool setStakingRewardWinners(const CBlockIndex *pprev,
                                  const std::vector<CScript> &payouts)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_stakeContenderCache);
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode &pnode,

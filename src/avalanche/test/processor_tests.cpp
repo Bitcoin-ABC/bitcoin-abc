@@ -2479,6 +2479,46 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
                       -1);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
                       1);
+
+    // Manually set contenders as winners
+    m_processor->setStakingRewardWinners(
+        chaintip, {proof1->getPayoutScript(), proof2->getPayoutScript()});
+    // contender1 has been forgotten, which is expected. When a proof becomes
+    // invalid and is cleaned up from the cache, we do not expect peers to poll
+    // for it any more.
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block2),
+                      -1);
+    // contender2 is a winner despite avalanche not finalizing it
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
+                      0);
+
+    // Reject proof2, mine a new chain tip, finalize it, and cleanup the cache
+    m_processor->withPeerManager(
+        [&](avalanche::PeerManager &pm) { pm.rejectProof(proofid2); });
+    block = CreateAndProcessBlock({}, CScript());
+    chaintip =
+        WITH_LOCK(cs_main, return Assert(m_node.chainman)
+                               ->m_blockman.LookupBlockIndex(block.GetHash()));
+    AvalancheTest::updatedBlockTip(*m_processor);
+    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
+    m_processor->cleanupStakingRewards(chaintip->nHeight);
+
+    // Old entries were cleaned up
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block2),
+                      -1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
+                      -1);
+
+    // Neither contender was promoted and contender2 was cleaned up even though
+    // it was once a manual winner.
+    const StakeContenderId contender1_block3 =
+        StakeContenderId(chaintip->GetBlockHash(), proofid1);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block3),
+                      -1);
+    const StakeContenderId contender2_block3 =
+        StakeContenderId(chaintip->GetBlockHash(), proofid2);
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block3),
+                      -1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
