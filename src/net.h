@@ -310,7 +310,7 @@ struct CNodeStats {
     mapMsgCmdSize mapSendBytesPerMsgCmd;
     uint64_t nRecvBytes;
     mapMsgCmdSize mapRecvBytesPerMsgCmd;
-    NetPermissionFlags m_permissionFlags;
+    NetPermissionFlags m_permission_flags;
     std::chrono::microseconds m_last_ping_time;
     std::chrono::microseconds m_min_ping_time;
     // Our address, as reported by the peer
@@ -514,7 +514,7 @@ public:
     // This peer is preferred for eviction.
     const bool m_prefer_evict{false};
     bool HasPermission(NetPermissionFlags permission) const {
-        return NetPermissions::HasFlag(m_permissionFlags, permission);
+        return NetPermissions::HasFlag(m_permission_flags, permission);
     }
     std::atomic_bool fSuccessfullyConnected{false};
     // Setting fDisconnect to true will cause the node to be disconnected the
@@ -772,7 +772,7 @@ private:
     const ConnectionType m_conn_type;
     std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
 
-    const NetPermissionFlags m_permissionFlags;
+    const NetPermissionFlags m_permission_flags;
     // Used only by SocketHandler thread
     std::list<CNetMessage> vRecvMsg;
 
@@ -1117,12 +1117,12 @@ private:
      * Create a `CNode` object from a socket that has just been accepted and add
      * the node to the `m_nodes` member.
      * @param[in] hSocket Connected socket to communicate with the peer.
-     * @param[in] permissionFlags The peer's permissions.
+     * @param[in] permission_flags The peer's permissions.
      * @param[in] addr_bind The address and port at our side of the connection.
      * @param[in] addr The address and port at the peer's side of the connection
      */
     void CreateNodeFromAcceptedSocket(SOCKET hSocket,
-                                      NetPermissionFlags permissionFlags,
+                                      NetPermissionFlags permission_flags,
                                       const CAddress &addr_bind,
                                       const CAddress &addr);
 

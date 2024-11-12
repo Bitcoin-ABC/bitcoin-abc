@@ -300,7 +300,7 @@ static RPCHelpMan getpeerinfo() {
                 }
                 UniValue permissions(UniValue::VARR);
                 for (const auto &permission :
-                     NetPermissions::ToStrings(stats.m_permissionFlags)) {
+                     NetPermissions::ToStrings(stats.m_permission_flags)) {
                     permissions.push_back(permission);
                 }
                 obj.pushKV("permissions", permissions);

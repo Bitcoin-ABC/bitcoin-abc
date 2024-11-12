@@ -1308,12 +1308,12 @@ void RPCConsole::updateDetailWidget() {
                                                          : tr("Outbound"));
     ui->peerNetwork->setText(
         GUIUtil::NetworkToQString(stats->nodeStats.m_network));
-    if (stats->nodeStats.m_permissionFlags == NetPermissionFlags::None) {
+    if (stats->nodeStats.m_permission_flags == NetPermissionFlags::None) {
         ui->peerPermissions->setText(tr("N/A"));
     } else {
         QStringList permissions;
         for (const auto &permission :
-             NetPermissions::ToStrings(stats->nodeStats.m_permissionFlags)) {
+             NetPermissions::ToStrings(stats->nodeStats.m_permission_flags)) {
             permissions.append(QString::fromStdString(permission));
         }
         ui->peerPermissions->setText(permissions.join(" & "));
