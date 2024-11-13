@@ -73,11 +73,15 @@ class TrezorKeyStore(HardwareKeyStore):
         )
 
     def sign_message(self, sequence, message, password, sigtype=SignatureType.BITCOIN):
-        if sigtype == SignatureType.ECASH:
+        client = self.get_client()
+        if self.plugin.has_native_ecash_support and sigtype == SignatureType.BITCOIN:
+            raise RuntimeError(
+                _("Bitcoin message signing is not available for {}").format(self.device)
+            )
+        if not self.plugin.has_native_ecash_support and sigtype == SignatureType.ECASH:
             raise RuntimeError(
                 _("eCash message signing is not available for {}").format(self.device)
             )
-        client = self.get_client()
         address_path = self.get_derivation() + "/%d/%d" % sequence
         msg_sig = client.sign_message(address_path, message)
         return msg_sig.signature
@@ -141,6 +145,7 @@ class TrezorPlugin(HWPluginBase):
         self.libraries_available = self.check_libraries_available()
         if not self.libraries_available:
             return
+        self.has_native_ecash_support = False
         self.device_manager().register_enumerate_func(self.enumerate)
 
     def check_libraries_available(self) -> bool:
@@ -215,9 +220,28 @@ class TrezorPlugin(HWPluginBase):
             return
 
         self.print_error("connected to device at", device.path)
-        return TrezorClientBase(transport, handler, self)
+        client = TrezorClientBase(transport, handler, self)
+
+        # Note that this can be toggled from True to False if the wallet doesn't
+        # use the eCash derivation path.
+        self.has_native_ecash_support = client.atleast_version(2, 8, 6)
+        # Override the class attribute if this trezor supports the 899'
+        # derivation path
+        TrezorPlugin.SUPPORTS_XEC_BIP44_DERIVATION = self.has_native_ecash_support
+
+        return client
 
     def get_client(self, keystore, force_pair=True):
+        # We are going to interact with the device. At this stage we need to
+        # determine whether we should use the native eCash mode or the "Bitcoin
+        # Cash compatibility" mode.
+        # It is possible that the device is an up-to-date Trezor that supports
+        # eCash, but the wallet has been created from a previous version and
+        # therefore should not use the eCash derivation path. In this case we
+        # should reset the has_native_ecash_support flag to avoid making the
+        # wallet unusable.
+        self.has_native_ecash_support &= keystore.get_derivation() == "m/44'/899'/0'"
+
         devmgr = self.device_manager()
         handler = keystore.handler
         client = devmgr.client_for_keystore(self, handler, keystore, force_pair)
@@ -228,6 +252,8 @@ class TrezorPlugin(HWPluginBase):
 
     def get_coin_name(self):
         # Note: testnet supported only by unofficial firmware
+        if self.has_native_ecash_support:
+            return "Ecash Testnet" if NetworkConstants.TESTNET else "Ecash"
         return "Bcash Testnet" if NetworkConstants.TESTNET else "Bcash"
 
     def _chk_settings_do_popup_maybe(self, handler, method, model, settings):
@@ -527,9 +553,11 @@ class TrezorPlugin(HWPluginBase):
                 else:
                     raise Exception(_("Unsupported output script."))
             elif _type == TYPE_ADDRESS:
-                # ecash: addresses are not supported yet by trezor
                 ui_addr_fmt = address.FMT_UI
-                if ui_addr_fmt == address.FMT_CASHADDR:
+                if (
+                    not self.has_native_ecash_support
+                    and ui_addr_fmt == address.FMT_CASHADDR
+                ):
                     ui_addr_fmt = address.FMT_CASHADDR_BCH
 
                 addr_format = address.FMT_LEGACY
