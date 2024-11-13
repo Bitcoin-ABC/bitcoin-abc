@@ -58,6 +58,7 @@ import {
     agoraPartialCancelTx,
     agoraPartialBuxBuyTx,
     SlpNftParentMintTx,
+    partialBuyBull,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3301,6 +3302,77 @@ describe('<Tx />', () => {
         expect(
             screen.getByText(
                 `Sold ${SOLD_AMOUNT} ${agoraPartialBuxBuyTx.cache[0][1].genesisInfo.tokenTicker}`,
+            ),
+        ).toBeInTheDocument();
+    });
+    it('Another agora partial sell tx renders correct sell amount (token info available in cache)', async () => {
+        const thisMock = partialBuyBull;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={thisMock.tx}
+                        hashes={[
+                            thisMock.sendingHash,
+                            'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
+                            '1fb76a7db96fc774cbad00e8a72890602b4be304',
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(thisMock.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Nov 6, 2024, 02:33:04')).toBeInTheDocument();
+
+        // We see the purchase price in XEC and fiat, as sale earnings
+        expect(screen.getByText('28.13k XEC')).toBeInTheDocument();
+        expect(screen.getByText('$0.84')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // We see the Agora Sale icon
+        expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(
+            screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
+        ).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(
+            screen.getByText(
+                `(${thisMock.cache[0][1].genesisInfo.tokenTicker})`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the expected token action
+        const SOLD_AMOUNT = '375';
+        expect(
+            screen.getByText(
+                `Sold ${SOLD_AMOUNT} ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
             ),
         ).toBeInTheDocument();
     });

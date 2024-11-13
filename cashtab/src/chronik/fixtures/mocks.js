@@ -10320,6 +10320,226 @@ export const agoraPartialBuxBuyTx = {
     ],
 };
 
+// 3ada11ca38e5da8bfda9b045ab7412cecff5b788aad8e49673183010e725099e
+export const partialBuyBull = {
+    tx: {
+        txid: '3ada11ca38e5da8bfda9b045ab7412cecff5b788aad8e49673183010e725099e',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '20469a4316506e0fea99ad0673d6663f2f546c0aad84b741e08c4d0f9248b18c',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '0441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1404799ed59b763768b8e7385a35c0a357e624e1725154d4c3240f38edc021527b267881f2078be11f89221f6c8036c156274742dae00ce8a88bb6ee527bc18dc744422020000000000001976a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac4d420100000000001976a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac4d32018cb148920f4d8ce041b784ad0a6c542f3f66d67306ad99ea0f6e5016439a462001000000d97b63817b6ea26976046de4ff17a26976033b62109700887d94527901377f75789263587e78033b6210965880bc007e7e68587e5279033b6210965880bc007e7e825980bc7c7e01007e7b03288f009303298f009657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d9007f5c7f7701207f547f7504f3282c4e886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffffca3033eea929796cc020b87c909e38d37943502aa69486f2d97d56daa454e28df3282c4ec1000000046de4ff17514d5b014c766a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f89608000000000000000000013b62100000000000298f0000000000006de4ff1700000000f3282c4e03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba608f06cff7f00000000ab7b63817b6ea26976046de4ff17a26976033b62109700887d94527901377f75789263587e78033b6210965880bc007e7e68587e5279033b6210965880bc007e7e825980bc7c7e01007e7b03288f009303298f009657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d9007f5c7f7701207f547f7504f3282c4e886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '2000',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '5401d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                            '4601d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '01',
+                            '3b62100000000000',
+                            '298f000000000000',
+                            '6de4ff1700000000',
+                            'f3282c4e',
+                        ],
+                    },
+                },
+                outputScript: 'a914563178ea073228709397a2c98baf10677e683e6687',
+            },
+            {
+                prevOut: {
+                    txid: 'bfce47f2403031f5465982b821e8e14c78deff2dd5986ca0c21cebb5ed946b4d',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41866f21d34e5b061cf7cb9ce4a6ce4df037628b72765db893675eae909ddad9d7ea7593d1a510fee1d80887699410b4330e9214efd5668dd51644d7ffce498ac94121039f0061726e4fed07061f705d34707b7f9c2f175bfa2ca7fe7df0a81e9efe1e8b',
+                value: 2898252,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896080000000000000000080000000000000659080000000000000177',
+            },
+            {
+                value: 2812672,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                spentBy: {
+                    txid: '5d934ade992707fe126bcd393ad4358b2c10118b635df4b97e3e3f30ca7cc781',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 546,
+                outputScript: 'a91451d609999740085f16cfbee2f9791d6ae6ac678d87',
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '5401d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                            '4601d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '01',
+                            '3b62100000000000',
+                            '298f000000000000',
+                            '6de4ff1700000000',
+                            'f3282c4e',
+                        ],
+                    },
+                },
+                token: {
+                    tokenId:
+                        '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '1625',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
+                token: {
+                    tokenId:
+                        '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '375',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: 'f0e450b41d1c15b32478efb668bc562fa341a40fa799db7747228350295f84d4',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 82509,
+                outputScript:
+                    '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
+                spentBy: {
+                    txid: '3a7a8971392e74fd542498c055509ace4f4853b981d87d73ba045f77100dad1e',
+                    outIdx: 1,
+                },
+            },
+        ],
+        lockTime: 1311516915,
+        timeFirstSeen: 1730860384,
+        size: 1256,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 869782,
+            hash: '0000000000000000178954cd24752cd8fb8aa980c36012a16cec251d8c2f68d6',
+            timestamp: 1730861016,
+        },
+    },
+    parsed: {
+        recipients: [
+            'ecash:ppgavzvejaqqshcke7lw97ter44wdtr835rs9eedxc',
+            'ecash:qq4t5d7kxewnu4cv4he76e093tj26ag6xql82hcgru',
+        ],
+        satoshisSent: 2812672,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+            '0000000000000000',
+            '0000000000000659',
+            '0000000000000177',
+        ],
+        xecTxType: 'Received',
+    },
+    sendingHash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+    cache: [
+        [
+            '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                genesisInfo: {
+                    tokenTicker: 'BULL',
+                    tokenName: 'Bull',
+                    url: 'https://cashtab.com/',
+                    decimals: 0,
+                    hash: '',
+                },
+                timeFirstSeen: 0,
+                genesisSupply: '21000000',
+                genesisOutputScripts: [
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                ],
+                genesisMintBatons: 0,
+                block: {
+                    height: 835482,
+                    hash: '0000000000000000133bf16cb7fdab5c6ff64a874632eb2fe80265e34a6ad99f',
+                    timestamp: 1710174132,
+                },
+            },
+        ],
+    ],
+};
+
 // 1e68af94c0117223511e3d7f7b6f0f6c2ffa07972844ff6d04f7f37d36ad5b50
 export const agoraPartialCancelTwo = {
     tx: {
