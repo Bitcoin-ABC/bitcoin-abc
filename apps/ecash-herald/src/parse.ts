@@ -115,13 +115,16 @@ enum TrackedTokenAction {
 interface TokenAction {
     count: number;
 }
+interface AgoraAction extends TokenAction {
+    volume: number;
+}
 interface TokenActions {
     actionCount: number;
     send?: TokenAction;
     mint?: TokenAction;
     burn?: TokenAction;
     adPrep?: TokenAction;
-    buy?: TokenAction;
+    buy?: AgoraAction;
     list?: TokenAction;
     cancel?: TokenAction;
     genesis?:
@@ -2207,6 +2210,10 @@ export const guessRejectReason = async (
     return 'unknown';
 };
 
+interface AdditionalActionParams {
+    volume: number;
+}
+
 /**
  * Initialize action data for a token if not yet intialized
  * Update action count if initialized
@@ -2214,33 +2221,52 @@ export const guessRejectReason = async (
  * @param existingAction result from tokenActionMap.get(tokenId)
  * @param tokenId
  * @param action
+ * @param additionalActionParams other info about this particular action, if present
  */
 export const initializeOrIncrementTokenData = (
     tokenActionMap: Map<string, TokenActions>,
     existingActions: undefined | TokenActions,
     tokenId: string,
     action: TrackedTokenAction,
+    additionalActionParams?: AdditionalActionParams,
 ) => {
-    tokenActionMap.set(
-        tokenId,
-        typeof existingActions === 'undefined'
-            ? {
-                  [action]: {
-                      count: 1,
-                  },
-                  actionCount: 1,
-              }
-            : {
-                  ...existingActions,
-                  [action]: {
-                      count:
-                          action in existingActions
-                              ? existingActions[action]!.count! + 1
-                              : 1,
-                  },
-                  actionCount: existingActions.actionCount + 1,
-              },
-    );
+    if (typeof existingActions === 'undefined') {
+        return tokenActionMap.set(tokenId, {
+            [action]: {
+                count: 1,
+                ...additionalActionParams,
+            },
+            actionCount: 1,
+        });
+    }
+    // Build data to set
+    const incrementedTokenActions = {
+        ...existingActions,
+        [action]: {
+            count:
+                typeof existingActions[action]?.count !== 'undefined'
+                    ? existingActions[action]!.count! + 1
+                    : 1,
+        },
+        actionCount: existingActions.actionCount + 1,
+    };
+    if (
+        action === TrackedTokenAction.Buy &&
+        typeof additionalActionParams !== 'undefined'
+    ) {
+        const existingBuyAction =
+            incrementedTokenActions[TrackedTokenAction.Buy];
+
+        const existingVolume = existingBuyAction?.volume;
+
+        // increment volume
+        existingBuyAction!.volume =
+            typeof existingVolume === 'undefined'
+                ? additionalActionParams.volume
+                : existingVolume + additionalActionParams.volume;
+    }
+
+    tokenActionMap.set(tokenId, incrementedTokenActions);
 };
 
 /**
@@ -2598,9 +2624,12 @@ export const summarizeTxHistory = (
 
                                                 // ONESHOT purchases include the purchase price at the
                                                 // 1-indexed output
+                                                let volumeSatoshisThisBuy = 0;
                                                 if (tx.outputs.length >= 2) {
-                                                    oneshotVolumeSatoshis +=
+                                                    volumeSatoshisThisBuy =
                                                         tx.outputs[1].value;
+                                                    oneshotVolumeSatoshis +=
+                                                        volumeSatoshisThisBuy;
                                                 } else {
                                                     // Should never happen. Log to review if we see this.
                                                     console.error(
@@ -2613,6 +2642,9 @@ export const summarizeTxHistory = (
                                                     existingNftAgoraActions,
                                                     groupTokenId,
                                                     TrackedTokenAction.Buy,
+                                                    {
+                                                        volume: volumeSatoshisThisBuy,
+                                                    },
                                                 );
                                                 isAgoraBuySellList = true;
                                                 // Stop processing inputs for this tx
@@ -2897,11 +2929,14 @@ export const summarizeTxHistory = (
 
                                                     // Partial purchases include the purchase price at the
                                                     // 1-indexed output
+                                                    let volumeSatoshisThisBuy = 0;
                                                     if (
                                                         tx.outputs.length >= 2
                                                     ) {
-                                                        partialVolumeSatoshis +=
+                                                        volumeSatoshisThisBuy =
                                                             tx.outputs[1].value;
+                                                        partialVolumeSatoshis +=
+                                                            volumeSatoshisThisBuy;
                                                     } else {
                                                         // Should never happen. Log to review if we see this.
                                                         console.error(
@@ -2914,6 +2949,9 @@ export const summarizeTxHistory = (
                                                         existingAgoraActions,
                                                         tokenId,
                                                         TrackedTokenAction.Buy,
+                                                        {
+                                                            volume: volumeSatoshisThisBuy,
+                                                        },
                                                     );
                                                     isAgoraBuySellList = true;
                                                     // Stop processing inputs for this tx
@@ -3293,6 +3331,13 @@ export const summarizeTxHistory = (
                     buy.count > 0
                         ? `${config.emojis.agoraBuy}${
                               buy.count > 1 ? `x${buy.count}` : ''
+                          }${
+                              typeof buy.volume !== 'undefined'
+                                  ? ` (${satsToFormattedValue(
+                                        buy.volume,
+                                        xecPriceUsd,
+                                    )})`
+                                  : ''
                           }`
                         : ''
                 }${
@@ -3406,6 +3451,13 @@ export const summarizeTxHistory = (
                     buy.count > 0
                         ? `${config.emojis.agoraBuy}${
                               buy.count > 1 ? `x${buy.count}` : ''
+                          }${
+                              typeof buy.volume !== 'undefined'
+                                  ? ` (${satsToFormattedValue(
+                                        buy.volume,
+                                        xecPriceUsd,
+                                    )})`
+                                  : ''
                           }`
                         : ''
                 }${
