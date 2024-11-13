@@ -1204,18 +1204,18 @@ export const parseBlockTxs = (
  * Build a msg about an encrypted cashtab msg tx
  * @param sendingAddress
  * @param xecReceivingOutputs
- * @param coingeckoPrices
+ * @param xecPrice
  * @returns msg
  */
 export const getEncryptedCashtabMsg = (
     sendingAddress: string,
     xecReceivingOutputs: Map<string, number>,
     totalSatsSent: number,
-    coingeckoPrices: false | CoinGeckoPrice[],
+    xecPrice?: number,
 ): string => {
     const displayedSentQtyString = satsToFormattedValue(
         totalSatsSent,
-        coingeckoPrices,
+        xecPrice,
     );
 
     // Remove OP_RETURNs from xecReceivingOutputs
@@ -1246,7 +1246,7 @@ export const getEncryptedCashtabMsg = (
  * @param airdropSendingAddress
  * @param airdropRecipientsMap
  * @param tokenInfo token info for the swapped token. optional. Bool False if API call failed.
- * @param coingeckoPrices object containing price info from coingecko. Bool False if API call failed.
+ * @param xecPrice
  * @returns msg ready to send through Telegram API
  */
 export const getAirdropTgMsg = (
@@ -1255,7 +1255,7 @@ export const getAirdropTgMsg = (
     airdropRecipientsMap: Map<string, number>,
     totalSatsAirdropped: number,
     tokenInfo: false | GenesisInfo,
-    coingeckoPrices: false | CoinGeckoPrice[],
+    xecPrice?: number,
 ): string => {
     // stackArray for an airdrop tx will be
     // [airdrop_protocol_identifier, airdropped_tokenId, optional_cashtab_msg_protocol_identifier, optional_cashtab_msg]
@@ -1273,7 +1273,7 @@ export const getAirdropTgMsg = (
 
     const displayedAirdroppedQtyString = satsToFormattedValue(
         totalSatsAirdropped,
-        coingeckoPrices,
+        xecPrice,
     );
 
     // Add to msg
@@ -1497,6 +1497,9 @@ export const getBlockTgMessage = (
     const { hash, height, miner, staker, numTxs, parsedTxs } = parsedBlock;
     const { emojis } = config;
 
+    const xecPrice =
+        coingeckoPrices !== false ? coingeckoPrices[0].price : undefined;
+
     // Define newsworthy types of txs in parsedTxs
     // These arrays will be used to present txs in batches by type
     const genesisTxTgMsgLines = [];
@@ -1577,12 +1580,12 @@ export const getBlockTgMessage = (
 
                     const displayedSentAmount = satsToFormattedValue(
                         totalSatsSent,
-                        coingeckoPrices,
+                        xecPrice,
                     );
 
                     const displayedTxFee = satsToFormattedValue(
                         txFee,
-                        coingeckoPrices,
+                        xecPrice,
                     );
 
                     app += `, ${displayedSentAmount} for ${displayedTxFee}`;
@@ -1595,7 +1598,7 @@ export const getBlockTgMessage = (
                         ), // Assume first input is sender
                         xecReceivingOutputs,
                         totalSatsSent,
-                        coingeckoPrices,
+                        xecPrice,
                     );
                     appEmoji = emojis.cashtabEncrypted;
                     break;
@@ -1611,7 +1614,7 @@ export const getBlockTgMessage = (
                         tokenId && tokenInfoMap
                             ? tokenInfoMap.get(tokenId)!
                             : false,
-                        coingeckoPrices,
+                        xecPrice,
                     );
                     appEmoji = emojis.airdrop;
                     break;
@@ -1630,7 +1633,7 @@ export const getBlockTgMessage = (
                     // totalSatsSent is total amount fused
                     const displayedFusedQtyString = satsToFormattedValue(
                         totalSatsSent,
-                        coingeckoPrices,
+                        xecPrice,
                     );
 
                     msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
@@ -1781,10 +1784,10 @@ export const getBlockTgMessage = (
 
         const displayedSentAmount = satsToFormattedValue(
             totalSatsSent,
-            coingeckoPrices,
+            xecPrice,
         );
 
-        const displayedTxFee = satsToFormattedValue(txFee, coingeckoPrices);
+        const displayedTxFee = satsToFormattedValue(txFee, xecPrice);
 
         // Clone xecReceivingOutputs so that you don't modify unit test mocks
         const xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
@@ -1929,7 +1932,7 @@ export const getBlockTgMessage = (
         tgMsg.push(
             `${emojis.staker}${satsToFormattedValue(
                 staker.reward,
-                coingeckoPrices,
+                xecPrice,
             )} to <a href="${config.blockExplorer}/address/${
                 staker.staker
             }">${returnAddressPreview(staker.staker)}</a>`,
@@ -3129,47 +3132,21 @@ export const summarizeTxHistory = (
     }
     tgMsg.push('');
 
-    const SATOSHIS_PER_XEC = 100;
-    const totalStakingRewardsXec = totalStakingRewardSats / SATOSHIS_PER_XEC;
-    const renderedTotalStakingRewards =
-        typeof xecPriceUsd !== 'undefined'
-            ? `$${(totalStakingRewardsXec * xecPriceUsd).toLocaleString(
-                  'en-US',
-                  {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                  },
-              )}`
-            : `${totalStakingRewardsXec.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-              })} XEC`;
-
-    // Conditionally render agora volume the same way
+    const renderedTotalStakingRewards = satsToFormattedValue(
+        totalStakingRewardSats,
+        xecPriceUsd,
+    );
     // Oneshot volume
-    const oneshotVolumeXec = oneshotVolumeSatoshis / SATOSHIS_PER_XEC;
-    const renderedOneshotVolume =
-        typeof xecPriceUsd !== 'undefined'
-            ? `$${(oneshotVolumeXec * xecPriceUsd).toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-              })}`
-            : `${oneshotVolumeXec.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-              })} XEC`;
+    const renderedOneshotVolume = satsToFormattedValue(
+        oneshotVolumeSatoshis,
+        xecPriceUsd,
+    );
+
     // Partial volume
-    const partialVolumeXec = partialVolumeSatoshis / SATOSHIS_PER_XEC;
-    const renderedPartialVolume =
-        typeof xecPriceUsd !== 'undefined'
-            ? `$${(partialVolumeXec * xecPriceUsd).toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-              })}`
-            : `${partialVolumeXec.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-              })} XEC`;
+    const renderedPartialVolume = satsToFormattedValue(
+        partialVolumeSatoshis,
+        xecPriceUsd,
+    );
 
     // Top stakers
     const STAKERS_TO_SHOW = 3;
@@ -3747,25 +3724,15 @@ export const summarizeTxHistory = (
 
     if (binanceWithdrawalCount > 0) {
         // Binance hot wallet
-        const binanceWithdrawalXec = binanceWithdrawalSats / SATOSHIS_PER_XEC;
-        const renderedBinanceWithdrawalSats =
-            typeof xecPriceUsd !== 'undefined'
-                ? `$${(binanceWithdrawalXec * xecPriceUsd).toLocaleString(
-                      'en-US',
-                      {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                      },
-                  )}`
-                : `${binanceWithdrawalXec.toLocaleString('en-US', {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                  })} XEC`;
+        const renderedBinanceWithdrawalQty = satsToFormattedValue(
+            binanceWithdrawalSats,
+            xecPriceUsd,
+        );
         tgMsg.push(`${config.emojis.bank} <b><i>Binance</i></b>`);
         tgMsg.push(
             `<b>${binanceWithdrawalCount}</b> withdrawal${
                 binanceWithdrawalCount > 1 ? 's' : ''
-            }, ${renderedBinanceWithdrawalSats}`,
+            }, ${renderedBinanceWithdrawalQty}`,
         );
     }
 

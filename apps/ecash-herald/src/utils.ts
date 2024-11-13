@@ -185,24 +185,18 @@ export const formatXecAmount = (xecAmount: number): string => {
  * Return a formatted string of fiat if price info is available and > $1
  * Otherwise return formatted XEC amount
  * @param {integer} satoshis
- * @param {array or false} coingeckoPrices [{fiat, price}...{fiat, price}] with xec price at index 0
+ * @param xecPrice [{fiat, price}...{fiat, price}] with xec price at index 0
  */
-export const satsToFormattedValue = (
-    satoshis: number,
-    coingeckoPrices?: false | CoinGeckoPrice[],
-) => {
+export const satsToFormattedValue = (satoshis: number, xecPrice?: number) => {
     // Get XEC qty
     const xecAmount = satoshis / 100;
 
-    if (!coingeckoPrices) {
+    if (typeof xecPrice === 'undefined') {
         return formatXecAmount(xecAmount);
     }
-    // Get XEC price from index 0
-    const { fiat, price } = coingeckoPrices[0];
 
     // Get fiat price
-    const fiatAmount = xecAmount * price;
-    const fiatSymbol: string = config.fiatReference[fiat] as string;
+    const fiatAmount = xecAmount * xecPrice;
 
     // Format fiatAmount for different tiers
     let displayedAmount;
@@ -238,7 +232,7 @@ export const satsToFormattedValue = (
         descriptor = 'B';
     }
 
-    return `${fiatSymbol}${displayedAmount!.toLocaleString(
+    return `$${displayedAmount!.toLocaleString(
         'en-US',
         localeOptions,
     )}${descriptor}`;

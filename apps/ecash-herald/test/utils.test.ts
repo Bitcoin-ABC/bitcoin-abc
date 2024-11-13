@@ -218,92 +218,79 @@ describe('ecash-telegram-bot utils.js functions', function () {
     });
     it('satsToFormattedValue returns a 6-decimal formatted fiat amount if total fiat value is less than $0.00001', function () {
         assert.strictEqual(
-            satsToFormattedValue(10, mockCoingeckoPrices),
+            satsToFormattedValue(10, mockCoingeckoPrices[0].price),
             `$0.000003`,
         );
     });
     it('satsToFormattedValue returns a 5-decimal formatted fiat amount if total fiat value is less than $0.0001', function () {
         assert.strictEqual(
-            satsToFormattedValue(100, mockCoingeckoPrices),
+            satsToFormattedValue(100, mockCoingeckoPrices[0].price),
             `$0.00003`,
         );
     });
     it('satsToFormattedValue returns a 4-decimal formatted fiat amount if total fiat value is less than $0.001', function () {
         assert.strictEqual(
-            satsToFormattedValue(1000, mockCoingeckoPrices),
+            satsToFormattedValue(1000, mockCoingeckoPrices[0].price),
             `$0.0003`,
         );
     });
     it('satsToFormattedValue returns a 3-decimal formatted fiat amount if total fiat value is less than $0.01', function () {
         assert.strictEqual(
-            satsToFormattedValue(10000, mockCoingeckoPrices),
+            satsToFormattedValue(10000, mockCoingeckoPrices[0].price),
             `$0.003`,
         );
     });
     it('satsToFormattedValue returns a 2-decimal formatted fiat amount if total fiat value is less than $1', function () {
         assert.strictEqual(
-            satsToFormattedValue(1000000, mockCoingeckoPrices),
+            satsToFormattedValue(1000000, mockCoingeckoPrices[0].price),
             `$0.30`,
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if total fiat value is less than $10', function () {
         assert.strictEqual(
-            satsToFormattedValue(10000000, mockCoingeckoPrices),
+            satsToFormattedValue(10000000, mockCoingeckoPrices[0].price),
             '$3',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if $100 < total fiat value < $1k', function () {
         assert.strictEqual(
-            satsToFormattedValue(1234567890, mockCoingeckoPrices),
+            satsToFormattedValue(1234567890, mockCoingeckoPrices[0].price),
             '$370',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if $1k < total fiat value < $1M', function () {
         assert.strictEqual(
-            satsToFormattedValue(55555555555, mockCoingeckoPrices),
+            satsToFormattedValue(55555555555, mockCoingeckoPrices[0].price),
             '$17k',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount of $1M if $1M < total fiat value < $1B', function () {
         assert.strictEqual(
-            satsToFormattedValue(3367973856209, mockCoingeckoPrices),
+            satsToFormattedValue(3367973856209, mockCoingeckoPrices[0].price),
             '$1M',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if $1M < total fiat value < $1B', function () {
         assert.strictEqual(
-            satsToFormattedValue(55555555555555, mockCoingeckoPrices),
+            satsToFormattedValue(55555555555555, mockCoingeckoPrices[0].price),
             '$17M',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if  total fiat value > $1B', function () {
         assert.strictEqual(
-            satsToFormattedValue(21000000000000000, mockCoingeckoPrices),
+            satsToFormattedValue(
+                21000000000000000,
+                mockCoingeckoPrices[0].price,
+            ),
             '$6B',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if £1M < total fiat value < £1B', function () {
-        const gbpPrices = [
-            {
-                fiat: 'gbp' as FiatCode,
-                price: 0.00003,
-                ticker: 'XEC',
-            },
-        ];
-        assert.strictEqual(
-            satsToFormattedValue(55555555555555, gbpPrices),
-            '£17M',
-        );
-    });
-    it('satsToFormattedValue returns a formatted XEC amount if coingeckoPrices is false', function () {
-        assert.strictEqual(
-            satsToFormattedValue(55555555555555, false),
-            '556B XEC',
-        );
+    it('satsToFormattedValue returns a formatted XEC amount if we have no fiat price for xec', function () {
+        assert.strictEqual(satsToFormattedValue(55555555555555), '556B XEC');
     });
     it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', function () {
         assert.strictEqual(
-            satsToFormattedValue(1, mockCoingeckoPrices),
+            satsToFormattedValue(1, mockCoingeckoPrices[0].price),
             '$0.0000003',
         );
     });
