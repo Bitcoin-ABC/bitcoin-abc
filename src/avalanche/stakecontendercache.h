@@ -165,9 +165,11 @@ public:
 
     /**
      * Get contender acceptance state for avalanche voting.
-     * Returns 0 for accepted, 1 for rejected, and -1 for not in cache.
+     * Returns 0 for accepted, 1 for rejected, -1 for not in cache, and -2 for
+     * pending. prevblockhashout gets set if the contender is in the cache.
      */
-    int getVoteStatus(const StakeContenderId &contenderId) const;
+    int getVoteStatus(const StakeContenderId &contenderId,
+                      BlockHash &prevblockhashout) const;
 
     /**
      * Get payout scripts of the winning proofs.

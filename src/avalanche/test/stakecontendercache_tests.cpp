@@ -88,9 +88,14 @@ static void CheckWinners(StakeContenderCache &cache,
 static void CheckVoteStatus(StakeContenderCache &cache,
                             const BlockHash &prevblockhash,
                             const ProofRef &proof, int expected) {
+    BlockHash checkprevblockhash;
     BOOST_CHECK_EQUAL(
-        cache.getVoteStatus(StakeContenderId(prevblockhash, proof->getId())),
+        cache.getVoteStatus(StakeContenderId(prevblockhash, proof->getId()),
+                            checkprevblockhash),
         expected);
+    if (expected != -1) {
+        BOOST_CHECK_EQUAL(prevblockhash, checkprevblockhash);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(vote_status_tests) {

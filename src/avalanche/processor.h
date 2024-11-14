@@ -375,7 +375,7 @@ public:
     void addStakeContender(const ProofRef &proof)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_stakeContenderCache);
     int getStakeContenderStatus(const StakeContenderId &contenderId) const
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
 
     /** Promote stake contender cache entries to the latest chain tip */
     void promoteStakeContendersToTip()

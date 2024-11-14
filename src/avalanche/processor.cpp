@@ -1000,8 +1000,21 @@ void Processor::addStakeContender(const ProofRef &proof) {
 
 int Processor::getStakeContenderStatus(
     const StakeContenderId &contenderId) const {
-    return WITH_LOCK(cs_stakeContenderCache,
-                     return stakeContenderCache.getVoteStatus(contenderId));
+    BlockHash prevblockhash;
+    int status = WITH_LOCK(
+        cs_stakeContenderCache,
+        return stakeContenderCache.getVoteStatus(contenderId, prevblockhash));
+
+    std::vector<std::pair<ProofId, CScript>> winners;
+    getStakingRewardWinners(prevblockhash, winners);
+
+    if (status != -1 && winners.size() == 0) {
+        // If we have not selected a local staking rewards winner yet, indicate
+        // this contender is pending to avoid convergence issues.
+        return -2;
+    }
+
+    return status;
 }
 
 void Processor::promoteStakeContendersToTip() {

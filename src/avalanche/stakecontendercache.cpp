@@ -132,13 +132,15 @@ bool StakeContenderCache::invalidate(const StakeContenderId &contenderId) {
     });
 }
 
-int StakeContenderCache::getVoteStatus(
-    const StakeContenderId &contenderId) const {
+int StakeContenderCache::getVoteStatus(const StakeContenderId &contenderId,
+                                       BlockHash &prevblockhashout) const {
     auto &view = contenders.get<by_stakecontenderid>();
     auto it = view.find(contenderId);
     if (it == view.end()) {
         return -1;
     }
+
+    prevblockhashout = it->prevblockhash;
 
     // Contender is accepted
     if (it->isAccepted()) {
