@@ -231,3 +231,15 @@ export const AgoraPreviewLabel = styled.div`
     font-weight: bold;
     text-align: right;
 `;
+
+export const NftOfferWrapper = styled.div`
+    color: ${props => props.theme.contrast};
+    border-radius: 0 0 20px 20px;
+    border: 1px solid ${props => props.theme.lightGrey};
+    border-top: none;
+    div {
+        margin-top: 0px;
+        margin-bottom: 0px;
+        border-radius: 0 0 20px 20px;
+    }
+`;

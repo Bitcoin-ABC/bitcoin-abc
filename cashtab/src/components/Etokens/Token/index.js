@@ -13,7 +13,6 @@ import PrimaryButton, {
 import { TxLink, SwitchLabel, Info, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
-import { useNavigate } from 'react-router-dom';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
@@ -104,6 +103,7 @@ import {
     AgoraPreviewLabel,
     AgoraPreviewCol,
     TokenScreenWrapper,
+    NftOfferWrapper,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import {
@@ -130,10 +130,9 @@ import {
 } from 'ecash-agora';
 import * as wif from 'wif';
 import OrderBook from 'components/Agora/OrderBook';
-import Collection from 'components/Agora/Collection';
+import Collection, { OneshotSwiper } from 'components/Agora/Collection';
 
 const Token = () => {
-    let navigate = useNavigate();
     const {
         apiError,
         cashtabState,
@@ -268,6 +267,9 @@ const Token = () => {
     // We need to build an agora partial and keep it in state so the user is able
     // to confirm the actual offer is reasonable vs their inputs, which are approximations
     const [previewedAgoraPartial, setPreviewedAgoraPartial] = useState(null);
+    const [nftActiveOffer, setNftActiveOffer] = useState(null);
+    const [nftOfferAgoraQueryError, setNftOfferAgoraQueryError] =
+        useState(false);
 
     // By default, we load the app with all switches disabled
     // For SLP v1 tokens, we want showSend to be enabled by default
@@ -516,6 +518,19 @@ const Token = () => {
         }
     }, [tokenId, cashtabCache.tokens.get(tokenId)]);
 
+    const getNftOffer = async () => {
+        try {
+            const thisNftOffer = await agora.activeOffersByTokenId(tokenId);
+            // Note we only expect an array of length 0 or 1 here
+            setNftActiveOffer(thisNftOffer);
+        } catch (err) {
+            console.error(
+                `Error querying agora.activeOffersByTokenId(${tokenId})`,
+            );
+            setNftOfferAgoraQueryError(true);
+        }
+    };
+
     useEffect(() => {
         if (!isSupportedToken) {
             // Do nothing for unsupported tokens
@@ -528,6 +543,8 @@ const Token = () => {
             if (isNftChild) {
                 // Default action is list
                 setSwitches({ ...switchesOff, showSellNft: true });
+                // Check if it is listed
+                getNftOffer();
             } else if (tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
                 setSwitches({ ...switchesOff, showSellSlp: true });
             } else {
@@ -1356,8 +1373,10 @@ const Token = () => {
                 },
             );
 
-            // Navigate to the NFTs page so the user can see and manage this listing (and others)
-            navigate(`/nfts`);
+            // Hide the confirmation modal
+            setShowConfirmListNft(false);
+            // Update nft offers
+            getNftOffer();
         } catch (err) {
             console.error(`Error listing NFT`, err);
             toast.error(`Error listing NFT: ${err}`);
@@ -2115,7 +2134,44 @@ const Token = () => {
                         pk !== false &&
                         isBlacklisted !== null &&
                         !isBlacklisted &&
-                        !isNftParent && (
+                        isNftChild && (
+                            <>
+                                {nftActiveOffer === null &&
+                                !nftOfferAgoraQueryError ? (
+                                    <InlineLoader />
+                                ) : nftOfferAgoraQueryError ? (
+                                    <Alert>Error querying NFT offers</Alert>
+                                ) : nftActiveOffer.length === 0 ? (
+                                    <NftOfferWrapper>
+                                        <Info>This NFT is not for sale</Info>
+                                    </NftOfferWrapper>
+                                ) : (
+                                    <NftOfferWrapper>
+                                        <OneshotSwiper
+                                            offers={nftActiveOffer}
+                                            activePk={pk}
+                                            chronik={chronik}
+                                            ecc={ecc}
+                                            chaintipBlockheight={
+                                                chaintipBlockheight
+                                            }
+                                            wallet={wallet}
+                                            cashtabCache={cashtabCache}
+                                            userLocale={userLocale}
+                                            fiatPrice={fiatPrice}
+                                            settings={settings}
+                                            setOffers={setNftActiveOffer}
+                                        />
+                                    </NftOfferWrapper>
+                                )}
+                            </>
+                        )}
+                    {isSupportedToken &&
+                        pk !== false &&
+                        isBlacklisted !== null &&
+                        !isBlacklisted &&
+                        !isNftParent &&
+                        !isNftChild && (
                             <OrderBook
                                 tokenId={tokenId}
                                 noIcon

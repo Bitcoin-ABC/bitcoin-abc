@@ -25,6 +25,12 @@ import {
     slp1NftParentWithChildrenMocks,
     slp1NftChildMocks,
 } from 'components/Etokens/fixtures/mocks';
+import {
+    cachedHeismanNftOne,
+    heismanNftOneOffer,
+    heismanNftOneCache,
+    heismanCollectionCacheMocks,
+} from 'components/Agora/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
@@ -817,10 +823,12 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByText('Gordon Chen')).toBeInTheDocument();
     });
     it('We can list an SLP1 NFT', async () => {
-        // Set empty agora mocks so we can test proper routing to NFT market page on successful list
         const mockedAgora = new MockAgora();
 
         mockedAgora.setOfferedGroupTokenIds([]);
+
+        // It's not listed yet
+        mockedAgora.setActiveOffersByTokenId(slp1NftChildMocks.tokenId, []);
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
@@ -992,12 +1000,19 @@ describe('<Token /> available actions rendered', () => {
             await screen.findByText(/NFT listed for 166,666.67 XEC/),
         ).toBeInTheDocument();
 
-        // We route to the NFTs page
-        expect(
-            await screen.findByText('Listed Collections'),
-        ).toBeInTheDocument();
+        // Screen should check for new listings and show the listing on this page
+        // Cannot test this without regtest, as we would need MockedAgora to show no
+        // active offers on load, then 1 offer after listing
+        // Can confirm in manual testing
     });
     it('We can send an SLP1 NFT', async () => {
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // It's not listed yet
+        mockedAgora.setActiveOffersByTokenId(slp1NftChildMocks.tokenId, []);
+
         // NFT send
         const hex =
             '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441fff60607ba0fb6eda064075b321abc3980c249efcc0e91d4d95e464500a654476e59b76dd19bdd66f5d207a0d731550c93ce724a09e00a3bff3fcfbc08c970844121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fe754300443dfb293619693087016c9d9a8437489d48cb7c0c3fcb6b5af6277833ff7156355aeb557145c4075b7917d90d79239ba7bf776a38fef935d8da2f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
@@ -1010,6 +1025,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockedAgora}
                 ecc={ecc}
                 route={`/send-token/${slp1NftChildMocks.tokenId}`}
             />,
@@ -1189,6 +1205,109 @@ describe('<Token /> available actions rendered', () => {
             'Enter NFT list price',
         );
         expect(nftListInput).toBeInTheDocument();
+    });
+    it('We show an agora query error if we cannot get active offers for an NFT token id', async () => {
+        const heismanNftTokenId = heismanNftOneOffer.token.tokenId;
+
+        // Mock the API calls for getting and caching this token's info
+        mockedChronik.setMock('token', {
+            input: heismanNftTokenId,
+            output: heismanNftOneCache.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: heismanNftTokenId,
+            output: heismanNftOneCache.tx,
+        });
+        // Also mock for the collection
+        mockedChronik.setMock('token', {
+            input: heismanCollectionCacheMocks.tokenId,
+            output: heismanCollectionCacheMocks.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: heismanCollectionCacheMocks.tokenId,
+            output: heismanCollectionCacheMocks.tx,
+        });
+
+        // Mock an error querying this NFT listing
+        const mockedAgora = new MockAgora();
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(
+            heismanNftTokenId,
+            new Error('some agora error'),
+        );
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                route={`/send-token/${heismanNftTokenId}`}
+            />,
+        );
+
+        const { tokenName } = cachedHeismanNftOne.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // On load, we see expected agora query error
+        expect(
+            await screen.findByText('Error querying NFT offers'),
+        ).toBeInTheDocument();
+    });
+    it('We show an agora oneshot listing for an SLP1 NFT if it is for sale', async () => {
+        const heismanNftTokenId = heismanNftOneOffer.token.tokenId;
+
+        // Mock the API calls for getting and caching this token's info
+        mockedChronik.setMock('token', {
+            input: heismanNftTokenId,
+            output: heismanNftOneCache.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: heismanNftTokenId,
+            output: heismanNftOneCache.tx,
+        });
+        // Also mock for the collection
+        mockedChronik.setMock('token', {
+            input: heismanCollectionCacheMocks.tokenId,
+            output: heismanCollectionCacheMocks.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: heismanCollectionCacheMocks.tokenId,
+            output: heismanCollectionCacheMocks.tx,
+        });
+
+        // Mock an error querying this NFT listing
+        const mockedAgora = new MockAgora();
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(heismanNftTokenId, [
+            heismanNftOneOffer,
+        ]);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                route={`/send-token/${heismanNftTokenId}`}
+            />,
+        );
+
+        const { tokenName, tokenTicker } = cachedHeismanNftOne.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // On load, we can buy the offer
+        expect(
+            await screen.findByText(`Buy ${tokenName} (${tokenTicker})`),
+        ).toBeInTheDocument();
     });
     it('ALP token', async () => {
         render(
