@@ -32,6 +32,15 @@ function Upgrade(props) {
             </SubPageHero>
             <GradientSpacer />
             <Container narrow>
+                <H3 text="What happened?" id="what" />
+                <p>
+                    The planned upgrade of the eCash network has successfully
+                    been completed. The first post-upgrade block is block number{' '}
+                    <ExternalLink href="https://explorer.e.cash/block/0000000000000000232d2ec92c9a2dd3a6e887dabc254c85f10e804239ff7274">
+                        871168
+                    </ExternalLink>
+                    .
+                </p>
                 <H3 text="Who needs to upgrade?" id="who" />
                 <p>
                     All operators of a Bitcoin ABC full node must upgrade to the
@@ -47,17 +56,6 @@ function Upgrade(props) {
                     instructions on the <Link href="/mining">Mining page</Link>{' '}
                     .
                 </p>
-                <H3 text="Exactly when will the upgrade activate?" id="when" />
-                <p>
-                    In order to activate reliably at a predictable time, the
-                    network upgrade uses the &ldquo;Median Time Past&rdquo;
-                    mechanism. The upgrade activates when the median of the last
-                    11 blocks reaches timestamp 1731672000 (12:00:00 UTC on
-                    November 15th, 2024). This means that the upgrade does not
-                    actually activate exactly at that time, but typically about
-                    one hour later, when 6 blocks with timestamps greater than
-                    the activation time have been produced.
-                </p>
                 <H3
                     text="What features are included in the Network Upgrade?"
                     id="features"
@@ -67,8 +65,8 @@ function Upgrade(props) {
                     <Link href="/blog/heartbeat-upgrade-a-steady-pulse-for-ecash">
                         Heartbeat
                     </Link>{' '}
-                    feature, also known as Real Time Targeting, will activate
-                    with this upgrade. This is a block policy that makes it more
+                    feature, also known as Real Time Targeting, activated with
+                    this upgrade. This is a block policy that makes it more
                     difficult to mine blocks faster than the expected 10 minutes
                     average, preventing large bumps in difficulty that can lead
                     to inconsistent block intervals. Miners need to update their
