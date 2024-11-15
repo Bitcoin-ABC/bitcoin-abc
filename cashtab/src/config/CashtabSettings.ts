@@ -30,8 +30,14 @@ class CashtabSettings {
 }
 export default CashtabSettings;
 
+interface FiatCurrency {
+    name: string;
+    symbol: string;
+    slug: string;
+}
+
 // Cashtab supported fiat currencies
-export const supportedFiatCurrencies = {
+export const supportedFiatCurrencies: Record<string, FiatCurrency> = {
     usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },
     aed: { name: 'UAE Dirham', symbol: 'Dh', slug: 'aed' },
     aud: { name: 'Australian Dollar', symbol: '$', slug: 'aud' },

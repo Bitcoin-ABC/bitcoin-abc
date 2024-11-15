@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
@@ -21,11 +21,8 @@ import {
     saturnFiveAgoraOffer,
     transvaal,
     transvaalAgoraOffer,
-    transvaalCacheMocks,
     argentina,
     argentinaAgoraOffer,
-    mockPartial,
-    mockPartialAgoraOffer,
 } from 'components/Nfts/fixtures/mocks';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import { Ecc, initWasm, toHex } from 'ecash-lib';

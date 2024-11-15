@@ -32,7 +32,32 @@ import aliasSettings from 'config/alias';
  *        processedBlockheight: 802965,
  *  }
  */
-export const queryAliasServer = async (endPoint, aliasParam = false) => {
+
+/**
+ * alias types
+ * Note we will likely implement in a different way
+ */
+
+export interface Alias {
+    alias: string;
+    isRegistered: boolean;
+    registrationFeeSats: number;
+    processedBlockheight: number;
+}
+export interface AddressAliasStatus {
+    registered: Alias[];
+    pending: Alias[];
+}
+export interface AliasPrices {
+    prices: string[];
+}
+interface AliasErrorResponse {
+    error: string;
+}
+export const queryAliasServer = async (
+    endPoint: string,
+    aliasParam: boolean | string = false,
+): Promise<AliasPrices | Alias[] | Alias | AddressAliasStatus> => {
     let aliasServerResp;
     const fetchUrl = !aliasParam
         ? `${aliasSettings.aliasServerBaseUrl}/${endPoint}`
@@ -44,8 +69,10 @@ export const queryAliasServer = async (endPoint, aliasParam = false) => {
             throw new Error('Network request failed');
         }
         // if alias-server returns a valid error message to the query e.g. address not found
-        if (aliasServerResp.error) {
-            throw new Error(aliasServerResp.error);
+        if ('error' in aliasServerResp) {
+            throw new Error(
+                (aliasServerResp as unknown as AliasErrorResponse).error,
+            );
         }
         return await aliasServerResp.json();
     } catch (err) {

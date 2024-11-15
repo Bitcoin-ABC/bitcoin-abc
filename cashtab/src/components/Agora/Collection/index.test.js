@@ -5,7 +5,7 @@
 import React from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import CashtabCache from 'config/CashtabCache';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
@@ -27,7 +27,6 @@ import {
     MockAgora,
     MockChronikClient,
 } from '../../../../../modules/mock-chronik-client';
-import { Agora } from 'ecash-agora';
 import Collection from 'components/Agora/Collection/';
 import { Bounce } from 'react-toastify';
 import { CashtabNotification } from 'components/App/styles';

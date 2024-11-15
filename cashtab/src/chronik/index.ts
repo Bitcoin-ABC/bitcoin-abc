@@ -10,11 +10,29 @@ import {
     getHashes,
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
+    CashtabUtxo,
+    CashtabWallet,
+    SlpUtxo,
+    NonSlpUtxo,
+    SlpDecimals,
+    CashtabTx,
 } from 'wallet';
+import {
+    ChronikClient,
+    TxHistoryPage,
+    ScriptUtxo,
+    Tx,
+    BlockMetadata,
+} from 'chronik-client';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
 const CHRONIK_MAX_PAGE_SIZE = 200;
 
-export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
+export const getTxHistoryPage = async (
+    chronik: ChronikClient,
+    hash160: string,
+    page = 0,
+): Promise<void | TxHistoryPage> => {
     let txHistoryPage;
     try {
         txHistoryPage = await chronik
@@ -27,11 +45,11 @@ export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     }
 };
 
-export const returnGetTxHistoryPagePromise = async (
-    chronik,
-    hash160,
+export const returnGetTxHistoryPagePromise = (
+    chronik: ChronikClient,
+    hash160: string,
     page = 0,
-) => {
+): Promise<TxHistoryPage> => {
     /* 
     Unlike getTxHistoryPage, this function will reject and 
     fail Promise.all() if there is an error in the chronik call
@@ -51,7 +69,13 @@ export const returnGetTxHistoryPagePromise = async (
     });
 };
 
-export const isAliasRegistered = (registeredAliases, alias) => {
+interface Alias {
+    alias: string;
+}
+export const isAliasRegistered = (
+    registeredAliases: Alias[],
+    alias: string,
+): boolean => {
     for (let i = 0; i < registeredAliases.length; i++) {
         if (
             registeredAliases[i].alias.toString().toLowerCase() ===
@@ -68,22 +92,28 @@ export const isAliasRegistered = (registeredAliases, alias) => {
  * Return a promise to fetch all utxos at an address (and add a 'path' key to them)
  * We need the path key so that we know which wif to sign this utxo with
  * If we add HD wallet support, we will need to add an address key, and change the structure of wallet.paths
- * @param {ChronikClient} chronik
- * @param {string} address
- * @param {number} path
- * @returns {Promise}
+ * @param chronik
+ * @paramaddress
+ * @param path
  */
-export const returnGetPathedUtxosPromise = (chronik, address, path) => {
+export const returnGetPathedUtxosPromise = (
+    chronik: ChronikClient,
+    address: string,
+    path: number,
+): Promise<CashtabUtxo[]> => {
     return new Promise((resolve, reject) => {
         chronik
             .address(address)
             .utxos()
             .then(
                 result => {
-                    for (const utxo of result.utxos) {
-                        utxo.path = path;
-                    }
-                    resolve(result.utxos);
+                    const cashtabUtxos: CashtabUtxo[] = result.utxos.map(
+                        (utxo: ScriptUtxo) => ({
+                            ...utxo,
+                            path: path,
+                        }),
+                    );
+                    resolve(cashtabUtxos);
                 },
                 err => {
                     reject(err);
@@ -94,12 +124,15 @@ export const returnGetPathedUtxosPromise = (chronik, address, path) => {
 
 /**
  * Get all utxos for a given wallet
- * @param {ChronikClient} chronik
- * @param {object} wallet a cashtab wallet
+ * @param chronik
+ * @param wallet a cashtab wallet
  * @returns
  */
-export const getUtxos = async (chronik, wallet) => {
-    const chronikUtxoPromises = [];
+export const getUtxos = async (
+    chronik: ChronikClient,
+    wallet: CashtabWallet,
+): Promise<CashtabUtxo[]> => {
+    const chronikUtxoPromises: Promise<CashtabUtxo[]>[] = [];
     wallet.paths.forEach((pathInfo, path) => {
         const thisPromise = returnGetPathedUtxosPromise(
             chronik,
@@ -113,21 +146,26 @@ export const getUtxos = async (chronik, wallet) => {
     return flatUtxos;
 };
 
+interface OrganizedUtxos {
+    slpUtxos: SlpUtxo[];
+    nonSlpUtxos: NonSlpUtxo[];
+}
 /**
  * Organize utxos by token and non-token
  * TODO deprecate this and use better coinselect methods
- * @param {Tx[]} chronikUtxos
- * @returns {object} {slpUtxos: [], nonSlpUtxos: []}
+ * @param chronikUtxos
  */
-export const organizeUtxosByType = chronikUtxos => {
+export const organizeUtxosByType = (
+    chronikUtxos: CashtabUtxo[],
+): OrganizedUtxos => {
     const nonSlpUtxos = [];
     const slpUtxos = [];
     for (const utxo of chronikUtxos) {
         // Construct nonSlpUtxos and slpUtxos arrays
         if (typeof utxo.token !== 'undefined') {
-            slpUtxos.push(utxo);
+            slpUtxos.push(utxo as SlpUtxo);
         } else {
-            nonSlpUtxos.push(utxo);
+            nonSlpUtxos.push(utxo as NonSlpUtxo);
         }
     }
 
@@ -136,11 +174,13 @@ export const organizeUtxosByType = chronikUtxos => {
 
 /**
  * Get just the tx objects from chronik history() responses
- * @param {TxHistoryPage[]} txHistoryOfAllAddresses
- * @returns {Tx[]}
+ * @param txHistoryOfAllAddresses
+ * @returns
  */
-export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
-    let flatTxHistoryArray = [];
+export const flattenChronikTxHistory = (
+    txHistoryOfAllAddresses: TxHistoryPage[],
+) => {
+    let flatTxHistoryArray: Tx[] = [];
     for (const txHistoryThisAddress of txHistoryOfAllAddresses) {
         flatTxHistoryArray = flatTxHistoryArray.concat(
             txHistoryThisAddress.txs,
@@ -149,20 +189,27 @@ export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
     return flatTxHistoryArray;
 };
 
+interface ConfirmedTx extends Omit<Tx, 'block'> {
+    block: BlockMetadata;
+}
+
 /**
  * Sort an array of chronik txs chronologically and return the first renderedCount of them
- * @param {Tx[]} txs
- * @param {number} renderedCount how many txs to return
+ * @param txs
+ * @param renderedCount how many txs to return
  * @returns
  */
-export const sortAndTrimChronikTxHistory = (txs, renderedCount) => {
+export const sortAndTrimChronikTxHistory = (
+    txs: Tx[],
+    renderedCount: number,
+): Tx[] => {
     const unconfirmedTxs = [];
-    const confirmedTxs = [];
+    const confirmedTxs: ConfirmedTx[] = [];
     for (const tx of txs) {
         if (typeof tx.block === 'undefined') {
             unconfirmedTxs.push(tx);
         } else {
-            confirmedTxs.push(tx);
+            confirmedTxs.push(tx as ConfirmedTx);
         }
     }
 
@@ -191,15 +238,25 @@ export const sortAndTrimChronikTxHistory = (txs, renderedCount) => {
     return trimmedAndSortedChronikTxHistoryArray;
 };
 
+export enum XecTxType {
+    Received = 'Received',
+    Sent = 'Sent',
+    Staking = 'Staking Reward',
+    Coinbase = 'Coinbase Reward',
+}
+export interface ParsedTx {
+    recipients: string[];
+    satoshisSent: number;
+    stackArray: string[];
+    xecTxType: XecTxType;
+}
 /**
  * Parse a Tx object for rendering in Cashtab
  * TODO Potentially more efficient to do this calculation in the Tx.js component
- * @param {Tx} tx
- * @param {object} wallet cashtab wallet
- * @param {Map} cachedTokens
- * @returns
+ * @param tx
+ * @param hashes array of wallet hashes, one for each path
  */
-export const parseTx = (tx, hashes) => {
+export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     const { inputs, outputs, isCoinbase } = tx;
 
     // Assign defaults
@@ -207,7 +264,7 @@ export const parseTx = (tx, hashes) => {
     let stackArray = [];
 
     // If it is not an incoming tx, make an educated guess about what addresses were sent to
-    const destinationAddresses = new Set();
+    const destinationAddresses: Set<string> = new Set();
 
     // Iterate over inputs to see if this is an incoming tx (incoming === true)
     for (const input of inputs) {
@@ -281,7 +338,7 @@ export const parseTx = (tx, hashes) => {
         ? receivedSatoshis
         : outputSatoshis - change;
 
-    let xecTxType = incoming ? 'Received' : 'Sent';
+    let xecTxType = incoming ? XecTxType.Received : XecTxType.Sent;
 
     // Parse for tx label
     if (isCoinbase) {
@@ -303,10 +360,10 @@ export const parseTx = (tx, hashes) => {
                         outputSatoshis,
                 )
         ) {
-            xecTxType = 'Staking Reward';
+            xecTxType = XecTxType.Staking;
         } else {
             // We do not specifically parse for IFP reward vs miner reward
-            xecTxType = 'Coinbase Reward';
+            xecTxType = XecTxType.Coinbase;
         }
     }
 
@@ -325,13 +382,17 @@ export const parseTx = (tx, hashes) => {
  * - Trim to number of txs Cashtab renders
  * - Parse txs for rendering in Cashtab
  * - Update cachedTokens with any new tokenIds
- * @param {ChronikClient} chronik chronik-client instance
- * @param {object} wallet cashtab wallet
- * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {array} Tx[], each tx also has a 'parsed' key with other rendering info
+ * @param chronik chronik-client instance
+ * @param wallet cashtab wallet
+ * @param cachedTokens the map stored at cashtabCache.tokens
+ * @returns Tx[], each tx also has a 'parsed' key with other rendering info
  */
-export const getHistory = async (chronik, wallet, cachedTokens) => {
-    const txHistoryPromises = [];
+export const getHistory = async (
+    chronik: ChronikClient,
+    wallet: CashtabWallet,
+    cachedTokens: Map<string, CashtabCachedTokenInfo>,
+): Promise<CashtabTx[]> => {
+    const txHistoryPromises: Promise<TxHistoryPage>[] = [];
     wallet.paths.forEach(pathInfo => {
         txHistoryPromises.push(chronik.address(pathInfo.address).history());
     });
@@ -347,12 +408,12 @@ export const getHistory = async (chronik, wallet, cachedTokens) => {
     );
 
     // Parse txs
-    const history = [];
+    const history: CashtabTx[] = [];
     for (const tx of renderedTxs) {
         const { tokenEntries } = tx;
 
         // Get all tokenIds associated with this tx
-        const tokenIds = new Set();
+        const tokenIds: Set<string> = new Set();
         for (const tokenEntry of tokenEntries) {
             tokenIds.add(tokenEntry.tokenId);
         }
@@ -380,9 +441,9 @@ export const getHistory = async (chronik, wallet, cachedTokens) => {
             }
         }
 
-        tx.parsed = parseTx(tx, getHashes(wallet));
+        (tx as CashtabTx).parsed = parseTx(tx, getHashes(wallet));
 
-        history.push(tx);
+        history.push(tx as CashtabTx);
     }
 
     return history;
@@ -390,11 +451,13 @@ export const getHistory = async (chronik, wallet, cachedTokens) => {
 
 /**
  * Get all info about a token used in Cashtab's token cache
- * @param {ChronikClient} chronik
- * @param {string} tokenId
- * @returns {object}
+ * @param chronik
+ * @param tokenId
  */
-export const getTokenGenesisInfo = async (chronik, tokenId) => {
+export const getTokenGenesisInfo = async (
+    chronik: ChronikClient,
+    tokenId: string,
+): Promise<CashtabCachedTokenInfo> => {
     // We can get timeFirstSeen, block, tokenType, and genesisInfo from the token() endpoint
     // If we call this endpoint before the genesis tx is confirmed, we will not get block
     // So, block does not need to be included
@@ -415,7 +478,7 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
      * Cached as a decimalized string, e.g. 0.000 if 0 with 3 decimal places
      * 1000.000000000 if one thousand with 9 decimal places
      */
-    let genesisSupply = decimalizeTokenAmount('0', decimals);
+    let genesisSupply = decimalizeTokenAmount('0', decimals as SlpDecimals);
 
     /**
      * genesisMintBatons {number}
@@ -427,11 +490,11 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
      * genesisOutputScripts {Set(<outputScript>)}
      * Address(es) where initial token supply was minted
      */
-    let genesisOutputScripts = new Set();
+    const genesisOutputScripts: Set<string> = new Set();
 
     // Iterate over outputs
     for (const output of genesisTxInfo.outputs) {
-        if ('token' in output && output.token.tokenId === tokenId) {
+        if (output.token?.tokenId === tokenId) {
             // If this output of this genesis tx is associated with this tokenId
 
             const { token, outputScript } = output;
@@ -451,15 +514,19 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
 
             genesisSupply = decimalizeTokenAmount(
                 (
-                    BigInt(undecimalizeTokenAmount(genesisSupply, decimals)) +
-                    BigInt(amount)
+                    BigInt(
+                        undecimalizeTokenAmount(
+                            genesisSupply,
+                            decimals as SlpDecimals,
+                        ),
+                    ) + BigInt(amount)
                 ).toString(),
-                decimals,
+                decimals as SlpDecimals,
             );
         }
     }
 
-    const tokenCache = {
+    const tokenCache: CashtabCachedTokenInfo = {
         tokenType,
         genesisInfo,
         timeFirstSeen,
@@ -468,7 +535,7 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
         genesisOutputScripts: [...genesisOutputScripts],
         genesisMintBatons,
     };
-    if ('block' in tokenInfo) {
+    if (typeof tokenInfo.block !== 'undefined') {
         // If the genesis tx is confirmed at the time we check
         tokenCache.block = tokenInfo.block;
     }
@@ -493,14 +560,18 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
 /**
  * Get decimalized balance of every token held by a wallet
  * Update Cashtab's tokenCache if any tokens are uncached
- * @param {ChronikClient} chronik
- * @param {array} slpUtxos array of token utxos from chronik
- * @param {Map} tokenCache Cashtab's token cache
- * @returns {Map} Map of tokenId => token balance as decimalized string
+ * @param chronik
+ * @param slpUtxos array of token utxos from chronik
+ * @param tokenCache Cashtab's token cache
+ * @returns Map of tokenId => token balance as decimalized string
  * Also updates tokenCache
  */
-export const getTokenBalances = async (chronik, slpUtxos, tokenCache) => {
-    const walletStateTokens = new Map();
+export const getTokenBalances = async (
+    chronik: ChronikClient,
+    slpUtxos: SlpUtxo[],
+    tokenCache: Map<string, CashtabCachedTokenInfo>,
+): Promise<Map<string, string>> => {
+    const walletStateTokens: Map<string, string> = new Map();
     for (const utxo of slpUtxos) {
         // Every utxo in slpUtxos will have a tokenId
         const { token } = utxo;
@@ -521,17 +592,17 @@ export const getTokenBalances = async (chronik, slpUtxos, tokenCache) => {
         walletStateTokens.set(
             tokenId,
             typeof tokenBalanceInMap === 'undefined'
-                ? decimalizeTokenAmount(amount, decimals)
+                ? decimalizeTokenAmount(amount, decimals as SlpDecimals)
                 : decimalizeTokenAmount(
                       (
                           BigInt(
                               undecimalizeTokenAmount(
                                   tokenBalanceInMap,
-                                  decimals,
+                                  decimals as SlpDecimals,
                               ),
                           ) + BigInt(amount)
                       ).toString(),
-                      decimals,
+                      decimals as SlpDecimals,
                   ),
         );
     }
@@ -541,16 +612,16 @@ export const getTokenBalances = async (chronik, slpUtxos, tokenCache) => {
 
 /**
  *
- * @param {ChronikClient} chronik
- * @param {string} tokenId
- * @param {number} pageSize usually 200, the chronik max, but accept a parameter to simplify unit testing
+ * @param chronik
+ * @param tokenId
+ * @param pageSize usually 200, the chronik max, but accept a parameter to simplify unit testing
  * @returns
  */
 export const getAllTxHistoryByTokenId = async (
-    chronik,
-    tokenId,
+    chronik: ChronikClient,
+    tokenId: string,
     pageSize = CHRONIK_MAX_PAGE_SIZE,
-) => {
+): Promise<Tx[]> => {
     // We will throw an error if we get an error from chronik fetch
     const firstPageResponse = await chronik
         .tokenId(tokenId)
@@ -562,7 +633,7 @@ export const getAllTxHistoryByTokenId = async (
     const tokenHistoryPromises = [];
     for (let i = 1; i < numPages; i += 1) {
         tokenHistoryPromises.push(
-            new Promise((resolve, reject) => {
+            new Promise<Tx[]>((resolve, reject) => {
                 chronik
                     .tokenId(tokenId)
                     .history(i, CHRONIK_MAX_PAGE_SIZE)
@@ -590,13 +661,13 @@ export const getAllTxHistoryByTokenId = async (
 /**
  * Get all child NFTs from a given parent tokenId
  * i.e. get all NFTs in an NFT collection *
- * @param {string} parentTokenId
- * @param {Tx[]} allParentTokenTxHistory
+ * @param parentTokenId
+ * @param allParentTokenTxHistory
  */
 export const getChildNftsFromParent = (
-    parentTokenId,
-    allParentTokenTxHistory,
-) => {
+    parentTokenId: string,
+    allParentTokenTxHistory: Tx[],
+): string[] => {
     const childNftsFromThisParent = [];
     for (const tx of allParentTokenTxHistory) {
         // Check tokenEntries

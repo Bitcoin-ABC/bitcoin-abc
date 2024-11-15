@@ -590,7 +590,8 @@ describe('useWallet hook rendering in different localforage states', () => {
         when(fetch)
             .calledWith(fetchUrl)
             .mockResolvedValue({
-                json: () => Promise.resolve('not a valid prices response'),
+                json: () =>
+                    Promise.resolve({ error: 'not a valid prices response' }),
             });
 
         // Wait for the wallet to load
@@ -611,7 +612,7 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         // Verify the `aliasServerError` state var in useWallet is updated
         expect(result.current.aliasServerError).toStrictEqual(
-            new Error(expectedError),
+            `Error: ${expectedError}`,
         );
     });
 

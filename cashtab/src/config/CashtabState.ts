@@ -10,10 +10,23 @@
 
 import CashtabSettings from 'config/CashtabSettings';
 import CashtabCache from 'config/CashtabCache';
+import { CashtabWallet } from 'wallet';
 
-class CashtabState {
+export interface CashtabContact {
+    name: string;
+    address: string;
+}
+
+interface CashtabState {
+    contactList: CashtabContact[];
+    cashtabCache: CashtabCache;
+    settings: CashtabSettings;
+    wallets: CashtabWallet[];
+}
+
+class CashtabState implements CashtabState {
     constructor(
-        contactList = [],
+        contactList: CashtabContact[] = [],
         cashtabCache = new CashtabCache(),
         settings = new CashtabSettings(),
         wallets = [],

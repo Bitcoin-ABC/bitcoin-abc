@@ -11,14 +11,31 @@ import appConfig from 'config/app';
 import { fromHex, Script, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
 import { OutPoint, Token, Tx } from 'chronik-client';
 import { AgoraOffer } from 'ecash-agora';
+import { ParsedTx } from 'chronik';
+import {
+    LegacyCashtabWallet_Pre_2_1_0,
+    LegacyCashtabWallet_Pre_2_9_0,
+} from 'components/App/fixtures/mocks';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-interface CashtabPathInfo {
+export interface CashtabPathInfo {
     address: string;
     hash: string;
     wif: string;
+    /**
+     * Public key as a hex string
+     * Introduced in 2.54.0
+     * Cashtab migrates legacy wallets to this
+     */
+    pk?: string;
+    /**
+     * Private key as a hex string
+     * Introduced in 2.54.0
+     * Cashtab migrates legacy wallets to this
+     */
+    sk?: string;
 }
-interface NonSlpUtxo {
+export interface NonSlpUtxo {
     blockHeight: number;
     isCoinbase: boolean;
     isFinal: boolean;
@@ -32,21 +49,14 @@ export interface SlpUtxo extends NonSlpUtxo {
 export interface CashtabUtxo extends NonSlpUtxo {
     token?: Token;
 }
-interface CashtabWalletState {
+export interface CashtabWalletState {
     balanceSats: number;
     nonSlpUtxos: NonSlpUtxo[];
     slpUtxos: SlpUtxo[];
-    parsedTxHistory: CashtabParsedTx[];
+    parsedTxHistory: CashtabTx[];
     tokens: Map<string, string>;
 }
-interface ParsedTx {
-    recipients: string[];
-    satoshisSent: number;
-    stackArray: string[];
-    xecTxType: string;
-    size: number;
-}
-interface CashtabParsedTx extends Tx {
+export interface CashtabTx extends Tx {
     parsed: ParsedTx;
 }
 export interface CashtabWallet {
@@ -291,11 +301,33 @@ export const fiatToSatoshis = (
 };
 
 /**
+ * A user who has not opened Cashtab in some time may have a legacy wallet
+ * The wallet shape has changed a few times
+ * Cashtab is designed so that a user starting up the app with legacy wallet(s)
+ * in storage will have them all migrated on startup
+ * So, if cashtabWalletFromJSON is called with a legacy wallet, it returns the
+ * wallet as-is so it can be invalidated and recreated
+ */
+export interface LegacyPathInfo extends CashtabPathInfo {
+    path: number;
+}
+
+export interface StoredCashtabState extends Omit<CashtabWalletState, 'tokens'> {
+    tokens: [string, string][];
+}
+
+export type LegacyCashtabWallet =
+    | LegacyCashtabWallet_Pre_2_1_0
+    | LegacyCashtabWallet_Pre_2_9_0;
+
+/**
  * Determine if a legacy wallet includes legacy paths that must be migrated
  * @param wallet a cashtab wallet
  * @returns array of legacy paths
  */
-export const getLegacyPaths = (wallet: CashtabWallet): number[] => {
+export const getLegacyPaths = (
+    wallet: LegacyCashtabWallet | CashtabWallet,
+): number[] => {
     const legacyPaths = [];
     if ('paths' in wallet) {
         if (Array.isArray(wallet.paths)) {
@@ -308,7 +340,7 @@ export const getLegacyPaths = (wallet: CashtabWallet): number[] => {
             }
         } else {
             // Cashtab wallet post 2.9.0
-            wallet.paths.forEach((pathInfo, path) => {
+            wallet.paths?.forEach((pathInfo, path) => {
                 if (path !== 1899) {
                     legacyPaths.push(path);
                 }
