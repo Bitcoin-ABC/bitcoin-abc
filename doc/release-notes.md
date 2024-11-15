@@ -7,3 +7,4 @@ Bitcoin ABC version 0.30.5 is now available from:
 This release includes the following features and fixes:
   - Additional flags "in" and "out" have been added to `-whitelist` to control whether
     permissions apply to incoming connections and/or manual (default: incoming only).
+  - Added a checkpoint after the November 15, 2024 eCash network upgrade.
