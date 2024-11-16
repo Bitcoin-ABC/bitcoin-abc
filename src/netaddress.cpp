@@ -225,7 +225,7 @@ static void Checksum(Span<const uint8_t> addr_pubkey,
 }; // namespace torv3
 
 bool CNetAddr::SetSpecial(const std::string &addr) {
-    if (!ValidAsCString(addr)) {
+    if (!ContainsNoNUL(addr)) {
         return false;
     }
 

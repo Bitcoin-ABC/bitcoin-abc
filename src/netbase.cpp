@@ -155,7 +155,7 @@ static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,
                          DNSLookupFn dns_lookup_function) {
     vIP.clear();
 
-    if (!ValidAsCString(name)) {
+    if (!ContainsNoNUL(name)) {
         return false;
     }
 
@@ -191,7 +191,7 @@ static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,
 bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
                 unsigned int nMaxSolutions, bool fAllowLookup,
                 DNSLookupFn dns_lookup_function) {
-    if (!ValidAsCString(name)) {
+    if (!ContainsNoNUL(name)) {
         return false;
     }
     std::string strHost = name;
@@ -208,7 +208,7 @@ bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
 
 bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
                 DNSLookupFn dns_lookup_function) {
-    if (!ValidAsCString(name)) {
+    if (!ContainsNoNUL(name)) {
         return false;
     }
     std::vector<CNetAddr> vIP;
@@ -223,7 +223,7 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
 bool Lookup(const std::string &name, std::vector<CService> &vAddr,
             uint16_t portDefault, bool fAllowLookup, unsigned int nMaxSolutions,
             DNSLookupFn dns_lookup_function) {
-    if (name.empty() || !ValidAsCString(name)) {
+    if (name.empty() || !ContainsNoNUL(name)) {
         return false;
     }
     uint16_t port{portDefault};
@@ -245,7 +245,7 @@ bool Lookup(const std::string &name, std::vector<CService> &vAddr,
 
 bool Lookup(const std::string &name, CService &addr, uint16_t portDefault,
             bool fAllowLookup, DNSLookupFn dns_lookup_function) {
-    if (!ValidAsCString(name)) {
+    if (!ContainsNoNUL(name)) {
         return false;
     }
     std::vector<CService> vService;
@@ -260,7 +260,7 @@ bool Lookup(const std::string &name, CService &addr, uint16_t portDefault,
 
 CService LookupNumeric(const std::string &name, uint16_t portDefault,
                        DNSLookupFn dns_lookup_function) {
-    if (!ValidAsCString(name)) {
+    if (!ContainsNoNUL(name)) {
         return {};
     }
     CService addr;
@@ -780,7 +780,7 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
 
 bool LookupSubNet(const std::string &strSubnet, CSubNet &ret,
                   DNSLookupFn dns_lookup_function) {
-    if (!ValidAsCString(strSubnet)) {
+    if (!ContainsNoNUL(strSubnet)) {
         return false;
     }
     size_t slash = strSubnet.find_last_of('/');

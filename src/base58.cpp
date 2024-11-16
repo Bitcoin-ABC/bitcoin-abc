@@ -143,7 +143,7 @@ std::string EncodeBase58(Span<const uint8_t> input) {
 
 bool DecodeBase58(const std::string &str, std::vector<uint8_t> &vchRet,
                   int max_ret_len) {
-    if (!ValidAsCString(str)) {
+    if (!ContainsNoNUL(str)) {
         return false;
     }
     return DecodeBase58(str.c_str(), vchRet, max_ret_len);
@@ -180,7 +180,7 @@ std::string EncodeBase58Check(Span<const uint8_t> input) {
 
 bool DecodeBase58Check(const std::string &str, std::vector<uint8_t> &vchRet,
                        int max_ret) {
-    if (!ValidAsCString(str)) {
+    if (!ContainsNoNUL(str)) {
         return false;
     }
     return DecodeBase58Check(str.c_str(), vchRet, max_ret);

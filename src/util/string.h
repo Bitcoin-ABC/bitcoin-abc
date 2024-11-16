@@ -87,7 +87,7 @@ inline std::string Join(const std::vector<std::string> &list,
 /**
  * Check if a string does not contain any embedded NUL (\0) characters
  */
-[[nodiscard]] inline bool ValidAsCString(std::string_view str) noexcept {
+[[nodiscard]] inline bool ContainsNoNUL(std::string_view str) noexcept {
     for (auto c : str) {
         if (c == 0) return false;
     }
