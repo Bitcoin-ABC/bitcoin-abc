@@ -7,10 +7,10 @@ import aliasSettings from 'config/alias';
 /**
  * Queries the alias-server for alias related data via Fetch
  *
- * @param {string} endPoint the alias-server endpoint for this query
- * @param {string} aliasParam a param to be passed to the endPoint
- * @returns {JSON} a JSON response from alias-server via Fetch
- * @throws {error} err server fetch errors from alias-server
+ * @param endPoint the alias-server endpoint for this query
+ * @param aliasParam a param to be passed to the endPoint
+ * @returns a JSON response from alias-server via Fetch
+ * @throws err server fetch errors from alias-server
  *
  * Example `/address/<address>` response
  *   [
@@ -40,6 +40,7 @@ import aliasSettings from 'config/alias';
 
 export interface Alias {
     alias: string;
+    address: string;
     isRegistered: boolean;
     registrationFeeSats: number;
     processedBlockheight: number;

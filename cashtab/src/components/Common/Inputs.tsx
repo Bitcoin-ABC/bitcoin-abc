@@ -3,11 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import appConfig from 'config/app';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
+import { SlpDecimals } from 'wallet';
 
 const CashtabInputWrapper = styled.div`
     box-sizing: border-box;
@@ -19,7 +19,7 @@ const CashtabInputWrapper = styled.div`
     width: 100%;
 `;
 
-const InputRow = styled.div`
+const InputRow = styled.div<{ invalid?: boolean }>`
     display: flex;
     align-items: stretch;
     input,
@@ -37,7 +37,7 @@ const InputRow = styled.div`
     }
 `;
 
-const CashtabInput = styled.input`
+const CashtabInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.forms.selectionBackground};
     font-size: 18px;
@@ -48,9 +48,13 @@ const CashtabInput = styled.input`
     :focus-visible {
         outline: none;
     }
+    border: ${props =>
+        props.invalid
+            ? `1px solid ${props.theme.forms.error}`
+            : `1px solid ${props.theme.eCashBlue} !important`};
 `;
 
-const ModalInputField = styled(CashtabInput)`
+const ModalInputField = styled(CashtabInput)<{ invalid?: boolean }>`
     background-color: transparent;
     border: ${props =>
         props.invalid
@@ -58,7 +62,7 @@ const ModalInputField = styled(CashtabInput)`
             : `1px solid ${props.theme.eCashBlue} !important`};
 `;
 
-const CashtabTextArea = styled.textarea`
+const CashtabTextArea = styled.textarea<{ height: number }>`
     background-color: ${props => props.theme.forms.selectionBackground};
     font-size: 12px;
     padding: 16px 12px;
@@ -91,7 +95,7 @@ const LeftInput = styled(CashtabInput)`
     border-radius: 9px 0 0 9px;
 `;
 
-const OnMaxBtn = styled.button`
+const OnMaxBtn = styled.button<{ invalid?: boolean }>`
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     color: ${props =>
         props.invalid ? props.theme.forms.error : props.theme.contrast};
@@ -111,7 +115,7 @@ const AliasSuffixHolder = styled(OnMaxBtn)`
     cursor: auto;
 `;
 
-const CurrencyDropdown = styled.select`
+const CurrencyDropdown = styled.select<{ invalid?: boolean }>`
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     font-size: 18px;
     padding: 6px;
@@ -153,7 +157,15 @@ export const InputFlex = styled.div`
     gap: 12px;
 `;
 
-export const Input = ({
+interface InputProps {
+    placeholder: string;
+    name: string;
+    value: null | string;
+    disabled: boolean;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    error: string | boolean;
+}
+export const Input: React.FC<InputProps> = ({
     placeholder = '',
     name = '',
     value = '',
@@ -166,11 +178,11 @@ export const Input = ({
             <InputRow invalid={typeof error === 'string'}>
                 <CashtabInput
                     name={name}
-                    value={value}
+                    value={value === null ? '' : value}
                     placeholder={placeholder}
                     disabled={disabled}
                     invalid={typeof error === 'string'}
-                    onChange={e => handleInput(e)}
+                    onChange={handleInput}
                 />
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
@@ -178,16 +190,14 @@ export const Input = ({
     );
 };
 
-Input.propTypes = {
-    placeholder: PropTypes.string,
-    name: PropTypes.string,
-    value: PropTypes.string,
-    disabled: PropTypes.bool,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-};
-
-export const ModalInput = ({
+interface ModalInputProps {
+    placeholder: string;
+    name: string;
+    value: null | string;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    error: string | boolean;
+}
+export const ModalInput: React.FC<ModalInputProps> = ({
     placeholder = '',
     name = '',
     value = '',
@@ -199,7 +209,7 @@ export const ModalInput = ({
             <InputRow invalid={typeof error === 'string'}>
                 <ModalInputField
                     name={name}
-                    value={value}
+                    value={value === null ? '' : value}
                     placeholder={placeholder}
                     invalid={typeof error === 'string'}
                     onChange={e => handleInput(e)}
@@ -210,15 +220,7 @@ export const ModalInput = ({
     );
 };
 
-ModalInput.propTypes = {
-    placeholder: PropTypes.string,
-    name: PropTypes.string,
-    value: PropTypes.string,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-};
-
-const Count = styled.span`
+const Count = styled.span<{ invalid?: boolean }>`
     color: ${props =>
         props.invalid ? props.theme.eCashPurple : props.theme.contrast};
 `;
@@ -237,7 +239,19 @@ const TextAreaErrorMsg = styled.div`
     word-break: break-all;
 `;
 
-export const TextArea = ({
+interface TextAreaProps {
+    placeholder: string;
+    name: string;
+    value: string | null;
+    handleInput: React.ChangeEventHandler<HTMLTextAreaElement>;
+    disabled: boolean;
+    height: number;
+    error: string | boolean;
+    showCount: boolean;
+    customCount: boolean;
+    max: string | number;
+}
+export const TextArea: React.FC<TextAreaProps> = ({
     placeholder = '',
     name = '',
     value = '',
@@ -254,10 +268,10 @@ export const TextArea = ({
             <CashtabTextArea
                 placeholder={placeholder}
                 name={name}
-                value={value}
+                value={value === null ? '' : value}
                 height={height}
                 disabled={disabled}
-                onChange={e => handleInput(e)}
+                onChange={handleInput}
             />
             <CountAndErrorFlex>
                 <TextAreaErrorMsg>
@@ -266,7 +280,11 @@ export const TextArea = ({
                 {showCount && (
                     <CountHolder>
                         <Count invalid={typeof error === 'string'}>
-                            {customCount !== false ? customCount : value.length}
+                            {customCount !== false
+                                ? customCount
+                                : value === null
+                                ? 0
+                                : value.length}
                         </Count>
                         /{max}
                     </CountHolder>
@@ -276,20 +294,16 @@ export const TextArea = ({
     );
 };
 
-TextArea.propTypes = {
-    placeholder: PropTypes.string,
-    name: PropTypes.string,
-    value: PropTypes.string,
-    handleInput: PropTypes.func,
-    disabled: PropTypes.bool,
-    height: PropTypes.number,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    showCount: PropTypes.bool,
-    customCount: PropTypes.number,
-    max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-export const InputWithScanner = ({
+interface InputWithScannerProps {
+    placeholder: string;
+    name: string;
+    value: null | string;
+    disabled?: boolean;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    error: false | string;
+    loadWithScannerOpen: boolean;
+}
+export const InputWithScanner: React.FC<InputWithScannerProps> = ({
     placeholder = '',
     name = '',
     value = '',
@@ -303,11 +317,11 @@ export const InputWithScanner = ({
             <InputRow invalid={typeof error === 'string'}>
                 <LeftInput
                     name={name}
-                    value={value}
+                    value={value === null ? '' : value}
                     disabled={disabled}
                     placeholder={placeholder}
                     invalid={typeof error === 'string'}
-                    onChange={e => handleInput(e)}
+                    onChange={handleInput}
                 />
                 <ScanQRCode
                     loadWithScannerOpen={loadWithScannerOpen}
@@ -317,7 +331,7 @@ export const InputWithScanner = ({
                                 name: 'address',
                                 value: result,
                             },
-                        })
+                        } as unknown as React.ChangeEvent<HTMLInputElement>)
                     }
                 />
             </InputRow>
@@ -326,17 +340,19 @@ export const InputWithScanner = ({
     );
 };
 
-InputWithScanner.propTypes = {
-    placeholder: PropTypes.string,
-    name: PropTypes.string,
-    value: PropTypes.string,
-    disabled: PropTypes.bool,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-    loadWithScannerOpen: PropTypes.bool,
-};
-
-export const SendXecInput = ({
+interface SendXecInputProps {
+    name: string;
+    value: string | number;
+    selectValue: string;
+    inputDisabled: boolean;
+    selectDisabled: boolean;
+    fiatCode: string;
+    error: false | string;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    handleSelect: React.ChangeEventHandler<HTMLSelectElement>;
+    handleOnMax: () => void;
+}
+export const SendXecInput: React.FC<SendXecInputProps> = ({
     name = '',
     value = 0,
     inputDisabled = false,
@@ -357,13 +373,13 @@ export const SendXecInput = ({
                     step="0.01"
                     name={name}
                     value={value}
-                    onChange={e => handleInput(e)}
+                    onChange={handleInput}
                     disabled={inputDisabled}
                 />
                 <SendXecDropdown
                     data-testid="currency-select-dropdown"
                     value={selectValue}
-                    onChange={e => handleSelect(e)}
+                    onChange={handleSelect}
                     disabled={selectDisabled}
                 >
                     <CurrencyOption data-testid="xec-option" value="XEC">
@@ -386,20 +402,17 @@ export const SendXecInput = ({
     );
 };
 
-SendXecInput.propTypes = {
-    name: PropTypes.string,
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    inputDisabled: PropTypes.bool,
-    selectValue: PropTypes.string,
-    selectDisabled: PropTypes.bool,
-    fiatCode: PropTypes.string,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-    handleSelect: PropTypes.func,
-    handleOnMax: PropTypes.func,
-};
-
-export const SendTokenInput = ({
+interface SendTokenInputProps {
+    name: string;
+    placeholder: string;
+    value: number | string;
+    inputDisabled?: boolean;
+    decimals: SlpDecimals;
+    error: false | string;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    handleOnMax: () => void;
+}
+export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     name = '',
     placeholder = '',
     value = 0,
@@ -428,18 +441,19 @@ export const SendTokenInput = ({
     );
 };
 
-SendTokenInput.propTypes = {
-    name: PropTypes.string,
-    placeholder: PropTypes.string,
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    decimals: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    inputDisabled: PropTypes.bool,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-    handleOnMax: PropTypes.func,
-};
-
-export const ListPriceInput = ({
+interface ListPriceInputProps {
+    name: string;
+    placeholder: string;
+    value: null | number | string;
+    inputDisabled?: boolean;
+    selectValue: string;
+    selectDisabled: boolean;
+    fiatCode: string;
+    error: false | string;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    handleSelect: React.ChangeEventHandler<HTMLSelectElement>;
+}
+export const ListPriceInput: React.FC<ListPriceInputProps> = ({
     name = 'listPriceInput',
     placeholder = 'listPriceInput',
     value = 0,
@@ -458,14 +472,15 @@ export const ListPriceInput = ({
                     name={name}
                     placeholder={placeholder}
                     type="number"
-                    value={value}
-                    onChange={e => handleInput(e)}
+                    value={value === null ? '' : value}
+                    onChange={handleInput}
                     disabled={inputDisabled}
+                    invalid={typeof error === 'string'}
                 />
                 <SellPriceDropdown
                     data-testid="currency-select-dropdown"
                     value={selectValue}
-                    onChange={e => handleSelect(e)}
+                    onChange={handleSelect}
                     disabled={selectDisabled}
                 >
                     <CurrencyOption data-testid="xec-option" value="XEC">
@@ -481,20 +496,15 @@ export const ListPriceInput = ({
     );
 };
 
-ListPriceInput.propTypes = {
-    name: PropTypes.string,
-    placeholder: PropTypes.string,
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    inputDisabled: PropTypes.bool,
-    selectValue: PropTypes.string,
-    selectDisabled: PropTypes.bool,
-    fiatCode: PropTypes.string,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-    handleSelect: PropTypes.func,
-};
-
-export const AliasInput = ({
+interface AliasInputProps {
+    name: string;
+    placeholder: string;
+    value: string;
+    inputDisabled: boolean;
+    error: false | string;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+}
+export const AliasInput: React.FC<AliasInputProps> = ({
     name = '',
     placeholder = '',
     value = '',
@@ -520,29 +530,22 @@ export const AliasInput = ({
     );
 };
 
-AliasInput.propTypes = {
-    name: PropTypes.string,
-    placeholder: PropTypes.string,
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    decimals: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    inputDisabled: PropTypes.bool,
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    handleInput: PropTypes.func,
-    handleOnMax: PropTypes.func,
-};
-
-const CashtabSlider = styled.input`
+const CashtabSlider = styled.input<{
+    fixedWidth?: boolean;
+    isInvalid?: boolean;
+}>`
     width: ${props => (props.fixedWidth ? '256px' : '100%')};
     accent-color: ${props =>
         props.isInvalid ? props.theme.encryptionRed : props.theme.eCashBlue};
 `;
-const SliderInput = styled.input`
+const SliderInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.forms.selectionBackground};
     font-size: 14px;
     padding: 6px 3px;
     border-radius: 9px;
-    border: none;
+    border: ${props =>
+        props.invalid ? `1px solid ${props.theme.forms.error}` : `none`};
     width: 100%;
     color: ${props => props.theme.forms.text};
     :focus-visible {
@@ -562,7 +565,20 @@ export const LabelAndInputFlex = styled.div`
     align-items: center;
     gap: 3px;
 `;
-export const Slider = ({
+
+interface SliderProps {
+    name: string;
+    value: string;
+    error: false | string;
+    min: number | string;
+    max: number | string;
+    step: number | string;
+    handleSlide: React.ChangeEventHandler<HTMLInputElement>;
+    fixedWidth?: boolean;
+    allowTypedInput?: boolean;
+    label?: string;
+}
+export const Slider: React.FC<SliderProps> = ({
     name,
     value,
     error,
@@ -609,19 +625,6 @@ export const Slider = ({
         </CashtabInputWrapper>
     );
 };
-Slider.propTypes = {
-    name: PropTypes.string,
-    placeholder: PropTypes.string,
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    min: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    step: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    handleSlide: PropTypes.func,
-    fixedWidth: PropTypes.bool,
-    allowTypedInput: PropTypes.bool,
-    label: PropTypes.string,
-};
 
 const InputFile = styled.input`
     display: none;
@@ -633,7 +636,7 @@ const DragForm = styled.form`
     text-align: center;
     position: relative;
 `;
-const DragLabel = styled.label`
+const DragLabel = styled.label<{ dragActive?: boolean }>`
     height: 100%;
     display: flex;
     align-items: center;
@@ -671,12 +674,23 @@ const TokenIconPreview = styled.img`
     width: 242px;
     height: 242px;
 `;
-export const CashtabDragger = ({ name, handleFile, imageUrl, nft = false }) => {
+interface CashtabDraggerProps {
+    name: string;
+    handleFile: (file: File) => void;
+    imageUrl: string;
+    nft?: boolean;
+}
+export const CashtabDragger: React.FC<CashtabDraggerProps> = ({
+    name,
+    handleFile,
+    imageUrl,
+    nft = false,
+}) => {
     // drag state
     const [dragActive, setDragActive] = useState(false);
 
     // handle drag events
-    const handleDrag = e => {
+    const handleDrag = (e: React.DragEvent<HTMLElement>) => {
         e.preventDefault();
         e.stopPropagation();
         if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -688,7 +702,7 @@ export const CashtabDragger = ({ name, handleFile, imageUrl, nft = false }) => {
         }
     };
 
-    const handleDrop = function (e) {
+    const handleDrop = function (e: React.DragEvent<HTMLElement>) {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
@@ -698,7 +712,7 @@ export const CashtabDragger = ({ name, handleFile, imageUrl, nft = false }) => {
     };
 
     // User adds file by clicking the component
-    const handleChange = function (e) {
+    const handleChange = function (e: React.ChangeEvent<HTMLInputElement>) {
         e.preventDefault();
         if (e.target.files && e.target.files[0]) {
             handleFile(e.target.files[0]);
@@ -747,19 +761,26 @@ export const CashtabDragger = ({ name, handleFile, imageUrl, nft = false }) => {
         </DragForm>
     );
 };
-CashtabDragger.propTypes = {
-    name: PropTypes.string,
-    handleFile: PropTypes.func,
-    imageUrl: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-    nft: PropTypes.bool,
-};
 
-export const CurrencySelect = ({ name = 'select', value, handleSelect }) => {
+interface CurrencySelectProps {
+    name: string;
+    value: string;
+    handleSelect: React.ChangeEventHandler<HTMLSelectElement>;
+}
+interface CurrencyMenuOption {
+    value?: string;
+    label?: string;
+}
+export const CurrencySelect: React.FC<CurrencySelectProps> = ({
+    name = 'select',
+    value,
+    handleSelect,
+}) => {
     // Build select dropdown from supportedFiatCurrencies
-    const currencyMenuOptions = [];
+    const currencyMenuOptions: CurrencyMenuOption[] = [];
     const currencyKeys = Object.keys(supportedFiatCurrencies);
     for (let i = 0; i < currencyKeys.length; i += 1) {
-        const currencyMenuOption = {};
+        const currencyMenuOption: CurrencyMenuOption = {};
         currencyMenuOption.value =
             supportedFiatCurrencies[currencyKeys[i]].slug;
         currencyMenuOption.label = `${
@@ -788,10 +809,4 @@ export const CurrencySelect = ({ name = 'select', value, handleSelect }) => {
             {currencyOptions}
         </CurrencyDropdown>
     );
-};
-
-CurrencySelect.propTypes = {
-    name: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
-    handleSelect: PropTypes.func.isRequired,
 };

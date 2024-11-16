@@ -108,7 +108,7 @@ interface CollectionProps {
      * User must click the tile to load the individual listings
      * Better for rendering multiple collections on the same screen
      */
-    loadOnClick: boolean;
+    loadOnClick?: boolean;
 }
 
 export interface OneshotOffer extends AgoraOffer {

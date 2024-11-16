@@ -68,8 +68,19 @@ export const supportedFiatCurrencies: Record<string, FiatCurrency> = {
     vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
 };
 
+type FiatCurrencyCode = keyof typeof supportedFiatCurrencies;
+
+export interface CashtabSettingsValidation {
+    fiatCurrency: FiatCurrencyCode[];
+    sendModal: boolean[];
+    autoCameraOn: boolean[];
+    hideMessagesFromUnknownSenders: boolean[];
+    balanceVisible: boolean[];
+    minFeeSends: boolean[];
+}
+
 // Validation for CashtabSettings
-export const cashtabSettingsValidation = {
+export const cashtabSettingsValidation: CashtabSettingsValidation = {
     fiatCurrency: Object.keys(supportedFiatCurrencies),
     sendModal: [true, false],
     autoCameraOn: [true, false],

@@ -30,7 +30,7 @@ import { formatDate, getFormattedFiatPrice } from 'utils/formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
 import { token as tokenConfig } from 'config/token';
-import { queryAliasServer } from 'alias';
+import { queryAliasServer, Alias } from 'alias';
 import aliasSettings from 'config/alias';
 import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
@@ -48,6 +48,9 @@ import {
     getNft,
     getNftChildSendTargetOutputs,
     getAgoraAdFuelSats,
+    TokenInputInfo,
+    SUPPORTED_MINT_TYPES,
+    SlpTargetOutput,
 } from 'slpv1';
 import { sendXec } from 'transactions';
 import {
@@ -57,6 +60,7 @@ import {
     toXec,
     undecimalizeTokenAmount,
     xecToNanoSatoshis,
+    SlpUtxo,
 } from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
@@ -127,12 +131,16 @@ import {
     AgoraOneshot,
     AgoraOneshotAdSignatory,
     AgoraPartialAdSignatory,
+    AgoraPartial,
 } from 'ecash-agora';
 import * as wif from 'wif';
 import OrderBook from 'components/Agora/OrderBook';
-import Collection, { OneshotSwiper } from 'components/Agora/Collection';
+import Collection, {
+    OneshotSwiper,
+    OneshotOffer,
+} from 'components/Agora/Collection';
 
-const Token = () => {
+const Token: React.FC = () => {
     const {
         apiError,
         cashtabState,
@@ -233,48 +241,86 @@ const Token = () => {
         }
     }
 
-    const [isBlacklisted, setIsBlacklisted] = useState(null);
-    const [chronikQueryError, setChronikQueryError] = useState(false);
-    const [nftTokenIds, setNftTokenIds] = useState([]);
-    const [nftChildGenesisInput, setNftChildGenesisInput] = useState([]);
-    const [nftFanInputs, setNftFanInputs] = useState([]);
-    const [availableNftInputs, setAvailableNftInputs] = useState(0);
-    const [showTokenTypeInfo, setShowTokenTypeInfo] = useState(false);
-    const [showAgoraPartialInfo, setShowAgoraPartialInfo] = useState(false);
-    const [showFanoutInfo, setShowFanoutInfo] = useState(false);
-    const [showMintNftInfo, setShowMintNftInfo] = useState(false);
-    const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
-    const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
-    const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
-    const [burnTokenAmountError, setBurnTokenAmountError] = useState(false);
-    const [mintAmountError, setMintAmountError] = useState(false);
-    const [burnConfirmationError, setBurnConfirmationError] = useState(false);
+    const [isBlacklisted, setIsBlacklisted] = useState<null | boolean>(null);
+    const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
+    const [nftTokenIds, setNftTokenIds] = useState<string[]>([]);
+    const [nftChildGenesisInput, setNftChildGenesisInput] = useState<SlpUtxo[]>(
+        [],
+    );
+    const [nftFanInputs, setNftFanInputs] = useState<SlpUtxo[]>([]);
+    const [availableNftInputs, setAvailableNftInputs] = useState<number>(0);
+    const [showTokenTypeInfo, setShowTokenTypeInfo] = useState<boolean>(false);
+    const [showAgoraPartialInfo, setShowAgoraPartialInfo] =
+        useState<boolean>(false);
+    const [showFanoutInfo, setShowFanoutInfo] = useState<boolean>(false);
+    const [showMintNftInfo, setShowMintNftInfo] = useState<boolean>(false);
+    const [sendTokenAddressError, setSendTokenAddressError] = useState<
+        false | string
+    >(false);
+    const [sendTokenAmountError, setSendTokenAmountError] = useState<
+        false | string
+    >(false);
+    const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] =
+        useState<boolean>(false);
+    const [burnTokenAmountError, setBurnTokenAmountError] = useState<
+        false | string
+    >(false);
+    const [mintAmountError, setMintAmountError] = useState<false | string>(
+        false,
+    );
+    const [burnConfirmationError, setBurnConfirmationError] = useState<
+        false | string
+    >(false);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
-        useState('');
-    const [aliasInputAddress, setAliasInputAddress] = useState(false);
-    const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
-    const [nftListPriceError, setNftListPriceError] = useState(false);
-    const [slpListPriceError, setSlpListPriceError] = useState(false);
-    const [showConfirmListNft, setShowConfirmListNft] = useState(false);
+        useState<string>('');
+    const [aliasInputAddress, setAliasInputAddress] = useState<false | string>(
+        false,
+    );
+    const [selectedCurrency, setSelectedCurrency] = useState<string>(
+        appConfig.ticker,
+    );
+    const [nftListPriceError, setNftListPriceError] = useState<false | string>(
+        false,
+    );
+    const [slpListPriceError, setSlpListPriceError] = useState<false | string>(
+        false,
+    );
+    const [showConfirmListNft, setShowConfirmListNft] =
+        useState<boolean>(false);
     const [showConfirmListPartialSlp, setShowConfirmListPartialSlp] =
-        useState(false);
-    const [slpAgoraPartialTokenQty, setSlpAgoraPartialTokenQty] = useState('0');
+        useState<boolean>(false);
+    const [slpAgoraPartialTokenQty, setSlpAgoraPartialTokenQty] =
+        useState<string>('0');
     const [slpAgoraPartialTokenQtyError, setSlpAgoraPartialTokenQtyError] =
-        useState(false);
-    const [slpAgoraPartialMin, setSlpAgoraPartialMin] = useState('0');
-    const [slpAgoraPartialMinError, setSlpAgoraPartialMinError] =
-        useState(false);
+        useState<false | string>(false);
+    const [slpAgoraPartialMin, setSlpAgoraPartialMin] = useState<string>('0');
+    const [slpAgoraPartialMinError, setSlpAgoraPartialMinError] = useState<
+        false | string
+    >(false);
     // We need to build an agora partial and keep it in state so the user is able
     // to confirm the actual offer is reasonable vs their inputs, which are approximations
-    const [previewedAgoraPartial, setPreviewedAgoraPartial] = useState(null);
-    const [nftActiveOffer, setNftActiveOffer] = useState(null);
+    const [previewedAgoraPartial, setPreviewedAgoraPartial] =
+        useState<null | AgoraPartial>(null);
+    const [nftActiveOffer, setNftActiveOffer] = useState<null | OneshotOffer[]>(
+        null,
+    );
     const [nftOfferAgoraQueryError, setNftOfferAgoraQueryError] =
-        useState(false);
+        useState<boolean>(false);
 
     // By default, we load the app with all switches disabled
     // For SLP v1 tokens, we want showSend to be enabled by default
     // But we may not want this to be default for other token types in the future
-    const switchesOff = {
+    interface TokenScreenSwitches {
+        showSend: boolean;
+        showAirdrop: boolean;
+        showBurn: boolean;
+        showMint: boolean;
+        showFanout: boolean;
+        showMintNft: boolean;
+        showSellNft: boolean;
+        showSellSlp: boolean;
+    }
+    const switchesOff: TokenScreenSwitches = {
         showSend: false,
         showAirdrop: false,
         showBurn: false,
@@ -284,28 +330,41 @@ const Token = () => {
         showSellNft: false,
         showSellSlp: false,
     };
-    const [switches, setSwitches] = useState(switchesOff);
-    const [showLargeIconModal, setShowLargeIconModal] = useState(false);
-    const [showLargeNftIcon, setShowLargeNftIcon] = useState('');
-    const defaultUncachedTokenInfo = {
+    const [switches, setSwitches] = useState<TokenScreenSwitches>(switchesOff);
+    const [showLargeIconModal, setShowLargeIconModal] =
+        useState<boolean>(false);
+    const [showLargeNftIcon, setShowLargeNftIcon] = useState<string>('');
+    interface UncachedTokenInfo {
+        circulatingSupply: null | string;
+        mintBatons: null | number;
+    }
+    const defaultUncachedTokenInfo: UncachedTokenInfo = {
         circulatingSupply: null,
         mintBatons: null,
     };
-    const [uncachedTokenInfo, setUncachedTokenInfo] = useState(
-        defaultUncachedTokenInfo,
-    );
-    const [uncachedTokenInfoError, setUncachedTokenInfoError] = useState(false);
+    const [uncachedTokenInfo, setUncachedTokenInfo] =
+        useState<UncachedTokenInfo>(defaultUncachedTokenInfo);
+    const [uncachedTokenInfoError, setUncachedTokenInfoError] =
+        useState<boolean>(false);
 
     // Check if the user has mint batons for this token
     // If they don't, disable the mint switch and label why
-    const mintBatons = getMintBatons(wallet.state.slpUtxos, tokenId);
+    const mintBatons = getMintBatons(wallet.state.slpUtxos, tokenId as string);
 
     // Load with QR code open if device is mobile
     const openWithScanner =
         settings && settings.autoCameraOn === true && isMobile(navigator);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-    const emptyFormData = {
+    interface TokenScreenFormData {
+        amount: string;
+        address: string;
+        burnAmount: string;
+        mintAmount: string;
+        nftListPrice: null | string;
+        slpListPrice: null | string;
+    }
+    const emptyFormData: TokenScreenFormData = {
         amount: '',
         address: '',
         burnAmount: '',
@@ -314,11 +373,15 @@ const Token = () => {
         slpListPrice: null,
     };
 
-    const [formData, setFormData] = useState(emptyFormData);
+    const [formData, setFormData] =
+        useState<TokenScreenFormData>(emptyFormData);
 
     const userLocale = getUserLocale(navigator);
 
     const getAgoraPartialActualPrice = () => {
+        if (previewedAgoraPartial === null) {
+            return;
+        }
         // Due to encoding limitations of agora offers, the actual price may vary depending on how
         // much of an offer the buyer accepts
         // Calculate the actual price by determining the price per token for the minimum buy of the created preview offer
@@ -355,6 +418,9 @@ const Token = () => {
     };
 
     const getAgoraPartialTargetPriceXec = () => {
+        if (formData.slpListPrice === null) {
+            return;
+        }
         // Get the price per token, in XEC, based on the user's input settings
         // Used for a visual comparison with the calculated actual price in XEC
         // from the created Agora Partial (which we get from getAgoraPartialActualPrice())
@@ -378,6 +444,9 @@ const Token = () => {
      * Depends on user currency selection and locale
      */
     const getAgoraPartialPricePreview = () => {
+        console.log(
+            `getAgoraPartialPricePreview called with formData.slpListPrice: ${formData.slpListPrice} and selectedCurrency ${selectedCurrency}`,
+        );
         // Make sure you have the state fields you need to render
         if (
             typeof userLocale !== 'string' ||
@@ -390,7 +459,7 @@ const Token = () => {
         }
         let inputPrice = formData.slpListPrice;
         if (inputPrice === '') {
-            inputPrice = 0;
+            inputPrice = '0';
         }
         return selectedCurrency === appConfig.ticker
             ? `${getFormattedFiatPrice(
@@ -404,11 +473,11 @@ const Token = () => {
                   inputPrice,
                   fiatPrice,
               )}) per token`
-            : `${
-                  supportedFiatCurrencies[settings.fiatCurrency].symbol
-              }${inputPrice.toLocaleString(
-                  userLocale,
-              )} ${selectedCurrency.toUpperCase()} (${getFormattedFiatPrice(
+            : `${supportedFiatCurrencies[settings.fiatCurrency].symbol}${
+                  parseFloat(inputPrice) > 1
+                      ? parseFloat(inputPrice).toLocaleString(userLocale)
+                      : inputPrice
+              } ${selectedCurrency.toUpperCase()} (${getFormattedFiatPrice(
                   settings,
                   userLocale,
                   parseFloat(inputPrice) / fiatPrice,
@@ -464,7 +533,7 @@ const Token = () => {
         }
     };
 
-    const addTokenToCashtabCache = async tokenId => {
+    const addTokenToCashtabCache = async (tokenId: string) => {
         try {
             const cachedInfoWithGroupTokenId = await getTokenGenesisInfo(
                 chronik,
@@ -479,6 +548,9 @@ const Token = () => {
     };
 
     useEffect(() => {
+        if (typeof tokenId === 'undefined') {
+            return;
+        }
         if (cachedInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
             // Check if we have its groupTokenId
             if (typeof cachedInfo.groupTokenId === 'undefined') {
@@ -507,7 +579,7 @@ const Token = () => {
         }
         if (typeof cashtabCache.tokens.get(tokenId) === 'undefined') {
             // If we do not have this token's info, get it
-            addTokenToCashtabCache(tokenId);
+            addTokenToCashtabCache(tokenId as string);
         } else {
             // Get token info that is not practical to cache as it is subject to change
             // Note that we need decimals from cache for supply to be accurate
@@ -556,7 +628,9 @@ const Token = () => {
 
     useEffect(() => {
         // Clear NFT and SLP list prices and de-select fiat currency if rate is unavailable
-        handleSelectedCurrencyChange({ target: { value: 'XEC' } });
+        handleSelectedCurrencyChange({
+            target: { value: 'XEC' },
+        } as React.ChangeEvent<HTMLSelectElement>);
     }, [fiatPrice]);
 
     useEffect(() => {
@@ -566,7 +640,7 @@ const Token = () => {
         }
     }, [slpAgoraPartialTokenQty]);
 
-    const getNfts = async tokenId => {
+    const getNfts = async (tokenId: string) => {
         const nftParentTxHistory = await getAllTxHistoryByTokenId(
             chronik,
             tokenId,
@@ -582,18 +656,21 @@ const Token = () => {
             // If this is an SLP1 NFT Parent
             // Update nft fan inputs
             setNftFanInputs(
-                getNftParentFanInputs(tokenId, wallet.state.slpUtxos),
+                getNftParentFanInputs(tokenId as string, wallet.state.slpUtxos),
             );
             // Update nft child genesis input
             // Note this is always an array, either empty or of 1 qty-1 utxo
             setNftChildGenesisInput(
-                getNftChildGenesisInput(tokenId, wallet.state.slpUtxos),
+                getNftChildGenesisInput(
+                    tokenId as string,
+                    wallet.state.slpUtxos,
+                ),
             );
             // Update the child NFTs
-            getNfts(tokenId);
+            getNfts(tokenId as string);
             // Get total amount of child genesis inputs
             const availableNftMintInputs = wallet.state.slpUtxos.filter(
-                slpUtxo =>
+                (slpUtxo: SlpUtxo) =>
                     slpUtxo?.token?.tokenId === tokenId &&
                     slpUtxo?.token?.amount === '1',
             );
@@ -645,7 +722,7 @@ const Token = () => {
 
         const { address, amount } = formData;
 
-        let cleanAddress;
+        let cleanAddress: string;
         // check state on whether this is an alias or ecash address
         if (aliasInputAddress) {
             cleanAddress = aliasInputAddress;
@@ -659,7 +736,7 @@ const Token = () => {
             const tokenInputInfo = !isNftChild
                 ? getSendTokenInputs(
                       wallet.state.slpUtxos,
-                      tokenId,
+                      tokenId as string,
                       amount,
                       decimals,
                   )
@@ -667,8 +744,11 @@ const Token = () => {
 
             // Get targetOutputs for an slpv1 send tx
             const tokenSendTargetOutputs = isNftChild
-                ? getNftChildSendTargetOutputs(tokenId, cleanAddress)
-                : getSlpSendTargetOutputs(tokenInputInfo, cleanAddress);
+                ? getNftChildSendTargetOutputs(tokenId as string, cleanAddress)
+                : getSlpSendTargetOutputs(
+                      tokenInputInfo as TokenInputInfo,
+                      cleanAddress,
+                  );
 
             // Build and broadcast the tx
             const { response } = await sendXec(
@@ -691,8 +771,8 @@ const Token = () => {
                     : appConfig.defaultFee,
                 chaintipBlockheight,
                 isNftChild
-                    ? getNft(tokenId, wallet.state.slpUtxos)
-                    : tokenInputInfo.tokenInputs,
+                    ? getNft(tokenId as string, wallet.state.slpUtxos)
+                    : (tokenInputInfo as TokenInputInfo).tokenInputs,
             );
 
             toast(
@@ -767,7 +847,7 @@ const Token = () => {
         }
     }
 
-    const handleSlpOfferedSlide = e => {
+    const handleSlpOfferedSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = e.target.value;
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
@@ -783,7 +863,7 @@ const Token = () => {
         setSlpAgoraPartialTokenQty(amount);
     };
 
-    const handleSlpMinSlide = e => {
+    const handleSlpMinSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = e.target.value;
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
@@ -813,7 +893,7 @@ const Token = () => {
         setSlpAgoraPartialMin(amount);
     };
 
-    const handleSlpAmountChange = e => {
+    const handleSlpAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value, name } = e.target;
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
@@ -829,7 +909,9 @@ const Token = () => {
         }));
     };
 
-    const handleTokenAddressChange = async e => {
+    const handleTokenAddressChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         // validate for token address
@@ -850,12 +932,14 @@ const Token = () => {
             renderedError = 'eToken sends do not support bip21 query strings';
         } else if (
             parsedAddressInput.address.error &&
+            typeof address === 'string' &&
             cashaddr.isValidCashAddress(address, 'etoken')
         ) {
             // If address is a valid eToken address, no error
             // We support sending to etoken: addresses on SendToken screen
             renderedError = false;
         } else if (
+            typeof address === 'string' &&
             parsedAddressInput.address.isAlias &&
             parsedAddressInput.address.error === false
         ) {
@@ -865,9 +949,12 @@ const Token = () => {
             const aliasName = address.slice(0, address.length - 4);
 
             // retrieve the alias details for `aliasName` from alias-server
-            let aliasDetails;
+            let aliasDetails: Alias;
             try {
-                aliasDetails = await queryAliasServer('alias', aliasName);
+                aliasDetails = (await queryAliasServer(
+                    'alias',
+                    aliasName,
+                )) as Alias;
                 if (!aliasDetails.address) {
                     renderedError =
                         'eCash Alias does not exist or yet to receive 1 confirmation';
@@ -897,7 +984,7 @@ const Token = () => {
         // Clear this error before updating field
         setSendTokenAmountError(false);
         try {
-            let amount = tokenBalance;
+            const amount = tokenBalance;
 
             setFormData({
                 ...formData,
@@ -917,7 +1004,7 @@ const Token = () => {
                 name: 'mintAmount',
                 value: maxMintAmount,
             },
-        });
+        } as React.ChangeEvent<HTMLInputElement>);
     };
 
     const checkForConfirmationBeforeSendEtoken = () => {
@@ -938,7 +1025,9 @@ const Token = () => {
         setIsModalVisible(false);
     };
 
-    const handleEtokenBurnAmountChange = e => {
+    const handleEtokenBurnAmountChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { name, value } = e.target;
         const isValidBurnAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
@@ -956,7 +1045,7 @@ const Token = () => {
         }));
     };
 
-    const handleMintAmountChange = e => {
+    const handleMintAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         const isValidMintAmountOrErrorMsg = isValidTokenMintAmount(
             value,
@@ -980,7 +1069,7 @@ const Token = () => {
                 name: 'burnAmount',
                 value: tokenBalance,
             },
-        });
+        } as React.ChangeEvent<HTMLInputElement>);
     };
 
     async function burn() {
@@ -995,7 +1084,7 @@ const Token = () => {
             // This is done the same way as for an slpv1 send tx
             const tokenInputInfo = getSendTokenInputs(
                 wallet.state.slpUtxos,
-                tokenId,
+                tokenId as string,
                 formData.burnAmount,
                 decimals,
             );
@@ -1061,10 +1150,10 @@ const Token = () => {
             // Get targetOutputs for an slpv1 burn tx
             // this is NOT like an slpv1 send tx
             const mintTargetOutputs = getMintTargetOutputs(
-                tokenId,
+                tokenId as string,
                 decimals,
                 formData.mintAmount,
-                tokenTypeNumberFromUtxo,
+                tokenTypeNumberFromUtxo as SUPPORTED_MINT_TYPES,
             );
 
             // We should not be able to get here without at least one mint baton,
@@ -1114,7 +1203,9 @@ const Token = () => {
         }
     }
 
-    const handleBurnConfirmationInput = e => {
+    const handleBurnConfirmationInput = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { value } = e.target;
 
         if (value && value === `burn ${tokenTicker}`) {
@@ -1133,7 +1224,9 @@ const Token = () => {
         }
     };
 
-    const handleSelectedCurrencyChange = e => {
+    const handleSelectedCurrencyChange = (
+        e: React.ChangeEvent<HTMLSelectElement>,
+    ) => {
         setSelectedCurrency(e.target.value);
         // Clear SLP and NFT price input fields to prevent unit confusion
         // User must re-specify price in new units
@@ -1144,7 +1237,9 @@ const Token = () => {
         }));
     };
 
-    const handleNftListPriceChange = e => {
+    const handleNftListPriceChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { name, value } = e.target;
         setNftListPriceError(
             getXecListPriceError(value, selectedCurrency, fiatPrice),
@@ -1155,7 +1250,9 @@ const Token = () => {
         }));
     };
 
-    const handleSlpListPriceChange = e => {
+    const handleSlpListPriceChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { name, value } = e.target;
 
         setSlpListPriceError(
@@ -1177,11 +1274,12 @@ const Token = () => {
     const listNft = async () => {
         const listPriceSatoshis =
             selectedCurrency === appConfig.ticker
-                ? toSatoshis(formData.nftListPrice)
+                ? toSatoshis(Number(formData.nftListPrice))
                 : toSatoshis(
                       parseFloat(
                           (
-                              parseFloat(formData.nftListPrice) / fiatPrice
+                              parseFloat(formData.nftListPrice as string) /
+                              fiatPrice
                           ).toFixed(2),
                       ),
                   );
@@ -1215,7 +1313,7 @@ const Token = () => {
         const enforcedOutputs = [
             {
                 value: 0,
-                script: slpSend(tokenId, SLP_NFT1_CHILD, [0, 1]),
+                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [0, 1]),
             },
             {
                 value: listPriceSatoshis,
@@ -1243,7 +1341,7 @@ const Token = () => {
         const offerTargetOutputs = [
             {
                 value: 0,
-                script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
+                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1]),
             },
             { value: appConfig.dustSats, script: agoraP2sh },
         ];
@@ -1260,7 +1358,7 @@ const Token = () => {
 
         // Input needs to be the child NFT utxo with appropriate signData
         // Get the NFT utxo from Cashtab wallet
-        const [thisNftUtxo] = getNft(tokenId, wallet.state.slpUtxos);
+        const [thisNftUtxo] = getNft(tokenId as string, wallet.state.slpUtxos);
         // Prepare it for an ecash-lib tx
         const adSetupInputs = [
             {
@@ -1280,7 +1378,7 @@ const Token = () => {
         const adSetupTargetOutputs = [
             {
                 value: 0,
-                script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
+                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1]),
             },
             { value: adFuelOutputSats, script: agoraAdP2sh },
         ];
@@ -1359,13 +1457,10 @@ const Token = () => {
                     rel="noopener noreferrer"
                 >
                     NFT listed for{' '}
-                    {toXec(parseInt(listPriceSatoshis)).toLocaleString(
-                        userLocale,
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                        },
-                    )}{' '}
+                    {toXec(listPriceSatoshis).toLocaleString(userLocale, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}{' '}
                     XEC
                 </TokenSentLink>,
                 {
@@ -1395,10 +1490,11 @@ const Token = () => {
         // So, you must account for token decimals
         const priceInXec =
             selectedCurrency === appConfig.ticker
-                ? parseFloat(formData.slpListPrice)
+                ? parseFloat(formData.slpListPrice as string)
                 : new BN(
                       new BN(
-                          parseFloat(formData.slpListPrice) / fiatPrice,
+                          parseFloat(formData.slpListPrice as string) /
+                              fiatPrice,
                       ).toFixed(NANOSAT_DECIMALS),
                   );
         const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceInXec);
@@ -1466,7 +1562,9 @@ const Token = () => {
         );
 
         // offeredTokens is in units of token satoshis
-        const offeredTokens = previewedAgoraPartial.offeredTokens();
+        const offeredTokens = (
+            previewedAgoraPartial as AgoraPartial
+        ).offeredTokens();
 
         // To guarantee we have no utxo conflicts while sending a chain of 2 txs
         // We ensure that the target output of the ad setup tx will include enough XEC
@@ -1486,7 +1584,9 @@ const Token = () => {
                 ? appConfig.minFee
                 : appConfig.defaultFee;
 
-        const agoraAdScript = previewedAgoraPartial.adScript();
+        const agoraAdScript = (
+            previewedAgoraPartial as AgoraPartial
+        ).adScript();
         const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
 
         // Get enough token utxos to cover the listing
@@ -1495,7 +1595,7 @@ const Token = () => {
         // We pass this and "0" as decimals
         const slpInputsInfo = getSendTokenInputs(
             wallet.state.slpUtxos,
-            tokenId,
+            tokenId as string,
             // This is already in units of token sats
             offeredTokens.toString(),
             0, // offeredTokens is already undecimalized
@@ -1504,7 +1604,7 @@ const Token = () => {
         const { tokenInputs, sendAmounts } = slpInputsInfo;
 
         // Seller finishes offer setup + sends tokens to the advertised P2SH
-        const agoraScript = previewedAgoraPartial.script();
+        const agoraScript = (previewedAgoraPartial as AgoraPartial).script();
         const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
 
         const offerTargetOutputs = [
@@ -1513,7 +1613,9 @@ const Token = () => {
                 // We will not have any token change for the tx that creates the offer
                 // This is bc the ad setup tx sends the exact amount of tokens we need
                 // for the ad tx (the offer)
-                script: slpSend(tokenId, SLP_FUNGIBLE, [sendAmounts[0]]),
+                script: slpSend(tokenId as string, SLP_FUNGIBLE, [
+                    sendAmounts[0],
+                ]),
             },
             { value: appConfig.dustSats, script: agoraP2sh },
         ];
@@ -1542,15 +1644,15 @@ const Token = () => {
                 signatory: P2PKHSignatory(sellerSk, makerPk, ALL_BIP143),
             });
         }
-        const adSetupTargetOutputs = [
+        const adSetupTargetOutputs: SlpTargetOutput[] = [
             {
                 value: 0,
                 // We use sendAmounts here instead of sendAmounts[0] used in offerTargetOutputs
                 // They may be the same thing, i.e. sendAmounts may be an array of length one
                 // But we could have token change for the ad setup tx
                 script: slpSend(
-                    tokenId,
-                    previewedAgoraPartial.tokenType,
+                    tokenId as string,
+                    (previewedAgoraPartial as AgoraPartial).tokenType,
                     sendAmounts,
                 ),
             },
@@ -1803,13 +1905,15 @@ const Token = () => {
                             />
                         </Modal>
                     )}
-                    {showConfirmListNft && formData.nftListPrice !== '' && (
-                        <Modal
-                            title={`List ${tokenTicker} for ${
-                                selectedCurrency === appConfig.ticker
-                                    ? `${parseFloat(
-                                          formData.nftListPrice,
-                                      ).toLocaleString(userLocale)}
+                    {showConfirmListNft &&
+                        formData.nftListPrice !== '' &&
+                        formData.nftListPrice !== null && (
+                            <Modal
+                                title={`List ${tokenTicker} for ${
+                                    selectedCurrency === appConfig.ticker
+                                        ? `${parseFloat(
+                                              formData.nftListPrice,
+                                          ).toLocaleString(userLocale)}
                                                         XEC (${
                                                             settings
                                                                 ? `${
@@ -1820,50 +1924,55 @@ const Token = () => {
                                                                   } `
                                                                 : '$ '
                                                         }${(
-                                          parseFloat(formData.nftListPrice) *
-                                          fiatPrice
-                                      ).toLocaleString(userLocale, {
-                                          minimumFractionDigits:
-                                              appConfig.cashDecimals,
-                                          maximumFractionDigits:
-                                              appConfig.cashDecimals,
-                                      })} ${
-                                          settings && settings.fiatCurrency
-                                              ? settings.fiatCurrency.toUpperCase()
-                                              : 'USD'
-                                      })?`
-                                    : `${
-                                          settings
-                                              ? `${
-                                                    supportedFiatCurrencies[
-                                                        settings.fiatCurrency
-                                                    ].symbol
-                                                } `
-                                              : '$ '
-                                      }${parseFloat(
-                                          formData.nftListPrice,
-                                      ).toLocaleString(userLocale)} ${
-                                          settings && settings.fiatCurrency
-                                              ? settings.fiatCurrency.toUpperCase()
-                                              : 'USD'
-                                      } (${(
-                                          parseFloat(formData.nftListPrice) /
-                                          fiatPrice
-                                      ).toLocaleString(userLocale, {
-                                          minimumFractionDigits:
-                                              appConfig.cashDecimals,
-                                          maximumFractionDigits:
-                                              appConfig.cashDecimals,
-                                      })}
+                                              parseFloat(
+                                                  formData.nftListPrice,
+                                              ) * fiatPrice
+                                          ).toLocaleString(userLocale, {
+                                              minimumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                              maximumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                          })} ${
+                                              settings && settings.fiatCurrency
+                                                  ? settings.fiatCurrency.toUpperCase()
+                                                  : 'USD'
+                                          })?`
+                                        : `${
+                                              settings
+                                                  ? `${
+                                                        supportedFiatCurrencies[
+                                                            settings
+                                                                .fiatCurrency
+                                                        ].symbol
+                                                    } `
+                                                  : '$ '
+                                          }${parseFloat(
+                                              formData.nftListPrice,
+                                          ).toLocaleString(userLocale)} ${
+                                              settings && settings.fiatCurrency
+                                                  ? settings.fiatCurrency.toUpperCase()
+                                                  : 'USD'
+                                          } (${(
+                                              parseFloat(
+                                                  formData.nftListPrice,
+                                              ) / fiatPrice
+                                          ).toLocaleString(userLocale, {
+                                              minimumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                              maximumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                          })}
                                                         XEC)?`
-                            }`}
-                            handleOk={listNft}
-                            handleCancel={() => setShowConfirmListNft(false)}
-                            showCancelButton
-                            description={`This will create a sell offer. Your NFT is only transferred if your full price is paid. The price is fixed in XEC. If your NFT is not purchased, you can cancel or renew your listing at any time.`}
-                            height={275}
-                        />
-                    )}
+                                }`}
+                                handleOk={listNft}
+                                handleCancel={() =>
+                                    setShowConfirmListNft(false)
+                                }
+                                showCancelButton
+                                description={`This will create a sell offer. Your NFT is only transferred if your full price is paid. The price is fixed in XEC. If your NFT is not purchased, you can cancel or renew your listing at any time.`}
+                                height={275}
+                            />
+                        )}
                     {showConfirmListPartialSlp &&
                         formData.slpListPrice !== '' &&
                         previewedAgoraPartial !== null && (
@@ -2006,14 +2115,14 @@ const Token = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        {tokenId.slice(0, 3)}...
-                                        {tokenId.slice(-3)}
+                                        {(tokenId as string).slice(0, 3)}...
+                                        {(tokenId as string).slice(-3)}
                                     </a>
                                 </TokenStatsCol>
                                 <TokenStatsCol>
                                     <CopyIconButton
                                         name={`Copy Token ID`}
-                                        data={tokenId}
+                                        data={tokenId as string}
                                         showToast
                                         customMsg={`Token ID "${tokenId}" copied to clipboard`}
                                     />
@@ -2141,14 +2250,18 @@ const Token = () => {
                                     <InlineLoader />
                                 ) : nftOfferAgoraQueryError ? (
                                     <Alert>Error querying NFT offers</Alert>
-                                ) : nftActiveOffer.length === 0 ? (
+                                ) : // Note that nftActiveOffer will not be null here
+                                (nftActiveOffer as unknown as OneshotOffer[])
+                                      .length === 0 ? (
                                     <NftOfferWrapper>
                                         <Info>This NFT is not for sale</Info>
                                     </NftOfferWrapper>
                                 ) : (
                                     <NftOfferWrapper>
                                         <OneshotSwiper
-                                            offers={nftActiveOffer}
+                                            offers={
+                                                nftActiveOffer as unknown as OneshotOffer[]
+                                            }
                                             activePk={pk}
                                             chronik={chronik}
                                             ecc={ecc}
@@ -2173,7 +2286,7 @@ const Token = () => {
                         !isNftParent &&
                         !isNftChild && (
                             <OrderBook
-                                tokenId={tokenId}
+                                tokenId={tokenId as string}
                                 noIcon
                                 cachedTokenInfo={cashtabCache.tokens.get(
                                     tokenId,
@@ -2265,7 +2378,7 @@ const Token = () => {
                                         Listings in this Collection
                                     </NftTitle>
                                     <Collection
-                                        groupTokenId={tokenId}
+                                        groupTokenId={tokenId as string}
                                         agora={agora}
                                         chronik={chronik}
                                         cashtabCache={cashtabCache}
@@ -2348,6 +2461,8 @@ const Token = () => {
                                                     {!nftListPriceError &&
                                                         formData.nftListPrice !==
                                                             '' &&
+                                                        formData.nftListPrice !==
+                                                            null &&
                                                         fiatPrice !== null && (
                                                             <ListPricePreview title="NFT List Price">
                                                                 {selectedCurrency ===
@@ -2548,9 +2663,9 @@ const Token = () => {
                                                                         slpAgoraPartialMin ===
                                                                         '0'
                                                                     }
-                                                                    value={Number(
-                                                                        formData.slpListPrice,
-                                                                    )}
+                                                                    value={
+                                                                        formData.slpListPrice
+                                                                    }
                                                                     selectValue={
                                                                         selectedCurrency
                                                                     }
@@ -2661,9 +2776,6 @@ const Token = () => {
                                                             />
                                                             <AliasAddressPreviewLabel>
                                                                 <TxLink
-                                                                    key={
-                                                                        aliasInputAddress
-                                                                    }
                                                                     href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                                                     target="_blank"
                                                                     rel="noreferrer"
@@ -2949,7 +3061,8 @@ const Token = () => {
                                                                 handleBurnAmountInput
                                                             }
                                                             disabled={
-                                                                burnTokenAmountError ||
+                                                                burnTokenAmountError !==
+                                                                    false ||
                                                                 formData.burnAmount ===
                                                                     ''
                                                             }
@@ -2985,7 +3098,6 @@ const Token = () => {
                                             <InputFlex>
                                                 <SendTokenInput
                                                     name="mintAmount"
-                                                    type="number"
                                                     value={formData.mintAmount}
                                                     error={mintAmountError}
                                                     placeholder="Mint Amount"
@@ -2999,7 +3111,8 @@ const Token = () => {
                                                 <SecondaryButton
                                                     onClick={handleMint}
                                                     disabled={
-                                                        mintAmountError ||
+                                                        mintAmountError !==
+                                                            false ||
                                                         formData.mintAmount ===
                                                             ''
                                                     }

@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
 import {
     cashtabSettingsValidation,
     supportedFiatCurrencies,
@@ -10,14 +9,25 @@ import {
 
 // Get names of fiat currencies
 const fiatObjects = Object.keys(supportedFiatCurrencies);
-let fiatNames = [];
-let fiatSymbols = [];
-for (let i in fiatObjects) {
+const fiatNames: string[] = [];
+const fiatSymbols: string[] = [];
+for (const i in fiatObjects) {
     fiatNames.push(supportedFiatCurrencies[fiatObjects[i]].name);
     fiatSymbols.push(supportedFiatCurrencies[fiatObjects[i]].symbol);
 }
 
-const tokenBlacklist = {
+interface CreateTokenBlacklist {
+    coingeckoTop500Tickers: string[];
+    coingeckoTop500Names: string[];
+    coingeckoTop500Ids: string[];
+    bannedTickers: string[];
+    bannedNames: string[];
+    fiatTickers: string[];
+    fiatNames: string[];
+    fiatSymbols: string[];
+}
+
+const tokenBlacklist: CreateTokenBlacklist = {
     coingeckoTop500Tickers: [
         'btc',
         'eth',
@@ -1531,12 +1541,14 @@ const tokenBlacklist = {
 };
 
 const blacklists = Object.keys(tokenBlacklist);
-let blacklist = [];
-for (let i in blacklists) {
-    blacklist = blacklist.concat(tokenBlacklist[blacklists[i]]);
+let blacklist: string[] = [];
+for (const i in blacklists) {
+    blacklist = blacklist.concat(
+        tokenBlacklist[blacklists[i] as keyof CreateTokenBlacklist],
+    );
 }
 // Remove spaces and case sensitivity
-for (let i in blacklist) {
+for (const i in blacklist) {
     blacklist[i] = blacklist[i]
         .toLowerCase()
         .trim()

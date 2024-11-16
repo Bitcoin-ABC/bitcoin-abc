@@ -3,15 +3,16 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import Modal from 'components/Common/Modal';
+import { Alert } from 'components/Common/Atoms';
 import { QRCodeIcon } from 'components/Common/CustomIcons';
 import styled from 'styled-components';
-import { BrowserQRCodeReader } from '@zxing/browser';
+import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
 import {
     NotFoundException,
     FormatException,
     ChecksumException,
+    Result,
 } from '@zxing/library';
 
 const StyledScanQRCode = styled.button`
@@ -26,21 +27,47 @@ const QRPreview = styled.video`
     width: 100%;
 `;
 
-const Alert = styled.div`
-    background-color: #fff2f0;
-    border-radius: 12px;
-    color: red;
-    padding: 12px;
-`;
+/**
+ * This interesting interface results from ts throwing issues because the
+ * Result interface from @zxing/library apparently has text as private
+ * The docs of the lib say to access it with result.text
+ * would probably need to contact authors to update
+ */
+class ZxingResult {
+    private _result: Result;
 
-const ScanQRCode = ({
+    constructor(result: Result) {
+        this._result = result;
+    }
+
+    /**
+     * Gets the text from the result if available.
+     * @returns The text content if it exists, otherwise undefined.
+     */
+    get text(): string | undefined {
+        try {
+            // Assuming 'text' might not be string, but we cast to string | undefined
+            return (this._result as unknown as { text?: string }).text;
+        } catch {
+            // In case accessing .text throws an error
+            return undefined;
+        }
+    }
+}
+
+interface ScanQRCodeProps {
+    loadWithScannerOpen: boolean;
+    onScan: React.ChangeEventHandler<HTMLInputElement>;
+}
+const ScanQRCode: React.FC<ScanQRCodeProps> = ({
     loadWithScannerOpen,
     onScan = () => null,
     ...otherProps
 }) => {
-    const [codeReaderControls, setCodeReaderControls] = useState(null);
+    const [codeReaderControls, setCodeReaderControls] =
+        useState<null | IScannerControls>(null);
     const [visible, setVisible] = useState(loadWithScannerOpen);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState<false | Error>(false);
 
     const codeReader = new BrowserQRCodeReader();
 
@@ -52,7 +79,7 @@ const ScanQRCode = ({
             // If undefined, app will use the user's default device
             undefined,
             'test-area-qr-code-webcam',
-            (result, error, controls) => {
+            (result: Result | ZxingResult | undefined, error, controls) => {
                 if (error) {
                     // If an error is raised
                     if (
@@ -91,11 +118,17 @@ const ScanQRCode = ({
                     return controls.stop();
                 }
 
-                if (typeof result !== 'undefined') {
+                if (
+                    typeof (result as unknown as ZxingResult)?.text !==
+                    'undefined'
+                ) {
                     // Pass the result to the Send To input field
                     // We will pass the result of any scanned QR code
                     // and allow validation in SendXec and SendToken to handle
-                    onScan(result.text);
+                    onScan(
+                        (result as unknown as ZxingResult)
+                            .text as unknown as React.ChangeEvent<HTMLInputElement>,
+                    );
                     // Stop the camera
                     controls.stop();
                     // Hide the scanning modal
@@ -137,15 +170,7 @@ const ScanQRCode = ({
                     height={250}
                 >
                     {error ? (
-                        <>
-                            <Alert
-                                message="Error"
-                                description={`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}
-                                type="error"
-                                showIcon
-                                style={{ textAlign: 'left' }}
-                            />
-                        </>
+                        <Alert>{`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}</Alert>
                     ) : (
                         <QRPreview
                             title="Video Preview"
@@ -156,11 +181,6 @@ const ScanQRCode = ({
             )}
         </>
     );
-};
-
-ScanQRCode.propTypes = {
-    loadWithScannerOpen: PropTypes.bool,
-    onScan: PropTypes.func,
 };
 
 export default ScanQRCode;

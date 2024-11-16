@@ -22,7 +22,7 @@ export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 
 // Note we have to specify the numbers here and not the constants for ts lint reasons
-type SUPPORTED_MINT_TYPES = 1 | 129;
+export type SUPPORTED_MINT_TYPES = 1 | 129;
 
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
@@ -49,7 +49,7 @@ const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
 // This is a spec value
 export const SLP1_NFT_CHILD_GENESIS_AMOUNT = '1';
 
-interface SlpTargetOutput {
+export interface SlpTargetOutput {
     value: number;
     script?: Script;
 }
@@ -101,7 +101,7 @@ export const getSlpGenesisTargetOutput = (
     return targetOutputs;
 };
 
-interface TokenInputInfo {
+export interface TokenInputInfo {
     tokenInputs: SlpUtxo[];
     sendAmounts: bigint[];
     tokenId: string;

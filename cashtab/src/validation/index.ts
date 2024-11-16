@@ -8,11 +8,14 @@ import {
     toSatoshis,
     xecToNanoSatoshis,
     decimalizeTokenAmount,
+    LegacyCashtabWallet,
+    SlpDecimals,
 } from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import CashtabSettings, {
     cashtabSettingsValidation,
+    CashtabSettingsValidation,
 } from 'config/CashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
 import appConfig from 'config/app';
@@ -20,11 +23,17 @@ import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
 import aliasSettings from 'config/alias';
 import { getAliasByteCount } from 'opreturn';
-import { fiatToSatoshis } from 'wallet';
-import { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
+import { CashtabWallet, fiatToSatoshis } from 'wallet';
+import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 import { getMaxDecimalizedSlpQty } from 'slpv1';
+import { CashtabContact } from 'config/CashtabState';
 
+interface Sideshift {
+    show: () => void;
+    hide: () => void;
+    addEventListener: (name: string, fn: () => void) => void;
+}
 /**
  * Checks whether the instantiated sideshift library object has loaded
  * correctly with the expected API.
@@ -32,17 +41,25 @@ import { getMaxDecimalizedSlpQty } from 'slpv1';
  * @param {Object} sideshiftObj the instantiated sideshift library object
  * @returns {boolean} whether or not this sideshift object is valid
  */
-export const isValidSideshiftObj = sideshiftObj => {
+export const isValidSideshiftObj = (
+    sideshiftObj: Sideshift | unknown,
+): boolean => {
     return (
         sideshiftObj !== null &&
         typeof sideshiftObj === 'object' &&
+        'show' in sideshiftObj &&
         typeof sideshiftObj.show === 'function' &&
+        'hide' in sideshiftObj &&
         typeof sideshiftObj.hide === 'function' &&
+        'addEventListener' in sideshiftObj &&
         typeof sideshiftObj.addEventListener === 'function'
     );
 };
 
-export const getContactAddressError = (address, contacts) => {
+export const getContactAddressError = (
+    address: string,
+    contacts: CashtabContact[],
+): false | string => {
     const isValidCashAddress = cashaddr.isValidCashAddress(
         address,
         appConfig.prefix,
@@ -68,10 +85,10 @@ export const getContactAddressError = (address, contacts) => {
  * See spec a doc/standards/ecash-alias.md
  * Note that an alias is only "valid" if it has been registered
  * So here, we are only testing spec compliance
- * @param {string} inputStr
- * @returns {true | string} true if isValid, string for reason why if not
+ * @param  inputStr
+ * @returns true if isValid, string for reason why if not
  */
-export const meetsAliasSpec = inputStr => {
+export const meetsAliasSpec = (inputStr: string): true | string => {
     if (typeof inputStr !== 'string') {
         return 'Alias input must be a string';
     }
@@ -89,10 +106,11 @@ export const meetsAliasSpec = inputStr => {
  * Validate user input of an alias for cases that require the .xec suffix
  * Note this only validates the format according to spec and requirements
  * Must validate with indexer for associated ecash address before a tx is broadcast
- * @param {string} sendToAliasInput
- * @returns {true | string}
+ * @param sendToAliasInput
  */
-export const isValidAliasSendInput = sendToAliasInput => {
+export const isValidAliasSendInput = (
+    sendToAliasInput: string,
+): true | string => {
     // To send to an alias, a user must include the '.xec' extension
     // This is to prevent confusion with alias platforms on other crypto networks
     const aliasParts = sendToAliasInput.split('.');
@@ -108,9 +126,9 @@ export const isValidAliasSendInput = sendToAliasInput => {
 };
 
 export const validateMnemonic = (
-    mnemonic,
+    mnemonic: string,
     wordlist = bip39.wordlists.english,
-) => {
+): boolean => {
     try {
         if (!mnemonic || !wordlist) return false;
 
@@ -129,21 +147,21 @@ export const validateMnemonic = (
 
 /**
  * Validate user input XEC send amount
- * @param {number | string} sendAmountXec user input for XEC send amount. Number if from amount field. May be string if from multi-send or set by bip21.
- * @param {number} balanceSats
- * @param {string} userLocale navigator.language if available, or default if not
- * @param {string} selectedCurrency
- * @param {number} fiatPrice
- * @returns {boolean | string} true if valid, string error msg of why invalid if not
+ * @param sendAmountXec user input for XEC send amount. Number if from amount field. May be string if from multi-send or set by bip21.
+ * @param balanceSats
+ * @param userLocale navigator.language if available, or default if not
+ * @param selectedCurrency
+ * @param fiatPrice
+ * @returns true if valid, string error msg of why invalid if not
  */
 const VALID_XEC_USER_INPUT_REGEX = /^[0-9.]+$/;
 export const isValidXecSendAmount = (
-    sendAmount,
-    balanceSats,
-    userLocale,
-    selectedCurrency = appConfig.ticker,
+    sendAmount: string | number,
+    balanceSats: number,
+    userLocale = 'en-US',
+    selectedCurrency: string = appConfig.ticker,
     fiatPrice = 0,
-) => {
+): boolean | string => {
     if (typeof sendAmount !== 'number' && typeof sendAmount !== 'string') {
         return 'sendAmount type must be number or string';
     }
@@ -152,7 +170,9 @@ export const isValidXecSendAmount = (
     }
     // xecSendAmount may only contain numbers and '.'
     // TODO support other locale decimal markers
-    const xecSendAmountCharCheck = VALID_XEC_USER_INPUT_REGEX.test(sendAmount);
+    const xecSendAmountCharCheck = VALID_XEC_USER_INPUT_REGEX.test(
+        sendAmount as string,
+    );
     if (!xecSendAmountCharCheck) {
         return `Invalid amount "${sendAmount}": Amount can only contain numbers and '.' to denote decimal places.`;
     }
@@ -170,7 +190,7 @@ export const isValidXecSendAmount = (
 
     const sendAmountSatoshis = isFiatSendAmount
         ? fiatToSatoshis(sendAmount, fiatPrice)
-        : toSatoshis(sendAmount);
+        : toSatoshis(Number(sendAmount));
 
     if (sendAmountSatoshis <= 0) {
         return 'Amount must be greater than 0';
@@ -192,7 +212,7 @@ export const isValidXecSendAmount = (
     return true;
 };
 
-export const isProbablyNotAScam = tokenNameOrTicker => {
+export const isProbablyNotAScam = (tokenNameOrTicker: string): boolean => {
     // convert to lower case, trim leading and trailing spaces
     // split, filter then join on ' ' for cases where user inputs multiple spaces
     const sanitized = tokenNameOrTicker
@@ -205,7 +225,7 @@ export const isProbablyNotAScam = tokenNameOrTicker => {
     return !tokenBlacklist.includes(sanitized);
 };
 
-export const isValidTokenName = tokenName => {
+export const isValidTokenName = (tokenName: string): boolean => {
     return (
         typeof tokenName === 'string' &&
         tokenName.length > 0 &&
@@ -213,7 +233,7 @@ export const isValidTokenName = tokenName => {
     );
 };
 
-export const isValidTokenTicker = tokenTicker => {
+export const isValidTokenTicker = (tokenTicker: string): boolean => {
     return (
         typeof tokenTicker === 'string' &&
         tokenTicker.length > 0 &&
@@ -221,7 +241,7 @@ export const isValidTokenTicker = tokenTicker => {
     );
 };
 
-export const isValidTokenDecimals = tokenDecimals => {
+export const isValidTokenDecimals = (tokenDecimals: string): boolean => {
     return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(
         tokenDecimals,
     );
@@ -245,10 +265,10 @@ export const TOKEN_DOCUMENT_URL_MAX_CHARACTERS = 68;
 
 /**
  * Validate user input for token document URL of genesis tx for SLP1 token
- * @param {string} url
- * @returns {string | false} error msg as string or false as bool if no error
+ * @param url
+ * @returns error msg as string or false as bool if no error
  */
-export const getTokenDocumentUrlError = url => {
+export const getTokenDocumentUrlError = (url: string): false | string => {
     // This is an optional input field, so a blank string is valid (no error)
     if (url === '') {
         return false;
@@ -264,14 +284,19 @@ export const getTokenDocumentUrlError = url => {
     return false;
 };
 
-export const isValidCashtabSettings = settings => {
+export const isValidCashtabSettings = (settings: CashtabSettings): boolean => {
     const cashtabDefaultConfig = new CashtabSettings();
     try {
         let isValidSettingParams = true;
-        for (let param in cashtabDefaultConfig) {
+        for (const param in cashtabDefaultConfig) {
             if (
-                !Object.prototype.hasOwnProperty.call(settings, param) ||
-                !cashtabSettingsValidation[param].includes(settings[param])
+                !Object.prototype.hasOwnProperty.call(
+                    settings,
+                    param as keyof CashtabSettings,
+                ) ||
+                !(cashtabSettingsValidation as CashtabSettingsValidation)[
+                    param as keyof CashtabSettingsValidation
+                ].some(val => val === settings[param as keyof CashtabSettings])
             ) {
                 isValidSettingParams = false;
                 break;
@@ -292,13 +317,16 @@ export const isValidCashtabSettings = settings => {
  * @param {CashtabSettings} settings CashtabSettings object from localforage
  * @returns {object} migratedCashtabSettings
  */
-export const migrateLegacyCashtabSettings = settings => {
+export const migrateLegacyCashtabSettings = (
+    settings: CashtabSettings,
+): CashtabSettings => {
     const cashtabDefaultConfig = new CashtabSettings();
     // determine if settings are invalid because it is missing a parameter
-    for (let param in cashtabDefaultConfig) {
+    for (const param in cashtabDefaultConfig) {
         if (!Object.prototype.hasOwnProperty.call(settings, param)) {
             // adds the default setting for only that parameter
-            settings[param] = cashtabDefaultConfig[param];
+            (settings[param as keyof CashtabSettings] as unknown) =
+                cashtabDefaultConfig[param as keyof CashtabSettings] as unknown;
         }
     }
     return settings;
@@ -311,7 +339,7 @@ export const migrateLegacyCashtabSettings = settings => {
  * @param {array} contactList
  * @returns {bool}
  */
-export const isValidContactList = contactList => {
+export const isValidContactList = (contactList: CashtabContact[]): boolean => {
     if (!Array.isArray(contactList)) {
         return false;
     }
@@ -346,7 +374,7 @@ export const isValidContactList = contactList => {
  * @param {object} cashtabCache
  * @returns {boolean}
  */
-export const isValidCashtabCache = cashtabCache => {
+export const isValidCashtabCache = (cashtabCache: CashtabCache): boolean => {
     // Legacy cashtabCache is an object with key tokenInfoById
     // At this key is an object with keys of tokenId
     // We are replacing this with a map
@@ -391,20 +419,25 @@ export const isValidCashtabCache = cashtabCache => {
 const TOKEN_ID_REGEX = new RegExp(/^[a-f0-9]{64}$/);
 /**
  * Validate a tokenId
- * @param {string} tokenId
+ * @param tokenId
  * @returns
  */
-export const isValidTokenId = tokenId => {
+export const isValidTokenId = (tokenId: string | undefined | null): boolean => {
+    if (typeof tokenId === 'undefined' || tokenId === null) {
+        return false;
+    }
     return TOKEN_ID_REGEX.test(tokenId);
 };
 
 /**
  * Get false if no error, or a string error for why a wallet name is invalid
- * @param {string} name
- * @param {{name: string;}[]} wallets
- * @returns {false | string}
+ * @param name
+ * @param wallets
  */
-export const getWalletNameError = (name, wallets) => {
+export const getWalletNameError = (
+    name: string,
+    wallets: CashtabWallet[],
+): false | string => {
     if (name === '') {
         return 'Wallet name cannot be a blank string';
     }
@@ -422,7 +455,7 @@ export const getWalletNameError = (name, wallets) => {
     return false;
 };
 
-export const isValidXecAirdrop = xecAirdrop => {
+export const isValidXecAirdrop = (xecAirdrop: string): boolean => {
     return (
         typeof xecAirdrop === 'string' &&
         xecAirdrop.length > 0 &&
@@ -433,15 +466,16 @@ export const isValidXecAirdrop = xecAirdrop => {
 
 /**
  * Parse user input of addresses to exclude in an airdrop tx
- * @param {array} airdropExclusionArray
- * @returns {boolean}
+ * @param airdropExclusionArray
  */
-export const isValidAirdropExclusionArray = airdropExclusionArray => {
+export const isValidAirdropExclusionArray = (
+    airdropExclusionArray: string,
+): boolean => {
     if (!airdropExclusionArray || airdropExclusionArray.length === 0) {
         return false;
     }
 
-    let isValid = true;
+    const isValid = true;
 
     // split by comma as the delimiter
     const addressStringArray = airdropExclusionArray.split(',');
@@ -461,16 +495,16 @@ export const isValidAirdropExclusionArray = airdropExclusionArray => {
 
 /**
  * Validate user input on Send.js for multi-input mode
- * @param {string} userMultisendInput formData.address from Send.js screen, validated for multi-send
- * @param {number} balanceSats user wallet balance in satoshis
- * @param {string} userLocale navigator.language, if available, or default if not
- * @returns {boolean | string} true if is valid, error msg about why if not
+ * @param userMultisendInput formData.address from Send.js screen, validated for multi-send
+ * @param balanceSats user wallet balance in satoshis
+ * @param userLocale navigator.language, if available, or default if not
+ * @returns true if is valid, error msg about why if not
  */
 export const isValidMultiSendUserInput = (
-    userMultisendInput,
-    balanceSats,
-    userLocale,
-) => {
+    userMultisendInput: string,
+    balanceSats: number,
+    userLocale: string,
+): true | string => {
     if (typeof userMultisendInput !== 'string') {
         // In usage pairing to a form input, this should never happen
         return 'Input must be a string';
@@ -478,7 +512,7 @@ export const isValidMultiSendUserInput = (
     if (userMultisendInput.trim() === '') {
         return 'Input must not be blank';
     }
-    let inputLines = userMultisendInput.split('\n');
+    const inputLines = userMultisendInput.split('\n');
     let totalSendSatoshis = 0;
     for (let i = 0; i < inputLines.length; i += 1) {
         if (inputLines[i].trim() === '') {
@@ -538,10 +572,9 @@ export const isValidMultiSendUserInput = (
 const VALID_LOWERCASE_HEX_REGEX = /^[a-f0-9]+$/;
 /**
  * Validate bip21 op_return_raw input
- * @param {string} opReturnRaw user input (or webapp tx input) for bip21 op_return_raw
- * @returns {boolean | string} true if valid, string error msg if not
+ * @param opReturnRaw user input (or webapp tx input) for bip21 op_return_raw
  */
-export const getOpReturnRawError = opReturnRaw => {
+export const getOpReturnRawError = (opReturnRaw: string): false | string => {
     if (opReturnRaw === '') {
         return 'Cashtab will not send an empty op_return_raw';
     }
@@ -570,10 +603,9 @@ export const getOpReturnRawError = opReturnRaw => {
 
 /**
  * Test a bip21 op_return_raw param to see if an eCash node will accept it
- * @param {string} opReturnRaw
- * @returns {bool}
+ * @param opReturnRaw
  */
-export const nodeWillAcceptOpReturnRaw = opReturnRaw => {
+export const nodeWillAcceptOpReturnRaw = (opReturnRaw: string): boolean => {
     try {
         if (opReturnRaw === '') {
             // No empty OP_RETURN for this param per ecash bip21 spec
@@ -592,35 +624,31 @@ export const nodeWillAcceptOpReturnRaw = opReturnRaw => {
     }
 };
 
-/**
- * Should the Send button be disabled on the SendXec screen
- * @param {object} formData must have keys address: string and value: string
- * @param {number} balanceSats
- * @param {boolean} apiError
- * @param {false | string} sendAmountError
- * @param {false | string} sendAddressError
- * @param {boolean} sendWithCashtabMsg
- * @param {false | string} cashtabMsgError
- * @param {boolean} sendWithOpReturnRaw
- * @param {false | string} opReturnRawError
- * @param {boolean} priceApiError
- * @param {boolean} isOneToManyXECSend
- * @returns boolean
- */
+// TODO define and move this to SendXec screen
+// Handle when convert SendXec to ts
+interface SendXecFormData {
+    amount: string;
+    address: string;
+    multiAddressInput: string;
+    airdropTokenId: string;
+    cashtabMsg: string;
+    opReturnRaw: string;
+}
+// Should the Send button be disabled on the SendXec screen
 export const shouldSendXecBeDisabled = (
-    formData,
-    balanceSats,
-    apiError,
-    sendAmountError,
-    sendAddressError,
-    multiSendAddressError,
-    sendWithCashtabMsg,
-    cashtabMsgError,
-    sendWithOpReturnRaw,
-    opReturnRawError,
-    priceApiError,
-    isOneToManyXECSend,
-) => {
+    formData: SendXecFormData,
+    balanceSats: number,
+    apiError: boolean,
+    sendAmountError: false | string,
+    sendAddressError: false | string,
+    multiSendAddressError: false | string,
+    sendWithCashtabMsg: boolean,
+    cashtabMsgError: false | string,
+    sendWithOpReturnRaw: boolean,
+    opReturnRawError: false | string,
+    priceApiError: boolean,
+    isOneToManyXECSend: boolean,
+): boolean => {
     return (
         // Disabled if no user inputs
         (formData.multiAddressInput === '' &&
@@ -650,25 +678,35 @@ export const shouldSendXecBeDisabled = (
     );
 };
 
+interface CashtabParsedAddressInfo {
+    address: { value: null | string; error: false | string; isAlias: boolean };
+    amount?: { value: null | string; error: false | string };
+    queryString?: { value: string; error: false | string };
+    parsedAdditionalXecOutputs?: {
+        value: null | [string, string][];
+        error: false | string;
+    };
+    op_return_raw?: { value: null | string; error: false | string };
+}
+
 /**
  * Parse an address string with bip21 params for use in Cashtab
- * @param {string} addressString User input into the send field of Cashtab.
+ * @param addressString User input into the send field of Cashtab.
  * Must be validated for bip21 and Cashtab supported features
  * For now, Cashtab supports only
  * amount - amount to be sent in XEC
  * opreturn - raw hex for opreturn output
  * additional addr & amount - multiple outputs for XEC txs
- * @param {number} balanceSats user wallet balance in satoshis
- * @param {string} userLocale navigator.language if available, or default value if not
- * @returns {object} addressInfo. Object with parsed params designed for use in Send.js
+ * @param balanceSats user wallet balance in satoshis
+ * @param userLocale navigator.language if available, or default value if not
  */
 export function parseAddressInput(
-    addressInput,
-    balanceSats,
+    addressInput: string,
+    balanceSats: number,
     userLocale = appConfig.defaultLocale,
-) {
+): CashtabParsedAddressInfo {
     // Build return obj
-    const parsedAddressInput = {
+    const parsedAddressInput: CashtabParsedAddressInfo = {
         address: { value: null, error: false, isAlias: false },
     };
 
@@ -681,7 +719,7 @@ export function parseAddressInput(
     // Parse address string for parameters
     const paramCheck = addressInput.split('?');
 
-    let cleanAddress = paramCheck[0];
+    const cleanAddress = paramCheck[0];
 
     // Set cleanAddress to addressInfo.address.value even if validation fails
     // If there is an error, this will be set later
@@ -730,18 +768,23 @@ export function parseAddressInput(
         // Set a flag -- the first time we see the 'amount' param, it is for the bip21 starting address
         let firstAmount = true;
         // Set a flag -- per spec, nth outputs must be addr=<address> followed immediately by amount= for that address
-        let precedingParamAddr = false;
+        let precedingParamAddr: boolean | string = false;
 
         // Tempting to make additionalXecOutputs a map of address => amount
         // However, we want to support the use case of multiple outputs of different amounts going to the same address
-        const additionalXecOutputs = [];
+        const additionalXecOutputs: [string, string][] = [];
         // Flag as any duplication of this param is off spec
         let opReturnRawOccurred = false;
         for (const [key, value] of addrParams) {
             if (precedingParamAddr !== false) {
                 // If the preceding param was addr, then this has to be amount, otherwise off spec
                 if (key !== 'amount') {
-                    parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+                    if (
+                        typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                        'undefined'
+                    ) {
+                        parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+                    }
                     return parsedAddressInput;
                 }
                 // Validate the amount
@@ -751,7 +794,12 @@ export function parseAddressInput(
                     userLocale,
                 );
                 if (isValidXecSendAmountOrErrorMsg !== true) {
-                    parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid amount ${value} for address ${precedingParamAddr}: ${isValidXecSendAmountOrErrorMsg}`;
+                    if (
+                        typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                        'undefined'
+                    ) {
+                        parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid amount ${value} for address ${precedingParamAddr}: ${isValidXecSendAmountOrErrorMsg}`;
+                    }
                     return parsedAddressInput;
                 } else {
                     additionalXecOutputs.push([precedingParamAddr, value]);
@@ -802,9 +850,12 @@ export function parseAddressInput(
                     // If we get here otherwise, it means we are missing the corresponding 'addr' param for this amount
                     // Set a query string error
                     parsedAddressInput.queryString.error = `The amount param appears without a corresponding addr param`;
-                    // Do not return an amount value, since it is ambiguous
-                    parsedAddressInput.amount.value = null;
-                    parsedAddressInput.amount.error = `Duplicated amount param without matching address`;
+                    if (typeof parsedAddressInput.amount !== 'undefined') {
+                        // Do not return an amount value, since it is ambiguous
+                        parsedAddressInput.amount.value = null;
+                        parsedAddressInput.amount.error = `Duplicated amount param without matching address`;
+                    }
+
                     // Stop parsing
                     return parsedAddressInput;
                 }
@@ -831,9 +882,13 @@ export function parseAddressInput(
                 if (opReturnRawOccurred) {
                     // Set a query string error
                     parsedAddressInput.queryString.error = `The op_return_raw param may not appear more than once`;
-                    // Do not return an op_return_raw value, since it is ambiguous
-                    parsedAddressInput.op_return_raw.value = null;
-                    parsedAddressInput.op_return_raw.error = `Duplicated op_return_raw param`;
+                    if (
+                        typeof parsedAddressInput.op_return_raw !== 'undefined'
+                    ) {
+                        // Do not return an op_return_raw value, since it is ambiguous
+                        parsedAddressInput.op_return_raw.value = null;
+                        parsedAddressInput.op_return_raw.error = `Duplicated op_return_raw param`;
+                    }
                     // Stop parsing
                     return parsedAddressInput;
                 }
@@ -854,13 +909,23 @@ export function parseAddressInput(
 
         // Catch a bip21 syntax error where the LAST param was addr
         if (precedingParamAddr !== false) {
-            parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+            if (
+                typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                'undefined'
+            ) {
+                parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+            }
             return parsedAddressInput;
         }
         if (additionalXecOutputs.length > 0) {
             // If we have secondary outputs, include them
-            parsedAddressInput.parsedAdditionalXecOutputs.value =
-                additionalXecOutputs;
+            if (
+                typeof parsedAddressInput.parsedAdditionalXecOutputs?.value !==
+                'undefined'
+            ) {
+                parsedAddressInput.parsedAdditionalXecOutputs.value =
+                    additionalXecOutputs;
+            }
         }
     }
 
@@ -869,10 +934,11 @@ export function parseAddressInput(
 
 /**
  * Determine if a given object is a valid Cashtab wallet
- * @param {object} wallet Cashtab wallet object
- * @returns {boolean}
+ * @param wallet Cashtab wallet object
  */
-export const isValidCashtabWallet = wallet => {
+export const isValidCashtabWallet = (
+    wallet: CashtabWallet | LegacyCashtabWallet | false,
+): boolean => {
     if (wallet === false) {
         // Unset cashtab wallet
         return false;
@@ -937,15 +1003,15 @@ export const isValidCashtabWallet = wallet => {
 
 /**
  * Validate a token send or burn qty
- * @param {string} amount decimalized token string of send or burn amount, from user input, e.g. 100.123
- * @param {string} tokenBalance decimalized token string, e.g. 100.123
- * @param {number} decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
+ * @param amount decimalized token string of send or burn amount, from user input, e.g. 100.123
+ * @param tokenBalance decimalized token string, e.g. 100.123
+ * @param decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
  */
 export const isValidTokenSendOrBurnAmount = (
-    amount,
-    tokenBalance,
-    decimals,
-) => {
+    amount: string,
+    tokenBalance: string,
+    decimals: SlpDecimals,
+): string | true => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
     }
@@ -990,10 +1056,13 @@ export const isValidTokenSendOrBurnAmount = (
 /**
  * Validate a token mint qty
  * Same as isValidTokenSendOrBurnAmount except we do not care about baalnce
- * @param {string} amount decimalized token string of mint amount, from user input, e.g. 100.123
- * @param {number} decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
+ * @param amount decimalized token string of mint amount, from user input, e.g. 100.123
+ * @param decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
  */
-export const isValidTokenMintAmount = (amount, decimals) => {
+export const isValidTokenMintAmount = (
+    amount: string,
+    decimals: SlpDecimals,
+): string | true => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
     }
@@ -1034,10 +1103,13 @@ export const isValidTokenMintAmount = (amount, decimals) => {
  * Determine if a new contact name is valid (same rule as renaming a contact)
  * The contact name must be <= 24 characters
  * The contact name must not already exist in contacts
- * @param {string} name
- * @param {{name: string;}[]} contacts array of cashtab contact objects, with key 'name'
+ * @param name
+ * @param contacts array of cashtab contact objects, with key 'name'
  */
-export const getContactNameError = (name, contacts) => {
+export const getContactNameError = (
+    name: string,
+    contacts: CashtabContact[],
+): false | string => {
     if (name === '') {
         return 'Please enter a contact name';
     }
@@ -1054,15 +1126,15 @@ export const getContactNameError = (name, contacts) => {
 
 /**
  * Validation for a user-input price for listing an NFT, in XEC or fiat
- * @param {string} xecListPrice user input list price of an NFT in XEC or fiat
- * @param {string} selectedCurrency e.g. XEC, USD (comes from Select dropdown)
- * @param {number} fiatPrice price of XEC in selectedCurrency
+ * @param xecListPrice user input list price of an NFT in XEC or fiat
+ * @param selectedCurrency e.g. XEC, USD (comes from Select dropdown)
+ * @param fiatPrice price of XEC in selectedCurrency
  */
 export const getXecListPriceError = (
-    xecListPrice,
-    selectedCurrency,
-    fiatPrice,
-) => {
+    xecListPrice: string,
+    selectedCurrency: string,
+    fiatPrice: null | number,
+): false | string => {
     if (xecListPrice === '') {
         return 'List price is required.';
     }
@@ -1082,9 +1154,13 @@ export const getXecListPriceError = (
     const priceSatoshis =
         selectedCurrency !== 'XEC'
             ? toSatoshis(
-                  parseFloat((parseFloat(xecListPrice) / fiatPrice).toFixed(2)),
+                  parseFloat(
+                      (
+                          parseFloat(xecListPrice) / (fiatPrice as number)
+                      ).toFixed(2),
+                  ),
               )
-            : toSatoshis(xecListPrice);
+            : toSatoshis(Number(xecListPrice));
     if (priceSatoshis < appConfig.dustSats) {
         // We cannot enforce an output to have less than dust satoshis
         return 'List price cannot be less than dust (5.46 XEC).';
@@ -1100,20 +1176,20 @@ export const getXecListPriceError = (
  * So, we can have much lower prices
  * However we still must prevent prices that are "too low", i.e. less than 1 nanosatoshi per token
  * satoshi, or prices where the min buy would be less than dust (546 satoshis)
- * @param {string} xecListPrice user input list price of an NFT in XEC or fiat
- * @param {string} selectedCurrency e.g. XEC, USD (comes from Select dropdown)
- * @param {number} fiatPrice price of XEC in selectedCurrency
- * @param {string} minBuyTokenQty min amount that can be purchased in this agora partial
- * @param {0|1|2|3|4|5|6|7|8|9} tokenDecimals
+ * @param xecListPrice user input list price of an NFT in XEC or fiat
+ * @param selectedCurrency e.g. XEC, USD (comes from Select dropdown)
+ * @param fiatPrice price of XEC in selectedCurrency
+ * @param minBuyTokenQty min amount that can be purchased in this agora partial
+ * @param tokenDecimals
  */
 export const NANOSAT_DECIMALS = 11;
 export const getAgoraPartialListPriceError = (
-    xecListPrice,
-    selectedCurrency,
-    fiatPrice,
-    minBuyTokenQty,
-    tokenDecimals,
-) => {
+    xecListPrice: string,
+    selectedCurrency: string,
+    fiatPrice: null | number,
+    minBuyTokenQty: string,
+    tokenDecimals: SlpDecimals,
+): false | string => {
     if (xecListPrice === '') {
         return 'List price is required.';
     }
@@ -1136,10 +1212,12 @@ export const getAgoraPartialListPriceError = (
 
     // Get the price in XEC
 
-    let priceXec =
+    const priceXec =
         selectedCurrency !== 'XEC'
             ? new BN(
-                  new BN(xecListPrice).div(fiatPrice).toFixed(NANOSAT_DECIMALS),
+                  new BN(xecListPrice)
+                      .div(fiatPrice as number)
+                      .toFixed(NANOSAT_DECIMALS),
               )
             : new BN(xecListPrice);
 
@@ -1164,11 +1242,11 @@ export const getAgoraPartialListPriceError = (
 };
 
 export const getAgoraPartialAcceptTokenQtyError = (
-    acceptTokenSatoshis,
-    offerMinAcceptTokenSatoshis,
-    offerMaxAcceptSatoshis,
-    decimals,
-) => {
+    acceptTokenSatoshis: bigint,
+    offerMinAcceptTokenSatoshis: bigint,
+    offerMaxAcceptSatoshis: bigint,
+    decimals: SlpDecimals,
+): false | string => {
     /**
      * 2 potential problems
      *

@@ -227,7 +227,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // cashtabState is initialized with defaults when this component loads
 
         // contactList
-        let contactList = await localforage.getItem('contactList');
+        let contactList: null | CashtabContact[] = await localforage.getItem(
+            'contactList',
+        );
         if (contactList !== null) {
             // If we find a contactList in localforage
             if (!isValidContactList(contactList)) {
@@ -247,7 +249,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
 
         // settings
-        let settings = await localforage.getItem('settings');
+        let settings: null | CashtabSettings = await localforage.getItem(
+            'settings',
+        );
         if (settings !== null) {
             // If we find settings in localforage
             if (!isValidCashtabSettings(settings)) {

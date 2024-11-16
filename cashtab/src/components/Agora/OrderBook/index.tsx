@@ -80,7 +80,7 @@ import CashtabSettings from 'config/CashtabSettings';
 import { Agora, AgoraOffer, AgoraPartial } from 'ecash-agora';
 import { ChronikClient } from 'chronik-client';
 
-interface PartialOffer extends AgoraOffer {
+export interface PartialOffer extends AgoraOffer {
     variant: {
         type: 'PARTIAL';
         params: AgoraPartial;
@@ -599,9 +599,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
         setTakeTokenSatoshisError(
             getAgoraPartialAcceptTokenQtyError(
                 toBigInt(takeTokenSatoshis),
-                tokenSatoshisMin,
-                tokenSatoshisMax,
-                decimals,
+                tokenSatoshisMin as bigint,
+                tokenSatoshisMax as bigint,
+                decimals as SlpDecimals,
             ),
         );
 

@@ -340,7 +340,7 @@ describe('<Token /> available actions rendered', () => {
         );
 
         // The price input is cleared when the user changes from XEC price to fiat price
-        expect(priceInput).toHaveValue(0);
+        expect(priceInput).toHaveValue(null);
 
         // We list for $2 per token
         await userEvent.type(priceInput, '5');
@@ -354,9 +354,10 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.clear(priceInput);
         await userEvent.type(priceInput, '0.00005');
 
+        screen.debug(null, Infinity);
         // The fiat price is previewed correctly
         expect(
-            screen.getByText('$0.00005 USD (1.67 XEC) per token'),
+            await screen.findByText('$0.00005 USD (1.67 XEC) per token'),
         ).toBeInTheDocument();
 
         // Click the now-enabled list button
