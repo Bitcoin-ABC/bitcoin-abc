@@ -13,7 +13,7 @@ export const OrderBookLoading = styled.div`
     margin: 12px auto;
 `;
 
-export const OfferWrapper = styled.div`
+export const OfferWrapper = styled.div<{ borderRadius: boolean }>`
     background-color: ${props => props.theme.modal.background};
     margin-bottom: 20px;
     border-radius: ${props => (props.borderRadius ? '20px' : '0 0 20px 20px')};
@@ -46,7 +46,7 @@ export const OfferTitleCtn = styled.div`
     }
 `;
 
-export const OfferIcon = styled.button`
+export const OfferIcon = styled.button<{ size: number; tokenId: string }>`
     cursor: pointer;
     border: none;
     background-color: transparent;
@@ -76,7 +76,7 @@ export const DepthBarCol = styled.div`
     flex-direction: column-reverse;
 `;
 
-export const OrderBookRow = styled.button`
+export const OrderBookRow = styled.button<{ selected: boolean }>`
     color: ${props =>
         props.selected
             ? `${props.theme.contrast}!important`
@@ -107,7 +107,7 @@ export const OrderbookPrice = styled.div`
     z-index: 1;
 `;
 
-export const DepthBar = styled.div`
+export const DepthBar = styled.div<{ depthPercent: number }>`
     display: flex;
     flex-direction: row;
     position: absolute;
@@ -119,7 +119,7 @@ export const DepthBar = styled.div`
     width: ${props => props.depthPercent}%;
 `;
 
-export const TentativeAcceptBar = styled.div`
+export const TentativeAcceptBar = styled.div<{ acceptPercent: number }>`
     display: flex;
     flex-direction: row;
     position: absolute;

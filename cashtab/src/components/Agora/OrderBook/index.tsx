@@ -24,7 +24,6 @@
 import React, { useState, useEffect } from 'react';
 import { Slider } from 'components/Common/Inputs';
 import { InlineLoader } from 'components/Common/Spinner';
-import PropTypes from 'prop-types';
 import { explorer } from 'config/explorer';
 import {
     nanoSatoshisToXec,
@@ -35,6 +34,8 @@ import {
     hasEnoughToken,
     DUMMY_KEYPAIR,
     toBigInt,
+    CashtabWallet,
+    SlpDecimals,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import {
@@ -60,15 +61,49 @@ import {
 } from './styled';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
-import { Script, P2PKHSignatory, ALL_BIP143, toHex, fromHex } from 'ecash-lib';
+import {
+    Script,
+    P2PKHSignatory,
+    ALL_BIP143,
+    toHex,
+    fromHex,
+    Ecc,
+} from 'ecash-lib';
 import * as wif from 'wif';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { Alert, Info } from 'components/Common/Atoms';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import CashtabSettings from 'config/CashtabSettings';
+import { Agora, AgoraOffer, AgoraPartial } from 'ecash-agora';
+import { ChronikClient } from 'chronik-client';
 
-const OrderBook = ({
+interface PartialOffer extends AgoraOffer {
+    variant: {
+        type: 'PARTIAL';
+        params: AgoraPartial;
+    };
+    depthPercent?: number;
+    spotPriceNanoSatsPerTokenSat?: bigint;
+}
+
+interface OrderBookProps {
+    tokenId: string;
+    cachedTokenInfo: CashtabCachedTokenInfo;
+    settings: CashtabSettings;
+    userLocale: string;
+    fiatPrice: null | number;
+    activePk: null | Uint8Array;
+    wallet: CashtabWallet;
+    ecc: Ecc;
+    chronik: ChronikClient;
+    agora: Agora;
+    chaintipBlockheight: number;
+    noIcon?: boolean;
+}
+const OrderBook: React.FC<OrderBookProps> = ({
     tokenId,
     cachedTokenInfo,
     settings,
@@ -82,7 +117,7 @@ const OrderBook = ({
     chaintipBlockheight,
     noIcon,
 }) => {
-    const cancelOffer = async agoraPartial => {
+    const cancelOffer = async (agoraPartial: PartialOffer) => {
         // Get user fee from settings
         const satsPerKb =
             settings.minFeeSends &&
@@ -124,15 +159,16 @@ const OrderBook = ({
 
         const fuelInputs = [];
         for (const fuelUtxo of fuelUtxos) {
+            const pathInfo = wallet.paths.get(fuelUtxo.path);
+            if (typeof pathInfo === 'undefined') {
+                // Should never happen
+                return toast.error(`No path info for ${fuelUtxo.path}`);
+            }
             // Send the tokens back to the same address as the fuelUtxo
-            const recipientScript = Script.p2pkh(
-                fromHex(wallet.paths.get(fuelUtxo.path).hash),
-            );
+            const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
 
             // sk for the tx is the sk for this utxo
-            const sk = wif.decode(
-                wallet.paths.get(fuelUtxo.path).wif,
-            ).privateKey;
+            const sk = wif.decode(pathInfo.wif).privateKey;
 
             // Convert from Cashtab utxo to signed ecash-lib input
             fuelInputs.push({
@@ -146,8 +182,18 @@ const OrderBook = ({
                         outputScript: recipientScript,
                     },
                 },
-                signatory: P2PKHSignatory(sk, activePk, ALL_BIP143),
+                signatory: P2PKHSignatory(
+                    sk,
+                    activePk as Uint8Array,
+                    ALL_BIP143,
+                ),
             });
+        }
+
+        const defaultPathInfo = wallet.paths.get(appConfig.derivationPath);
+        if (typeof defaultPathInfo === 'undefined') {
+            // Should never happen
+            return toast.error(`No path info for ${appConfig.derivationPath}`);
         }
 
         // Build the cancel tx
@@ -157,14 +203,10 @@ const OrderBook = ({
                 // Cashtab default path
                 // This works here because we lookup cancelable offers by the same path
                 // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: wif.decode(
-                    wallet.paths.get(appConfig.derivationPath).wif,
-                ).privateKey,
+                cancelSk: wif.decode(defaultPathInfo.wif).privateKey,
                 fuelInputs: fuelInputs,
                 // Change to Cashtab default derivation path
-                recipientScript: Script.p2pkh(
-                    fromHex(wallet.paths.get(appConfig.derivationPath).hash),
-                ),
+                recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
                 feePerKb: satsPerKb,
             })
             .ser();
@@ -199,7 +241,7 @@ const OrderBook = ({
         }
     };
 
-    const acceptOffer = async agoraPartial => {
+    const acceptOffer = async (agoraPartial: PartialOffer) => {
         // Determine tx fee from settings
         const satsPerKb =
             settings.minFeeSends &&
@@ -241,13 +283,14 @@ const OrderBook = ({
 
         const signedFuelInputs = [];
         for (const fuelUtxo of acceptFuelInputs) {
+            const pathInfo = wallet.paths.get(fuelUtxo.path);
+            if (typeof pathInfo === 'undefined') {
+                // Should never happen
+                return toast.error(`No path info for ${fuelUtxo.path}`);
+            }
             // Sign and prep utxos for ecash-lib inputs
-            const recipientScript = Script.p2pkh(
-                fromHex(wallet.paths.get(fuelUtxo.path).hash),
-            );
-            const sk = wif.decode(
-                wallet.paths.get(fuelUtxo.path).wif,
-            ).privateKey;
+            const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
+            const sk = wif.decode(pathInfo.wif).privateKey;
             signedFuelInputs.push({
                 input: {
                     prevOut: {
@@ -259,8 +302,18 @@ const OrderBook = ({
                         outputScript: recipientScript,
                     },
                 },
-                signatory: P2PKHSignatory(sk, activePk, ALL_BIP143),
+                signatory: P2PKHSignatory(
+                    sk,
+                    activePk as Uint8Array,
+                    ALL_BIP143,
+                ),
             });
+        }
+
+        const defaultPathInfo = wallet.paths.get(appConfig.derivationPath);
+        if (typeof defaultPathInfo === 'undefined') {
+            // Should never happen
+            return toast.error(`No path info for ${appConfig.derivationPath}`);
         }
 
         // Use an arbitrary sk, pk for the convenant
@@ -271,9 +324,7 @@ const OrderBook = ({
                 covenantPk: DUMMY_KEYPAIR.pk,
                 fuelInputs: signedFuelInputs,
                 // Accept at default path, 1899
-                recipientScript: Script.p2pkh(
-                    fromHex(wallet.paths.get(appConfig.derivationPath).hash),
-                ),
+                recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
                 feePerKb: satsPerKb,
                 // Need to use Number() to deal with values in scientific notation
                 acceptedTokens: toBigInt(takeTokenSatoshis),
@@ -294,7 +345,7 @@ const OrderBook = ({
                 >
                     {`Bought ${decimalizeTokenAmount(
                         takeTokenSatoshis,
-                        decimals,
+                        decimals as SlpDecimals,
                     )} ${tokenName}${
                         tokenTicker !== '' ? ` (${tokenTicker})` : ''
                     } for
@@ -324,57 +375,69 @@ const OrderBook = ({
     };
 
     // Modal flags
-    const [showLargeIconModal, setShowLargeIconModal] = useState(false);
-    const [showAcceptedQtyInfo, setShowAcceptedQtyInfo] = useState(false);
-    const [showConfirmBuyModal, setShowConfirmBuyModal] = useState(false);
-    const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
+    const [showLargeIconModal, setShowLargeIconModal] =
+        useState<boolean>(false);
+    const [showAcceptedQtyInfo, setShowAcceptedQtyInfo] =
+        useState<boolean>(false);
+    const [showConfirmBuyModal, setShowConfirmBuyModal] =
+        useState<boolean>(false);
+    const [showConfirmCancelModal, setShowConfirmCancelModal] =
+        useState<boolean>(false);
 
-    const [activeOffers, setActiveOffers] = useState(null);
+    const [activeOffers, setActiveOffers] = useState<null | PartialOffer[]>(
+        null,
+    );
     // On load, we select the offer at the 0-index
     // This component sorts offers by spot price; so this is the spot offer
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [askedSats, setAskedSats] = useState(0);
+    const [selectedIndex, setSelectedIndex] = useState<number>(0);
+    const [askedSats, setAskedSats] = useState<number>(0);
     // Note that takeTokenSatoshis is a string because slider values are strings
-    const [takeTokenSatoshis, setTakeTokenSatoshis] = useState('0');
+    const [takeTokenSatoshis, setTakeTokenSatoshis] = useState<string>('0');
 
     // Errorrs
-    const [takeTokenSatoshisError, setTakeTokenSatoshisError] = useState(false);
-    const [agoraQueryError, setAgoraQueryError] = useState(false);
+    const [takeTokenSatoshisError, setTakeTokenSatoshisError] = useState<
+        false | string
+    >(false);
+    const [agoraQueryError, setAgoraQueryError] = useState<boolean>(false);
 
-    const handleTakeTokenSatoshisSlide = e => {
+    const handleTakeTokenSatoshisSlide = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         // JS slider components will only take string input, and only convert to number
         // So, unless you build your own custom component, you cannot avoid precision loss
         // TODO custom component
         // Prepare value before setting
-        const preparedTokenSatoshis =
-            selectedOffer.variant.params.prepareAcceptedTokens(
-                toBigInt(e.target.value),
-            );
+        const preparedTokenSatoshis = (
+            selectedOffer as PartialOffer
+        ).variant.params.prepareAcceptedTokens(toBigInt(e.target.value));
         setTakeTokenSatoshis(preparedTokenSatoshis.toString());
     };
 
     // We can only calculate params to render the orderbook depth chart and slider after
     // we have successfully called fetchAndPrepareActiveOffers() and set activeOffers in state
-    let selectedOffer, tokenSatoshisMin, tokenSatoshisMax, tokenSatoshisStep;
+    let selectedOffer: undefined | PartialOffer,
+        tokenSatoshisMin: undefined | bigint,
+        tokenSatoshisMax: undefined | bigint,
+        tokenSatoshisStep: undefined | bigint;
 
     // We will not allow fungible token sales if we do not have
     // token cached info
     // This is because we need the decimals to really know the quantity
-    let decimals,
-        decimalizedTokenQtyMin,
-        decimalizedTokenQtyMax,
-        decimalizedTokenQtyStep;
+    let decimals: undefined | SlpDecimals,
+        decimalizedTokenQtyMin: undefined | string,
+        decimalizedTokenQtyMax: undefined | string,
+        decimalizedTokenQtyStep: undefined | string;
 
     // We can't render the trading features of an orderbook until cached token info is available
     // But we can render other parts, like the token icon, token id
     // Set placeholders for values that need to wait for cache
-    let tokenName =
+    const tokenName =
         typeof cachedTokenInfo !== 'undefined' ? (
             cachedTokenInfo.genesisInfo.tokenName
         ) : (
             <InlineLoader />
         );
-    let tokenTicker =
+    const tokenTicker =
         typeof cachedTokenInfo !== 'undefined' ? (
             cachedTokenInfo.genesisInfo.tokenTicker === '' ? (
                 ''
@@ -402,7 +465,7 @@ const OrderBook = ({
         tokenSatoshisStep = BigInt(tokenSatoshisMax) / truncTokens;
 
         try {
-            isMaker = toHex(activePk) === toHex(makerPk);
+            isMaker = toHex(activePk as Uint8Array) === toHex(makerPk);
         } catch (err) {
             console.error(`Error comparing activePk with makerPk`);
             console.error(`activePk`, activePk);
@@ -410,7 +473,7 @@ const OrderBook = ({
         }
 
         if (typeof cachedTokenInfo !== 'undefined') {
-            decimals = cachedTokenInfo.genesisInfo.decimals;
+            decimals = cachedTokenInfo.genesisInfo.decimals as SlpDecimals;
 
             // We need undecimimalized amounts as BigInts so we do not have JS number math effects
             // The sliders need to work under the hood with token sats as BigInts
@@ -457,7 +520,9 @@ const OrderBook = ({
      */
     const fetchAndPrepareActiveOffers = async () => {
         try {
-            const activeOffers = await agora.activeOffersByTokenId(tokenId);
+            const activeOffers = (await agora.activeOffersByTokenId(
+                tokenId,
+            )) as PartialOffer[];
 
             // Calculate a spot price for each offer
             // We need to do this because we need to sort them to get the "true" spot price, i.e. the lowest price
@@ -541,7 +606,7 @@ const OrderBook = ({
         );
 
         // takeTokenSatoshis is only set to state by agora methods that prepareAcceptedTokens
-        const spotPriceSatsThisQty = selectedOffer.askedSats(
+        const spotPriceSatsThisQty = (selectedOffer as PartialOffer).askedSats(
             toBigInt(takeTokenSatoshis),
         );
 
@@ -592,7 +657,10 @@ const OrderBook = ({
             {showConfirmBuyModal && (
                 <Modal
                     title={`Buy ${decimalizedTokenQtyToLocaleFormat(
-                        decimalizeTokenAmount(takeTokenSatoshis, decimals),
+                        decimalizeTokenAmount(
+                            takeTokenSatoshis,
+                            decimals as SlpDecimals,
+                        ),
                         userLocale,
                     )} ${tokenName}${
                         tokenTicker !== '' ? ` (${tokenTicker})` : ''
@@ -608,7 +676,7 @@ const OrderBook = ({
                     }`}
                     height={290}
                     showCancelButton
-                    handleOk={() => acceptOffer(selectedOffer)}
+                    handleOk={() => acceptOffer(selectedOffer as PartialOffer)}
                     handleCancel={() => setShowConfirmBuyModal(false)}
                 >
                     <TokenIcon size={128} tokenId={tokenId} />
@@ -637,7 +705,9 @@ const OrderBook = ({
                         description={`Note that canceling an offer will cancel the entire offer`}
                         height={250}
                         showCancelButton
-                        handleOk={() => cancelOffer(selectedOffer)}
+                        handleOk={() =>
+                            cancelOffer(selectedOffer as PartialOffer)
+                        }
                         handleCancel={() => setShowConfirmCancelModal(false)}
                     />
                 )}
@@ -683,7 +753,7 @@ const OrderBook = ({
                                 {activeOffers.map((activeOffer, index) => {
                                     const { depthPercent } = activeOffer;
                                     const acceptPercent =
-                                        (depthPercent *
+                                        ((depthPercent as number) *
                                             Number(takeTokenSatoshis)) /
                                         Number(tokenSatoshisMax);
                                     return (
@@ -695,7 +765,9 @@ const OrderBook = ({
                                             selected={index === selectedIndex}
                                         >
                                             <DepthBar
-                                                depthPercent={depthPercent}
+                                                depthPercent={
+                                                    depthPercent as number
+                                                }
                                             ></DepthBar>
                                             {index === selectedIndex && (
                                                 <TentativeAcceptBar
@@ -730,9 +802,15 @@ const OrderBook = ({
                                     value={takeTokenSatoshis}
                                     error={takeTokenSatoshisError}
                                     handleSlide={handleTakeTokenSatoshisSlide}
-                                    min={tokenSatoshisMin.toString()}
-                                    max={tokenSatoshisMax.toString()}
-                                    step={tokenSatoshisStep.toString()}
+                                    min={(
+                                        tokenSatoshisMin as bigint
+                                    ).toString()}
+                                    max={(
+                                        tokenSatoshisMax as bigint
+                                    ).toString()}
+                                    step={(
+                                        tokenSatoshisStep as bigint
+                                    ).toString()}
                                 />
                             </SliderRow>
                             <BuyOrderCtn>
@@ -740,7 +818,7 @@ const OrderBook = ({
                                     {decimalizedTokenQtyToLocaleFormat(
                                         decimalizeTokenAmount(
                                             takeTokenSatoshis,
-                                            decimals,
+                                            decimals as SlpDecimals,
                                         ),
                                         userLocale,
                                     )}{' '}
@@ -774,7 +852,9 @@ const OrderBook = ({
                                         onClick={() =>
                                             setShowConfirmBuyModal(true)
                                         }
-                                        disabled={takeTokenSatoshisError}
+                                        disabled={
+                                            takeTokenSatoshisError !== false
+                                        }
                                     >
                                         Buy {tokenName}
                                         {tokenTicker !== ''
@@ -804,22 +884,6 @@ const OrderBook = ({
             )}
         </>
     );
-};
-
-OrderBook.propTypes = {
-    tokenId: PropTypes.string,
-    activeOffers: PropTypes.array,
-    cachedTokenInfo: PropTypes.object,
-    settings: PropTypes.object,
-    userLocale: PropTypes.string,
-    fiatPrice: PropTypes.number,
-    activePk: PropTypes.object, // Uint8array
-    wallet: PropTypes.object,
-    ecc: PropTypes.any,
-    chronik: PropTypes.object,
-    agora: PropTypes.object,
-    chaintipBlockheight: PropTypes.number,
-    noIcon: PropTypes.bool,
 };
 
 export default OrderBook;
