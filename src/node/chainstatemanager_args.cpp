@@ -72,10 +72,7 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
         script_threads += GetNumCores();
     }
     // Subtract 1 because the main thread counts towards the par threads.
-    opts.worker_threads_num =
-        std::clamp(script_threads - 1, 0, MAX_SCRIPTCHECK_THREADS);
-    LogPrintf("Script verification uses %d additional threads\n",
-              opts.worker_threads_num);
+    opts.worker_threads_num = script_threads - 1;
 
     if (auto value{args.GetBoolArg("-persistrecentheaderstime")}) {
         opts.store_recent_headers_time = *value;
