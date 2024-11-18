@@ -78,11 +78,6 @@ function Home(props) {
                                 <GlitchText text="Internet" />
                             </h1>
                             <Tagline>Fast. Secure. Scalable.</Tagline>
-                            <p>
-                                Experience the revolutionary new money powered
-                                by
-                                <b> Avalanche</b>.
-                            </p>
 
                             <ButtonCtn>
                                 <MarginButtonWrapper>
