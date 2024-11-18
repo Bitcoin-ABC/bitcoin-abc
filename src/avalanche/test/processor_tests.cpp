@@ -2123,10 +2123,6 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     BOOST_CHECK(!m_processor->computeStakingReward(&prevBlock));
     BOOST_CHECK(!m_processor->getStakingRewardWinners(prevBlockHash, winners));
 
-    setArg("-avaminquorumstake", "0");
-    setArg("-avaminquorumconnectedstakeratio", "0");
-    setArg("-avaminavaproofsnodecount", "0");
-
     // Setup a bunch of proofs
     size_t numProofs = 10;
     std::vector<ProofRef> proofs;
