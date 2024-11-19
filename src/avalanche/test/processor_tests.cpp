@@ -2448,17 +2448,16 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     // Need to have finalization tip set for contenders to be promoted
     AvalancheTest::setFinalizationTip(*m_processor, chaintip);
 
+    // Make proofs old enough to be considered for staking rewards
+    now += 1h + 1s;
+    SetMockTime(now);
+
     // Advance chaintip
     CBlock block = CreateAndProcessBlock({}, CScript());
     chaintip =
         WITH_LOCK(cs_main, return Assert(m_node.chainman)
                                ->m_blockman.LookupBlockIndex(block.GetHash()));
     AvalancheTest::updatedBlockTip(*m_processor);
-
-    // Make proofs old enough to be considered for staking rewards
-    now += 1h + 1s;
-    SetMockTime(now);
-    chaintip->nTime = now.count();
 
     // Compute local stake winner
     BOOST_CHECK(m_processor->isQuorumEstablished());
