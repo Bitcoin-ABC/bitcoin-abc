@@ -174,17 +174,18 @@ class BuildConfiguration:
             # Make sure we have at least a context
             context = docker_config.get("context", None)
             if context is None:
-                raise AssertionError(
-                    f"The docker configuration for build {self.name} is missing a"
-                    " context, aborting"
-                )
-            # Make the context path absolute
-            context = self.project_root.joinpath(context)
+                context = self.project_root
+            else:
+                # Make the context path absolute
+                context = self.project_root.joinpath(context)
             # Make sure the context is a subdir of the git repository. This
             # prevents e.g. the use of .. as a context path.
-            if Path(self.project_root) not in Path(context).resolve().parents:
+            if (
+                Path(self.project_root) not in Path(context).resolve().parents
+                and Path(self.project_root) != Path(context).resolve()
+            ):
                 raise AssertionError(
-                    "The docker context should be a subdirectory of the project root"
+                    "The docker context should be the project root or a subdirectory"
                 )
 
             dockerfile = docker_config.get("dockerfile", None)

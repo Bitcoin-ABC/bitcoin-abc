@@ -1024,7 +1024,7 @@ builds:
 
   preview-chronik.e.cash:
     docker:
-      context: modules/
+      dockerfile: chronik.e.cash.Dockerfile
       build_args:
         - "NGINX_CONF=nginx-preview.conf"
 
@@ -1035,6 +1035,6 @@ builds:
 
   preview-cashtab:
     docker:
-      context: cashtab
+      dockerfile: cashtab.Dockerfile
       build_args:
         - "NGINX_CONF=nginx-preview.conf"
