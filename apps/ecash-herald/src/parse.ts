@@ -2243,6 +2243,7 @@ export const initializeOrIncrementTokenData = (
     const incrementedTokenActions = {
         ...existingActions,
         [action]: {
+            ...existingActions[action],
             count:
                 typeof existingActions[action]?.count !== 'undefined'
                     ? existingActions[action]!.count! + 1
