@@ -29,7 +29,7 @@
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
         "express": "^4.18.2",
         "helmet": "^7.0.0",
-        "mongodb": "^5.0.1",
+        "mongodb": "^6.10.0",
         "node-cache": "^5.1.2",
         "node-telegram-bot-api": "^0.66.0",
         "request-ip": "^3.3.0"
@@ -41,14 +41,14 @@
         "mocha": "^10.2.0",
         "mocha-junit-reporter": "^2.2.0",
         "mocha-suppress-logs": "^0.3.1",
-        "mongodb-memory-server": "^8.12.2",
+        "mongodb-memory-server": "^10.1.2",
         "nyc": "^15.1.0",
         "supertest": "^6.3.3",
         "test-console": "^2.0.0"
     },
     "config": {
         "mongodbMemoryServer": {
-            "version": "6.0.5"
+            "version": "7.0.3"
         }
     }
 }
