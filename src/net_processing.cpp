@@ -4762,18 +4762,11 @@ void PeerManagerImpl::ProcessMessage(
         return;
     }
 
-    if (IsAvalancheMessageType(msg_type)) {
-        if (!m_avalanche) {
-            LogPrint(BCLog::AVALANCHE,
-                     "Avalanche is not initialized, ignoring %s message\n",
-                     msg_type);
-            return;
-        }
-
-        if (!m_avalanche) {
-            // If avalanche is not enabled, ignore avalanche messages
-            return;
-        }
+    if (!m_avalanche && IsAvalancheMessageType(msg_type)) {
+        LogPrint(BCLog::AVALANCHE,
+                 "Avalanche is not initialized, ignoring %s message\n",
+                 msg_type);
+        return;
     }
 
     if (msg_type == NetMsgType::VERSION) {
