@@ -164,6 +164,9 @@ pub(crate) fn make_tx_proto(params: MakeTxProtoParams<'_>) -> proto::Tx {
         time_first_seen: params.time_first_seen,
         size: tx.ser_len() as u32,
         is_coinbase: params.is_coinbase,
+        is_final: params.block.map_or(false, |block| {
+            params.avalanche.is_final_height(block.height)
+        }),
     }
 }
 

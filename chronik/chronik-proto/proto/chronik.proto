@@ -107,6 +107,8 @@ message Tx {
     // Token status, i.e. whether this tx has any tokens or unintentional token burns
     // or something unexpected, like failed parsings etc.
     TokenStatus token_status = 15;
+    // Whether the transaction has been finalized by avalanche
+    bool is_final = 16;
 }
 
 // UTXO of a script.

@@ -93,6 +93,9 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         txid = node.sendrawtransaction(tx.serialize().hex())
 
         # Tx not finalized
+        assert_equal(chronik.tx(txid).ok().is_final, False)
+
+        # Block not finalized
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
 
         # Mine block
@@ -101,6 +104,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         # Not finalized yet
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
+        assert_equal(chronik.tx(txid).ok().is_final, False)
 
         def chronik_wait_for_block_final(block_hash):
             self.wait_until(lambda: chronik.block(tip).ok().block_info.is_final)
@@ -113,16 +117,21 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         chronik_wait_for_block_final(tip)
         chronik_wait_for_tx_final(txid)
 
+        # Confirmation that the tx is finalized.
+        assert_equal(chronik.tx(txid).ok().is_final, True)
+
         # Restarting "wipes" the finalization status of blocks...
         self.restart_node(0, self.extra_args[0] + ["-chronikreindex"])
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
+        assert_equal(chronik.tx(txid).ok().is_final, False)
 
         # ...so we establish a new quorum and poll again
         quorum = get_quorum()
         self.wait_until(lambda: has_finalized_tip(tip))
         chronik_wait_for_block_final(tip)
         chronik_wait_for_tx_final(txid)
+        assert_equal(chronik.tx(txid).ok().is_final, True)
 
         # Generate 10 blocks to invalidate, wait for Avalanche
         new_block_hashes = self.generate(node, 10, sync_fun=self.no_op)
@@ -147,6 +156,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tip(new_block_hashes[-1]))
         for block_hash in new_block_hashes:
             chronik_wait_for_block_final(block_hash)
+            assert_equal(chronik.tx(txid).ok().is_final, True)
 
 
 if __name__ == "__main__":
