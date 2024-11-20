@@ -121,7 +121,7 @@ function decode(address: string, chronikReady = false): DecodedAddress {
     return {
         prefix: prefix as string,
         type: chronikReady ? (type.toLowerCase() as AddressType) : type,
-        hash: chronikReady ? uint8arraytoString(hash) : hash,
+        hash: chronikReady ? uint8arrayToHexString(hash) : hash,
     };
 }
 
@@ -394,13 +394,12 @@ function hasSingleCase(string: string): boolean {
  * @param string Input string.
  */
 function stringToUint8Array(string: string): Uint8Array {
-    const buffer = Buffer.from(string, 'hex');
-    const arrayBuffer = new ArrayBuffer(buffer.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < uint8Array.length; i += 1) {
-        uint8Array[i] = buffer[i];
+    const array = new Uint8Array(string.length / 2);
+    for (let i = 0; i < string.length; i += 2) {
+        // Convert each pair of characters to an integer
+        array[i / 2] = parseInt(string.slice(i, i + 2), 16);
     }
-    return uint8Array;
+    return array;
 }
 
 /**
@@ -409,10 +408,15 @@ function stringToUint8Array(string: string): Uint8Array {
  * @private
  * @param uint8Array Input string.
  */
-function uint8arraytoString(uint8Array: Uint8Array): string {
-    const hexBuffer = Buffer.from(uint8Array);
-    const string = hexBuffer.toString('hex');
-    return string;
+function uint8arrayToHexString(uint8Array: Uint8Array): string {
+    let hexString = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+        let hex = uint8Array[i].toString(16);
+        // Ensure we have 2 digits for each byte
+        hex = hex.length === 1 ? '0' + hex : hex;
+        hexString += hex;
+    }
+    return hexString;
 }
 
 /**
@@ -505,8 +509,9 @@ function encodeOutputScript(outputScript: string, prefix = 'ecash'): string {
 function toLegacy(cashaddress: string): string {
     const { prefix, type, hash } = decode(cashaddress);
     const isMainnet = VALID_PREFIXES_MAINNET.includes(prefix);
+
     // Get correct version byte for legacy format
-    let versionByte;
+    let versionByte: number;
     switch (type) {
         case 'P2PKH':
             versionByte = isMainnet ? 0 : 111;
@@ -517,10 +522,18 @@ function toLegacy(cashaddress: string): string {
         default:
             throw new ValidationError('Unsupported address type: ' + type);
     }
-    var buffer = Buffer.alloc(1 + hash.length);
-    buffer[0] = versionByte;
-    buffer.set(hash as Uint8Array, 1);
-    return bs58check.encode(buffer);
+
+    // Create a new Uint8Array to hold the data
+    const uint8Array = new Uint8Array(1 + hash.length);
+
+    // Set the version byte
+    uint8Array[0] = versionByte;
+
+    // Set the hash
+    uint8Array.set(hash as Uint8Array, 1);
+
+    // Encode to base58check without using Buffer
+    return bs58check.encode(uint8Array);
 }
 
 /**
@@ -570,7 +583,7 @@ function getOutputScriptFromAddress(address: string): string {
 const cashaddr = {
     encode: encode,
     decode: decode,
-    uint8arraytoString: uint8arraytoString,
+    uint8arrayToHexString: uint8arrayToHexString,
     encodeOutputScript: encodeOutputScript,
     getTypeAndHashFromOutputScript: getTypeAndHashFromOutputScript,
     toLegacy: toLegacy,

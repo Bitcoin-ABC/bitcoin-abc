@@ -158,3 +158,4 @@ https://jsfiddle.net/zghd6c2y/
 -   1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
 -   1.5.8 - Upgrading dependencies [D16376](https://reviews.bitcoinabc.org/D16376)
 -   1.6.0 - Implement typescript [D16744](https://reviews.bitcoinabc.org/D16744)
+-   1.6.1 - Replace `Buffer` with `Uint8Array` and stop using `webpack` to build [D17170](https://reviews.bitcoinabc.org/D17170)

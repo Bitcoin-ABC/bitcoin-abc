@@ -507,7 +507,7 @@ describe('cashaddr', () => {
                     assert.equal(actualType, type.toLowerCase());
                     assert.deepEqual(
                         actualHash,
-                        cashaddr.uint8arraytoString(hash),
+                        cashaddr.uint8arrayToHexString(hash),
                     );
                 }
             }

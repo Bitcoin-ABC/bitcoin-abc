@@ -1,16 +1,15 @@
 {
     "name": "ecashaddrjs",
-    "version": "1.6.0",
+    "version": "1.6.1",
     "description": "eCash cashaddr address format support for Node.js and web browsers.",
-    "main": "dist/cashaddrjs.js",
-    "browser": "dist/cashaddrjs.min.js",
+    "main": "dist/cashaddr.js",
     "types": "dist/cashaddr.d.ts",
     "files": [
         "src/",
         "dist/"
     ],
     "scripts": {
-        "build": "webpack",
+        "build": "tsc",
         "prepublish": "npm run build",
         "test": "mocha",
         "coverage": "nyc mocha",
