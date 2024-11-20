@@ -11,8 +11,8 @@ import { fromHex, toHex, toHexRev } from './hex';
 import {
     isValidWsSubscription,
     verifyLokadId,
-    verifyTokenId,
     verifyPluginSubscription,
+    verifyTokenId,
 } from './validation';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
@@ -1050,6 +1050,7 @@ function convertToTx(tx: proto.Tx): Tx {
             convertToTokenFailedParsing,
         ),
         tokenStatus: convertToTokenStatus(tx.tokenStatus),
+        isFinal: tx.isFinal,
     };
     if (typeof tx.block !== 'undefined') {
         // Only include block if the tx is in a block
@@ -1544,6 +1545,8 @@ export interface Tx {
      * or something unexpected, like failed parsings etc.
      */
     tokenStatus: TokenStatus;
+    /** Whether or not the tx is finalized */
+    isFinal: boolean;
 }
 
 /** Input of a tx, spends an output of a previous tx. */

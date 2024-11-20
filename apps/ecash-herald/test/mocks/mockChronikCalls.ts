@@ -73,6 +73,7 @@ mockTxCalls.set(bearNipTokenId, {
     timeFirstSeen: 0,
     size: 299,
     isCoinbase: false,
+    isFinal: true,
     tokenEntries: [
         {
             tokenId:
@@ -165,6 +166,7 @@ mockTxCalls.set(alitaTokenId, {
     timeFirstSeen: 0,
     size: 436,
     isCoinbase: false,
+    isFinal: true,
     tokenEntries: [
         {
             tokenId:
@@ -246,6 +248,7 @@ mockTxCalls.set(powTokenId, {
     timeFirstSeen: 0,
     size: 329,
     isCoinbase: false,
+    isFinal: true,
     tokenEntries: [
         {
             tokenId:
@@ -315,6 +318,7 @@ mockTxCalls.set(swapTxid, {
     timeFirstSeen: 0,
     size: 271,
     isCoinbase: false,
+    isFinal: true,
     tokenEntries: [],
     tokenFailedParsings: [],
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',

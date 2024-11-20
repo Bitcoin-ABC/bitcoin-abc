@@ -403,6 +403,8 @@ export interface Tx {
      * or something unexpected, like failed parsings etc.
      */
     tokenStatus: TokenStatus;
+    /** Whether the transaction has been finalized by avalanche */
+    isFinal: boolean;
 }
 
 /** UTXO of a script. */
@@ -819,7 +821,7 @@ export interface MsgBlock {
     /** Timestamp field of the block */
     blockTimestamp: string;
     /**
-     * The coinbase data, only available of the block is disconnected or
+     * The coinbase data, only available if the block is disconnected or
      * invalidated
      */
     coinbaseData: CoinbaseData | undefined;
@@ -1637,6 +1639,7 @@ function createBaseTx(): Tx {
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 0,
+        isFinal: false,
     };
 }
 
@@ -1680,6 +1683,9 @@ export const Tx = {
         }
         if (message.tokenStatus !== 0) {
             writer.uint32(120).int32(message.tokenStatus);
+        }
+        if (message.isFinal === true) {
+            writer.uint32(128).bool(message.isFinal);
         }
         return writer;
     },
@@ -1789,6 +1795,13 @@ export const Tx = {
 
                     message.tokenStatus = reader.int32() as any;
                     continue;
+                case 16:
+                    if (tag !== 128) {
+                        break;
+                    }
+
+                    message.isFinal = reader.bool();
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -1838,6 +1851,9 @@ export const Tx = {
             tokenStatus: isSet(object.tokenStatus)
                 ? tokenStatusFromJSON(object.tokenStatus)
                 : 0,
+            isFinal: isSet(object.isFinal)
+                ? globalThis.Boolean(object.isFinal)
+                : false,
         };
     },
 
@@ -1883,6 +1899,9 @@ export const Tx = {
         if (message.tokenStatus !== 0) {
             obj.tokenStatus = tokenStatusToJSON(message.tokenStatus);
         }
+        if (message.isFinal === true) {
+            obj.isFinal = message.isFinal;
+        }
         return obj;
     },
 
@@ -1911,6 +1930,7 @@ export const Tx = {
                 TokenFailedParsing.fromPartial(e),
             ) || [];
         message.tokenStatus = object.tokenStatus ?? 0;
+        message.isFinal = object.isFinal ?? false;
         return message;
     },
 };

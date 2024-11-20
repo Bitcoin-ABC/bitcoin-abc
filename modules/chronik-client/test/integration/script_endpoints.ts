@@ -436,6 +436,11 @@ describe('Get script().history and script().utxos()', () => {
             );
             expect(unconfirmedTxs.txs).to.deep.equal(historyClone);
 
+            // Unconfirmed txs are not finalized
+            for (const unconfirmedTx of unconfirmedTxs.txs) {
+                expect(unconfirmedTx.isFinal).to.eql(false);
+            }
+
             const utxos = await chronikScript.utxos();
 
             // fetched history tx count is the same as txids broadcast to this address
@@ -757,6 +762,17 @@ describe('Get script().history and script().utxos()', () => {
 
             // utxos fetched from history match what the node broadcast
             expect(utxoTxids).to.have.members(broadcastTxids);
+
+            const txsPromises = broadcastTxids.map(async txid => {
+                const tx = await chronik.tx(txid);
+                return tx;
+            });
+
+            const txs = await Promise.all(txsPromises);
+            for (const tx of txs) {
+                // Txs are now finalized
+                expect(tx.isFinal).to.eql(true);
+            }
 
             console.log('\x1b[32m%s\x1b[0m', `✔ ${type}`);
         };

@@ -50,6 +50,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 181,
         isCoinbase: true,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -96,6 +97,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 198,
         isCoinbase: true,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -142,6 +144,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 233,
         isCoinbase: true,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -190,6 +193,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1728987043,
         size: 219,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -300,6 +304,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1728987164,
         size: 467,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -384,6 +389,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729929435,
         size: 368,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -506,6 +512,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729985270,
         size: 1244,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -607,6 +614,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729789538,
         size: 760,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -716,6 +724,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 334,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -835,6 +844,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729797314,
         size: 467,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -955,6 +965,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729797516,
         size: 460,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1058,6 +1069,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729797635,
         size: 424,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1133,6 +1145,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 331,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1235,6 +1248,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1730305221,
         size: 314,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1351,6 +1365,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1730305668,
         size: 569,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1508,6 +1523,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1730310914,
         size: 1231,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1621,6 +1637,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1727365040,
         size: 499,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1742,6 +1759,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1730312333,
         size: 424,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -1919,6 +1937,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 888,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -2040,6 +2059,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 0,
         size: 484,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -2135,6 +2155,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729617077,
         size: 462,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -2192,6 +2213,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1728814492,
         size: 344,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -2241,6 +2263,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729568158,
         size: 267,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -2290,6 +2313,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729582375,
         size: 261,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -2339,6 +2363,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729618002,
         size: 255,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -2387,6 +2412,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729364288,
         size: 245,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -2436,6 +2462,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1729623047,
         size: 267,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -3655,6 +3682,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1728974402,
         size: 10810,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
@@ -3757,6 +3785,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1728941100,
         size: 467,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [
             {
                 tokenId:
@@ -3817,6 +3846,7 @@ export const dailyTxs: Tx[] = [
         timeFirstSeen: 1728985099,
         size: 225,
         isCoinbase: false,
+        isFinal: true,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',

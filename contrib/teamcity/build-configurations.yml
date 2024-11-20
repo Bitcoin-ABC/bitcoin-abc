@@ -841,6 +841,7 @@ builds:
       - apps/ecash-herald/
       - modules/mock-chronik-client/
       - modules/ecashaddrjs/
+      - modules/chronik-client/
     env:
       JS_PROJECT_ROOT: apps/ecash-herald
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
@@ -858,6 +859,7 @@ builds:
       - apps/token-server/
       - modules/mock-chronik-client/
       - modules/ecashaddrjs/
+      - modules/chronik-client/
     env:
       JS_PROJECT_ROOT: apps/token-server
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"

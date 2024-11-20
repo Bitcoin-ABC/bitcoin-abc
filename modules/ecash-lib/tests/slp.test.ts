@@ -324,6 +324,7 @@ describe('SLP Integration Test', () => {
             timeFirstSeen: 1300000000,
             size: sendTx.serSize(),
             isCoinbase: false,
+            isFinal: false,
             tokenEntries: [
                 {
                     actualBurnAmount: '0',
@@ -396,6 +397,7 @@ describe('SLP Integration Test', () => {
             timeFirstSeen: 1300000000,
             size: burnTx.serSize(),
             isCoinbase: false,
+            isFinal: false,
             tokenEntries: [
                 {
                     actualBurnAmount: '1000',
@@ -685,6 +687,7 @@ describe('SLP Integration Test', () => {
             timeFirstSeen: 1300000000,
             size: sendTx.serSize(),
             isCoinbase: false,
+            isFinal: false,
             tokenEntries: [
                 {
                     actualBurnAmount: '0',
@@ -955,6 +958,7 @@ describe('SLP Integration Test', () => {
             timeFirstSeen: 1300000000,
             size: sendTx.serSize(),
             isCoinbase: false,
+            isFinal: false,
             tokenEntries: [
                 {
                     actualBurnAmount: '0',
@@ -1099,6 +1103,7 @@ describe('SLP Integration Test', () => {
             timeFirstSeen: 1300000000,
             size: childSendTx.serSize(),
             isCoinbase: false,
+            isFinal: false,
             tokenEntries: [
                 {
                     actualBurnAmount: '0',

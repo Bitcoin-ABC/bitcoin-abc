@@ -76,6 +76,7 @@ const MOCK_TX: Tx = {
     timeFirstSeen: 0,
     size: 100,
     isCoinbase: false,
+    isFinal: false,
     tokenEntries: [],
     tokenFailedParsings: [],
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',

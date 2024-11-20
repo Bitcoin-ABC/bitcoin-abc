@@ -348,6 +348,7 @@ describe('ALP', () => {
             timeFirstSeen: 1300000000,
             size: multiTx.serSize(),
             isCoinbase: false,
+            isFinal: false,
             tokenEntries: [
                 {
                     actualBurnAmount: '0',
