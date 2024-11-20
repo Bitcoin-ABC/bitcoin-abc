@@ -820,7 +820,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     eTokenReceivedString = `Received ${tokenName} (${tokenTicker})`;
                     // TODO calculate and format decimalized quantity
                     // TODO test this feature of parseChronikWsMsg, e.g. add a helper function
-                    // getNotification(Tx_InNode) that can be easily tested and called here
+                    // getNotification(Tx) that can be easily tested and called here
                 }
                 toast(eTokenReceivedString, {
                     icon: React.createElement(TokenIcon, {

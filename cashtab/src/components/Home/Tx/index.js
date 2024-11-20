@@ -814,7 +814,7 @@ const Tx = ({
                     if (typeof output.token !== 'undefined') {
                         // Get the amount associated with this token entry
                         // Per ChronikClient, we will always have amount as a string in
-                        // the token key of an output, see type Token_InNode
+                        // the token key of an output, see type Token
                         amountTotal += BigInt(output.token.amount);
 
                         // For sales of agora partial txs, we assume the amount sold

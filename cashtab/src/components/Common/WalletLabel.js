@@ -160,8 +160,8 @@ WalletLabel.propTypes = {
             paths: PropTypes.instanceOf(Map),
             state: PropTypes.shape({
                 balanceSats: PropTypes.number,
-                nonSlpUtxos: PropTypes.array, // Tx_InNode[]
-                slpUtxos: PropTypes.array, // Tx_InNode[]
+                nonSlpUtxos: PropTypes.array, // Tx[]
+                slpUtxos: PropTypes.array, // Tx[]
                 tokens: PropTypes.instanceOf(Map),
                 parsedTxHistory: PropTypes.array,
             }),
