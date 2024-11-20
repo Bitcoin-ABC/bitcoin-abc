@@ -23,8 +23,14 @@ import { validSavedWallets } from 'components/App/fixtures/mocks';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import * as bip39 from 'bip39';
 import { cashtabWalletsFromJSON } from 'helpers';
+import { initWasm, Ecc } from 'ecash-lib';
 
 describe('<Wallets />', () => {
+    let ecc;
+    beforeAll(async () => {
+        await initWasm();
+        ecc = new Ecc();
+    });
     let user;
     beforeEach(() => {
         // Set up userEvent
@@ -178,7 +184,13 @@ describe('<Wallets />', () => {
             walletToBeActivatedLaterInTest,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/wallets" />);
+        render(
+            <CashtabTestWrapper
+                ecc={ecc}
+                chronik={mockedChronik}
+                route="/wallets"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>

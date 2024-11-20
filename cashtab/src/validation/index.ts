@@ -972,7 +972,15 @@ export const isValidCashtabWallet = (
             // Wallet is invalid if key is not a number
             pathsValid = false;
         }
-        if (!('hash' in value) || !('address' in value) || !('wif' in value)) {
+        if (
+            !('hash' in value) ||
+            !('address' in value) ||
+            !('wif' in value) ||
+            !('sk' in value) ||
+            !(value.sk instanceof Uint8Array) ||
+            !('pk' in value) ||
+            !(value.pk instanceof Uint8Array)
+        ) {
             // If any given path does not have all of these keys, the wallet is invalid
             pathsValid = false;
         }

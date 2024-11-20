@@ -10,11 +10,13 @@ import {
     walletWithXecAndTokens,
     walletWithXecAndTokens_pre_2_1_0,
     walletWithXecAndTokens_pre_2_9_0,
+    walletWithXecAndTokens_pre_2_55_0,
     freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
     easterEggTokenChronikTokenDetails,
     validSavedWallets_pre_2_1_0,
     validSavedWallets_pre_2_9_0,
+    validSavedWallets_pre_2_55_0,
     validSavedWallets,
     mockCacheWalletWithXecAndTokens,
 } from 'components/App/fixtures/mocks';
@@ -106,7 +108,9 @@ describe('<App />', () => {
             false,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/" />);
+        render(
+            <CashtabTestWrapper ecc={ecc} chronik={mockedChronik} route="/" />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -126,7 +130,13 @@ describe('<App />', () => {
             false,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
+        render(
+            <CashtabTestWrapper
+                ecc={ecc}
+                chronik={mockedChronik}
+                route="/receive"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -385,7 +395,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the page to load
         await waitFor(() =>
@@ -448,7 +458,7 @@ describe('<App />', () => {
         ];
         await localforage.setItem('contactList', initialContactList);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the page to load
         await waitFor(() =>
@@ -507,7 +517,7 @@ describe('<App />', () => {
         const LEGACY_EMPTY_CONTACT_LIST = [{}];
         await localforage.setItem('contactList', LEGACY_EMPTY_CONTACT_LIST);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for cashtabbootup, so that loadContactList has been called
         // Wallet-info is rendered
@@ -526,7 +536,7 @@ describe('<App />', () => {
         );
 
         // Render app on home screen
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wallet-info is rendered
         expect(await screen.findByTitle('Wallet Info')).toBeInTheDocument();
@@ -577,7 +587,7 @@ describe('<App />', () => {
         // Update localforage with these legacy settings
         await localforage.setItem('settings', legacySettings);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Confirm localforage has been updated and non-default values are preserved
         await waitFor(async () =>
@@ -623,7 +633,7 @@ describe('<App />', () => {
             output: easterEggTokenChronikTokenDetails,
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // We see the easter egg
         expect(await screen.findByAltText('tabcash')).toBeInTheDocument();
@@ -639,7 +649,7 @@ describe('<App />', () => {
         // Mock cashtabCache at 1.5.*
         await localforage.setItem('cashtabCache', legacyMockTokenInfoById);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         const expectedCashtabCacheTokens = new CashtabCache([
             [
@@ -670,7 +680,7 @@ describe('<App />', () => {
             walletWithXecAndTokens,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // We click the Import Wallet button
         await user.click(
@@ -737,7 +747,7 @@ describe('<App />', () => {
 
         // Apart from state, which is blank from createCashtabWallet,
         // the imported wallet matches what we get from createCashtabWallet
-        const createdWallet = await createCashtabWallet(VALID_MNEMONIC);
+        const createdWallet = await createCashtabWallet(ecc, VALID_MNEMONIC);
         expect(importedWallet).toEqual({
             ...createdWallet,
             state: importedWallet.state,
@@ -752,7 +762,7 @@ describe('<App />', () => {
                 localforage,
             );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -790,7 +800,7 @@ describe('<App />', () => {
             walletWithXecAndTokens_pre_2_1_0,
         ]);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -830,7 +840,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -874,7 +884,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -906,7 +916,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -933,7 +943,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -975,7 +985,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the page to load
         await waitFor(() =>
@@ -1007,7 +1017,80 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
+
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallet in localforage
+        const wallets = await localforage.getItem('wallets');
+        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
+
+        // The wallet has been migrated
+        expect(migratedWallet).toEqual(walletWithXecAndTokens);
+    });
+    it('Migrating (2.9.0 <= version < 2.55.0): A user with multiple invalid wallets stored at wallets key has them migrated', async () => {
+        // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
+        const mixedValidWallets = [
+            walletWithXecAndTokens,
+            ...validSavedWallets_pre_2_55_0.slice(0, 3),
+            ...validSavedWallets.slice(3),
+        ];
+
+        // The wallets at indices 1, 2, and 3 are invalid
+        expect(isValidCashtabWallet(mixedValidWallets[1])).toBe(false);
+        expect(isValidCashtabWallet(mixedValidWallets[2])).toBe(false);
+        expect(isValidCashtabWallet(mixedValidWallets[3])).toBe(false);
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            mixedValidWallets,
+            localforage,
+        );
+
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
+
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
+
+        const savedWallets = walletsAfterLoad.slice(1);
+        console.log(`savedWallets`, savedWallets);
+        console.log(`validSavedWallets`, validSavedWallets);
+
+        // We expect savedWallets in localforage to have been migrated
+        await waitFor(async () => {
+            expect(savedWallets).toEqual(validSavedWallets);
+        });
+    });
+    it('Migrating (2.9.0 <= version < 2.55.0): A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens_pre_2_55_0,
+            localforage,
+        );
+
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the page to load
         await waitFor(() =>
@@ -1058,7 +1141,7 @@ describe('<App />', () => {
         });
         await localforage.setItem('cashtabCache', expectedStoredCashtabCache);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Confirm cashtabCache has been migrated to post-2.9.0 format
         await waitFor(async () =>
@@ -1108,7 +1191,7 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1157,7 +1240,7 @@ describe('<App />', () => {
 
         await localforage.setItem('settings', new CashtabSettings('jpy'));
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>

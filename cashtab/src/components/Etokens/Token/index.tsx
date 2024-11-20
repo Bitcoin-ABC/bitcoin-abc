@@ -444,9 +444,6 @@ const Token: React.FC = () => {
      * Depends on user currency selection and locale
      */
     const getAgoraPartialPricePreview = () => {
-        console.log(
-            `getAgoraPartialPricePreview called with formData.slpListPrice: ${formData.slpListPrice} and selectedCurrency ${selectedCurrency}`,
-        );
         // Make sure you have the state fields you need to render
         if (
             typeof userLocale !== 'string' ||

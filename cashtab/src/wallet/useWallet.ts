@@ -347,6 +347,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
             // If wallet is invalid, rebuild to latest Cashtab schema
             let newWallet = await createCashtabWallet(
+                ecc,
                 storedWallet.mnemonic,
                 extraPathsToMigrate,
             );
@@ -378,6 +379,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                             // Recreate this wallet at latest format from mnemonic
 
                             const newSavedWallet = await createCashtabWallet(
+                                ecc,
                                 savedWallet.mnemonic,
                                 extraPathsToMigrate,
                             );
@@ -441,7 +443,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                         break;
                     }
                 }
-                console.log(`walletsValid`, walletsValid);
 
                 if (walletsValid) {
                     // Set cashtabState wallets to wallets from localforage
@@ -465,9 +466,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                             getLegacyPaths(activeWallet);
 
                         // Recreate this wallet at latest format from mnemonic
-
                         const migratedUnnamedActiveWallet =
                             await createCashtabWallet(
+                                ecc,
                                 activeWallet.mnemonic,
                                 extraPathsToMigrate,
                             );
@@ -499,6 +500,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
                                     const migratedWallet =
                                         await createCashtabWallet(
+                                            ecc,
                                             loadedPossiblyLegacyWallet.mnemonic,
                                             extraPathsToMigrate,
                                         );
@@ -522,8 +524,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
                     migratedWallets =
                         migratedWallets.concat(otherMigratedWallets);
-
-                    console.log(`migratedWallets`, migratedWallets);
 
                     // Set cashtabState wallets to wallets from localforage
                     // (or migrated wallets if localforage included any invalid wallet)

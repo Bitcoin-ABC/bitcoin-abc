@@ -15,7 +15,7 @@ import { ModalInput } from 'components/Common/Inputs';
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { updateCashtabState, cashtabState } = ContextValue;
+    const { ecc, updateCashtabState, cashtabState } = ContextValue;
     const { wallets } = cashtabState;
 
     const [importedMnemonic, setImportedMnemonic] = useState('');
@@ -27,7 +27,7 @@ const OnBoarding = () => {
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'Imported');
-        const importedWallet = await createCashtabWallet(importedMnemonic);
+        const importedWallet = await createCashtabWallet(ecc, importedMnemonic);
         updateCashtabState('wallets', [...wallets, importedWallet]);
         // Close the modal
         setShowImportWalletModal(false);
@@ -37,7 +37,7 @@ const OnBoarding = () => {
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'New');
-        const newWallet = await createCashtabWallet(generateMnemonic());
+        const newWallet = await createCashtabWallet(ecc, generateMnemonic());
         updateCashtabState('wallets', [...wallets, newWallet]);
     }
 

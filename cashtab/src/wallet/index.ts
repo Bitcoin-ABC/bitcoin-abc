@@ -8,32 +8,56 @@ import randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
-import { fromHex, Script, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
+import { fromHex, Script, P2PKHSignatory, ALL_BIP143, Ecc } from 'ecash-lib';
 import { OutPoint, Token, Tx } from 'chronik-client';
 import { AgoraOffer } from 'ecash-agora';
 import { ParsedTx } from 'chronik';
 import {
     LegacyCashtabWallet_Pre_2_1_0,
     LegacyCashtabWallet_Pre_2_9_0,
+    LegacyCashtabWallet_Pre_2_55_0,
 } from 'components/App/fixtures/mocks';
+import wif from 'wif';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export interface LegacyPathInfo_Pre_2_55_0 {
+    address: string;
+    hash: string;
+    wif: string;
+}
 export interface CashtabPathInfo {
     address: string;
     hash: string;
     wif: string;
     /**
      * Public key as a hex string
-     * Introduced in 2.54.0
+     * Introduced in 2.55.0
      * Cashtab migrates legacy wallets to this
      */
-    pk?: string;
+    pk: Uint8Array;
     /**
      * Private key as a hex string
-     * Introduced in 2.54.0
+     * Introduced in 2.55.0
      * Cashtab migrates legacy wallets to this
      */
-    sk?: string;
+    sk: Uint8Array;
+}
+export interface StoredCashtabPathInfo {
+    address: string;
+    hash: string;
+    wif: string;
+    /**
+     * Public key as a hex string
+     * Introduced in 2.55.0
+     * Cashtab migrates legacy wallets to this
+     */
+    pk: number[];
+    /**
+     * Private key as a hex string
+     * Introduced in 2.55.0
+     * Cashtab migrates legacy wallets to this
+     */
+    sk: number[];
 }
 export interface NonSlpUtxo {
     blockHeight: number;
@@ -59,10 +83,16 @@ export interface CashtabWalletState {
 export interface CashtabTx extends Tx {
     parsed: ParsedTx;
 }
+export interface RequiredCashtabPathInfo {
+    1899: CashtabPathInfo; // This ensures 1899 is always defined
+}
+export type CashtabWalletPaths = Map<number, CashtabPathInfo> &
+    RequiredCashtabPathInfo;
 export interface CashtabWallet {
     name: string;
     mnemonic: string;
-    paths: Map<number, CashtabPathInfo>;
+    // Path 1899 is always defined
+    paths: CashtabWalletPaths;
     state: CashtabWalletState;
 }
 
@@ -193,18 +223,19 @@ export const hasEnoughToken = (
  * Create a Cashtab wallet object from a valid bip39 mnemonic
  * @param mnemonic a valid bip39 mnemonic
  * @param additionalPaths array of paths in addition to 1899 to add to this wallet
+ * @param ecc
  * Default to 1899-only for all new wallets
  * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
  */
 export const createCashtabWallet = async (
+    ecc: Ecc,
     mnemonic: string,
     additionalPaths: number[] = [],
 ): Promise<CashtabWallet> => {
     // Initialize wallet with empty state
-    const wallet: CashtabWallet = {
+    const wallet: Omit<CashtabWallet, 'paths'> = {
         name: '',
         mnemonic: '',
-        paths: new Map(),
         state: {
             balanceSats: 0,
             slpUtxos: [],
@@ -232,9 +263,9 @@ export const createCashtabWallet = async (
     // We always derive path 1899
     const pathsToDerive = [appConfig.derivationPath, ...additionalPaths];
 
-    wallet.paths = new Map();
+    const walletPaths: Map<number, CashtabPathInfo> = new Map();
     for (const path of pathsToDerive) {
-        const pathInfo = getPathInfo(masterHDNode, path);
+        const pathInfo = getPathInfo(masterHDNode, path, ecc);
         if (path === appConfig.derivationPath) {
             // Initialize wallet name with first 5 chars of Path1899 address
             const prefixLength = `${appConfig.prefix}:`.length;
@@ -243,10 +274,10 @@ export const createCashtabWallet = async (
                 prefixLength + 5,
             );
         }
-        wallet.paths.set(path, pathInfo);
+        walletPaths.set(path, pathInfo);
     }
 
-    return wallet;
+    return { ...wallet, paths: walletPaths } as CashtabWallet;
 };
 
 /**
@@ -254,21 +285,30 @@ export const createCashtabWallet = async (
  *
  * @param masterHDNode calculated from utxolib
  * @param abbreviatedDerivationPath in practice: 145, 245, or 1899
+ * @param ecc
  */
 const getPathInfo = (
     masterHDNode: utxolib.BIP32Interface,
     abbreviatedDerivationPath: number,
+    ecc: Ecc,
 ): CashtabPathInfo => {
     const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
     const address = cashaddr.encode(appConfig.prefix, 'P2PKH', node.identifier);
     // Note the 'true' modifier here means we will always return a string
     const { hash } = cashaddr.decode(address, true);
+    const skWif = node.toWIF();
+    // Get sk and pk
+    const sk = wif.decode(skWif).privateKey;
+
+    const pk = ecc.derivePubkey(sk);
 
     return {
         hash: hash.toString(),
         address,
         wif: node.toWIF(),
+        sk,
+        pk,
     };
 };
 
@@ -308,7 +348,7 @@ export const fiatToSatoshis = (
  * So, if cashtabWalletFromJSON is called with a legacy wallet, it returns the
  * wallet as-is so it can be invalidated and recreated
  */
-export interface LegacyPathInfo extends CashtabPathInfo {
+export interface LegacyPathInfo extends LegacyPathInfo_Pre_2_55_0 {
     path: number;
 }
 
@@ -318,7 +358,8 @@ export interface StoredCashtabState extends Omit<CashtabWalletState, 'tokens'> {
 
 export type LegacyCashtabWallet =
     | LegacyCashtabWallet_Pre_2_1_0
-    | LegacyCashtabWallet_Pre_2_9_0;
+    | LegacyCashtabWallet_Pre_2_9_0
+    | LegacyCashtabWallet_Pre_2_55_0;
 
 /**
  * Determine if a legacy wallet includes legacy paths that must be migrated

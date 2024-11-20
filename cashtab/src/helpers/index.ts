@@ -8,10 +8,12 @@ import {
     CashtabWallet,
     StoredCashtabState,
     CashtabPathInfo,
+    StoredCashtabPathInfo,
     LegacyCashtabWallet,
     LegacyPathInfo,
     CashtabWalletState,
 } from 'wallet';
+import { LegacyCashtabWallet_Pre_2_55_0 } from 'components/App/fixtures/mocks';
 
 /**
  * the userAgentData key is supported by recent
@@ -89,7 +91,7 @@ export const storedCashtabCacheToMap = (
 export interface StoredCashtabWallet {
     name: string;
     mnemonic: string;
-    paths: [number, CashtabPathInfo][];
+    paths: [number, StoredCashtabPathInfo][];
     state: StoredCashtabState;
 }
 
@@ -115,11 +117,34 @@ export const cashtabWalletFromJSON = (
     ) {
         return storedCashtabWallet as LegacyCashtabWallet;
     }
+    const activeCashtabWalletPathInfos: [number, CashtabPathInfo][] = [];
+    for (const [path, storedPathInfo] of (
+        storedCashtabWallet as
+            | LegacyCashtabWallet_Pre_2_55_0
+            | StoredCashtabWallet
+    ).paths) {
+        if ('sk' in storedPathInfo && 'pk' in storedPathInfo) {
+            // If the stored wallet is > 2.55.0, it will have sk and pk fields
+            activeCashtabWalletPathInfos.push([
+                path,
+                {
+                    ...storedPathInfo,
+                    sk: new Uint8Array(storedPathInfo.sk),
+                    pk: new Uint8Array(storedPathInfo.pk),
+                },
+            ]);
+        } else {
+            activeCashtabWalletPathInfos.push([
+                path,
+                // Note we know here that storedPathInfo is actually NOT of CashtabPathInfo type
+                // We expect this wallet to be revived as invalid for migration
+                storedPathInfo as CashtabPathInfo,
+            ]);
+        }
+    }
     return {
         ...(storedCashtabWallet as StoredCashtabWallet),
-        paths: new Map(
-            storedCashtabWallet.paths as [number, CashtabPathInfo][],
-        ),
+        paths: new Map(activeCashtabWalletPathInfos),
         state: {
             ...storedCashtabWallet.state,
             tokens: new Map(
@@ -146,9 +171,27 @@ export const cashtabWalletToJSON = (
         // Handle so we can be sure no errors are thrown
         return cashtabWallet as LegacyCashtabWallet;
     }
+
+    // Convert sk and pk from Uint8Array to Array for JSON storage
+    // Note that we only expect valid CashtabWallet type here, Legacy handled above
+    // And in practice, we do not expect to ever store legacy type as they are migrated on app startup
+    const storedCashtabPaths: [number, StoredCashtabPathInfo][] = [];
+    (cashtabWallet as CashtabWallet).paths.forEach((pathInfo, path) => {
+        storedCashtabPaths.push([
+            path,
+            'sk' in pathInfo && 'pk' in pathInfo
+                ? {
+                      ...pathInfo,
+                      sk: Array.from(pathInfo.sk),
+                      pk: Array.from(pathInfo.pk),
+                  }
+                : pathInfo,
+        ]);
+    });
+
     return {
         ...(cashtabWallet as CashtabWallet),
-        paths: Array.from((cashtabWallet as CashtabWallet).paths.entries()),
+        paths: storedCashtabPaths,
         state: {
             ...(cashtabWallet.state as CashtabWalletState),
             tokens: Array.from(

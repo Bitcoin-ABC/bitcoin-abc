@@ -4,6 +4,7 @@
 
 import {
     mockCashtabCache,
+    emptyCashtabWallet,
     emptyCashtabWalletJson,
     emptyCashtabWalletMultiPathJson,
     cashtabWalletMultiPathWithTokensJson,
@@ -19,6 +20,7 @@ import {
     walletWithXecAndTokens_pre_2_9_0,
     validSavedWallets_pre_2_1_0,
     validSavedWallets_pre_2_9_0,
+    walletWithXecAndTokens_pre_2_55_0,
 } from 'components/App/fixtures/mocks';
 import appConfig from 'config/app';
 // Test vectors for helper functions
@@ -104,14 +106,7 @@ export default {
         expectedReturns: [
             {
                 description: 'Newly created Cashtab wallet',
-                cashtabWallet: {
-                    ...emptyCashtabWalletJson,
-                    paths: new Map(emptyCashtabWalletJson.paths),
-                    state: {
-                        ...emptyCashtabWalletJson.state,
-                        tokens: new Map(emptyCashtabWalletJson.state.tokens),
-                    },
-                },
+                cashtabWallet: emptyCashtabWallet,
                 cashtabWalletJSON: emptyCashtabWalletJson,
             },
             {
@@ -123,6 +118,21 @@ export default {
                 description: 'Pre-2.9.0 wallet is unchanged',
                 cashtabWallet: walletWithXecAndTokens_pre_2_9_0,
                 cashtabWalletJSON: walletWithXecAndTokens_pre_2_9_0,
+            },
+            {
+                description:
+                    '2.9.0 <= version < 2.55.0 wallet is stored without sk or pk',
+                cashtabWallet: walletWithXecAndTokens_pre_2_55_0,
+                cashtabWalletJSON: {
+                    ...walletWithXecAndTokens_pre_2_55_0,
+                    paths: Array.from(walletWithXecAndTokens_pre_2_55_0.paths),
+                    state: {
+                        ...walletWithXecAndTokens_pre_2_55_0.state,
+                        tokens: Array.from(
+                            walletWithXecAndTokens_pre_2_55_0.state.tokens,
+                        ),
+                    },
+                },
             },
             {
                 description: 'Cashtab wallet with multiple paths',
@@ -159,28 +169,7 @@ export default {
         expectedReturns: [
             {
                 description: 'Newly created Cashtab wallets',
-                cashtabWallets: [
-                    {
-                        ...emptyCashtabWalletJson,
-                        paths: new Map(emptyCashtabWalletJson.paths),
-                        state: {
-                            ...emptyCashtabWalletJson.state,
-                            tokens: new Map(
-                                emptyCashtabWalletJson.state.tokens,
-                            ),
-                        },
-                    },
-                    {
-                        ...emptyCashtabWalletJson,
-                        paths: new Map(emptyCashtabWalletJson.paths),
-                        state: {
-                            ...emptyCashtabWalletJson.state,
-                            tokens: new Map(
-                                emptyCashtabWalletJson.state.tokens,
-                            ),
-                        },
-                    },
-                ],
+                cashtabWallets: [emptyCashtabWallet, emptyCashtabWallet],
                 cashtabWalletsJSON: [
                     emptyCashtabWalletJson,
                     emptyCashtabWalletJson,

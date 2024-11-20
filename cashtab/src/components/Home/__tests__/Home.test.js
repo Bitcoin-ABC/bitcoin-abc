@@ -118,7 +118,8 @@ describe('<Home />', () => {
             ],
             localforage,
         );
-        const address = walletWithZeroBalanceZeroHistory.Path1899.cashAddress;
+        const address =
+            walletWithZeroBalanceZeroHistory.paths.get(1899).address;
         // Mock successful claim rewards call
         when(fetch)
             .calledWith(`${tokenConfig.rewardsServerBaseUrl}/claim/${address}`)
@@ -189,7 +190,8 @@ describe('<Home />', () => {
             walletWithZeroBalanceZeroHistory,
             localforage,
         );
-        const address = walletWithZeroBalanceZeroHistory.Path1899.cashAddress;
+        const address =
+            walletWithZeroBalanceZeroHistory.paths.get(1899).address;
         // Mock successful claim rewards call
         when(fetch)
             .calledWith(

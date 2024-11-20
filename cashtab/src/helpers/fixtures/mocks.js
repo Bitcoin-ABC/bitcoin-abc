@@ -151,7 +151,7 @@ mockTokenCache_pre_2_9_0.set(
 
 export const mockCashtabCache_pre_2_9_0 = { tokens: mockTokenCache_pre_2_9_0 };
 
-export const emptyCashtabWalletJson = {
+export const emptyCashtabWalletJson_pre_2_55_0 = {
     mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
     name: 'test',
     paths: [
@@ -169,6 +169,50 @@ export const emptyCashtabWalletJson = {
         nonSlpUtxos: [],
         slpUtxos: [],
         tokens: [],
+    },
+};
+export const emptyCashtabWalletJson = {
+    mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
+    name: 'test',
+    paths: [
+        [
+            1899,
+            {
+                address: 'string',
+                hash: 'string',
+                wif: 'string',
+                sk: [],
+                pk: [],
+            },
+        ],
+    ],
+    state: {
+        balanceSats: 0,
+        nonSlpUtxos: [],
+        slpUtxos: [],
+        tokens: [],
+    },
+};
+export const emptyCashtabWallet = {
+    mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
+    name: 'test',
+    paths: new Map([
+        [
+            1899,
+            {
+                address: 'string',
+                hash: 'string',
+                wif: 'string',
+                sk: new Uint8Array([]),
+                pk: new Uint8Array([]),
+            },
+        ],
+    ]),
+    state: {
+        balanceSats: 0,
+        nonSlpUtxos: [],
+        slpUtxos: [],
+        tokens: new Map(),
     },
 };
 

@@ -15,8 +15,14 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { Ecc, initWasm } from 'ecash-lib';
 
 describe('<OnBoarding />', () => {
+    let ecc;
+    beforeAll(async () => {
+        await initWasm();
+        ecc = new Ecc();
+    });
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
@@ -49,7 +55,7 @@ describe('<OnBoarding />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>
@@ -84,7 +90,7 @@ describe('<OnBoarding />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
         await waitFor(() =>

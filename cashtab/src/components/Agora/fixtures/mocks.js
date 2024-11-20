@@ -508,6 +508,12 @@ export const agoraPartialAlphaWallet = {
                 hash: '03b830e4b9dce347f3495431e1f9d1005f4b4204',
                 address: 'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
                 wif: 'KwdT9LwmWEWgSvon9BTABY3SMmCNCDptKio9kY8CYUA6oB9sWcRP',
+                sk: fromHex(
+                    '0c368e6f3df4990da1a6a36435fa2f83ad399c8b2e45ff59676989c43578f431',
+                ),
+                pk: fromHex(
+                    '0233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd',
+                ),
             },
         ],
     ]),
@@ -756,6 +762,12 @@ export const agoraPartialBetaWallet = {
                 hash: 'f208ef75eb0dd778ea4540cbd966a830c7b94bb0',
                 address: 'ecash:qreq3mm4avxaw782g4qvhktx4qcv0w2tkqj3j5jaad',
                 wif: 'L1pjs2zuVGMx4jzegPaSHauNmDrchm8vS1m1T263z5Wzw6ehHwLD',
+                sk: fromHex(
+                    '895eab6d2f84b8d534907f209173ad9404fc796b9f5c1651dd4501acda3e1cc5',
+                ),
+                pk: fromHex(
+                    '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
+                ),
             },
         ],
     ]),

@@ -43,7 +43,7 @@ import debounce from 'lodash.debounce';
 
 const Wallets = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { cashtabState, updateCashtabState } = ContextValue;
+    const { cashtabState, updateCashtabState, ecc } = ContextValue;
     const { wallets, contactList } = cashtabState;
 
     const userLocale = getUserLocale(navigator);
@@ -161,7 +161,7 @@ const Wallets = () => {
     const addNewWallet = async () => {
         // Generate a new wallet with a new mnemonic
         const mnemonic = generateMnemonic();
-        const newAddedWallet = await createCashtabWallet(mnemonic);
+        const newAddedWallet = await createCashtabWallet(ecc, mnemonic);
 
         // Note: technically possible though highly unlikley that a wallet already exists with this name
         // Also technically possible though ... er, almost impossibly improbable for wallet with same mnemonic to exist
@@ -213,7 +213,10 @@ const Wallets = () => {
         }
 
         // Create a new wallet from mnemonic
-        const newImportedWallet = await createCashtabWallet(formData.mnemonic);
+        const newImportedWallet = await createCashtabWallet(
+            ecc,
+            formData.mnemonic,
+        );
 
         // Handle edge case of another wallet having the same name
         const existingWalletHasSameName = wallets.find(

@@ -14,10 +14,20 @@ import {
 import {
     validWalletJson,
     validWalletJsonMultiPath,
+    invalidWalletBadSkType,
 } from 'validation/fixtures/mocks';
-import { walletWithXecAndTokens_pre_2_9_0 } from 'components/App/fixtures/mocks';
+import {
+    walletWithXecAndTokens_pre_2_9_0,
+    walletWithXecAndTokens_pre_2_55_0,
+} from 'components/App/fixtures/mocks';
 import { toXec } from 'wallet';
 import { cashtabWalletFromJSON } from 'helpers';
+import { tokenTestWallet } from 'components/Etokens/fixtures/mocks';
+import {
+    agoraPartialAlphaWallet,
+    agoraPartialBetaWallet,
+} from 'components/Agora/fixtures/mocks';
+import { walletWithZeroBalanceZeroHistory } from 'components/Home/fixtures/mocks';
 
 const cloneObjectWithDeletedKey = (object, key) => {
     const clonedObject = { ...object };
@@ -1291,6 +1301,20 @@ export default {
                 returned: false,
             },
             {
+                description:
+                    'Returns false for a JSON-loaded pre-2.55.0 Cashtab wallet',
+                wallet: cashtabWalletFromJSON(
+                    walletWithXecAndTokens_pre_2_55_0,
+                ),
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false for a Cashtab wallet with sk as string instead of uint8array',
+                wallet: invalidWalletBadSkType,
+                returned: false,
+            },
+            {
                 description: 'Returns false for a pre-2.9.0 Cashtab wallet',
                 wallet: walletWithXecAndTokens_pre_2_9_0,
                 returned: false,
@@ -1527,6 +1551,27 @@ export default {
                     },
                 },
                 returned: false,
+            },
+            // Wallets used for various tests in Cashtab are valid
+            {
+                description: 'Returns true for token test wallet',
+                wallet: tokenTestWallet,
+                returned: true,
+            },
+            {
+                description: 'Returns true for agora alpha test wallet',
+                wallet: agoraPartialAlphaWallet,
+                returned: true,
+            },
+            {
+                description: 'Returns true for agora beta test wallet',
+                wallet: agoraPartialBetaWallet,
+                returned: true,
+            },
+            {
+                description: 'Returns true for Home screen test wallet',
+                wallet: walletWithZeroBalanceZeroHistory,
+                returned: true,
             },
         ],
     },

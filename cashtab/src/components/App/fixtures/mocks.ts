@@ -3,8 +3,17 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { ScriptUtxo } from 'chronik-client';
-import { CashtabTx, CashtabWallet, NonSlpUtxo, SlpUtxo } from 'wallet';
+import {
+    CashtabTx,
+    CashtabWallet,
+    NonSlpUtxo,
+    SlpUtxo,
+    LegacyPathInfo_Pre_2_55_0,
+    CashtabWalletPaths,
+} from 'wallet';
 import { XecTxType } from 'chronik';
+import { fromHex } from 'ecash-lib';
+import * as wif from 'wif';
 
 interface LegacyPathInfo_Pre_2_1_0 {
     publicKey: string;
@@ -966,8 +975,51 @@ export const walletWithXecAndTokens_pre_2_9_0: LegacyCashtabWallet_Pre_2_9_0 = {
     },
 };
 
+export interface LegacyCashtabWallet_Pre_2_55_0
+    extends Omit<CashtabWallet, 'paths'> {
+    paths: Map<number, LegacyPathInfo_Pre_2_55_0>;
+}
+export const walletWithXecAndTokens_pre_2_55_0: LegacyCashtabWallet_Pre_2_55_0 =
+    {
+        ...walletWithXecAndTokens_pre_2_9_0,
+        paths: new Map([
+            [
+                1899,
+                {
+                    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                    hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                },
+            ],
+            [
+                145,
+                {
+                    address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                    hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                    wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+                },
+            ],
+            [
+                245,
+                {
+                    address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                    hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                    wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+                },
+            ],
+        ]),
+        state: {
+            ...walletWithXecAndTokens_pre_2_9_0.state,
+            tokens: new Map([
+                [
+                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                    '1',
+                ],
+            ]),
+        },
+    };
 export const walletWithXecAndTokens: CashtabWallet = {
-    ...walletWithXecAndTokens_pre_2_9_0,
+    ...walletWithXecAndTokens_pre_2_55_0,
     paths: new Map([
         [
             1899,
@@ -975,6 +1027,12 @@ export const walletWithXecAndTokens: CashtabWallet = {
                 address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
                 hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
                 wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                sk: fromHex(
+                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+                ),
+                pk: fromHex(
+                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                ),
             },
         ],
         [
@@ -983,6 +1041,12 @@ export const walletWithXecAndTokens: CashtabWallet = {
                 address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
                 hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
                 wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+                sk: fromHex(
+                    '9747c0c6a6b4a1025b222a79ccad3df7330cbf3e6731de58500f865d0370b861',
+                ),
+                pk: fromHex(
+                    '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
+                ),
             },
         ],
         [
@@ -991,18 +1055,15 @@ export const walletWithXecAndTokens: CashtabWallet = {
                 address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
                 hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
                 wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+                sk: fromHex(
+                    'c3f637ba1e3cdd10cace41350058a3698c5bd413b69a358a2a2b955843ea043c',
+                ),
+                pk: fromHex(
+                    '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
+                ),
             },
         ],
-    ]),
-    state: {
-        ...walletWithXecAndTokens_pre_2_9_0.state,
-        tokens: new Map([
-            [
-                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                '1',
-            ],
-        ]),
-    },
+    ]) as CashtabWalletPaths,
 };
 
 export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
@@ -1427,6 +1488,8 @@ export const freshWalletWithOneIncomingCashtabMsg: CashtabWallet = {
                 address: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
                 hash: 'd32616c8f849d159b0225f36966ccb85d425e683',
                 wif: 'nope',
+                sk: fromHex('deadbeef'),
+                pk: fromHex('deadbeef'),
             },
         ],
         [
@@ -1435,6 +1498,8 @@ export const freshWalletWithOneIncomingCashtabMsg: CashtabWallet = {
                 address: 'ecash:qqdukdf3cdgn0nes83x4ln87hd0mpqvh7uky87rj0a',
                 hash: '1bcb3531c35137cf303c4d5fccfebb5fb08197f7',
                 wif: 'nope',
+                sk: fromHex('deadbeef'),
+                pk: fromHex('deadbeef'),
             },
         ],
         [
@@ -1443,9 +1508,11 @@ export const freshWalletWithOneIncomingCashtabMsg: CashtabWallet = {
                 address: 'ecash:qqqtqscqym24ps40v5n2wl88n9zlgu3hqyjzt84eay',
                 hash: '00b0430026d550c2af6526a77ce79945f4723701',
                 wif: 'nope',
+                sk: fromHex('deadbeef'),
+                pk: fromHex('deadbeef'),
             },
         ],
-    ]),
+    ]) as CashtabWalletPaths,
     state: {
         balanceSats: 1000000,
         slpUtxos: [],
@@ -2064,10 +2131,13 @@ for (const unmigratedWallet of validSavedWallets_pre_2_1_0) {
 export const validSavedWallets_pre_2_9_0: LegacyCashtabWallet_Pre_2_9_0[] =
     validSavedWalletsBuilder_pre_2_9_0;
 
-const validSavedWalletsBuilder = [];
+const validSavedWalletsBuilder_pre_2_55_0: LegacyCashtabWallet_Pre_2_55_0[] =
+    [];
 for (const unmigratedWallet of validSavedWalletsBuilder_pre_2_9_0) {
     // Clone legacy wallet
-    const migratedWallet: LegacyCashtabWallet_Pre_2_9_0 | CashtabWallet = {
+    const migratedWallet:
+        | LegacyCashtabWallet_Pre_2_9_0
+        | LegacyCashtabWallet_Pre_2_55_0 = {
         ...unmigratedWallet,
     };
 
@@ -2129,7 +2199,66 @@ for (const unmigratedWallet of validSavedWalletsBuilder_pre_2_9_0) {
     // These are empty wallets so it's empty
     migratedWallet.state.tokens = new Map();
 
-    validSavedWalletsBuilder.push(migratedWallet);
+    validSavedWalletsBuilder_pre_2_55_0.push(
+        migratedWallet as LegacyCashtabWallet_Pre_2_55_0,
+    );
+}
+
+export const validSavedWallets_pre_2_55_0 = validSavedWalletsBuilder_pre_2_55_0;
+
+const validSavedWalletsBuilder: (
+    | LegacyCashtabWallet_Pre_2_55_0
+    | CashtabWallet
+)[] = [];
+
+for (const unmigratedWallet of validSavedWallets_pre_2_1_0) {
+    // Clone legacy wallet
+    const clonedLegacyWallet = JSON.parse(JSON.stringify(unmigratedWallet));
+
+    // Get sk and pk for paths
+    // Mercifully, pre_2_9_0 wallets actually had pk, so we don't need ECC to recalculate it
+    const newPaths = new Map();
+    for (const legacyPath of [
+        { path: 145, info: clonedLegacyWallet.Path145 },
+        { path: 245, info: clonedLegacyWallet.Path245 },
+        { path: 1899, info: clonedLegacyWallet.Path1899 },
+    ]) {
+        const { path, info } = legacyPath;
+        const { cashAddress, publicKey, fundingWif, hash160 } = info;
+        newPaths.set(path, {
+            address: cashAddress,
+            hash: hash160,
+            wif: fundingWif,
+            sk: wif.decode(fundingWif).privateKey,
+            pk: fromHex(publicKey),
+        });
+    }
+    // Remove hardcoded paths
+    delete clonedLegacyWallet['Path1899'];
+    delete clonedLegacyWallet['Path145'];
+    delete clonedLegacyWallet['Path245'];
+
+    // Remove legacy state.balances
+    delete clonedLegacyWallet['state']['balances'];
+
+    // Replace state.balances with state.balanceSats
+    clonedLegacyWallet.state.balanceSats =
+        'totalBalanceInSatoshis' in unmigratedWallet.state.balances
+            ? parseInt(
+                  (unmigratedWallet as unknown as LegacyCashtabWallet_Pre_2_1_0)
+                      .state.balances.totalBalanceInSatoshis,
+              )
+            : 0;
+    // Build new state.tokens map
+    // These are empty wallets so it's empty
+    clonedLegacyWallet.state.tokens = new Map();
+
+    const migratedWallet = {
+        ...clonedLegacyWallet,
+        paths: newPaths,
+    };
+
+    validSavedWalletsBuilder.push(migratedWallet as CashtabWallet);
 }
 
 export const validSavedWallets = validSavedWalletsBuilder;

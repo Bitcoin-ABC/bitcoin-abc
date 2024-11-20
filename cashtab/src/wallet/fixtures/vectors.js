@@ -7,6 +7,7 @@ import {
     agoraOfferCachetAlphaOne,
     heismanNftOneOffer,
 } from 'components/Agora/fixtures/mocks';
+import { fromHex } from 'ecash-lib';
 
 export const UNSAFE_INTEGER_STRING = '10000000000000000';
 export default {
@@ -211,6 +212,12 @@ export default {
                                     'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
                                 hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
                                 wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                                sk: fromHex(
+                                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+                                ),
+                                pk: fromHex(
+                                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                                ),
                             },
                         ],
                     ]),

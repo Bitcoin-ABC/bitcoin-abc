@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { fromHex } from 'ecash-lib';
+
 /**
  * Etokens/fixtures/mocks.js
  * Mocks to populate mocked-chronik-client with token cache info for different token types
@@ -1126,6 +1128,12 @@ export const tokenTestWallet = {
                 hash: '00549451e5c22b18686cacdf34dce649e5ec3be2',
                 // Same as Transaction Fixtures in App/fixtures/mocks
                 wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                sk: fromHex(
+                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+                ),
+                pk: fromHex(
+                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                ),
             },
         ],
     ]),
@@ -6209,6 +6217,8 @@ export const EtokensWalletMock = {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                 wif: '',
+                sk: new Uint8Array(),
+                pk: new Uint8Array(),
             },
         ],
     ]),
