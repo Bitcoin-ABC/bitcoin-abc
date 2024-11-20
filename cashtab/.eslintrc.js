@@ -34,6 +34,10 @@ module.exports = {
             jsx: true,
         },
     },
+    // Because tsconfig.json does not include the build dir
+    // eslintignore is not excluding it properly
+    // Also exclude scripts and config for pre-es6 JS
+    ignorePatterns: ['build/', 'scripts/', 'config/'],
     plugins: [
         'etc',
         'react',
