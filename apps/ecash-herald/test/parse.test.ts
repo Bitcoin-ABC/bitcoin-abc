@@ -419,7 +419,6 @@ describe('parse.js functions', function () {
                     '🔨 <b><i>1 new variable-supply token</i></b>\n' +
                     '🗻 <b><i>1 ALP tx</i></b>\n' +
                     '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
-                    '❌ <b><i>1 invalid token tx</i></b>\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
@@ -501,7 +500,6 @@ describe('parse.js functions', function () {
                     '🔨 <b><i>1 new variable-supply token</i></b>\n' +
                     '🗻 <b><i>1 ALP tx</i></b>\n' +
                     '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
-                    '❌ <b><i>1 invalid token tx</i></b>\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +
@@ -572,7 +570,6 @@ describe('parse.js functions', function () {
                     '🔨 <b><i>1 new variable-supply token</i></b>\n' +
                     '🗻 <b><i>1 ALP tx</i></b>\n' +
                     '🧩 <b><i>1 Mint Vault tx</i></b>\n' +
-                    '❌ <b><i>1 invalid token tx</i></b>\n' +
                     '\n' +
                     '📱 <b><i>8 app txs</i></b>\n' +
                     '🖋 <b>1</b> <a href="https://www.ecashchat.com/">Article/Reply tx</a>\n' +

@@ -3291,7 +3291,7 @@ export const summarizeTxHistory = (
             );
         }
 
-        const AGORA_TOKENS_TO_SHOW = 10;
+        const AGORA_TOKENS_TO_SHOW = 3;
 
         // Handle case where we do not see as many agora tokens as our max
         const agoraTokensToShow =
@@ -3408,7 +3408,7 @@ export const summarizeTxHistory = (
             );
         }
 
-        const AGORA_COLLECTIONS_TO_SHOW = 10;
+        const AGORA_COLLECTIONS_TO_SHOW = 3;
 
         // Handle case where we do not see as many agora tokens as our max
         const agoraCollectionsToShow =
@@ -3506,7 +3506,7 @@ export const summarizeTxHistory = (
             }</i></b>`,
         );
 
-        const NON_AGORA_TOKENS_TO_SHOW = 5;
+        const NON_AGORA_TOKENS_TO_SHOW = 3;
         const nonAgoraTokensToShow =
             nonAgoraTokenCount < NON_AGORA_TOKENS_TO_SHOW
                 ? nonAgoraTokenCount
@@ -3597,7 +3597,7 @@ export const summarizeTxHistory = (
             }</i></b>`,
         );
 
-        const NON_AGORA_COLLECTIONS_TO_SHOW = 5;
+        const NON_AGORA_COLLECTIONS_TO_SHOW = 3;
         const nonAgoraCollectionsToShow =
             collectionsWithNonAgoraActionsCount < NON_AGORA_COLLECTIONS_TO_SHOW
                 ? collectionsWithNonAgoraActionsCount
@@ -3717,13 +3717,8 @@ export const summarizeTxHistory = (
         );
     }
     if (invalidTokenEntries > 0) {
-        tgMsg.push(
-            `${
-                config.emojis.invalid
-            } <b><i>${invalidTokenEntries.toLocaleString(
-                'en-US',
-            )} invalid token tx${invalidTokenEntries > 1 ? 's' : ''}</i></b>`,
-        );
+        // Interesting but not newsworthy enough for daily msg
+        console.info(`${invalidTokenEntries} invalid token entries`);
     }
     if (hasTokenSummaryLines) {
         tgMsg.push('');
