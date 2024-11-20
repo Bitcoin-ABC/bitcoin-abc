@@ -23,10 +23,6 @@ import {
 
 const DUST_SATS = 546;
 const SATS_PER_KB = 1000;
-const HASH_TYPES = {
-    SIGHASH_ALL: 0x01,
-    SIGHASH_FORKID: 0x40,
-};
 const SLP_1_PROTOCOL_NUMBER = 1;
 
 export interface SlpInputsAndOutputs {

@@ -23,7 +23,7 @@ interface DatabaseConfig {
 }
 
 interface TokenServerConfig {
-    port: Number;
+    port: number;
     db: DatabaseConfig;
     chronikUrls: string[];
     eligibilityResetSeconds: number;

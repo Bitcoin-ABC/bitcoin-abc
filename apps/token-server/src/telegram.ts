@@ -6,12 +6,23 @@ import TelegramBot, { ParseMode } from 'node-telegram-bot-api';
 import config from '../config';
 import { Db } from 'mongodb';
 import { insertBlacklistEntry, removeBlacklistEntry } from './db';
+import { existsSync, renameSync } from 'fs';
+import { IFs } from 'memfs';
 
 /**
  * telegram.ts
  * Methods for working with a Telegram bot
  * In token-server, the Telegram bot is used to manage token icon rejections and other admin actions
  */
+
+/**
+ * We need a type for Fs because it is a param
+ * It needs to be a param because we use memfs in testing
+ */
+interface FsLikeTg {
+    existsSync: typeof existsSync;
+    renameSync: typeof renameSync;
+}
 
 /**
  * Initialize telegram bot for token-server
@@ -27,7 +38,7 @@ import { insertBlacklistEntry, removeBlacklistEntry } from './db';
 export const initializeTelegramBot = (
     botId: string,
     approvedMods: number[],
-    fs: any,
+    fs: FsLikeTg | IFs,
     db: Db,
 ): TelegramBot => {
     // Initialize telegram bot
@@ -217,7 +228,7 @@ export const alertNewTokenIcon = async (
         ticker !== '' ? ` (${ticker})` : ''
     }`;
 
-    let options = {
+    const options = {
         caption: msg,
         parse_mode: 'Markdown' as ParseMode,
         reply_markup: {

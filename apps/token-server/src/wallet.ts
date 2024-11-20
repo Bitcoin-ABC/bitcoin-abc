@@ -32,7 +32,7 @@ export function getWalletFromSeed(mnemonic: string): ServerWallet {
         throw new Error('getWalletFromSeed called with invalid mnemonic');
     }
 
-    let seed = bip39.mnemonicToSeedSync(mnemonic);
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
 
     const ECASH_DERIVATION_PATH_TOKENS = `m/44'/1899'/0'/0/0`;
 

@@ -37,6 +37,8 @@
         "@types/node": "^20.11.29",
         "@types/node-telegram-bot-api": "^0.64.6",
         "@types/supertest": "^6.0.2",
+        "@typescript-eslint/eslint-plugin": "^8.15.0",
+        "@typescript-eslint/parser": "^8.15.0",
         "axios-mock-adapter": "^2.0.0",
         "eslint": "^8.57.0",
         "eslint-plugin-header": "^3.1.1",
@@ -48,7 +50,8 @@
         "nyc": "^15.1.0",
         "supertest": "^6.3.4",
         "ts-node": "^10.9.2",
-        "typescript": "^5.3.3"
+        "typescript": "^5.3.3",
+        "typescript-eslint": "^8.15.0"
     },
     "dependencies": {
         "axios": "^1.7.7",

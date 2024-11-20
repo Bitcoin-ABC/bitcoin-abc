@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
-
 const headerArray = [
     {
         pattern:
@@ -22,13 +20,14 @@ module.exports = {
         mocha: true,
     },
     overrides: [],
-    extends: 'eslint:recommended',
+    extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
     parserOptions: {
         ecmaVersion: 'latest',
+        sourceType: 'module',
+        parser: '@typescript-eslint/parser',
     },
-    plugins: ['header'],
+    plugins: ['header', '@typescript-eslint'],
     rules: {
-        'strict': 'error',
         'header/header': [2, 'line', headerArray, 2],
     },
 };

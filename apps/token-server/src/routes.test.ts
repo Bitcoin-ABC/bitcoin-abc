@@ -9,7 +9,7 @@ import cashaddr from 'ecashaddrjs';
 import { startExpressServer } from '../src/routes';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import TelegramBot from 'node-telegram-bot-api';
-import { createFsFromVolume, vol } from 'memfs';
+import { createFsFromVolume, vol, IFs, DirectoryJSON } from 'memfs';
 import sharp from 'sharp';
 import secrets from '../secrets';
 import {
@@ -22,13 +22,9 @@ import { Ecc, initWasm } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
 import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import {
-    initializeDb,
-    initialBlacklist,
-    getBlacklistedTokenIds,
-} from '../src/db';
-const axios = require('axios');
-const MockAdapter = require('axios-mock-adapter');
+import { initializeDb, initialBlacklist } from '../src/db';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
 // Clone initialBlacklist before initializing the database
 // initializeDb(initialBlacklist) will modify the entries by adding an "_id" key
@@ -73,7 +69,7 @@ describe('routes.js', async function () {
         'p2pkh',
         '0000000000000000000000000000000000000000',
     );
-    let mockedChronikClient = new MockChronikClient();
+    const mockedChronikClient = new MockChronikClient();
     // Set an eligible mock
     // Seen ~ 2x before the amount of time required
     const eligibleTimeFirstSeen =
@@ -110,7 +106,6 @@ describe('routes.js', async function () {
                     amount: config.rewardAmountTokenSats,
                 },
             },
-            ,
         ],
     });
     mockedChronikClient.setMock('broadcastTx', {
@@ -168,12 +163,12 @@ describe('routes.js', async function () {
     const mockedTgBot = { sendPhoto: () => {} };
 
     // Initialize fs, to be memfs in these tests
-    let fs: any;
+    let fs: IFs;
     let testDb: Db;
     beforeEach(async () => {
         testDb = await initializeDb(testMongoClient, initialBlacklist);
         // Mock expected file structure for fs
-        const fileStructureJson: any = {};
+        const fileStructureJson: DirectoryJSON = {};
         // Create mock empty directories for all supported sizes
         for (const size of config.iconSizes) {
             fileStructureJson[`${size}`] = null;

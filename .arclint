@@ -308,6 +308,7 @@
             "version": ">=8.0.0",
             "include": [
                 "(cashtab/.*\\.(js|jsx|ts|tsx)$)",
+                "(apps/token-server/.*\\.ts$)",
                 "(apps/alias-server/.*\\.js$)",
                 "(modules/ecashaddrjs/.*\\.js$)",
                 "(apps/ecash-herald/.*\\.js$)",
