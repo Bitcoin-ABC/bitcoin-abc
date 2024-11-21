@@ -310,7 +310,7 @@
                 "(cashtab/.*\\.(js|jsx|ts|tsx)$)",
                 "(apps/token-server/.*\\.ts$)",
                 "(apps/alias-server/.*\\.js$)",
-                "(modules/ecashaddrjs/.*\\.js$)",
+                "(modules/ecashaddrjs/.*\\.ts$)",
                 "(apps/ecash-herald/.*\\.ts$)",
                 "(modules/chronik-client/.*\\.(js|jsx|ts|tsx)$)",
                 "(^web/e.cash/.*\\.js$)"

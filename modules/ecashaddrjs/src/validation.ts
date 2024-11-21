@@ -7,8 +7,6 @@
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
 
-'use strict';
-
 /**
  * Validation utility.
  *

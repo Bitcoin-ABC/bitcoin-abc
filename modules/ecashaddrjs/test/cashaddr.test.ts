@@ -6,14 +6,13 @@
  * Distributed under the MIT software license, see the accompanying
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
-'use strict';
 
 import cashaddr from '../src/cashaddr';
-import validation from '../src/validation';
 import { AddressType } from '../src/types';
-const { assert } = require('chai');
+import { assert } from 'chai';
+import { Random, MersenneTwister19937 } from 'random-js';
+import validation from '../src/validation';
 const { ValidationError } = validation;
-const { Random, MersenneTwister19937 } = require('random-js');
 
 describe('cashaddr', () => {
     const NETWORKS = ['ecash', 'ectest', 'etoken'];

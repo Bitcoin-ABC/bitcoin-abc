@@ -6,17 +6,17 @@
  * Distributed under the MIT software license, see the accompanying
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
-'use strict';
 
-const { assert } = require('chai');
-const { ValidationError } = require('../src/validation');
+import { assert } from 'chai';
 import convertBits from '../src/convertBits';
-const { Random, MersenneTwister19937 } = require('random-js');
+import { Random, MersenneTwister19937 } from 'random-js';
+import validation from '../src/validation';
+const { ValidationError } = validation;
 
 describe('#convertBits()', () => {
     const random = new Random(MersenneTwister19937.seed(42));
 
-    function getRandomData(size, max) {
+    function getRandomData(size: number, max: number): Uint8Array {
         const data = new Uint8Array(size);
         for (let i = 0; i < size; ++i) {
             data[i] = random.integer(0, max);

@@ -20,8 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-'use strict';
-
 import validation from './validation';
 const { validate } = validation;
 
@@ -43,16 +41,16 @@ export default function (
     to: number,
     strictMode: boolean = false,
 ): Uint8Array {
-    var length = strictMode
+    const length = strictMode
         ? Math.floor((data.length * from) / to)
         : Math.ceil((data.length * from) / to);
-    var mask = (1 << to) - 1;
-    var result = new Uint8Array(length);
-    var index = 0;
-    var accumulator = 0;
-    var bits = 0;
-    for (var i = 0; i < data.length; ++i) {
-        var value = data[i];
+    const mask = (1 << to) - 1;
+    const result = new Uint8Array(length);
+    let index = 0;
+    let accumulator = 0;
+    let bits = 0;
+    for (let i = 0; i < data.length; ++i) {
+        const value = data[i];
         validate(
             0 <= value && value >> from === 0,
             'Invalid value: ' + value + '.',

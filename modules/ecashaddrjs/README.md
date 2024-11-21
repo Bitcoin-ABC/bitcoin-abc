@@ -159,3 +159,4 @@ https://jsfiddle.net/zghd6c2y/
 -   1.5.8 - Upgrading dependencies [D16376](https://reviews.bitcoinabc.org/D16376)
 -   1.6.0 - Implement typescript [D16744](https://reviews.bitcoinabc.org/D16744)
 -   1.6.1 - Replace `Buffer` with `Uint8Array` and stop using `webpack` to build [D17170](https://reviews.bitcoinabc.org/D17170)
+-   1.6.2 - Lint to monorepo standards [D17183](https://reviews.bitcoinabc.org/D17183)

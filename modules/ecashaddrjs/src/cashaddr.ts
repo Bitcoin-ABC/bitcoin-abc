@@ -7,14 +7,12 @@
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
 
-'use strict';
-
 import base32 from './base32';
 import convertBits from './convertBits';
-import validation from './validation';
 import { AddressType, DecodedAddress, TypeAndHash } from './types';
-var bigInt = require('big-integer');
-var bs58check = require('bs58check');
+import bigInt, { BigInteger } from 'big-integer';
+import bs58check from 'bs58check';
+import validation from './validation';
 const { validate, ValidationError } = validation;
 
 /**
@@ -49,14 +47,16 @@ function encode(
     if (typeof hash === 'string') {
         hash = stringToUint8Array(hash);
     }
-    var prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
-    var versionByte = getTypeBits(type) + getHashSizeBits(hash);
-    var payloadData = toUint5Array(concat(new Uint8Array([versionByte]), hash));
-    var checksumData = concat(
+    const prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
+    const versionByte = getTypeBits(type) + getHashSizeBits(hash);
+    const payloadData = toUint5Array(
+        concat(new Uint8Array([versionByte]), hash),
+    );
+    const checksumData = concat(
         concat(prefixData, payloadData),
         new Uint8Array(8),
     );
-    var payload = concat(
+    const payload = concat(
         payloadData,
         checksumToUint5Array(polymod(checksumData)),
     );
@@ -75,7 +75,7 @@ function decode(address: string, chronikReady = false): DecodedAddress {
         typeof address === 'string' && hasSingleCase(address),
         'Invalid address: ' + address + '.',
     );
-    var pieces = address.toLowerCase().split(':');
+    const pieces = address.toLowerCase().split(':');
     // if there is no prefix, it might still be valid
     let prefix, payload;
     if (pieces.length === 1) {
@@ -110,14 +110,14 @@ function decode(address: string, chronikReady = false): DecodedAddress {
     }
 
     // We assert that payload will be defined here, as we validate above
-    var payloadData = fromUint5Array((payload as Uint8Array).subarray(0, -8));
-    var versionByte = payloadData[0];
-    var hash = payloadData.subarray(1);
+    const payloadData = fromUint5Array((payload as Uint8Array).subarray(0, -8));
+    const versionByte = payloadData[0];
+    const hash = payloadData.subarray(1);
     validate(
         getHashSize(versionByte) === hash.length * 8,
         'Invalid hash size: ' + address + '.',
     );
-    var type = getType(versionByte);
+    const type = getType(versionByte);
     return {
         prefix: prefix as string,
         type: chronikReady ? (type.toLowerCase() as AddressType) : type,
@@ -130,7 +130,7 @@ function decode(address: string, chronikReady = false): DecodedAddress {
  *
  * @private
  */
-var VALID_PREFIXES = [
+const VALID_PREFIXES = [
     'ecash',
     'bitcoincash',
     'simpleledger',
@@ -146,7 +146,12 @@ var VALID_PREFIXES = [
  *
  * @private
  */
-var VALID_PREFIXES_MAINNET = ['ecash', 'bitcoincash', 'simpleledger', 'etoken'];
+const VALID_PREFIXES_MAINNET = [
+    'ecash',
+    'bitcoincash',
+    'simpleledger',
+    'etoken',
+];
 
 /**
  * Checks whether a string is a valid prefix; ie., it has a single letter case
@@ -170,8 +175,8 @@ function isValidPrefix(prefix: string): boolean {
  * @param prefix Cash address prefix. E.g.: 'ecash'.
  */
 function prefixToUint5Array(prefix: string): Uint8Array {
-    var result = new Uint8Array(prefix.length);
-    for (var i = 0; i < prefix.length; ++i) {
+    const result = new Uint8Array(prefix.length);
+    for (let i = 0; i < prefix.length; ++i) {
         result[i] = prefix[i].charCodeAt(0) & 31;
     }
     return result;
@@ -185,9 +190,9 @@ function prefixToUint5Array(prefix: string): Uint8Array {
  * @param checksum Computed checksum.
  * TODO update big-integer so we can use correct types
  */
-function checksumToUint5Array(checksum: typeof bigInt): Uint8Array {
-    var result = new Uint8Array(8);
-    for (var i = 0; i < 8; ++i) {
+function checksumToUint5Array(checksum: BigInteger): Uint8Array {
+    const result = new Uint8Array(8);
+    for (let i = 0; i < 8; ++i) {
         result[7 - i] = checksum.and(31).toJSNumber();
         checksum = checksum.shiftRight(5);
     }
@@ -331,7 +336,7 @@ function fromUint5Array(data: Uint8Array): Uint8Array {
  * @throws {ValidationError}
  */
 function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
-    var ab = new Uint8Array(a.length + b.length);
+    const ab = new Uint8Array(a.length + b.length);
     ab.set(a);
     ab.set(b, a.length);
     return ab;
@@ -342,18 +347,18 @@ function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
  * format: https://github.com/Bitcoin-UAHF/spec/blob/master/cashaddr.md.
  *
  * @private
- * @param {Uint8Array} data Array of 5-bit integers over which the checksum is to be computed.
+ * @param data Array of 5-bit integers over which the checksum is to be computed.
  */
-function polymod(data: Uint8Array): typeof bigInt {
-    var GENERATOR = [
+function polymod(data: Uint8Array): BigInteger {
+    const GENERATOR = [
         0x98f2bc8e61, 0x79b76d99e2, 0xf33e5fb3c4, 0xae2eabe2a8, 0x1e4f43e470,
     ];
-    var checksum = bigInt(1);
-    for (var i = 0; i < data.length; ++i) {
-        var value = data[i];
-        var topBits = checksum.shiftRight(35);
+    let checksum = bigInt(1);
+    for (let i = 0; i < data.length; ++i) {
+        const value = data[i];
+        const topBits = checksum.shiftRight(35);
         checksum = checksum.and(0x07ffffffff).shiftLeft(5).xor(value);
-        for (var j = 0; j < GENERATOR.length; ++j) {
+        for (let j = 0; j < GENERATOR.length; ++j) {
             if (topBits.shiftRight(j).and(1).equals(1)) {
                 checksum = checksum.xor(GENERATOR[j]);
             }
@@ -371,8 +376,8 @@ function polymod(data: Uint8Array): typeof bigInt {
  * @param payload Array of 5-bit integers containing the address' payload.
  */
 function validChecksum(prefix: string, payload: Uint8Array): boolean {
-    var prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
-    var checksumData = concat(prefixData, payload);
+    const prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
+    const checksumData = concat(prefixData, payload);
     return polymod(checksumData).equals(0);
 }
 
@@ -555,7 +560,7 @@ function isValidCashAddress(
             return prefix === optionalPrefix;
         }
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }
