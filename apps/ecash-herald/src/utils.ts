@@ -184,12 +184,15 @@ export const formatXecAmount = (xecAmount: number): string => {
 /**
  * Return a formatted string of fiat if price info is available and > $1
  * Otherwise return formatted XEC amount
- * @param {integer} satoshis
+ * @param satoshis
  * @param xecPrice [{fiat, price}...{fiat, price}] with xec price at index 0
  */
-export const satsToFormattedValue = (satoshis: number, xecPrice?: number) => {
+export const satsToFormattedValue = (
+    satoshis: number | bigint,
+    xecPrice?: number,
+) => {
     // Get XEC qty
-    const xecAmount = satoshis / 100;
+    const xecAmount = Number(satoshis) / 100;
 
     if (typeof xecPrice === 'undefined') {
         return formatXecAmount(xecAmount);
@@ -200,7 +203,7 @@ export const satsToFormattedValue = (satoshis: number, xecPrice?: number) => {
 
     // Format fiatAmount for different tiers
     let displayedAmount;
-    let localeOptions: Intl.NumberFormatOptions = { maximumFractionDigits: 0 };
+    let localeOptions: Intl.NumberFormatOptions = { maximumFractionDigits: 2 };
     let descriptor = '';
 
     if (fiatAmount === 0) {
@@ -211,8 +214,11 @@ export const satsToFormattedValue = (satoshis: number, xecPrice?: number) => {
             minimumFractionDigits: -Math.floor(Math.log10(fiatAmount)),
         };
     } else if (fiatAmount < 1) {
-        // TODO two decimal places
+        // Two decimal places
         localeOptions = { minimumFractionDigits: 2 };
+    } else if (fiatAmount < 1000) {
+        // No decimal places for values 1-1000
+        localeOptions = { maximumFractionDigits: 0 };
     }
 
     if (fiatAmount < 1000) {

@@ -261,19 +261,19 @@ describe('ecash-telegram-bot utils.js functions', function () {
     it('satsToFormattedValue returns a formatted fiat amount if $1k < total fiat value < $1M', function () {
         assert.strictEqual(
             satsToFormattedValue(55555555555, mockCoingeckoPrices[0].price),
-            '$17k',
+            '$16.67k',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount of $1M if $1M < total fiat value < $1B', function () {
         assert.strictEqual(
             satsToFormattedValue(3367973856209, mockCoingeckoPrices[0].price),
-            '$1M',
+            '$1.01M',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if $1M < total fiat value < $1B', function () {
         assert.strictEqual(
             satsToFormattedValue(55555555555555, mockCoingeckoPrices[0].price),
-            '$17M',
+            '$16.67M',
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if  total fiat value > $1B', function () {
@@ -282,7 +282,7 @@ describe('ecash-telegram-bot utils.js functions', function () {
                 21000000000000000,
                 mockCoingeckoPrices[0].price,
             ),
-            '$6B',
+            '$6.3B',
         );
     });
     it('satsToFormattedValue returns a formatted XEC amount if we have no fiat price for xec', function () {
