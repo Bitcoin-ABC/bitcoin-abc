@@ -17,6 +17,11 @@ add_custom_target(print-version
   COMMAND "${CMAKE_COMMAND}" -E echo "${PROJECT_VERSION}"
 )
 
+add_custom_target(print-project-name
+  COMMENT "Print the current ${PROJECT_NAME}"
+  COMMAND "${CMAKE_COMMAND}" -E echo "${PROJECT_NAME}"
+)
+
 # Package information
 set(PACKAGE_NAME "Bitcoin ABC")
 set(PACKAGE_BUGREPORT "https://github.com/Bitcoin-ABC/bitcoin-abc/issues")
