@@ -26,6 +26,7 @@ import {
     returnAddressPreview,
     containsOnlyPrintableAscii,
 } from './utils';
+import { CoinDanceStaker } from './events';
 import lokadMap from '../constants/lokad';
 import { scriptOps } from 'ecash-agora';
 import { Script, fromHex, OP_0 } from 'ecash-lib';
@@ -1485,17 +1486,17 @@ export const getSwapTgMsg = (
 
 /**
  * Build a string formatted for Telegram's API using HTML encoding
- * @param {object} parsedBlock
- * @param {array or false} coingeckoPrices if no coingecko API error
- * @param {Map or false} tokenInfoMap if no chronik API error
- * @param {Map or false} addressInfoMap if no chronik API error
- * @returns {function} splitOverflowTgMsg(tgMsg)
+ * @param parsedBlock
+ * @param coingeckoPrices if no coingecko API error
+ * @param tokenInfoMap if no chronik API error
+ * @param addressInfoMap if no chronik API error
  */
 export const getBlockTgMessage = (
     parsedBlock: HeraldParsedBlock,
     coingeckoPrices: false | CoinGeckoPrice[],
     tokenInfoMap: false | Map<string, GenesisInfo>,
     outputScriptInfoMap: false | Map<string, OutputscriptInfo>,
+    activeStakers?: CoinDanceStaker[],
 ): string[] => {
     const { hash, height, miner, staker, numTxs, parsedTxs } = parsedBlock;
     const { emojis } = config;
@@ -1931,6 +1932,9 @@ export const getBlockTgMessage = (
     // Staker
     // Staking rewards to <staker>
     if (staker) {
+        // Get ParsedStaker
+        const parsedStaker = parseStaker(staker, activeStakers);
+
         // Get fiat amount of staking rwds
         tgMsg.push(
             `${emojis.staker}${satsToFormattedValue(
@@ -1938,7 +1942,14 @@ export const getBlockTgMessage = (
                 xecPrice,
             )} to <a href="${config.blockExplorer}/address/${
                 staker.staker
-            }">${returnAddressPreview(staker.staker)}</a>`,
+            }">${returnAddressPreview(staker.staker)}</a>${
+                typeof parsedStaker !== 'undefined'
+                    ? ` ${satsToFormattedValue(
+                          parsedStaker.stakedSatoshisThisWinner,
+                          xecPrice,
+                      )} staked (${parsedStaker.oddsThisWinner})`
+                    : ''
+            }`,
         );
     }
 
@@ -3785,4 +3796,64 @@ export const summarizeTxHistory = (
     }
 
     return splitOverflowTgMsg(tgMsg);
+};
+
+interface ParsedStaker {
+    /**
+     * Odds of this staker winning a given block
+     * Formatted as a string for pressentation
+     * e.g. 17%
+     */
+    oddsThisWinner: string;
+    /**
+     * The total satoshis this staking reward winner has staked
+     */
+    stakedSatoshisThisWinner: bigint;
+    /**
+     * Total satoshis staked in the XEC ecosystem at time of API call
+     */
+    stakedSatoshisTotal: bigint;
+}
+export const parseStaker = (
+    staker: HeraldStaker,
+    activeStakers?: CoinDanceStaker[],
+): ParsedStaker | undefined => {
+    if (typeof activeStakers === 'undefined') {
+        // Nothing to do
+        return;
+    }
+    // Find thisStaker in activeStakers
+    const thisStaker = activeStakers.find(
+        activeStaker => activeStaker.payoutAddress === staker.staker,
+    );
+
+    // If we can't find thisStaker, do not return a parsedStaker
+    // Should never happen. Could happen in edge cases of API errors,
+    // race conditions
+    // So, if we hit such a condition, we do not report on stakers
+    if (typeof thisStaker === 'undefined') {
+        return;
+    }
+
+    const totalSatsStaked = activeStakers.reduce((acc, current) => {
+        // Parse the stake string to float for addition.
+        // Note: Assuming stake is always a string with 2 decimal places
+        // Cursory review shows values like "stake": "22000000000.00",
+        // so seems to be how it's typed
+        return acc + BigInt(current.stake.replace('.', ''));
+    }, 0n);
+
+    // This staker's percent of all staked
+    // Also the staker's odds of winning any given block staking reward
+    const thisTakerPercentStake =
+        (
+            (100 * parseFloat(thisStaker.stake)) /
+            (Number(totalSatsStaked) / 100)
+        ).toFixed(2) + '%';
+
+    return {
+        oddsThisWinner: thisTakerPercentStake,
+        stakedSatoshisThisWinner: BigInt(thisStaker.stake.replace('.', '')),
+        stakedSatoshisTotal: totalSatsStaked,
+    };
 };

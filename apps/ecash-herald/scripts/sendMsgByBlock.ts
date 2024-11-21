@@ -31,6 +31,7 @@ import secrets from '../secrets';
 import TelegramBot from 'node-telegram-bot-api';
 import { caching } from 'cache-manager';
 import { StoredMock } from '../src/events';
+import mockStakers from '../test/mocks/stakers';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -78,7 +79,12 @@ async function sendMsgByBlock(
             ecash: { usd: 0.00003333 },
             ethereum: { usd: 1900.0 },
         };
+        // coingecko prices
         mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
+        // staking
+        mock.onGet(
+            `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+        ).reply(200, mockStakers);
     } else {
         // Get hash if we are using live API calls
 

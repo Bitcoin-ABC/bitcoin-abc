@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import config from '../config';
+import secrets from '../secrets';
 import axios from 'axios';
 import cashaddr from 'ecashaddrjs';
 import {
@@ -61,11 +62,19 @@ export interface StoredMock {
     blockTxs: Tx[];
     parsedBlock: HeraldParsedBlock;
     coingeckoResponse: CoinGeckoResponse;
+    activeStakers?: CoinDanceStaker[];
     coingeckoPrices: CoinGeckoPrice[];
     tokenInfoMap: Map<string, GenesisInfo>;
     outputScriptInfoMap: Map<string, OutputscriptInfo>;
     blockSummaryTgMsgs: string[];
     blockSummaryTgMsgsApiFailure: string[];
+}
+
+export interface CoinDanceStaker {
+    proof: string;
+    stake: string;
+    creationTimeStamp: string;
+    payoutAddress: string;
 }
 
 /**
@@ -142,11 +151,29 @@ export const handleBlockFinalized = async (
     const resp = await getCoingeckoPrices(config.priceApi);
     const coingeckoPrices = resp !== false ? resp.coingeckoPrices : false;
     const coingeckoResponse = resp !== false ? resp.coingeckoResponse : false;
+
+    const { staker } = parsedBlock;
+    let activeStakers: CoinDanceStaker[] | undefined;
+    if (staker !== false) {
+        // If we have a staker, get more info from API
+        try {
+            activeStakers = (
+                await axios.get(
+                    `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+                )
+            ).data;
+        } catch (err) {
+            console.error(`Error getting activeStakers`, err);
+            // Do not include this info in the tg msg
+        }
+    }
+
     const blockSummaryTgMsgs = getBlockTgMessage(
         parsedBlock,
         coingeckoPrices,
         tokenInfoMap,
         outputScriptInfoMap,
+        activeStakers,
     );
 
     if (returnMocks) {
@@ -158,6 +185,7 @@ export const handleBlockFinalized = async (
             blockTxs,
             parsedBlock,
             coingeckoResponse,
+            activeStakers,
             coingeckoPrices,
             tokenInfoMap,
             outputScriptInfoMap,
@@ -167,6 +195,7 @@ export const handleBlockFinalized = async (
                 false, // failed coingecko price lookup
                 false, // failed chronik token ID lookup
                 false, // failed balances lookup for output scripts
+                undefined, // no activeStakers
             ),
         } as StoredMock;
     }

@@ -20,6 +20,7 @@ import { caching } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import secrets from '../secrets';
 import TelegramBot from 'node-telegram-bot-api';
+import mockStakers from '../test/mocks/stakers';
 
 const mockedChronik = new MockChronikClient();
 const chronik = new ChronikClient(config.chronik);
@@ -203,6 +204,11 @@ async function generateMock(
 
     // Mock a successful API request
     mock.onGet(getCoingeckoApiUrl(config)).reply(200, coingeckoResponse);
+
+    // Mock successful staker info request
+    mock.onGet(
+        `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+    ).reply(200, mockStakers);
 
     // Generate app mocks using this block
     // TODO need to mock all the calls here

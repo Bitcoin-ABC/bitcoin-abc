@@ -60,6 +60,7 @@ describe('parse.js functions', function () {
             blockTxs,
             parsedBlock,
             coingeckoPrices,
+            activeStakers,
             tokenInfoMap,
             outputScriptInfoMap,
             blockSummaryTgMsgs,
@@ -74,6 +75,7 @@ describe('parse.js functions', function () {
                 coingeckoPrices,
                 tokenInfoMap,
                 outputScriptInfoMap,
+                activeStakers,
             ),
             blockSummaryTgMsgs,
         );

@@ -4,6 +4,7 @@
 
 import assert from 'assert';
 import config from '../config';
+import secrets from '../secrets';
 import unrevivedBlock from './mocks/block';
 import { jsonReviver, getCoingeckoApiUrl } from '../src/utils';
 import { blockInvalidedTgMsg } from './mocks/blockInvalidated';
@@ -96,6 +97,11 @@ describe('ecash-herald events.js', async function () {
 
         // Mock a successful API request
         mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
+
+        // Mock a successful staker info request
+        mock.onGet(
+            `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+        ).reply(200, thisBlock.activeStakers);
 
         const result = await handleBlockFinalized(
             mockedChronik,

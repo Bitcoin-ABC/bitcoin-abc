@@ -4,6 +4,7 @@
 
 import assert from 'assert';
 import config from '../config';
+import secrets from '../secrets';
 import cashaddr from 'ecashaddrjs';
 import unrevivedBlock from './mocks/block';
 import { jsonReviver, getCoingeckoApiUrl } from '../src/utils';
@@ -174,6 +175,11 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 thisBlock.blockTxs[0].outputs[2].outputScript,
             ),
         });
+
+        // Mock a successful staker info request
+        mock.onGet(
+            `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+        ).reply(200, thisBlock.activeStakers);
 
         const result = await parseWebsocketMessage(
             mockedChronik,

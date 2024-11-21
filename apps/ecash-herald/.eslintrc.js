@@ -36,8 +36,5 @@ module.exports = {
     rules: {
         'strict': 'error',
         'header/header': [2, 'line', headerArray, 2],
-        // Disable rules overridden by TypeScript
-        'no-use-before-define': 'off',
-        '@typescript-eslint/no-use-before-define': ['error'],
     },
 };

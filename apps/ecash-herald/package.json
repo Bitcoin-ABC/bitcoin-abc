@@ -7,6 +7,8 @@
         "test": "mocha",
         "coverage": "nyc mocha",
         "build": "tsc -p ./tsconfig.build.json",
+        "prebuild": "ts-node scripts/prepSecrets.ts",
+        "pretest": "ts-node scripts/prepSecrets.ts",
         "junit": "mocha test --reporter mocha-junit-reporter",
         "generateMock": "node scripts/generateMock",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices",
