@@ -48,10 +48,7 @@ const CashtabInput = styled.input<{ invalid?: boolean }>`
     :focus-visible {
         outline: none;
     }
-    border: ${props =>
-        props.invalid
-            ? `1px solid ${props.theme.forms.error}`
-            : `1px solid ${props.theme.eCashBlue} !important`};
+    ${props => props.invalid && `border: 1px solid ${props.theme.forms.error}`};
 `;
 
 const ModalInputField = styled(CashtabInput)<{ invalid?: boolean }>`
