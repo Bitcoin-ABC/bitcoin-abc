@@ -91,7 +91,7 @@ PROOF_TEST_CONTEXT = TestContext(
 
 STAKE_CONTENDER_TEST_CONTEXT = TestContext(
     MSG_AVA_STAKE_CONTENDER,
-    "avalanche stake contender",
+    "stakecontender",
     NetConstants(
         getdata_interval=60,  # seconds
         inbound_peer_delay=2,  # seconds
@@ -499,7 +499,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             [
                 "received getdata (1 invsz)",
-                f"received getdata for: 0x{context.inv_type:x} {uint256_hex(itemid)}",
+                f"received getdata for: {context.inv_name} {uint256_hex(itemid)}",
             ],
         ):
             msg = msg_getdata()

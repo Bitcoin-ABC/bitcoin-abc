@@ -226,6 +226,10 @@ std::string CInv::GetCommand() const {
             return cmd.append(NetMsgType::CMPCTBLOCK);
         case MSG_AVA_PROOF:
             return cmd.append(NetMsgType::AVAPROOF);
+        case MSG_AVA_STAKE_CONTENDER:
+            // Stake contender does not have a NetMsgType because there is no
+            // contender-specific message, so we hard code the name here.
+            return cmd.append("stakecontender");
         default:
             throw std::out_of_range(
                 strprintf("CInv::GetCommand(): type=%d unknown type", type));
