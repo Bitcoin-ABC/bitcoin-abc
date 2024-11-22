@@ -8,6 +8,7 @@ import {
     TrashcanIcon,
     EditIcon,
     SendIcon,
+    ContactsIcon,
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import { ModalInput, InputFlex } from 'components/Common/Inputs';
@@ -27,6 +28,7 @@ import {
     ContactListName,
     ButtonPanel,
 } from 'components/Contacts/styles';
+import { PageHeader } from 'components/Common/Atoms';
 
 const Contacts = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -210,6 +212,9 @@ const Contacts = () => {
 
     return (
         <>
+            <PageHeader>
+                Contacts <ContactsIcon />
+            </PageHeader>
             {contactToBeRenamed !== null && (
                 <Modal
                     height={180}

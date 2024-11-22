@@ -15,13 +15,17 @@ import cashaddr from 'ecashaddrjs';
 import { toast } from 'react-toastify';
 import { theme } from 'assets/styles/theme';
 import appConfig from 'config/app';
+import { PageHeader } from 'components/Common/Atoms';
+import { ThemedSignAndVerifyMsg } from 'components/Common/CustomIcons';
 
 const SignVerifyForm = styled.div`
-    margin-top: 24px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     width: 100%;
+    h2 {
+        margin-bottom: 20px;
+    }
 `;
 const Row = styled.div`
     width: 100%;
@@ -169,6 +173,10 @@ const SignVerifyMsg = () => {
 
     return (
         <SignVerifyForm title="Sign & Verify">
+            <PageHeader>
+                Sign & Verify Msg
+                <ThemedSignAndVerifyMsg />
+            </PageHeader>
             <Row>
                 <Switch
                     name="Toggle Sign Verify"

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     HomeIcon,
     SendIcon,
@@ -77,11 +77,11 @@ import {
     HeaderCtn,
     CashtabLogo,
     EasterEgg,
-    NavHeader,
     BalanceHeaderContainer,
+    DesktopLogo,
+    HeaderInfoCtn,
 } from 'components/App/styles';
 import 'react-toastify/dist/ReactToastify.min.css';
-import debounce from 'lodash.debounce';
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -97,44 +97,12 @@ const App = () => {
     const walletState = getWalletState(wallet);
     const { balanceSats } = walletState;
     const [navMenuClicked, setNavMenuClicked] = useState(false);
-    const [scrollY, setScrollY] = useState(0);
-    const [minifiedMenu, setMinifiedMenu] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
     const validWallet = isValidCashtabWallet(wallet);
     const location = useLocation();
     const navigate = useNavigate();
-
-    const PIN_MINIFIED_WALLET_MENU_SCROLLY = 63;
-    const UNPIN_MINIFIED_WALLET_MENU_SCROLLY = 15;
-    const handleScroll = () => {
-        setScrollY(window.scrollY);
-    };
-    useEffect(() => {
-        if (scrollY > PIN_MINIFIED_WALLET_MENU_SCROLLY && !minifiedMenu) {
-            // If the user has scrolled DOWN past PIN_MINIFIED_WALLET_MENU_SCROLLY and the menu IS NOT minified
-            // Minify the menu
-            setMinifiedMenu(true);
-        } else if (
-            scrollY < UNPIN_MINIFIED_WALLET_MENU_SCROLLY &&
-            minifiedMenu
-        ) {
-            // If the user has scrolled UP past UNPIN_MINIFIED_WALLET_MENU_SCROLLY and the menu IS minified
-            // Unminify the menu
-            setMinifiedMenu(false);
-        }
-    }, [scrollY, minifiedMenu]);
-
-    // Only execute handleScroll if it has not been called for 25ms
-    const debouncedHandleScroll = debounce(handleScroll, 25);
-
-    useEffect(() => {
-        window.addEventListener('scroll', debouncedHandleScroll);
-        return () => {
-            window.removeEventListener('scroll', debouncedHandleScroll);
-        };
-    }, []);
 
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
@@ -196,85 +164,28 @@ const App = () => {
                                                     alt="cashtab"
                                                 />
                                             )}
-                                            {location.pathname ===
-                                                '/airdrop' && (
-                                                <NavHeader>
-                                                    Airdrop
-                                                    <AirdropIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname ===
-                                                '/backup' && (
-                                                <NavHeader>
-                                                    Wallet Backup
-                                                    <WalletIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname === '/nfts' && (
-                                                <NavHeader>
-                                                    Listed NFTs
-                                                    <NftIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname === '/agora' && (
-                                                <NavHeader>
-                                                    Agora
-                                                    <DogeIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname ===
-                                                '/contacts' && (
-                                                <NavHeader>
-                                                    Contacts
-                                                    <ContactsIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname ===
-                                                '/wallets' && (
-                                                <NavHeader>
-                                                    Wallets
-                                                    <BankIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname ===
-                                                '/configure' && (
-                                                <NavHeader>
-                                                    Settings
-                                                    <SettingsIcon />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname ===
-                                                '/signverifymsg' && (
-                                                <NavHeader>
-                                                    {' '}
-                                                    Sign & Verify Msg
-                                                    <ThemedSignAndVerifyMsg />
-                                                </NavHeader>
-                                            )}
-                                            {location.pathname ===
-                                                '/rewards' && (
-                                                <NavHeader>
-                                                    {' '}
-                                                    Rewards
-                                                    <RewardIcon />
-                                                </NavHeader>
-                                            )}
-                                            {process.env.REACT_APP_BUILD_ENV !==
-                                                'extension' &&
-                                                process.env
-                                                    .REACT_APP_TESTNET !==
-                                                    'true' && (
-                                                    <>
-                                                        {location.pathname ===
-                                                            '/swap' && (
-                                                            <NavHeader>
-                                                                {' '}
-                                                                Swap
-                                                                <SwapIcon />
-                                                            </NavHeader>
-                                                        )}
-                                                    </>
-                                                )}
+                                        </HeaderCtn>
+                                        <HeaderInfoCtn>
+                                            <WalletLabel
+                                                wallets={wallets}
+                                                settings={settings}
+                                                updateCashtabState={
+                                                    updateCashtabState
+                                                }
+                                                userLocale={navigator.language}
+                                            ></WalletLabel>
+                                            <BalanceHeaderContainer title="Wallet Info">
+                                                <BalanceHeader
+                                                    balanceSats={balanceSats}
+                                                    settings={settings}
+                                                    fiatPrice={fiatPrice}
+                                                    userLocale={
+                                                        navigator.language
+                                                    }
+                                                />
+                                            </BalanceHeaderContainer>
+                                        </HeaderInfoCtn>
+                                        <ScreenWrapper>
                                             {process.env.REACT_APP_BUILD_ENV !==
                                                 'extension' && (
                                                 <>
@@ -286,28 +197,6 @@ const App = () => {
                                                     )}
                                                 </>
                                             )}
-                                        </HeaderCtn>
-                                        <WalletLabel
-                                            wallets={wallets}
-                                            settings={settings}
-                                            updateCashtabState={
-                                                updateCashtabState
-                                            }
-                                            minified={minifiedMenu}
-                                            userLocale={navigator.language}
-                                        ></WalletLabel>
-                                        <BalanceHeaderContainer
-                                            title="Wallet Info"
-                                            minified={minifiedMenu}
-                                        >
-                                            <BalanceHeader
-                                                balanceSats={balanceSats}
-                                                settings={settings}
-                                                fiatPrice={fiatPrice}
-                                                userLocale={navigator.language}
-                                            />
-                                        </BalanceHeaderContainer>
-                                        <ScreenWrapper>
                                             <Routes>
                                                 <Route
                                                     path="/wallet"
@@ -423,6 +312,9 @@ const App = () => {
                     </WalletCtn>
                     {wallet !== false && (
                         <Footer>
+                            <DesktopLogo>
+                                <CashtabLogo src={Cashtab} alt="cashtab" />
+                            </DesktopLogo>
                             <NavButton
                                 active={
                                     location.pathname === '/' ||
@@ -430,6 +322,7 @@ const App = () => {
                                 }
                                 onClick={() => navigate('/')}
                             >
+                                <span>Transactions</span>
                                 <HomeIcon />
                             </NavButton>
 
@@ -437,8 +330,8 @@ const App = () => {
                                 aria-label="Send Screen"
                                 active={location.pathname === '/send'}
                                 onClick={() => navigate('/send')}
-                                style={{ paddingBottom: '10px' }}
                             >
+                                <span>Send</span>
                                 <SendIcon />
                             </NavButton>
                             <NavButton
@@ -446,6 +339,7 @@ const App = () => {
                                 active={location.pathname === '/etokens'}
                                 onClick={() => navigate('/etokens')}
                             >
+                                <span>Tokens</span>
                                 <TokensIcon />
                             </NavButton>
                             <NavButton
@@ -453,6 +347,7 @@ const App = () => {
                                 active={location.pathname === '/receive'}
                                 onClick={() => navigate('receive')}
                             >
+                                <span>Receive</span>
                                 <ReceiveIcon />
                             </NavButton>
                             <NavWrapper

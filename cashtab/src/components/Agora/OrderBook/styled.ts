@@ -14,10 +14,17 @@ export const OrderBookLoading = styled.div`
 `;
 
 export const OfferWrapper = styled.div<{ borderRadius: boolean }>`
-    background-color: ${props => props.theme.modal.background};
-    margin-bottom: 20px;
+    background-color: ${props => props.theme.secondaryBackground};
     border-radius: ${props => (props.borderRadius ? '20px' : '0 0 20px 20px')};
-    border: 1px solid ${props => props.theme.lightGrey};
+    border: 1px solid ${props => props.theme.border};
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    @media (max-width: 768px) {
+        margin-bottom: 20px;
+        width: 100%;
+    }
 `;
 
 export const OfferHeader = styled.div`
@@ -26,6 +33,8 @@ export const OfferHeader = styled.div`
     width: 100%;
     padding: 30px 20px;
     text-align: left;
+    border-radius: 20px 20px 0 0;
+    background-color: ${props => props.theme.primaryBackground};
 `;
 export const OfferTitleCtn = styled.div`
     display: flex;
@@ -65,6 +74,9 @@ export const OfferIcon = styled.button<{ size: number; tokenId: string }>`
 
 export const OfferDetailsCtn = styled.div`
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 `;
 
 export const DepthBarCol = styled.div`
@@ -114,7 +126,7 @@ export const DepthBar = styled.div<{ depthPercent: number }>`
     top: 0;
     right: 0;
     background-color: ${props => props.theme.eCashBlue};
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: ${props => props.theme.agoraDepthBar};
     height: 100%;
     width: ${props => props.depthPercent}%;
 `;
@@ -136,7 +148,7 @@ export const SliderRow = styled.div`
     align-items: center;
     width: 100%;
     padding: 30px 20px 0px;
-    /* border-top: 1px solid ${props => props.theme.lightGrey}; */
+    background-color: ${props => props.theme.primaryBackground};
     & > span {
         margin-right: 10px;
         font-weight: 600;
@@ -154,6 +166,9 @@ export const BuyOrderCtn = styled.div`
     word-break: break-all;
     padding: 20px;
     color: ${props => props.theme.contrast};
+    background-color: ${props => props.theme.primaryBackground};
+    border-radius: 0 0 20px 20px;
+    flex-grow: 1;
     & > div {
         font-size: 18px;
         opacity: 0.7;
@@ -161,11 +176,13 @@ export const BuyOrderCtn = styled.div`
     h3 {
         font-size: 20px;
         margin: 0;
+        margin-bottom: 20px;
     }
     button {
         font-size: 16px;
         padding: 20px 10px;
         margin-top: 30px;
         margin-bottom: 0;
+        margin-top: auto;
     }
 `;

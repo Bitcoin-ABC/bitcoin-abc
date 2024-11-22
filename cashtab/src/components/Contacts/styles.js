@@ -26,7 +26,7 @@ export const ContactsPanel = styled.div`
     flex-direction: column;
     padding: 12px;
     width: 100%;
-    background-color: ${props => props.theme.panel};
+    background-color: ${props => props.theme.primaryBackground};
     border-radius: 9px;
     margin-bottom: 12px;
 `;

@@ -10,20 +10,17 @@ import { explorer } from 'config/explorer';
 
 export const CashtabScroll = css`
     &::-webkit-scrollbar {
-        width: 12px;
+        width: 4px;
     }
 
     &::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-        background-color: ${props => props.theme.eCashBlue};
-        border-radius: 10px;
-        height: 80%;
+        -webkit-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
+        background-color: ${props => props.theme.secondaryBackground};
     }
 
     &::-webkit-scrollbar-thumb {
         border-radius: 10px;
-        color: ${props => props.theme.eCashBlue};
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+        background-color: ${props => props.theme.accent};
     }
 `;
 
@@ -156,3 +153,20 @@ export const TokenIdPreview: React.FC<TokenIdPreviewProps> = ({ tokenId }) => {
         </TokenIdAndCopyIcon>
     );
 };
+
+export const PageHeader = styled.h2`
+    margin: 0;
+    margin-top: 20px;
+    color: ${props => props.theme.contrast};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+        height: 30px;
+        width: 30px;
+        margin-left: 10px;
+    }
+    svg path {
+        fill: #fff !important;
+    }
+`;

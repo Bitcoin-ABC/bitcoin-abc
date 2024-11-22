@@ -136,17 +136,11 @@ export const LoadingBlock = styled.div`
         fill: ${props => props.theme.eCashBlue};
     }
 `;
-const Rotate = styled.div`
-    transform: rotate(-45deg);
-`;
+
 const MineRotate = styled.div`
     transform: rotate(45deg);
 `;
-export const SendIcon = () => (
-    <Rotate>
-        <Send title="tx-sent" />
-    </Rotate>
-);
+export const SendIcon = () => <Send title="tx-sent" />;
 
 export const MinedIcon = () => (
     <MineRotate>

@@ -67,3 +67,12 @@ export const OfferCol = styled.div`
     display: flex;
     flex-direction: column;
 `;
+export const NftListCtn = styled.div`
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    @media (max-width: 768px) {
+        display: flex;
+        flex-direction: column;
+    }
+`;

@@ -55,6 +55,12 @@ import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
 import { Script } from 'ecash-lib';
 
+const OuterCtn = styled.div`
+    background: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    border-radius: 10px;
+`;
+
 const SendXecForm = styled.div`
     margin: 12px 0;
     display: flex;
@@ -976,7 +982,7 @@ const SendXec: React.FC = () => {
     );
 
     return (
-        <>
+        <OuterCtn>
             {isModalVisible && (
                 <Modal
                     title="Confirm Send"
@@ -1328,7 +1334,7 @@ const SendXec: React.FC = () => {
                 Send
             </PrimaryButton>
             {apiError && <ApiError />}
-        </>
+        </OuterCtn>
     );
 };
 

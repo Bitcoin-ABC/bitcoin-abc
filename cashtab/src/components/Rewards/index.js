@@ -10,6 +10,8 @@ import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import { load } from 'recaptcha-v3';
+import { PageHeader } from 'components/Common/Atoms';
+import { RewardIcon } from 'components/Common/CustomIcons';
 
 const Rewards = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -170,6 +172,9 @@ const Rewards = () => {
 
     return (
         <Wrapper title="Rewards">
+            <PageHeader>
+                Rewards <RewardIcon />
+            </PageHeader>
             {process.env.REACT_APP_TESTNET !== 'true' ? (
                 <PrimaryButton disabled={!isEligible} onClick={handleClaim}>
                     {isEligible === null ? (

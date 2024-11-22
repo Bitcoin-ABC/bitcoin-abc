@@ -19,6 +19,9 @@ export const ReceiveCtn = styled.div`
     }
     ${QrCodeCtn} {
         padding-top: 12px;
+        background: ${props => props.theme.primaryBackground};
+        padding: 20px;
+        border-radius: 10px;
     }
 `;
 

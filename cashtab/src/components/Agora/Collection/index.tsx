@@ -682,15 +682,12 @@ const Collection: React.FC<CollectionProps> = ({
     };
     return (
         <>
-            <CollectionWrapper>
+            <CollectionWrapper isCollapsed={!renderOffers}>
                 {!noCollectionInfo && (
                     <CollectionSummary isCollapsed={!renderOffers}>
                         <TitleAndIconAndCollapseArrow onClick={toggleOffers}>
-                            <CollectionIcon>
-                                <TokenIcon
-                                    tokenId={groupTokenId}
-                                    size={renderOffers ? 32 : 64}
-                                />
+                            <CollectionIcon isCollapsed={!renderOffers}>
+                                <TokenIcon tokenId={groupTokenId} size={256} />
                             </CollectionIcon>
                             <CollectionTitle>{collectionName}</CollectionTitle>
                             <ArrowWrapper isCollapsed={!renderOffers}>

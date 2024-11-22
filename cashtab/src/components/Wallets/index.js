@@ -8,6 +8,7 @@ import {
     TrashcanIcon,
     EditIcon,
     AddContactIcon,
+    BankIcon,
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import { ModalInput } from 'components/Common/Inputs';
@@ -40,6 +41,7 @@ import { getUserLocale } from 'helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { toFormattedXec } from 'utils/formatting';
 import debounce from 'lodash.debounce';
+import { PageHeader } from 'components/Common/Atoms';
 
 const Wallets = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -300,6 +302,9 @@ const Wallets = () => {
 
     return (
         <>
+            <PageHeader>
+                Wallets <BankIcon />
+            </PageHeader>
             {walletToBeRenamed !== null && (
                 <Modal
                     height={180}

@@ -4,6 +4,12 @@
 
 import styled from 'styled-components';
 
+export const OuterCtn = styled.div`
+    background-color: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    border-radius: 10px;
+`;
+
 export const TokenScreenWrapper = styled.div`
     color: ${props => props.theme.contrast};
     width: 100%;
@@ -53,10 +59,10 @@ export const TokenStatsTable = styled.div`
     width: 100%;
     color: ${props => props.theme.contrast};
     gap: 12px;
-    background-color: ${props => props.theme.modal.background};
+    background-color: ${props => props.theme.primaryBackground};
     border-radius: 20px 20px 0 0;
     padding: 20px;
-    border: 1px solid ${props => props.theme.lightGrey};
+    border: 1px solid ${props => props.theme.border};
     border-bottom: none;
 `;
 export const TokenStatsRow = styled.div`

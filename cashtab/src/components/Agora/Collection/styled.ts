@@ -13,15 +13,26 @@ export const CollectionLoading = styled.div`
     margin: 12px auto;
 `;
 
-export const CollectionWrapper = styled.div`
+export const CollectionWrapper = styled.div<{ isCollapsed: boolean }>`
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     color: ${props => props.theme.contrast};
-    width: 100%;
-    flex-grow: 1;
-    margin: 12px auto;
+    width: ${props => (props.isCollapsed ? '20%' : '100%')};
+    padding: 16px;
+    @media (max-width: 1600px) {
+        width: ${props => (props.isCollapsed ? '25%' : '100%')};
+    }
+    @media (max-width: 1400px) {
+        width: ${props => (props.isCollapsed ? '33.3%' : '100%')};
+    }
+    @media (max-width: 1000px) {
+        width: ${props => (props.isCollapsed ? '50%' : '100%')};
+    }
+    @media (max-width: 768px) {
+        width: 100%;
+    }
 `;
 export const CollectionSummary = styled.div<{ isCollapsed: boolean }>`
     display: flex;
@@ -33,13 +44,11 @@ export const CollectionSummary = styled.div<{ isCollapsed: boolean }>`
     padding: 6px;
     border-radius: ${props =>
         props.isCollapsed ? '20px' : '20px 20px 0px 0px'};
-    background: ${props => props.theme.modal.background};
-    border-top: 1px solid ${props => props.theme.lightGrey};
-    border-left: 1px solid ${props => props.theme.lightGrey};
-    border-right: 1px solid ${props => props.theme.lightGrey};
+    background: ${props => props.theme.primaryBackground};
+    border: 1px solid ${props => props.theme.border};
+    border-bottom: none;
     ${props =>
-        props.isCollapsed &&
-        `border-bottom: 1px solid ${props.theme.lightGrey}`};
+        props.isCollapsed && `border-bottom: 1px solid ${props.theme.border}`};
 `;
 
 export const ArrowWrapper = styled.div<{ isCollapsed: boolean }>`
@@ -52,7 +61,7 @@ export const ArrowWrapper = styled.div<{ isCollapsed: boolean }>`
         transition: transform 0.3s ease;
         fill: ${props => (props.isCollapsed ? 'red' : 'blue')};
         transform: ${props =>
-            props.isCollapsed ? 'rotate(-180deg)' : 'rotate(0deg)'};
+            props.isCollapsed ? 'rotate(0deg)' : 'rotate(-180deg)'};
     }
 `;
 export const Arrow = styled(CollapseDownIcon)``;
@@ -65,17 +74,16 @@ export const CollapsibleContent = styled.div<{ isCollapsed: boolean }>`
     ${props =>
         !props.isCollapsed &&
         `border-radius: 0 0 20px 20px;
-    background: ${props.theme.modal.background};
-    border-left: 1px solid ${props.theme.lightGrey};
-    border-right: 1px solid ${props.theme.lightGrey};
-    border-bottom: 1px solid ${props.theme.lightGrey};
+    background: ${props.theme.primaryBackground};
+    border-left: 1px solid ${props.theme.border};
+    border-right: 1px solid ${props.theme.border};
+    border-bottom: 1px solid ${props.theme.border};
         `}
 `;
 export const TitleAndIconAndCollapseArrow = styled.button`
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
-    justify-content: space-between;
     align-items: center;
     border: none;
     background-color: transparent;
@@ -90,10 +98,20 @@ export const CollectionTitle = styled.div`
     font-size: 20px;
     font-weight: bold;
     line-height: 20px;
+    margin: 20px 0 0;
 `;
-export const CollectionIcon = styled.div`
-    display: flex;
-    flex-direction: column;
+export const CollectionIcon = styled.div<{ isCollapsed: boolean }>`
+    width: 100%;
+    height: 200px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    display: ${props => (props.isCollapsed ? 'flex' : 'none')};
+    img {
+        height: 100%;
+        width: auto;
+        border-radius: 200px;
+    }
 `;
 export const CollectionInfoRow = styled.div`
     display: flex;
@@ -150,7 +168,7 @@ export const NftIcon = styled.button<{ tokenId: string; size: number }>`
     }
 `;
 export const NftSwiperSlide = styled.div`
-    background-color: ${props => props.theme.panel};
+    background-color: ${props => props.theme.secondaryBackground};
 `;
 export const ModalFlex = styled.div`
     display: flex;

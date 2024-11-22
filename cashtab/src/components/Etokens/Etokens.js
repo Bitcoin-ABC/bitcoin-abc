@@ -17,6 +17,9 @@ import Switch from 'components/Common/Switch';
 const EtokensCtn = styled.div`
     color: ${props => props.theme.contrast};
     width: 100%;
+    background-color: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    border-radius: 10px;
     h2 {
         margin: 0 0 20px;
         margin-top: 10px;

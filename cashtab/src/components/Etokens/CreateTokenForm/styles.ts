@@ -92,3 +92,8 @@ export const TokenInfoParagraph = styled.div`
     padding: 0 6px;
     color: ${props => props.theme.contrast};
 `;
+export const OuterCtn = styled.div`
+    background-color: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    border-radius: 10px;
+`;

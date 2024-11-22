@@ -21,6 +21,7 @@ import { isMobile } from 'helpers';
 import { hasEnoughToken } from 'wallet';
 import { CurrencySelect } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
+import { PageHeader } from 'components/Common/Atoms';
 
 const VersionContainer = styled.div`
     color: ${props => props.theme.contrast};
@@ -35,6 +36,16 @@ const ConfigIconWrapper = styled.div`
 `;
 const StyledConfigure = styled.div`
     margin: 12px 0;
+    background: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    border-radius: 10px;
+    @media (max-width: 768px) {
+        border-radius: 0;
+        margin: 0;
+    }
+    h2 {
+        margin-bottom: 30px;
+    }
 `;
 
 const HeadlineAndIcon = styled.div`
@@ -53,7 +64,7 @@ const Headline = styled.div`
 const StyledSpacer = styled.div`
     height: 1px;
     width: 100%;
-    background-color: ${props => props.theme.lightWhite};
+    background-color: ${props => props.theme.border};
     margin: 60px 0 50px;
 `;
 
@@ -72,7 +83,7 @@ const Switches = styled.div`
 const GeneralSettingsItem = styled.div`
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 12px;
     color: ${props => props.theme.lightWhite};
 `;
@@ -112,6 +123,9 @@ const Configure = () => {
 
     return (
         <StyledConfigure title="Settings">
+            <PageHeader>
+                Settings <SettingsIcon />
+            </PageHeader>
             <HeadlineAndIcon>
                 <ConfigIconWrapper>
                     <DollarIcon />

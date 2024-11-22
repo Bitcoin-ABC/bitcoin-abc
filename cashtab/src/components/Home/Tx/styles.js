@@ -6,7 +6,7 @@ import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
 
 export const TxWrapper = styled.div`
-    border-bottom: 0.5px solid ${props => props.theme.separator};
+    border-bottom: 1px solid ${props => props.theme.border};
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -186,7 +186,7 @@ export const AppAction = styled.div`
     padding: 3px 12px;
     ${props => props.type === 'Received' && Incoming}
     border-radius: 9px;
-    background-color: ${props => props.theme.panel};
+    background-color: ${props => props.theme.secondaryBackground};
     flex-wrap: wrap;
     word-break: break-all;
 `;

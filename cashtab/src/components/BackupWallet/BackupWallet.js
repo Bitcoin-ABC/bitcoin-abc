@@ -9,29 +9,40 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import Seed from 'components/Common/Seed';
 import Switch from 'components/Common/Switch';
 import { getUserLocale } from 'helpers';
-import { Alert, Info } from 'components/Common/Atoms';
+import { Alert, Info, PageHeader } from 'components/Common/Atoms';
+import { WalletIcon } from 'components/Common/CustomIcons';
 
 const BackupFlex = styled.div`
-    margin: 12px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    row-gap: 48px;
-    color: ${props => props.theme.contrast};
-    justify-content: flex-start;
+    justify-content: center;
+    color: ${props => props.theme.primaryText};
+    background: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    padding-bottom: 60px;
+    border-radius: 10px;
+    @media (max-width: 768px) {
+        border-radius: 0px;
+    }
 `;
 const FlexRow = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    margin: 40px 0 0px;
+    background: ${props => props.theme.secondaryBackground};
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid ${props => props.theme.border};
 `;
 const SwitchRow = styled.div`
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     width: 100%;
     gap: 12px;
+    margin-top: 20px;
 `;
 const SwitchLabel = styled.div``;
 
@@ -47,26 +58,27 @@ const BackupWallet = () => {
 
     return (
         <BackupFlex>
-            <FlexRow>
-                <Info>
-                    ℹ️ Your seed phrase is the only way to restore your wallet.
-                    Write it down. Keep it safe.
-                </Info>
-            </FlexRow>
-            <FlexRow>
-                <Alert className="notranslate">
-                    <b>
-                        ⚠️ NEVER SHARE YOUR SEED PHRASE
-                        {!userLocale.includes('en-') && (
-                            <>
-                                <br />
-                                <br />
-                                ⚠️ STORE YOUR SEED PHRASE IN ENGLISH
-                            </>
-                        )}
-                    </b>
-                </Alert>
-            </FlexRow>
+            <PageHeader>
+                Wallet Backup <WalletIcon />
+            </PageHeader>
+            <Info>
+                ℹ️ Your seed phrase is the only way to restore your wallet.
+                Write it down. Keep it safe.
+            </Info>
+
+            <Alert className="notranslate">
+                <b>
+                    ⚠️ NEVER SHARE YOUR SEED PHRASE
+                    {!userLocale.includes('en-') && (
+                        <>
+                            <br />
+                            <br />
+                            ⚠️ STORE YOUR SEED PHRASE IN ENGLISH
+                        </>
+                    )}
+                </b>
+            </Alert>
+
             <SwitchRow>
                 <Switch
                     name="send-confirmations-switch"
@@ -75,8 +87,9 @@ const BackupWallet = () => {
                 />
                 <SwitchLabel>Show seed phrase</SwitchLabel>
             </SwitchRow>
-            <FlexRow>
-                {showSeed && (
+
+            {showSeed && (
+                <FlexRow>
                     <CopyToClipboard
                         data={wallet.mnemonic}
                         showToast
@@ -84,8 +97,8 @@ const BackupWallet = () => {
                     >
                         <Seed mnemonic={wallet.mnemonic} />
                     </CopyToClipboard>
-                )}
-            </FlexRow>
+                </FlexRow>
+            )}
         </BackupFlex>
     );
 };

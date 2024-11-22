@@ -7,4 +7,7 @@ import styled from 'styled-components';
 export const Wrapper = styled.div`
     width: 100%;
     margin-top: 24px;
+    h2 {
+        margin-bottom: 30px;
+    }
 `;

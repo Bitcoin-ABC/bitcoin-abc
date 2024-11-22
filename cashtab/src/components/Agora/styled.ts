@@ -21,13 +21,27 @@ export const OfferTitle = styled.div`
     font-weight: bold;
 `;
 export const OfferTable = styled.div`
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
     width: 100%;
     margin-top: 20px;
+    @media (max-width: 1600px) {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    @media (max-width: 1400px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    @media (max-width: 1000px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: 768px) {
+        display: flex;
+        flex-direction: column;
+    }
 `;
 export const OfferCol = styled.div`
-    min-width: 128px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 3px;

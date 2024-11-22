@@ -69,6 +69,7 @@ import {
     ButtonDisabledMsg,
     TokenInfoParagraph,
     TokenTypeDescription,
+    OuterCtn,
 } from 'components/Etokens/CreateTokenForm/styles';
 import { sha256, Message } from 'js-sha256';
 import { getUserLocale } from 'helpers';
@@ -413,8 +414,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     [name]: !validTokenName
                         ? `Token name must be a valid string between 1 and 68 characters long.`
                         : !probablyNotScam
-                        ? 'Token name must not conflict with existing crypto or fiat'
-                        : false,
+                          ? 'Token name must not conflict with existing crypto or fiat'
+                          : false,
                 }));
                 break;
             }
@@ -427,8 +428,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     [name]: !validTokenTicker
                         ? `Token ticker must be a valid string between 1 and 12 characters long`
                         : !probablyNotScamTicker
-                        ? 'Token ticker must not conflict with existing crypto or fiat'
-                        : false,
+                          ? 'Token ticker must not conflict with existing crypto or fiat'
+                          : false,
                 }));
                 break;
             }
@@ -627,35 +628,35 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                       createWithMintBaton ? 2 : undefined,
                   )
                 : isNftMint
-                ? getNftChildGenesisTargetOutputs(genesisInfo)
-                : tokenTypeSwitches.slp
-                ? getSlpGenesisTargetOutput(
-                      genesisInfo,
-                      BigInt(
-                          undecimalizeTokenAmount(
-                              formData.genesisQty,
-                              parseInt(formData.decimals) as SlpDecimals,
+                  ? getNftChildGenesisTargetOutputs(genesisInfo)
+                  : tokenTypeSwitches.slp
+                    ? getSlpGenesisTargetOutput(
+                          genesisInfo,
+                          BigInt(
+                              undecimalizeTokenAmount(
+                                  formData.genesisQty,
+                                  parseInt(formData.decimals) as SlpDecimals,
+                              ),
                           ),
-                      ),
-                      createWithMintBaton ? 2 : undefined,
-                  )
-                : getAlpGenesisTargetOutputs(
-                      {
-                          ...genesisInfo,
-                          // Set as Cashtab active wallet public key
-                          authPubkey: toHex(
-                              wallet.paths.get(appConfig.derivationPath).pk,
+                          createWithMintBaton ? 2 : undefined,
+                      )
+                    : getAlpGenesisTargetOutputs(
+                          {
+                              ...genesisInfo,
+                              // Set as Cashtab active wallet public key
+                              authPubkey: toHex(
+                                  wallet.paths.get(appConfig.derivationPath).pk,
+                              ),
+                              // Note we are omitting the "data" key for now
+                          },
+                          BigInt(
+                              undecimalizeTokenAmount(
+                                  formData.genesisQty,
+                                  parseInt(formData.decimals) as SlpDecimals,
+                              ),
                           ),
-                          // Note we are omitting the "data" key for now
-                      },
-                      BigInt(
-                          undecimalizeTokenAmount(
-                              formData.genesisQty,
-                              parseInt(formData.decimals) as SlpDecimals,
-                          ),
-                      ),
-                      createWithMintBaton,
-                  );
+                          createWithMintBaton,
+                      );
             const { response } = isNftMint
                 ? await sendXec(
                       chronik,
@@ -713,8 +714,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     {createNftCollection
                         ? 'NFT Collection created!'
                         : isNftMint
-                        ? 'NFT Minted!'
-                        : 'Token created!'}
+                          ? 'NFT Minted!'
+                          : 'Token created!'}
                 </TokenCreatedLink>,
                 {
                     icon: TokenNotificationIcon,
@@ -740,15 +741,15 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
         }
     };
     return (
-        <>
+        <OuterCtn>
             {showConfirmCreateToken && (
                 <Modal
                     title={`Your ${
                         createNftCollection
                             ? 'NFT Collection'
                             : isNftMint
-                            ? 'NFT'
-                            : 'Token'
+                              ? 'NFT'
+                              : 'Token'
                     }`}
                     handleOk={createPreviewedToken}
                     handleCancel={() => setShowConfirmCreateToken(false)}
@@ -927,8 +928,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                         createNftCollection
                             ? 'NFT collection'
                             : isNftMint
-                            ? 'NFT'
-                            : 'token'
+                              ? 'NFT'
+                              : 'token'
                     }`}
                     name="name"
                     value={formData.name}
@@ -940,8 +941,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                         createNftCollection
                             ? 'NFT collection'
                             : isNftMint
-                            ? 'NFT'
-                            : 'token'
+                              ? 'NFT'
+                              : 'token'
                     }`}
                     name="ticker"
                     value={formData.ticker}
@@ -981,8 +982,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                         createNftCollection
                             ? 'NFT collection'
                             : isNftMint
-                            ? 'NFT'
-                            : 'token'
+                              ? 'NFT'
+                              : 'token'
                     }`}
                     name="url"
                     value={formData.url}
@@ -1125,8 +1126,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     {createNftCollection
                         ? 'Create NFT Collection'
                         : isNftMint
-                        ? 'Mint NFT'
-                        : 'Create eToken'}
+                          ? 'Mint NFT'
+                          : 'Create eToken'}
                 </PrimaryButton>
                 {formData.name === '' ||
                     (formData.ticker === '' && (
@@ -1134,8 +1135,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                             {isNftMint
                                 ? 'NFT'
                                 : createNftCollection
-                                ? 'NFT Collection'
-                                : 'Token'}{' '}
+                                  ? 'NFT Collection'
+                                  : 'Token'}{' '}
                             must have a name and a ticker
                         </ButtonDisabledMsg>
                     ))}
@@ -1147,7 +1148,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                         </ButtonDisabledMsg>
                     )}
             </Form>
-        </>
+        </OuterCtn>
     );
 };
 

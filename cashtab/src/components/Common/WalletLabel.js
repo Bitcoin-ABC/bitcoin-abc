@@ -9,45 +9,51 @@ import { getWalletsForNewActiveWallet } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getTextWidth } from 'helpers';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
-import { toFormattedXec } from 'utils/formatting';
 import debounce from 'lodash.debounce';
 
 const LabelCtn = styled.div`
-    position: sticky;
-    top: 0px;
-    padding: 12px 20px;
-    ${props => !props.minified && `padding-bottom: 0px;`};
     z-index: 2;
-    background: ${props => props.theme.walletInfoContainer};
     display: flex;
     align-items: center;
-    justify-content: ${props => (props.minified ? 'space-between' : 'center')};
+    justify-content: center;
     gap: 3%;
+    transition: all ease-in-out 200ms;
     svg {
         height: 21px;
         width: 21px;
     }
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    @media (max-width: 768px) {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+    }
 `;
 
 const EXTRA_WIDTH_FOR_SELECT = 32;
 const WalletDropdown = styled.select`
-    font-family: 'Poppins', 'Ubuntu', -apple-system, BlinkMacSystemFont,
-        'Segoe UI', 'Roboto', 'Oxygen', 'Cantarell', 'Fira Sans', 'Droid Sans',
-        'Helvetica Neue', sans-serif;
+    font-family:
+        'Poppins',
+        'Ubuntu',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        'Roboto',
+        'Oxygen',
+        'Cantarell',
+        'Fira Sans',
+        'Droid Sans',
+        'Helvetica Neue',
+        sans-serif;
     width: ${props =>
-        props.minified
-            ? '100%'
-            : `${
-                  getTextWidth(document, props.value, '18px Poppins') +
-                  EXTRA_WIDTH_FOR_SELECT
-              }px`};
-    ${props =>
-        !props.minified &&
-        `max-width: 90%;
-        @media (max-width: 450px) {
-            max-width: 70%;
-        }`};
+        `${
+            getTextWidth(document, props.value, '18px Poppins') +
+            EXTRA_WIDTH_FOR_SELECT
+        }px`};
     cursor: pointer;
     font-size: 18px;
     padding: 6px;
@@ -64,28 +70,14 @@ const WalletDropdown = styled.select`
 `;
 const WalletOption = styled.option`
     text-align: left;
-    background-color: ${props => props.theme.walletInfoContainer};
+    background-color: ${props => props.theme.secondaryBackground};
     :hover {
-        color: ${props => props.theme.eCashPurple};
-        background-color: ${props => props.theme.walletInfoContainer};
+        color: ${props => props.theme.accent};
+        background-color: ${props => props.theme.primaryBackground};
     }
 `;
-const MinfiedBalanceXec = styled.div`
-    width: 100%;
-    font-size: 16px;
-    margin-bottom: 0px;
-    font-weight: bold;
-    color: ${props =>
-        props.balanceVisible ? 'transparent' : props.theme.contrast};
-    text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
-`;
-const WalletLabel = ({
-    wallets,
-    settings,
-    updateCashtabState,
-    minified,
-    userLocale = 'en-US',
-}) => {
+
+const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
     const address = wallets[0].paths.get(1899).address;
 
     const debouncedActivateNewWallet = useRef(
@@ -121,9 +113,8 @@ const WalletLabel = ({
     };
 
     return (
-        <LabelCtn minified={minified}>
+        <LabelCtn>
             <WalletDropdown
-                minified={minified}
                 name="wallets"
                 id="wallets"
                 data-testid="wallet-select"
@@ -136,13 +127,6 @@ const WalletLabel = ({
                     </WalletOption>
                 ))}
             </WalletDropdown>
-            {minified && (
-                <MinfiedBalanceXec
-                    balanceVisible={settings.balanceVisible === false}
-                >
-                    {toFormattedXec(wallets[0].state.balanceSats, userLocale)}
-                </MinfiedBalanceXec>
-            )}
             <WalletHeaderActions
                 address={address}
                 settings={settings}
@@ -178,7 +162,6 @@ WalletLabel.propTypes = {
         PropTypes.bool,
     ]),
     updateCashtabState: PropTypes.func,
-    minified: PropTypes.bool,
     userLocale: PropTypes.string,
 };
 

@@ -14,13 +14,13 @@ import {
     isValidXecAirdrop,
     isValidAirdropExclusionArray,
 } from 'validation';
-import { SwitchLabel } from 'components/Common/Atoms';
+import { SwitchLabel, PageHeader } from 'components/Common/Atoms';
 import { getAirdropTx, getEqualAirdropTx } from 'airdrop';
 import Communist from 'assets/communist.png';
 import { toast } from 'react-toastify';
 import CashtabSwitch from 'components/Common/Switch';
 import { Input, TextArea, InputFlex } from 'components/Common/Inputs';
-import { CopyPasteIcon } from 'components/Common/CustomIcons';
+import { CopyPasteIcon, AirdropIcon } from 'components/Common/CustomIcons';
 import { getTokenGenesisInfo } from 'chronik';
 import cashaddr from 'ecashaddrjs';
 import Spinner from 'components/Common/Spinner';
@@ -383,6 +383,9 @@ const Airdrop = () => {
 
     return (
         <>
+            <PageHeader>
+                Airdrop <AirdropIcon />
+            </PageHeader>
             {calculatingAirdrop && <Spinner />}
             <AirdropForm>
                 <FormRow>

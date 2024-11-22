@@ -13,7 +13,6 @@ import { CashtabLoader } from 'components/Common/Spinner';
 import PropTypes from 'prop-types';
 
 export const BalanceXec = styled.div`
-    width: 100%;
     font-size: 28px;
     margin-bottom: 0px;
     font-weight: bold;
@@ -22,27 +21,26 @@ export const BalanceXec = styled.div`
         font-size: 24px;
     }
     color: ${props =>
-        props.balanceVisible ? 'transparent' : props.theme.contrast};
+        props.balanceVisible ? 'transparent' : props.theme.primaryText};
     text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
 `;
 export const BalanceFiat = styled.div`
-    width: 100%;
     font-size: 16px;
     @media (max-width: 768px) {
         font-size: 16px;
     }
     color: ${props =>
-        props.balanceVisible ? 'transparent' : props.theme.contrast};
+        props.balanceVisible ? 'transparent' : props.theme.secondaryText};
     text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
 `;
 
 const EcashPrice = styled.p`
-    margin: 0 auto;
     padding: 0;
+    margin: 0;
     font-size: 16px;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: ${props => props.theme.lightWhite};
+    color: ${props => props.theme.secondaryText};
 `;
 
 const BalanceHeader = ({

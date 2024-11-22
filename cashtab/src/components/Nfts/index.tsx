@@ -4,11 +4,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from 'wallet/context';
-import { SwitchLabel, Alert } from 'components/Common/Atoms';
+import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { toHex } from 'ecash-lib';
 import { AgoraOffer } from 'ecash-agora';
-import { NftsCtn, SubHeader } from './styled';
+import { NftsCtn, SubHeader, NftListCtn } from './styled';
 import { SwitchHolder } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
 import appConfig from 'config/app';
@@ -17,6 +17,7 @@ import Collection, {
     OneshotSwiper,
     OneshotOffer,
 } from 'components/Agora/Collection';
+import { NftIcon } from 'components/Common/CustomIcons';
 
 const Nfts: React.FC = () => {
     const userLocale = getUserLocale(navigator);
@@ -98,6 +99,9 @@ const Nfts: React.FC = () => {
 
     return (
         <NftsCtn>
+            <PageHeader>
+                Listed NFTs <NftIcon />
+            </PageHeader>
             {offeredCollections === null && chronikQueryError === null && (
                 <Spinner />
             )}
@@ -124,7 +128,7 @@ const Nfts: React.FC = () => {
                         <>
                             <SubHeader>Manage Your NFT Listings</SubHeader>
                             {Array.isArray(offeredNftsThisWallet) && (
-                                <>
+                                <NftListCtn>
                                     {offeredNftsThisWallet.length > 0 ? (
                                         <OneshotSwiper
                                             offers={offeredNftsThisWallet}
@@ -144,14 +148,14 @@ const Nfts: React.FC = () => {
                                     ) : (
                                         <p>You have no listed NFTs</p>
                                     )}
-                                </>
+                                </NftListCtn>
                             )}
                         </>
                     ) : (
                         <>
                             <SubHeader>Listed Collections</SubHeader>
                             {Array.isArray(offeredCollections) && (
-                                <>
+                                <NftListCtn>
                                     {offeredCollections.length > 0 ? (
                                         offeredCollections.map(groupTokenId => {
                                             return (
@@ -177,7 +181,7 @@ const Nfts: React.FC = () => {
                                     ) : (
                                         <p>No listed collections</p>
                                     )}
-                                </>
+                                </NftListCtn>
                             )}
                         </>
                     )}

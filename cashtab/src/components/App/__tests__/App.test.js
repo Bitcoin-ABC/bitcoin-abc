@@ -191,6 +191,7 @@ describe('<App />', () => {
         // We get the Onboarding screen
         expect(await screen.findByText('Page not found')).toBeInTheDocument();
     });
+
     it('Navigation menu routes to expected components', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
@@ -255,20 +256,6 @@ describe('<App />', () => {
         // Now we see the Receive screen
         expect(screen.getByTitle('Receive')).toBeInTheDocument();
 
-        // We do not expect to see hamburger menu items before the menu is clicked
-        // This is handled by dynamic css changes, so test that
-        expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-width: 0`,
-        );
-
-        // Click the hamburger menu
-        await user.click(screen.queryByTitle('Show Other Screens'));
-
-        // Now we see these items
-        expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-width: 100%`,
-        );
-
         // Navigate to Airdrop screen
         await user.click(
             screen.getByRole('button', {
@@ -280,11 +267,6 @@ describe('<App />', () => {
         expect(
             screen.getByText('Airdrop scaled to token balance'),
         ).toBeInTheDocument();
-
-        // The hamburger menu closes on nav
-        expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-width: 0`,
-        );
 
         // ... but, we can still click these items with the testing library, so we do
         // Navigate to Swap screen

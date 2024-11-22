@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from 'wallet/context';
-import { SwitchLabel, Alert } from 'components/Common/Atoms';
+import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
 import { toHex } from 'ecash-lib';
@@ -16,6 +16,7 @@ import Switch from 'components/Common/Switch';
 import OrderBook from './OrderBook';
 import { token as tokenConfig } from 'config/token';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { DogeIcon } from 'components/Common/CustomIcons';
 
 interface CashtabActiveOffers {
     offeredFungibleTokenIds: string[];
@@ -222,6 +223,9 @@ const Agora: React.FC = () => {
                         <Spinner title="Loading active offers" />
                     ) : (
                         <>
+                            <PageHeader>
+                                Agora <DogeIcon />
+                            </PageHeader>
                             <ActiveOffers title="Active Offers">
                                 <SwitchHolder>
                                     <Switch

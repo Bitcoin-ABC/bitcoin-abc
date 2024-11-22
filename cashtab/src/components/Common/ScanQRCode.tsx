@@ -16,11 +16,11 @@ import {
 } from '@zxing/library';
 
 const StyledScanQRCode = styled.button`
-  cursor: pointer;
-  border-radius 0 9px 9px 0;
-  background-color: ${props => props.theme.forms.selectionBackground};  
-  border-left: none !important;
-  padding: 0 12px;
+    cursor: pointer;
+    border-radius: 0 9px 9px 0;
+    background-color: ${props => props.theme.secondaryBackground};
+    border-left: none !important;
+    padding: 0 12px;
 `;
 
 const QRPreview = styled.video`

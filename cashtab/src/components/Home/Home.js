@@ -67,7 +67,12 @@ export const TxHistoryCtn = styled.div`
     flex-direction: column;
     gap: 12px;
     color: ${props => props.theme.contrast};
-    margin-top: 24px;
+    background-color: ${props => props.theme.primaryBackground};
+    padding: 20px;
+    border-radius: 10px;
+    @media (max-width: 768px) {
+        border-radius: 0;
+    }
 `;
 
 export const AlertLink = styled(Link)`

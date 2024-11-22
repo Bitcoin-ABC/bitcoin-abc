@@ -39,7 +39,7 @@ const InputRow = styled.div<{ invalid?: boolean }>`
 
 const CashtabInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
-    background-color: ${props => props.theme.forms.selectionBackground};
+    background-color: ${props => props.theme.secondaryBackground};
     font-size: 18px;
     padding: 16px 12px;
     border-radius: 9px;
@@ -60,7 +60,7 @@ const ModalInputField = styled(CashtabInput)<{ invalid?: boolean }>`
 `;
 
 const CashtabTextArea = styled.textarea<{ height: number }>`
-    background-color: ${props => props.theme.forms.selectionBackground};
+    background-color: ${props => props.theme.secondaryBackground};
     font-size: 12px;
     padding: 16px 12px;
     border-radius: 9px;
@@ -97,7 +97,7 @@ const OnMaxBtn = styled.button<{ invalid?: boolean }>`
     color: ${props =>
         props.invalid ? props.theme.forms.error : props.theme.contrast};
     border-radius: 0 9px 9px 0;
-    background-color: ${props => props.theme.forms.selectionBackground};
+    background-color: ${props => props.theme.secondaryBackground};
     border-left: none !important;
     font-size: 18px;
     padding: 16px;
@@ -117,9 +117,9 @@ const CurrencyDropdown = styled.select<{ invalid?: boolean }>`
     font-size: 18px;
     padding: 6px;
     color: ${props =>
-        props.invalid ? props.theme.forms.error : props.theme.contrast};
-    border-left: none !important;
-    background-color: ${props => props.theme.forms.selectionBackground};
+        props.invalid ? props.theme.forms.error : props.theme.primaryText};
+    background-color: ${props => props.theme.secondaryBackground};
+    border-color: ${props => props.theme.border};
     :focus-visible {
         outline: none;
     }
@@ -135,9 +135,9 @@ const SellPriceDropdown = styled(CurrencyDropdown)`
 
 const CurrencyOption = styled.option`
     text-align: left;
-    background-color: ${props => props.theme.forms.selectionBackground};
+    background-color: ${props => props.theme.secondaryBackground};
     :hover {
-        background-color: ${props => props.theme.forms.selectionBackground};
+        background-color: ${props => props.theme.primaryBackground};
     }
 `;
 
@@ -283,8 +283,8 @@ export const TextArea: React.FC<TextAreaProps> = ({
                             {customCount !== false
                                 ? customCount
                                 : value === null
-                                ? 0
-                                : value.length}
+                                  ? 0
+                                  : value.length}
                         </Count>
                         /{max}
                     </CountHolder>
@@ -540,7 +540,7 @@ const CashtabSlider = styled.input<{
 `;
 const SliderInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
-    background-color: ${props => props.theme.forms.selectionBackground};
+    background-color: ${props => props.theme.secondaryBackground};
     font-size: 14px;
     padding: 6px 3px;
     border-radius: 9px;
@@ -631,7 +631,7 @@ const InputFile = styled.input`
 `;
 const DragForm = styled.form`
     height: 16rem;
-    width: 28rem;
+    width: 100%;
     max-width: 100%;
     text-align: center;
     position: relative;
@@ -644,9 +644,9 @@ const DragLabel = styled.label<{ dragActive?: boolean }>`
     border-radius: 9px;
     border: 2px dashed
         ${props =>
-            props.dragActive ? props.theme.eCashBlue : props.theme.darkBlue};
+            props.dragActive ? props.theme.primaryText : props.theme.accent};
     background-color: ${props =>
-        props.dragActive ? props.theme.eCashBlue : '#f8fafc'};
+        props.dragActive ? props.theme.accent : props.theme.primaryText};
 `;
 const UploadText = styled.div`
     cursor: pointer;

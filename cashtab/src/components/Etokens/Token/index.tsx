@@ -116,6 +116,7 @@ import {
     AgoraPreviewCol,
     TokenScreenWrapper,
     NftOfferWrapper,
+    OuterCtn,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import {
@@ -781,14 +782,14 @@ const Token: React.FC = () => {
             const tokenSendTargetOutputs = isNftChild
                 ? getNftChildSendTargetOutputs(tokenId as string, cleanAddress)
                 : isAlp
-                ? getAlpSendTargetOutputs(
-                      tokenInputInfo as TokenInputInfo,
-                      cleanAddress,
-                  )
-                : getSlpSendTargetOutputs(
-                      tokenInputInfo as TokenInputInfo,
-                      cleanAddress,
-                  );
+                  ? getAlpSendTargetOutputs(
+                        tokenInputInfo as TokenInputInfo,
+                        cleanAddress,
+                    )
+                  : getSlpSendTargetOutputs(
+                        tokenInputInfo as TokenInputInfo,
+                        cleanAddress,
+                    );
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
@@ -1811,7 +1812,7 @@ const Token: React.FC = () => {
     };
 
     return (
-        <>
+        <OuterCtn>
             {typeof cashtabCache.tokens.get(tokenId) === 'undefined' ? (
                 <>
                     <TokenScreenWrapper title="Token Info">
@@ -1969,19 +1970,23 @@ const Token: React.FC = () => {
                                                                   } `
                                                                 : '$ '
                                                         }${(
-                                              parseFloat(
-                                                  formData.nftListPrice,
-                                              ) * fiatPrice
-                                          ).toLocaleString(userLocale, {
-                                              minimumFractionDigits:
-                                                  appConfig.cashDecimals,
-                                              maximumFractionDigits:
-                                                  appConfig.cashDecimals,
-                                          })} ${
-                                              settings && settings.fiatCurrency
-                                                  ? settings.fiatCurrency.toUpperCase()
-                                                  : 'USD'
-                                          })?`
+                                                            parseFloat(
+                                                                formData.nftListPrice,
+                                                            ) * fiatPrice
+                                                        ).toLocaleString(
+                                                            userLocale,
+                                                            {
+                                                                minimumFractionDigits:
+                                                                    appConfig.cashDecimals,
+                                                                maximumFractionDigits:
+                                                                    appConfig.cashDecimals,
+                                                            },
+                                                        )} ${
+                                                            settings &&
+                                                            settings.fiatCurrency
+                                                                ? settings.fiatCurrency.toUpperCase()
+                                                                : 'USD'
+                                                        })?`
                                         : `${
                                               settings
                                                   ? `${
@@ -2529,24 +2534,23 @@ const Token: React.FC = () => {
                                                                   } `
                                                                 : '$ '
                                                         }${(
-                                                                          parseFloat(
-                                                                              formData.nftListPrice,
-                                                                          ) *
-                                                                          fiatPrice
-                                                                      ).toLocaleString(
-                                                                          userLocale,
-                                                                          {
-                                                                              minimumFractionDigits:
-                                                                                  appConfig.cashDecimals,
-                                                                              maximumFractionDigits:
-                                                                                  appConfig.cashDecimals,
-                                                                          },
-                                                                      )} ${
-                                                                          settings &&
-                                                                          settings.fiatCurrency
-                                                                              ? settings.fiatCurrency.toUpperCase()
-                                                                              : 'USD'
-                                                                      }`
+                                                            parseFloat(
+                                                                formData.nftListPrice,
+                                                            ) * fiatPrice
+                                                        ).toLocaleString(
+                                                            userLocale,
+                                                            {
+                                                                minimumFractionDigits:
+                                                                    appConfig.cashDecimals,
+                                                                maximumFractionDigits:
+                                                                    appConfig.cashDecimals,
+                                                            },
+                                                        )} ${
+                                                            settings &&
+                                                            settings.fiatCurrency
+                                                                ? settings.fiatCurrency.toUpperCase()
+                                                                : 'USD'
+                                                        }`
                                                                     : `${
                                                                           settings
                                                                               ? `${
@@ -3179,7 +3183,7 @@ const Token: React.FC = () => {
                     )}
                 </>
             )}
-        </>
+        </OuterCtn>
     );
 };
 
