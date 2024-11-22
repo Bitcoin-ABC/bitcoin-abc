@@ -3463,13 +3463,6 @@ void PeerManagerImpl::ProcessGetData(
 
         const CInv &inv = *it;
 
-        if (it->IsMsgStakeContender()) {
-            // Ignore requests for stake contenders. This type is only used for
-            // polling.
-            ++it;
-            continue;
-        }
-
         if (it->IsMsgProof()) {
             if (!m_avalanche) {
                 vNotFound.push_back(inv);
