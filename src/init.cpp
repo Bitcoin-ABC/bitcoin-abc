@@ -38,6 +38,7 @@
 #include <init/common.h>
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
+#include <kernel/caches.h>
 #include <mapport.h>
 #include <mempool_args.h>
 #include <net.h>
@@ -122,7 +123,6 @@ using kernel::ValidationCacheSizes;
 
 using node::ApplyArgsManOptions;
 using node::BlockManager;
-using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::fReindex;
@@ -2500,23 +2500,23 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     Assert(!ApplyArgsManOptions(args, blockman_opts));
 
     // cache size calculations
-    CacheSizes cache_sizes =
+    const auto [index_cache_sizes, kernel_cache_sizes] =
         CalculateCacheSizes(args, g_enabled_filter_types.size());
 
-    LogPrintf("Cache configuration:\n");
-    LogPrintf("* Using %.1f MiB for block index database\n",
-              cache_sizes.block_tree_db * (1.0 / 1024 / 1024));
+    LogInfo("Cache configuration:\n");
+    LogInfo("* Using %.1f MiB for block index database\n",
+            kernel_cache_sizes.block_tree_db * (1.0 / 1024 / 1024));
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
-        LogPrintf("* Using %.1f MiB for transaction index database\n",
-                  cache_sizes.tx_index * (1.0 / 1024 / 1024));
+        LogInfo("* Using %.1f MiB for transaction index database\n",
+                index_cache_sizes.tx_index * (1.0 / 1024 / 1024));
     }
     for (BlockFilterType filter_type : g_enabled_filter_types) {
-        LogPrintf("* Using %.1f MiB for %s block filter index database\n",
-                  cache_sizes.filter_index * (1.0 / 1024 / 1024),
-                  BlockFilterTypeName(filter_type));
+        LogInfo("* Using %.1f MiB for %s block filter index database\n",
+                index_cache_sizes.filter_index * (1.0 / 1024 / 1024),
+                BlockFilterTypeName(filter_type));
     }
-    LogPrintf("* Using %.1f MiB for chain state database\n",
-              cache_sizes.coins_db * (1.0 / 1024 / 1024));
+    LogInfo("* Using %.1f MiB for chain state database\n",
+            kernel_cache_sizes.coins_db * (1.0 / 1024 / 1024));
 
     assert(!node.mempool);
     assert(!node.chainman);
@@ -2541,10 +2541,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         return InitError(strprintf(_("-maxmempool must be at least %d MB"),
                                    std::ceil(nMempoolSizeMin / 1000000.0)));
     }
-    LogPrintf("* Using %.1f MiB for in-memory UTXO set (plus up to %.1f MiB of "
-              "unused mempool space)\n",
-              cache_sizes.coins * (1.0 / 1024 / 1024),
-              mempool_opts.max_size_bytes * (1.0 / 1024 / 1024));
+    LogInfo("* Using %.1f MiB for in-memory UTXO set (plus up to %.1f MiB of "
+            "unused mempool space)\n",
+            kernel_cache_sizes.coins * (1.0 / 1024 / 1024),
+            mempool_opts.max_size_bytes * (1.0 / 1024 / 1024));
 
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(config, mempool_opts);
@@ -2608,8 +2608,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                                        _("Error opening block database"));
             }
         };
-        auto [status, error] = catch_exceptions(
-            [&] { return LoadChainstate(chainman, cache_sizes, options); });
+        auto [status, error] =
+            catch_exceptions([&, &kernel_cache_sizes = kernel_cache_sizes] {
+                return LoadChainstate(chainman, kernel_cache_sizes, options);
+            });
         if (status == node::ChainstateLoadStatus::SUCCESS) {
             uiInterface.InitMessage(_("Verifying blocks...").translated);
             if (chainman.m_blockman.m_have_pruned &&
@@ -2711,16 +2713,16 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             return InitError(util::ErrorString(result));
         }
 
-        g_txindex =
-            std::make_unique<TxIndex>(interfaces::MakeChain(node, Params()),
-                                      cache_sizes.tx_index, false, fReindex);
+        g_txindex = std::make_unique<TxIndex>(
+            interfaces::MakeChain(node, Params()), index_cache_sizes.tx_index,
+            false, fReindex);
         node.indexes.emplace_back(g_txindex.get());
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
         InitBlockFilterIndex(
             [&] { return interfaces::MakeChain(node, Params()); }, filter_type,
-            cache_sizes.filter_index, false, fReindex);
+            index_cache_sizes.filter_index, false, fReindex);
         node.indexes.emplace_back(GetBlockFilterIndex(filter_type));
     }
 

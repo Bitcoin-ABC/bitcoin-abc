@@ -38,8 +38,6 @@ static constexpr int64_t MIN_DB_CACHE_MB = 4;
 static constexpr int64_t DEFAULT_DB_CACHE_MB = 1024;
 //! -dbbatchsize default (bytes)
 static constexpr int64_t DEFAULT_DB_BATCH_SIZE = 16 << 20;
-//! Max memory allocated to block tree DB specific cache (MiB)
-static constexpr int64_t MAX_BLOCK_DB_CACHE_MB = 2;
 // Unlike for the UTXO database, for the txindex scenario the leveldb cache make
 // a meaningful difference:
 // https://github.com/bitcoin/bitcoin/pull/8273#issuecomment-229601991
@@ -47,8 +45,6 @@ static constexpr int64_t MAX_BLOCK_DB_CACHE_MB = 2;
 static constexpr int64_t MAX_TX_INDEX_CACHE_MB = 1024;
 //! Max memory allocated to all block filter index caches combined in MiB.
 static constexpr int64_t MAX_FILTER_INDEX_CACHE_MB = 1024;
-//! Max memory allocated to coin DB specific cache (MiB)
-static constexpr int64_t MAX_COINS_DB_CACHE_MB = 8;
 
 //! User-controlled performance and debug options.
 struct CoinsViewOptions {

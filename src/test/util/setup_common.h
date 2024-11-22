@@ -10,6 +10,7 @@
 #include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>
+#include <kernel/caches.h>
 #include <key.h>
 #include <net_processing.h>
 #include <node/caches.h>
@@ -73,7 +74,8 @@ CTxMemPool::Options MemPoolOptionsForTest(const node::NodeContext &node);
  * initialization behaviour.
  */
 struct ChainTestingSetup : public BasicTestingSetup {
-    node::CacheSizes m_cache_sizes{};
+    kernel::CacheSizes m_kernel_cache_sizes{
+        node::CalculateCacheSizes(m_args).kernel};
 
     explicit ChainTestingSetup(
         const ChainType chainType = ChainType::MAIN,

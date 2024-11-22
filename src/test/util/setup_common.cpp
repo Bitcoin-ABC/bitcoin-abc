@@ -66,7 +66,6 @@ using kernel::ValidationCacheSizes;
 using node::ApplyArgsManOptions;
 using node::BlockAssembler;
 using node::BlockManager;
-using node::CalculateCacheSizes;
 using node::fReindex;
 using node::KernelNotifications;
 using node::LoadChainstate;
@@ -186,8 +185,6 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.mempool =
         std::make_unique<CTxMemPool>(config, MemPoolOptionsForTest(m_node));
 
-    m_cache_sizes = CalculateCacheSizes(m_args);
-
     m_node.notifications = std::make_unique<KernelNotifications>();
 
     ChainstateManager::Options chainman_opts{
@@ -207,7 +204,8 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.chainman->m_blockman.m_block_tree_db =
         std::make_unique<CBlockTreeDB>(DBParams{
             .path = m_args.GetDataDirNet() / "blocks" / "index",
-            .cache_bytes = static_cast<size_t>(m_cache_sizes.block_tree_db),
+            .cache_bytes =
+                static_cast<size_t>(m_kernel_cache_sizes.block_tree_db),
             .memory_only = true});
     // Call Upgrade on the block database so that the version field is set,
     // else LoadBlockIndexGuts will fail (see D8319).
@@ -248,7 +246,8 @@ void TestingSetup::LoadVerifyActivateChainstate() {
     options.check_level = m_args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL);
     options.require_full_verification =
         m_args.IsArgSet("-checkblocks") || m_args.IsArgSet("-checklevel");
-    auto [status, error] = LoadChainstate(chainman, m_cache_sizes, options);
+    auto [status, error] =
+        LoadChainstate(chainman, m_kernel_cache_sizes, options);
     assert(status == node::ChainstateLoadStatus::SUCCESS);
 
     std::tie(status, error) = VerifyLoadedChainstate(chainman, options);
