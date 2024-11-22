@@ -13,10 +13,10 @@
 #include <mapport.h>
 #include <net.h>
 #include <netbase.h>
+#include <node/caches.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
-#include <txdb.h> // for -dbcache defaults
 #include <util/string.h>
 #include <validation.h> // For DEFAULT_SCRIPTCHECK_THREADS
 

@@ -22,8 +22,9 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <core_io.h>
+#include <kernel/caches.h>
+#include <logging.h>
 #include <node/blockstorage.h>
-#include <node/caches.h>
 #include <node/chainstate.h>
 #include <scheduler.h>
 #include <script/scriptcache.h>
@@ -134,7 +135,7 @@ int main(int argc, char *argv[]) {
     };
     ChainstateManager chainman{chainman_opts, blockman_opts};
 
-    kernel::CacheSizes cache_sizes{DEFAULT_DB_CACHE_MB << 20};
+    kernel::CacheSizes cache_sizes{DEFAULT_KERNEL_CACHE_MB << 20};
     node::ChainstateLoadOptions options;
     options.check_interrupt = [] { return false; };
     auto [status, error] = node::LoadChainstate(chainman, cache_sizes, options);

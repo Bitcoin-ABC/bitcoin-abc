@@ -11,11 +11,11 @@
 
 #include <interfaces/node.h>
 #include <netbase.h>
+#include <node/caches.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
-#include <txdb.h>       // for -dbcache defaults
 #include <validation.h> // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 
 #include <QDataWidgetMapper>

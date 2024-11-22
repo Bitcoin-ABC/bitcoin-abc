@@ -32,10 +32,6 @@ namespace Consensus {
 struct Params;
 };
 
-//! min. -dbcache (MiB)
-static constexpr int64_t MIN_DB_CACHE_MB = 4;
-//! -dbcache default (MiB)
-static constexpr int64_t DEFAULT_DB_CACHE_MB = 1024;
 //! -dbbatchsize default (bytes)
 static constexpr int64_t DEFAULT_DB_BATCH_SIZE = 16 << 20;
 

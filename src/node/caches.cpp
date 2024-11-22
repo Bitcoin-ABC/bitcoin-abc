@@ -7,7 +7,6 @@
 #include <common/args.h>
 #include <index/txindex.h>
 #include <kernel/caches.h>
-#include <txdb.h>
 
 #include <algorithm>
 #include <string>
@@ -24,7 +23,6 @@ namespace node {
 CacheSizes CalculateCacheSizes(const ArgsManager &args, size_t n_indexes) {
     int64_t nTotalCache =
         (args.GetIntArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
-    // total cache cannot be less than MIN_DB_CACHE_MB
     nTotalCache = std::max(nTotalCache, MIN_DB_CACHE_MB << 20);
 
     IndexCacheSizes sizes;
