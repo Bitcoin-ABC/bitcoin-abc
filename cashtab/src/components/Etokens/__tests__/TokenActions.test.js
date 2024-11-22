@@ -33,9 +33,8 @@ import {
 } from 'components/Agora/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
-import { Ecc, initWasm, toHex } from 'ecash-lib';
+import { Ecc, initWasm } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
-import * as wif from 'wif';
 import { Agora } from 'ecash-agora';
 
 describe('<Token /> available actions rendered', () => {
@@ -354,7 +353,6 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.clear(priceInput);
         await userEvent.type(priceInput, '0.00005');
 
-        screen.debug(null, Infinity);
         // The fiat price is previewed correctly
         expect(
             await screen.findByText('$0.00005 USD (1.67 XEC) per token'),
@@ -833,11 +831,10 @@ describe('<Token /> available actions rendered', () => {
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
-        const thisPrivateKey = wif.decode(
-            tokenTestWallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const thisPublicKey = ecc.derivePubkey(thisPrivateKey);
-        mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), []);
+        mockedAgora.setActiveOffersByPubKey(
+            tokenTestWallet.paths.get(appConfig.derivationPath).pk,
+            [],
+        );
 
         // activeOffersByGroupTokenId does not need to be mocked since there are no offers here
 

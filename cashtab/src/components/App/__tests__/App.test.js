@@ -43,7 +43,6 @@ import { isValidCashtabWallet } from 'validation';
 import CashtabCache from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
-import * as wif from 'wif';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 
 describe('<App />', () => {
@@ -208,10 +207,9 @@ describe('<App />', () => {
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
-        const thisPrivateKey = wif.decode(
-            walletWithXecAndTokens.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const thisPublicKey = ecc.derivePubkey(thisPrivateKey);
+        const thisPublicKey = walletWithXecAndTokens.paths.get(
+            appConfig.derivationPath,
+        ).pk;
         mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), []);
 
         // activeOffersByGroupTokenId does not need to be mocked since there are no offers here

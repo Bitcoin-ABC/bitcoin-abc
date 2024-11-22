@@ -11,7 +11,6 @@ import { AgoraOffer } from 'ecash-agora';
 import { NftsCtn, SubHeader } from './styled';
 import { SwitchHolder } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
-import * as wif from 'wif';
 import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
 import Collection, {
@@ -33,12 +32,10 @@ const Nfts: React.FC = () => {
     const { wallets, settings, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     // We get public key when wallet changes
-    const sk =
+    const pk =
         wallet === false
             ? false
-            : wif.decode(wallet.paths.get(appConfig.derivationPath).wif)
-                  .privateKey;
-    const pk = sk === false ? false : ecc.derivePubkey(sk);
+            : wallet.paths.get(appConfig.derivationPath).pk;
 
     const [chronikQueryError, setChronikQueryError] = useState<null | boolean>(
         null,

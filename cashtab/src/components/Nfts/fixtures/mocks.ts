@@ -5,8 +5,11 @@
 import { Script, slpSend, fromHex } from 'ecash-lib';
 import { AgoraOneshot, AgoraOffer } from 'ecash-agora';
 import cashaddr from 'ecashaddrjs';
+import { CashtabWallet, CashtabWalletPaths } from 'wallet';
+import { XecTxType } from 'chronik';
+import { Token } from 'chronik-client';
 
-export const nftMarketWallet = {
+export const nftMarketWallet: CashtabWallet = {
     state: {
         balanceSats: 987865,
         slpUtxos: [
@@ -368,6 +371,7 @@ export const nftMarketWallet = {
                 timeFirstSeen: 1720807732,
                 size: 348,
                 isCoinbase: false,
+                isFinal: true,
                 tokenEntries: [
                     {
                         tokenId:
@@ -396,7 +400,7 @@ export const nftMarketWallet = {
                     timestamp: 1720807766,
                 },
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 1754,
                     stackArray: [
                         '534c5000',
@@ -488,6 +492,7 @@ export const nftMarketWallet = {
                 timeFirstSeen: 1720807731,
                 size: 422,
                 isCoinbase: false,
+                isFinal: true,
                 tokenEntries: [
                     {
                         tokenId:
@@ -516,7 +521,7 @@ export const nftMarketWallet = {
                     timestamp: 1720807766,
                 },
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 3000,
                     stackArray: [
                         '534c5000',
@@ -650,13 +655,14 @@ export const nftMarketWallet = {
                 ],
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NORMAL',
+                isFinal: true,
                 block: {
                     height: 853000,
                     hash: '00000000000000001bb87bef1ddc687c02d584d59392108ff5321992a7d9c9d3',
                     timestamp: 1720807766,
                 },
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 989960,
                     stackArray: [
                         '534c5000',
@@ -967,8 +973,9 @@ export const nftMarketWallet = {
                     hash: '00000000000000001bb87bef1ddc687c02d584d59392108ff5321992a7d9c9d3',
                     timestamp: 1720807766,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 996949,
                     stackArray: [
                         '534c5000',
@@ -1091,8 +1098,9 @@ export const nftMarketWallet = {
                     hash: '00000000000000001bb87bef1ddc687c02d584d59392108ff5321992a7d9c9d3',
                     timestamp: 1720807766,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 999298,
                     stackArray: [
                         '534c5000',
@@ -1166,8 +1174,9 @@ export const nftMarketWallet = {
                     hash: '000000000000000005b14b96d1aa2b894ed26ed6b016bfcc61f03ac811f339c7',
                     timestamp: 1720807393,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 1000000,
                     stackArray: [],
                     recipients: [
@@ -1186,9 +1195,15 @@ export const nftMarketWallet = {
                 address: 'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
                 hash: '7ecc1fb4c9139badd227291299d0c58ad73f1f08',
                 wif: 'KwtGQrgQV63tr8zHSLSYZ5Ckfdi6K8VbagnfuaaJMDF41sPocxFU',
+                sk: fromHex(
+                    '13d5a0d64418638a4b8eeb6c0934df55106b960119d3b6c7203f412f006bdc25',
+                ),
+                pk: fromHex(
+                    '038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
+                ),
             },
         ],
-    ]),
+    ]) as CashtabWalletPaths,
     name: 'NFT Trading [BURNED]',
 };
 
@@ -1278,7 +1293,9 @@ const saturnFiveEnforcedOutputs = [
     {
         value: saturnFive.listPriceSatoshis,
         script: Script.p2pkh(
-            fromHex(cashaddr.decode(saturnFive.sellerAddress, true).hash),
+            fromHex(
+                cashaddr.decode(saturnFive.sellerAddress, true).hash as string,
+            ),
         ),
     },
 ];
@@ -1291,6 +1308,7 @@ export const saturnFiveAgoraOffer = new AgoraOffer({
         type: 'ONESHOT',
         params: saturnFiveOneshot,
     },
+    status: 'OPEN',
     outpoint: saturnFive.outpoint,
     txBuilderInput: {
         prevOut: saturnFive.outpoint,
@@ -1299,7 +1317,7 @@ export const saturnFiveAgoraOffer = new AgoraOffer({
             redeemScript: saturnFiveOneshot.script(),
         },
     },
-    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: saturnFive.tokenId },
+    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: saturnFive.tokenId } as Token,
 });
 
 // Flags
@@ -1368,7 +1386,9 @@ const transvaalEnforcedOutputs = [
     {
         value: transvaal.listPriceSatoshis,
         script: Script.p2pkh(
-            fromHex(cashaddr.decode(transvaal.sellerAddress, true).hash),
+            fromHex(
+                cashaddr.decode(transvaal.sellerAddress, true).hash as string,
+            ),
         ),
     },
 ];
@@ -1381,6 +1401,7 @@ export const transvaalAgoraOffer = new AgoraOffer({
         type: 'ONESHOT',
         params: transvaalOneshot,
     },
+    status: 'OPEN',
     outpoint: transvaal.outpoint,
     txBuilderInput: {
         prevOut: transvaal.outpoint,
@@ -1389,7 +1410,7 @@ export const transvaalAgoraOffer = new AgoraOffer({
             redeemScript: transvaalOneshot.script(),
         },
     },
-    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: transvaal.tokenId },
+    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: transvaal.tokenId } as Token,
 });
 
 export const argentina = {
@@ -1457,7 +1478,9 @@ const argentinaEnforcedOutputs = [
     {
         value: argentina.listPriceSatoshis,
         script: Script.p2pkh(
-            fromHex(cashaddr.decode(argentina.sellerAddress, true).hash),
+            fromHex(
+                cashaddr.decode(argentina.sellerAddress, true).hash as string,
+            ),
         ),
     },
 ];
@@ -1470,6 +1493,7 @@ export const argentinaAgoraOffer = new AgoraOffer({
         type: 'ONESHOT',
         params: argentinaOneshot,
     },
+    status: 'OPEN',
     outpoint: argentina.outpoint,
     txBuilderInput: {
         prevOut: argentina.outpoint,
@@ -1478,7 +1502,7 @@ export const argentinaAgoraOffer = new AgoraOffer({
             redeemScript: argentinaOneshot.script(),
         },
     },
-    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: argentina.tokenId },
+    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: argentina.tokenId } as Token,
 });
 
 // We make this SLP Partial offer to prove we filter it out if one happens to
@@ -1539,40 +1563,6 @@ export const mockPartial = {
         },
     },
 };
-const mockPartialEnforcedOutputs = [
-    {
-        value: BigInt(0),
-        script: slpSend(mockPartial.groupTokenId, SLP_ONE_TOKEN_NUMBER, [
-            0,
-            BigInt(1),
-        ]),
-    },
-    {
-        value: mockPartial.listPriceSatoshis,
-        script: Script.p2pkh(
-            fromHex(cashaddr.decode(mockPartial.sellerAddress, true).hash),
-        ),
-    },
-];
-const mockPartialOneshot = new AgoraOneshot({
-    enforcedOutputs: mockPartialEnforcedOutputs,
-    cancelPk: mockPartial.cancelPk,
-});
-export const mockPartialAgoraOffer = new AgoraOffer({
-    variant: {
-        type: 'PARTIAL',
-        params: mockPartialOneshot,
-    },
-    outpoint: mockPartial.outpoint,
-    txBuilderInput: {
-        prevOut: mockPartial.outpoint,
-        signData: {
-            value: 546,
-            redeemScript: mockPartialOneshot.script(),
-        },
-    },
-    token: { ...BASE_AGORA_OFFER_TOKEN, tokenId: mockPartial.tokenId },
-});
 
 // Mocks for caching market-listed NFT
 export const transvaalCacheMocks = {

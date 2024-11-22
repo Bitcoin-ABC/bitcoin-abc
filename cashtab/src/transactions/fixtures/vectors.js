@@ -8,7 +8,6 @@ import {
     wallet,
     walletWithCoinbaseUtxos,
     utxosAtManyAddressesWallet,
-    walletWithInvalidPrivateKey,
     allTheXecWallet,
     walletWithTokensInNode,
 } from './mocks';
@@ -322,23 +321,6 @@ export const sendXecVectors = {
             hex: undefined,
         },
         {
-            description:
-                'Tx with utxos for which the wallet has no private keys',
-            wallet: walletWithInvalidPrivateKey,
-            targetOutputs: [
-                {
-                    value: 1000,
-                    script: Script.fromAddress(
-                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                    ),
-                },
-            ],
-            satsPerKb: 1000,
-            chaintipBlockheight: 800000,
-            msg: 'Invalid checksum',
-            hex: undefined,
-        },
-        {
             description: 'throws broadcast error from the node',
             wallet,
             targetOutputs: [
@@ -599,11 +581,19 @@ export const sendSlp = {
                     },
                     value: 546,
                     token: {
+                        tokenType: {
+                            number: 1,
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        },
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                         amount: '1000000000',
                         isMintBaton: false,
                     },
+                    isCoinbase: false,
+                    isFinal: true,
+                    blockHeight: 800000,
                     path: 1899,
                 },
                 {
@@ -613,11 +603,19 @@ export const sendSlp = {
                     },
                     value: 546,
                     token: {
+                        tokenType: {
+                            number: 1,
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        },
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                         amount: '9999996998999999999',
                         isMintBaton: false,
                     },
+                    isCoinbase: false,
+                    isFinal: true,
+                    blockHeight: 800000,
                     path: 1899,
                 },
             ],
@@ -648,11 +646,19 @@ export const sendSlp = {
                     },
                     value: 546,
                     token: {
+                        tokenType: {
+                            number: 1,
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        },
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                         amount: '1000000000',
                         isMintBaton: false,
                     },
+                    isCoinbase: false,
+                    isFinal: true,
+                    blockHeight: 800000,
                     path: 1899,
                 },
             ],

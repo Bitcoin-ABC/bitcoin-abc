@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import * as wif from 'wif';
 import { isValidMultiSendUserInput } from 'validation';
 import { toSatoshis } from 'wallet';
 import { isTokenDustChangeOutput } from 'slpv1';
@@ -104,19 +103,15 @@ export const sendXec = async (
             inputs.push(requiredInput);
             inputSatoshis += BigInt(requiredInput.input.signData.value);
         } else {
-            const sk = wif.decode(
-                wallet.paths.get(requiredInput.path).wif,
-            ).privateKey;
-            const pk = ecc.derivePubkey(sk);
+            const pathInfo = wallet.paths.get(requiredInput.path);
+            const { sk, pk, hash } = pathInfo;
             inputs.push({
                 input: {
                     prevOut: requiredInput.outpoint,
                     signData: {
                         value: requiredInput.value,
                         // Cashtab inputs will always be p2pkh utxos
-                        outputScript: Script.p2pkh(
-                            fromHex(wallet.paths.get(requiredInput.path).hash),
-                        ),
+                        outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
                 signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
@@ -132,17 +127,15 @@ export const sendXec = async (
         if (needsAnotherUtxo) {
             // If inputSatoshis is less than or equal to satoshisToSend, we know we need
             // to add another input
-            const sk = wif.decode(wallet.paths.get(utxo.path).wif).privateKey;
-            const pk = ecc.derivePubkey(sk);
+            const pathInfo = wallet.paths.get(utxo.path);
+            const { sk, pk, hash } = pathInfo;
             inputs.push({
                 input: {
                     prevOut: utxo.outpoint,
                     signData: {
                         value: utxo.value,
                         // Cashtab inputs will always be p2pkh utxos
-                        outputScript: Script.p2pkh(
-                            fromHex(wallet.paths.get(utxo.path).hash),
-                        ),
+                        outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
                 signatory: P2PKHSignatory(sk, pk, ALL_BIP143),

@@ -29,7 +29,6 @@ import { Ecc, initWasm, toHex } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
-import * as wif from 'wif';
 
 describe('<Nfts />', () => {
     let ecc;
@@ -94,11 +93,10 @@ describe('<Nfts />', () => {
 
         mockedAgora.setOfferedGroupTokenIds([]);
 
-        const thisPrivateKey = wif.decode(
-            nftMarketWallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const thisPublicKey = ecc.derivePubkey(thisPrivateKey);
-        mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), []);
+        mockedAgora.setActiveOffersByPubKey(
+            toHex(nftMarketWallet.paths.get(appConfig.derivationPath).pk),
+            [],
+        );
 
         const mockedChronik = await initializeCashtabStateForTests(
             nftMarketWallet,
@@ -145,20 +143,18 @@ describe('<Nfts />', () => {
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
-        const thisPrivateKey = wif.decode(
-            nftMarketWallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const thisPublicKey = ecc.derivePubkey(thisPrivateKey);
-        mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), [
-            saturnFiveAgoraOffer,
-        ]);
+        mockedAgora.setActiveOffersByPubKey(
+            toHex(nftMarketWallet.paths.get(appConfig.derivationPath).pk),
+            [saturnFiveAgoraOffer],
+        );
 
         // Also set activeOffersByPubKey for the wallet you are switching to
-        const nextPrivateKey = wif.decode(
-            walletWithXecAndTokens.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const nextPublicKey = ecc.derivePubkey(nextPrivateKey);
-        mockedAgora.setActiveOffersByPubKey(toHex(nextPublicKey), []);
+        mockedAgora.setActiveOffersByPubKey(
+            toHex(
+                walletWithXecAndTokens.paths.get(appConfig.derivationPath).pk,
+            ),
+            [],
+        );
 
         // activeOffersByGroupTokenId
         mockedAgora.setActiveOffersByGroupTokenId(saturnFive.groupTokenId, [

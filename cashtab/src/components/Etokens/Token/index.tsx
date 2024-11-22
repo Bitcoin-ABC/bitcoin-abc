@@ -133,7 +133,6 @@ import {
     AgoraPartialAdSignatory,
     AgoraPartial,
 } from 'ecash-agora';
-import * as wif from 'wif';
 import OrderBook from 'components/Agora/OrderBook';
 import Collection, {
     OneshotSwiper,
@@ -153,13 +152,21 @@ const Token: React.FC = () => {
     } = useContext(WalletContext);
     const { settings, wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
-    // We get public key when wallet changes
+    // We get sk/pk/hash when wallet changes
     const sk =
         wallet === false
             ? false
-            : wif.decode(wallet.paths.get(appConfig.derivationPath).wif)
-                  .privateKey;
-    const pk = sk === false ? false : ecc.derivePubkey(sk);
+            : wallet.paths.get(appConfig.derivationPath).sk;
+    const pk =
+        wallet === false
+            ? false
+            : wallet.paths.get(appConfig.derivationPath).pk;
+    const changeScript =
+        wallet === false
+            ? false
+            : Script.p2pkh(
+                  fromHex(wallet.paths.get(appConfig.derivationPath).hash),
+              );
     const walletState = getWalletState(wallet);
     const { tokens, balanceSats } = walletState;
 
@@ -1298,15 +1305,6 @@ const Token: React.FC = () => {
         // Build the ad tx
         // The advertisement tx is an SLP send tx of the listed NFT to the seller's wallet
 
-        const sellerSk = wif.decode(
-            wallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-
-        const sellerPk = ecc.derivePubkey(sellerSk);
-        const sellerP2pkh = Script.p2pkh(
-            fromHex(wallet.paths.get(appConfig.derivationPath).hash),
-        );
-
         const enforcedOutputs = [
             {
                 value: 0,
@@ -1322,7 +1320,7 @@ const Token: React.FC = () => {
 
         const agoraOneshot = new AgoraOneshot({
             enforcedOutputs,
-            cancelPk: sellerPk,
+            cancelPk: pk,
         });
         const agoraAdScript = agoraOneshot.adScript();
         const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
@@ -1344,7 +1342,7 @@ const Token: React.FC = () => {
         ];
         const offerTxFuelSats = getAgoraAdFuelSats(
             agoraAdScript,
-            AgoraOneshotAdSignatory(sellerSk),
+            AgoraOneshotAdSignatory(sk),
             offerTargetOutputs,
             satsPerKb,
         );
@@ -1366,10 +1364,10 @@ const Token: React.FC = () => {
                     },
                     signData: {
                         value: appConfig.dustSats,
-                        outputScript: sellerP2pkh,
+                        outputScript: changeScript,
                     },
                 },
-                signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143),
+                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
             },
         ];
         const adSetupTargetOutputs = [
@@ -1429,7 +1427,7 @@ const Token: React.FC = () => {
                         redeemScript: agoraAdScript,
                     },
                 },
-                signatory: AgoraOneshotAdSignatory(sellerSk),
+                signatory: AgoraOneshotAdSignatory(sk),
             },
         ];
 
@@ -1514,11 +1512,6 @@ const Token: React.FC = () => {
             undecimalizeTokenAmount(slpAgoraPartialMin, decimals),
         );
 
-        const sellerSk = wif.decode(
-            wallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const makerPk = ecc.derivePubkey(sellerSk);
-
         let agoraPartial;
 
         try {
@@ -1528,7 +1521,7 @@ const Token: React.FC = () => {
                 tokenProtocol: 'SLP',
                 offeredTokens: userSuggestedOfferedTokens,
                 priceNanoSatsPerToken: priceNanoSatsPerTokenSatoshi,
-                makerPk,
+                makerPk: pk,
                 minAcceptedTokens,
             });
             return setPreviewedAgoraPartial(agoraPartial);
@@ -1549,15 +1542,6 @@ const Token: React.FC = () => {
     };
 
     const listSlpPartial = async () => {
-        const sellerSk = wif.decode(
-            wallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const makerPk = ecc.derivePubkey(sellerSk);
-
-        const sellerP2pkh = Script.p2pkh(
-            fromHex(wallet.paths.get(appConfig.derivationPath).hash),
-        );
-
         // offeredTokens is in units of token satoshis
         const offeredTokens = (
             previewedAgoraPartial as AgoraPartial
@@ -1619,7 +1603,7 @@ const Token: React.FC = () => {
 
         const adSetupSatoshis = getAgoraAdFuelSats(
             agoraAdScript,
-            AgoraPartialAdSignatory(sellerSk),
+            AgoraPartialAdSignatory(sk),
             offerTargetOutputs,
             satsPerKb,
         );
@@ -1635,10 +1619,10 @@ const Token: React.FC = () => {
                     prevOut: slpTokenInput.outpoint,
                     signData: {
                         value: appConfig.dustSats,
-                        outputScript: sellerP2pkh,
+                        outputScript: changeScript,
                     },
                 },
-                signatory: P2PKHSignatory(sellerSk, makerPk, ALL_BIP143),
+                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
             });
         }
         const adSetupTargetOutputs: SlpTargetOutput[] = [
@@ -1720,7 +1704,7 @@ const Token: React.FC = () => {
                         redeemScript: agoraAdScript,
                     },
                 },
-                signatory: AgoraPartialAdSignatory(sellerSk),
+                signatory: AgoraPartialAdSignatory(sk),
             },
         ];
 

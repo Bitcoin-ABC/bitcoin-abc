@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import * as wif from 'wif';
 import appConfig from 'config/app';
 import { fromHex, Script } from 'ecash-lib';
 import { AgoraPartial, AgoraOffer, AgoraOneshot } from 'ecash-agora';
@@ -775,9 +774,8 @@ export const agoraPartialBetaWallet = {
 };
 
 export const agoraPartialAlphaKeypair = {
-    sk: wif.decode(
-        agoraPartialAlphaWallet.paths.get(appConfig.derivationPath).wif,
-    ).privateKey,
+    sk: agoraPartialAlphaWallet.paths.get(appConfig.derivationPath).sk,
+
     // Hardcoded for easier mock management
     // Got this by console.logging toHex(ecc.derivePubkey(agoraPartialAlphaKeypair))
     pk: fromHex(
@@ -786,9 +784,8 @@ export const agoraPartialAlphaKeypair = {
 };
 
 export const agoraPartialBetaKeypair = {
-    sk: wif.decode(
-        agoraPartialBetaWallet.paths.get(appConfig.derivationPath).wif,
-    ).privateKey,
+    sk: agoraPartialBetaWallet.paths.get(appConfig.derivationPath).sk,
+
     pk: fromHex(
         '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
     ),

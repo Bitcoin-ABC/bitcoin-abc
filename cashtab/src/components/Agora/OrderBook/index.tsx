@@ -69,7 +69,6 @@ import {
     fromHex,
     Ecc,
 } from 'ecash-lib';
-import * as wif from 'wif';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -164,11 +163,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // Should never happen
                 return toast.error(`No path info for ${fuelUtxo.path}`);
             }
-            // Send the tokens back to the same address as the fuelUtxo
-            const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
-
-            // sk for the tx is the sk for this utxo
-            const sk = wif.decode(pathInfo.wif).privateKey;
+            const { sk, hash } = pathInfo;
 
             // Convert from Cashtab utxo to signed ecash-lib input
             fuelInputs.push({
@@ -179,7 +174,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     },
                     signData: {
                         value: fuelUtxo.value,
-                        outputScript: recipientScript,
+                        // Send the tokens back to the same address as the fuelUtxo
+                        outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
                 signatory: P2PKHSignatory(
@@ -195,6 +191,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // Should never happen
             return toast.error(`No path info for ${appConfig.derivationPath}`);
         }
+        const { sk, hash } = defaultPathInfo;
 
         // Build the cancel tx
         const cancelTxSer = agoraPartial
@@ -203,10 +200,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // Cashtab default path
                 // This works here because we lookup cancelable offers by the same path
                 // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: wif.decode(defaultPathInfo.wif).privateKey,
+                cancelSk: sk,
                 fuelInputs: fuelInputs,
                 // Change to Cashtab default derivation path
-                recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
+                recipientScript: Script.p2pkh(fromHex(hash)),
                 feePerKb: satsPerKb,
             })
             .ser();
@@ -288,9 +285,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // Should never happen
                 return toast.error(`No path info for ${fuelUtxo.path}`);
             }
+            const { sk, hash } = pathInfo;
+
             // Sign and prep utxos for ecash-lib inputs
-            const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
-            const sk = wif.decode(pathInfo.wif).privateKey;
             signedFuelInputs.push({
                 input: {
                     prevOut: {
@@ -299,7 +296,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     },
                     signData: {
                         value: fuelUtxo.value,
-                        outputScript: recipientScript,
+                        outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
                 signatory: P2PKHSignatory(

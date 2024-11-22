@@ -11,7 +11,6 @@ import { toHex } from 'ecash-lib';
 import { ActiveOffers, OfferTitle, OfferTable } from './styled';
 import { SwitchHolder } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
-import * as wif from 'wif';
 import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
 import OrderBook from './OrderBook';
@@ -42,11 +41,12 @@ const Agora: React.FC = () => {
     } = ContextValue;
     const { wallets, settings, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
+    const pk =
+        wallet === false ? null : wallet.paths.get(appConfig.derivationPath).pk;
 
     // active agora partial offers organized for rendering this screen
     const [activeOffersCashtab, setActiveOffersCashtab] =
         useState<null | CashtabActiveOffers>(null);
-    const [activePk, setActivePk] = useState<null | Uint8Array>(null);
     const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
     const [manageMyOffers, setManageMyOffers] = useState<boolean>(false);
 
@@ -139,9 +139,7 @@ const Agora: React.FC = () => {
         let offeredFungibleTokenIdsThisWallet: Set<string> | string[] =
             new Set();
         try {
-            activeOffersByPubKey = await agora.activeOffersByPubKey(
-                toHex(activePk as unknown as Uint8Array),
-            );
+            activeOffersByPubKey = await agora.activeOffersByPubKey(toHex(pk));
             // Just get the tokenIds as the Orderbook will load and prepare the offers by tokenId
             for (const activeOffer of activeOffersByPubKey) {
                 if (activeOffer.variant.type === 'PARTIAL') {
@@ -199,32 +197,16 @@ const Agora: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!wallet) {
-            // We only load logic if the user has an active wallet
-            return;
-        }
-        const sk = wif.decode(
-            wallet.paths.get(appConfig.derivationPath).wif,
-        ).privateKey;
-        const pk = ecc.derivePubkey(sk);
-        setActivePk(pk);
-
-        // We use name as the dependency variable because the wallet changes
-        // after every tx
-        // We only want to update sk when the sk changes
-    }, [wallet.name]);
-
-    useEffect(() => {
         // Update offers when the wallet changes and the new pk has loaded
 
-        if (activePk === null) {
-            // Do nothing if activePk has not yet been set
+        if (pk === null) {
+            // Do nothing if pk has not yet been set
             return;
         }
-        // Reset when activePk changes
+        // Reset when pk changes
         setActiveOffersCashtab(null);
         getListedTokens();
-    }, [activePk]);
+    }, [pk]);
 
     return (
         <>
@@ -289,9 +271,7 @@ const Agora: React.FC = () => {
                                                                 fiatPrice={
                                                                     fiatPrice
                                                                 }
-                                                                activePk={
-                                                                    activePk
-                                                                }
+                                                                activePk={pk}
                                                                 wallet={wallet}
                                                                 ecc={ecc}
                                                                 chronik={
@@ -343,9 +323,7 @@ const Agora: React.FC = () => {
                                                                 fiatPrice={
                                                                     fiatPrice
                                                                 }
-                                                                activePk={
-                                                                    activePk
-                                                                }
+                                                                activePk={pk}
                                                                 wallet={wallet}
                                                                 ecc={ecc}
                                                                 chronik={
