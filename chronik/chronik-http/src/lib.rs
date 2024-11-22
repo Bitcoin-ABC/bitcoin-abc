@@ -7,6 +7,8 @@
 abc_rust_lint::lint! {
     pub mod error;
     pub mod handlers;
+    pub mod electrum;
+    pub(crate) mod electrum_codec;
     pub mod parse;
     pub mod protobuf;
     pub mod server;

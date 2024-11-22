@@ -43,6 +43,10 @@ mod ffi_inner {
         pub enable_cors: bool,
         /// Tuning settings for the TxNumCache.
         pub tx_num_cache: TxNumCacheSettings,
+        /// Electrum host ip:port param, or empty if disabled
+        pub electrum_hosts: Vec<String>,
+        /// Electrum default port
+        pub electrum_default_port: u16,
     }
 
     /// Settings for tuning the TxNumCache.

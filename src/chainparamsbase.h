@@ -28,18 +28,23 @@ public:
         return m_onion_service_target_port;
     }
     uint16_t ChronikPort() const { return m_chronik_port; }
+    uint16_t ChronikElectrumPort() const { return m_chronik_electrum_port; }
 
     CBaseChainParams() = delete;
     CBaseChainParams(const std::string &data_dir, uint16_t rpc_port,
-                     uint16_t onion_service_target_port, uint16_t chronik_port)
+                     uint16_t onion_service_target_port, uint16_t chronik_port,
+                     uint16_t chronik_electrum_port)
         : m_rpc_port(rpc_port),
           m_onion_service_target_port(onion_service_target_port),
-          m_chronik_port(chronik_port), strDataDir(data_dir) {}
+          m_chronik_port(chronik_port),
+          m_chronik_electrum_port(chronik_electrum_port), strDataDir(data_dir) {
+    }
 
 private:
     const uint16_t m_rpc_port;
     const uint16_t m_onion_service_target_port;
     const uint16_t m_chronik_port;
+    const uint16_t m_chronik_electrum_port;
     std::string strDataDir;
 };
 

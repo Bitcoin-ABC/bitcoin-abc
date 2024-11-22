@@ -83,6 +83,9 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                     (size_t)args.GetIntArg("-chroniktxnumcachebucketsize",
                                            DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
             },
+        .electrum_hosts =
+            ToRustVec<rust::String>(args.GetArgs("-chronikelectrumbind")),
+        .electrum_default_port = BaseParams().ChronikElectrumPort(),
     }};
 }
 

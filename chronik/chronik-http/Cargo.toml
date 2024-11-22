@@ -46,8 +46,15 @@ http-body-util = "0.1"
 # HTTP implementation
 hyper = "1.1"
 
+# JSON RPC over TCP
+karyon_jsonrpc = "0.1.7"
+karyon_net = "0.1.7"
+
 # Protobuf en-/decoding
 prost = "0.11"
+
+# JSON en-/decoding
+serde_json = "1.0.133"
 
 # Derive error enums
 thiserror = "2.0.3"

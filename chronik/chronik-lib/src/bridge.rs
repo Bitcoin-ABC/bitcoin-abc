@@ -20,6 +20,9 @@ use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::{
     index_tx::TxNumCacheSettings, io::GroupHistorySettings, mem::MempoolTx,
 };
+use chronik_http::electrum::{
+    ChronikElectrumServer, ChronikElectrumServerParams,
+};
 use chronik_http::server::{
     ChronikServer, ChronikServerParams, ChronikSettings,
 };
@@ -150,6 +153,34 @@ fn try_setup_chronik(
             node.ok_or_abort("ChronikServer::serve", server.serve().await);
         }
     });
+
+    if !params.electrum_hosts.is_empty() {
+        let electrum_hosts = params
+            .electrum_hosts
+            .into_iter()
+            .map(|host| parse_socket_addr(host, params.electrum_default_port))
+            .collect::<Result<Vec<_>>>()?;
+        log!(
+            "Starting Chronik Electrum interface bound to {:?}\n",
+            electrum_hosts
+        );
+        let electrum_server =
+            ChronikElectrumServer::setup(ChronikElectrumServerParams {
+                hosts: electrum_hosts,
+                indexer: indexer.clone(),
+                node: node.clone(),
+            })?;
+        runtime.spawn({
+            let node = Arc::clone(&node);
+            async move {
+                node.ok_or_abort(
+                    "ChronikElectrumServer::serve",
+                    electrum_server.serve().await,
+                );
+            }
+        });
+    }
+
     let chronik = Box::new(Chronik {
         node: Arc::clone(&node),
         indexer,

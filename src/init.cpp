@@ -716,6 +716,18 @@ void SetupServerArgs(NodeContext &node) {
         "-chronikscripthashindex",
         "Enable the scripthash index for the Chronik indexer (default: 0) ",
         ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chronikelectrumbind=<addr>[:port]",
+        strprintf(
+            "Bind the Chronik Electrum interface to the given address:port. "
+            "If not set the Electrum interface will not start. This option can "
+            "be specified multiple times (default: disabled; default port: %u, "
+            "testnet: %u, regtest: %u)",
+            defaultBaseParams->ChronikElectrumPort(),
+            testnetBaseParams->ChronikElectrumPort(),
+            regtestBaseParams->ChronikElectrumPort()),
+        ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::HIDDEN);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

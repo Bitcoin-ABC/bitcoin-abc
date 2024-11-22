@@ -693,7 +693,7 @@ class Interface(PrintError):
             self.last_send = time.time()
 
             def make_dict(m, p, i):
-                return {"method": m, "params": p, "id": i}
+                return {"jsonrpc": "2.0", "method": m, "params": p, "id": i}
 
             n = self.num_requests()
             wire_requests = self.unsent_requests[0:n]
