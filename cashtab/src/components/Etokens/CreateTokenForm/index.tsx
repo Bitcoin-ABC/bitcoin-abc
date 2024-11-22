@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useCallback, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import Modal from 'components/Common/Modal';
 import { WalletContext } from 'wallet/context';
 import {
@@ -23,8 +22,10 @@ import {
 } from 'components/Common/Inputs';
 import CashtabSwitch from 'components/Common/Switch';
 import { TokenParamLabel } from 'components/Common/Atoms';
-import Cropper from 'react-easy-crop';
-import getCroppedImg from 'components/Etokens/icons/cropImage';
+import Cropper, { Area, Point } from 'react-easy-crop';
+import getCroppedImg, {
+    ReaderResult,
+} from 'components/Etokens/icons/cropImage';
 import getRoundImg from 'components/Etokens/icons/roundImage';
 import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
@@ -39,7 +40,12 @@ import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
 import { getWalletState } from 'utils/cashMethods';
-import { hasEnoughToken, undecimalizeTokenAmount } from 'wallet';
+import {
+    hasEnoughToken,
+    undecimalizeTokenAmount,
+    SlpUtxo,
+    SlpDecimals,
+} from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -60,13 +66,19 @@ import {
     TokenParam,
     ButtonDisabledMsg,
 } from 'components/Etokens/CreateTokenForm/styles';
-import { sha256 } from 'js-sha256';
+import { sha256, Message } from 'js-sha256';
 import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 
-const CreateTokenForm = ({ nftChildGenesisInput }) => {
+interface CreateTokenFormProps {
+    nftChildGenesisInput?: SlpUtxo[];
+}
+const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
+    nftChildGenesisInput,
+}) => {
     // Constant to handle rendering of CreateTokenForm for NFT Minting
     const isNftMint = Array.isArray(nftChildGenesisInput);
+
     const NFT_DECIMALS = 0;
     const NFT_GENESIS_QTY = '1';
     const ICON_MAX_UPLOAD_BYTES = 1000000;
@@ -83,37 +95,54 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
     const { tokens } = walletState;
 
     // eToken icon adds
-    const [tokenIcon, setTokenIcon] = useState('');
-    const [createdTokenId, setCreatedTokenId] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [fileName, setFileName] = useState('');
-    const [tokenIconFileName, setTokenIconFileName] = useState(undefined);
-    const [rawImageUrl, setRawImageUrl] = useState('');
-    const [imageUrl, setImageUrl] = useState(false);
-    const [showCropModal, setShowCropModal] = useState(false);
-    const [roundSelection, setRoundSelection] = useState(true);
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-    const [rotation, setRotation] = useState(0);
-    const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [tokenIcon, setTokenIcon] = useState<null | File>(null);
+    const [createdTokenId, setCreatedTokenId] = useState<null | string>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [fileName, setFileName] = useState<string>('');
+    const [rawImageUrl, setRawImageUrl] = useState<string>('');
+    const [imageUrl, setImageUrl] = useState<string>('');
+    const [showCropModal, setShowCropModal] = useState<boolean>(false);
+    const [roundSelection, setRoundSelection] = useState<boolean>(true);
+    const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+    const [rotation, setRotation] = useState<string>('0');
+    const [zoom, setZoom] = useState<string>('1');
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<null | Area>(
+        null,
+    );
 
     // NFT handling
-    const [createNftCollection, setCreateNftCollection] = useState(false);
+    const [createNftCollection, setCreateNftCollection] =
+        useState<boolean>(false);
 
     // Modal settings
-    const [showConfirmCreateToken, setShowConfirmCreateToken] = useState(false);
+    const [showConfirmCreateToken, setShowConfirmCreateToken] =
+        useState<boolean>(false);
 
     // Token form items
-    const emptyFormData = {
+    interface CreateTokenFormFormData {
+        name: string;
+        ticker: string;
+        decimals: string;
+        genesisQty: string;
+        url: string;
+        hash: string;
+    }
+    const emptyFormData: CreateTokenFormFormData = {
         name: '',
         ticker: '',
         decimals: '',
         genesisQty: '',
         url: '',
         hash: '',
-        createWithMintBatonAtIndexTwo: false,
     };
-    const initialFormDataErrors = {
+    interface CreateTokenFormFormDataErrors {
+        name: false | string;
+        ticker: false | string;
+        decimals: false | string;
+        genesisQty: false | string;
+        url: false | string;
+    }
+    const initialFormDataErrors: CreateTokenFormFormDataErrors = {
         name: false,
         ticker: false,
         decimals: false,
@@ -121,11 +150,13 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         url: false,
         // No error for hash as this is only generated
     };
-    const [formData, setFormData] = useState(emptyFormData);
-    const [formDataErrors, setFormDataErrors] = useState(initialFormDataErrors);
+    const [formData, setFormData] =
+        useState<CreateTokenFormFormData>(emptyFormData);
+    const [formDataErrors, setFormDataErrors] =
+        useState<CreateTokenFormFormDataErrors>(initialFormDataErrors);
     // This switch is form data, but since it is a bool and not a string, keep it with its own state field
     const [createWithMintBatonAtIndexTwo, setCreateWithMintBatonAtIndexTwo] =
-        useState(true);
+        useState<boolean>(true);
 
     // Note: We do not include a UI input for token document hash
     // Questionable value to casual users and requires significant complication
@@ -135,6 +166,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         if (location?.pathname?.includes('create-nft-collection')) {
             setCreateNftCollection(true);
         }
+        // TODO handle creating other token types via route as well
     }, []);
 
     useEffect(() => {
@@ -155,12 +187,12 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             // Cashtab only creates NFT1 Parent tokens (aka NFT Collections) with 0 decimals
             setFormData(previous => ({
                 ...previous,
-                decimals: 0,
+                decimals: '0',
             }));
         }
     }, [createNftCollection]);
 
-    const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels);
     }, []);
 
@@ -171,9 +203,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             let imageToResize;
 
             const croppedResult = await getCroppedImg(
-                rawImageUrl,
-                croppedAreaPixels,
-                rotation,
+                rawImageUrl as string,
+                croppedAreaPixels as Area,
+                parseFloat(rotation),
                 fileName,
             );
 
@@ -185,7 +217,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
 
             await getResizedImage(
                 imageToResize.url,
-                resizedResult => {
+                (resizedResult: ReaderResult) => {
                     setTokenIcon(resizedResult.file);
                     setImageUrl(resizedResult.url);
                 },
@@ -202,7 +234,10 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         setShowCropModal(false);
     }, []);
 
-    const handleTokenIconImage = (imgFile, callback) =>
+    const handleTokenIconImage = (
+        imgFile: File,
+        callback: (file: string) => void,
+    ) =>
         new Promise((resolve, reject) => {
             setLoading(true);
             try {
@@ -219,9 +254,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                     handleInput({
                         target: {
                             name: 'hash',
-                            value: sha256(hashreader.result),
+                            value: sha256(hashreader.result as Message),
                         },
-                    });
+                    } as React.ChangeEvent<HTMLInputElement>);
                 });
 
                 const reader = new FileReader();
@@ -231,17 +266,25 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                 reader.readAsDataURL(imgFile);
 
                 reader.addEventListener('load', () =>
-                    setRawImageUrl(reader.result),
+                    setRawImageUrl(reader.result as string),
                 );
 
                 reader.onload = event => {
                     const img = new Image();
+                    if (typeof event.target?.result !== 'string') {
+                        // Should never happen
+                        return toast.error('Error loading icon');
+                    }
                     img.src = event.target.result;
                     img.onload = () => {
                         const elem = document.createElement('canvas');
                         elem.width = width;
                         elem.height = height;
                         const ctx = elem.getContext('2d');
+                        if (ctx === null) {
+                            // Should never happen
+                            return toast.error('Error drawing image');
+                        }
                         // img.width and img.height will contain the original dimensions
                         ctx.drawImage(img, 0, 0, width, height);
                         if (!HTMLCanvasElement.prototype.toBlob) {
@@ -249,16 +292,20 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                                 HTMLCanvasElement.prototype,
                                 'toBlob',
                                 {
-                                    value: function (callback, type, quality) {
-                                        var dataURL = this.toDataURL(
+                                    value: function (
+                                        callback: (blob: Blob) => void,
+                                        type: string,
+                                        quality: number,
+                                    ) {
+                                        const dataURL = this.toDataURL(
                                             type,
                                             quality,
                                         ).split(',')[1];
                                         setTimeout(function () {
-                                            var binStr = atob(dataURL),
+                                            const binStr = atob(dataURL),
                                                 len = binStr.length,
                                                 arr = new Uint8Array(len);
-                                            for (var i = 0; i < len; i++) {
+                                            for (let i = 0; i < len; i++) {
                                                 arr[i] = binStr.charCodeAt(i);
                                             }
                                             callback(
@@ -271,32 +318,40 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                                 },
                             );
                         }
+                        return new Promise<void>((resolve, reject) => {
+                            ctx.canvas.toBlob(
+                                blob => {
+                                    if (blob === null) {
+                                        return toast.error(
+                                            'Error rendering blob',
+                                        );
+                                        reject();
+                                    }
+                                    const fileNameParts =
+                                        imgFile.name.split('.');
+                                    fileNameParts.pop();
+                                    const fileNamePng =
+                                        fileNameParts.join('.') + '.png';
 
-                        ctx.canvas.toBlob(
-                            blob => {
-                                let fileNameParts = imgFile.name.split('.');
-                                fileNameParts.pop();
-                                let fileNamePng =
-                                    fileNameParts.join('.') + '.png';
+                                    const file = new File([blob], fileNamePng, {
+                                        type: 'image/png',
+                                    });
+                                    setFileName(fileNamePng);
+                                    const resultReader = new FileReader();
 
-                                const file = new File([blob], fileNamePng, {
-                                    type: 'image/png',
-                                });
-                                setFileName(fileNamePng);
-                                const resultReader = new FileReader();
-
-                                resultReader.readAsDataURL(file);
-                                setTokenIcon(file);
-                                resultReader.addEventListener('load', () =>
-                                    callback(resultReader.result),
-                                );
-                                setLoading(false);
-                                setShowCropModal(true);
-                                resolve();
-                            },
-                            'image/png',
-                            1,
-                        );
+                                    resultReader.readAsDataURL(file);
+                                    setTokenIcon(file);
+                                    resultReader.addEventListener('load', () =>
+                                        callback(resultReader.result as string),
+                                    );
+                                    setLoading(false);
+                                    setShowCropModal(true);
+                                    resolve();
+                                },
+                                'image/png',
+                                1,
+                            );
+                        });
                     };
                 };
             } catch (err) {
@@ -305,7 +360,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             }
         });
 
-    const validateTokenIconUpload = file => {
+    const validateTokenIconUpload = (file: File) => {
         const approvedFileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
         try {
             if (!approvedFileTypes.includes(file.type)) {
@@ -317,14 +372,13 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             toast.error(
                 `Cashtab can only process jpg or png files for token icon uploads.`,
             );
-            setTokenIconFileName(undefined);
-            setTokenIcon(undefined);
+            setTokenIcon(null);
             setImageUrl('');
             return false;
         }
     };
 
-    const handleInput = e => {
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         switch (name) {
             case 'name': {
@@ -370,7 +424,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                     const isValidOrStringErrorMsg = isValidTokenMintAmount(
                         formData.genesisQty,
                         // Note that, in this code block, value is formData.decimals
-                        parseInt(value),
+                        parseInt(value) as SlpDecimals,
                     );
                     setFormDataErrors(previous => ({
                         ...previous,
@@ -386,7 +440,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                 const isValidOrStringErrorMsg = isValidTokenMintAmount(
                     value,
                     // If user has not yet input decimals, assume 0 decimals
-                    formData.decimals === '' ? 0 : parseInt(formData.decimals),
+                    formData.decimals === ''
+                        ? 0
+                        : (parseInt(formData.decimals) as SlpDecimals),
                 );
                 setFormDataErrors(previous => ({
                     ...previous,
@@ -421,7 +477,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
     const onMaxGenesis = () => {
         // Use 0 for decimals if user has not input decimals yet
         const usedDecimals =
-            formData.decimals === '' ? 0 : parseInt(formData.decimals);
+            formData.decimals === ''
+                ? 0
+                : (parseInt(formData.decimals) as SlpDecimals);
         const maxGenesisAmount = getMaxDecimalizedSlpQty(usedDecimals);
 
         handleInput({
@@ -429,11 +487,11 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                 name: 'genesisQty',
                 value: maxGenesisAmount,
             },
-        });
+        } as React.ChangeEvent<HTMLInputElement>);
     };
 
     // Only enable CreateToken button if all form entries are valid
-    let tokenGenesisDataIsValid =
+    const tokenGenesisDataIsValid =
         // No formdata errors
         formDataErrors.name === false &&
         formDataErrors.ticker === false &&
@@ -446,22 +504,30 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         formData.ticker !== '' &&
         // If this is an nft mint, we need an NFT Mint Input
         ((isNftMint && nftChildGenesisInput.length === 1) || !isNftMint) &&
-        (tokenIcon === '' ||
-            (tokenIcon !== '' && tokenIcon.size <= ICON_MAX_UPLOAD_BYTES));
+        (tokenIcon === null || tokenIcon.size <= ICON_MAX_UPLOAD_BYTES);
 
-    const submitTokenIcon = async tokenId => {
-        let submittedFormData = new FormData();
+    interface TokenIconData {
+        name: string;
+        ticker: string;
+        decimals: string;
+        url: string;
+        genesisQty: string;
+        tokenIcon: File;
+    }
+    const submitTokenIcon = async (tokenId: string) => {
+        const submittedFormData = new FormData();
 
-        const data = {
+        const data: TokenIconData = {
             name: formData.name,
             ticker: formData.ticker,
-            decimals: isNftMint ? NFT_DECIMALS : formData.decimals,
+            decimals: isNftMint ? NFT_DECIMALS.toString() : formData.decimals,
             url: formData.url,
             genesisQty: isNftMint ? NFT_GENESIS_QTY : formData.genesisQty,
-            tokenIcon,
+            tokenIcon: tokenIcon as File,
         };
-        for (let key in data) {
-            submittedFormData.append(key, data[key]);
+
+        for (const key in data) {
+            submittedFormData.append(key, data[key as keyof TokenIconData]);
         }
 
         // This function is called after the genesis tx is broadcast, using tokenId as a calling param
@@ -499,7 +565,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
 
             toast.success(`Successfully uploaded token icon`);
         } catch (err) {
-            console.error(err.message);
+            console.error(err);
             toast.error(
                 `Error submitting token icon for approval, please contact icons@e.cash for support`,
             );
@@ -533,7 +599,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                       BigInt(
                           undecimalizeTokenAmount(
                               formData.genesisQty,
-                              parseInt(formData.decimals),
+                              parseInt(formData.decimals) as SlpDecimals,
                           ),
                       ),
                       createWithMintBatonAtIndexTwo ? 2 : undefined,
@@ -545,7 +611,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                       BigInt(
                           undecimalizeTokenAmount(
                               formData.genesisQty,
-                              parseInt(formData.decimals),
+                              parseInt(formData.decimals) as SlpDecimals,
                           ),
                       ),
                       createWithMintBatonAtIndexTwo ? 2 : undefined,
@@ -616,7 +682,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             );
 
             // If this eToken/NFT Collection/NFT has an icon, upload to server
-            if (tokenIcon !== '') {
+            if (tokenIcon !== null) {
                 submitTokenIcon(txid);
             }
         } catch (e) {
@@ -628,10 +694,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         if (isNftMint) {
             setFormData(emptyFormData);
             setFormDataErrors(initialFormDataErrors);
-            setTokenIcon('');
-            setTokenIconFileName(undefined);
+            setTokenIcon(null);
             setRawImageUrl('');
-            setImageUrl(false);
+            setImageUrl('');
         }
     };
     return (
@@ -752,9 +817,10 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                                     : 'initial token supply'
                             }`}
                             name="genesisQty"
-                            type="string"
                             value={formData.genesisQty}
-                            decimals={formData.decimals}
+                            decimals={
+                                parseInt(formData.decimals) as SlpDecimals
+                            }
                             handleInput={handleInput}
                             error={formDataErrors.genesisQty}
                             handleOnMax={onMaxGenesis}
@@ -812,9 +878,6 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                     imageUrl={imageUrl}
                     nft={isNftMint}
                 />
-                {typeof tokenIconFileName === 'string' && (
-                    <p>{tokenIconFileName.name}</p>
-                )}
 
                 {!loading && tokenIcon && (
                     <EditIcon onClick={() => setShowCropModal(true)}>
@@ -825,7 +888,10 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                 {showCropModal && (
                     <Modal
                         handleCancel={onClose}
-                        handleOk={() => showCroppedImage() && onClose()}
+                        handleOk={() => {
+                            showCroppedImage();
+                            onClose();
+                        }}
                         height={400}
                     >
                         <IconModalForm>
@@ -835,16 +901,26 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                                     zoomWithScroll={true}
                                     image={rawImageUrl}
                                     crop={crop}
-                                    zoom={zoom}
-                                    rotation={rotation}
+                                    zoom={parseFloat(zoom)}
+                                    rotation={parseFloat(rotation)}
                                     cropShape={
                                         roundSelection ? 'round' : 'rect'
                                     }
-                                    aspect={1 / 1}
-                                    onCropChange={setCrop}
-                                    onRotationChange={setRotation}
+                                    aspect={1}
+                                    onCropChange={
+                                        setCrop as (location: Point) => void
+                                    }
+                                    onRotationChange={
+                                        setRotation as unknown as (
+                                            rotation: number,
+                                        ) => void
+                                    }
                                     onCropComplete={onCropComplete}
-                                    onZoomChange={setZoom}
+                                    onZoomChange={
+                                        setZoom as unknown as (
+                                            zoom: number,
+                                        ) => void
+                                    }
                                 />
                             </CropperContainer>
                             <IconModalRow>
@@ -916,19 +992,16 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                             must have a name and a ticker
                         </ButtonDisabledMsg>
                     ))}
-                {tokenIcon !== '' && tokenIcon.size > ICON_MAX_UPLOAD_BYTES && (
-                    <ButtonDisabledMsg>
-                        Icon exceeds max upload size of{' '}
-                        {ICON_MAX_UPLOAD_BYTES.toLocaleString()} bytes
-                    </ButtonDisabledMsg>
-                )}
+                {tokenIcon !== null &&
+                    tokenIcon.size > ICON_MAX_UPLOAD_BYTES && (
+                        <ButtonDisabledMsg>
+                            Icon exceeds max upload size of{' '}
+                            {ICON_MAX_UPLOAD_BYTES.toLocaleString()} bytes
+                        </ButtonDisabledMsg>
+                    )}
             </Form>
         </>
     );
-};
-
-CreateTokenForm.propTypes = {
-    nftChildGenesisInput: PropTypes.array,
 };
 
 export default CreateTokenForm;

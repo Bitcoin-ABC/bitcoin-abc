@@ -2,8 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-const createImage = url =>
-    new Promise((resolve, reject) => {
+import { Area } from 'react-easy-crop';
+
+export interface ReaderResult {
+    file: File;
+    url: string;
+}
+
+export const createImage = (url: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
         const image = new Image();
         image.addEventListener('load', () => resolve(image));
         image.addEventListener('error', error => reject(error));
@@ -11,16 +18,16 @@ const createImage = url =>
         image.src = url;
     });
 
-function getRadianAngle(degreeValue) {
+function getRadianAngle(degreeValue: number) {
     return (degreeValue * Math.PI) / 180;
 }
 
 export default async function getCroppedImg(
-    imageSrc,
-    pixelCrop,
+    imageSrc: string,
+    pixelCrop: Area,
     rotation = 0,
-    fileName,
-) {
+    fileName: string,
+): Promise<ReaderResult> {
     const image = await createImage(imageSrc);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -30,6 +37,10 @@ export default async function getCroppedImg(
 
     canvas.width = safeArea;
     canvas.height = safeArea;
+
+    if (ctx === null) {
+        throw new Error('no ctx');
+    }
 
     ctx.translate(safeArea / 2, safeArea / 2);
     ctx.rotate(getRadianAngle(rotation));
@@ -53,13 +64,17 @@ export default async function getCroppedImg(
 
     if (!HTMLCanvasElement.prototype.toBlob) {
         Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
-            value: function (callback, type, quality) {
-                var dataURL = this.toDataURL(type, quality).split(',')[1];
+            value: function (
+                callback: (blob: Blob) => void,
+                type: string,
+                quality: number,
+            ) {
+                const dataURL = this.toDataURL(type, quality).split(',')[1];
                 setTimeout(function () {
-                    var binStr = atob(dataURL),
+                    const binStr = atob(dataURL),
                         len = binStr.length,
                         arr = new Uint8Array(len);
-                    for (var i = 0; i < len; i++) {
+                    for (let i = 0; i < len; i++) {
                         arr[i] = binStr.charCodeAt(i);
                     }
                     callback(new Blob([arr], { type: type || 'image/png' }));
@@ -70,6 +85,9 @@ export default async function getCroppedImg(
     return new Promise(resolve => {
         ctx.canvas.toBlob(
             blob => {
+                if (blob === null) {
+                    throw new Error('blob is null');
+                }
                 const file = new File([blob], fileName, {
                     type: 'image/png',
                 });
@@ -78,7 +96,7 @@ export default async function getCroppedImg(
                 resultReader.readAsDataURL(file);
 
                 resultReader.addEventListener('load', () =>
-                    resolve({ file, url: resultReader.result }),
+                    resolve({ file, url: resultReader.result as string }),
                 );
             },
             'image/png',

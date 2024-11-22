@@ -158,9 +158,10 @@ interface InputProps {
     placeholder: string;
     name: string;
     value: null | string;
-    disabled: boolean;
+    disabled?: boolean;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
-    error: string | boolean;
+    error?: string | boolean;
+    type?: string;
 }
 export const Input: React.FC<InputProps> = ({
     placeholder = '',
@@ -169,6 +170,7 @@ export const Input: React.FC<InputProps> = ({
     disabled = false,
     handleInput,
     error = false,
+    type = 'text',
 }) => {
     return (
         <CashtabInputWrapper>
@@ -180,6 +182,7 @@ export const Input: React.FC<InputProps> = ({
                     disabled={disabled}
                     invalid={typeof error === 'string'}
                     onChange={handleInput}
+                    type={type}
                 />
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
@@ -566,7 +569,7 @@ export const LabelAndInputFlex = styled.div`
 interface SliderProps {
     name: string;
     value: string;
-    error: false | string;
+    error?: false | string;
     min: number | string;
     max: number | string;
     step: number | string;
@@ -578,7 +581,7 @@ interface SliderProps {
 export const Slider: React.FC<SliderProps> = ({
     name,
     value,
-    error,
+    error = false,
     min,
     max,
     step,

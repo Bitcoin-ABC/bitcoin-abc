@@ -313,7 +313,7 @@ describe('<CreateTokenForm />', () => {
         expect(decimalsInput).toHaveProperty('disabled', true);
 
         // Decimals is set to 0
-        expect(decimalsInput).toHaveValue('0');
+        expect(decimalsInput).toHaveValue(0);
         await user.type(
             await screen.findByPlaceholderText('Enter NFT collection size'),
             '4',

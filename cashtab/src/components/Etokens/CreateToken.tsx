@@ -12,7 +12,7 @@ import ApiError from 'components/Common/ApiError';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 
-const CreateToken = () => {
+const CreateToken: React.FC = () => {
     const { apiError, fiatPrice, cashtabState } =
         React.useContext(WalletContext);
 
