@@ -9,7 +9,7 @@ import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { fromHex, Script, P2PKHSignatory, ALL_BIP143, Ecc } from 'ecash-lib';
-import { OutPoint, Token, Tx } from 'chronik-client';
+import { Token, Tx, ScriptUtxo } from 'chronik-client';
 import { AgoraOffer } from 'ecash-agora';
 import { ParsedTx } from 'chronik';
 import {
@@ -59,24 +59,19 @@ export interface StoredCashtabPathInfo {
      */
     sk: number[];
 }
-export interface NonSlpUtxo {
-    blockHeight: number;
-    isCoinbase: boolean;
-    isFinal: boolean;
+export interface NonTokenUtxo extends Omit<ScriptUtxo, 'token'> {
     path: number;
-    value: number;
-    outpoint: OutPoint;
 }
-export interface SlpUtxo extends NonSlpUtxo {
+export interface TokenUtxo extends NonTokenUtxo {
     token: Token;
 }
-export interface CashtabUtxo extends NonSlpUtxo {
+export interface CashtabUtxo extends NonTokenUtxo {
     token?: Token;
 }
 export interface CashtabWalletState {
     balanceSats: number;
-    nonSlpUtxos: NonSlpUtxo[];
-    slpUtxos: SlpUtxo[];
+    nonSlpUtxos: NonTokenUtxo[];
+    slpUtxos: TokenUtxo[];
     parsedTxHistory: CashtabTx[];
     tokens: Map<string, string>;
 }
@@ -139,7 +134,7 @@ const DUMMY_INPUT = {
  * @returns integer, total balance of input utxos in satoshis
  * or NaN if any utxo is invalid
  */
-export const getBalanceSats = (nonSlpUtxos: NonSlpUtxo[]): number => {
+export const getBalanceSats = (nonSlpUtxos: NonTokenUtxo[]): number => {
     return nonSlpUtxos.reduce(
         (previousBalance, utxo) => previousBalance + utxo.value,
         0,
@@ -682,10 +677,10 @@ export const hasUnfinalizedTxsInHistory = (wallet: CashtabWallet): boolean => {
  */
 export const getAgoraPartialAcceptFuelInputs = (
     agoraOffer: AgoraOffer,
-    utxos: NonSlpUtxo[],
+    utxos: NonTokenUtxo[],
     acceptedTokens: bigint,
     feePerKb: number,
-): NonSlpUtxo[] => {
+): NonTokenUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
@@ -726,9 +721,9 @@ export const getAgoraPartialAcceptFuelInputs = (
  */
 export const getAgoraCancelFuelInputs = (
     agoraOffer: AgoraOffer,
-    utxos: NonSlpUtxo[],
+    utxos: NonTokenUtxo[],
     feePerKb: number,
-): NonSlpUtxo[] => {
+): NonTokenUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
@@ -770,9 +765,9 @@ export const getAgoraCancelFuelInputs = (
  */
 export const getAgoraOneshotAcceptFuelInputs = (
     agoraOffer: AgoraOffer,
-    utxos: NonSlpUtxo[],
+    utxos: NonTokenUtxo[],
     feePerKb: number,
-): NonSlpUtxo[] => {
+): NonTokenUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;

@@ -12,8 +12,8 @@ import {
     undecimalizeTokenAmount,
     CashtabUtxo,
     CashtabWallet,
-    SlpUtxo,
-    NonSlpUtxo,
+    TokenUtxo,
+    NonTokenUtxo,
     SlpDecimals,
     CashtabTx,
 } from 'wallet';
@@ -147,8 +147,8 @@ export const getUtxos = async (
 };
 
 interface OrganizedUtxos {
-    slpUtxos: SlpUtxo[];
-    nonSlpUtxos: NonSlpUtxo[];
+    slpUtxos: TokenUtxo[];
+    nonSlpUtxos: NonTokenUtxo[];
 }
 /**
  * Organize utxos by token and non-token
@@ -163,9 +163,9 @@ export const organizeUtxosByType = (
     for (const utxo of chronikUtxos) {
         // Construct nonSlpUtxos and slpUtxos arrays
         if (typeof utxo.token !== 'undefined') {
-            slpUtxos.push(utxo as SlpUtxo);
+            slpUtxos.push(utxo as TokenUtxo);
         } else {
-            nonSlpUtxos.push(utxo as NonSlpUtxo);
+            nonSlpUtxos.push(utxo as NonTokenUtxo);
         }
     }
 
@@ -568,7 +568,7 @@ export const getTokenGenesisInfo = async (
  */
 export const getTokenBalances = async (
     chronik: ChronikClient,
-    slpUtxos: SlpUtxo[],
+    slpUtxos: TokenUtxo[],
     tokenCache: Map<string, CashtabCachedTokenInfo>,
 ): Promise<Map<string, string>> => {
     const walletStateTokens: Map<string, string> = new Map();

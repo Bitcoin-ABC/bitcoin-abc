@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import appConfig from 'config/app';
-import { undecimalizeTokenAmount, decimalizeTokenAmount } from 'wallet';
+import { undecimalizeTokenAmount } from 'wallet';
 import {
     Script,
     slpGenesis,
@@ -15,7 +15,12 @@ import {
     TxBuilderOutput,
 } from 'ecash-lib';
 import { GenesisInfo } from 'chronik-client';
-import { SlpUtxo, CashtabUtxo, SlpDecimals } from 'wallet';
+import { TokenUtxo, CashtabUtxo, SlpDecimals } from 'wallet';
+import {
+    TOKEN_DUST_CHANGE_OUTPUT,
+    TokenInputInfo,
+    TokenTargetOutput,
+} from 'token-protocols';
 // Constants for SLP 1 token types as returned by chronik-client
 export const SLP_1_PROTOCOL_NUMBER = 1;
 export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
@@ -30,10 +35,6 @@ export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
 const DUMMY_TXID =
     '1111111111111111111111111111111111111111111111111111111111111111';
 
-// Cashtab spec
-// This is how Cashtab defines a token utxo to be received
-// by the wallet broadcasting this transaction.
-export const TOKEN_DUST_CHANGE_OUTPUT = { value: appConfig.dustSats };
 // SLP1 supports up to 19 outputs
 // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send--transfer
 // This value is defined by the spec, i.e. an SLP1 SEND tx with more outputs is invalid
@@ -49,10 +50,6 @@ const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
 // This is a spec value
 export const SLP1_NFT_CHILD_GENESIS_AMOUNT = '1';
 
-export interface SlpTargetOutput {
-    value: number;
-    script?: Script;
-}
 /**
  * Get targetOutput for a SLP v1 genesis tx
  * @param genesisInfo object containing token info for genesis tx
@@ -64,7 +61,7 @@ export const getSlpGenesisTargetOutput = (
     genesisInfo: GenesisInfo,
     initialQuantity: bigint,
     mintBatonOutIdx: 2 | undefined = undefined,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx !== 2) {
         throw new Error(
             'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
@@ -101,11 +98,6 @@ export const getSlpGenesisTargetOutput = (
     return targetOutputs;
 };
 
-export interface TokenInputInfo {
-    tokenInputs: SlpUtxo[];
-    sendAmounts: bigint[];
-    tokenId: string;
-}
 /**
  * Get targetOutput(s) for a SLP v1 SEND tx
  * @param tokenInputInfo of getSendTokenInputs
@@ -119,7 +111,7 @@ export interface TokenInputInfo {
 export const getSlpSendTargetOutputs = (
     tokenInputInfo: TokenInputInfo,
     destinationAddress: string,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     const { tokenInputs, sendAmounts } = tokenInputInfo;
 
     // Get tokenId from the tokenUtxo
@@ -132,7 +124,7 @@ export const getSlpSendTargetOutputs = (
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
 
     // Initialize with OP_RETURN at 0 index, per spec
-    const targetOutputs: SlpTargetOutput[] = [{ value: 0, script }];
+    const targetOutputs: TokenTargetOutput[] = [{ value: 0, script }];
 
     // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
     targetOutputs.push({
@@ -150,103 +142,6 @@ export const getSlpSendTargetOutputs = (
 };
 
 /**
- * Get all available token utxos for an SLP v1 SEND tx from in-node formatted chronik utxos
- * @param utxos array of utxos from an in-node instance of chronik
- * @param tokenId
- * @returns tokenUtxos, all utxos that can be used for slpv1 send tx
- * mint batons are intentionally excluded
- */
-export const getAllSendUtxos = (
-    utxos: CashtabUtxo[],
-    tokenId: string,
-): SlpUtxo[] => {
-    // From an array of chronik utxos, return only token utxos related to a given tokenId
-    return utxos.filter(
-        utxo =>
-            utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
-            utxo.token?.isMintBaton === false, // UTXO is not a minting baton.
-    ) as SlpUtxo[];
-};
-
-/**
- * Get send token inputs from in-node input data
- * @param utxos
- * @param tokenId tokenId of the token you want to send
- * @param sendQty
- * @param decimals 0-9 inclusive, integer. Decimals of this token.
- * Note: you need to get decimals from cache or from chronik.
- */
-export const getSendTokenInputs = (
-    utxos: CashtabUtxo[],
-    tokenId: string,
-    sendQty: string,
-    decimals: -1 | SlpDecimals = -1,
-): TokenInputInfo => {
-    if (sendQty === '') {
-        throw new Error(
-            'Invalid sendQty empty string. sendQty must be a decimalized number as a string.',
-        );
-    }
-
-    // Get all slp send utxos for this tokenId
-    const allSendUtxos = getAllSendUtxos(utxos, tokenId);
-
-    if (allSendUtxos.length === 0) {
-        throw new Error(`No token utxos for tokenId "${tokenId}"`);
-    }
-
-    if (!Number.isInteger(decimals) || decimals > 9 || decimals < 0) {
-        // We get there if we call this function without specifying decimals
-        throw new Error(
-            `Invalid decimals ${decimals} for tokenId ${tokenId}. Decimals must be an integer 0-9.`,
-        );
-    }
-
-    // Convert user input (decimalized string)
-    const sendQtyBigInt = BigInt(
-        undecimalizeTokenAmount(sendQty, decimals as SlpDecimals),
-    );
-
-    // We calculate totalTokenInputUtxoQty with the same basis (token satoshis) -- no adjustment for decimals
-    // as the value of this token utxo is already indexed at this basis
-    let totalTokenInputUtxoQty = 0n;
-
-    const tokenInputs = [];
-    for (const utxo of allSendUtxos) {
-        totalTokenInputUtxoQty =
-            totalTokenInputUtxoQty + BigInt(utxo.token.amount);
-
-        tokenInputs.push(utxo);
-        if (totalTokenInputUtxoQty >= sendQtyBigInt) {
-            // If we have enough to send what we want, no more input utxos
-            break;
-        }
-    }
-
-    if (totalTokenInputUtxoQty < sendQtyBigInt) {
-        throw new Error(
-            `tokenUtxos have insufficient balance ${decimalizeTokenAmount(
-                totalTokenInputUtxoQty.toString(),
-                decimals as SlpDecimals,
-            )} to send ${decimalizeTokenAmount(
-                sendQtyBigInt.toString(),
-                decimals as SlpDecimals,
-            )}`,
-        );
-    }
-
-    const sendAmounts = [sendQtyBigInt];
-    const change = totalTokenInputUtxoQty - sendQtyBigInt;
-    if (change > 0n) {
-        sendAmounts.push(change);
-    }
-
-    // We return this interesting object due to expected input shape of slp-mdm
-    // NB sendAmounts must be an array of BNs, each one decimalized to the tokens decimal places
-    return { tokenInputs, tokenId, sendAmounts };
-};
-
-/**
  * Get targetOutput(s) for a SLP v1 BURN tx
  * Note: a burn tx is a special case of a send tx where you have no destination output
  * You always have a change output as an eCash tx must have at least dust output
@@ -258,7 +153,7 @@ export const getSendTokenInputs = (
  */
 export const getSlpBurnTargetOutputs = (
     tokenInputInfo: TokenInputInfo,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     const { tokenId, sendAmounts } = tokenInputInfo;
 
     // If we have change from the getSendTokenInputs call, we want to SEND it to ourselves
@@ -290,13 +185,13 @@ export const getSlpBurnTargetOutputs = (
 export const getMintBatons = (
     utxos: CashtabUtxo[],
     tokenId: string,
-): SlpUtxo[] => {
+): TokenUtxo[] => {
     // From an array of chronik utxos, return only token utxos related to a given tokenId
     return utxos.filter(
         utxo =>
             utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
             utxo.token?.isMintBaton === true, // UTXO is a minting baton.
-    ) as SlpUtxo[];
+    ) as TokenUtxo[];
 };
 
 /**
@@ -316,7 +211,7 @@ export const getMintTargetOutputs = (
     decimals: SlpDecimals,
     mintQty: string,
     tokenProtocolNumber: SUPPORTED_MINT_TYPES,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     // slp-mdm expects values in token satoshis, so we must undecimalize mintQty
 
     // Get undecimalized string, i.e. "token satoshis"
@@ -378,7 +273,7 @@ export const getNftParentGenesisTargetOutputs = (
     genesisInfo: GenesisInfo,
     initialQuantity: bigint,
     mintBatonOutIdx: 2 | undefined = undefined,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx !== 2) {
         throw new Error(
             'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
@@ -427,7 +322,7 @@ export const getNftParentGenesisTargetOutputs = (
 export const getNftParentMintTargetOutputs = (
     tokenId: string,
     mintQty: bigint,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     const script = slpMint(
         tokenId,
         SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER,
@@ -456,8 +351,8 @@ export const getNftParentMintTargetOutputs = (
  */
 export const getNftParentFanInputs = (
     tokenId: string,
-    slpUtxos: SlpUtxo[],
-): SlpUtxo[] => {
+    slpUtxos: TokenUtxo[],
+): TokenUtxo[] => {
     return slpUtxos.filter(utxo => {
         // UTXO matches the token ID
         return (
@@ -481,8 +376,8 @@ export const getNftParentFanInputs = (
  * as many as 19 dust outputs
  */
 export const getNftParentFanTxTargetOutputs = (
-    fanInputs: SlpUtxo[],
-): SlpTargetOutput[] => {
+    fanInputs: TokenUtxo[],
+): TokenTargetOutput[] => {
     if (fanInputs.length === 0) {
         throw new Error('No eligible inputs for this NFT parent fan tx');
     }
@@ -560,8 +455,8 @@ export const getNftParentFanTxTargetOutputs = (
  */
 export const getNftChildGenesisInput = (
     tokenId: string,
-    slpUtxos: SlpUtxo[],
-): SlpUtxo[] => {
+    slpUtxos: TokenUtxo[],
+): TokenUtxo[] => {
     // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
     // because in this case we only want exactly 1 utxo
     for (const utxo of slpUtxos) {
@@ -587,7 +482,7 @@ export const getNftChildGenesisInput = (
  */
 export const getNftChildGenesisTargetOutputs = (
     genesisInfo: GenesisInfo,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     const script = slpGenesis(
         SLP_1_NFT_PROTOCOL_NUMBER,
         genesisInfo,
@@ -618,7 +513,7 @@ export const getNftChildGenesisTargetOutputs = (
  * Dev responsibly -- imo it is not worth performing this check every time the function is called
  * Only use this function when sending a type1 NFT child
  */
-export const getNft = (tokenId: string, slpUtxos: SlpUtxo[]): SlpUtxo[] => {
+export const getNft = (tokenId: string, slpUtxos: TokenUtxo[]): TokenUtxo[] => {
     // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
     // because in this case we only want exactly 1 utxo
     for (const utxo of slpUtxos) {
@@ -640,7 +535,7 @@ export const getNft = (tokenId: string, slpUtxos: SlpUtxo[]): SlpUtxo[] => {
 export const getNftChildSendTargetOutputs = (
     tokenId: string,
     destinationAddress: string,
-): SlpTargetOutput[] => {
+): TokenTargetOutput[] => {
     // We only ever send 1 NFT
     const SEND_ONE_CHILD = [1n];
     const script = slpSend(tokenId, SLP_1_NFT_PROTOCOL_NUMBER, SEND_ONE_CHILD);
@@ -664,7 +559,7 @@ export const getNftChildSendTargetOutputs = (
  * @param targetOutput
  */
 export const isTokenDustChangeOutput = (
-    targetOutput: SlpTargetOutput,
+    targetOutput: TokenTargetOutput,
 ): boolean => {
     return (
         // We have only one key

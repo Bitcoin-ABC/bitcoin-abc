@@ -56,7 +56,7 @@ describe('<CreateTokenForm />', () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
     });
-    it('User can input valid token parameters, generate a token, and view a success notification', async () => {
+    it('User can create an SLP1 token with no mint baton', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
             localforage,
@@ -135,7 +135,7 @@ describe('<CreateTokenForm />', () => {
             `${explorer.blockExplorerUrl}/tx/${txid}`,
         );
     });
-    it('User can create a token with a mint baton', async () => {
+    it('User can create an SLP1 token with a mint baton', async () => {
         const createdTokenId =
             '999507a9f1859adf85405abe28bb75d3c470ef53d2e4bb18880454a5fa9aa9e4';
         // Mock a utxo of the not-yet-created token so we can test the redirect
@@ -346,5 +346,141 @@ describe('<CreateTokenForm />', () => {
         expect(
             await screen.findByText('NFT Collection created!'),
         ).toHaveAttribute('href', `${explorer.blockExplorerUrl}/tx/${txid}`);
+    });
+    it('User can create an ALP token', async () => {
+        const createdTokenId =
+            '75883c5ebc2c3b375ae6e25dcc845dfbc6b34ae6c1319fb840e7dcba1f8135e7';
+        // Mock a utxo of the not-yet-created token so we can test the redirect
+        const MOCK_UTXO_FOR_BALANCE = {
+            token: {
+                tokenId: createdTokenId,
+                isMintBaton: false,
+                amount: '10',
+            },
+        };
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...walletWithXecAndTokens,
+                state: {
+                    ...walletWithXecAndTokens.state,
+                    slpUtxos: [
+                        ...walletWithXecAndTokens.state.slpUtxos,
+                        MOCK_UTXO_FOR_BALANCE,
+                    ],
+                },
+            },
+            localforage,
+        );
+
+        // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
+        mockedChronik.setMock('token', {
+            input: createdTokenId,
+            output: MOCK_CHRONIK_TOKEN_CALL,
+        });
+        mockedChronik.setMock('tx', {
+            input: createdTokenId,
+            output: MOCK_CHRONIK_GENESIS_TX_CALL,
+        });
+        mockedChronik.setTokenId(createdTokenId);
+        mockedChronik.setUtxosByTokenId(createdTokenId, {
+            utxos: [MOCK_UTXO_FOR_BALANCE],
+        });
+        // Add tx mock to mockedChronik
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064417055f05736401020a4eec59c8c9cb2e76bdbcfca5e2a9b1468e1dcf5ef5534febab436728463762b015f9564fa33cc870de0cfcafa7a906b663bc8ba58816c644121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000646a504c60534c5032000747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d0021031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d02010087930300000122020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188acf47c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid: createdTokenId },
+        });
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/create-token"
+            />,
+        );
+
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // On load, the SLP switch is selected by default
+        expect(screen.getByTitle('Create SLP')).toBeChecked();
+
+        // Select ALP
+        await user.click(screen.getByTitle('Create ALP'));
+
+        // Now ALP is checked, SLP is not
+        expect(screen.getByTitle('Create SLP')).not.toBeChecked();
+        expect(screen.getByTitle('Create ALP')).toBeChecked();
+
+        // The user enters valid token metadata
+        await user.type(
+            await screen.findByPlaceholderText('Enter a name for your token'),
+            'test token',
+        );
+
+        // The create button is disabled as the user has not entered a ticker
+        expect(
+            screen.getByRole('button', { name: /Create eToken/ }),
+        ).toHaveProperty('disabled', true);
+        expect(
+            screen.getByText('Token must have a name and a ticker'),
+        ).toBeInTheDocument();
+
+        await user.type(
+            await screen.findByPlaceholderText('Enter a ticker for your token'),
+            'TKE',
+        );
+
+        // The create button is now enabled as the user has not entered a ticker
+        expect(
+            screen.getByRole('button', { name: /Create eToken/ }),
+        ).toHaveProperty('disabled', false);
+
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter number of decimal places',
+            ),
+            '2',
+        );
+        await user.type(
+            await screen.findByPlaceholderText('Enter initial token supply'),
+            '600000',
+        );
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter a website for your token',
+            ),
+            'https://www.cashtab.com',
+        );
+
+        // Variable supply is default, so we do not need to hit the switch
+        expect(screen.getByTitle('Toggle Mint Baton')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // Click the Create eToken button
+        await user.click(screen.getByRole('button', { name: /Create eToken/ }));
+
+        // We see the formatted supply and variable label in the preview modal
+        expect(screen.getByText('600,000 (variable)')).toBeInTheDocument();
+
+        // Click OK on confirmation modal
+        await user.click(screen.getByText('OK'));
+
+        // Verify notification triggered
+        expect(await screen.findByText('Token created!')).toHaveAttribute(
+            'href',
+            `${explorer.blockExplorerUrl}/tx/${createdTokenId}`,
+        );
+
+        // We are sent to its token-action page
+        expect(await screen.findByTitle('Token Stats')).toBeInTheDocument();
     });
 });

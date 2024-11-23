@@ -90,7 +90,7 @@ import {
     SLP_1_PROTOCOL_NUMBER,
     SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER,
     SLP_1_NFT_PROTOCOL_NUMBER,
-} from 'slpv1';
+} from 'token-protocols/slpv1';
 import { CopyIconButton } from 'components/Common/Buttons';
 import appConfig from 'config/app';
 import { scriptOps } from 'ecash-agora';
@@ -603,11 +603,18 @@ const Tx = ({
         // Each entry will get a parsed token action row
         const entry = tokenEntries[i];
 
-        const { tokenId, tokenType, txType, burnSummary, actualBurnAmount } =
-            entry;
+        const {
+            tokenId,
+            tokenType,
+            txType,
+            burnSummary,
+            actualBurnAmount,
+            intentionalBurn,
+        } = entry;
         const { protocol, number } = tokenType;
         const isUnintentionalBurn =
             burnSummary !== '' && actualBurnAmount !== '0';
+        const isIntentionalBurn = intentionalBurn !== '0';
 
         // Every token entry has a token icon
         const tokenIcon = <TokenIcon size={32} tokenId={tokenId} />;
@@ -747,13 +754,14 @@ const Tx = ({
             ? 'Agora Sale'
             : txType === 'SEND' &&
               !isUnintentionalBurn &&
+              !isIntentionalBurn &&
               parsedTokenType !== 'NFT Collection' &&
               !isAgoraAdSetup &&
               !isAgoraPurchase
             ? xecTxType
             : txType === 'GENESIS' && parsedTokenType !== 'NFT'
             ? 'Created'
-            : isUnintentionalBurn || txType === 'BURN'
+            : isUnintentionalBurn || txType === 'BURN' || isIntentionalBurn
             ? 'Burned'
             : txType === 'MINT' ||
               (txType === 'GENESIS' && parsedTokenType === 'NFT')
@@ -779,9 +787,7 @@ const Tx = ({
                             <MintNftIcon />
                         )}
                         {txType === 'MINT' && <MintIcon />}
-                        {(isUnintentionalBurn || txType === 'BURN') && (
-                            <TokenBurnIcon />
-                        )}
+                        {renderedTxType === 'Burned' && <TokenBurnIcon />}
                         {tokenIcon}
                         <TokenInfoCol>
                             <TokenType>{parsedTokenType}</TokenType>
@@ -805,9 +811,9 @@ const Tx = ({
             // Special case for NFT1 Parent Fan-out tx
             // This can only be a number between 0 and 19, so we do not need BigInt
             let qtyOneInputsCreated = 0;
-            // For unexpected burns, we do not need to iterate over outputs
+            // For burns, we do not need to iterate over outputs
             // Enough info is available in the burnSummary key
-            if (isUnintentionalBurn) {
+            if (isUnintentionalBurn || isIntentionalBurn) {
                 amountTotal = BigInt(actualBurnAmount);
             } else {
                 for (const output of outputs) {
@@ -882,9 +888,7 @@ const Tx = ({
                         )}
                         {renderedTxType === 'Fan-out' && <FanOutIcon />}
                         {txType === 'MINT' && <MintIcon />}
-                        {(isUnintentionalBurn || txType === 'BURN') && (
-                            <TokenBurnIcon />
-                        )}
+                        {renderedTxType === 'Burned' && <TokenBurnIcon />}
                         {tokenIcon}
                         <TokenInfoCol>
                             <TokenType>{parsedTokenType}</TokenType>

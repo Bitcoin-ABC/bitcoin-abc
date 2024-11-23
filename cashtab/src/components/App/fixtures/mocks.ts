@@ -6,8 +6,8 @@ import { ScriptUtxo } from 'chronik-client';
 import {
     CashtabTx,
     CashtabWallet,
-    NonSlpUtxo,
-    SlpUtxo,
+    NonTokenUtxo,
+    TokenUtxo,
     LegacyPathInfo_Pre_2_55_0,
     CashtabWalletPaths,
 } from 'wallet';
@@ -917,8 +917,8 @@ interface LegacyPathInfo_Pre_2_9_0 {
 }
 interface LegacyCashtabWalletState_Pre_2_9_0 {
     balanceSats: number;
-    slpUtxos: SlpUtxo[];
-    nonSlpUtxos: NonSlpUtxo[];
+    slpUtxos: TokenUtxo[];
+    nonSlpUtxos: NonTokenUtxo[];
     tokens: LegacyTokenState[];
     parsedTxHistory: CashtabTx[];
 }
@@ -962,7 +962,7 @@ export const walletWithXecAndTokens_pre_2_9_0: LegacyCashtabWallet_Pre_2_9_0 = {
             {
                 ...walletWithXecAndTokens_pre_2_1_0.state.slpUtxos[0],
                 path: 1899,
-            } as SlpUtxo,
+            } as TokenUtxo,
         ],
         nonSlpUtxos: [
             {

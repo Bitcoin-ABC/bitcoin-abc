@@ -36,22 +36,29 @@ import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { isMobile, getUserLocale } from 'helpers';
 import {
-    getSendTokenInputs,
     getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
     getMintBatons,
     getMintTargetOutputs,
-    getMaxDecimalizedSlpQty,
     getNftChildGenesisInput,
     getNftParentFanInputs,
     getNftParentFanTxTargetOutputs,
     getNft,
     getNftChildSendTargetOutputs,
     getAgoraAdFuelSats,
-    TokenInputInfo,
     SUPPORTED_MINT_TYPES,
-    SlpTargetOutput,
-} from 'slpv1';
+} from 'token-protocols/slpv1';
+import {
+    getAlpSendTargetOutputs,
+    getAlpBurnTargetOutputs,
+    getAlpMintTargetOutputs,
+} from 'token-protocols/alp';
+import {
+    getSendTokenInputs,
+    TokenInputInfo,
+    TokenTargetOutput,
+    getMaxDecimalizedQty,
+} from 'token-protocols';
 import { sendXec } from 'transactions';
 import {
     hasEnoughToken,
@@ -60,7 +67,8 @@ import {
     toXec,
     undecimalizeTokenAmount,
     xecToNanoSatoshis,
-    SlpUtxo,
+    TokenUtxo,
+    SlpDecimals,
 } from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
@@ -115,6 +123,7 @@ import {
     getChildNftsFromParent,
     getTokenGenesisInfo,
 } from 'chronik';
+import { GenesisInfo, TokenType } from 'chronik-client';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     slpSend,
@@ -138,6 +147,7 @@ import Collection, {
     OneshotSwiper,
     OneshotOffer,
 } from 'components/Agora/Collection';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
 const Token: React.FC = () => {
     const {
@@ -175,38 +185,41 @@ const Token: React.FC = () => {
     const validTokenId = isValidTokenId(tokenId);
 
     const tokenBalance = tokens.get(tokenId);
-    const cachedInfo =
-        typeof cashtabCache.tokens.get(tokenId) !== 'undefined'
-            ? cashtabCache.tokens.get(tokenId)
-            : {
-                  tokenType: {
-                      number: 1,
-                      protocol: 'SLP',
-                      type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                  },
-                  genesisInfo: {
-                      tokenName: 'UNCACHED',
-                      tokenTicker: 'UNCACHED',
-                      decimals: 0,
-                  },
-                  genesisSupply: '0',
-                  genesisMintBatons: 0,
-              };
+    const cachedInfo: undefined | CashtabCachedTokenInfo =
+        cashtabCache.tokens.get(tokenId);
+    const cachedInfoLoaded = typeof cachedInfo !== 'undefined';
 
-    const { tokenType, genesisInfo, genesisSupply } = cachedInfo;
-    const { tokenName, tokenTicker, url, hash, decimals } = genesisInfo;
+    let tokenType: undefined | TokenType,
+        protocol: undefined | 'SLP' | 'ALP',
+        genesisInfo: undefined | GenesisInfo,
+        genesisSupply: undefined | string,
+        tokenName: undefined | string,
+        tokenTicker: undefined | string,
+        url: undefined | string,
+        hash: undefined | string,
+        decimals: undefined | number;
+
+    if (cachedInfoLoaded) {
+        ({ tokenType, genesisInfo, genesisSupply } = cachedInfo);
+        ({ protocol } = tokenType);
+        ({ tokenName, tokenTicker, url, hash, decimals } = genesisInfo);
+    }
 
     let isSupportedToken = false;
     let isNftParent = false;
     let isNftChild = false;
+    let isAlp = false;
 
     // Assign default values which will be presented for any token without explicit support
-    let renderedTokenType = `${tokenType.protocol} ${tokenType.number} ${tokenType.type}`;
+    let renderedTokenType =
+        typeof tokenType !== 'undefined'
+            ? `${protocol} ${tokenType.number} ${tokenType.type}`
+            : 'Loading token info...';
     let renderedTokenDescription =
         'This token is not yet supported by Cashtab.';
-    switch (tokenType.protocol) {
+    switch (protocol) {
         case 'SLP': {
-            switch (tokenType.type) {
+            switch (tokenType?.type) {
                 case 'SLP_TOKEN_TYPE_FUNGIBLE': {
                     renderedTokenType = 'SLP';
                     renderedTokenDescription =
@@ -239,7 +252,20 @@ const Token: React.FC = () => {
         }
         case 'ALP': {
             renderedTokenType = 'ALP';
-            // Leave renderedTokenDescription as default
+            switch (tokenType?.type) {
+                case 'ALP_TOKEN_TYPE_STANDARD': {
+                    renderedTokenType = 'ALP';
+                    renderedTokenDescription =
+                        'ALP v1 fungible token. Token may be of fixed or variable supply. If you have a mint baton, you can mint more of this token at any time. May have up to 9 decimal places. ALP tokens use EMPP technology, which supports more token actions compared to SLP and more complex combinations of token and app actions. ALP token txs may have up to 127 outputs, though current OP_RETURN size de facto limits a single tx to 29 outputs.';
+                    isSupportedToken = true;
+                    isAlp = true;
+                    break;
+                }
+                default: {
+                    // leave renderedTokenType and renderedTokenDescription as defaults
+                    break;
+                }
+            }
             break;
         }
         default: {
@@ -251,10 +277,10 @@ const Token: React.FC = () => {
     const [isBlacklisted, setIsBlacklisted] = useState<null | boolean>(null);
     const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
     const [nftTokenIds, setNftTokenIds] = useState<string[]>([]);
-    const [nftChildGenesisInput, setNftChildGenesisInput] = useState<SlpUtxo[]>(
-        [],
-    );
-    const [nftFanInputs, setNftFanInputs] = useState<SlpUtxo[]>([]);
+    const [nftChildGenesisInput, setNftChildGenesisInput] = useState<
+        TokenUtxo[]
+    >([]);
+    const [nftFanInputs, setNftFanInputs] = useState<TokenUtxo[]>([]);
     const [availableNftInputs, setAvailableNftInputs] = useState<number>(0);
     const [showTokenTypeInfo, setShowTokenTypeInfo] = useState<boolean>(false);
     const [showAgoraPartialInfo, setShowAgoraPartialInfo] =
@@ -406,7 +432,7 @@ const Token: React.FC = () => {
         // Decimalize token amount
         const minAcceptedTokens = decimalizeTokenAmount(
             minAcceptedTokenSatoshis.toString(),
-            decimals,
+            decimals as SlpDecimals,
         );
         // Get the unit price
         // Use BN because this could be less than 1 satoshi
@@ -527,7 +553,7 @@ const Token: React.FC = () => {
             }
             const circulatingSupply = decimalizeTokenAmount(
                 undecimalizedBigIntCirculatingSupply.toString(),
-                decimals,
+                decimals as SlpDecimals,
             );
 
             setUncachedTokenInfo({ circulatingSupply, mintBatons });
@@ -552,10 +578,14 @@ const Token: React.FC = () => {
     };
 
     useEffect(() => {
-        if (typeof tokenId === 'undefined') {
+        if (
+            typeof tokenId === 'undefined' ||
+            typeof tokenType === 'undefined' ||
+            !cachedInfoLoaded
+        ) {
             return;
         }
-        if (cachedInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+        if (tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
             // Check if we have its groupTokenId
             if (typeof cachedInfo.groupTokenId === 'undefined') {
                 // If this is an NFT and its groupTokenId is not cached
@@ -608,8 +638,9 @@ const Token: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!isSupportedToken) {
+        if (!isSupportedToken || typeof tokenType === 'undefined') {
             // Do nothing for unsupported tokens
+            // Do nothing if we haven't loaded the cached info yet
             return;
         }
         // This useEffect block works as a de-facto "on load" block,
@@ -674,7 +705,7 @@ const Token: React.FC = () => {
             getNfts(tokenId as string);
             // Get total amount of child genesis inputs
             const availableNftMintInputs = wallet.state.slpUtxos.filter(
-                (slpUtxo: SlpUtxo) =>
+                (slpUtxo: TokenUtxo) =>
                     slpUtxo?.token?.tokenId === tokenId &&
                     slpUtxo?.token?.amount === '1',
             );
@@ -720,8 +751,7 @@ const Token: React.FC = () => {
     };
 
     async function sendToken() {
-        // Track number of SLPA send transactions and
-        // SLPA token IDs
+        // GA event
         Event('SendToken.js', 'Send', tokenId);
 
         const { address, amount } = formData;
@@ -736,24 +766,29 @@ const Token: React.FC = () => {
         }
 
         try {
-            // Get input utxos for slpv1 send tx
+            // Get input utxos for slpv1 or ALP send tx
             const tokenInputInfo = !isNftChild
-                ? getSendTokenInputs(
+                ? // Note this works for ALP or SLP
+                  getSendTokenInputs(
                       wallet.state.slpUtxos,
                       tokenId as string,
                       amount,
-                      decimals,
+                      decimals as SlpDecimals,
                   )
                 : undefined;
 
             // Get targetOutputs for an slpv1 send tx
             const tokenSendTargetOutputs = isNftChild
                 ? getNftChildSendTargetOutputs(tokenId as string, cleanAddress)
+                : isAlp
+                ? getAlpSendTargetOutputs(
+                      tokenInputInfo as TokenInputInfo,
+                      cleanAddress,
+                  )
                 : getSlpSendTargetOutputs(
                       tokenInputInfo as TokenInputInfo,
                       cleanAddress,
                   );
-
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
@@ -857,7 +892,9 @@ const Token: React.FC = () => {
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             amount,
             tokenBalance,
-            decimals,
+            decimals as SlpDecimals,
+            // Component does not render until token info is defined
+            protocol as 'ALP' | 'SLP',
         );
 
         setSlpAgoraPartialTokenQtyError(
@@ -873,7 +910,9 @@ const Token: React.FC = () => {
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             amount,
             tokenBalance,
-            decimals,
+            decimals as SlpDecimals,
+            // Component does not render until token info is defined
+            protocol as 'ALP' | 'SLP',
         );
 
         setSlpAgoraPartialMinError(
@@ -889,7 +928,7 @@ const Token: React.FC = () => {
                     selectedCurrency,
                     fiatPrice,
                     amount,
-                    decimals,
+                    decimals as SlpDecimals,
                 ),
             );
         }
@@ -902,7 +941,9 @@ const Token: React.FC = () => {
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
             tokenBalance,
-            decimals,
+            decimals as SlpDecimals,
+            // Component does not render until token info is defined
+            protocol as 'ALP' | 'SLP',
         );
         setSendTokenAmountError(
             isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
@@ -1001,7 +1042,10 @@ const Token: React.FC = () => {
     };
 
     const onMaxMint = () => {
-        const maxMintAmount = getMaxDecimalizedSlpQty(decimals);
+        const maxMintAmount = getMaxDecimalizedQty(
+            decimals as SlpDecimals,
+            protocol as 'ALP' | 'SLP',
+        );
 
         handleMintAmountChange({
             target: {
@@ -1036,7 +1080,9 @@ const Token: React.FC = () => {
         const isValidBurnAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
             tokenBalance,
-            decimals,
+            decimals as SlpDecimals,
+            // Component does not render until token info is defined
+            protocol as 'ALP' | 'SLP',
         );
         setBurnTokenAmountError(
             isValidBurnAmountOrErrorMsg === true
@@ -1053,7 +1099,9 @@ const Token: React.FC = () => {
         const { name, value } = e.target;
         const isValidMintAmountOrErrorMsg = isValidTokenMintAmount(
             value,
-            decimals,
+            decimals as SlpDecimals,
+            // Component does not render until token info is defined
+            protocol as 'ALP' | 'SLP',
         );
         setMintAmountError(
             isValidMintAmountOrErrorMsg === true
@@ -1090,13 +1138,14 @@ const Token: React.FC = () => {
                 wallet.state.slpUtxos,
                 tokenId as string,
                 formData.burnAmount,
-                decimals,
+                decimals as SlpDecimals,
             );
 
             // Get targetOutputs for an slpv1 burn tx
             // this is NOT like an slpv1 send tx
-            const tokenBurnTargetOutputs =
-                getSlpBurnTargetOutputs(tokenInputInfo);
+            const tokenBurnTargetOutputs = isAlp
+                ? getAlpBurnTargetOutputs(tokenInputInfo)
+                : getSlpBurnTargetOutputs(tokenInputInfo);
 
             // Build and broadcast the tx
             const { response } = await sendXec(
@@ -1153,13 +1202,22 @@ const Token: React.FC = () => {
         try {
             // Get targetOutputs for an slpv1 burn tx
             // this is NOT like an slpv1 send tx
-            const mintTargetOutputs = getMintTargetOutputs(
-                tokenId as string,
-                decimals,
-                formData.mintAmount,
-                tokenTypeNumberFromUtxo as SUPPORTED_MINT_TYPES,
-            );
-
+            const mintTargetOutputs = isAlp
+                ? getAlpMintTargetOutputs(
+                      tokenId as string,
+                      BigInt(
+                          undecimalizeTokenAmount(
+                              formData.mintAmount,
+                              decimals as SlpDecimals,
+                          ),
+                      ),
+                  )
+                : getMintTargetOutputs(
+                      tokenId as string,
+                      decimals as SlpDecimals,
+                      formData.mintAmount,
+                      tokenTypeNumberFromUtxo as SUPPORTED_MINT_TYPES,
+                  );
             // We should not be able to get here without at least one mint baton,
             // as the mint switch would be disabled
             // Still, handle
@@ -1265,7 +1323,7 @@ const Token: React.FC = () => {
                 selectedCurrency,
                 fiatPrice,
                 slpAgoraPartialMin,
-                decimals,
+                decimals as SlpDecimals,
             ),
         );
 
@@ -1500,16 +1558,22 @@ const Token: React.FC = () => {
         // i.e. 0.000000001 token
         const priceNanoSatsPerTokenSatoshi =
             BigInt(priceNanoSatsPerDecimalizedToken) /
-            BigInt(Math.pow(10, decimals));
+            BigInt(Math.pow(10, decimals as SlpDecimals));
 
         // Convert formData list qty (a decimalized token qty) to BigInt token sats
         const userSuggestedOfferedTokens = BigInt(
-            undecimalizeTokenAmount(slpAgoraPartialTokenQty, decimals),
+            undecimalizeTokenAmount(
+                slpAgoraPartialTokenQty,
+                decimals as SlpDecimals,
+            ),
         );
 
         // Convert formData min buy qty to BigInt
         const minAcceptedTokens = BigInt(
-            undecimalizeTokenAmount(slpAgoraPartialMin, decimals),
+            undecimalizeTokenAmount(
+                slpAgoraPartialMin,
+                decimals as SlpDecimals,
+            ),
         );
 
         let agoraPartial;
@@ -1625,7 +1689,7 @@ const Token: React.FC = () => {
                 signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
             });
         }
-        const adSetupTargetOutputs: SlpTargetOutput[] = [
+        const adSetupTargetOutputs: TokenTargetOutput[] = [
             {
                 value: 0,
                 // We use sendAmounts here instead of sendAmounts[0] used in offerTargetOutputs
@@ -1651,7 +1715,7 @@ const Token: React.FC = () => {
         // Calculate decimalized total offered amount for notifications
         const decimalizedOfferedTokens = decimalizeTokenAmount(
             offeredTokens.toString(),
-            decimals,
+            decimals as SlpDecimals,
         );
 
         // Broadcast the ad setup tx
@@ -1984,7 +2048,7 @@ const Token: React.FC = () => {
                                                 previewedAgoraPartial
                                                     .offeredTokens()
                                                     .toString(),
-                                                decimals,
+                                                decimals as SlpDecimals,
                                             )}
                                         </AgoraPreviewCol>
                                     </AgoraPreviewRow>
@@ -1997,7 +2061,7 @@ const Token: React.FC = () => {
                                                 previewedAgoraPartial
                                                     .minAcceptedTokens()
                                                     .toString(),
-                                                decimals,
+                                                decimals as SlpDecimals,
                                             )}
                                         </AgoraPreviewCol>
                                     </AgoraPreviewRow>
@@ -2031,7 +2095,7 @@ const Token: React.FC = () => {
                     {renderedTokenType === 'NFT' ? (
                         <>
                             <NftNameTitle>{tokenName}</NftNameTitle>
-                            {typeof cachedInfo.groupTokenId !== 'undefined' &&
+                            {typeof cachedInfo?.groupTokenId !== 'undefined' &&
                                 typeof cashtabCache.tokens.get(
                                     cachedInfo.groupTokenId,
                                 ) !== 'undefined' && (
@@ -2126,15 +2190,15 @@ const Token: React.FC = () => {
                                     <TokenUrlCol>
                                         <a
                                             href={
-                                                url.startsWith('https://')
+                                                url?.startsWith('https://')
                                                     ? url
                                                     : `https://${url}`
                                             }
                                             target="_blank"
                                             rel="noreferrer"
                                         >
-                                            {`${url.slice(
-                                                url.startsWith('https://')
+                                            {`${url?.slice(
+                                                url?.startsWith('https://')
                                                     ? 8
                                                     : 0,
                                             )}`}
@@ -2145,13 +2209,15 @@ const Token: React.FC = () => {
                             <TokenStatsTableRow>
                                 <TokenStatsLabel>created:</TokenStatsLabel>
                                 <TokenStatsCol>
-                                    {typeof cachedInfo.block !== 'undefined'
+                                    {typeof cachedInfo?.block !== 'undefined'
                                         ? formatDate(
-                                              cachedInfo.block.timestamp,
+                                              cachedInfo.block.timestamp.toString(),
                                               navigator.language,
                                           )
                                         : formatDate(
-                                              cachedInfo.timeFirstSeen,
+                                              (
+                                                  cachedInfo?.timeFirstSeen as number
+                                              ).toString(),
                                               navigator.language,
                                           )}
                                 </TokenStatsCol>
@@ -2542,7 +2608,7 @@ const Token: React.FC = () => {
                                             )}
                                         </>
                                     ) : (
-                                        tokenType.type ===
+                                        tokenType?.type ===
                                             'SLP_TOKEN_TYPE_FUNGIBLE' && (
                                             <>
                                                 <SwitchHolder>
@@ -2784,7 +2850,7 @@ const Token: React.FC = () => {
                                                                 }
                                                                 placeholder="Amount"
                                                                 decimals={
-                                                                    decimals
+                                                                    decimals as SlpDecimals
                                                                 }
                                                                 handleInput={
                                                                     handleSlpAmountChange
@@ -3028,7 +3094,9 @@ const Token: React.FC = () => {
                                                                 burnTokenAmountError
                                                             }
                                                             placeholder="Burn Amount"
-                                                            decimals={decimals}
+                                                            decimals={
+                                                                decimals as SlpDecimals
+                                                            }
                                                             handleInput={
                                                                 handleEtokenBurnAmountChange
                                                             }
@@ -3082,7 +3150,9 @@ const Token: React.FC = () => {
                                                     value={formData.mintAmount}
                                                     error={mintAmountError}
                                                     placeholder="Mint Amount"
-                                                    decimals={decimals}
+                                                    decimals={
+                                                        decimals as SlpDecimals
+                                                    }
                                                     handleInput={
                                                         handleMintAmountChange
                                                     }

@@ -79,3 +79,16 @@ export const ButtonDisabledMsg = styled.div`
     color: ${props => props.theme.forms.error};
     word-break: break-all;
 `;
+export const TokenTypeDescription = styled.div`
+    display: flex;
+    gap: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+`;
+export const TokenInfoParagraph = styled.div`
+    display: flex;
+    width: 100%;
+    text-align: justify;
+    padding: 0 6px;
+    color: ${props => props.theme.contrast};
+`;

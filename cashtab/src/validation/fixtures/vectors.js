@@ -1868,6 +1868,7 @@ export default {
                 amount: '100',
                 tokenBalance: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -1875,6 +1876,7 @@ export default {
                 amount: '0',
                 tokenBalance: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'Amount must be greater than 0',
             },
             {
@@ -1882,6 +1884,7 @@ export default {
                 amount: '',
                 tokenBalance: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'Amount is required',
             },
             {
@@ -1889,6 +1892,7 @@ export default {
                 amount: 50,
                 tokenBalance: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'Amount must be a string',
             },
             {
@@ -1897,6 +1901,7 @@ export default {
                 amount: '95,1',
                 tokenBalance: '100',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -1905,6 +1910,7 @@ export default {
                 amount: '95.1.23',
                 tokenBalance: '100',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -1914,6 +1920,7 @@ export default {
                 amount: '95..23',
                 tokenBalance: '100',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -1922,6 +1929,7 @@ export default {
                 amount: '100.a',
                 tokenBalance: '100',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -1931,6 +1939,7 @@ export default {
                 amount: '100.1',
                 tokenBalance: '100',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned: 'Amount 100.1 exceeds balance of 100',
             },
             {
@@ -1939,6 +1948,7 @@ export default {
                 amount: '99.12',
                 tokenBalance: '100',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned: 'This token supports no more than 1 decimal place',
             },
             {
@@ -1947,6 +1957,7 @@ export default {
                 amount: '99.123',
                 tokenBalance: '100',
                 decimals: 2,
+                tokenProtocol: 'SLP',
                 returned: 'This token supports no more than 2 decimal places',
             },
             {
@@ -1955,6 +1966,7 @@ export default {
                 amount: '99.1',
                 tokenBalance: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'This token does not support decimal places',
             },
             {
@@ -1963,6 +1975,7 @@ export default {
                 amount: '99.123',
                 tokenBalance: '100',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -1971,6 +1984,7 @@ export default {
                 amount: '99.123456789',
                 tokenBalance: '100',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -1979,6 +1993,7 @@ export default {
                 amount: '99.',
                 tokenBalance: '100',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -1987,41 +2002,84 @@ export default {
                 amount: '99.',
                 tokenBalance: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
                 description:
-                    'We accept the max supported list, send, or burn amount for a 0-decimal token',
+                    'We accept the max supported list, send, or burn amount for a 0-decimal SLP token',
                 amount: '18446744073709551615',
                 tokenBalance: '19000000000000000000',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
                 description:
-                    'We accept the max supported list, send, or burn amount for a 9-decimal token',
+                    'We accept the max supported list, send, or burn amount for a 9-decimal SLP token',
                 amount: '18446744073.709551615',
                 tokenBalance: '19000000000',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
                 description:
-                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 0-decimal token',
-                amount: '18446744073709551616',
+                    'We accept the max supported list, send, or burn amount for a 0-decimal ALP token',
+                amount: '281474976710655',
                 tokenBalance: '19000000000000000000',
                 decimals: 0,
-                returned:
-                    'Amount 18446744073709551616 exceeds max supported SLP qty for this token in one tx (18446744073709551615)',
+                tokenProtocol: 'SLP',
+                returned: true,
             },
             {
                 description:
-                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 9-decimal token',
+                    'We accept the max supported list, send, or burn amount for a 9-decimal ALP token',
+                amount: '281474.976710655',
+                tokenBalance: '19000000000',
+                decimals: 9,
+                tokenProtocol: 'ALP',
+                returned: true,
+            },
+            {
+                description:
+                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 0-decimal SLP token',
+                amount: '18446744073709551616',
+                tokenBalance: '19000000000000000000',
+                decimals: 0,
+                tokenProtocol: 'SLP',
+                returned:
+                    'Amount 18446744073709551616 exceeds max supported qty for this token in one tx (18446744073709551615)',
+            },
+            {
+                description:
+                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 9-decimal SLP token',
                 amount: '18446744073.709551616',
                 tokenBalance: '19000000000',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned:
-                    'Amount 18446744073.709551616 exceeds max supported SLP qty for this token in one tx (18446744073.709551615)',
+                    'Amount 18446744073.709551616 exceeds max supported qty for this token in one tx (18446744073.709551615)',
+            },
+            {
+                description:
+                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 0-decimal ALP token',
+                amount: '281474976710656',
+                tokenBalance: '19000000000000000000',
+                decimals: 0,
+                tokenProtocol: 'ALP',
+                returned:
+                    'Amount 281474976710656 exceeds max supported qty for this token in one tx (281474976710655)',
+            },
+            {
+                description:
+                    'We reject one token satoshi more less than the max supported list, send, or burn amount for a 9-decimal ALP token',
+                amount: '281474.976710656',
+                tokenBalance: '19000000000',
+                decimals: 9,
+                tokenProtocol: 'ALP',
+                returned:
+                    'Amount 281474.976710656 exceeds max supported qty for this token in one tx (281474.976710655)',
             },
         ],
     },
@@ -2032,24 +2090,28 @@ export default {
                     'A decimalized string with no decimals is valid for a token with no decimals',
                 amount: '100',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
                 description: '0 is rejected',
                 amount: '0',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'Amount must be greater than 0',
             },
             {
                 description: 'Blank input is rejected',
                 amount: '',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'Amount is required',
             },
             {
                 description: 'Rejects non-string input',
                 amount: 50,
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'Amount must be a string',
             },
             {
@@ -2057,6 +2119,7 @@ export default {
                     'Rejects input including a decimal marker other than "."',
                 amount: '95,1',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -2064,6 +2127,7 @@ export default {
                 description: 'Rejects input with multiple decimal points',
                 amount: '95.1.23',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -2072,6 +2136,7 @@ export default {
                     'Rejects input multiple consecutive decimal points',
                 amount: '95..23',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -2079,6 +2144,7 @@ export default {
                 description: 'Rejects input containing non-decimal characters',
                 amount: '100.a',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
             },
@@ -2087,6 +2153,7 @@ export default {
                     'We get non-plural error msg if token supports only 1 decimal place',
                 amount: '99.12',
                 decimals: 1,
+                tokenProtocol: 'SLP',
                 returned: 'This token supports no more than 1 decimal place',
             },
             {
@@ -2094,6 +2161,7 @@ export default {
                     'We cannot specify more decimal places than supported by the token',
                 amount: '99.123',
                 decimals: 2,
+                tokenProtocol: 'SLP',
                 returned: 'This token supports no more than 2 decimal places',
             },
             {
@@ -2101,6 +2169,7 @@ export default {
                     'We cannot have decimals for a token supporting 0 decimals',
                 amount: '99.1',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: 'This token does not support decimal places',
             },
             {
@@ -2108,6 +2177,7 @@ export default {
                     'We can specify fewer decimal places than supported by the token',
                 amount: '99.123',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -2115,6 +2185,7 @@ export default {
                     'We can specify the exact decimal places supported by the token',
                 amount: '99.123456789',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -2122,6 +2193,7 @@ export default {
                     'We can include a decimal point at the end of the string and no decimal places',
                 amount: '99.',
                 decimals: 9,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
@@ -2129,21 +2201,43 @@ export default {
                     'We can include a decimal point at the end of the string and no decimal places, even if the token supports 0 decimals',
                 amount: '99.',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
-                description: 'We accept the max mint amount',
+                description: 'We accept the max mint amount for SLP',
                 amount: '18446744073709551615',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned: true,
             },
             {
                 description:
-                    'We reject one token satoshi more than the max mint amount',
+                    'We reject one token satoshi more than the max mint amount for SLP',
                 amount: '18446744073709551616',
                 decimals: 0,
+                tokenProtocol: 'SLP',
                 returned:
                     'Amount 18446744073709551616 exceeds max mint amount for this token (18446744073709551615)',
+            },
+            // Note this is really the max mint amount for 1 output
+            // ALP could do higher qtys
+            // But Cashtab is currently limited to one output
+            {
+                description: 'We accept the max mint amount for ALP',
+                amount: '281474976710655',
+                decimals: 0,
+                tokenProtocol: 'ALP',
+                returned: true,
+            },
+            {
+                description:
+                    'We reject one token satoshi more than the max mint amount for ALP',
+                amount: '281474976710656',
+                decimals: 0,
+                tokenProtocol: 'ALP',
+                returned:
+                    'Amount 281474976710656 exceeds max mint amount for this token (281474976710655)',
             },
         ],
     },

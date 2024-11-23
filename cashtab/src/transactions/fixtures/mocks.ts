@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { cashtabWalletToJSON, cashtabWalletFromJSON } from 'helpers';
-import { CashtabPathInfo, CashtabWallet, CashtabWalletPaths } from 'wallet';
+import { CashtabWallet, CashtabWalletPaths } from 'wallet';
 import { fromHex } from 'ecash-lib';
 import { XecTxType } from 'chronik';
 

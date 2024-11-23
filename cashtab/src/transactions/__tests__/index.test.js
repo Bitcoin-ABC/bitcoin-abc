@@ -10,10 +10,10 @@ import {
     isFinalizedInput,
 } from 'transactions';
 import {
-    getSendTokenInputs,
     getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
-} from 'slpv1';
+} from 'token-protocols/slpv1';
+import { getSendTokenInputs } from 'token-protocols';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import vectors, {
     sendXecVectors,
@@ -21,7 +21,7 @@ import vectors, {
     ignoreUnspendableUtxosVectors,
     sendSlp,
 } from '../fixtures/vectors';
-import slpv1Vectors from 'slpv1/fixtures/vectors';
+import slpv1Vectors from 'token-protocols/slpv1/fixtures/vectors';
 import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
 import { Ecc, initWasm, Script, fromHex } from 'ecash-lib';
 

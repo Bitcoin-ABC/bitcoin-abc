@@ -6,8 +6,6 @@ import {
     getSlpGenesisTargetOutput,
     getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
-    getAllSendUtxos,
-    getSendTokenInputs,
     getMintBatons,
     getMintTargetOutputs,
     getMaxDecimalizedSlpQty,
@@ -21,8 +19,10 @@ import {
     getNftChildSendTargetOutputs,
     isTokenDustChangeOutput,
     getAgoraAdFuelSats,
-} from 'slpv1';
+} from 'token-protocols/slpv1';
+import { getSendTokenInputs } from 'token-protocols';
 import vectors from '../fixtures/vectors';
+import tokenProtocolsVectors from '../../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS, MOCK_TOKEN_ID } from '../fixtures/vectors';
 import {
     AgoraOneshot,
@@ -134,40 +134,12 @@ describe('slpv1 methods', () => {
             });
         });
     });
-    describe('Get all slpv1 SEND utxos from a mixed utxo set from ChronikClient', () => {
-        const { expectedReturns } = vectors.getAllSendUtxos;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, utxos, tokenId, tokenUtxos } = expectedReturn;
-            it(`getAllSendUtxos: ${description}`, () => {
-                expect(getAllSendUtxos(utxos, tokenId)).toStrictEqual(
-                    tokenUtxos,
-                );
-            });
-        });
-    });
     describe('Get slpv1 send token inputs and outputs', () => {
-        const { expectedReturns, expectedErrors } = vectors.getSendTokenInputs;
+        const { expectedReturns, expectedErrors } =
+            tokenProtocolsVectors.getSendTokenInputs;
         expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                allSendUtxos,
-                sendQty,
-                tokenId,
-                decimals,
-                tokenInputs,
-                sendAmounts,
-                targetOutputs,
-            } = expectedReturn;
-            it(`getSendTokenInputs: ${description}`, () => {
-                const calcTokenInputs = getSendTokenInputs(
-                    allSendUtxos,
-                    tokenId,
-                    sendQty,
-                    decimals,
-                );
-                expect(calcTokenInputs.tokenInputs).toStrictEqual(tokenInputs);
-                expect(calcTokenInputs.sendAmounts).toStrictEqual(sendAmounts);
-            });
+            const { description, tokenInputs, sendAmounts, targetOutputs } =
+                expectedReturn;
             it(`getSlpSendTargetOutputs: ${description}`, () => {
                 expect(
                     getSlpSendTargetOutputs(

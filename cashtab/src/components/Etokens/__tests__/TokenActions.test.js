@@ -36,6 +36,8 @@ import { cashtabCacheToJSON } from 'helpers';
 import { Ecc, initWasm } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { Agora } from 'ecash-agora';
+import { token as tokenConfig } from 'config/token';
+import { explorer } from 'config/explorer';
 
 describe('<Token /> available actions rendered', () => {
     let ecc;
@@ -1331,7 +1333,9 @@ describe('<Token /> available actions rendered', () => {
         );
 
         expect(
-            screen.getByText(`This token is not yet supported by Cashtab.`),
+            screen.getByText(
+                'ALP v1 fungible token. Token may be of fixed or variable supply. If you have a mint baton, you can mint more of this token at any time. May have up to 9 decimal places. ALP tokens use EMPP technology, which supports more token actions compared to SLP and more complex combinations of token and app actions. ALP token txs may have up to 127 outputs, though current OP_RETURN size de facto limits a single tx to 29 outputs.',
+            ),
         ).toBeInTheDocument();
 
         // Close out of the info modal
@@ -1340,7 +1344,450 @@ describe('<Token /> available actions rendered', () => {
         // The supply is correctly rendered
         expect(screen.getByText('111,367.0000 (var.)')).toBeInTheDocument();
 
-        // No token actions are available
-        expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // We can send, which is also the default action
+        expect(screen.getByTitle('Toggle Send')).toBeEnabled();
+        // We can burn
+        expect(screen.getByTitle('Toggle Burn')).toBeInTheDocument();
+        // Because we do not have the mint baton for this token, the Mint action is NOT available
+        expect(screen.queryByTitle('Toggle Mint')).not.toBeInTheDocument();
+    });
+    it('We can send an ALP token', async () => {
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // It's not listed yet
+        mockedAgora.setActiveOffersByTokenId(alpMocks.tokenId, []);
+
+        // ALP send
+        const hex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441999a894cafbab21d590da6ce07e572935144c480bce48c4df3efb74e9ee2fd3a4de61a40f93c28775c7b135a6a9ccba7d880bd5776d289b6c8ae5752afee24b34121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441f6e2b2a66d8676854e281f5af375bc56d4f359cb4be1e178d330720384da79a5216bd7a132bfd44654835c95a8d81b099b03e953d4a720187255ef1c9a1b646e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003a6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000022020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac18310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            '33313eaf3365d9bf440645c5fffa8ed91681d1e1464afe598a564cdc76855c04';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        // Mock NOT blacklisted
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${alpMocks.tokenId}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: false }),
+            });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                route={`/send-token/${alpMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = alpMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Wait for supply and actions to load
+        // The supply is correctly rendered
+        expect(
+            await screen.findByText('111,367.0000 (var.)'),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // Wait for address input to render
+        expect(
+            await screen.findByPlaceholderText('Address'),
+        ).toBeInTheDocument();
+
+        // On load, default action for ALP is to send it
+        const sendActionSwitch = screen.getByTitle('Toggle Send');
+        await waitFor(() =>
+            expect(sendActionSwitch).toHaveProperty('checked', true),
+        );
+
+        // We see an Address input
+        const addrInput = screen.getByPlaceholderText('Address');
+        expect(addrInput).toBeInTheDocument();
+
+        // Send button is disabled before address and amount entry
+        const sendButton = screen.getByRole('button', {
+            name: /Send tCRD/,
+        });
+        expect(sendButton).toBeDisabled();
+
+        // We can enter an address
+        await userEvent.type(
+            addrInput,
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        );
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const amountInput = '1';
+        await userEvent.type(amountInputEl, amountInput);
+
+        // Now the button is enabled
+        expect(sendButton).toBeEnabled();
+
+        // We can send an ALP token
+        await userEvent.click(sendButton);
+
+        const sendTokenSuccessNotification = await screen.findByText(
+            'eToken sent',
+        );
+        expect(sendTokenSuccessNotification).toHaveAttribute(
+            'href',
+            `${explorer.blockExplorerUrl}/tx/${txid}`,
+        );
+    });
+    it('We can burn an ALP token with change', async () => {
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // It's not listed yet
+        mockedAgora.setActiveOffersByTokenId(alpMocks.tokenId, []);
+
+        // ALP burn
+        const hex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c250100000064416f667f359f04e273d524eac5fdaede0bfaf483daaf74f2ab5ba849c3a126b36b059003ef22b647d5265b74938e50c40505c1ad56474d0af2930192994011b9c84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441ed0c24a83ec9137bc2cc367f674b1932de280f3bc2fbfd9cd70b840e61ccf5fa272e714ba06d3060574df97bc135acae2367d00fdd67ce2bbf347193a871348c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000656a5030534c503200044255524e49884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c10270000000031534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c01301b0f00000022020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac28330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            'f71293a94bd444c0b82ce6a6a8a1d2ae182f6a848cd2382bb6ca496955184fdf';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        // Mock NOT blacklisted
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${alpMocks.tokenId}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: false }),
+            });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                route={`/send-token/${alpMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = alpMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Wait for supply and actions to load
+        // The supply is correctly rendered
+        expect(
+            await screen.findByText('111,367.0000 (var.)'),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // Wait for address input to render
+        expect(
+            await screen.findByPlaceholderText('Address'),
+        ).toBeInTheDocument();
+
+        // On load, default action for ALP is to send it
+        const sendActionSwitch = screen.getByTitle('Toggle Send');
+        await waitFor(() =>
+            expect(sendActionSwitch).toHaveProperty('checked', true),
+        );
+
+        // Select burn
+        await userEvent.click(screen.getByTitle('Toggle Burn'));
+
+        await userEvent.type(screen.getByPlaceholderText('Burn Amount'), '1');
+
+        // Click the Burn button
+        // Note we button title is the token ticker
+        await userEvent.click(
+            await screen.findByRole('button', { name: /Burn tCRD/ }),
+        );
+
+        // We see a modal and enter the correct confirmation msg
+        await userEvent.type(
+            screen.getByPlaceholderText(`Type "burn tCRD" to confirm`),
+            'burn tCRD',
+        );
+
+        // Click the Confirm button
+        await userEvent.click(screen.getByRole('button', { name: /OK/ }));
+
+        const burnTokenSuccessNotification = await screen.findByText(
+            '🔥 Burn successful',
+        );
+        await waitFor(() =>
+            expect(burnTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('We can burn an ALP token without change', async () => {
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // It's not listed yet
+        mockedAgora.setActiveOffersByTokenId(alpMocks.tokenId, []);
+
+        // ALP burn all
+        const hex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c250100000064413919d2894e681586f285af178ef2c8d86b2f008e31519b1592c76cae7bee17eb4bb1558db35b225a15a2ba1c1f3d86564e12adfa0d5c012427f096398cdff20e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644126a0f23966db5ba3212e4d5c545a186d407af4d110335e521c867e63549ade8d25da8a911343d9bf9275bbb58255cd445a1b3fc14ae35a89b8964cfbe47299aa4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000336a5030534c503200044255524e49884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c40420f00000022020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac8c330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            'f413a14acc391c2541f0dea477cf7ee07cf6256bc3b201d6b276272f2fdda407';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        // Mock NOT blacklisted
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${alpMocks.tokenId}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: false }),
+            });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                route={`/send-token/${alpMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = alpMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Wait for supply and actions to load
+        // The supply is correctly rendered
+        expect(
+            await screen.findByText('111,367.0000 (var.)'),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // Wait for address input to render
+        expect(
+            await screen.findByPlaceholderText('Address'),
+        ).toBeInTheDocument();
+
+        // On load, default action for ALP is to send it
+        const sendActionSwitch = screen.getByTitle('Toggle Send');
+        await waitFor(() =>
+            expect(sendActionSwitch).toHaveProperty('checked', true),
+        );
+
+        // Select burn
+        await userEvent.click(screen.getByTitle('Toggle Burn'));
+
+        // Hit max for max burn
+        await userEvent.click(screen.getByRole('button', { name: /max/ }));
+
+        // Max is input
+        const thisWalletAlpBalance = 100;
+        expect(screen.getByPlaceholderText('Burn Amount')).toHaveValue(
+            thisWalletAlpBalance,
+        );
+
+        // Click the Burn button
+        // Note we button title is the token ticker
+        await userEvent.click(
+            await screen.findByRole('button', { name: /Burn tCRD/ }),
+        );
+
+        // We see a modal and enter the correct confirmation msg
+        await userEvent.type(
+            screen.getByPlaceholderText(`Type "burn tCRD" to confirm`),
+            'burn tCRD',
+        );
+
+        // Click the Confirm button
+        await userEvent.click(screen.getByRole('button', { name: /OK/ }));
+
+        const burnTokenSuccessNotification = await screen.findByText(
+            '🔥 Burn successful',
+        );
+        await waitFor(() =>
+            expect(burnTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('We can mint max one-output ALP token qty', async () => {
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // It's not listed yet
+        mockedAgora.setActiveOffersByTokenId(alpMocks.tokenId, []);
+
+        // New mocked chronik since we change the wallet to include a mint baton for this token
+        const walletWithAlpMintBaton = {
+            ...tokenTestWallet,
+            state: {
+                ...tokenTestWallet.state,
+                slpUtxos: [
+                    ...tokenTestWallet.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: '250c93fd6bc2f1853a41d2fd1f5754a92f79f952f10ab038401be1600d5cbb88',
+                            outIdx: 2,
+                        },
+                        blockHeight: 836452,
+                        isCoinbase: false,
+                        value: 546,
+                        isFinal: true,
+                        token: {
+                            tokenId:
+                                '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            amount: '0',
+                            isMintBaton: true,
+                        },
+                        path: 1899,
+                    },
+                ],
+            },
+        };
+        const mintAlpMockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpMintBaton,
+            localforage,
+        );
+
+        // Mock cache info
+        mintAlpMockedChronik.setMock('token', {
+            input: alpMocks.tokenId,
+            output: alpMocks.token,
+        });
+        mintAlpMockedChronik.setMock('tx', {
+            input: alpMocks.tokenId,
+            output: alpMocks.tx,
+        });
+        mintAlpMockedChronik.setTokenId(alpMocks.tokenId);
+        mintAlpMockedChronik.setUtxosByTokenId(alpMocks.tokenId, {
+            tokenId: alpMocks.tokenId,
+            utxos: alpMocks.utxos,
+        });
+        // Set empty tx history
+        mintAlpMockedChronik.setTxHistoryByTokenId(alpMocks.tokenId, []);
+
+        // ALP mint
+        const hex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25020000006441acdadb019c561b7bfa761695503eb1250d3ae1f34e66eeb3c4c8fb561b4ec95291bde678871451316a8f0472922d25936dd341eb90eb6bb3ccde98b00a2138da4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fc7a554a708c3e6a2fc72e7c96871521678d0a36e336a599b39eac6a36f4ecedcfd2a728c8e639b5946fde677f1afa9e31468531476dd66fce1adfc760e7e2ff4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000356a5032534c503200044d494e5449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c01ffffffffffff0122020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            '28c733455a50be334948600bcdf0817610b0321ceba3da52c7c7ffec995320f0';
+        mintAlpMockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        // Mock NOT blacklisted
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${alpMocks.tokenId}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: false }),
+            });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mintAlpMockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                route={`/send-token/${alpMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = alpMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Wait for supply and actions to load
+        // The supply is correctly rendered
+        expect(
+            await screen.findByText('111,367.0000 (var.)'),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // Wait for address input to render
+        expect(
+            await screen.findByPlaceholderText('Address'),
+        ).toBeInTheDocument();
+
+        // On load, default action for ALP is to send it
+        const sendActionSwitch = screen.getByTitle('Toggle Send');
+        await waitFor(() =>
+            expect(sendActionSwitch).toHaveProperty('checked', true),
+        );
+
+        // Select mint
+        await userEvent.click(screen.getByTitle('Toggle Mint'));
+
+        // Max qty
+        await userEvent.click(screen.getByRole('button', { name: /max/ }));
+
+        // Max is input
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+        const maxMintQty = 28147497671.0655;
+
+        expect(screen.getByPlaceholderText('Mint Amount')).toHaveValue(
+            maxMintQty,
+        );
+
+        // Click the Mint button
+        // Note we button title is the token ticker
+        await userEvent.click(
+            await screen.findByRole('button', { name: /Mint tCRD/ }),
+        );
+
+        const successNotification = await screen.findByText(
+            '⚗️ Minted 28147497671.0655 tCRD',
+        );
+        await waitFor(() =>
+            expect(successNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
     });
 });

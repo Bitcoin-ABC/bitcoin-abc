@@ -13,7 +13,8 @@ import {
     getTokenDocumentUrlError,
     isProbablyNotAScam,
 } from 'validation';
-import PrimaryButton from 'components/Common/Buttons';
+import PrimaryButton, { IconButton } from 'components/Common/Buttons';
+import { QuestionIcon } from 'components/Common/CustomIcons';
 import {
     Input,
     SendTokenInput,
@@ -35,7 +36,8 @@ import {
     getMaxDecimalizedSlpQty,
     getNftParentGenesisTargetOutputs,
     getNftChildGenesisTargetOutputs,
-} from 'slpv1';
+} from 'token-protocols/slpv1';
+import { getAlpGenesisTargetOutputs } from 'token-protocols/alp';
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
@@ -43,7 +45,7 @@ import { getWalletState } from 'utils/cashMethods';
 import {
     hasEnoughToken,
     undecimalizeTokenAmount,
-    SlpUtxo,
+    TokenUtxo,
     SlpDecimals,
 } from 'wallet';
 import { toast } from 'react-toastify';
@@ -65,13 +67,16 @@ import {
     SummaryRow,
     TokenParam,
     ButtonDisabledMsg,
+    TokenInfoParagraph,
+    TokenTypeDescription,
 } from 'components/Etokens/CreateTokenForm/styles';
 import { sha256, Message } from 'js-sha256';
 import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
+import { toHex } from 'ecash-lib';
 
 interface CreateTokenFormProps {
-    nftChildGenesisInput?: SlpUtxo[];
+    nftChildGenesisInput?: TokenUtxo[];
 }
 const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
     nftChildGenesisInput,
@@ -155,8 +160,26 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
     const [formDataErrors, setFormDataErrors] =
         useState<CreateTokenFormFormDataErrors>(initialFormDataErrors);
     // This switch is form data, but since it is a bool and not a string, keep it with its own state field
-    const [createWithMintBatonAtIndexTwo, setCreateWithMintBatonAtIndexTwo] =
+    const [createWithMintBaton, setCreateWithMintBaton] =
         useState<boolean>(true);
+
+    interface TokenTypeSwitches {
+        slp: boolean;
+        alp: boolean;
+    }
+    const switchesOff: TokenTypeSwitches = {
+        slp: false,
+        alp: false,
+    };
+    // Default SLP
+    const [tokenTypeSwitches, setTokenTypeSwitches] =
+        useState<TokenTypeSwitches>({
+            ...switchesOff,
+            slp: true,
+        });
+
+    const [showTypeInfoSlp, setShowTypeInfoSlp] = useState<boolean>(false);
+    const [showTypeInfoAlp, setShowTypeInfoAlp] = useState<boolean>(false);
 
     // Note: We do not include a UI input for token document hash
     // Questionable value to casual users and requires significant complication
@@ -166,7 +189,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
         if (location?.pathname?.includes('create-nft-collection')) {
             setCreateNftCollection(true);
         }
-        // TODO handle creating other token types via route as well
     }, []);
 
     useEffect(() => {
@@ -590,7 +612,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
             decimals: isNftMint ? NFT_DECIMALS : parseInt(formData.decimals),
         };
 
-        // Create type 1 slp token per specified user data
+        // Create token per specified user data
         try {
             // Get target outputs for an SLP v1 genesis tx
             const targetOutputs = createNftCollection
@@ -602,11 +624,12 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                               parseInt(formData.decimals) as SlpDecimals,
                           ),
                       ),
-                      createWithMintBatonAtIndexTwo ? 2 : undefined,
+                      createWithMintBaton ? 2 : undefined,
                   )
                 : isNftMint
                 ? getNftChildGenesisTargetOutputs(genesisInfo)
-                : getSlpGenesisTargetOutput(
+                : tokenTypeSwitches.slp
+                ? getSlpGenesisTargetOutput(
                       genesisInfo,
                       BigInt(
                           undecimalizeTokenAmount(
@@ -614,7 +637,24 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                               parseInt(formData.decimals) as SlpDecimals,
                           ),
                       ),
-                      createWithMintBatonAtIndexTwo ? 2 : undefined,
+                      createWithMintBaton ? 2 : undefined,
+                  )
+                : getAlpGenesisTargetOutputs(
+                      {
+                          ...genesisInfo,
+                          // Set as Cashtab active wallet public key
+                          authPubkey: toHex(
+                              wallet.paths.get(appConfig.derivationPath).pk,
+                          ),
+                          // Note we are omitting the "data" key for now
+                      },
+                      BigInt(
+                          undecimalizeTokenAmount(
+                              formData.genesisQty,
+                              parseInt(formData.decimals) as SlpDecimals,
+                          ),
+                      ),
+                      createWithMintBaton,
                   );
             const { response } = isNftMint
                 ? await sendXec(
@@ -716,6 +756,14 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     height={260}
                 >
                     <TokenCreationSummaryTable>
+                        {!createNftCollection && (
+                            <SummaryRow>
+                                <TokenParamLabel>Token Type:</TokenParamLabel>
+                                <TokenParam>
+                                    {tokenTypeSwitches.slp ? 'SLP' : 'ALP'}
+                                </TokenParam>
+                            </SummaryRow>
+                        )}
                         <SummaryRow>
                             <TokenParamLabel>Name:</TokenParamLabel>
                             <TokenParam>{formData.name}</TokenParam>
@@ -740,7 +788,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                                             formData.genesisQty,
                                             userLocale,
                                         )}
-                                        {createWithMintBatonAtIndexTwo
+                                        {createWithMintBaton
                                             ? ' (variable)'
                                             : ' (fixed)'}
                                     </TokenParam>
@@ -771,8 +819,109 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     Create {createNftCollection ? 'NFT Collection' : 'Token'}
                 </CreateTokenTitle>
             )}
+            {showTypeInfoSlp && (
+                <Modal
+                    title={`SLP Tokens`}
+                    height={300}
+                    handleOk={() => setShowTypeInfoSlp(false)}
+                    handleCancel={() => setShowTypeInfoSlp(false)}
+                >
+                    <TokenTypeDescription>
+                        <TokenInfoParagraph>
+                            SLP v1 fungible token. Token may be of fixed or
+                            variable supply.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
+                            If you have a mint baton, you can mint more of this
+                            token at any time.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
+                            May have up to 9 decimal places. SLP txs are limited
+                            to 19 outputs.
+                        </TokenInfoParagraph>
+                    </TokenTypeDescription>
+                </Modal>
+            )}
+            {showTypeInfoAlp && (
+                <Modal
+                    title={`ALP Tokens`}
+                    height={475}
+                    handleOk={() => setShowTypeInfoAlp(false)}
+                    handleCancel={() => setShowTypeInfoAlp(false)}
+                >
+                    <TokenTypeDescription>
+                        <TokenInfoParagraph>
+                            ALP v1 fungible token. Token may be of fixed or
+                            variable supply.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
+                            If you have a mint baton, you can mint more of this
+                            token at any time.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
+                            May have up to 9 decimal places.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
+                            ALP tokens use EMPP technology, which supports more
+                            token actions compared to SLP and more complex
+                            combinations of token and app actions.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
+                            ALP token txs may have up to 127 outputs, though
+                            current OP_RETURN size de facto limits a single tx
+                            to 29 outputs.
+                        </TokenInfoParagraph>
+                    </TokenTypeDescription>
+                </Modal>
+            )}
 
             <Form>
+                {!createNftCollection && (
+                    <>
+                        <SwitchRow>
+                            <Switch
+                                name="Create SLP"
+                                on=""
+                                off=""
+                                checked={tokenTypeSwitches.slp}
+                                handleToggle={() => {
+                                    // We can only select one token type at a time
+                                    setTokenTypeSwitches({
+                                        slp: !tokenTypeSwitches.slp,
+                                        alp: !tokenTypeSwitches.alp,
+                                    });
+                                }}
+                            />
+                            <SwitchLabel>SLP</SwitchLabel>
+                            <IconButton
+                                name={`Click for more info about SLP token type`}
+                                icon={<QuestionIcon />}
+                                onClick={() => setShowTypeInfoSlp(true)}
+                            />
+                        </SwitchRow>
+                        <SwitchRow>
+                            <Switch
+                                name="Create ALP"
+                                on="🏔"
+                                off="🏔"
+                                checked={tokenTypeSwitches.alp}
+                                handleToggle={() => {
+                                    // We can only select one token type at a time
+                                    setTokenTypeSwitches({
+                                        slp: !tokenTypeSwitches.slp,
+                                        alp: !tokenTypeSwitches.alp,
+                                    });
+                                }}
+                            />
+                            <SwitchLabel>ALP</SwitchLabel>
+                            <IconButton
+                                name={`Click for more info about ALP token type`}
+                                icon={<QuestionIcon />}
+                                onClick={() => setShowTypeInfoAlp(true)}
+                            />
+                        </SwitchRow>
+                    </>
+                )}
                 <Input
                     placeholder={`Enter a name for your ${
                         createNftCollection
@@ -858,11 +1007,9 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                             off="Fixed"
                             width={110}
                             right={74}
-                            checked={createWithMintBatonAtIndexTwo}
+                            checked={createWithMintBaton}
                             handleToggle={() => {
-                                setCreateWithMintBatonAtIndexTwo(
-                                    !createWithMintBatonAtIndexTwo,
-                                );
+                                setCreateWithMintBaton(!createWithMintBaton);
                             }}
                         />
                         <SwitchLabel>

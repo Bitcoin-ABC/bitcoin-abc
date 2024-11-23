@@ -473,14 +473,21 @@ describe('Cashtab validation functions', () => {
     describe('Determines if a user input send or burn token amount is valid', () => {
         const { expectedReturns } = vectors.isValidTokenSendOrBurnAmount;
         expectedReturns.forEach(expectedReturn => {
-            const { description, amount, tokenBalance, decimals, returned } =
-                expectedReturn;
+            const {
+                description,
+                amount,
+                tokenBalance,
+                decimals,
+                tokenProtocol,
+                returned,
+            } = expectedReturn;
             it(`isValidTokenSendOrBurnAmount: ${description}`, () => {
                 expect(
                     isValidTokenSendOrBurnAmount(
                         amount,
                         tokenBalance,
                         decimals,
+                        tokenProtocol,
                     ),
                 ).toBe(returned);
             });
@@ -489,9 +496,12 @@ describe('Cashtab validation functions', () => {
     describe('Determines if a user input token mint amount is valid', () => {
         const { expectedReturns } = vectors.isValidTokenMintAmount;
         expectedReturns.forEach(expectedReturn => {
-            const { description, amount, decimals, returned } = expectedReturn;
+            const { description, amount, decimals, tokenProtocol, returned } =
+                expectedReturn;
             it(`isValidTokenMintAmount: ${description}`, () => {
-                expect(isValidTokenMintAmount(amount, decimals)).toBe(returned);
+                expect(
+                    isValidTokenMintAmount(amount, decimals, tokenProtocol),
+                ).toBe(returned);
             });
         });
     });

@@ -26,7 +26,7 @@ import { getAliasByteCount } from 'opreturn';
 import { CashtabWallet, fiatToSatoshis } from 'wallet';
 import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
-import { getMaxDecimalizedSlpQty } from 'slpv1';
+import { getMaxDecimalizedQty } from 'token-protocols';
 import { CashtabContact } from 'config/CashtabState';
 
 interface Sideshift {
@@ -1014,11 +1014,13 @@ export const isValidCashtabWallet = (
  * @param amount decimalized token string of send or burn amount, from user input, e.g. 100.123
  * @param tokenBalance decimalized token string, e.g. 100.123
  * @param decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
+ * @param isAlp
  */
 export const isValidTokenSendOrBurnAmount = (
     amount: string,
     tokenBalance: string,
     decimals: SlpDecimals,
+    tokenProtocol: 'SLP' | 'ALP',
 ): string | true => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
@@ -1042,10 +1044,10 @@ export const isValidTokenSendOrBurnAmount = (
         return `Amount ${amount} exceeds balance of ${tokenBalance}`;
     }
 
-    // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
-    const maxQty = getMaxDecimalizedSlpQty(decimals);
+    const maxQty = getMaxDecimalizedQty(decimals, tokenProtocol);
+
     if (amountBN.gt(maxQty)) {
-        return `Amount ${amount} exceeds max supported SLP qty for this token in one tx (${maxQty})`;
+        return `Amount ${amount} exceeds max supported qty for this token in one tx (${maxQty})`;
     }
 
     if (amount.includes('.')) {
@@ -1070,6 +1072,7 @@ export const isValidTokenSendOrBurnAmount = (
 export const isValidTokenMintAmount = (
     amount: string,
     decimals: SlpDecimals,
+    tokenProtocol: 'SLP' | 'ALP' = 'SLP',
 ): string | true => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
@@ -1099,7 +1102,7 @@ export const isValidTokenMintAmount = (
     // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
     const amountBN = new BN(amount);
     // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
-    const maxMintAmount = getMaxDecimalizedSlpQty(decimals);
+    const maxMintAmount = getMaxDecimalizedQty(decimals, tokenProtocol);
     if (amountBN.gt(maxMintAmount)) {
         return `Amount ${amount} exceeds max mint amount for this token (${maxMintAmount})`;
     }

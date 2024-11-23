@@ -4,7 +4,7 @@
 
 import { isValidMultiSendUserInput } from 'validation';
 import { toSatoshis } from 'wallet';
-import { isTokenDustChangeOutput } from 'slpv1';
+import { isTokenDustChangeOutput } from 'token-protocols/slpv1';
 import {
     Script,
     fromHex,

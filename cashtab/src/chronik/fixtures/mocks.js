@@ -21736,3 +21736,149 @@ export const SlpNftParentMintTx = {
         ],
     ],
 };
+
+// 29b79f0f4302c43f6e6dd565e7e5829cf7f8a8fe1e95a58e3e87620a24c5bef9
+export const alpBurnTx = {
+    tx: {
+        txid: '29b79f0f4302c43f6e6dd565e7e5829cf7f8a8fe1e95a58e3e87620a24c5bef9',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '061459eea0e569392f0622c20e5917b5ca94ae38a77405cd3a5f01b41bba688b',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41eed3688821e81f77edcf70e877d6b270acbd1714b82ea9b58fe0239e3dfccd73da5a1dd5d2906a40624d172e1a4273eda5e2feb902d74b73e264f9ef469c0a99412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '99999',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'efb84d4aa3aec5636ae5fcbbc560d4c1bafbe1e9ed00661380bce4a9db2360e0',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41bfbaae1e96b3a3d7fbbe24c2cd9ac07e48b7340e24635a8005be1b94563bc0e020d073d8a88e9af4a5a067ff9dcd6601f35611399d70f2958ff7ce22770792a7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 2812672,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a5030534c503200044255524e3f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1101000000000031534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e11019e8601000000',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '99998',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 2812202,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1732374561,
+        size: 470,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '1',
+                intentionalBurn: '1',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 872299,
+            hash: '000000000000000022478fad1745dbd1c8f57ad77b6627ba459720c2653cd086',
+            timestamp: 1732375055,
+        },
+    },
+    sendingHash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+    parsed: {
+        recipients: [],
+        satoshisSent: 2812748,
+        stackArray: [
+            '50',
+            '534c503200044255524e3f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e11010000000000',
+            '534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e11019e8601000000',
+        ],
+        xecTxType: 'Sent',
+    },
+    cache: [
+        [
+            '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+            {
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                genesisInfo: {
+                    tokenTicker: 'TB',
+                    tokenName: 'Tiberium',
+                    url: 'cashtab.com',
+                    decimals: 0,
+                    authPubkey:
+                        '03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                },
+                timeFirstSeen: 1732368999,
+                genesisSupply: '100000',
+                genesisOutputScripts: [
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                ],
+                genesisMintBatons: 1,
+                block: {
+                    height: 872286,
+                    hash: '00000000000000000714f249ab1ecd41eef595260c4f9e79fa49e7dc1bd45767',
+                    timestamp: 1732369043,
+                },
+            },
+        ],
+    ],
+};
