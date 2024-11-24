@@ -488,3 +488,27 @@ export const getNextStakingReward = async (
 
     return false;
 };
+
+const ECASH_DECIMALS = 2;
+/**
+ * Divide satoshis by 100 using string methods and no bn lib
+ * @param satoshis
+ */
+export const toXec = (satoshis: bigint): number => {
+    // Convert to string
+    let satsStr = satoshis.toString();
+
+    // Pad with zeros if we have less than 1.00 XEC
+    const satsStrLength = satsStr.length;
+    if (satsStrLength === 1) {
+        satsStr = `0${satsStr}`;
+    } else if (satsStrLength === 2) {
+        satsStr = `00${satsStr}`;
+    }
+
+    // Add decimal place
+    const beforeDecimal = satsStr.slice(0, -1 * ECASH_DECIMALS);
+    const afterDecimal = satsStr.slice(-1 * ECASH_DECIMALS);
+
+    return parseFloat(`${beforeDecimal}.${afterDecimal}`);
+};

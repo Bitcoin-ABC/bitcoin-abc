@@ -370,6 +370,7 @@ describe('parse.js functions', function () {
                     usd_24h_vol: 5957332.9687223025,
                     usd_24h_change: -0.3973642442197056,
                 },
+                block.activeStakers,
             ),
             [
                 '<b>15 Oct 2024</b>\n' +
@@ -387,9 +388,10 @@ describe('parse.js functions', function () {
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<b><i>💰3 stakers earned $33</i></b>\n' +
+                    '<b><i>🧮 71 nodes staking <code>251,280,511,703.14</code> XEC ($8.76M)</i></b>\n' +
                     '<u>Top 3</u>\n' +
-                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
-                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0% won, 1% expected)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0% won, 9% expected)</i>\n' +
                     '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<a href="https://cashtab.com/">Cashtab</a>\n' +
@@ -451,6 +453,7 @@ describe('parse.js functions', function () {
                     usd_24h_vol: 5957332.9687223025,
                     usd_24h_change: -0.3973642442197056,
                 },
+                block.activeStakers,
             ),
             [
                 '<b>15 Oct 2024</b>\n' +
@@ -468,9 +471,10 @@ describe('parse.js functions', function () {
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<b><i>💰3 stakers earned $33</i></b>\n' +
+                    '<b><i>🧮 71 nodes staking <code>251,280,511,703.14</code> XEC ($8.76M)</i></b>\n' +
                     '<u>Top 3</u>\n' +
-                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0%)</i>\n' +
-                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0%)</i>\n' +
+                    '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0% won, 1% expected)</i>\n' +
+                    '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0% won, 9% expected)</i>\n' +
                     '3. <a href="https://explorer.e.cash/address/ecash:qqvhatumna957qu0je78dnc9pc7c7hu89crkq6k0cd">qqv...0cd</a>, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<a href="https://cashtab.com/">Cashtab</a>\n' +
@@ -518,7 +522,7 @@ describe('parse.js functions', function () {
             ],
         );
     });
-    it('summarizeTxHistory summarizes a collection of txs across multiple blocks without fiat price', function () {
+    it('summarizeTxHistory summarizes a collection of txs across multiple blocks without fiat price or staker info', function () {
         const mockUtcNewDayTimestampSeconds = 1728950400;
         assert.deepEqual(
             summarizeTxHistory(

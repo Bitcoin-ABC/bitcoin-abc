@@ -11,6 +11,7 @@ import {
     jsonReviver,
     bigNumberAmountToLocaleString,
     CoinGeckoPrice,
+    toXec,
 } from '../src/utils';
 import cashaddr from 'ecashaddrjs';
 import BigNumber from 'bignumber.js';
@@ -2299,12 +2300,14 @@ export const initializeOrIncrementTokenData = (
  * @param txs array of CONFIRMED Txs
  * @param tokenInfoMap tokenId => genesisInfo
  * @param priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
+ * @param activeStakers
  */
 export const summarizeTxHistory = (
     now: number,
     txs: Tx[],
     tokenInfoMap: false | Map<string, GenesisInfo>,
     priceInfo?: PriceInfo,
+    activeStakers?: CoinDanceStaker[],
 ): string[] => {
     const xecPriceUsd =
         typeof priceInfo !== 'undefined' ? priceInfo.usd : undefined;
@@ -2329,7 +2332,7 @@ export const summarizeTxHistory = (
     const viabtcMinerMap = new Map();
 
     // stakerOutputScript => {count, reward}
-    const stakerMap = new Map();
+    const stakerMap: Map<string, { count: number; reward: number }> = new Map();
 
     // TODO more info about send txs
     // inputs[0].outputScript => {count, satoshisSent}
@@ -3203,19 +3206,66 @@ export const summarizeTxHistory = (
     tgMsg.push(
         `<b><i>${config.emojis.staker}${sortedStakerMap.size} stakers earned ${renderedTotalStakingRewards}</i></b>`,
     );
+    // Line for total staked amount of XEC
+    let totalSatsStaked;
+    if (typeof activeStakers !== 'undefined') {
+        totalSatsStaked = activeStakers.reduce((acc, current) => {
+            // Parse the stake string to float for addition.
+            // Note: Assuming stake is always a string with 2 decimal places
+            // Cursory review shows values like "stake": "22000000000.00",
+            // so seems to be how it's typed
+            return acc + BigInt(current.stake.replace('.', ''));
+        }, 0n);
+        tgMsg.push(
+            `<b><i>${config.emojis.stakingNode} ${
+                activeStakers.length
+            } nodes staking <code>${toXec(totalSatsStaked).toLocaleString(
+                'en-US',
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                },
+            )}</code> XEC (${satsToFormattedValue(
+                totalSatsStaked,
+                xecPriceUsd,
+            )})</i></b>`,
+        );
+    }
     tgMsg.push(`<u>Top ${STAKERS_TO_SHOW}</u>`);
     const topStakers = [...sortedStakerMap.entries()].slice(0, STAKERS_TO_SHOW);
+
     for (let i = 0; i < topStakers.length; i += 1) {
         const staker = topStakers[i];
-        const count = staker[1].count;
+        const { count } = staker[1];
         const pct = (100 * (count / blockCount)).toFixed(0);
         const addr = cashaddr.encodeOutputScript(staker[0]);
+        let thisStakerPercentStake;
+        if (
+            typeof activeStakers !== 'undefined' &&
+            typeof totalSatsStaked !== 'undefined'
+        ) {
+            const thisStaker = activeStakers.find(
+                activeStaker => activeStaker.payoutAddress === addr,
+            );
+            if (typeof thisStaker !== 'undefined') {
+                thisStakerPercentStake =
+                    (
+                        (100 * parseFloat(thisStaker.stake)) /
+                        (Number(totalSatsStaked) / 100)
+                    ).toFixed(0) + '%';
+            }
+        }
+
         tgMsg.push(
             `${i + 1}. ${`<a href="${
                 config.blockExplorer
             }/address/${addr}">${returnAddressPreview(addr)}</a>`}, ${
                 staker[1].count
-            } <i>(${pct}%)</i>`,
+            } <i>(${pct}%${
+                typeof thisStakerPercentStake !== 'undefined'
+                    ? ` won, ${thisStakerPercentStake} expected`
+                    : ''
+            })</i>`,
         );
     }
 

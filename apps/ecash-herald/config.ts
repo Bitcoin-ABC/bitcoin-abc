@@ -58,6 +58,7 @@ export interface HeraldConfig {
         block: string;
         miner: string;
         staker: string;
+        stakingNode: string;
         xecSend: string;
         arrowRight: string;
         tokenBurn: string;
@@ -154,6 +155,7 @@ const config: HeraldConfig = {
         block: '📦',
         miner: '⛏️',
         staker: '💰',
+        stakingNode: '🧮',
         xecSend: '💸',
         arrowRight: '➡️',
         tokenBurn: '🔥',

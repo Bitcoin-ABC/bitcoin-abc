@@ -19,6 +19,7 @@ import {
     getEmojiFromBalanceSats,
     bigNumberAmountToLocaleString,
     containsOnlyPrintableAscii,
+    toXec,
 } from '../src/utils';
 import templates from './mocks/templates';
 const { addressPreviews, mockCoingeckoPrices } = templates;
@@ -425,5 +426,10 @@ describe('ecash-telegram-bot utils.js functions', function () {
         const hexString = '7f663ddd99990bcd969994ec2288a2a86dc532e1a8';
 
         assert.strictEqual(containsOnlyPrintableAscii(hexString), false);
+    });
+    it('We can convert bigint sats to exact qty XEC', function () {
+        assert.equal(toXec(0n), 0);
+        assert.equal(toXec(2100000000000000n), 21000000000000);
+        assert.equal(toXec(1n), 0.01);
     });
 });

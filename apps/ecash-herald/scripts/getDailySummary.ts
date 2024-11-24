@@ -23,6 +23,7 @@ import {
     getTokenInfoMap,
 } from '../src/chronik';
 import { summarizeTxHistory } from '../src/parse';
+import { CoinDanceStaker } from '../src/events';
 import { sendBlockSummary } from '../src/telegram';
 import secrets from '../secrets';
 import TelegramBot from 'node-telegram-bot-api';
@@ -50,6 +51,20 @@ const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
         ).data.ecash;
     } catch (err) {
         console.error(`Error getting daily summary price info`, err);
+    }
+
+    // Get staker info, if available
+    let activeStakers: CoinDanceStaker[] | undefined;
+    // If we have a staker, get more info from API
+    try {
+        activeStakers = (
+            await axios.get(
+                `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+            )
+        ).data;
+    } catch (err) {
+        console.error(`Error getting activeStakers`, err);
+        // Do not include this info in the tg msg
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
@@ -106,6 +121,7 @@ const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
         timeFirstSeenTxs,
         tokenInfoMap,
         priceInfo,
+        activeStakers,
     );
 
     // Send msg with successful price API call
