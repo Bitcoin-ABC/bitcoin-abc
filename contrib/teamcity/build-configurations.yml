@@ -331,6 +331,8 @@ builds:
   build-chronik:
     runOnDiffRegex:
       - chronik/
+      - Cargo.toml
+      - Cargo.lock
     cmake_flags:
       - '-DBUILD_BITCOIN_CHRONIK=ON'
     targets:
@@ -343,6 +345,8 @@ builds:
   build-chronik-plugins:
     runOnDiffRegex:
       - chronik/
+      - Cargo.toml
+      - Cargo.lock
     cmake_flags:
       - '-DBUILD_BITCOIN_CHRONIK=ON'
       - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
@@ -935,6 +939,8 @@ builds:
       - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
       - src/secp256k1/
+      - Cargo.toml
+      - Cargo.lock
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
       DEPENDS_ECASHADDRJS: "true"
@@ -956,6 +962,8 @@ builds:
       - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
       - src/secp256k1/
+      - Cargo.toml
+      - Cargo.lock
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       DEPENDS_ECASHADDRJS: "true"
@@ -974,6 +982,8 @@ builds:
       - chronik/
       - modules/chronik-client/
       - modules/ecashaddrjs/
+      - Cargo.toml
+      - Cargo.lock
     env:
       JS_PROJECT_ROOT: modules/chronik-client
       DEPENDS_ECASHADDRJS: "true"
