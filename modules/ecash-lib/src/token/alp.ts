@@ -38,7 +38,7 @@ export function alpGenesis(
         putVarBytes(strToBytes(genesisInfo.tokenTicker ?? ''), writer);
         putVarBytes(strToBytes(genesisInfo.tokenName ?? ''), writer);
         putVarBytes(strToBytes(genesisInfo.url ?? ''), writer);
-        putVarBytes(genesisInfo.data ?? new Uint8Array(), writer);
+        putVarBytes(fromHex(genesisInfo.data ?? ''), writer);
         putVarBytes(fromHex(genesisInfo.authPubkey ?? ''), writer);
         writer.putU8(genesisInfo.decimals ?? 0);
         putMintData(mintData, writer);

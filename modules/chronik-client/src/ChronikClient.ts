@@ -1398,7 +1398,7 @@ function convertToGenesisInfo(
 
     // Add ALP fields for ALP types only
     if (tokenType.protocol === 'ALP') {
-        returnedGenesisInfo.data = genesisInfo.data;
+        returnedGenesisInfo.data = toHex(genesisInfo.data);
         returnedGenesisInfo.authPubkey = toHex(genesisInfo.authPubkey);
     }
 
@@ -2005,7 +2005,7 @@ export interface GenesisInfo {
     /** mint_vault_scripthash (only on SLP V2 Mint Vault) */
     mintVaultScripthash?: string;
     /** Arbitray payload data of the token (only on ALP) */
-    data?: Uint8Array;
+    data?: string;
     /** auth_pubkey of the token (only on ALP) */
     authPubkey?: string;
     /** decimals of the token, i.e. how many decimal places the token should be displayed with. */

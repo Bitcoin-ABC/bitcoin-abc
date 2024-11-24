@@ -9,10 +9,10 @@ import { EventEmitter, once } from 'node:events';
 import path from 'path';
 import {
     ChronikClient,
-    TokenInfo,
     Token,
-    TxHistoryPage,
+    TokenInfo,
     Tx,
+    TxHistoryPage,
     WsEndpoint,
     WsMsgClient,
 } from '../../index';
@@ -208,7 +208,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             tokenTicker: 'TEST',
             tokenName: 'Test Token',
             url: 'http://example.com',
-            data: new Uint8Array([84, 111, 107, 101, 110, 32, 68, 97, 116, 97]),
+            data: '546f6b656e2044617461',
             authPubkey: '546f6b656e205075626b6579',
             decimals: 4,
         },
