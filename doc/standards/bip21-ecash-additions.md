@@ -80,6 +80,23 @@ Because BIP21 was originally designed for single-address transactions and a vali
 
 Additional outputs will be sent at the `nth` output index, where `n` is the order of appearance of the `addr` param.
 
+7. eCash supports simple token sends
+
+-   bip21 token send txs are limited to one recipient and one specified token qty recipient output
+-   Token output value is dust (546 satoshis)
+-   Any token type is supported. Support for some token types may be constrained by the implementing wallet (i.e. there are different tx construction rules for ALP vs SLP tokens, but both have tokenIds)
+-   `token_id` param, a valid token id.
+-   `token_decimalized_qty` param, decimalized qty to be sent
+-   A bip21 string with `token_id` can only be parsed as a token send tx
+-   A bip21 string with `token_id` is invalid if `token_decimalized_qty` is not specified
+-   A bip21 string with `token_id` is invalid if any param apart from `token_decimalized_qty` is specified.
+
+It is up to the implementing wallet to properly handle and convert `token_decimalized_qty`. A bip21 string is invalid if `token_decimalized_qty` specifies a decimal amount not supported by the specified `token_id`. This must be handled by the implementing wallet, as there is no way to check token decimals without referencing the token's genesis tx or cached info.
+
+Specifying token satoshis instead of `token_decimalized_qty` was considered and rejected. Users think in terms of the actual amount being sent. Wallet developers must handle the complex interface between token protocol amounts and user input amounts. bip21 uses XEC for the `amount` param instead of satoshis for the same reason.
+
+Note that more complicated token txs (or this type of simple token tx) may be manually constructed with `op_return_raw` and existing bip21 support for multiple outputs.
+
 ### Examples
 
 #### Bip-21 URI with no `op_return_raw` and 2 additional outputs
@@ -98,3 +115,9 @@ An `OP_RETURN` output of `6a0401020304` at the index 0 output
 An amount of `100` XEC will be sent to `ecash:prf...z07` at the index 1 output
 An amount of `200` XEC will be sent to `ecash:prf...z07` at the index 2 output
 An amount of `300` XEC will be sent to `ecash:prf...z07` at the index 3 output
+
+#### Bip-21 URI for an SLP or ALP Send tx
+
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?tokenId=aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1&token_decimalized_qty=100.12`
+
+100.12 CACHET tokens will be sent to `ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07` in an output containing 546 satoshis. It is up to the implementing wallet to handle validation and change.
