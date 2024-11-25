@@ -72,7 +72,8 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
     const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    CBlockIndex *tip = chainman.ActiveTip();
+    CBlockIndex *tip =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
 
     // Fork of the tip is the tip
     BOOST_CHECK_EQUAL(bridge.find_fork(*tip).GetBlockHash(),
@@ -89,8 +90,11 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
     mineBlocks(100);
 
     // Fork of old tip is block 49
-    BOOST_CHECK_EQUAL(bridge.find_fork(*tip).GetBlockHash(),
-                      chainman.ActiveTip()->GetAncestor(49)->GetBlockHash());
+    BOOST_CHECK_EQUAL(
+        bridge.find_fork(*tip).GetBlockHash(),
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
+            ->GetAncestor(49)
+            ->GetBlockHash());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
@@ -196,7 +200,8 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_load_block, TestChain100Setup) {
     const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    const CBlockIndex &tip = *chainman.ActiveTip();
+    const CBlockIndex &tip =
+        WITH_LOCK(chainman.GetMutex(), return *chainman.ActiveTip());
 
     BOOST_CHECK_EQUAL(bridge.load_block(tip)->GetHash(), tip.GetBlockHash());
 
@@ -211,7 +216,8 @@ BOOST_FIXTURE_TEST_CASE(test_load_block, TestChain100Setup) {
 
 BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    const CBlockIndex &tip = *chainman.ActiveTip();
+    const CBlockIndex &tip =
+        WITH_LOCK(chainman.GetMutex(), return *chainman.ActiveTip());
 
     // Block 100 is the tip
     BOOST_CHECK_EQUAL(
@@ -239,7 +245,8 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_get_block_info, TestChain100Setup) {
     const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    const CBlockIndex &tip = *chainman.ActiveTip();
+    const CBlockIndex &tip =
+        WITH_LOCK(chainman.GetMutex(), return *chainman.ActiveTip());
 
     chronik_bridge::BlockInfo expected_genesis_info{
         .hash = chronik::util::HashToArray(
