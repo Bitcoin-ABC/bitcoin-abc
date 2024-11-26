@@ -11,8 +11,9 @@ import {
     alpBurn,
     alpMint,
     Script,
-    toHex,
+    shaRmd160,
 } from 'ecash-lib';
+import { AgoraPartial } from 'ecash-agora';
 import { GenesisInfo } from 'chronik-client';
 import {
     TokenInputInfo,
@@ -176,7 +177,6 @@ export const getAlpMintTargetOutputs = (
             numBatons: 1,
         }),
     ]);
-    console.log(`thisScript`, toHex(script.bytecode));
 
     return [
         // SLP 1 script
@@ -186,4 +186,37 @@ export const getAlpMintTargetOutputs = (
         // Dust output for mint baton
         TOKEN_DUST_CHANGE_OUTPUT,
     ];
+};
+
+/**
+ * Get targetOutput(s) for listing an Agora Partial
+ * offer for ALP
+ */
+export const getAlpAgoraListTargetOutputs = (
+    tokenInputInfo: TokenInputInfo,
+    agoraPartial: AgoraPartial,
+): TokenTargetOutput[] => {
+    const { tokenId, sendAmounts } = tokenInputInfo;
+
+    const agoraScript = agoraPartial.script();
+    const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+    const offerTargetOutputs: TokenTargetOutput[] = [
+        {
+            value: 0,
+            // Note, unlike SLP
+            // We will possibly have token change for the tx that creates the offer
+            script: emppScript([
+                agoraPartial.adPushdata(),
+                alpSend(tokenId, agoraPartial.tokenType, sendAmounts),
+            ]),
+        },
+        // Token utxo we are offering for sale
+        { value: appConfig.dustSats, script: agoraP2sh },
+    ];
+    if (sendAmounts.length > 1) {
+        offerTargetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
+    }
+
+    return offerTargetOutputs;
 };

@@ -138,7 +138,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
         // The sell switch is turned on by default
-        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -196,7 +196,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
         // The sell switch is turned on by default
-        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -284,10 +284,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
         // On load, default action for SLP is to list it
-        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
-            'checked',
-            true,
-        );
+        expect(screen.getByTitle('Toggle Sell Token')).toBeEnabled();
 
         // The list button is disabled on load
         const listButton = screen.getByRole('button', {
@@ -297,7 +294,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The price input is disabled until qty values are entered
         const priceInput = screen.getByPlaceholderText(
-            'Enter SLP list price (per token)',
+            'Enter list price (per token)',
         );
         expect(priceInput).toHaveProperty('disabled', true);
 
@@ -1347,8 +1344,10 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // We can send, which is also the default action
-        expect(screen.getByTitle('Toggle Send')).toBeEnabled();
+        // We can list, which is also the default action
+        expect(screen.getByTitle('Toggle Sell Token')).toBeEnabled();
+        // We can send
+        expect(screen.getByTitle('Toggle Send')).toBeInTheDocument();
         // We can burn
         expect(screen.getByTitle('Toggle Burn')).toBeInTheDocument();
         // Because we do not have the mint baton for this token, the Mint action is NOT available
@@ -1405,6 +1404,9 @@ describe('<Token /> available actions rendered', () => {
 
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // Click Send
+        await userEvent.click(screen.getByTitle('Toggle Send'));
 
         // Wait for address input to render
         expect(
@@ -1502,16 +1504,7 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // Wait for address input to render
-        expect(
-            await screen.findByPlaceholderText('Address'),
-        ).toBeInTheDocument();
-
-        // On load, default action for ALP is to send it
-        const sendActionSwitch = screen.getByTitle('Toggle Send');
-        await waitFor(() =>
-            expect(sendActionSwitch).toHaveProperty('checked', true),
-        );
+        // On load, default action for ALP is to list
 
         // Select burn
         await userEvent.click(screen.getByTitle('Toggle Burn'));
@@ -1595,16 +1588,7 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // Wait for address input to render
-        expect(
-            await screen.findByPlaceholderText('Address'),
-        ).toBeInTheDocument();
-
-        // On load, default action for ALP is to send it
-        const sendActionSwitch = screen.getByTitle('Toggle Send');
-        await waitFor(() =>
-            expect(sendActionSwitch).toHaveProperty('checked', true),
-        );
+        // On load, default action for ALP is to list
 
         // Select burn
         await userEvent.click(screen.getByTitle('Toggle Burn'));
@@ -1749,17 +1733,6 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // Wait for address input to render
-        expect(
-            await screen.findByPlaceholderText('Address'),
-        ).toBeInTheDocument();
-
-        // On load, default action for ALP is to send it
-        const sendActionSwitch = screen.getByTitle('Toggle Send');
-        await waitFor(() =>
-            expect(sendActionSwitch).toHaveProperty('checked', true),
-        );
-
         // Select mint
         await userEvent.click(screen.getByTitle('Toggle Mint'));
 
@@ -1789,5 +1762,180 @@ describe('<Token /> available actions rendered', () => {
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
             ),
         );
+    });
+    it('We can list an ALP fungible token', async () => {
+        // Mock Math.random()
+        jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
+
+        // ALP offer tx
+        const offerHex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441d32ae72fa880a40975a475147443a3a7fe10308178ad38d80e6a2428921732b0699849443d8e24124a8ee5b75f1e9f74628fdb8cd0c9704d8cd0c70df65828e94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064415fc18bb026bc3122776e708b8cdba9225494c704c1feca7aefb36b592abed96568cd57cb3504769bc4019ec0f36990c28c57012cefe805e4d3b046cc308bc86b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000866a504b41475230075041525449414c01009b630800000000005532000000000000d6b24701000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d37534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c0200420f000000400000000000220200000000000017a91450eb4978c85ec89b63e37e6b87409c9f5815c7058722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac83300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const offerTxid =
+            'e00be7011ee5d585cbd54049570ea0754ab0d5c05acf6cb01c25afa3aa61663d';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: offerHex,
+            output: { txid: offerTxid },
+        });
+
+        // We need to give mockedChronik a plugin function
+        // This is required for creating a new Agora(mockedChronik)
+        mockedChronik.plugin = () => 'dummy plugin';
+
+        // Mock response for agora select params check
+        // Note
+        // We obtain EXPECTED_OFFER_P2SH by adding
+        // console.log(toHex(shaRmd160(agoraScript.bytecode)));
+        // to ecash-agora lib and running this test
+        // Note that Date() and Math.random() must be mocked to keep this deterministic
+        const EXPECTED_OFFER_P2SH = '50eb4978c85ec89b63e37e6b87409c9f5815c705';
+
+        mockedChronik.setScript('p2sh', EXPECTED_OFFER_P2SH);
+        // We mock no existing utxos
+        mockedChronik.setUtxos('p2sh', EXPECTED_OFFER_P2SH, { utxos: [] });
+
+        // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
+        // agora object to build the partial
+        const agora = new Agora(mockedChronik);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={agora}
+                route={`/send-token/${alpMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = alpMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Token image is rendered
+        expect(
+            screen.getByAltText(`icon for ${alpMocks.tokenId}`),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // On load, default action for ALP is to list it
+        expect(screen.getByTitle('Toggle Sell Token')).toBeEnabled();
+
+        // The list button is disabled on load
+        const listButton = screen.getByRole('button', {
+            name: /List Test CRD/,
+        });
+        expect(listButton).toBeDisabled();
+
+        // The price input is disabled until qty values are entered
+        const priceInput = screen.getByPlaceholderText(
+            'Enter list price (per token)',
+        );
+        expect(priceInput).toHaveProperty('disabled', true);
+
+        // Enter token balance as offered qty
+        await userEvent.type(screen.getByPlaceholderText('Offered qty'), '100');
+
+        // Enter a min qty
+        await userEvent.type(screen.getByPlaceholderText('Min buy'), '1');
+
+        // The price input is no longer disabled
+        expect(priceInput).toBeEnabled();
+
+        // We see expected error msg if we try to list the token at a price where the min buy would cost less than dust
+        await userEvent.type(priceInput, '0.001');
+
+        expect(
+            screen.getByText(
+                'Minimum buy costs 0.001 XEC, must be at least 5.46 XEC',
+            ),
+        ).toBeInTheDocument();
+
+        // The buy button is disabled with invalid price
+        expect(listButton).toBeDisabled();
+
+        // Increase the price to a valid one
+        await userEvent.clear(priceInput);
+        await userEvent.type(priceInput, '33');
+
+        // The list button is no longer disabled
+        expect(listButton).toBeEnabled();
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('33.00 XEC ($0.00099 USD) per token'),
+        ).toBeInTheDocument();
+
+        // We can also set the price in fiat currency
+        await userEvent.selectOptions(
+            screen.getByTestId('currency-select-dropdown'),
+            screen.getByTestId('fiat-option'),
+        );
+
+        // The price input is cleared when the user changes from XEC price to fiat price
+        expect(priceInput).toHaveValue(null);
+
+        // We list for $5 per token
+        await userEvent.type(priceInput, '5');
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('$5 USD (166,666.67 XEC) per token'),
+        ).toBeInTheDocument();
+
+        // We enter a low price in fiat
+        await userEvent.clear(priceInput);
+        await userEvent.type(priceInput, '0.0005');
+
+        // The fiat price is previewed correctly
+        expect(
+            await screen.findByText('$0.0005 USD (16.67 XEC) per token'),
+        ).toBeInTheDocument();
+
+        // Click the now-enabled list button
+        expect(listButton).toBeEnabled();
+        await userEvent.click(listButton);
+
+        // We see expected confirmation modal to list the Token
+        expect(screen.getByText('List tCRD?')).toBeInTheDocument();
+        expect(
+            screen.getByText('Create the following sell offer?'),
+        ).toBeInTheDocument();
+        // Offered qty (actual, calculated from AgoraOffer)
+        const actualOfferedQty = '99.9936';
+        expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
+        // Min by (actual, calculated from AgoraOffer)
+        expect(screen.getByText('1.0240')).toBeInTheDocument();
+        // Actual price calculated from AgoraOffer
+        const actualPricePerTokenForMinBuy = '16.67 XEC';
+        expect(
+            screen.getAllByText(actualPricePerTokenForMinBuy)[0],
+        ).toBeInTheDocument();
+        // User input price
+        expect(screen.getAllByText('16.67 XEC')[1]).toBeInTheDocument();
+
+        // We can cancel and not create this listing
+        await userEvent.click(screen.getByText('Cancel'));
+
+        // The confirmation modal is gone
+        expect(screen.queryByText('List tCRD?')).not.toBeInTheDocument();
+
+        // We change our mind and list it
+        await userEvent.click(listButton);
+        // We wait for the preview to be calculated again
+
+        expect(await screen.findByText('List tCRD?')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('OK'));
+
+        // We see the expected toast notification for the successful listing tx
+        expect(
+            await screen.findByText(
+                `${actualOfferedQty} Test CRD listed for ${actualPricePerTokenForMinBuy} per token`,
+            ),
+        ).toBeInTheDocument();
     });
 });

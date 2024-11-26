@@ -8,10 +8,15 @@ import {
     getAlpSendTargetOutputs,
     getAlpBurnTargetOutputs,
     getAlpMintTargetOutputs,
+    getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
 import vectors from '../fixtures/vectors';
+import { initWasm } from 'ecash-lib';
 
 describe('ALP token methods', () => {
+    beforeAll(async () => {
+        await initWasm();
+    });
     describe('Gets max mint/send/burn SLP amount, decimalized', () => {
         const { expectedReturns } = vectors.getMaxDecimalizedAlpQty;
         expectedReturns.forEach(vector => {
@@ -100,6 +105,18 @@ describe('ALP token methods', () => {
                 expect(getAlpMintTargetOutputs(tokenId, mintQty)).toStrictEqual(
                     returned,
                 );
+            });
+        });
+    });
+    describe('We can build target outputs for an ALP Agora Listing tx with or without change', () => {
+        const { expectedReturns } = vectors.getAlpAgoraListTargetOutputs;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, tokenInputInfo, agoraPartial, returned } =
+                expectedReturn;
+            it(`getAlpAgoraListTargetOutputs: ${description}`, () => {
+                expect(
+                    getAlpAgoraListTargetOutputs(tokenInputInfo, agoraPartial),
+                ).toStrictEqual(returned);
             });
         });
     });

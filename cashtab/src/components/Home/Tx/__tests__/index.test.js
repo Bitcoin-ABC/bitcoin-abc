@@ -60,6 +60,7 @@ import {
     SlpNftParentMintTx,
     partialBuyBull,
     alpBurnTx,
+    alpAgoraListingTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3702,5 +3703,135 @@ describe('<Tx />', () => {
                 `Burned 1 ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
             ),
         ).toBeInTheDocument();
+    });
+    it('Ad setup tx for an ALP Agora offer (cached)', async () => {
+        const thisMock = alpAgoraListingTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={thisMock.tx}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(thisMock.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Nov 26, 2024, 17:40:01')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // We see the Agora Offer icon
+        expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('ALP')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(
+            screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
+        ).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(
+            screen.getByText(
+                `(${thisMock.cache[0][1].genesisInfo.tokenTicker})`,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the expected token action for listing this NFT
+        expect(
+            screen.getByText(
+                `Listed 99,106 ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
+            ),
+        ).toBeInTheDocument();
+    });
+    it('Ad setup tx for an ALP Agora offer (uncached)', async () => {
+        const thisMock = alpAgoraListingTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={thisMock.tx}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Agora Tx icon
+        expect(screen.getByTitle('Agora Tx')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Nov 26, 2024, 17:40:01')).toBeInTheDocument();
+
+        // We see the expected send amount
+        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
+        ).toBeInTheDocument();
+
+        // We see the Agora Offer icon
+        expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('ALP')[0]).toBeInTheDocument();
+
+        // We see SEND but not the token name (uncached)
+        expect(screen.getByText('SEND')).toBeInTheDocument();
+
+        // We do not see the token ticker in parenthesis in the summary column
+        expect(
+            screen.queryByText(
+                `(${thisMock.cache[0][1].genesisInfo.tokenTicker})`,
+            ),
+        ).not.toBeInTheDocument();
+
+        // We see the expected token action text for a listed ALP fungible token tx, but no quantity
+        expect(screen.getByText('Listed')).toBeInTheDocument();
     });
 });

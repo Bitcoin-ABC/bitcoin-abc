@@ -52,6 +52,7 @@ import {
     SlpNftParentMintTx,
     partialBuyBull,
     alpBurnTx,
+    alpAgoraListingTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -303,6 +304,12 @@ export default {
                 tx: alpBurnTx.tx,
                 hashes: [alpBurnTx.sendingHash],
                 parsed: alpBurnTx.parsed,
+            },
+            {
+                description: 'ALP agora listing',
+                tx: alpAgoraListingTx.tx,
+                hashes: [alpAgoraListingTx.sendingHash],
+                parsed: alpAgoraListingTx.parsed,
             },
         ],
     },

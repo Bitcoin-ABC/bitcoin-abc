@@ -133,7 +133,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -151,7 +151,7 @@ describe('<Token />', () => {
 
         // Price input is disabled as qty inputs are at 0 value
         expect(
-            screen.getByPlaceholderText('Enter SLP list price (per token)'),
+            screen.getByPlaceholderText('Enter list price (per token)'),
         ).toHaveProperty('disabled', true);
 
         // List button is present and disabled
@@ -194,7 +194,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -212,7 +212,7 @@ describe('<Token />', () => {
 
         // Price input is disabled as qty inputs are at 0 value
         expect(
-            screen.getByPlaceholderText('Enter SLP list price (per token)'),
+            screen.getByPlaceholderText('Enter list price (per token)'),
         ).toHaveProperty('disabled', true);
 
         // List button is present and disabled
@@ -241,7 +241,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -280,7 +280,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -320,7 +320,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -388,7 +388,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -421,7 +421,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -456,7 +456,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -511,7 +511,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -559,7 +559,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -605,7 +605,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -657,7 +657,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // The sell switch is turned on by default
-        expect(screen.getByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -723,7 +723,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -829,7 +829,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
 
         // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell SLP')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );

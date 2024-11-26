@@ -52,6 +52,7 @@ import {
     getAlpSendTargetOutputs,
     getAlpBurnTargetOutputs,
     getAlpMintTargetOutputs,
+    getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
 import {
     getSendTokenInputs,
@@ -316,19 +317,20 @@ const Token: React.FC = () => {
     const [nftListPriceError, setNftListPriceError] = useState<false | string>(
         false,
     );
-    const [slpListPriceError, setSlpListPriceError] = useState<false | string>(
-        false,
-    );
+    const [tokenListPriceError, setTokenListPriceError] = useState<
+        false | string
+    >(false);
     const [showConfirmListNft, setShowConfirmListNft] =
         useState<boolean>(false);
     const [showConfirmListPartialSlp, setShowConfirmListPartialSlp] =
         useState<boolean>(false);
-    const [slpAgoraPartialTokenQty, setSlpAgoraPartialTokenQty] =
+    const [agoraPartialTokenQty, setAgoraPartialTokenQty] =
         useState<string>('0');
-    const [slpAgoraPartialTokenQtyError, setSlpAgoraPartialTokenQtyError] =
-        useState<false | string>(false);
-    const [slpAgoraPartialMin, setSlpAgoraPartialMin] = useState<string>('0');
-    const [slpAgoraPartialMinError, setSlpAgoraPartialMinError] = useState<
+    const [agoraPartialTokenQtyError, setAgoraPartialTokenQtyError] = useState<
+        false | string
+    >(false);
+    const [agoraPartialMin, setAgoraPartialMin] = useState<string>('0');
+    const [agoraPartialMinError, setAgoraPartialMinError] = useState<
         false | string
     >(false);
     // We need to build an agora partial and keep it in state so the user is able
@@ -396,7 +398,7 @@ const Token: React.FC = () => {
         burnAmount: string;
         mintAmount: string;
         nftListPrice: null | string;
-        slpListPrice: null | string;
+        tokenListPrice: null | string;
     }
     const emptyFormData: TokenScreenFormData = {
         amount: '',
@@ -404,7 +406,7 @@ const Token: React.FC = () => {
         burnAmount: '',
         mintAmount: '',
         nftListPrice: null,
-        slpListPrice: null,
+        tokenListPrice: null,
     };
 
     const [formData, setFormData] =
@@ -452,7 +454,7 @@ const Token: React.FC = () => {
     };
 
     const getAgoraPartialTargetPriceXec = () => {
-        if (formData.slpListPrice === null) {
+        if (formData.tokenListPrice === null) {
             return;
         }
         // Get the price per token, in XEC, based on the user's input settings
@@ -462,13 +464,13 @@ const Token: React.FC = () => {
             ? getFormattedFiatPrice(
                   settings,
                   userLocale,
-                  formData.slpListPrice,
+                  formData.tokenListPrice,
                   null,
               )
             : getFormattedFiatPrice(
                   settings,
                   userLocale,
-                  parseFloat(formData.slpListPrice) / fiatPrice,
+                  parseFloat(formData.tokenListPrice) / fiatPrice,
                   null,
               );
     };
@@ -482,13 +484,13 @@ const Token: React.FC = () => {
         if (
             typeof userLocale !== 'string' ||
             typeof formData === 'undefined' ||
-            formData.slpListPrice === null ||
+            formData.tokenListPrice === null ||
             typeof settings !== 'object' ||
             typeof fiatPrice === 'undefined'
         ) {
             return;
         }
-        let inputPrice = formData.slpListPrice;
+        let inputPrice = formData.tokenListPrice;
         if (inputPrice === '') {
             inputPrice = '0';
         }
@@ -653,7 +655,7 @@ const Token: React.FC = () => {
                 setSwitches({ ...switchesOff, showSellNft: true });
                 // Check if it is listed
                 getNftOffer();
-            } else if (tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
+            } else if (tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE' || isAlp) {
                 setSwitches({ ...switchesOff, showSellSlp: true });
             } else {
                 // Default action is send
@@ -663,18 +665,18 @@ const Token: React.FC = () => {
     }, [isSupportedToken, isNftParent, isNftChild]);
 
     useEffect(() => {
-        // Clear NFT and SLP list prices and de-select fiat currency if rate is unavailable
+        // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable
         handleSelectedCurrencyChange({
             target: { value: 'XEC' },
         } as React.ChangeEvent<HTMLSelectElement>);
     }, [fiatPrice]);
 
     useEffect(() => {
-        // We need to adjust slpAgoraPartialMin if the user reduces slpAgoraPartialTokenQty
-        if (Number(slpAgoraPartialTokenQty) < Number(slpAgoraPartialMin)) {
-            setSlpAgoraPartialMin(slpAgoraPartialTokenQty);
+        // We need to adjust agoraPartialMin if the user reduces agoraPartialTokenQty
+        if (Number(agoraPartialTokenQty) < Number(agoraPartialMin)) {
+            setAgoraPartialMin(agoraPartialTokenQty);
         }
-    }, [slpAgoraPartialTokenQty]);
+    }, [agoraPartialTokenQty]);
 
     const getNfts = async (tokenId: string) => {
         const nftParentTxHistory = await getAllTxHistoryByTokenId(
@@ -887,7 +889,9 @@ const Token: React.FC = () => {
         }
     }
 
-    const handleSlpOfferedSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTokenOfferedSlide = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const amount = e.target.value;
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
@@ -898,14 +902,14 @@ const Token: React.FC = () => {
             protocol as 'ALP' | 'SLP',
         );
 
-        setSlpAgoraPartialTokenQtyError(
+        setAgoraPartialTokenQtyError(
             isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
         );
 
-        setSlpAgoraPartialTokenQty(amount);
+        setAgoraPartialTokenQty(amount);
     };
 
-    const handleSlpMinSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTokenMinSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = e.target.value;
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
@@ -916,16 +920,16 @@ const Token: React.FC = () => {
             protocol as 'ALP' | 'SLP',
         );
 
-        setSlpAgoraPartialMinError(
+        setAgoraPartialMinError(
             isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
         );
 
         // Also validate price input if it is non-zero
         // If the user has reduced min qty, the price may now be below dust
-        if (formData.slpListPrice !== null) {
-            setSlpListPriceError(
+        if (formData.tokenListPrice !== null) {
+            setTokenListPriceError(
                 getAgoraPartialListPriceError(
-                    formData.slpListPrice,
+                    formData.tokenListPrice,
                     selectedCurrency,
                     fiatPrice,
                     amount,
@@ -934,10 +938,12 @@ const Token: React.FC = () => {
             );
         }
 
-        setSlpAgoraPartialMin(amount);
+        setAgoraPartialMin(amount);
     };
 
-    const handleSlpAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTokenAmountChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { value, name } = e.target;
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
@@ -1296,7 +1302,7 @@ const Token: React.FC = () => {
         setFormData(p => ({
             ...p,
             nftListPrice: '',
-            slpListPrice: '',
+            tokenListPrice: '',
         }));
     };
 
@@ -1313,17 +1319,17 @@ const Token: React.FC = () => {
         }));
     };
 
-    const handleSlpListPriceChange = (
+    const handleTokenListPriceChange = (
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const { name, value } = e.target;
 
-        setSlpListPriceError(
+        setTokenListPriceError(
             getAgoraPartialListPriceError(
                 value,
                 selectedCurrency,
                 fiatPrice,
-                slpAgoraPartialMin,
+                agoraPartialMin,
                 decimals as SlpDecimals,
             ),
         );
@@ -1532,7 +1538,7 @@ const Token: React.FC = () => {
         }
     };
 
-    const previewSlpPartial = async () => {
+    const previewAgoraPartial = async () => {
         // We can't expect users to enter numbers that exactly fit the encoding requirements of
         // agora partial offers
         // So, we build offers with agora.selectParams(), which calls AgoraPartial.approximateParams()
@@ -1544,10 +1550,10 @@ const Token: React.FC = () => {
         // So, you must account for token decimals
         const priceInXec =
             selectedCurrency === appConfig.ticker
-                ? parseFloat(formData.slpListPrice as string)
+                ? parseFloat(formData.tokenListPrice as string)
                 : new BN(
                       new BN(
-                          parseFloat(formData.slpListPrice as string) /
+                          parseFloat(formData.tokenListPrice as string) /
                               fiatPrice,
                       ).toFixed(NANOSAT_DECIMALS),
                   );
@@ -1564,17 +1570,14 @@ const Token: React.FC = () => {
         // Convert formData list qty (a decimalized token qty) to BigInt token sats
         const userSuggestedOfferedTokens = BigInt(
             undecimalizeTokenAmount(
-                slpAgoraPartialTokenQty,
+                agoraPartialTokenQty,
                 decimals as SlpDecimals,
             ),
         );
 
         // Convert formData min buy qty to BigInt
         const minAcceptedTokens = BigInt(
-            undecimalizeTokenAmount(
-                slpAgoraPartialMin,
-                decimals as SlpDecimals,
-            ),
+            undecimalizeTokenAmount(agoraPartialMin, decimals as SlpDecimals),
         );
 
         let agoraPartial;
@@ -1582,8 +1585,10 @@ const Token: React.FC = () => {
         try {
             agoraPartial = await agora.selectParams({
                 tokenId: tokenId,
-                tokenType: SLP_FUNGIBLE,
-                tokenProtocol: 'SLP',
+                // We cannot render the Token screen until tokenType is defined
+                tokenType: (tokenType as TokenType).number,
+                // We cannot render the Token screen until protocol is defined
+                tokenProtocol: protocol as 'ALP' | 'SLP',
                 offeredTokens: userSuggestedOfferedTokens,
                 priceNanoSatsPerToken: priceNanoSatsPerTokenSatoshi,
                 makerPk: pk,
@@ -1604,6 +1609,113 @@ const Token: React.FC = () => {
             // Do not show the preview modal
             return;
         }
+    };
+
+    /**
+     * Note that listing ALP tokens is simpler than listing SLP tokens
+     * Thanks to EMPP, can be done in a single tx, instead of the required
+     * chained 2 txs for SLP
+     *
+     * Means we need a distinct function for this operation
+     */
+    const listAlpPartial = async () => {
+        if (previewedAgoraPartial === null) {
+            // Should never happen
+            toast.error(
+                `Error listing ALP partial: Agora preview is undefined`,
+            );
+            return;
+        }
+        if (typeof tokenId !== 'string') {
+            // Should never happen
+            toast.error(`Error listing ALP partial: tokenId is undefined`);
+            return;
+        }
+        if (changeScript === false) {
+            // Should never happen
+            toast.error(`Error listing ALP partial: wallet is not loaded`);
+            return;
+        }
+
+        // offeredTokens is in units of token satoshis
+        const offeredTokens = previewedAgoraPartial.offeredTokens();
+
+        const satsPerKb =
+            settings.minFeeSends &&
+            (hasEnoughToken(
+                tokens,
+                appConfig.vipTokens.grumpy.tokenId,
+                appConfig.vipTokens.grumpy.vipBalance,
+            ) ||
+                hasEnoughToken(
+                    tokens,
+                    appConfig.vipTokens.cachet.tokenId,
+                    appConfig.vipTokens.cachet.vipBalance,
+                ))
+                ? appConfig.minFee
+                : appConfig.defaultFee;
+
+        // Get enough token utxos to cover the listing
+        // Note that getSendTokenInputs expects decimalized tokens as a string and decimals as a param
+        // Because we have undecimalized tokens in token sats from the AgoraPartial object,
+        // We pass this and "0" as decimals
+        const alpInputsInfo = getSendTokenInputs(
+            wallet.state.slpUtxos,
+            tokenId,
+            // This is already in units of token sats
+            offeredTokens.toString(),
+            0, // offeredTokens is already undecimalized
+        );
+
+        // Get sendAmounts and input token utxos like a normal token send tx
+        const { tokenInputs } = alpInputsInfo;
+        const offerTargetOutputs = getAlpAgoraListTargetOutputs(
+            alpInputsInfo,
+            previewedAgoraPartial,
+        );
+
+        let offerTxid;
+        try {
+            // Build and broadcast the ad setup tx
+            const { response } = await sendXec(
+                chronik,
+                ecc,
+                wallet,
+                offerTargetOutputs,
+                satsPerKb,
+                chaintipBlockheight,
+                tokenInputs,
+            );
+            offerTxid = response.txid;
+
+            // Calculate decimalized total offered amount for notifications
+            const decimalizedOfferedTokens = decimalizeTokenAmount(
+                offeredTokens.toString(),
+                decimals as SlpDecimals,
+            );
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+
+            // We stay on this token page as, unlike with NFTs, we may still have more of this token
+        } catch (err) {
+            console.error(`Error listing ALP Partial`, err);
+            toast.error(`Error listing ALP Partial: ${err}`);
+        }
+
+        // Clear the offer
+        // Note this will also clear the confirmation modal
+        setPreviewedAgoraPartial(null);
     };
 
     const listSlpPartial = async () => {
@@ -2024,11 +2136,13 @@ const Token: React.FC = () => {
                             />
                         )}
                     {showConfirmListPartialSlp &&
-                        formData.slpListPrice !== '' &&
+                        formData.tokenListPrice !== '' &&
                         previewedAgoraPartial !== null && (
                             <Modal
                                 title={`List ${tokenTicker}?`}
-                                handleOk={listSlpPartial}
+                                handleOk={
+                                    isAlp ? listAlpPartial : listSlpPartial
+                                }
                                 handleCancel={() =>
                                     setPreviewedAgoraPartial(null)
                                 }
@@ -2612,12 +2726,13 @@ const Token: React.FC = () => {
                                             )}
                                         </>
                                     ) : (
-                                        tokenType?.type ===
-                                            'SLP_TOKEN_TYPE_FUNGIBLE' && (
+                                        (tokenType?.type ===
+                                            'SLP_TOKEN_TYPE_FUNGIBLE' ||
+                                            isAlp) && (
                                             <>
                                                 <SwitchHolder>
                                                     <Switch
-                                                        name="Toggle Sell SLP"
+                                                        name="Toggle Sell Token"
                                                         on="💰"
                                                         off="💰"
                                                         checked={
@@ -2653,17 +2768,17 @@ const Token: React.FC = () => {
                                                             <InputRow>
                                                                 <Slider
                                                                     name={
-                                                                        'slpAgoraPartialTokenQty'
+                                                                        'agoraPartialTokenQty'
                                                                     }
                                                                     label={`Offered qty`}
                                                                     value={
-                                                                        slpAgoraPartialTokenQty
+                                                                        agoraPartialTokenQty
                                                                     }
                                                                     handleSlide={
-                                                                        handleSlpOfferedSlide
+                                                                        handleTokenOfferedSlide
                                                                     }
                                                                     error={
-                                                                        slpAgoraPartialTokenQtyError
+                                                                        agoraPartialTokenQtyError
                                                                     }
                                                                     min={0}
                                                                     max={
@@ -2681,21 +2796,21 @@ const Token: React.FC = () => {
                                                             <InputRow>
                                                                 <Slider
                                                                     name={
-                                                                        'slpAgoraPartialMin'
+                                                                        'agoraPartialMin'
                                                                     }
                                                                     label={`Min buy`}
                                                                     value={
-                                                                        slpAgoraPartialMin
+                                                                        agoraPartialMin
                                                                     }
                                                                     handleSlide={
-                                                                        handleSlpMinSlide
+                                                                        handleTokenMinSlide
                                                                     }
                                                                     error={
-                                                                        slpAgoraPartialMinError
+                                                                        agoraPartialMinError
                                                                     }
                                                                     min={0}
                                                                     max={
-                                                                        slpAgoraPartialTokenQty
+                                                                        agoraPartialTokenQty
                                                                     }
                                                                     // Step is 1 smallets supported decimal point of the given token
                                                                     step={parseFloat(
@@ -2708,14 +2823,14 @@ const Token: React.FC = () => {
                                                         <SendTokenFormRow>
                                                             <InputRow>
                                                                 <ListPriceInput
-                                                                    name="slpListPrice"
-                                                                    placeholder="Enter SLP list price (per token)"
+                                                                    name="tokenListPrice"
+                                                                    placeholder="Enter list price (per token)"
                                                                     inputDisabled={
-                                                                        slpAgoraPartialMin ===
+                                                                        agoraPartialMin ===
                                                                         '0'
                                                                     }
                                                                     value={
-                                                                        formData.slpListPrice
+                                                                        formData.tokenListPrice
                                                                     }
                                                                     selectValue={
                                                                         selectedCurrency
@@ -2726,10 +2841,10 @@ const Token: React.FC = () => {
                                                                     }
                                                                     fiatCode={settings.fiatCurrency.toUpperCase()}
                                                                     error={
-                                                                        slpListPriceError
+                                                                        tokenListPriceError
                                                                     }
                                                                     handleInput={
-                                                                        handleSlpListPriceChange
+                                                                        handleTokenListPriceChange
                                                                     }
                                                                     handleSelect={
                                                                         handleSelectedCurrencyChange
@@ -2738,14 +2853,14 @@ const Token: React.FC = () => {
                                                             </InputRow>
                                                         </SendTokenFormRow>
 
-                                                        {!slpListPriceError &&
-                                                            formData.slpListPrice !==
+                                                        {!tokenListPriceError &&
+                                                            formData.tokenListPrice !==
                                                                 '' &&
-                                                            formData.slpListPrice !==
+                                                            formData.tokenListPrice !==
                                                                 null &&
                                                             fiatPrice !==
                                                                 null && (
-                                                                <ListPricePreview title="SLP List Price">
+                                                                <ListPricePreview title="Token List Price">
                                                                     {getAgoraPartialPricePreview()}
                                                                 </ListPricePreview>
                                                             )}
@@ -2757,18 +2872,18 @@ const Token: React.FC = () => {
                                                                 }}
                                                                 disabled={
                                                                     apiError ||
-                                                                    slpListPriceError ||
-                                                                    formData.slpListPrice ===
+                                                                    tokenListPriceError ||
+                                                                    formData.tokenListPrice ===
                                                                         '' ||
-                                                                    formData.slpListPrice ===
+                                                                    formData.tokenListPrice ===
                                                                         null ||
-                                                                    slpAgoraPartialTokenQty ===
+                                                                    agoraPartialTokenQty ===
                                                                         '0' ||
-                                                                    slpAgoraPartialMin ===
+                                                                    agoraPartialMin ===
                                                                         '0'
                                                                 }
                                                                 onClick={
-                                                                    previewSlpPartial
+                                                                    previewAgoraPartial
                                                                 }
                                                             >
                                                                 List {tokenName}
@@ -2857,7 +2972,7 @@ const Token: React.FC = () => {
                                                                     decimals as SlpDecimals
                                                                 }
                                                                 handleInput={
-                                                                    handleSlpAmountChange
+                                                                    handleTokenAmountChange
                                                                 }
                                                                 handleOnMax={
                                                                     onMax

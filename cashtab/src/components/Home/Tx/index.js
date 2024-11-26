@@ -678,29 +678,6 @@ const Tx = ({
         // Other txTypes have an associated quantity
         // We will render this if we can get the token's decimals from cache
 
-        // Parse for an agora ad setup tx
-        // These are SLP1 SEND txs where
-        // 1. token utxo is > dust
-        // 2. recipient is p2sh address
-        if (satoshisSent > appConfig.dustSats) {
-            if (recipients.length === 1) {
-                // Ad setup tx has 1 recipient
-
-                // Ad setup tx has p2sh recipient
-                const listingScript = recipients[0];
-                try {
-                    const { type } = cashaddr.decode(listingScript, true);
-                    isAgoraAdSetup = type === 'p2sh';
-                } catch (err) {
-                    console.error(
-                        `Error in cashaddr.decode(${listingScript}, true)`,
-                        err,
-                    );
-                    // Continue parsing as token tx
-                }
-            }
-        }
-
         // Parse for an agora buy/sell/cancel
         // Will have the token input coming from a p2sh script
         // The input will be at inputs[0]
@@ -740,6 +717,56 @@ const Tx = ({
                 }
                 // We don't need to find any other inputs for this case
                 continue;
+            }
+        }
+
+        // Parse for an SLP 1 agora ad setup tx
+        // These are SLP1 SEND txs where
+        // 1. token utxo is > dust
+        // 2. recipient is p2sh address
+        if (satoshisSent > appConfig.dustSats) {
+            if (recipients.length === 1) {
+                // Ad setup tx has 1 recipient
+
+                // Ad setup tx has p2sh recipient
+                const listingScript = recipients[0];
+                try {
+                    const { type } = cashaddr.decode(listingScript, true);
+                    isAgoraAdSetup = type === 'p2sh';
+                } catch (err) {
+                    console.error(
+                        `Error in cashaddr.decode(${listingScript}, true)`,
+                        err,
+                    );
+                    // Continue parsing as token tx
+                }
+            }
+        }
+
+        // Parse for ALP agora listing tx
+        if (!isAgoraAdSetup && !isAgoraCancel && !isAgoraPurchase) {
+            // If this is not already classified as agora
+            if (
+                stackArray.length === 3 &&
+                stackArray[0] === '50' &&
+                stackArray[1].startsWith('41') &
+                    stackArray[2].startsWith('534c5032')
+            ) {
+                // and this is an empp ALP and agora tx
+                if (recipients.length >= 1) {
+                    try {
+                        const { type } = cashaddr.decode(recipients[0], true);
+                        if (type === 'p2sh') {
+                            isAgoraAdSetup = true;
+                        }
+                    } catch (err) {
+                        console.error(
+                            `Error in cashaddr.decode(${recipients[0]}, true) while parsing for ALP listing tx`,
+                            err,
+                        );
+                        // Continue parsing as token tx
+                    }
+                }
             }
         }
 
