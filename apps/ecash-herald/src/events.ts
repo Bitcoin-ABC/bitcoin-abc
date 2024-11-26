@@ -359,11 +359,25 @@ export const handleUtcMidnight = async (
         console.error(`Error getting daily summary price info`, err);
     }
 
+    let activeStakers: CoinDanceStaker[] | undefined;
+    // If we have a staker, get more info from API
+    try {
+        activeStakers = (
+            await axios.get(
+                `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
+            )
+        ).data;
+    } catch (err) {
+        console.error(`Error getting activeStakers`, err);
+        // Do not include this info in the tg msg
+    }
+
     const dailySummaryTgMsgs = summarizeTxHistory(
         newDayTimestamp,
         timeFirstSeenTxs,
         tokenInfoMap,
         priceInfo,
+        activeStakers,
     );
 
     // Send msg with successful price API call
