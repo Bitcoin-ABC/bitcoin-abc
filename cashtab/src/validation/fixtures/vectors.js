@@ -989,6 +989,169 @@ export default {
                     },
                 },
             },
+            // token txs
+            {
+                description:
+                    'bip21 token: token_id specified but token_decimalized_qty unspecified',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    queryString: {
+                        value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111',
+                        error: `Invalid bip21 token tx: token_decimalized_qty must be specified if token_id is specified`,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: token_decimalized_qty specified but token_id unspecified',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_decimalized_qty=100.123',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    queryString: {
+                        value: 'token_decimalized_qty=100.123',
+                        error: `Invalid bip21 token tx: token_id must be specified if token_decimalized_qty is specified`,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: token_decimalized_qty specified but token_id unspecified',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    queryString: {
+                        value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
+                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id and token_decimalized_qty`,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token but invalid token_id',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=gg11111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    token_id: {
+                        value: 'gg11111111111111111111111111111111111111111111111111111111111111',
+                        error: 'token_id is not a valid tokenId',
+                    },
+                    token_decimalized_qty: { value: '100.123', error: false },
+                    queryString: {
+                        value: 'token_id=gg11111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token but invalid token_decimalized_qty',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=notanumber',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    token_id: {
+                        value: '1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                    token_decimalized_qty: {
+                        value: 'notanumber',
+                        error: 'Invalid token_decimalized_qty',
+                    },
+                    queryString: {
+                        value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=notanumber',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token tx with valid params',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    token_id: {
+                        value: '1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                    token_decimalized_qty: {
+                        value: '100.123',
+                        error: false,
+                    },
+                    queryString: {
+                        value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token tx with valid params in reverse order still valid',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_decimalized_qty=100.123&token_id=1111111111111111111111111111111111111111111111111111111111111111',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    token_id: {
+                        value: '1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                    token_decimalized_qty: {
+                        value: '100.123',
+                        error: false,
+                    },
+                    queryString: {
+                        value: 'token_decimalized_qty=100.123&token_id=1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                },
+            },
             // Querystring errors where no params can be returned
             {
                 description:

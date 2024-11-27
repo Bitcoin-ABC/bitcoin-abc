@@ -687,6 +687,8 @@ export interface CashtabParsedAddressInfo {
         error: false | string;
     };
     op_return_raw?: { value: null | string; error: false | string };
+    token_id?: { value: null | string; error: false | string };
+    token_decimalized_qty?: { value: null | string; error: false | string };
 }
 
 /**
@@ -697,6 +699,8 @@ export interface CashtabParsedAddressInfo {
  * amount - amount to be sent in XEC
  * opreturn - raw hex for opreturn output
  * additional addr & amount - multiple outputs for XEC txs
+ * token_id - only for token send txs
+ * token_decimalized_qty - only for token send txs
  * @param balanceSats user wallet balance in satoshis
  * @param userLocale navigator.language if available, or default value if not
  */
@@ -775,156 +779,208 @@ export function parseAddressInput(
         const additionalXecOutputs: [string, string][] = [];
         // Flag as any duplication of this param is off spec
         let opReturnRawOccurred = false;
-        for (const [key, value] of addrParams) {
-            if (precedingParamAddr !== false) {
-                // If the preceding param was addr, then this has to be amount, otherwise off spec
-                if (key !== 'amount') {
-                    if (
-                        typeof parsedAddressInput.parsedAdditionalXecOutputs !==
-                        'undefined'
-                    ) {
-                        parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
-                    }
-                    return parsedAddressInput;
-                }
-                // Validate the amount
-                const isValidXecSendAmountOrErrorMsg = isValidXecSendAmount(
-                    value,
-                    balanceSats,
-                    userLocale,
-                );
-                if (isValidXecSendAmountOrErrorMsg !== true) {
-                    if (
-                        typeof parsedAddressInput.parsedAdditionalXecOutputs !==
-                        'undefined'
-                    ) {
-                        parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid amount ${value} for address ${precedingParamAddr}: ${isValidXecSendAmountOrErrorMsg}`;
-                    }
-                    return parsedAddressInput;
+
+        if (addrParams.has('token_id')) {
+            // Parse bip21 for token send tx
+            if (addrParams.has('token_decimalized_qty')) {
+                // A bip21 string with token_id must have token_decimalized_qty to be valid
+                if ([...addrParams.keys()].length === 2) {
+                    // A bip21 string with token_id must only include the params
+                    // token_id and token_decimalized_qty
+                    // So this is a (possibly) valid bip21 token send string
+                    const passedTokenId = addrParams.get('token_id');
+                    parsedAddressInput.token_id = {
+                        value: passedTokenId,
+                        error: isValidTokenId(passedTokenId)
+                            ? false
+                            : 'token_id is not a valid tokenId',
+                    };
+                    const passedTokenDecimalizedQty = addrParams.get(
+                        'token_decimalized_qty',
+                    );
+                    const isValidTokenDecimalizedQty =
+                        typeof passedTokenDecimalizedQty === 'string'
+                            ? STRINGIFIED_DECIMALIZED_REGEX.test(
+                                  passedTokenDecimalizedQty,
+                              )
+                            : false;
+                    // Note, because we do not know token decimals, validation of token_decimalized_qty
+                    // must wait for the the token send screen. We only check if it's a stringified
+                    // number
+                    parsedAddressInput.token_decimalized_qty = {
+                        value: passedTokenDecimalizedQty,
+                        error: isValidTokenDecimalizedQty
+                            ? false
+                            : 'Invalid token_decimalized_qty',
+                    };
                 } else {
-                    additionalXecOutputs.push([precedingParamAddr, value]);
-                }
-
-                // Reset the flag
-                precedingParamAddr = false;
-
-                // Go to the next param
-                continue;
-            }
-
-            if (!supportedParams.includes(key)) {
-                // queryString error
-                // Keep parsing for other params though
-                parsedAddressInput.queryString.error = `Unsupported param "${key}"`;
-            }
-            if (key === 'addr') {
-                // nth output address param
-                // So, we will return a parsedAdditionalXecOutputs key
-                parsedAddressInput.parsedAdditionalXecOutputs = {
-                    value: null,
-                    error: false,
-                };
-
-                const nthAddress = value;
-                // address validation
-                // Note: for now, Cashtab only supports valid cash addresses for secondary outputs
-                // TODO support aliases
-                const isValidNthAddress = cashaddr.isValidCashAddress(
-                    nthAddress,
-                    appConfig.prefix,
-                );
-                if (!isValidNthAddress) {
-                    //
-                    // If your address is not a valid address and not a valid alias format
-                    parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid address "${nthAddress}"`;
-                    // We do not return a value for parsedAdditionalXecOutputs if there is a validation error
-                    return parsedAddressInput;
-                }
-                // set precedingParamAddr flag to the address
-                // In this way we can validate bip21 spec and set the amount for this address by the next param
-                precedingParamAddr = nthAddress;
-            }
-            if (key === 'amount') {
-                if (!firstAmount) {
-                    // We should only get to this block for the first amount
-                    // If we get here otherwise, it means we are missing the corresponding 'addr' param for this amount
+                    // This is an invalid bip21 token tx
                     // Set a query string error
-                    parsedAddressInput.queryString.error = `The amount param appears without a corresponding addr param`;
-                    if (typeof parsedAddressInput.amount !== 'undefined') {
-                        // Do not return an amount value, since it is ambiguous
-                        parsedAddressInput.amount.value = null;
-                        parsedAddressInput.amount.error = `Duplicated amount param without matching address`;
+                    parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id and token_decimalized_qty`;
+                }
+            } else {
+                // This is an invalid bip21 token tx
+                // Set a query string error
+                parsedAddressInput.queryString.error = `Invalid bip21 token tx: token_decimalized_qty must be specified if token_id is specified`;
+            }
+        } else if (addrParams.has('token_decimalized_qty')) {
+            // This is an invalid bip21 token tx
+            // Set a query string error
+            parsedAddressInput.queryString.error = `Invalid bip21 token tx: token_id must be specified if token_decimalized_qty is specified`;
+        } else {
+            // Parse bip21 for non-token txs
+            for (const [key, value] of addrParams) {
+                if (precedingParamAddr !== false) {
+                    // If the preceding param was addr, then this has to be amount, otherwise off spec
+                    if (key !== 'amount') {
+                        if (
+                            typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                            'undefined'
+                        ) {
+                            parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+                        }
+                        return parsedAddressInput;
+                    }
+                    // Validate the amount
+                    const isValidXecSendAmountOrErrorMsg = isValidXecSendAmount(
+                        value,
+                        balanceSats,
+                        userLocale,
+                    );
+                    if (isValidXecSendAmountOrErrorMsg !== true) {
+                        if (
+                            typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                            'undefined'
+                        ) {
+                            parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid amount ${value} for address ${precedingParamAddr}: ${isValidXecSendAmountOrErrorMsg}`;
+                        }
+                        return parsedAddressInput;
+                    } else {
+                        additionalXecOutputs.push([precedingParamAddr, value]);
                     }
 
-                    // Stop parsing
-                    return parsedAddressInput;
-                }
-                // Handle Cashtab-supported bip21 param 'amount'
-                const amount = value;
-                parsedAddressInput.amount = { value: amount, error: false };
+                    // Reset the flag
+                    precedingParamAddr = false;
 
-                const validXecSendAmount = isValidXecSendAmount(
-                    amount,
-                    balanceSats,
-                    userLocale,
-                );
-                if (validXecSendAmount !== true) {
-                    // If the result of isValidXecSendAmount is not true, it is an error msg explaining wy
-                    parsedAddressInput.amount.error = validXecSendAmount;
+                    // Go to the next param
+                    continue;
                 }
 
-                if (firstAmount) {
-                    // Unset the firstAmount flag so that we correctly parse nth outputs
-                    firstAmount = false;
+                if (!supportedParams.includes(key)) {
+                    // queryString error
+                    // Keep parsing for other params though
+                    parsedAddressInput.queryString.error = `Unsupported param "${key}"`;
                 }
-            }
-            if (key === 'op_return_raw') {
-                if (opReturnRawOccurred) {
-                    // Set a query string error
-                    parsedAddressInput.queryString.error = `The op_return_raw param may not appear more than once`;
-                    if (
-                        typeof parsedAddressInput.op_return_raw !== 'undefined'
-                    ) {
-                        // Do not return an op_return_raw value, since it is ambiguous
-                        parsedAddressInput.op_return_raw.value = null;
-                        parsedAddressInput.op_return_raw.error = `Duplicated op_return_raw param`;
+                if (key === 'addr') {
+                    // nth output address param
+                    // So, we will return a parsedAdditionalXecOutputs key
+                    parsedAddressInput.parsedAdditionalXecOutputs = {
+                        value: null,
+                        error: false,
+                    };
+
+                    const nthAddress = value;
+                    // address validation
+                    // Note: for now, Cashtab only supports valid cash addresses for secondary outputs
+                    // TODO support aliases
+                    const isValidNthAddress = cashaddr.isValidCashAddress(
+                        nthAddress,
+                        appConfig.prefix,
+                    );
+                    if (!isValidNthAddress) {
+                        //
+                        // If your address is not a valid address and not a valid alias format
+                        parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid address "${nthAddress}"`;
+                        // We do not return a value for parsedAdditionalXecOutputs if there is a validation error
+                        return parsedAddressInput;
                     }
-                    // Stop parsing
-                    return parsedAddressInput;
+                    // set precedingParamAddr flag to the address
+                    // In this way we can validate bip21 spec and set the amount for this address by the next param
+                    precedingParamAddr = nthAddress;
                 }
-                opReturnRawOccurred = true;
-                // Handle Cashtab-supported bip21 param 'op_return_raw'
-                const opreturnParam = value;
-                parsedAddressInput.op_return_raw = {
-                    value: opreturnParam,
-                    error: false,
-                };
-                const opReturnRawError = getOpReturnRawError(opreturnParam);
-                if (opReturnRawError !== false) {
-                    // If we have an invalid op_return_raw param, set error
-                    parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param: ${opReturnRawError}`;
-                }
-            }
-        }
+                if (key === 'amount') {
+                    if (!firstAmount) {
+                        // We should only get to this block for the first amount
+                        // If we get here otherwise, it means we are missing the corresponding 'addr' param for this amount
+                        // Set a query string error
+                        parsedAddressInput.queryString.error = `The amount param appears without a corresponding addr param`;
+                        if (typeof parsedAddressInput.amount !== 'undefined') {
+                            // Do not return an amount value, since it is ambiguous
+                            parsedAddressInput.amount.value = null;
+                            parsedAddressInput.amount.error = `Duplicated amount param without matching address`;
+                        }
 
-        // Catch a bip21 syntax error where the LAST param was addr
-        if (precedingParamAddr !== false) {
-            if (
-                typeof parsedAddressInput.parsedAdditionalXecOutputs !==
-                'undefined'
-            ) {
-                parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+                        // Stop parsing
+                        return parsedAddressInput;
+                    }
+                    // Handle Cashtab-supported bip21 param 'amount'
+                    const amount = value;
+                    parsedAddressInput.amount = { value: amount, error: false };
+
+                    const validXecSendAmount = isValidXecSendAmount(
+                        amount,
+                        balanceSats,
+                        userLocale,
+                    );
+                    if (validXecSendAmount !== true) {
+                        // If the result of isValidXecSendAmount is not true, it is an error msg explaining wy
+                        parsedAddressInput.amount.error = validXecSendAmount;
+                    }
+
+                    if (firstAmount) {
+                        // Unset the firstAmount flag so that we correctly parse nth outputs
+                        firstAmount = false;
+                    }
+                }
+                if (key === 'op_return_raw') {
+                    if (opReturnRawOccurred) {
+                        // Set a query string error
+                        parsedAddressInput.queryString.error = `The op_return_raw param may not appear more than once`;
+                        if (
+                            typeof parsedAddressInput.op_return_raw !==
+                            'undefined'
+                        ) {
+                            // Do not return an op_return_raw value, since it is ambiguous
+                            parsedAddressInput.op_return_raw.value = null;
+                            parsedAddressInput.op_return_raw.error = `Duplicated op_return_raw param`;
+                        }
+                        // Stop parsing
+                        return parsedAddressInput;
+                    }
+                    opReturnRawOccurred = true;
+                    // Handle Cashtab-supported bip21 param 'op_return_raw'
+                    const opreturnParam = value;
+                    parsedAddressInput.op_return_raw = {
+                        value: opreturnParam,
+                        error: false,
+                    };
+                    const opReturnRawError = getOpReturnRawError(opreturnParam);
+                    if (opReturnRawError !== false) {
+                        // If we have an invalid op_return_raw param, set error
+                        parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param: ${opReturnRawError}`;
+                    }
+                }
             }
-            return parsedAddressInput;
-        }
-        if (additionalXecOutputs.length > 0) {
-            // If we have secondary outputs, include them
-            if (
-                typeof parsedAddressInput.parsedAdditionalXecOutputs?.value !==
-                'undefined'
-            ) {
-                parsedAddressInput.parsedAdditionalXecOutputs.value =
-                    additionalXecOutputs;
+
+            // Catch a bip21 syntax error where the LAST param was addr
+            if (precedingParamAddr !== false) {
+                if (
+                    typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                    'undefined'
+                ) {
+                    parsedAddressInput.parsedAdditionalXecOutputs.error = `No amount key for addr ${precedingParamAddr}`;
+                }
+                return parsedAddressInput;
+            }
+            if (additionalXecOutputs.length > 0) {
+                // If we have secondary outputs, include them
+                if (
+                    typeof parsedAddressInput.parsedAdditionalXecOutputs
+                        ?.value !== 'undefined'
+                ) {
+                    parsedAddressInput.parsedAdditionalXecOutputs.value =
+                        additionalXecOutputs;
+                }
             }
         }
     }

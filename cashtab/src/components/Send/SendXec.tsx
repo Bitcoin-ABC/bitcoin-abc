@@ -8,7 +8,14 @@ import { WalletContext } from 'wallet/context';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import PrimaryButton from 'components/Common/Buttons';
-import { toSatoshis, toXec } from 'wallet';
+import { toSatoshis, toXec, SlpDecimals } from 'wallet';
+import { getSendTokenInputs, TokenInputInfo } from 'token-protocols';
+import {
+    getNft,
+    getNftChildSendTargetOutputs,
+    getSlpSendTargetOutputs,
+} from 'token-protocols/slpv1';
+import { getAlpSendTargetOutputs } from 'token-protocols/alp';
 import { sumOneToManyXec } from 'utils/cashMethods';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
@@ -18,8 +25,15 @@ import {
     isValidXecSendAmount,
     getOpReturnRawError,
     CashtabParsedAddressInfo,
+    isValidTokenSendOrBurnAmount,
 } from 'validation';
-import { ConvertAmount, AlertMsg, TxLink, Info } from 'components/Common/Atoms';
+import {
+    ConvertAmount,
+    Alert,
+    AlertMsg,
+    TxLink,
+    Info,
+} from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
 import {
     sendXec,
@@ -47,6 +61,7 @@ import { isMobile, getUserLocale } from 'helpers';
 import { hasEnoughToken, fiatToSatoshis } from 'wallet';
 import { toast } from 'react-toastify';
 import {
+    SendTokenBip21Input,
     InputWithScanner,
     SendXecInput,
     TextArea,
@@ -54,6 +69,17 @@ import {
 import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
 import { Script } from 'ecash-lib';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { TokenSentLink } from 'components/Etokens/Token/styled';
+import TokenIcon from 'components/Etokens/TokenIcon';
+import { getTokenGenesisInfo } from 'chronik';
+import { InlineLoader } from 'components/Common/Spinner';
+import {
+    AlpTokenType_Type,
+    SlpTokenType_Type,
+    TokenType,
+    GenesisInfo,
+} from 'chronik-client';
 
 const OuterCtn = styled.div`
     background: ${props => props.theme.primaryBackground};
@@ -164,6 +190,44 @@ const InputModesHolder = styled.div<{ open: boolean }>`
         opacity: ${props => (props.open ? 1 : 0)};
     }
 `;
+const ParsedTokenSend = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background-color: #fff2f0;
+    border-radius: 12px;
+    color: ${props => props.theme.eCashBlue};
+    padding: 12px;
+    text-align: left;
+`;
+const SendTokenBip21FormRow = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 3px;
+`;
+interface SendTokenBip21Props {
+    decimalizedTokenQty: string;
+    tokenError: false | string;
+}
+
+const SendTokenBip21: React.FC<SendTokenBip21Props> = ({
+    decimalizedTokenQty,
+    tokenError,
+}) => {
+    return (
+        <SendTokenBip21FormRow>
+            <SendTokenBip21Input
+                name="amount"
+                placeholder="Bip21-entered token amount"
+                value={decimalizedTokenQty}
+                error={tokenError}
+            />
+        </SendTokenBip21FormRow>
+    );
+};
 interface CashtabTxInfo {
     address?: string;
     bip21?: string;
@@ -178,10 +242,11 @@ const SendXec: React.FC = () => {
         fiatPrice,
         apiError,
         cashtabState,
+        updateCashtabState,
         chronik,
         ecc,
     } = ContextValue;
-    const { settings, wallets } = cashtabState;
+    const { settings, wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balanceSats, tokens } = walletState;
@@ -252,6 +317,9 @@ const SendXec: React.FC = () => {
 
     // Show a confirmation modal on transactions created by populating form from web page button
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [showConfirmSendModal, setShowConfirmSendModal] =
+        useState<boolean>(false);
+    const [tokenIdQueryError, setTokenIdQueryError] = useState<boolean>(false);
 
     // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)
     // hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.cashtabMsgByteLimit
@@ -293,6 +361,50 @@ const SendXec: React.FC = () => {
             typeof parsedAddressInput.amount.value !== 'undefined' &&
             parsedAddressInput.amount.value !== null
         );
+    };
+
+    // Typeguard for a valid bip21 token send tx
+    const isBip21TokenSend = (
+        parsedAddressInput: CashtabParsedAddressInfo,
+    ): parsedAddressInput is {
+        address: {
+            value: string;
+            error: false;
+            isAlias: boolean;
+        };
+        token_id: {
+            value: string;
+            error: false | string;
+        };
+        token_decimalized_qty: { value: string; error: false | string };
+    } => {
+        return (
+            typeof parsedAddressInput !== 'undefined' &&
+            typeof parsedAddressInput.address.value === 'string' &&
+            parsedAddressInput.address.error === false &&
+            typeof parsedAddressInput.token_id !== 'undefined' &&
+            typeof parsedAddressInput.token_id.value === 'string' &&
+            parsedAddressInput.token_id.error === false &&
+            typeof parsedAddressInput.token_decimalized_qty !== 'undefined' &&
+            typeof parsedAddressInput.token_decimalized_qty.value ===
+                'string' &&
+            parsedAddressInput.token_decimalized_qty.error === false
+        );
+    };
+
+    const addTokenToCashtabCache = async (tokenId: string) => {
+        let tokenInfo;
+        try {
+            tokenInfo = await getTokenGenesisInfo(chronik, tokenId);
+        } catch (err) {
+            console.error(`Error getting token details for ${tokenId}`, err);
+            return setTokenIdQueryError(true);
+        }
+        // If we successfully get tokenInfo, update cashtabCache
+        cashtabCache.tokens.set(tokenId, tokenInfo);
+        updateCashtabState('cashtabCache', cashtabCache);
+        // Unset in case user is checking a new token that does exist this time
+        setTokenIdQueryError(false);
     };
 
     // Shorthand this calc as well as it is used in multiple spots
@@ -512,6 +624,116 @@ const SendXec: React.FC = () => {
         toast.error(`${message}`);
     }
 
+    const sendToken = async () => {
+        if (!isBip21TokenSend(parsedAddressInput)) {
+            // Should never happen
+            toast.error(`Error parsing token info for token send`);
+            return;
+        }
+        const address = parsedAddressInput.address.value;
+        const tokenId = parsedAddressInput.token_id.value;
+        const decimalizedTokenQty =
+            parsedAddressInput.token_decimalized_qty.value;
+        const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
+        if (typeof cachedTokenInfo === 'undefined') {
+            // Should never happen
+            toast.error(`Error: token info not in cache`);
+            return;
+        }
+
+        const { genesisInfo, tokenType } = cachedTokenInfo;
+        const { decimals } = genesisInfo;
+        const { type } = tokenType;
+        // GA event
+        Event('SendXec', 'Bip21 Token Send', tokenId);
+
+        try {
+            // Get input utxos for slpv1 or ALP send tx
+            // NFT send utxos are handled differently
+            const tokenInputInfo =
+                type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
+                    ? undefined
+                    : getSendTokenInputs(
+                          wallet.state.slpUtxos,
+                          tokenId as string,
+                          decimalizedTokenQty,
+                          decimals as SlpDecimals,
+                      );
+
+            // Get targetOutputs for an slpv1 send tx
+            const tokenSendTargetOutputs =
+                type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
+                    ? getNftChildSendTargetOutputs(tokenId as string, address)
+                    : type === 'ALP_TOKEN_TYPE_STANDARD'
+                    ? getAlpSendTargetOutputs(
+                          tokenInputInfo as TokenInputInfo,
+                          address,
+                      )
+                    : getSlpSendTargetOutputs(
+                          tokenInputInfo as TokenInputInfo,
+                          address,
+                      );
+            // Build and broadcast the tx
+            const { response } = await sendXec(
+                chronik,
+                ecc,
+                wallet,
+                tokenSendTargetOutputs,
+                settings.minFeeSends &&
+                    (hasEnoughToken(
+                        tokens,
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
+                chaintipBlockheight,
+                type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
+                    ? getNft(tokenId as string, wallet.state.slpUtxos)
+                    : (tokenInputInfo as TokenInputInfo).tokenInputs,
+            );
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
+                        ? 'NFT sent'
+                        : 'eToken sent'}
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+            clearInputForms();
+            // Hide the confirmation modal if it was showing
+            setShowConfirmSendModal(false);
+        } catch (e) {
+            console.error(
+                `Error sending ${
+                    type === 'SLP_TOKEN_TYPE_NFT1_CHILD' ? 'NFT' : 'token'
+                }`,
+                e,
+            );
+            toast.error(`${e}`);
+        }
+    };
+    const checkForConfirmationBeforeBip21TokenSend = () => {
+        if (settings.sendModal) {
+            setShowConfirmSendModal(true);
+        } else {
+            // if the user does not have the send confirmation enabled in settings then send directly
+            sendToken();
+        }
+    };
+
     async function send() {
         setFormData({
             ...formData,
@@ -632,6 +854,10 @@ const SendXec: React.FC = () => {
     const handleAddressChange = async (
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
+        if (tokenIdQueryError) {
+            // Clear tokenIdQueryError if we have one
+            setTokenIdQueryError(false);
+        }
         setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         const parsedAddressInput = parseAddressInput(
@@ -702,6 +928,33 @@ const SendXec: React.FC = () => {
         ) {
             renderedSendToError =
                 parsedAddressInput.parsedAdditionalXecOutputs.error;
+        }
+
+        // Handle bip21 token errors
+        if (
+            renderedSendToError === false &&
+            typeof parsedAddressInput.token_decimalized_qty !== 'undefined' &&
+            parsedAddressInput.token_decimalized_qty.error !== false
+        ) {
+            // If we have an invalid token_decimalized_qty but a good bip21 query string
+            renderedSendToError =
+                parsedAddressInput.token_decimalized_qty.error;
+        }
+        if (
+            renderedSendToError === false &&
+            typeof parsedAddressInput.token_id !== 'undefined'
+        ) {
+            if (parsedAddressInput.token_id.error !== false) {
+                // If we have an invalid token id but a good bip21 query string
+                renderedSendToError = parsedAddressInput.token_id.error;
+            } else {
+                // We have valid token send bip21 and no error
+                if (typeof parsedAddressInput.token_id.value === 'string') {
+                    // Should always be true if we have error false here
+                    // get and cache token info if we have a valid token ID and no renderedSendToError
+                    addTokenToCashtabCache(parsedAddressInput.token_id.value);
+                }
+            }
         }
 
         setSendAddressError(renderedSendToError);
@@ -981,8 +1234,81 @@ const SendXec: React.FC = () => {
         isOneToManyXECSend,
     );
 
+    // Send token variables
+    const cachedInfo: undefined | CashtabCachedTokenInfo = isBip21TokenSend(
+        parsedAddressInput,
+    )
+        ? cashtabCache.tokens.get(parsedAddressInput.token_id.value)
+        : undefined;
+    const cachedInfoLoaded = typeof cachedInfo !== 'undefined';
+
+    let tokenType: undefined | TokenType,
+        protocol: undefined | 'SLP' | 'ALP',
+        type: undefined | AlpTokenType_Type | SlpTokenType_Type,
+        genesisInfo: undefined | GenesisInfo,
+        tokenName: undefined | string,
+        tokenTicker: undefined | string,
+        decimals: undefined | number;
+
+    let nameAndTicker = '';
+    let tokenError: false | string = false;
+
+    const addressPreview = isBip21TokenSend(parsedAddressInput)
+        ? `${parsedAddressInput.address.value.slice(
+              0,
+              'ecash:'.length + 3,
+          )}...${parsedAddressInput.address.value.slice(-3)}`
+        : '';
+    const decimalizedTokenQty = isBip21TokenSend(parsedAddressInput)
+        ? parsedAddressInput.token_decimalized_qty.value
+        : '';
+
+    if (cachedInfoLoaded && isBip21TokenSend(parsedAddressInput)) {
+        ({ tokenType, genesisInfo } = cachedInfo);
+        ({ protocol, type } = tokenType);
+        ({ tokenName, tokenTicker, decimals } = genesisInfo);
+        nameAndTicker = `${tokenName}${
+            tokenTicker !== '' ? ` (${tokenTicker})` : ''
+        }`;
+
+        // Cashtab does not yet support sending all types of tokens
+        const cashtabSupportedSendTypes = [
+            'ALP_TOKEN_TYPE_STANDARD',
+            'SLP_TOKEN_TYPE_FUNGIBLE',
+            'SLP_TOKEN_TYPE_NFT1_CHILD',
+        ];
+
+        const tokenBalance = tokens.get(parsedAddressInput.token_id.value);
+
+        if (!cashtabSupportedSendTypes.includes(type)) {
+            tokenError = `Cashtab does not support sending this type of token (${type})`;
+        } else if (typeof tokenBalance === 'undefined') {
+            // User has none of this token
+            tokenError = 'You do not hold any of this token.';
+        } else {
+            const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+                decimalizedTokenQty,
+                tokenBalance,
+                decimals as SlpDecimals,
+                protocol,
+            );
+            tokenError =
+                isValidAmountOrErrorMsg === true
+                    ? false
+                    : isValidAmountOrErrorMsg;
+        }
+    }
+
     return (
         <OuterCtn>
+            {showConfirmSendModal && (
+                <Modal
+                    title={`Send ${decimalizedTokenQty} ${nameAndTicker} to ${addressPreview}?`}
+                    handleOk={sendToken}
+                    handleCancel={() => setShowConfirmSendModal(false)}
+                    showCancelButton
+                />
+            )}
             {isModalVisible && (
                 <Modal
                     title="Confirm Send"
@@ -1068,6 +1394,23 @@ const SendXec: React.FC = () => {
                                     outputs
                                 </b>
                             </Info>
+                        ) : isBip21TokenSend(parsedAddressInput) &&
+                          tokenIdQueryError === false ? (
+                            <>
+                                {typeof cashtabCache.tokens.get(
+                                    parsedAddressInput.token_id.value,
+                                ) !== 'undefined' ? (
+                                    <SendTokenBip21
+                                        decimalizedTokenQty={
+                                            parsedAddressInput
+                                                .token_decimalized_qty.value
+                                        }
+                                        tokenError={tokenError}
+                                    />
+                                ) : (
+                                    <InlineLoader />
+                                )}
+                            </>
                         ) : (
                             <SendXecInput
                                 name="amount"
@@ -1094,6 +1437,12 @@ const SendXec: React.FC = () => {
                         )}
                     </SendToOneInputForm>
                 </SendToOneHolder>
+                {isBip21TokenSend(parsedAddressInput) && tokenIdQueryError && (
+                    <Alert>
+                        Error querying token info for{' '}
+                        {parsedAddressInput.token_id.value}
+                    </Alert>
+                )}
                 {priceApiError && (
                     <AlertMsg>
                         Error fetching fiat price. Setting send by{' '}
@@ -1195,6 +1544,17 @@ const SendXec: React.FC = () => {
                         <SwitchLabel>op_return_raw</SwitchLabel>
                     </SwitchAndLabel>
                 </SendXecRow>
+                {isBip21TokenSend(parsedAddressInput) &&
+                    tokenIdQueryError === false && (
+                        <ParsedTokenSend>
+                            <TokenIcon
+                                size={64}
+                                tokenId={parsedAddressInput.token_id.value}
+                            />
+                            Sending {decimalizedTokenQty} {nameAndTicker} to{' '}
+                            {addressPreview}
+                        </ParsedTokenSend>
+                    )}
                 {sendWithOpReturnRaw && (
                     <>
                         <SendXecRow>
@@ -1326,10 +1686,18 @@ const SendXec: React.FC = () => {
             </AmountPreviewCtn>
             <PrimaryButton
                 style={{ marginTop: '12px' }}
-                disabled={disableSendButton}
-                onClick={() => {
-                    checkForConfirmationBeforeSendXec();
-                }}
+                disabled={
+                    (!isBip21TokenSend(parsedAddressInput) &&
+                        disableSendButton) ||
+                    (isBip21TokenSend(parsedAddressInput) &&
+                        tokenError !== false) ||
+                    tokenIdQueryError
+                }
+                onClick={
+                    isBip21TokenSend(parsedAddressInput)
+                        ? checkForConfirmationBeforeBip21TokenSend
+                        : checkForConfirmationBeforeSendXec
+                }
             >
                 Send
             </PrimaryButton>

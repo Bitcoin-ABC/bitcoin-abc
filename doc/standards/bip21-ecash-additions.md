@@ -118,6 +118,6 @@ An amount of `300` XEC will be sent to `ecash:prf...z07` at the index 3 output
 
 #### Bip-21 URI for an SLP or ALP Send tx
 
-`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?tokenId=aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1&token_decimalized_qty=100.12`
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?token_id=aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1&token_decimalized_qty=100.12`
 
 100.12 CACHET tokens will be sent to `ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07` in an output containing 546 satoshis. It is up to the implementing wallet to handle validation and change.

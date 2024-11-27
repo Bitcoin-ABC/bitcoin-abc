@@ -19,6 +19,7 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { slp1FixedBear } from 'components/Etokens/fixtures/mocks';
 
 describe('<SendXec /> rendered with params in URL', () => {
     beforeEach(() => {
@@ -849,5 +850,97 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(
             screen.getByText(`qp4dxt...qkrjp5, 5.50 XEC`),
         ).toBeInTheDocument();
+    });
+    it('bip21 param - valid bip21 token send', async () => {
+        const destinationAddress =
+            'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv';
+        const token_id = slp1FixedBear.tokenId;
+        const token_decimalized_qty = '1';
+
+        const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}`;
+        const hash = `#/send?bip21=${bip21Str}`;
+        // ?bip21=ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?token_id=<tokenId>&token_decimalized_qty=110
+        Object.defineProperty(window, 'location', {
+            value: {
+                hash,
+            },
+            writable: true,
+        });
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // The 'Send To' input field has this address as a value
+        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
+
+        // The address input is disabled for app txs with bip21 strings
+        // Note it is NOT disabled for txs where the user inputs the bip21 string
+        // This is covered in SendXec.test.js
+        expect(addressInputEl).toBeDisabled();
+
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // Amount input is not displayed
+        expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
+
+        // Instead, we see the bip21 token amount input
+        const tokenInputField = screen.getByPlaceholderText(
+            'Bip21-entered token amount',
+        );
+        expect(tokenInputField).toBeInTheDocument();
+        expect(tokenInputField).toHaveValue(token_decimalized_qty);
+        // This input field is disabled, because it is controled by the bip21 string in the Address input
+        expect(tokenInputField).toBeDisabled();
+
+        // We do not see a token ID query error
+        expect(
+            screen.queryByText(`Error querying token info for ${token_id}`),
+        ).not.toBeInTheDocument();
+
+        // We see the parsed tx
+        const { tokenName, tokenTicker } = slp1FixedBear.token.genesisInfo;
+        const addressPreview = `${destinationAddress.slice(
+            0,
+            'ecash:'.length + 3,
+        )}...${destinationAddress.slice(-3)}`;
+        expect(
+            screen.getByText(
+                `Sending ${token_decimalized_qty} ${tokenName} (${tokenTicker}) to ${addressPreview}`,
+            ),
+        ).toBeInTheDocument();
+
+        // The send button is enabled as we have valid bip21 token send for a token qty supported
+        // by the wallet
+        expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+
+        // The Cashtab Msg switch is disabled because bip21 token tx is set
+        expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();
+        // The op_return_raw switch is disabled because bip21 token tx is set
+        expect(screen.getByTitle('Toggle op_return_raw')).toBeDisabled();
     });
 });
