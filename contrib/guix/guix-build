@@ -284,17 +284,6 @@ EOF
 # Deterministically build Bitcoin ABC
 # shellcheck disable=SC2153
 for host in $HOSTS; do
-
-    case "$host" in
-        *darwin*)
-            # We don't need --emulate-fhs because we don't build chronik
-            unset EMULATE_FHS
-            ;;
-        *)
-            EMULATE_FHS=--emulate-fhs
-            ;;
-    esac
-
     # Display proper warning when the user interrupts the build
     trap 'int_trap ${host}' INT
 
@@ -384,7 +373,7 @@ EOF
         # shellcheck disable=SC2086,SC2031
         time-machine shell --manifest="${PWD}/contrib/guix/manifest.scm" \
                                  --container \
-                                 ${EMULATE_FHS} \
+                                 --emulate-fhs \
                                  --user=bitcoinabc \
                                  --pure \
                                  --network \
