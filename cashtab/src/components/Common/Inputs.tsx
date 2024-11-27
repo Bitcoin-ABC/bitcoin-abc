@@ -244,12 +244,12 @@ interface TextAreaProps {
     name: string;
     value: string | null;
     handleInput: React.ChangeEventHandler<HTMLTextAreaElement>;
-    disabled: boolean;
-    height: number;
+    disabled?: boolean;
+    height?: number;
     error: string | boolean;
-    showCount: boolean;
-    customCount: boolean;
-    max: string | number;
+    showCount?: boolean;
+    customCount?: boolean | number;
+    max?: string | number;
 }
 export const TextArea: React.FC<TextAreaProps> = ({
     placeholder = '',

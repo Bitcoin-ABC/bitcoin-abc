@@ -678,7 +678,7 @@ export const shouldSendXecBeDisabled = (
     );
 };
 
-interface CashtabParsedAddressInfo {
+export interface CashtabParsedAddressInfo {
     address: { value: null | string; error: false | string; isAlias: boolean };
     amount?: { value: null | string; error: false | string };
     queryString?: { value: string; error: false | string };

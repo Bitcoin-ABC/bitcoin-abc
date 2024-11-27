@@ -17,6 +17,7 @@ import {
     parseAddressInput,
     isValidXecSendAmount,
     getOpReturnRawError,
+    CashtabParsedAddressInfo,
 } from 'validation';
 import { ConvertAmount, AlertMsg, TxLink, Info } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
@@ -31,13 +32,14 @@ import {
     getCashtabMsgByteCount,
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
+    ParsedOpReturnRaw,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
-import { queryAliasServer } from 'alias';
+import { Alias, queryAliasServer } from 'alias';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
@@ -133,7 +135,7 @@ const InputAndAliasPreviewHolder = styled.div`
     flex-direction: column;
 `;
 
-const InputModesHolder = styled.div`
+const InputModesHolder = styled.div<{ open: boolean }>`
     min-height: 9rem;
     ${SendToOneHolder} {
         overflow: hidden;
@@ -156,8 +158,13 @@ const InputModesHolder = styled.div`
         opacity: ${props => (props.open ? 1 : 0)};
     }
 `;
-
-const SendXec = () => {
+interface CashtabTxInfo {
+    address?: string;
+    bip21?: string;
+    value?: string;
+    parseAllAsBip21?: boolean;
+}
+const SendXec: React.FC = () => {
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
     const {
@@ -173,20 +180,35 @@ const SendXec = () => {
     const walletState = getWalletState(wallet);
     const { balanceSats, tokens } = walletState;
 
-    const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
-    const [sendWithCashtabMsg, setSendWithCashtabMsg] = useState(false);
-    const [sendWithOpReturnRaw, setSendWithOpReturnRaw] = useState(false);
-    const [opReturnRawError, setOpReturnRawError] = useState(false);
-    const [parsedOpReturnRaw, setParsedOpReturnRaw] = useState({
-        protocol: '',
-        data: '',
-    });
+    const [isOneToManyXECSend, setIsOneToManyXECSend] =
+        useState<boolean>(false);
+    const [sendWithCashtabMsg, setSendWithCashtabMsg] =
+        useState<boolean>(false);
+    const [sendWithOpReturnRaw, setSendWithOpReturnRaw] =
+        useState<boolean>(false);
+    const [opReturnRawError, setOpReturnRawError] = useState<false | string>(
+        false,
+    );
+    const [parsedOpReturnRaw, setParsedOpReturnRaw] =
+        useState<ParsedOpReturnRaw>({
+            protocol: '',
+            data: '',
+        });
 
     // Load with QR code open if device is mobile
     const openWithScanner =
         settings && settings.autoCameraOn === true && isMobile(navigator);
 
-    const emptyFormData = {
+    interface SendXecFormData {
+        amount: string;
+        address: string;
+        multiAddressInput: string;
+        airdropTokenId: string;
+        cashtabMsg: string;
+        opReturnRaw: string;
+    }
+
+    const emptyFormData: SendXecFormData = {
         amount: '',
         address: '',
         multiAddressInput: '',
@@ -195,22 +217,35 @@ const SendXec = () => {
         opReturnRaw: '',
     };
 
-    const [formData, setFormData] = useState(emptyFormData);
-    const [sendAddressError, setSendAddressError] = useState(false);
-    const [multiSendAddressError, setMultiSendAddressError] = useState(false);
-    const [sendAmountError, setSendAmountError] = useState(false);
-    const [cashtabMsgError, setCashtabMsgError] = useState(false);
-    const [aliasInputAddress, setAliasInputAddress] = useState(false);
-    const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
-    const [parsedAddressInput, setParsedAddressInput] = useState(
-        parseAddressInput(''),
+    const [formData, setFormData] = useState<SendXecFormData>(emptyFormData);
+    const [sendAddressError, setSendAddressError] = useState<false | string>(
+        false,
     );
+    const [multiSendAddressError, setMultiSendAddressError] = useState<
+        false | string
+    >(false);
+    const [sendAmountError, setSendAmountError] = useState<string | false>(
+        false,
+    );
+    const [cashtabMsgError, setCashtabMsgError] = useState<string | false>(
+        false,
+    );
+    const [aliasInputAddress, setAliasInputAddress] = useState<string | false>(
+        false,
+    );
+    const [selectedCurrency, setSelectedCurrency] = useState<string>(
+        appConfig.ticker,
+    );
+    const [parsedAddressInput, setParsedAddressInput] =
+        useState<CashtabParsedAddressInfo>(parseAddressInput('', 0));
 
     // Support cashtab button from web pages
-    const [txInfoFromUrl, setTxInfoFromUrl] = useState(false);
+    const [txInfoFromUrl, setTxInfoFromUrl] = useState<false | CashtabTxInfo>(
+        false,
+    );
 
     // Show a confirmation modal on transactions created by populating form from web page button
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
     // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)
     // hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.cashtabMsgByteLimit
@@ -223,28 +258,53 @@ const SendXec = () => {
         pushDataByteCount +
         prefixByteCount; // 38
 
-    const [airdropFlag, setAirdropFlag] = useState(false);
+    const [airdropFlag, setAirdropFlag] = useState<boolean>(false);
 
-    // Shorthand variable for bip21 multiple outputs
-    const isBip21MultipleOutputs =
-        typeof parsedAddressInput.parsedAdditionalXecOutputs !== 'undefined' &&
-        parsedAddressInput.parsedAdditionalXecOutputs.error === false &&
-        parsedAddressInput.parsedAdditionalXecOutputs.value !== null;
+    // Typeguard for bip21 multiple outputs parsedAddressInput
+    const isBip21MultipleOutputsSafe = (
+        parsedAddressInput: CashtabParsedAddressInfo,
+    ): parsedAddressInput is {
+        address: {
+            value: null | string;
+            error: false | string;
+            isAlias: boolean;
+        };
+        parsedAdditionalXecOutputs: {
+            value: [string, string][];
+            error: false | string;
+        };
+        amount: { value: string; error: false | string };
+    } => {
+        return (
+            typeof parsedAddressInput !== 'undefined' &&
+            typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                'undefined' &&
+            typeof parsedAddressInput.parsedAdditionalXecOutputs.value !==
+                'undefined' &&
+            parsedAddressInput.parsedAdditionalXecOutputs.value !== null &&
+            parsedAddressInput.parsedAdditionalXecOutputs.error === false &&
+            typeof parsedAddressInput.amount !== 'undefined' &&
+            typeof parsedAddressInput.amount.value !== 'undefined' &&
+            parsedAddressInput.amount.value !== null
+        );
+    };
 
     // Shorthand this calc as well as it is used in multiple spots
-    const bip21MultipleOutputsFormattedTotalSendXec = isBip21MultipleOutputs
-        ? parsedAddressInput.parsedAdditionalXecOutputs.value.reduce(
-              (accumulator, addressAmountArray) =>
-                  accumulator + parseFloat(addressAmountArray[1]),
-              parseFloat(parsedAddressInput.amount.value),
-          )
-        : 0;
+    // Note that we must "double cover" some conditions bc typescript doesn't get it
+    const bip21MultipleOutputsFormattedTotalSendXec =
+        isBip21MultipleOutputsSafe(parsedAddressInput)
+            ? parsedAddressInput.parsedAdditionalXecOutputs.value.reduce(
+                  (accumulator, addressAmountArray) =>
+                      accumulator + parseFloat(addressAmountArray[1]),
+                  parseFloat(parsedAddressInput.amount.value),
+              )
+            : 0;
 
     const userLocale = getUserLocale(navigator);
     const clearInputForms = () => {
         setFormData(emptyFormData);
         setAliasInputAddress(false); // clear alias address preview
-        setParsedAddressInput(parseAddressInput(''));
+        setParsedAddressInput(parseAddressInput('', 0));
         // Reset to XEC
         // Note, this ensures we never are in fiat send mode for multi-send
         setSelectedCurrency(appConfig.ticker);
@@ -291,7 +351,7 @@ const SendXec = () => {
                     name: 'address',
                     value: location.state.contactSend,
                 },
-            });
+            } as React.ChangeEvent<HTMLInputElement>);
         }
 
         // if this was routed from the Airdrop screen's Airdrop Calculator then
@@ -304,6 +364,7 @@ const SendXec = () => {
         ) {
             setIsOneToManyXECSend(true);
             setFormData({
+                ...formData,
                 multiAddressInput: location.state.airdropRecipients,
                 airdropTokenId: location.state.airdropTokenId,
                 cashtabMsg: '',
@@ -314,7 +375,7 @@ const SendXec = () => {
                 target: {
                     value: location.state.airdropRecipients,
                 },
-            });
+            } as React.ChangeEvent<HTMLTextAreaElement>);
 
             setAirdropFlag(true);
         }
@@ -333,7 +394,7 @@ const SendXec = () => {
         // The "+1" is because we want to also omit the first question mark
         // So we need to slice at 1 character past it
         const txInfoStr = hashRoute.slice(hashRoute.indexOf('?') + 1);
-        const txInfo = {};
+        const txInfo: CashtabTxInfo = {};
 
         // If bip21 is the first param, parse the whole string as a bip21 param string
         const parseAllAsBip21 = txInfoStr.startsWith('bip21');
@@ -357,12 +418,14 @@ const SendXec = () => {
                         // ignore unsupported params
                         continue;
                     }
-                    txInfo[paramKey] = paramKeyValue[1];
+                    txInfo[
+                        paramKey as keyof Omit<CashtabTxInfo, 'parseAllAsBip21'>
+                    ] = paramKeyValue[1];
                 }
             }
         }
         // Only set txInfoFromUrl if you have valid legacy params or bip21
-        let validUrlParams =
+        const validUrlParams =
             (parseAllAsBip21 && 'bip21' in txInfo) ||
             // Good if we have both address and value
             ('address' in txInfo && 'value' in txInfo) ||
@@ -391,7 +454,7 @@ const SendXec = () => {
                     name: 'address',
                     value: txInfoFromUrl.bip21,
                 },
-            });
+            } as React.ChangeEvent<HTMLInputElement>);
         } else {
             // Enter address into input field and trigger handleAddressChange for validation
             handleAddressChange({
@@ -399,9 +462,9 @@ const SendXec = () => {
                     name: 'address',
                     value: txInfoFromUrl.address,
                 },
-            });
+            } as React.ChangeEvent<HTMLInputElement>);
             if (
-                'value' in txInfoFromUrl &&
+                typeof txInfoFromUrl.value !== 'undefined' &&
                 !Number.isNaN(parseFloat(txInfoFromUrl.value))
             ) {
                 // Only update the amount field if txInfo.value is a good input
@@ -416,13 +479,17 @@ const SendXec = () => {
                         name: 'amount',
                         value: txInfoFromUrl.value,
                     },
-                });
+                } as React.ChangeEvent<HTMLInputElement>);
             }
         }
         // We re-run this when balanceSats changes because validation of send amounts depends on balanceSats
     }, [txInfoFromUrl, balanceSats]);
 
-    function handleSendXecError(errorObj) {
+    interface XecSendError {
+        error?: string;
+        message?: string;
+    }
+    function handleSendXecError(errorObj: XecSendError) {
         let message;
         if (
             errorObj.error &&
@@ -486,7 +553,7 @@ const SendXec = () => {
             }
             const satoshisToSend =
                 selectedCurrency === 'XEC'
-                    ? toSatoshis(formData.amount)
+                    ? toSatoshis(parseFloat(formData.amount))
                     : fiatToSatoshis(formData.amount, fiatPrice);
 
             targetOutputs.push({
@@ -494,12 +561,12 @@ const SendXec = () => {
                 value: satoshisToSend,
             });
 
-            if (isBip21MultipleOutputs) {
+            if (isBip21MultipleOutputsSafe(parsedAddressInput)) {
                 parsedAddressInput.parsedAdditionalXecOutputs.value.forEach(
                     ([addr, amount]) => {
                         targetOutputs.push({
                             script: Script.fromAddress(addr),
-                            value: toSatoshis(amount),
+                            value: toSatoshis(parseFloat(amount)),
                         });
                     },
                 );
@@ -552,11 +619,13 @@ const SendXec = () => {
                 window.close();
             }
         } catch (err) {
-            handleSendXecError(err);
+            handleSendXecError(err as XecSendError);
         }
     }
 
-    const handleAddressChange = async e => {
+    const handleAddressChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         const parsedAddressInput = parseAddressInput(
@@ -572,23 +641,27 @@ const SendXec = () => {
         const address = parsedAddressInput.address.value;
         let renderedSendToError = parsedAddressInput.address.error;
         if (
-            'queryString' in parsedAddressInput &&
+            typeof parsedAddressInput.queryString !== 'undefined' &&
             typeof parsedAddressInput.queryString.error === 'string'
         ) {
             // If you have a bad queryString, this should be the rendered error
             renderedSendToError = parsedAddressInput.queryString.error;
         } else if (
             parsedAddressInput.address.isAlias &&
-            parsedAddressInput.address.error === false
+            parsedAddressInput.address.error === false &&
+            address !== null
         ) {
             // If we have a valid alias input, check the server for full validation
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
 
             // retrieve the alias details for `aliasName` from alias-server
-            let aliasDetails;
+            let aliasDetails: Alias;
             try {
-                aliasDetails = await queryAliasServer('alias', aliasName);
+                aliasDetails = (await queryAliasServer(
+                    'alias',
+                    aliasName,
+                )) as Alias;
                 if (!aliasDetails.address) {
                     renderedSendToError =
                         'eCash Alias does not exist or yet to receive 1 confirmation';
@@ -607,7 +680,7 @@ const SendXec = () => {
         // Handle errors in op_return_raw as an address error if no other error is set
         if (
             renderedSendToError === false &&
-            'op_return_raw' in parsedAddressInput &&
+            typeof parsedAddressInput.op_return_raw !== 'undefined' &&
             typeof parsedAddressInput.op_return_raw.error === 'string'
         ) {
             renderedSendToError = parsedAddressInput.op_return_raw.error;
@@ -616,7 +689,8 @@ const SendXec = () => {
         // Handle errors in secondary addr&amount params
         if (
             renderedSendToError === false &&
-            'parsedAdditionalXecOutputs' in parsedAddressInput &&
+            typeof parsedAddressInput.parsedAdditionalXecOutputs !==
+                'undefined' &&
             typeof parsedAddressInput.parsedAdditionalXecOutputs.error ===
                 'string'
         ) {
@@ -626,22 +700,24 @@ const SendXec = () => {
 
         setSendAddressError(renderedSendToError);
 
-        if ('amount' in parsedAddressInput) {
+        if (typeof parsedAddressInput.amount !== 'undefined') {
             // Set currency to non-fiat
             setSelectedCurrency(appConfig.ticker);
 
             // Use this object to mimic user input and get validation for the value
-            let amountObj = {
+            const amountObj = {
                 target: {
                     name: 'amount',
                     value: parsedAddressInput.amount.value,
                 },
             };
-            handleAmountChange(amountObj);
+            handleAmountChange(
+                amountObj as React.ChangeEvent<HTMLInputElement>,
+            );
         }
 
         // Set op_return_raw if it's in the query string
-        if ('op_return_raw' in parsedAddressInput) {
+        if (typeof parsedAddressInput.op_return_raw !== 'undefined') {
             // In general, we want to show the op_return_raw value even if there is an error,
             // so the user can see what it is
             // However in some cases, like duplicate op_return_raw, we do not even have a value to show
@@ -655,7 +731,7 @@ const SendXec = () => {
                         name: 'opReturnRaw',
                         value: parsedAddressInput.op_return_raw.value,
                     },
-                });
+                } as React.ChangeEvent<HTMLTextAreaElement>);
             }
         }
 
@@ -666,9 +742,11 @@ const SendXec = () => {
         }));
     };
 
-    const handleMultiAddressChange = e => {
+    const handleMultiAddressChange = (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const { value, name } = e.target;
-        let errorOrIsValid = isValidMultiSendUserInput(
+        const errorOrIsValid = isValidMultiSendUserInput(
             value,
             balanceSats,
             userLocale,
@@ -686,7 +764,9 @@ const SendXec = () => {
         }));
     };
 
-    const handleSelectedCurrencyChange = e => {
+    const handleSelectedCurrencyChange = (
+        e: React.ChangeEvent<HTMLSelectElement>,
+    ) => {
         setSelectedCurrency(e.target.value);
         // Clear input field to prevent accidentally sending 1 XEC instead of 1 USD
         setFormData(p => ({
@@ -695,7 +775,7 @@ const SendXec = () => {
         }));
     };
 
-    const handleAmountChange = e => {
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value, name } = e.target;
 
         // Validate user input send amount
@@ -717,7 +797,9 @@ const SendXec = () => {
         }));
     };
 
-    const handleOpReturnRawInput = e => {
+    const handleOpReturnRawInput = (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const { name, value } = e.target;
         // Validate input
         const error = getOpReturnRawError(value);
@@ -734,9 +816,11 @@ const SendXec = () => {
         }
     };
 
-    const handleCashtabMsgChange = e => {
+    const handleCashtabMsgChange = (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const { name, value } = e.target;
-        let cashtabMsgError = false;
+        let cashtabMsgError: false | string = false;
         const msgByteSize = getCashtabMsgByteCount(value);
 
         const maxSize =
@@ -805,7 +889,7 @@ const SendXec = () => {
                 name: 'amount',
                 value: maxSendXec,
             },
-        });
+        } as unknown as React.ChangeEvent<HTMLInputElement>);
     };
     // Display price in USD below input field for send amount, if it can be calculated
     let fiatPriceString = '';
@@ -816,7 +900,7 @@ const SendXec = () => {
     if (isNaN(multiSendTotal)) {
         multiSendTotal = 0;
     }
-    if (fiatPrice !== null && !isNaN(formData.amount)) {
+    if (fiatPrice !== null && !isNaN(parseFloat(formData.amount))) {
         if (selectedCurrency === appConfig.ticker) {
             // insert symbol and currency before/after the locale formatted fiat balance
             fiatPriceString = isOneToManyXECSend
@@ -843,7 +927,7 @@ const SendXec = () => {
                             } `
                           : '$ '
                   } ${
-                      isBip21MultipleOutputs
+                      isBip21MultipleOutputsSafe(parsedAddressInput)
                           ? `${(
                                 fiatPrice *
                                 bip21MultipleOutputsFormattedTotalSendXec
@@ -851,15 +935,12 @@ const SendXec = () => {
                                 minimumFractionDigits: appConfig.cashDecimals,
                                 maximumFractionDigits: appConfig.cashDecimals,
                             })}`
-                          : `${(fiatPrice * formData.amount).toLocaleString(
-                                userLocale,
-                                {
-                                    minimumFractionDigits:
-                                        appConfig.cashDecimals,
-                                    maximumFractionDigits:
-                                        appConfig.cashDecimals,
-                                },
-                            )}`
+                          : `${(
+                                fiatPrice * parseFloat(formData.amount)
+                            ).toLocaleString(userLocale, {
+                                minimumFractionDigits: appConfig.cashDecimals,
+                                maximumFractionDigits: appConfig.cashDecimals,
+                            })}`
                   } ${
                       settings && settings.fiatCurrency
                           ? settings.fiatCurrency.toUpperCase()
@@ -867,7 +948,7 @@ const SendXec = () => {
                   }`;
         } else {
             fiatPriceString = `${
-                formData.amount !== 0
+                formData.amount !== '0'
                     ? formatFiatBalance(
                           toXec(fiatToSatoshis(formData.amount, fiatPrice)),
                           userLocale,
@@ -924,7 +1005,8 @@ const SendXec = () => {
                     right={115}
                     checked={isOneToManyXECSend}
                     disabled={
-                        txInfoFromUrl || 'queryString' in parsedAddressInput
+                        txInfoFromUrl !== false ||
+                        'queryString' in parsedAddressInput
                     }
                     handleToggle={() =>
                         setIsOneToManyXECSend(!isOneToManyXECSend)
@@ -950,7 +1032,6 @@ const SendXec = () => {
                             />
                             <AliasAddressPreviewLabel>
                                 <TxLink
-                                    key={aliasInputAddress}
                                     href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                     target="_blank"
                                     rel="noreferrer"
@@ -963,7 +1044,7 @@ const SendXec = () => {
                                 </TxLink>
                             </AliasAddressPreviewLabel>
                         </InputAndAliasPreviewHolder>
-                        {isBip21MultipleOutputs ? (
+                        {isBip21MultipleOutputsSafe(parsedAddressInput) ? (
                             <Info>
                                 <b>
                                     BIP21: Sending{' '}
@@ -988,7 +1069,7 @@ const SendXec = () => {
                                 selectValue={selectedCurrency}
                                 selectDisabled={
                                     'amount' in parsedAddressInput ||
-                                    txInfoFromUrl
+                                    txInfoFromUrl !== false
                                 }
                                 inputDisabled={
                                     priceApiError ||
@@ -1035,7 +1116,7 @@ const SendXec = () => {
                             off="✉️"
                             checked={sendWithCashtabMsg}
                             disabled={
-                                txInfoFromUrl ||
+                                txInfoFromUrl !== false ||
                                 'queryString' in parsedAddressInput
                             }
                             handleToggle={() => {
@@ -1082,9 +1163,6 @@ const SendXec = () => {
                                     : opreturnConfig.cashtabMsgByteLimit
                             }
                             handleInput={e => handleCashtabMsgChange(e)}
-                            onKeyDown={e =>
-                                e.keyCode == 13 ? e.preventDefault() : ''
-                            }
                         />
                     </SendXecRow>
                 )}
@@ -1094,7 +1172,7 @@ const SendXec = () => {
                             name="Toggle op_return_raw"
                             checked={sendWithOpReturnRaw}
                             disabled={
-                                txInfoFromUrl ||
+                                txInfoFromUrl !== false ||
                                 'queryString' in parsedAddressInput
                             }
                             handleToggle={() => {
@@ -1121,7 +1199,7 @@ const SendXec = () => {
                                 value={formData.opReturnRaw}
                                 error={opReturnRawError}
                                 disabled={
-                                    txInfoFromUrl ||
+                                    txInfoFromUrl !== false ||
                                     'queryString' in parsedAddressInput
                                 }
                                 showCount
@@ -1146,7 +1224,7 @@ const SendXec = () => {
                             )}
                     </>
                 )}
-                {isBip21MultipleOutputs && (
+                {isBip21MultipleOutputsSafe(parsedAddressInput) && (
                     <SendXecRow>
                         <ParsedBip21InfoRow>
                             <ParsedBip21InfoLabel>
@@ -1155,13 +1233,17 @@ const SendXec = () => {
                             <ParsedBip21Info>
                                 <ol>
                                     <li
-                                        title={parsedAddressInput.address.value}
-                                    >{`${parsedAddressInput.address.value.slice(
-                                        6,
-                                        12,
-                                    )}...${parsedAddressInput.address.value.slice(
-                                        -6,
-                                    )}, ${parseFloat(
+                                        title={
+                                            parsedAddressInput.address
+                                                .value as string
+                                        }
+                                    >{`${(
+                                        parsedAddressInput.address
+                                            .value as string
+                                    ).slice(6, 12)}...${(
+                                        parsedAddressInput.address
+                                            .value as string
+                                    ).slice(-6)}, ${parseFloat(
                                         parsedAddressInput.amount.value,
                                     ).toLocaleString(userLocale, {
                                         minimumFractionDigits: 2,
@@ -1200,11 +1282,14 @@ const SendXec = () => {
                     <>
                         {isOneToManyXECSend ? (
                             <LocaleFormattedValue>
-                                {formatBalance(multiSendTotal, userLocale) +
+                                {formatBalance(
+                                    multiSendTotal.toString(),
+                                    userLocale,
+                                ) +
                                     ' ' +
                                     selectedCurrency}
                             </LocaleFormattedValue>
-                        ) : isBip21MultipleOutputs ? (
+                        ) : isBip21MultipleOutputsSafe(parsedAddressInput) ? (
                             <LocaleFormattedValue>
                                 {bip21MultipleOutputsFormattedTotalSendXec.toLocaleString(
                                     userLocale,
@@ -1217,7 +1302,7 @@ const SendXec = () => {
                             </LocaleFormattedValue>
                         ) : (
                             <LocaleFormattedValue>
-                                {!isNaN(formData.amount)
+                                {!isNaN(parseFloat(formData.amount))
                                     ? formatBalance(
                                           formData.amount,
                                           userLocale,

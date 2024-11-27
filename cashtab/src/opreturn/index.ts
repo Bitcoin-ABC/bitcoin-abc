@@ -10,15 +10,23 @@ import {
     getOpReturnRawError,
 } from 'validation';
 import { getStackArray } from 'ecash-script';
-import { Script, pushBytesOp, OP_RETURN, OP_0, fromHex } from 'ecash-lib';
+import {
+    Script,
+    pushBytesOp,
+    OP_RETURN,
+    OP_0,
+    fromHex,
+    TxOutput,
+} from 'ecash-lib';
+import { AddressType } from 'ecashaddrjs/dist/types';
 
 /**
  * Get targetOutput for a Cashtab Msg from user input string
- * @param {string} cashtabMsg string
- * @throws {error} if msg exceeds opReturnByteLimit of 223 or invalid input
- * @returns {object} targetOutput, e.g. {value: 0, script: <encoded cashtab msg>}
+ * @param cashtabMsg string
+ * @throws if msg exceeds opReturnByteLimit of 223 or invalid input
+ * @returns targetOutput, e.g. {value: 0, script: <encoded cashtab msg>}
  */
-export const getCashtabMsgTargetOutput = cashtabMsg => {
+export const getCashtabMsgTargetOutput = (cashtabMsg: string): TxOutput => {
     if (typeof cashtabMsg !== 'string') {
         throw new Error('getCashtabMsgTargetOutput requires string input');
     }
@@ -51,10 +59,10 @@ export const getCashtabMsgTargetOutput = cashtabMsg => {
  * Calculates the bytecount of a Cashtab Msg as part of an OP_RETURN output
  * Used to validate user input in Send.js
  *
- * @param {string} cashtabMsg alias input from a text input field
- * @returns {number} aliasInputByteSize the byte size of the alias input
+ * @param cashtabMsg alias input from a text input field
+ * @returns aliasInputByteSize the byte size of the alias input
  */
-export const getCashtabMsgByteCount = cashtabMsg => {
+export const getCashtabMsgByteCount = (cashtabMsg: string): number => {
     if (typeof cashtabMsg !== 'string') {
         throw new Error('cashtabMsg must be a string');
     }
@@ -64,13 +72,17 @@ export const getCashtabMsgByteCount = cashtabMsg => {
     return cashtabMsgScript.length;
 };
 
+export interface ParsedOpReturnRaw {
+    protocol: string;
+    data: string;
+}
 /**
  * Parse an op_return_raw input according to known op_return specs
  * The returned output is used to generate a preview of the tx on the SendXec screen
- * @param {string} opReturnRaw
+ * @param opReturnRaw
  * @returns {object} {protocol: <protocolLabel>, data: <parsedData>}
  */
-export const parseOpReturnRaw = opReturnRaw => {
+export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
     // Intialize return data
     const parsed = { protocol: 'Unknown Protocol', data: opReturnRaw };
     // See if we can parse it with ecash-script
@@ -148,7 +160,7 @@ export const parseOpReturnRaw = opReturnRaw => {
                     'utf8',
                 )} to ${cashaddr.encode(
                     'ecash',
-                    addressType,
+                    addressType as AddressType,
                     stackArray[3].slice(1),
                 )}`;
                 return parsed;
@@ -201,12 +213,15 @@ export const parseOpReturnRaw = opReturnRaw => {
 /**
  * Get targetOutput for an Airdrop tx OP_RETURN from token id and optional user message
  * Airdrop tx spec: <Airdrop Protocol Identifier> <tokenId> <optionalMsg>
- * @param {string} tokenId tokenId of the token receiving this airdrop tx
- * @param {string} airdropMsg optional brief msg accompanying the airdrop
- * @throws {error} if msg exceeds opReturnByteLimit of 223 or invalid input
- * @returns {object} targetOutput, e.g. {value: 0, script: <encoded airdrop msg>}
+ * @param tokenId tokenId of the token receiving this airdrop tx
+ * @param airdropMsg optional brief msg accompanying the airdrop
+ * @throws if msg exceeds opReturnByteLimit of 223 or invalid input
+ * @returns targetOutput, e.g. {value: 0, script: <encoded airdrop msg>}
  */
-export const getAirdropTargetOutput = (tokenId, airdropMsg = '') => {
+export const getAirdropTargetOutput = (
+    tokenId: string,
+    airdropMsg = '',
+): TxOutput => {
     if (!isValidTokenId(tokenId)) {
         throw new Error(`Invalid tokenId: ${tokenId}`);
     }
@@ -244,12 +259,15 @@ export const getAirdropTargetOutput = (tokenId, airdropMsg = '') => {
 /**
  * Generate an OP_RETURN targetOutput for use in broadcasting a v0 alias registration
  *
- * @param {string} alias
- * @param {string} address
- * @throws {error} validation errors on alias or address
- * @returns {object} targetOutput ready for transaction building, see sendXec function at src/transactions
+ * @param alias
+ * @param address
+ * @throws validation errors on alias or address
+ * @returns targetOutput ready for transaction building, see sendXec function at src/transactions
  */
-export const getAliasTargetOutput = (alias, address) => {
+export const getAliasTargetOutput = (
+    alias: string,
+    address: string,
+): TxOutput => {
     const aliasMeetsSpec = meetsAliasSpec(alias);
     if (meetsAliasSpec(alias) !== true) {
         throw new Error(`Invalid alias "${alias}": ${aliasMeetsSpec}`);
@@ -298,10 +316,10 @@ export const getAliasTargetOutput = (alias, address) => {
 /**
  * Calculates the bytecount of the alias input
  *
- * @param {string} alias alias input from a text input field
- * @returns {number} aliasInputByteSize the byte size of the alias input
+ * @param alias alias input from a text input field
+ * @returns aliasInputByteSize the byte size of the alias input
  */
-export const getAliasByteCount = alias => {
+export const getAliasByteCount = (alias: string): number => {
     if (typeof alias !== 'string') {
         // Make sure .trim() is available
         throw new Error('alias input must be a string');
@@ -324,11 +342,13 @@ export const getAliasByteCount = alias => {
  * Note that this function is creating the OP_RETURN script with raw hex
  * it is not pushing and adding pushdata like other functions above that are "translating"
  * human input into script
- * @param {string} opreturnParam string
- * @throws {error} if invalid input
- * @returns {object} targetOutput, e.g. {value: 0, script: <encoded opparam>}
+ * @param opreturnParam string
+ * @throws if invalid input
+ * @returns targetOutput, e.g. {value: 0, script: <encoded opparam>}
  */
-export const getOpreturnParamTargetOutput = opreturnParam => {
+export const getOpreturnParamTargetOutput = (
+    opreturnParam: string,
+): TxOutput => {
     if (getOpReturnRawError(opreturnParam) !== false) {
         throw new Error(`Invalid opreturnParam "${opreturnParam}"`);
     }
