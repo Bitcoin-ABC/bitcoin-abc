@@ -103,3 +103,4 @@ console.log(toHex(rawTx));
 -   0.2.0 - Add `Script.fromAddress` method to convert cashaddr addresses to `Script`
 -   0.2.1 - Fix fee estimation for signatories that depend on tx outputs [D16673](https://reviews.bitcoinabc.org/D16673)
 -   1.0.0 - **(Breaking change)** Modify `GenesisInfo` so that `auth` and `data` types match [D17194](https://reviews.bitcoinabc.org/D17194)
+-   1.0.1 - Include `ecashaddrjs` and `chronik-client` installations from `npmjs` instead of local, to prevent need for peer dependencies [D17215](https://reviews.bitcoinabc.org/D17215)
