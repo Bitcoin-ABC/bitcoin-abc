@@ -20,6 +20,7 @@ export interface HeraldConfig {
     xecSendDisplayCount: number;
     chronik: string[];
     blockExplorer: string;
+    tokenLandingBase: string;
     priceApi: HeraldPriceApi;
     fiatReference: { usd: string; jpy: string; eur: string; gbp: string };
     stakingRewardApiUrl: string;
@@ -104,6 +105,7 @@ const config: HeraldConfig = {
         'https://chronik.be.cash/xec2',
     ],
     blockExplorer: 'https://explorer.e.cash',
+    tokenLandingBase: 'https://cashtab.com/#/token',
     priceApi: {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
         cryptos: [

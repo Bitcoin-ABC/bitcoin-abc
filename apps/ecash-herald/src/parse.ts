@@ -3361,8 +3361,8 @@ export const summarizeTxHistory = (
                 `${
                     config.emojis.tokenSend
                 } <b>${cashtabCachetRewardCount}</b> <a href="${
-                    config.blockExplorer
-                }/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward${
+                    config.tokenLandingBase
+                }/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward${
                     cashtabCachetRewardCount > 1 ? `s` : ''
                 }`,
             );
@@ -3445,8 +3445,8 @@ export const summarizeTxHistory = (
                 tokenTypeMap.get(tokenId) === 'ALP_TOKEN_TYPE_STANDARD';
             tgMsg.push(
                 `${isAlp ? config.emojis.alp : ''}<a href="${
-                    config.blockExplorer
-                }/tx/${tokenId}">${
+                    config.tokenLandingBase
+                }/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName
@@ -3566,7 +3566,7 @@ export const summarizeTxHistory = (
             const { buy, list, cancel } = tokenActionInfo;
 
             tgMsg.push(
-                `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                `<a href="${config.tokenLandingBase}/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName
@@ -3656,9 +3656,7 @@ export const summarizeTxHistory = (
             const isAlp =
                 tokenTypeMap.get(tokenId) === 'ALP_TOKEN_TYPE_STANDARD';
             tgMsg.push(
-                `${isAlp ? config.emojis.alp : ''}<a href="${
-                    config.blockExplorer
-                }/tx/${tokenId}">${
+                `${isAlp ? config.emojis.alp : ''}<a href="${config.tokenLandingBase}/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName
@@ -3754,7 +3752,7 @@ export const summarizeTxHistory = (
             const { send, genesis, burn, mint } = tokenActionInfo;
 
             tgMsg.push(
-                `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                `<a href="${config.tokenLandingBase}/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName

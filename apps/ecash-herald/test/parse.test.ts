@@ -397,30 +397,30 @@ describe('parse.js functions', function () {
                     '\n' +
                     '<a href="https://cashtab.com/">Cashtab</a>\n' +
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
-                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '🎟 <b>1</b> <a href="https://cashtab.com/#/token/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
                     '🏛🪙 <b><i>6 Agora token txs from 4 tokens</i></b>\n' +
                     '🔊 <b><i>$0.0007</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
-                    '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰 ($0.0003)\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 💰 ($0.0003)🏷❌\n' +
-                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
-                    '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
+                    '<a href="https://cashtab.com/#/token/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰 ($0.0003)\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 💰 ($0.0003)🏷❌\n' +
+                    '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
+                    '<a href="https://cashtab.com/#/token/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
                     '🔊 <b><i>$0.465</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
-                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰 ($0.465)\n' +
-                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
+                    '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰 ($0.465)\n' +
+                    '<a href="https://cashtab.com/#/token/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
                     '\n' +
                     '🪙 <b><i>15 token txs from 4 tokens</i></b>\n' +
-                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo</a> (CRD): ➡️\n' +
-                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo</a> (CRD): ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
                     '\n' +
                     '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
-                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
-                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
+                    '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
                     '\n' +
                     '🖼 <b><i>1 NFT mint</i></b>\n' +
                     '🔨 <b><i>2 new variable-supply tokens</i></b>\n' +
@@ -482,30 +482,30 @@ describe('parse.js functions', function () {
                     '\n' +
                     '<a href="https://cashtab.com/">Cashtab</a>\n' +
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
-                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '🎟 <b>1</b> <a href="https://cashtab.com/#/token/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
                     '🏛🪙 <b><i>6 Agora token txs from 4 tokens</i></b>\n' +
                     '🔊 <b><i>$0.0007</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
-                    '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">aed...cb1</a>: 💰 ($0.0003)\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">116...33f</a>: 💰 ($0.0003)🏷❌\n' +
-                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ❌\n' +
-                    '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">01d...896</a>: 🏷\n' +
+                    '<a href="https://cashtab.com/#/token/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">aed...cb1</a>: 💰 ($0.0003)\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">116...33f</a>: 💰 ($0.0003)🏷❌\n' +
+                    '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ❌\n' +
+                    '<a href="https://cashtab.com/#/token/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">01d...896</a>: 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
                     '🔊 <b><i>$0.465</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
-                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: 💰 ($0.465)\n' +
-                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">0fb...316</a>: 🏷❌\n' +
+                    '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: 💰 ($0.465)\n' +
+                    '<a href="https://cashtab.com/#/token/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">0fb...316</a>: 🏷❌\n' +
                     '\n' +
                     '🪙 <b><i>15 token txs from 4 tokens</i></b>\n' +
-                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">040...103</a>: 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">116...33f</a>: 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">cdc...145</a>: ➡️\n' +
-                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">040...103</a>: 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">116...33f</a>: 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">cdc...145</a>: ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ➡️\n' +
                     '\n' +
                     '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
-                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">8fd...e09</a>: 🧪\n' +
-                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">8fd...e09</a>: 🧪\n' +
+                    '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: ➡️\n' +
                     '\n' +
                     '🖼 <b><i>1 NFT mint</i></b>\n' +
                     '🔨 <b><i>2 new variable-supply tokens</i></b>\n' +
@@ -554,30 +554,30 @@ describe('parse.js functions', function () {
                     '\n' +
                     '<a href="https://cashtab.com/">Cashtab</a>\n' +
                     '🎁 <b>1</b> new user received <b>42 XEC</b>\n' +
-                    '🎟 <b>1</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
+                    '🎟 <b>1</b> <a href="https://cashtab.com/#/token/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward\n' +
                     '\n' +
                     '🏛🪙 <b><i>6 Agora token txs from 4 tokens</i></b>\n' +
                     '🔊 <b><i>20 XEC</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
-                    '<a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰 (10 XEC)\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 💰 (10 XEC)🏷❌\n' +
-                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
-                    '<a href="https://explorer.e.cash/tx/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
+                    '<a href="https://cashtab.com/#/token/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet</a> (CACHET): 💰 (10 XEC)\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 💰 (10 XEC)🏷❌\n' +
+                    '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ❌\n' +
+                    '<a href="https://cashtab.com/#/token/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
                     '🔊 <b><i>13k XEC</i></b>\n' +
                     '💰Buy, 🏷List, ❌Cancel\n' +
-                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰 (13k XEC)\n' +
-                    '<a href="https://explorer.e.cash/tx/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
+                    '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰 (13k XEC)\n' +
+                    '<a href="https://cashtab.com/#/token/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
                     '\n' +
                     '🪙 <b><i>15 token txs from 4 tokens</i></b>\n' +
-                    '<a href="https://explorer.e.cash/tx/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo</a> (CRD): ➡️\n' +
-                    '<a href="https://explorer.e.cash/tx/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo</a> (CRD): ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
                     '\n' +
                     '🖼 <b><i>2 NFT txs from 2 NFTs in 2 collections</i></b>\n' +
-                    '<a href="https://explorer.e.cash/tx/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
-                    '<a href="https://explorer.e.cash/tx/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
+                    '<a href="https://cashtab.com/#/token/8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09">Xoloitzcuintli NFT Cigar Collection.</a> (RMZsmoke): 🧪\n' +
+                    '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): ➡️\n' +
                     '\n' +
                     '🖼 <b><i>1 NFT mint</i></b>\n' +
                     '🔨 <b><i>2 new variable-supply tokens</i></b>\n' +
