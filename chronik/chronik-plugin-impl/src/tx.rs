@@ -39,9 +39,8 @@ pub struct TxModule {
 impl TxModule {
     /// Import the `tx.py` module
     pub fn import(py: Python<'_>) -> PyResult<Self> {
-        let tx_module = PyModule::import_bound(py, "chronik_plugin.tx")?;
-        let script_module =
-            PyModule::import_bound(py, "chronik_plugin.script")?;
+        let tx_module = PyModule::import(py, "chronik_plugin.tx")?;
+        let script_module = PyModule::import(py, "chronik_plugin.script")?;
         Ok(TxModule {
             cls_tx: tx_module.getattr("Tx")?.into(),
             cls_out_point: tx_module.getattr("OutPoint")?.into(),
@@ -64,7 +63,7 @@ impl TxModule {
         plugin_outputs: &BTreeMap<OutPoint, PluginOutput>,
         plugin_name_map: &PluginNameMap,
     ) -> PyResult<PyObject> {
-        let py_empp_data = PyList::empty_bound(py);
+        let py_empp_data = PyList::empty(py);
         if let Some(first_output) = tx.outputs.first() {
             let empp_data = empp::parse(&first_output.script)
                 .ok()
@@ -88,7 +87,7 @@ impl TxModule {
             spent_tokens = Some(tokens);
             output_tokens = Some(&token_tx.outputs);
         }
-        let kwargs = PyDict::new_bound(py);
+        let kwargs = PyDict::new(py);
         kwargs.set_item("txid", to_bytes(py, tx.txid().as_bytes()))?;
         kwargs.set_item("version", tx.version)?;
         kwargs.set_item(
@@ -129,7 +128,7 @@ impl TxModule {
         kwargs.set_item("lock_time", tx.locktime)?;
         kwargs.set_item("token_entries", py_entries)?;
         kwargs.set_item("empp_data", py_empp_data)?;
-        self.cls_tx.call_bound(py, (), Some(&kwargs))
+        self.cls_tx.call(py, (), Some(&kwargs))
     }
 
     /// Bridge the [`OutPoint`] to its Python equivalent
@@ -150,7 +149,7 @@ impl TxModule {
         token_output: Option<&TokenOutput>,
         py_token_entries: &[PyObject],
     ) -> PyResult<PyObject> {
-        let kwargs = PyDict::new_bound(py);
+        let kwargs = PyDict::new(py);
         kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
         kwargs.set_item("value", output.value)?;
         kwargs.set_item(
@@ -166,7 +165,7 @@ impl TxModule {
                 })
                 .transpose()?,
         )?;
-        self.cls_tx_output.call_bound(py, (), Some(&kwargs))
+        self.cls_tx_output.call(py, (), Some(&kwargs))
     }
 
     /// Bridge the [`TxInput`] and attached token data to is Python equivalent.
@@ -181,7 +180,7 @@ impl TxModule {
         plugin_output: Option<&PluginOutput>,
         plugin_name_map: &PluginNameMap,
     ) -> PyResult<PyObject> {
-        let kwargs = PyDict::new_bound(py);
+        let kwargs = PyDict::new(py);
         kwargs.set_item(
             "prev_out",
             self.bridge_out_point(py, &input.prev_out)?,
@@ -208,7 +207,7 @@ impl TxModule {
             "plugin",
             self.bridge_plugin_data(py, plugin_output, plugin_name_map)?,
         )?;
-        self.cls_tx_input.call_bound(py, (), Some(&kwargs))
+        self.cls_tx_input.call(py, (), Some(&kwargs))
     }
 
     fn bridge_input_output(
@@ -219,7 +218,7 @@ impl TxModule {
         py_token_entries: &[PyObject],
         entries: &[TokenTxEntry],
     ) -> PyResult<PyObject> {
-        let kwargs = PyDict::new_bound(py);
+        let kwargs = PyDict::new(py);
         kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
         kwargs.set_item("value", output.value)?;
         kwargs.set_item(
@@ -238,7 +237,7 @@ impl TxModule {
                 })
                 .transpose()?,
         )?;
-        self.cls_tx_output.call_bound(py, (), Some(&kwargs))
+        self.cls_tx_output.call(py, (), Some(&kwargs))
     }
 
     fn bridge_plugin_data<'py>(
@@ -247,7 +246,7 @@ impl TxModule {
         plugin_output: Option<&PluginOutput>,
         plugin_name_map: &PluginNameMap,
     ) -> PyResult<Bound<'py, PyDict>> {
-        let plugin_data = PyDict::new_bound(py);
+        let plugin_data = PyDict::new(py);
         let Some(plugin_output) = plugin_output else {
             return Ok(plugin_data);
         };
@@ -257,12 +256,12 @@ impl TxModule {
                 // Skip plugins that aren't loaded.
                 continue;
             };
-            let kwargs = PyDict::new_bound(py);
-            let py_groups = PyList::empty_bound(py);
+            let kwargs = PyDict::new(py);
+            let py_groups = PyList::empty(py);
             for group in &entry.groups {
                 py_groups.append(to_bytes(py, group))?;
             }
-            let py_data = PyList::empty_bound(py);
+            let py_data = PyList::empty(py);
             for data in &entry.data {
                 py_data.append(to_bytes(py, data))?;
             }
@@ -270,11 +269,7 @@ impl TxModule {
             kwargs.set_item("data", py_data)?;
             plugin_data.set_item(
                 plugin_name,
-                self.cls_plugin_output_entry.call_bound(
-                    py,
-                    (),
-                    Some(&kwargs),
-                )?,
+                self.cls_plugin_output_entry.call(py, (), Some(&kwargs))?,
             )?;
         }
         Ok(plugin_data)
@@ -285,7 +280,7 @@ impl TxModule {
         py: Python<'_>,
         script: &Script,
     ) -> PyResult<PyObject> {
-        let bytes = PyBytes::new_bound(py, script.bytecode().as_ref());
+        let bytes = PyBytes::new(py, script.bytecode().as_ref());
         self.cls_script.call1(py, (bytes,))
     }
 }

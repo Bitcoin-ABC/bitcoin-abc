@@ -2,8 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+//! Module for plugin utilities
+
 use pyo3::{types::PyBytes, Py, Python};
 
 pub(crate) fn to_bytes(py: Python<'_>, bytes: &[u8]) -> Py<PyBytes> {
-    PyBytes::new_bound(py, bytes).into()
+    PyBytes::new(py, bytes).into()
 }

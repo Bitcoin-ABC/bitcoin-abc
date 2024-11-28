@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, ffi::CString};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
@@ -165,11 +165,11 @@ fn test_tx_to_py() -> Result<()> {
 
         let tx_module = TxModule::import(py)?;
 
-        let test_module = PyModule::from_code_bound(
+        let test_module = PyModule::from_code(
             py,
-            include_str!("test_tx_to_py.py"),
-            "test_tx_to_py.py",
-            "test_tx_to_py",
+            CString::new(include_str!("test_tx_to_py.py"))?.as_c_str(),
+            CString::new("test_tx_to_py.py")?.as_c_str(),
+            CString::new("test_tx_to_py")?.as_c_str(),
         )?;
 
         test_module

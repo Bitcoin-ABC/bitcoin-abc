@@ -225,7 +225,7 @@ impl PluginContext {
         pyo3::prepare_freethreaded_python();
         Python::with_gil(|py| -> Result<_> {
             // Extract the Python version
-            let version = PyModule::import_bound(py, "platform")?
+            let version = PyModule::import(py, "platform")?
                 .getattr("python_version")?
                 .call0()?
                 .extract::<String>()?;
@@ -234,7 +234,7 @@ impl PluginContext {
             let tx_module = TxModule::import(py)?;
 
             // Add <datadir>/plugins to sys.path
-            PyModule::import_bound(py, "sys")?
+            PyModule::import(py, "sys")?
                 .getattr("path")?
                 .downcast::<PyList>()
                 .unwrap()
@@ -242,7 +242,7 @@ impl PluginContext {
 
             // Load the chronik Plugin class
             let plugin_module =
-                match PyModule::import_bound(py, "chronik_plugin.plugin") {
+                match PyModule::import(py, "chronik_plugin.plugin") {
                     Ok(plugin_module) => plugin_module,
                     Err(err) => {
                         err.print(py);

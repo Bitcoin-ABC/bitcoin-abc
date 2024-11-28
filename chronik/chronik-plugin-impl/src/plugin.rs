@@ -61,7 +61,7 @@ pub(crate) fn load_plugin<'py>(
     class_name: Option<String>,
     plugin_cls: &Bound<'py, PyAny>,
 ) -> Result<(Plugin, PyObject)> {
-    let module = PyModule::import_bound(py, module_name.as_str())
+    let module = PyModule::import(py, module_name.as_str())
         .map_err(|err| FailedImportingModule(err.to_string()))?;
 
     // Class name is either NamePascalCasePlugin, or manually specified
@@ -75,7 +75,7 @@ pub(crate) fn load_plugin<'py>(
         .map_err(|_| ClassNotFound(class_name.clone()))?;
 
     // Empty config object for now
-    let config = PyDict::new_bound(py);
+    let config = PyDict::new(py);
     let plugin_instance = class.call1((config,))?;
 
     // Must be a Plugin instance
