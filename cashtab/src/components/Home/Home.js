@@ -288,37 +288,40 @@ const Home = () => {
                                 <em>Do not share your backup with anyone.</em>
                             </p>
                         </Alert>
-                        {process.env.REACT_APP_TESTNET !== 'true' && (
-                            <>
-                                {wallets.length === 1 ? (
-                                    <AirdropButton
-                                        onClick={claimAirdropForNewWallet}
-                                        disabled={airdropPending}
-                                    >
-                                        {airdropPending ? (
-                                            <InlineLoader
-                                                style={{ margin: 'auto' }}
-                                            />
-                                        ) : (
-                                            'Claim Free XEC'
-                                        )}
-                                    </AirdropButton>
-                                ) : (
-                                    <TokenRewardButton
-                                        onClick={claimTokenRewardsForNewWallet}
-                                        disabled={tokenRewardsPending}
-                                    >
-                                        {tokenRewardsPending ? (
-                                            <InlineLoader
-                                                style={{ margin: 'auto' }}
-                                            />
-                                        ) : (
-                                            'Claim Token Rewards'
-                                        )}
-                                    </TokenRewardButton>
-                                )}
-                            </>
-                        )}
+                        {process.env.REACT_APP_BUILD_ENV !== 'extension' &&
+                            process.env.REACT_APP_TESTNET !== 'true' && (
+                                <>
+                                    {wallets.length === 1 ? (
+                                        <AirdropButton
+                                            onClick={claimAirdropForNewWallet}
+                                            disabled={airdropPending}
+                                        >
+                                            {airdropPending ? (
+                                                <InlineLoader
+                                                    style={{ margin: 'auto' }}
+                                                />
+                                            ) : (
+                                                'Claim Free XEC'
+                                            )}
+                                        </AirdropButton>
+                                    ) : (
+                                        <TokenRewardButton
+                                            onClick={
+                                                claimTokenRewardsForNewWallet
+                                            }
+                                            disabled={tokenRewardsPending}
+                                        >
+                                            {tokenRewardsPending ? (
+                                                <InlineLoader
+                                                    style={{ margin: 'auto' }}
+                                                />
+                                            ) : (
+                                                'Claim Token Rewards'
+                                            )}
+                                        </TokenRewardButton>
+                                    )}
+                                </>
+                            )}
 
                         <Receive />
                     </>

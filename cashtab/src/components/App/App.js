@@ -286,15 +286,21 @@ const App = () => {
                                                     process.env
                                                         .REACT_APP_TESTNET !==
                                                         'true' && (
-                                                        <Route
-                                                            path="/swap"
-                                                            element={<Swap />}
-                                                        />
+                                                        <>
+                                                            <Route
+                                                                path="/swap"
+                                                                element={
+                                                                    <Swap />
+                                                                }
+                                                            />
+                                                            <Route
+                                                                path="/rewards"
+                                                                element={
+                                                                    <Rewards />
+                                                                }
+                                                            />
+                                                        </>
                                                     )}
-                                                <Route
-                                                    path="/rewards"
-                                                    element={<Rewards />}
-                                                />
                                                 <Route
                                                     path="/"
                                                     element={<Home />}
@@ -413,33 +419,38 @@ const App = () => {
                                         <p>Airdrop</p>
                                         <AirdropIcon />
                                     </NavItem>
-                                    <NavItem
-                                        active={
-                                            location.pathname === '/rewards'
-                                        }
-                                        onClick={() => navigate('/rewards')}
-                                    >
-                                        {' '}
-                                        <p>Rewards</p>
-                                        <RewardIcon />
-                                    </NavItem>
                                     {process.env.REACT_APP_BUILD_ENV !==
                                         'extension' &&
                                         process.env.REACT_APP_TESTNET !==
                                             'true' && (
-                                            <NavItem
-                                                active={
-                                                    location.pathname ===
-                                                    '/swap'
-                                                }
-                                                onClick={() =>
-                                                    navigate('/swap')
-                                                }
-                                            >
-                                                {' '}
-                                                <p>Swap</p>
-                                                <SwapIcon />
-                                            </NavItem>
+                                            <>
+                                                <NavItem
+                                                    active={
+                                                        location.pathname ===
+                                                        '/swap'
+                                                    }
+                                                    onClick={() =>
+                                                        navigate('/swap')
+                                                    }
+                                                >
+                                                    {' '}
+                                                    <p>Swap</p>
+                                                    <SwapIcon />
+                                                </NavItem>
+                                                <NavItem
+                                                    active={
+                                                        location.pathname ===
+                                                        '/rewards'
+                                                    }
+                                                    onClick={() =>
+                                                        navigate('/rewards')
+                                                    }
+                                                >
+                                                    {' '}
+                                                    <p>Rewards</p>
+                                                    <RewardIcon />
+                                                </NavItem>
+                                            </>
                                         )}
                                     <NavItem
                                         active={
