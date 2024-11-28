@@ -156,3 +156,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.12.0
 
 -   Extend `MockAgora` support to cover `offeredFungibleTokenIds()` and `activeOffersByTokenId()` methods [D16929](https://reviews.bitcoinabc.org/D16929)
+
+1.12.1
+
+-   Build published version with dependencies from `npm` [D17227](https://reviews.bitcoinabc.org/D17227)
