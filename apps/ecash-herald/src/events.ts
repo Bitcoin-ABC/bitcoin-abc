@@ -372,10 +372,12 @@ export const handleUtcMidnight = async (
         // Do not include this info in the tg msg
     }
 
+    const TOKENS_TO_SHOW_PROD = 3;
     const dailySummaryTgMsgs = summarizeTxHistory(
         newDayTimestamp,
         timeFirstSeenTxs,
         tokenInfoMap,
+        TOKENS_TO_SHOW_PROD,
         priceInfo,
         activeStakers,
     );

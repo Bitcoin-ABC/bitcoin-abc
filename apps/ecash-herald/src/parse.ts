@@ -37,6 +37,8 @@ import {
     Tx,
     TxOutput,
     GenesisInfo,
+    SlpTokenType_Type,
+    AlpTokenType_Type,
 } from 'chronik-client';
 import { MemoryCache } from 'cache-manager';
 
@@ -2299,6 +2301,7 @@ export const initializeOrIncrementTokenData = (
  * @param now unix timestamp in seconds
  * @param txs array of CONFIRMED Txs
  * @param tokenInfoMap tokenId => genesisInfo
+ * @param tokensToShow how many tokens to render, useful for showing more or less info
  * @param priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
  * @param activeStakers
  */
@@ -2306,6 +2309,7 @@ export const summarizeTxHistory = (
     now: number,
     txs: Tx[],
     tokenInfoMap: false | Map<string, GenesisInfo>,
+    tokensToShow: number,
     priceInfo?: PriceInfo,
     activeStakers?: CoinDanceStaker[],
 ): string[] => {
@@ -2348,7 +2352,7 @@ export const summarizeTxHistory = (
     let binanceWithdrawalCount = 0;
     let binanceWithdrawalSats = 0;
 
-    let slpFungibleTxs = 0;
+    let fungibleTokenTxs = 0;
     let appTxs = 0;
     let unknownLokadTxs = 0;
 
@@ -2357,7 +2361,6 @@ export const summarizeTxHistory = (
     let invalidTokenEntries = 0;
     let nftNonAgoraTokenEntries = 0;
     let mintVaultTokenEntries = 0;
-    let alpTokenEntries = 0;
 
     let newSlpTokensFixedSupply = 0;
     let newSlpTokensVariableSupply = 0;
@@ -2375,6 +2378,11 @@ export const summarizeTxHistory = (
     const agoraActions = new Map();
     let oneshotVolumeSatoshis = 0;
     let partialVolumeSatoshis = 0;
+
+    // Token reference
+    // We have this in tokenInfoMap, but it's easier to set and access here
+    const tokenTypeMap: Map<string, SlpTokenType_Type | AlpTokenType_Type> =
+        new Map();
 
     for (const tx of txs) {
         const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
@@ -2475,6 +2483,7 @@ export const summarizeTxHistory = (
                     actualBurnAmount,
                 } = tokenEntry;
                 const { type } = tokenType;
+                tokenTypeMap.set(tokenId, type);
 
                 if (isInvalid) {
                     // TODO find this for test tx
@@ -2482,17 +2491,6 @@ export const summarizeTxHistory = (
                     // Log to console so if we see this tx, we can analyze it for parsing
                     console.info(
                         `Unparsed isInvalid tokenEntry in tx: ${tx.txid}`,
-                    );
-                    // No other parsing for this tokenEntry
-                    continue;
-                }
-
-                if (type === 'ALP_TOKEN_TYPE_STANDARD') {
-                    // TODO ALP parsing
-                    alpTokenEntries += 1;
-                    // Log to console so if we see this tx, we can analyze it for parsing
-                    console.info(
-                        `Unparsed ALP_TOKEN_TYPE_STANDARD tokenEntry in tx: ${tx.txid}`,
                     );
                     // No other parsing for this tokenEntry
                     continue;
@@ -2797,8 +2795,11 @@ export const summarizeTxHistory = (
                             continue;
                     }
                 }
-                if (type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
-                    slpFungibleTxs += 1;
+                if (
+                    type === 'SLP_TOKEN_TYPE_FUNGIBLE' ||
+                    type === 'ALP_TOKEN_TYPE_STANDARD'
+                ) {
+                    fungibleTokenTxs += 1;
                     switch (txType) {
                         case 'NONE': {
                             invalidTokenEntries += 1;
@@ -2830,13 +2831,13 @@ export const summarizeTxHistory = (
                                     if (output.token.tokenId === tokenId) {
                                         // Per spec, SLP 1 genesis qty is always at output index 1
                                         // But we iterate over all outputs to check for mint batons
+                                        // ALP spec includes mint batons first and qty after, so makes sense
+                                        // to check them all
                                         const { amount, isMintBaton } =
                                             output.token;
                                         if (isMintBaton) {
-                                            newSlpTokensVariableSupply += 1;
                                             genesis.hasBaton = true;
                                         } else {
-                                            newSlpTokensFixedSupply += 1;
                                             genesis.amount = amount;
                                         }
                                     }
@@ -2859,6 +2860,11 @@ export const summarizeTxHistory = (
                                     continue;
                                 }
                             }
+                            if (genesis.hasBaton === true) {
+                                newSlpTokensVariableSupply += 1;
+                            } else {
+                                newSlpTokensFixedSupply += 1;
+                            }
                             break;
                         }
                         case 'SEND': {
@@ -2880,27 +2886,29 @@ export const summarizeTxHistory = (
                                 if (typeof input.token !== 'undefined') {
                                     const { outputScript, inputScript } = input;
                                     // A token input that is p2sh may be
-                                    // a listing, an ad setup, a buy, or a cancel
+                                    // an SLP listing, a buy, or a cancel
                                     try {
-                                        const { type } =
+                                        const addrType =
                                             cashaddr.getTypeAndHashFromOutputScript(
                                                 outputScript!,
-                                            );
-                                        if (type === 'p2sh') {
+                                            ).type;
+                                        if (addrType === 'p2sh') {
                                             // We are only parsing SLP agora txs here
-                                            // A listing will have AGR0 lokad in input script
-                                            const AGORA_LOKAD_STARTSWITH =
-                                                '0441475230';
+                                            // An SLP Agora listing will have AGR0 lokad in input script
+                                            const AGORA_LOKAD = '41475230';
 
                                             if (
-                                                inputScript.startsWith(
-                                                    AGORA_LOKAD_STARTSWITH,
+                                                inputScript.includes(
+                                                    AGORA_LOKAD,
                                                 )
                                             ) {
-                                                // Agora tx
-                                                // For now, we know all listing txs only have a single p2sh input
-
-                                                if (inputs.length === 1) {
+                                                if (
+                                                    inputs.length === 1 &&
+                                                    type ===
+                                                        'SLP_TOKEN_TYPE_FUNGIBLE'
+                                                ) {
+                                                    // Agora tx
+                                                    // For now, we know all SLP_TOKEN_TYPE_FUNGIBLE listing txs only have a single p2sh input
                                                     // Agora listing
                                                     initializeOrIncrementTokenData(
                                                         agoraActions,
@@ -2990,38 +2998,93 @@ export const summarizeTxHistory = (
                                 continue;
                             }
 
-                            // Check for ad prep tx
-                            let isAdPrep = false;
-                            for (const output of outputs) {
-                                if (typeof output.token !== 'undefined') {
-                                    const { outputScript } = output;
-                                    // We assume a p2sh token output is an ad setup tx
-                                    // No other known use cases at the moment
-                                    try {
-                                        const { type } =
-                                            cashaddr.getTypeAndHashFromOutputScript(
-                                                outputScript,
+                            // Check for ALP listing
+                            // ALP agora listing txs have
+                            // - p2pkh input
+                            // - p2sh output
+                            // - agora plugin info in output
+                            if (
+                                type === 'ALP_TOKEN_TYPE_STANDARD' &&
+                                !isAgoraBuySellList
+                            ) {
+                                for (const output of outputs) {
+                                    if (typeof output.token !== 'undefined') {
+                                        // Is it a p2sh output?
+                                        const { outputScript } = output;
+                                        // We assume a p2sh token output for SLP 1 fungible is an ad setup tx
+                                        // No other known use cases at the moment
+                                        try {
+                                            const addrType =
+                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                    outputScript,
+                                                ).type;
+                                            if (addrType === 'p2sh') {
+                                                // Is it agora?
+                                                if (
+                                                    typeof output.plugins !==
+                                                        'undefined' &&
+                                                    typeof output.plugins
+                                                        .agora !== 'undefined'
+                                                ) {
+                                                    agoraTxs += 1;
+                                                    // Agora listing
+                                                    initializeOrIncrementTokenData(
+                                                        agoraActions,
+                                                        existingAgoraActions,
+                                                        tokenId,
+                                                        TrackedTokenAction.List,
+                                                    );
+                                                    isAgoraBuySellList = true;
+                                                    break;
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error(
+                                                `Error getting addrType while checking for ALP list tx: ${tx.txid}`,
+                                                err,
                                             );
-                                        if (type === 'p2sh') {
-                                            // Agora ad setup tx for SLP1
-                                            initializeOrIncrementTokenData(
-                                                agoraActions,
-                                                existingAgoraActions,
-                                                tokenId,
-                                                TrackedTokenAction.AdPrep,
-                                            );
-                                            isAdPrep = true;
-                                            break;
-                                            // Stop iterating over outputs
+                                            // no action
                                         }
-                                    } catch {
-                                        console.error(
-                                            `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
-                                        );
-                                        // Do not parse it as an agora tx
                                     }
                                 }
                             }
+
+                            // Check for ad prep tx
+                            let isAdPrep = false;
+                            // Only SLP1 has ad prep txs
+                            if (type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
+                                for (const output of outputs) {
+                                    if (typeof output.token !== 'undefined') {
+                                        const { outputScript } = output;
+                                        // We assume a p2sh token output for SLP 1 fungible is an ad setup tx
+                                        // No other known use cases at the moment
+                                        try {
+                                            const addrType =
+                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                    outputScript,
+                                                ).type;
+                                            if (addrType === 'p2sh') {
+                                                // Agora ad setup tx for SLP1
+                                                initializeOrIncrementTokenData(
+                                                    agoraActions,
+                                                    existingAgoraActions,
+                                                    tokenId,
+                                                    TrackedTokenAction.AdPrep,
+                                                );
+                                                isAdPrep = true;
+                                                break;
+                                                // Stop iterating over outputs
+                                            }
+                                        } catch {
+                                            console.error(
+                                                `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
+                                            );
+                                            // Do not parse it as an agora tx
+                                        }
+                                    }
+                                }
+                            }
+
                             if (isAdPrep) {
                                 agoraTxs += 1;
                                 // We have processed this tx as an Agora Ad setup tx
@@ -3352,7 +3415,7 @@ export const summarizeTxHistory = (
             );
         }
 
-        const AGORA_TOKENS_TO_SHOW = 3;
+        const AGORA_TOKENS_TO_SHOW = tokensToShow;
 
         // Handle case where we do not see as many agora tokens as our max
         const agoraTokensToShow =
@@ -3378,8 +3441,12 @@ export const summarizeTxHistory = (
 
             const { buy, list, cancel } = tokenActionInfo;
 
+            const isAlp =
+                tokenTypeMap.get(tokenId) === 'ALP_TOKEN_TYPE_STANDARD';
             tgMsg.push(
-                `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                `${isAlp ? config.emojis.alp : ''}<a href="${
+                    config.blockExplorer
+                }/tx/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName
@@ -3541,8 +3608,8 @@ export const summarizeTxHistory = (
         tgMsg.push('');
     }
 
-    // SLP 1 fungible summary
-    if (slpFungibleTxs > 0) {
+    // Fungible summary (ALP and SLP1 Fungible)
+    if (fungibleTokenTxs > 0) {
         // Sort tokenActions map by number of token actions
         const sortedTokenActions = new Map(
             [...tokenActions.entries()].sort(
@@ -3558,16 +3625,16 @@ export const summarizeTxHistory = (
 
         const nonAgoraTokenCount = nonAgoraTokens.length;
         tgMsg.push(
-            `${config.emojis.token} <b><i>${slpFungibleTxs.toLocaleString(
+            `${config.emojis.token} <b><i>${fungibleTokenTxs.toLocaleString(
                 'en-US',
             )} token tx${
-                slpFungibleTxs > 1 ? 's' : ''
+                fungibleTokenTxs > 1 ? 's' : ''
             } from ${nonAgoraTokenCount} token${
                 nonAgoraTokenCount > 1 ? 's' : ''
             }</i></b>`,
         );
 
-        const NON_AGORA_TOKENS_TO_SHOW = 3;
+        const NON_AGORA_TOKENS_TO_SHOW = tokensToShow;
         const nonAgoraTokensToShow =
             nonAgoraTokenCount < NON_AGORA_TOKENS_TO_SHOW
                 ? nonAgoraTokenCount
@@ -3586,8 +3653,12 @@ export const summarizeTxHistory = (
 
             const { send, genesis, burn, mint } = tokenActionInfo;
 
+            const isAlp =
+                tokenTypeMap.get(tokenId) === 'ALP_TOKEN_TYPE_STANDARD';
             tgMsg.push(
-                `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                `${isAlp ? config.emojis.alp : ''}<a href="${
+                    config.blockExplorer
+                }/tx/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName
@@ -3658,7 +3729,7 @@ export const summarizeTxHistory = (
             }</i></b>`,
         );
 
-        const NON_AGORA_COLLECTIONS_TO_SHOW = 3;
+        const NON_AGORA_COLLECTIONS_TO_SHOW = tokensToShow;
         const nonAgoraCollectionsToShow =
             collectionsWithNonAgoraActionsCount < NON_AGORA_COLLECTIONS_TO_SHOW
                 ? collectionsWithNonAgoraActionsCount
@@ -3726,9 +3797,7 @@ export const summarizeTxHistory = (
 
     // Genesis and mints token summary
     const unparsedTokenEntries =
-        alpTokenEntries > 0 ||
-        mintVaultTokenEntries > 0 ||
-        invalidTokenEntries > 0;
+        mintVaultTokenEntries > 0 || invalidTokenEntries > 0;
     const hasTokenSummaryLines =
         nftMints > 0 ||
         newSlpTokensFixedSupply > 0 ||
@@ -3761,13 +3830,6 @@ export const summarizeTxHistory = (
     }
 
     // Unparsed token summary
-    if (alpTokenEntries > 0) {
-        tgMsg.push(
-            `${config.emojis.alp} <b><i>${alpTokenEntries.toLocaleString(
-                'en-US',
-            )} ALP tx${alpTokenEntries > 1 ? 's' : ''}</i></b>`,
-        );
-    }
     if (mintVaultTokenEntries > 0) {
         tgMsg.push(
             `${

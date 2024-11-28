@@ -120,6 +120,7 @@ const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
         timestamp,
         timeFirstSeenTxs,
         tokenInfoMap,
+        3, // tokens to show
         priceInfo,
         activeStakers,
     );

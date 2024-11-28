@@ -1788,8 +1788,7 @@ export const dailyTxs: Tx[] = [
             timestamp: 1730305964,
         },
     },
-    // Note Cashtab does not support Burn or Mint actions here, unexpected
-    // ALP tx, SEND
+    // ALP SEND
     // 791c460c6d5b513283b98b92b83f0e6fa662fc279f39fd00bd27047370ba4647
     {
         txid: '791c460c6d5b513283b98b92b83f0e6fa662fc279f39fd00bd27047370ba4647',
@@ -1962,6 +1961,779 @@ export const dailyTxs: Tx[] = [
             height: 835924,
             hash: '00000000000000000cb5f7d96ddff0d04096c405a0361196bcbe60622ea0e44f',
             timestamp: 1710440413,
+        },
+    },
+    // ALP burn
+    // 56777282ca4de193f587039d733ca491d0449963b653b09c6767a003767ecc40
+    {
+        txid: '56777282ca4de193f587039d733ca491d0449963b653b09c6767a003767ecc40',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '302f891161b12c7ce864aa146b35e50e7bfd0528a33f0cf847ca95645f6344c8',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41e3e0fb1725f4712ded8c484eeb51212d654301bbcd4403289c9f6d502d161d8f805a1e942bc3f76ad9e63e3cecdc743bd7fe7b1ecfda4e0c57e47d41849ff3cd412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: 'd085a5535b890b3b111c33b302fa3fe6dddacd9ae8890c84b206c46a52903c9f',
+                    outIdx: 4,
+                },
+                inputScript:
+                    '41a523800ea0e685c77a9aba1fbbca9413993facd0ca2243dd7273438a8712af3dc6f5d95cda8ce24bf9db1d3c16e2c567bedd2acf9378bdd42f0248f49a2dbbe5412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 149303398,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a5030534c503200044255524e3f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e11010000000000',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                value: 149302553,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1732382267,
+        size: 420,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'BURN',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '1',
+                intentionalBurn: '1',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+        block: {
+            height: 872313,
+            hash: '000000000000000014196eb6aaba9d65ec960a4cb0e7df8f5bf4cbb90164e6c3',
+            timestamp: 1732382348,
+        },
+    },
+    // ALP mint
+    // e07682190d5e5f169ba2ad293deb3702dbdbe8cb6301f3811c1789582106fd3b
+    {
+        txid: 'e07682190d5e5f169ba2ad293deb3702dbdbe8cb6301f3811c1789582106fd3b',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'a838dde7c45663fdc4c30afa60d0ff55a59d5d42952255f74129fd07390fe9e7',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41036e1d53dbbad08e42ec997e6d83bddd36bcd74d5a56bfd26ffb341cb02d4b1ec7bca63e187b68674a3fa88251937024b5a63b04a28c090556d3a32f3ecc0014412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'c19eb0dd5a2cf052bdeeb368158e692a396258012e2501595321dbb7c14ea266',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41c1b8e7f078f3223267a07511d8db2bc259cf804f9dd34a0b043a3fc320a518df245d69e9f913b2b745181f2384895902827c232551f65289bbfa63080058cfe9412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 2807578,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a5032534c503200044d494e543f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e110163000000000001',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '99',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '59a60227b112221130f11fd890100ba623944f8243cc8322e7f4c8fd17ab6ee2',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 2806576,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1732405064,
+        size: 456,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'MINT',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+        block: {
+            height: 872358,
+            hash: '0000000000000000084ce76d6ab0ff2919c71288271b694ad8c8d0a8f4b804f5',
+            timestamp: 1732405218,
+        },
+    },
+    // ALP genesis
+    // 116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f
+    {
+        txid: '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '652c5e23327ae50bd208c84cfa874c5036787bc6ef559f552ef0a005c3314140',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41a8f890a9ea9c07e9f7cc7458ce9822af102d38d2b1e3bfd06615ab083710209d3d249ef5cee9a185dbed5b83c79b6626f29fb101f2b17e0b8aafc92dd63e3411412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 2564,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a504c51534c5032000747454e4553495302544208546962657269756d0b636173687461622e636f6d002103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60001a0860100000001',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '100000',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '061459eea0e569392f0622c20e5917b5ca94ae38a77405cd3a5f01b41bba688b',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: 'a838dde7c45663fdc4c30afa60d0ff55a59d5d42952255f74129fd07390fe9e7',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 1125,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                spentBy: {
+                    txid: 'a6d65d619bbb03c4490498f7fe1d5413e92df064915a3533a09e8a4ba1762255',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1732368996,
+        size: 347,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+        block: {
+            height: 872286,
+            hash: '00000000000000000714f249ab1ecd41eef595260c4f9e79fa49e7dc1bd45767',
+            timestamp: 1732369043,
+        },
+    },
+    // ALP agora list
+    // 9b89b9fa76c0f75e2110ba6f6ca5aa2372e7edbd08be8ab71e523a766848faec
+    {
+        txid: '9b89b9fa76c0f75e2110ba6f6ca5aa2372e7edbd08be8ab71e523a766848faec',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '38c3b50ccc32d24a1d2a86437f465b9ec107da27d24f2cec3bc29ba4e797e38f',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '41757b94ec8879a30d97a1337794b0b3028290fb2a8376301c77dbe1f6cdd0d4ed9b6b0b85bc860f1c64fce450e9703d913eda39d1ce8f543784a22f802fcb9055412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1023',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'a6d65d619bbb03c4490498f7fe1d5413e92df064915a3533a09e8a4ba1762255',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '411342d2bfa3dd23a4b651445603d49c1a616465b5e63dc022c19c419f94be4097e75de234d05ea5b2854787ba6d15e97392a60f93b1187fe77613f67deda820ad412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '99106',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'd3bbd57c8439aca7cb88187b66a11cda8797fdbb53f14e9c88447c2285d52ec1',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '4159e97bf61cd3772560593340f6709223404eea9b3c092f877f7b58594f3c42fec16ae9f0a1750e49f522992120a3919e29419f49a935bded34d901a0d76a4d6e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 1001,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a504b41475230075041525449414c0000e253000000000000630800000000000048c420000000000029e3a34103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba637534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1102a08601000000810000000000',
+            },
+            {
+                value: 546,
+                outputScript: 'a9144df7df04abf59471392892042427a81e2e815d2b87',
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '54116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                            '46116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '00',
+                            'e253000000000000',
+                            '6308000000000000',
+                            '48c4200000000000',
+                            '29e3a341',
+                        ],
+                    },
+                },
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '100000',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '290058a1948fb7fcbe3d54f0b215b504ed1b4eba28d98f29c0a8cc77e732c875',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '129',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1732771909,
+        size: 642,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+        block: {
+            height: 872992,
+            hash: '0000000000000000261323e832036ab8504e45794cf3a0cc9effbe56b5829458',
+            timestamp: 1732772920,
+        },
+    },
+    // ALP agora buy
+    // 861a0c6a303cbad78c1d9bcf9e0f2b4c6ed6b8c4b41f8c266b0aabbeab100d54
+    {
+        txid: '861a0c6a303cbad78c1d9bcf9e0f2b4c6ed6b8c4b41f8c266b0aabbeab100d54',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '290058a1948fb7fcbe3d54f0b215b504ed1b4eba28d98f29c0a8cc77e732c875',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1401a0c37b457891c798bbba4b5dbb4c336aed6c95e09ceb2ddd0b4f1c5e7359612293582d4ee1d24cd16fd6e0512d223ffc60cd310e83c72fe316e24ea700f47064422020000000000001976a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac04470100000000001976a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac4d240175c832e777cca8c0298fd928ba4e1bed04b515b2f0543dbefcb78f94a158002902000000cb7b63817b6ea269760348c420a2697602e2539700887d945279012a7f757892635357807e7802e253965667525768807e527902e2539656807e827c7e5379012a7f777c7e825980bc7c7e007e7b026208930263089658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702cb007f5c7f7701207f547f750429e3a341886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac2202000000000000ffffffff81d94ad6440c1b9b54eb2336f0c3d63102d25ba30e1443a1a94b9656de6bcf5f29e3a341c10000000348c420514d4f014c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000e253000000000000630800000000000048c420000000000029e3a34103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba608f8f4dd7f00000000ab7b63817b6ea269760348c420a2697602e2539700887d945279012a7f757892635357807e7802e253965667525768807e527902e2539656807e827c7e5379012a7f777c7e825980bc7c7e007e7b026208930263089658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702cb007f5c7f7701207f547f750429e3a341886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '99900',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '54116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                            '46116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '00',
+                            'e253000000000000',
+                            '6308000000000000',
+                            '48c4200000000000',
+                            '29e3a341',
+                        ],
+                    },
+                },
+                outputScript: 'a91413238005efa4ca9e6440578c2548ef538943d17687',
+            },
+            {
+                prevOut: {
+                    txid: '59f1fe0aa40d87b9cca7dfdecaf29c3f12a88e3f6af7785add126414763acf7e',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '4199fcebed608d53517bab47c15e13776e44fd069636c0115d20a445dc85c0f269800e94cb7279bd2f3db1d430158e42e46461d0b5b5c13f8bb2d4eea7ba2437134121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
+                value: 811,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+            },
+            {
+                prevOut: {
+                    txid: '5bf4b7a7eb64980db0910e352f78192e36fa7be4b63ffe029b3e08adaf159d39',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '411f9e02597b5c7a70b77d8a25b6fa41124e51ff54ad6ec96775e27bbdfcd1711dab668c52b7b873572d3bb2aab31729f612e9dd71d298822640875ba3b257e59d4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
+                value: 87315,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a504b41475230075041525449414c0000e253000000000000630800000000000048c420000000000029e3a34103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba63d534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1103000000000000d88501000000640000000000',
+            },
+            {
+                value: 1001,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                value: 546,
+                outputScript: 'a91436efd4946e1236d077121e79397d3a255891b43087',
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '54116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                            '46116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '00',
+                            'e253000000000000',
+                            '6308000000000000',
+                            '48c4200000000000',
+                            '29e3a341',
+                        ],
+                    },
+                },
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '99800',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '100',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 83716,
+                outputScript:
+                    '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+            },
+        ],
+        lockTime: 1101259561,
+        timeFirstSeen: 1732772041,
+        size: 1424,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+        block: {
+            height: 872992,
+            hash: '0000000000000000261323e832036ab8504e45794cf3a0cc9effbe56b5829458',
+            timestamp: 1732772920,
+        },
+    },
+    // ALP agora cancel
+    // 38c3b50ccc32d24a1d2a86437f465b9ec107da27d24f2cec3bc29ba4e797e38f
+    {
+        txid: '38c3b50ccc32d24a1d2a86437f465b9ec107da27d24f2cec3bc29ba4e797e38f',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'deaacd6b2496f3eda86734da5517c6f99d29df3e0f193d5daa1c0f165789bc6d',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41bd2efd17994e179019c3023e44d66b61b8eeafcfd5a946c12b6ef86dda404dce1bba452a1bde7dd32f7ffa41175644ce9eafa061d1a87e45b18ac7402fedc91a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 1100,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'eab823f29899ff9ac08f5b1e7d843ed2a3f8a14d7e78758bd8f74049cc061902',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41737e4eac6598415b4d7d3edae5fb0cfcf6b0e3289b322ee50e6862b717b4f449fda9fd31331efff11a211ba2ce04192259e83291544c64a8f7f5d8ed37362bbd41004d52014c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000fcff1f0000000000000f000000000000fcff1f0000000000fb0af93b03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60804f0df7f00000000ab7b63817b6ea2697603fcff1fa2697603fcff1f9700887d945279012a7f757892635357807e7803fcff1f965667525768807e527903fcff1f9656807e827c7e5379012a7f777c7e825980bc7c7e007e7b02ff0e9302000f9658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702ce007f5c7f7701207f547f7504fb0af93b886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1023',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '54116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                            '46116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '00',
+                            'fcff1f0000000000',
+                            '000f000000000000',
+                            'fcff1f0000000000',
+                            'fb0af93b',
+                        ],
+                    },
+                },
+                outputScript: 'a91401bb291b6381e232f9bb743fe3e3fb456b50746487',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a5031534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1101ff0300000000',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1023',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '9b89b9fa76c0f75e2110ba6f6ca5aa2372e7edbd08be8ab71e523a766848faec',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1732643584,
+        size: 697,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+        block: {
+            height: 872748,
+            hash: '000000000000000007b9397a020d6a5c55f6d5a2d8b6430e200ba7784a029f5a',
+            timestamp: 1732643773,
         },
     },
     // Invalid tx
@@ -3968,6 +4740,30 @@ export const tokenInfoMap: Map<string, GenesisInfo> = new Map([
             url: 'cashtab.com',
             decimals: 0,
             hash: '10b8a6aa2fa7b6dd9ebae9018851bf25bd84c14c80de3ee2bfd0badef668b90c',
+        },
+    ],
+    [
+        'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+        {
+            tokenTicker: 'CRD',
+            tokenName: 'Credo In Unum Deo',
+            url: 'https://crd.network/token',
+            decimals: 4,
+            data: '',
+            authPubkey:
+                '0334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10',
+        },
+    ],
+    [
+        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+        {
+            tokenTicker: 'TB',
+            tokenName: 'Tiberium',
+            url: 'cashtab.com',
+            decimals: 0,
+            data: '',
+            authPubkey:
+                '03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
         },
     ],
 ]);
