@@ -388,17 +388,19 @@ RejectedTxTodo TxDownloadManagerImpl::MempoolRejectedTx(
                 }
             }
             if (!fRejectedParents) {
+                // Filter parents that we already have.
+                // Exclude m_recent_rejects_package_reconsiderable: the missing
+                // parent may have been previously rejected for being too low
+                // feerate. This orphan might CPFP it.
+                std::erase_if(unique_parents, [&](const auto &parent_txid) {
+                    return AlreadyHaveTx(parent_txid,
+                                         /*include_reconsiderable=*/false);
+                });
                 const auto current_time{GetTime<std::chrono::microseconds>()};
 
                 for (const TxId &parent_txid : unique_parents) {
-                    // Exclude m_recent_rejects_package_reconsiderable: the
-                    // missing parent may have been previously rejected for
-                    // being too low feerate. This orphan might CPFP it.
-                    if (!AlreadyHaveTx(parent_txid,
-                                       /*include_reconsiderable=*/false)) {
-                        AddTxAnnouncement(nodeid, parent_txid, current_time,
-                                          /*p2p_inv=*/false);
-                    }
+                    AddTxAnnouncement(nodeid, parent_txid, current_time,
+                                      /*p2p_inv=*/false);
                 }
 
                 unsigned int nEvicted =
