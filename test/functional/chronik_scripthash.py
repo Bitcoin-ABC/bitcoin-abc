@@ -435,7 +435,12 @@ class ChronikScriptHashTest(BitcoinTestFramework):
 
     def test_wipe_index(self):
         self.log.info("Restarting with chronikscripthashindex=0 wipes the index")
-        self.restart_node(0, ["-chronik", "-chronikscripthashindex=0"])
+        with self.node.assert_debug_log(
+            [
+                " Warning: Wiping existing scripthash index, since -chronikscripthashindex=0",
+            ]
+        ):
+            self.restart_node(0, ["-chronik", "-chronikscripthashindex=0"])
         assert_equal(
             self.chronik.script("scripthash", GENESIS_CB_SCRIPTHASH)
             .confirmed_txs()
