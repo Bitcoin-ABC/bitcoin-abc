@@ -140,7 +140,7 @@ export const NftTable = styled.div`
     justify-content: center;
     gap: 9px;
     width: 100%;
-    background-color: ${props => props.theme.panel}
+    background-color: ${props => props.theme.secondaryBackground}
     border-radius: 9px;
     color: ${props => props.theme.contrast};
     max-height: 220px;
