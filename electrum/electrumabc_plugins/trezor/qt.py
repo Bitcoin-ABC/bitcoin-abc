@@ -43,12 +43,12 @@ PASSPHRASE_HELP = (
     )
 )
 RECOMMEND_PIN = _(
-    "You should enable PIN protection.  Your PIN is the only protection "
-    "for your bitcoins if your device is lost or stolen."
+    "You should enable PIN protection.  Your PIN is the only protection for "
+    "your eCash if your device is lost or stolen."
 )
 PASSPHRASE_NOT_PIN = _(
-    "If you forget a passphrase you will be unable to access any "
-    "bitcoins in the wallet behind it.  A passphrase is not a PIN. "
+    "If you forget a passphrase you will be unable to access any eCash in the "
+    "wallet behind it.  A passphrase is not a PIN. "
     "Only change this if you are sure you understand it."
 )
 MATRIX_RECOVERY = _(
@@ -698,7 +698,7 @@ class SettingsDialog(WindowModalDialog):
                 title = _("Confirm Device Wipe")
                 msg = _(
                     "Are you SURE you want to wipe the device?\n"
-                    "Your wallet still has bitcoins in it!"
+                    "Your wallet still has eCash in it!"
                 )
                 if not self.question(
                     msg, title=title, icon=QtWidgets.QMessageBox.Critical
@@ -777,7 +777,7 @@ class SettingsDialog(WindowModalDialog):
             _(
                 "PIN protection is strongly recommended.  "
                 "A PIN is your only protection against someone "
-                "stealing your bitcoins if they obtain physical "
+                "stealing your eCash if they obtain physical "
                 "access to your {}."
             ).format(plugin.device)
         )
@@ -846,7 +846,7 @@ class SettingsDialog(WindowModalDialog):
         clear_pin_warning = QtWidgets.QLabel(
             _(
                 "If you disable your PIN, anyone with physical access to your "
-                "{} device can spend your bitcoins."
+                "{} device can spend your eCash."
             ).format(plugin.device)
         )
         clear_pin_warning.setWordWrap(True)
@@ -877,8 +877,8 @@ class SettingsDialog(WindowModalDialog):
         wipe_device_warning = QtWidgets.QLabel(
             _(
                 "Only wipe a device if you have the recovery seed written down "
-                "and the device wallet(s) are empty, otherwise the bitcoins "
-                "will be lost forever."
+                "and the device wallet(s) are empty, otherwise the eCash will "
+                "be lost forever."
             )
         )
         wipe_device_warning.setWordWrap(True)
