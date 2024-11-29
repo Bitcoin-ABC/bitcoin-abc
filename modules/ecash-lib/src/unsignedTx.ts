@@ -6,6 +6,9 @@ import { sha256d } from './hash.js';
 import { Writer } from './io/writer.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { WriterLength } from './io/writerlength.js';
+import { writeVarSize } from './io/varsize.js';
+import { isPushOp, Op } from './op.js';
+import { OP_CODESEPARATOR } from './opcode.js';
 import { Script } from './script.js';
 import {
     SigHashType,
@@ -83,6 +86,102 @@ export interface SighashPreimage {
     redeemScript: Script;
 }
 
+// Write the legacy preimage used pre-UAHF.
+// It's modeled closely after SignatureHash in interpreter.cpp.
+function writeLegacyPreimage(
+    writer: Writer,
+    tx: Tx,
+    scriptCode: Script,
+    inputIdx: number,
+    sigHashType: SigHashType,
+) {
+    const hasAnyoneCanPay =
+        sigHashType.inputType === SigHashTypeInputs.ANYONECANPAY;
+
+    const writeLegacyScriptCode = () => {
+        const ops = scriptCode.ops();
+        let nextOp: Op | undefined = undefined;
+        const newOps = [];
+        // Filter out all code separators
+        while ((nextOp = ops.next()) !== undefined) {
+            if (isPushOp(nextOp) || nextOp != OP_CODESEPARATOR) {
+                newOps.push(nextOp);
+            }
+        }
+        Script.fromOps(newOps).writeWithSize(writer);
+    };
+
+    const writeLegacyInput = (idx: number) => {
+        // In case of SIGHASH_ANYONECANPAY, only the input being signed is
+        // serialized
+        if (hasAnyoneCanPay) {
+            idx = inputIdx;
+        }
+        const input = tx.inputs[idx];
+        // Serialize the prevout
+        writeOutPoint(input.prevOut, writer);
+        // Serialize the script
+        if (idx != inputIdx) {
+            // Blank out other inputs' signatures
+            new Script().writeWithSize(writer);
+        } else {
+            writeLegacyScriptCode();
+        }
+        // Serialize the nSequence
+        if (
+            idx != inputIdx &&
+            (sigHashType.outputType === SigHashTypeOutputs.SINGLE ||
+                sigHashType.outputType === SigHashTypeOutputs.NONE)
+        ) {
+            // let the others update at will
+            writer.putU32(0);
+        } else {
+            writer.putU32(input.sequence ?? DEFAULT_SEQUENCE);
+        }
+    };
+
+    const writeLegacyOutput = (idx: number) => {
+        if (
+            sigHashType.outputType === SigHashTypeOutputs.SINGLE &&
+            idx != inputIdx
+        ) {
+            // Do not lock-in the txout payee at other indices as txin
+            writeTxOutput({ value: 0, script: new Script() }, writer);
+        } else {
+            writeTxOutput(tx.outputs[idx], writer);
+        }
+    };
+
+    writer.putU32(tx.version);
+    const numInputs = hasAnyoneCanPay ? 1 : tx.inputs.length;
+    writeVarSize(numInputs, writer);
+    for (let inputIdx = 0; inputIdx < numInputs; ++inputIdx) {
+        writeLegacyInput(inputIdx);
+    }
+
+    // Serialize vout
+    const numOutputs = (() => {
+        switch (sigHashType.outputType) {
+            case SigHashTypeOutputs.NONE:
+                return 0;
+            case SigHashTypeOutputs.SINGLE:
+                return inputIdx + 1;
+            default:
+                return tx.outputs.length;
+        }
+    })();
+    writeVarSize(numOutputs, writer);
+    for (let outputIdx = 0; outputIdx < numOutputs; outputIdx++) {
+        writeLegacyOutput(outputIdx);
+    }
+
+    // Serialize nLockTime
+    writer.putU32(tx.locktime);
+
+    // Serialize sigHashType
+    writer.putU32(sigHashType.toInt());
+}
+
 /**
  * An unsigned tx input, can be used to build a sighash preimage ready to be
  * signed
@@ -104,9 +203,6 @@ export class UnsignedTxInput {
         sigHashType: SigHashType,
         nCodesep?: number,
     ): SighashPreimage {
-        if (sigHashType.variant == SigHashTypeVariant.LEGACY) {
-            throw new Error('Legacy sighash type not implemented');
-        }
         const tx = this.unsignedTx.tx;
         const input = tx.inputs[this.inputIdx];
         if (input.signData === undefined) {
@@ -118,6 +214,38 @@ export class UnsignedTxInput {
             nCodesep === undefined
                 ? redeemScript
                 : redeemScript.cutOutCodesep(nCodesep);
+
+        // Sign LEGACY signatures that don't use SIGHASH_FORKID
+        if (sigHashType.variant === SigHashTypeVariant.LEGACY) {
+            if (
+                sigHashType.outputType == SigHashTypeOutputs.SINGLE &&
+                this.inputIdx >= tx.outputs.length
+            ) {
+                throw new Error(
+                    'Invalid usage of SINGLE, input has no corresponding output',
+                );
+            }
+
+            const writePreimage = (writer: Writer) => {
+                writeLegacyPreimage(
+                    writer,
+                    this.unsignedTx.tx,
+                    scriptCode,
+                    this.inputIdx,
+                    sigHashType,
+                );
+            };
+            const preimageWriterLen = new WriterLength();
+            writePreimage(preimageWriterLen);
+            const preimageWriter = new WriterBytes(preimageWriterLen.length);
+            writePreimage(preimageWriter);
+
+            return {
+                bytes: preimageWriter.data,
+                scriptCode,
+                redeemScript,
+            };
+        }
 
         let hashOutputs: Uint8Array;
         switch (sigHashType.outputType) {

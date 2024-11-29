@@ -7,7 +7,7 @@ import { sha256d } from './hash.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { pushBytesOp } from './op.js';
 import { Script } from './script.js';
-import { SigHashType } from './sigHashType.js';
+import { SigHashType, SigHashTypeVariant } from './sigHashType.js';
 import {
     DEFAULT_TX_VERSION,
     Tx,
@@ -217,6 +217,23 @@ export function flagSignature(
     return writer.data;
 }
 
+/**
+ * Sign the sighash using Schnorr for BIP143 signatures and ECDSA for Legacy
+ * signatures, and then flags the signature correctly
+ **/
+export function signWithSigHash(
+    ecc: Ecc,
+    sk: Uint8Array,
+    sigHash: Uint8Array,
+    sigHashType: SigHashType,
+): Uint8Array {
+    const sig =
+        sigHashType.variant == SigHashTypeVariant.LEGACY
+            ? ecc.ecdsaSign(sk, sigHash)
+            : ecc.schnorrSign(sk, sigHash);
+    return flagSignature(sig, sigHashType);
+}
+
 /** Signatory for a P2PKH input. Always uses Schnorr signatures */
 export const P2PKHSignatory = (
     sk: Uint8Array,
@@ -226,8 +243,8 @@ export const P2PKHSignatory = (
     return (ecc: Ecc, input: UnsignedTxInput): Script => {
         const preimage = input.sigHashPreimage(sigHashType);
         const sighash = sha256d(preimage.bytes);
-        const sig = flagSignature(ecc.schnorrSign(sk, sighash), sigHashType);
-        return Script.p2pkhSpend(pk, sig);
+        const sigFlagged = signWithSigHash(ecc, sk, sighash, sigHashType);
+        return Script.p2pkhSpend(pk, sigFlagged);
     };
 };
 
@@ -236,7 +253,7 @@ export const P2PKSignatory = (sk: Uint8Array, sigHashType: SigHashType) => {
     return (ecc: Ecc, input: UnsignedTxInput): Script => {
         const preimage = input.sigHashPreimage(sigHashType);
         const sighash = sha256d(preimage.bytes);
-        const sig = flagSignature(ecc.schnorrSign(sk, sighash), sigHashType);
-        return Script.fromOps([pushBytesOp(sig)]);
+        const sigFlagged = signWithSigHash(ecc, sk, sighash, sigHashType);
+        return Script.fromOps([pushBytesOp(sigFlagged)]);
     };
 };

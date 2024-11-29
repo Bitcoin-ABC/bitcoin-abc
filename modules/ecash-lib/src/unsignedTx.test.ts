@@ -11,14 +11,23 @@ import { SighashPreimage, UnsignedTx } from './unsignedTx.js';
 import { sha256d } from './hash.js';
 import {
     ALL_ANYONECANPAY_BIP143,
+    ALL_ANYONECANPAY_LEGACY,
     ALL_BIP143,
     ALL_LEGACY,
     NONE_ANYONECANPAY_BIP143,
+    NONE_ANYONECANPAY_LEGACY,
     NONE_BIP143,
+    NONE_LEGACY,
+    SIG_HASH_TYPES_BIP143,
+    SIG_HASH_TYPES_LEGACY,
     SINGLE_ANYONECANPAY_BIP143,
+    SINGLE_ANYONECANPAY_LEGACY,
     SINGLE_BIP143,
+    SINGLE_LEGACY,
 } from './sigHashType.js';
 import { initWasm } from './initNodeJs.js';
+import { Ecc } from './ecc.js';
+import { signWithSigHash } from './txBuilder.js';
 
 const TX = new Tx({
     version: 0xfacefeed,
@@ -87,6 +96,7 @@ const LOCKTIME_HEX = 'beba0df0';
 
 describe('UnsignedTx', async () => {
     await initWasm();
+    const ecc = new Ecc();
 
     it('UnsignedTx.dummyFromTx', () => {
         const dummy = UnsignedTx.dummyFromTx(new Tx());
@@ -114,7 +124,7 @@ describe('UnsignedTx', async () => {
         );
     });
 
-    it('UnsignedTxInput.sigHashPreimage ALL', () => {
+    it('UnsignedTxInput.sigHashPreimage ALL_BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
 
         expect(unsigned.inputAt(0).sigHashPreimage(ALL_BIP143)).to.deep.equal({
@@ -152,7 +162,49 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage ALL|ANYONECANPAY', () => {
+    it('UnsignedTxInput.sigHashPreimage ALL_LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+
+        expect(unsigned.inputAt(0).sigHashPreimage(ALL_LEGACY)).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '00' +
+                    SEQUENCE1_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '01000000',
+            ),
+            scriptCode: TX.inputs[0].signData!.outputScript,
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(unsigned.inputAt(1).sigHashPreimage(ALL_LEGACY)).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '00' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '01000000',
+            ),
+            scriptCode: TX.inputs[1].signData!.redeemScript,
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+    });
+
+    it('UnsignedTxInput.sigHashPreimage ALL_ANYONECANPAY_BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
 
         expect(
@@ -192,7 +244,47 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage NONE', () => {
+    it('UnsignedTxInput.sigHashPreimage ALL_ANYONECANPAY_LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+
+        expect(
+            unsigned.inputAt(0).sigHashPreimage(ALL_ANYONECANPAY_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '01' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '81000000',
+            ),
+            scriptCode: TX.inputs[0].signData!.outputScript,
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(
+            unsigned.inputAt(1).sigHashPreimage(ALL_ANYONECANPAY_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '01' +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '81000000',
+            ),
+            scriptCode: TX.inputs[1].signData!.redeemScript,
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+    });
+
+    it('UnsignedTxInput.sigHashPreimage NONE_BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
 
         expect(unsigned.inputAt(0).sigHashPreimage(NONE_BIP143)).to.deep.equal({
@@ -230,7 +322,47 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage NONE|ANYONECANPAY', () => {
+    it('UnsignedTxInput.sigHashPreimage NONE_LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+
+        expect(unsigned.inputAt(0).sigHashPreimage(NONE_LEGACY)).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '00' +
+                    '00000000' +
+                    '00' +
+                    LOCKTIME_HEX +
+                    '02000000',
+            ),
+            scriptCode: TX.inputs[0].signData!.outputScript,
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(unsigned.inputAt(1).sigHashPreimage(NONE_LEGACY)).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '00' +
+                    '00000000' +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '00' +
+                    LOCKTIME_HEX +
+                    '02000000',
+            ),
+            scriptCode: TX.inputs[1].signData!.redeemScript,
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+    });
+
+    it('UnsignedTxInput.sigHashPreimage NONE_ANYONECANPAY_BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
 
         expect(
@@ -270,7 +402,45 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage SINGLE', () => {
+    it('UnsignedTxInput.sigHashPreimage NONE_ANYONECANPAY_LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+
+        expect(
+            unsigned.inputAt(0).sigHashPreimage(NONE_ANYONECANPAY_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '01' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    '00' +
+                    LOCKTIME_HEX +
+                    '82000000',
+            ),
+            scriptCode: TX.inputs[0].signData!.outputScript,
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(
+            unsigned.inputAt(1).sigHashPreimage(NONE_ANYONECANPAY_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '01' +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '00' +
+                    LOCKTIME_HEX +
+                    '82000000',
+            ),
+            scriptCode: TX.inputs[1].signData!.redeemScript,
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+    });
+
+    it('UnsignedTxInput.sigHashPreimage SINGLE_BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
 
         expect(
@@ -338,7 +508,68 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage SINGLE|ANYONECANPAY', () => {
+    it('UnsignedTxInput.sigHashPreimage SINGLE_LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+
+        expect(
+            unsigned.inputAt(0).sigHashPreimage(SINGLE_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '00' +
+                    '00000000' +
+                    '01' +
+                    OUTPUT0_HEX +
+                    LOCKTIME_HEX +
+                    '03000000',
+            ),
+            scriptCode: TX.inputs[0].signData!.outputScript,
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(
+            unsigned.inputAt(1).sigHashPreimage(SINGLE_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '00' +
+                    '00000000' +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '02' +
+                    '0000000000000000' +
+                    '00' +
+                    OUTPUT1_HEX +
+                    LOCKTIME_HEX +
+                    '03000000',
+            ),
+            scriptCode: TX.inputs[1].signData!.redeemScript,
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+
+        // If there's no corresponding output, we get an error
+        const unsignedTooFewOutputs = UnsignedTx.fromTx(
+            new Tx({
+                ...TX,
+                outputs: [],
+            }),
+        );
+        expect(() =>
+            unsignedTooFewOutputs.inputAt(0).sigHashPreimage(SINGLE_LEGACY),
+        ).to.throw(
+            'Invalid usage of SINGLE, input has no corresponding output',
+        );
+    });
+
+    it('UnsignedTxInput.sigHashPreimage SINGLE_ANYONECANPAY_BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
 
         expect(
@@ -378,7 +609,49 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage OP_CODESEPARATOR', () => {
+    it('UnsignedTxInput.sigHashPreimage SINGLE_ANYONECANPAY_LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+
+        expect(
+            unsigned.inputAt(0).sigHashPreimage(SINGLE_ANYONECANPAY_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '01' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    '01' +
+                    OUTPUT0_HEX +
+                    LOCKTIME_HEX +
+                    '83000000',
+            ),
+            scriptCode: TX.inputs[0].signData!.outputScript,
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(
+            unsigned.inputAt(1).sigHashPreimage(SINGLE_ANYONECANPAY_LEGACY),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '01' +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '02' +
+                    '0000000000000000' +
+                    '00' +
+                    OUTPUT1_HEX +
+                    LOCKTIME_HEX +
+                    '83000000',
+            ),
+            scriptCode: TX.inputs[1].signData!.redeemScript,
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+    });
+
+    it('UnsignedTxInput.sigHashPreimage OP_CODESEPARATOR BIP143', () => {
         const unsigned = UnsignedTx.fromTx(TX);
         expect(
             unsigned.inputAt(0).sigHashPreimage(ALL_BIP143, 0),
@@ -438,11 +711,73 @@ describe('UnsignedTx', async () => {
         } as SighashPreimage);
     });
 
-    it('UnsignedTxInput.sigHashPreimage failure', () => {
-        expect(() =>
-            UnsignedTx.fromTx(TX).inputAt(0).sigHashPreimage(ALL_LEGACY),
-        ).to.throw('Legacy sighash type not implemented');
+    it('UnsignedTxInput.sigHashPreimage OP_CODESEPARATOR LEGACY', () => {
+        const unsigned = UnsignedTx.fromTx(TX);
+        expect(
+            unsigned.inputAt(0).sigHashPreimage(ALL_LEGACY, 0),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '06acadaeafb0ac' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '00' +
+                    SEQUENCE1_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '01000000',
+            ),
+            scriptCode: new Script(fromHex('acadaeafb0abac')),
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
 
+        expect(
+            unsigned.inputAt(0).sigHashPreimage(ALL_LEGACY, 1),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '01ac' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '00' +
+                    SEQUENCE1_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '01000000',
+            ),
+            scriptCode: new Script(fromHex('ac')),
+            redeemScript: TX.inputs[0].signData!.outputScript,
+        } as SighashPreimage);
+
+        expect(
+            unsigned.inputAt(1).sigHashPreimage(ALL_LEGACY, 0),
+        ).to.deep.equal({
+            bytes: fromHex(
+                VERSION_HEX +
+                    '02' +
+                    PREVOUT0_HEX +
+                    '00' +
+                    SEQUENCE0_HEX +
+                    PREVOUT1_HEX +
+                    '05778899ac55' +
+                    SEQUENCE1_HEX +
+                    '03' +
+                    OUTPUTS_HEX +
+                    LOCKTIME_HEX +
+                    '01000000',
+            ),
+            scriptCode: new Script(fromHex('778899ac55')),
+            redeemScript: TX.inputs[1].signData!.redeemScript,
+        } as SighashPreimage);
+    });
+
+    it('UnsignedTxInput.sigHashPreimage failure', () => {
         expect(() =>
             UnsignedTx.fromTx(
                 new Tx({
@@ -501,5 +836,23 @@ describe('UnsignedTx', async () => {
         const unsigned = UnsignedTx.fromTx(TX);
         expect(unsigned.inputAt(0).txInput()).to.deep.equal(TX.inputs[0]);
         expect(unsigned.inputAt(1).txInput()).to.deep.equal(TX.inputs[1]);
+    });
+
+    it('signWithSigHash', () => {
+        const sk = fromHex(
+            '0101010101010101010101010101010101010101010101010101010101010101',
+        );
+        // BIP143 sigs in this library use Schnorr sigs, which are fixed length
+        for (const sigHash of SIG_HASH_TYPES_BIP143) {
+            const sig = signWithSigHash(ecc, sk, new Uint8Array(32), sigHash);
+            expect(sig.length).to.equal(65);
+            expect(sig[sig.length - 1]).to.equal(sigHash.toInt());
+        }
+        // Legacy sigs always use ECDSA, which is never of a Schnorr sig length
+        for (const sigHash of SIG_HASH_TYPES_LEGACY) {
+            const sig = signWithSigHash(ecc, sk, new Uint8Array(32), sigHash);
+            expect(sig.length).to.not.equal(65);
+            expect(sig[sig.length - 1]).to.equal(sigHash.toInt());
+        }
     });
 });

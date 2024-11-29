@@ -48,8 +48,8 @@ export class SigHashType {
                 outputFlags == 1
                     ? SigHashTypeOutputs.ALL
                     : outputFlags == 2
-                    ? SigHashTypeOutputs.NONE
-                    : SigHashTypeOutputs.SINGLE,
+                      ? SigHashTypeOutputs.NONE
+                      : SigHashTypeOutputs.SINGLE,
         });
     }
 
@@ -168,3 +168,23 @@ export const SINGLE_ANYONECANPAY_LEGACY: SigHashType = new SigHashType({
     inputType: SigHashTypeInputs.ANYONECANPAY,
     outputType: SigHashTypeOutputs.SINGLE,
 });
+
+/** List of BIP143 sighashes (FORKID) */
+export const SIG_HASH_TYPES_BIP143 = [
+    ALL_BIP143,
+    ALL_ANYONECANPAY_BIP143,
+    NONE_BIP143,
+    NONE_ANYONECANPAY_BIP143,
+    SINGLE_BIP143,
+    SINGLE_ANYONECANPAY_BIP143,
+];
+
+/** List of legacy sighashes (OG Bitcoin signature) */
+export const SIG_HASH_TYPES_LEGACY = [
+    ALL_LEGACY,
+    ALL_ANYONECANPAY_LEGACY,
+    NONE_LEGACY,
+    NONE_ANYONECANPAY_LEGACY,
+    SINGLE_LEGACY,
+    SINGLE_ANYONECANPAY_LEGACY,
+];
