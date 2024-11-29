@@ -533,7 +533,7 @@ builds:
       ninja osx-zip
     timeout: 3600
     artifacts:
-      Bitcoin-ABC.dmg: Bitcoin-ABC.zip
+      Bitcoin-ABC.zip: Bitcoin-ABC.zip
 
   build-secp256k1:
     runOnDiffRegex:
