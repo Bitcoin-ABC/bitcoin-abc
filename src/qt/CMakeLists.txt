@@ -451,7 +451,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	)
 
 	include(DoOrFail)
-	find_program_or_fail(CMAKE_INSTALL_NAME_TOOL "install_name_tool")
 	find_program_or_fail(CMAKE_OTOOL "otool")
 
 	set(QT_BASE_TRANSLATIONS
@@ -504,9 +503,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${APP_DIST_DIR}"
 			"${APP_DSSTORE}"
 		COMMAND
-			"INSTALLNAMETOOL=${CMAKE_INSTALL_NAME_TOOL}"
 			"OTOOL=${CMAKE_OTOOL}"
-			"STRIP=${CMAKE_STRIP}"
 			"${Python_EXECUTABLE}"
 			"${MACDEPLOYQTPLUS}"
 			"${STRIPPED_BUNDLE}"
