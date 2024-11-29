@@ -16,5 +16,4 @@ darwin_RANLIB:=$(shell xcrun -f ranlib)
 darwin_STRIP:=$(shell xcrun -f strip)
 darwin_OBJDUMP:=$(shell xcrun -f objdump)
 darwin_NM:=$(shell xcrun -f nm)
-darwin_native_binutils=
 darwin_native_toolchain=

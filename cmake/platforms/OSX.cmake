@@ -45,14 +45,5 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 # to ensure that modern linker features are enabled.
 string(APPEND CMAKE_C_FLAGS_INIT " -B${CMAKE_PREFIX_PATH}/bin -mlinker-version=${LD64_VERSION} -nostdlibinc -iwithsysroot/usr/include -iframeworkwithsysroot/System/Library/Frameworks")
 string(APPEND CMAKE_CXX_FLAGS_INIT " -B${CMAKE_PREFIX_PATH}/bin -mlinker-version=${LD64_VERSION} -nostdlibinc -iwithsysroot/usr/include/c++/v1 -iwithsysroot/usr/include -iframeworkwithsysroot/System/Library/Frameworks")
-
-# Ensure we use an OSX specific version the binary manipulation tools.
-find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
-find_program(CMAKE_INSTALL_NAME_TOOL ${TOOLCHAIN_PREFIX}-install_name_tool)
-find_program(CMAKE_LINKER ${TOOLCHAIN_PREFIX}-ld)
-find_program(CMAKE_NM ${TOOLCHAIN_PREFIX}-nm)
-find_program(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}-objcopy)
-find_program(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}-objdump)
-find_program(CMAKE_OTOOL ${TOOLCHAIN_PREFIX}-otool)
-find_program(CMAKE_RANLIB ${TOOLCHAIN_PREFIX}-ranlib)
-find_program(CMAKE_STRIP ${TOOLCHAIN_PREFIX}-strip)
+string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,-no_adhoc_codesign -fuse-ld=lld")
+string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -Wl,-no_adhoc_codesign -fuse-ld=lld")
