@@ -87,6 +87,7 @@ PACKAGES=(
   xorriso
   xvfb
   yamllint
+  zip
 )
 
 function join_by() {
