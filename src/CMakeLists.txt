@@ -219,6 +219,14 @@ if(ENABLE_HARDENING)
 	include(CheckPIESupported)
 	check_pie_supported()
 
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		# MinGw provides its own libssp for stack smashing protection.
+		# It might not be needed for recent versions of mingw, but the version
+		# shipped with debian bullseye needs it and we still support it at the
+		# time of writing.
+		link_libraries(ssp)
+	endif()
+
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		add_linker_flags(-Wl,-fixup_chains)
 	endif()
