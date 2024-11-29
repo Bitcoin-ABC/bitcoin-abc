@@ -13,6 +13,7 @@
 
 #include <array>
 #include <map>
+#include <unordered_map>
 
 bool fLogIPs = DEFAULT_LOGIPS;
 const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
