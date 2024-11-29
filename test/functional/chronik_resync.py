@@ -101,10 +101,15 @@ class ChronikResyncTest(BitcoinTestFramework):
 
         # Generate 100 blocks without chronik
         self.restart_node(0, [])
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_P2SH_OP_TRUE)
+        tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_P2SH_OP_TRUE)[-1]
 
         # Reindexing indexes 100 blocks
         self.restart_node(0, ["-chronik", "-reindex"])
+        # Wait until the node catched up, and for the validation interface to
+        # drain the queue
+        self.wait_until(lambda: node.getbestblockhash() == tip)
+        node.syncwithvalidationinterfacequeue()
+        # Chronik should catch up as well
         chronik.block(100).ok()
 
         # Test -chronikreindex
