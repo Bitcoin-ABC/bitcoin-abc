@@ -188,8 +188,6 @@ all_packages = $(packages) $(native_packages)
 
 meta_depends = Makefile funcs.mk builders/default.mk hosts/default.mk hosts/$(host_os).mk builders/$(build_os).mk
 
-$(host_arch)_$(host_os)_native_toolchain?=$($(host_os)_native_toolchain)
-
 include funcs.mk
 
 final_build_id_long+=$(shell $(build_SHA256SUM) config.sub)
