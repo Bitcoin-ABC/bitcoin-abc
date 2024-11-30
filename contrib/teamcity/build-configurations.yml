@@ -885,6 +885,15 @@ builds:
     templates:
       - js-mocha
 
+  b58-ts-tests:
+    runOnDiffRegex:
+      - modules/b58-ts/
+    env:
+      JS_PROJECT_ROOT: modules/b58-ts
+      RUN_NPM_BUILD: "true"
+    templates:
+      - js-mocha
+
   chronik-client-tests:
     runOnDiffRegex:
       - modules/chronik-client/

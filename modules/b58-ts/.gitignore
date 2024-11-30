@@ -1,0 +1,20 @@
+# Dependency directories
+node_modules/
+
+# nyc test coverage
+.nyc_output/
+
+# npm run junit artifact
+test-results.xml
+
+# artifact from testing CI locally
+test_results/
+
+# compiled ts
+dist/
+
+# compiled WebAssembly
+src/ffi/
+
+# built docs
+docs/
