@@ -84,8 +84,9 @@ pub enum QueryBlockError {
 
     /// Blocks page size too large
     #[error(
-        "400: Blocks page size too large, may not be above {} but got {0}",
-        MAX_BLOCKS_PAGE_SIZE
+        "400: Blocks page size too large, \
+         may not be above {max_blocks_page_size} but got {0}",
+        max_blocks_page_size = MAX_BLOCKS_PAGE_SIZE,
     )]
     BlocksPageSizeTooLarge(usize),
 
@@ -103,15 +104,17 @@ pub enum QueryBlockError {
 
     /// Can only request page sizes below a certain maximum.
     #[error(
-        "400: Requested block tx page size {0} is too big, maximum is {}",
-        MAX_BLOCK_TXS_PAGE_SIZE
+        "400: Requested block tx page size {0} is too big, \
+         maximum is {max_block_txs_page_size}",
+        max_block_txs_page_size = MAX_BLOCK_TXS_PAGE_SIZE,
     )]
     RequestPageSizeTooBig(usize),
 
     /// Can only request page sizes above a certain minimum.
     #[error(
-        "400: Requested block tx page size {0} is too small, minimum is {}",
-        MIN_BLOCK_TXS_PAGE_SIZE
+        "400: Requested block tx page size {0} is too small, \
+         minimum is {min_block_txs_page_size}",
+        min_block_txs_page_size = MIN_BLOCK_TXS_PAGE_SIZE,
     )]
     RequestPageSizeTooSmall(usize),
 

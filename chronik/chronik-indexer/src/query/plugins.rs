@@ -69,15 +69,17 @@ pub enum QueryPluginsError {
 
     /// Can only request page sizes below a certain maximum.
     #[error(
-        "400: Requested page size {0} is too big, maximum is {}",
-        PLUGIN_GROUPS_MAX_PAGE_SIZE
+        "400: Requested page size {0} is too big, \
+         maximum is {plugin_groups_max_page_size}",
+        plugin_groups_max_page_size = PLUGIN_GROUPS_MAX_PAGE_SIZE,
     )]
     RequestPageSizeTooBig(usize),
 
     /// Can only request page sizes above a certain minimum.
     #[error(
-        "400: Requested page size {0} is too small, minimum is {}",
-        PLUGIN_GROUPS_MIN_PAGE_SIZE
+        "400: Requested page size {0} is too small, \
+         minimum is {plugin_groups_min_page_size}",
+        plugin_groups_min_page_size = PLUGIN_GROUPS_MIN_PAGE_SIZE,
     )]
     RequestPageSizeTooSmall(usize),
 }

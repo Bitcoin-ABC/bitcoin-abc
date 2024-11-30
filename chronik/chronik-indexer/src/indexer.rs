@@ -172,9 +172,10 @@ pub enum ChronikIndexerError {
 
     /// This Chronik instance is outdated
     #[error(
-        "Chronik outdated: Chronik has version {}, but the database has \
-         version {0}. Upgrade your node to the appropriate version.",
-        CURRENT_INDEXER_VERSION
+        "Chronik outdated: Chronik has version {current_indexer_version}, \
+         but the database has version {0}. Upgrade your node to the \
+         appropriate version.",
+        current_indexer_version = CURRENT_INDEXER_VERSION,
     )]
     ChronikOutdated(SchemaVersion),
 

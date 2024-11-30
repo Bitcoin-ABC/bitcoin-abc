@@ -36,7 +36,7 @@ chronik-util = { path = "../chronik-util" }
 cxx = "1.0"
 
 # Derive error enums
-thiserror = "1.0"
+thiserror = "2.0.3"
 
 # Async runtime
 tokio = { version = "1.32", features = ["sync", "rt", "rt-multi-thread"] }

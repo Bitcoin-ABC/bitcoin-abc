@@ -95,8 +95,10 @@ pub enum GroupUtxoError {
 
     /// Used merge_cf incorrectly, prefix must either be I or D.
     #[error(
-        "Bad usage of merge: Unknown prefix {0:02x}, expected I or D: {}",
-        hex::encode(.1),
+        "Bad usage of merge: Unknown prefix {prefix:02x}, \
+         expected I or D: {encoded}",
+        prefix = .0,
+        encoded = hex::encode(.1),
     )]
     UnknownOperandPrefix(u8, Vec<u8>),
 

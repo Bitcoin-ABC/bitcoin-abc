@@ -26,7 +26,10 @@ pub enum BurnError {
     /// ALP has an upper limit on the number tx inputs.
     /// Note that given current consensus rules, having this many inputs is not
     /// possible, so this is a failsafe.
-    #[error("Too many tx inputs, got {0} but only {} allowed", MAX_TX_INPUTS)]
+    #[error(
+        "Too many tx inputs, got {0} but only {max_tx_inputs} allowed",
+        max_tx_inputs = MAX_TX_INPUTS,
+    )]
     TooManyTxInputs(usize),
 
     /// NFT1 CHILD GENESIS requires an NFT1 GROUP token in the first input

@@ -79,15 +79,17 @@ pub enum QueryGroupHistoryError {
 
     /// Can only request page sizes below a certain maximum.
     #[error(
-        "400: Requested page size {0} is too big, maximum is {}",
-        MAX_HISTORY_PAGE_SIZE
+        "400: Requested page size {0} is too big, \
+         maximum is {max_history_page_size}",
+        max_history_page_size = MAX_HISTORY_PAGE_SIZE,
     )]
     RequestPageSizeTooBig(usize),
 
     /// Can only request page sizes below a certain minimum.
     #[error(
-        "400: Requested page size {0} is too small, minimum is {}",
-        MIN_HISTORY_PAGE_SIZE
+        "400: Requested page size {0} is too small, \
+         minimum is {min_history_page_size}",
+        min_history_page_size = MIN_HISTORY_PAGE_SIZE,
     )]
     RequestPageSizeTooSmall(usize),
 

@@ -18,7 +18,7 @@ abc-rust-lint = { path = "../../chronik/abc-rust-lint" }
 wasm-bindgen = "=0.2.92"
 
 # Derive error structs/enums
-thiserror = "1.0"
+thiserror = "2.0.3"
 
 # Implementation of RIPEMD-160 etc. cryptographic hash functions
 ripemd = "0.1"

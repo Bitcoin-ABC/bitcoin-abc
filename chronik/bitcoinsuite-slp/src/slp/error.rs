@@ -137,7 +137,10 @@ pub enum ParseError {
     },
 
     /// Invalid token type length
-    #[error("Token type must be 1 byte long, got {}: {0:?}", .0.len())]
+    #[error(
+        "Token type must be 1 byte long, got {byte_len}: {byte_len:?}",
+        byte_len = .0.len(),
+    )]
     InvalidTokenType(Bytes),
 
     /// Invalid tx type

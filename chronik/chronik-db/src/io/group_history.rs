@@ -122,8 +122,10 @@ pub enum GroupHistoryError {
 
     /// Used merge_cf incorrectly, prefix must either be C or T.
     #[error(
-        "Bad usage of merge: Unknown prefix {0:02x}, expected C or T: {}",
-        hex::encode(.1),
+        "Bad usage of merge: Unknown prefix {prefix:02x}, \
+         expected C or T: {encoded}",
+        prefix = .0,
+        encoded = hex::encode(.1),
     )]
     UnknownOperandPrefix(u8, Vec<u8>),
 
