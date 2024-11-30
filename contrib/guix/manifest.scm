@@ -31,6 +31,7 @@
              (guix build-system gnu)
              (guix build-system python)
              (guix build-system trivial)
+             (guix download)
              (guix gexp)
              (guix git-download)
              ((guix licenses) #:prefix license:)
@@ -97,7 +98,18 @@ chain for " target " development."))
       (home-page (package-home-page xgcc))
       (license (package-license xgcc)))))
 
-(define base-gcc gcc-12)
+(define base-gcc
+  (package
+    (inherit gcc-12) ;; 12.3.0
+    (version "12.4.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "mirror://gnu/gcc/gcc-"
+                                  version "/gcc-" version ".tar.xz"))
+              (sha256
+               (base32
+                "0xcida8l2wykvvzvpcrcn649gj0ijn64gwxbplacpg6c0hk6akvh"))))))
+
 (define base-linux-kernel-headers linux-libre-headers-6.1)
 
 (define* (make-bitcoin-cross-toolchain target
@@ -125,7 +137,10 @@ desirable for building Bitcoin ABC release binaries."
 (define (make-mingw-pthreads-cross-toolchain target)
   "Create a cross-compilation toolchain package for TARGET"
   (let* ((xbinutils (binutils-mingw-patches (cross-binutils target)))
-         (pthreads-xlibc mingw-w64-x86_64-winpthreads)
+         (machine (substring target 0 (string-index target #\-)))
+         (pthreads-xlibc (make-mingw-w64 machine
+                                         #:xgcc (cross-gcc target #:xgcc (gcc-mingw-patches base-gcc))
+                                         #:with-winpthreads? #t))
          (pthreads-xgcc (cross-gcc target
                                     #:xgcc (gcc-mingw-patches mingw-w64-base-gcc)
                                     #:xbinutils xbinutils
@@ -567,6 +582,7 @@ inspecting signatures in Mach-O binaries.")
         automake
         pkg-config
         bison
+        gcc-toolchain-12
         (list gcc "lib")
         ;; Scripting
         python-minimal ;; (3.10)
@@ -580,8 +596,7 @@ inspecting signatures in Mach-O binaries.")
         nss-certs)
   (let ((target (getenv "HOST")))
     (cond ((string-suffix? "-mingw32" target)
-           (list ;; Native GCC 12 toolchain
-                 gcc-toolchain-12
+           (list
                  clang-10
                  zip
                  (make-mingw-pthreads-cross-toolchain "x86_64-w64-mingw32")
@@ -589,14 +604,12 @@ inspecting signatures in Mach-O binaries.")
                  nss-certs
                  osslsigncode))
           ((string-contains target "-linux-")
-           (list ;; Native GCC 12 toolchain
-                 gcc-toolchain-12
+           (list
                  (list gcc-toolchain-12 "static")
                  (make-bitcoin-cross-toolchain target)
                  clang-10))
           ((string-contains target "darwin")
-           (list ;; Native GCC 11 toolchain
-                 gcc-toolchain-11
+           (list
                  clang-toolchain-18
                  lld-18
                  (make-lld-wrapper lld-18 #:lld-as-ld? #t)
