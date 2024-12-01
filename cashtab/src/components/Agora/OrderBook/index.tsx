@@ -73,7 +73,7 @@ import appConfig from 'config/app';
 import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
-import { Alert, Info } from 'components/Common/Atoms';
+import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Agora, AgoraOffer, AgoraPartial } from 'ecash-agora';
@@ -725,20 +725,23 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 onClick={() => setShowLargeIconModal(true)}
                             />
                             <OfferTitleCtn>
-                                {typeof tokenName !== 'string' ? (
-                                    <InlineLoader />
-                                ) : (
-                                    <a
-                                        href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        {tokenName}
-                                        {tokenTicker !== ''
-                                            ? ` (${tokenTicker})`
-                                            : ''}
-                                    </a>
-                                )}
+                                <>
+                                    {typeof tokenName !== 'string' ? (
+                                        <InlineLoader />
+                                    ) : (
+                                        <a
+                                            href={`#/token/${tokenId}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {tokenName}
+                                            {tokenTicker !== ''
+                                                ? ` (${tokenTicker})`
+                                                : ''}
+                                        </a>
+                                    )}
+                                    <CopyTokenId tokenId={tokenId} />
+                                </>
                             </OfferTitleCtn>
                         </OfferHeader>
                     )}

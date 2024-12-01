@@ -170,3 +170,36 @@ export const PageHeader = styled.h2`
         fill: #fff !important;
     }
 `;
+
+const CopyTokenIdWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    svg {
+        width: 18px;
+        height: 18px;
+        :hover {
+            g {
+                fill: ${props => props.theme.eCashPurple};
+            }
+            fill: ${props => props.theme.eCashPurple};
+        }
+    }
+`;
+interface CopyTokenIdProps {
+    tokenId: string;
+}
+export const CopyTokenId: React.FC<CopyTokenIdProps> = ({ tokenId }) => {
+    return (
+        <CopyTokenIdWrapper>
+            {tokenId.slice(0, 3)}
+            ...
+            {tokenId.slice(-3)}
+            <CopyIconButton
+                name={`Copy Token ID`}
+                data={tokenId}
+                showToast
+                customMsg={`Token ID "${tokenId}" copied to clipboard`}
+            />
+        </CopyTokenIdWrapper>
+    );
+};
