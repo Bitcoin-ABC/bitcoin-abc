@@ -725,16 +725,20 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 onClick={() => setShowLargeIconModal(true)}
                             />
                             <OfferTitleCtn>
-                                <a
-                                    href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {tokenName}
-                                    {tokenTicker !== ''
-                                        ? ` (${tokenTicker})`
-                                        : ''}
-                                </a>
+                                {typeof tokenName !== 'string' ? (
+                                    <InlineLoader />
+                                ) : (
+                                    <a
+                                        href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {tokenName}
+                                        {tokenTicker !== ''
+                                            ? ` (${tokenTicker})`
+                                            : ''}
+                                    </a>
+                                )}
                             </OfferTitleCtn>
                         </OfferHeader>
                     )}
