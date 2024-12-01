@@ -14,7 +14,7 @@ import {
     AgoraQueryParamVariants,
 } from './index';
 import mocks from './mocks';
-import * as cashaddr from 'ecashaddrjs';
+import { encodeCashAddress } from 'ecashaddrjs';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -212,7 +212,7 @@ describe('MockChronikClient', () => {
         expect(ws.subs.scripts).to.deep.equal([]);
 
         // We can subscribe to an address
-        const addr = cashaddr.encode('ecash', scriptType, payload);
+        const addr = encodeCashAddress('ecash', scriptType, payload);
         ws.subscribeToAddress(addr);
         expect(ws.subs.scripts).to.deep.equal([{ scriptType, payload }]);
 
@@ -327,7 +327,7 @@ describe('MockChronikClient', () => {
         const { tx } = mocks;
         const type = 'p2pkh';
         const hash = '00'.repeat(20);
-        const address = cashaddr.encode('ecash', type, hash);
+        const address = encodeCashAddress('ecash', type, hash);
         mockChronik.setTxHistoryByAddress(address, [tx]);
         expect(await mockChronik.address(address).history()).to.deep.equal({
             txs: [tx],
@@ -343,7 +343,7 @@ describe('MockChronikClient', () => {
         const { utxo, scriptUtxo } = mocks;
         const type = 'p2pkh';
         const hash = '00'.repeat(20);
-        const address = cashaddr.encode('ecash', type, hash);
+        const address = encodeCashAddress('ecash', type, hash);
         mockChronik.setUtxosByAddress(address, [utxo]);
         expect(await mockChronik.address(address).utxos()).to.deep.equal({
             outputScript: `76a914${hash}88ac`,
@@ -401,7 +401,7 @@ describe('MockChronikClient', () => {
             const { utxo, scriptUtxo } = mocks;
             const type = 'p2pkh';
             const hash = '00'.repeat(20);
-            const address = cashaddr.encode('ecash', type, hash);
+            const address = encodeCashAddress('ecash', type, hash);
             mockChronik.setUtxosByAddress(address, [utxo]);
             expect(await mockChronik.address(address).utxos()).to.deep.equal({
                 outputScript: `76a914${hash}88ac`,

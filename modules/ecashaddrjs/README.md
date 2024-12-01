@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/ecashaddrjs.png?downloads=true)](https://nodei.co/npm/ecashaddrjs/)
 
-JavaScript implementation for CashAddr address format for eCash.
+TypeScript implementation for CashAddr address format for eCash (XEC). Also supports Bitcoin Cash (BCH).
 
 Compliant with the original CashAddr [specification](https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/cashaddr.md) which improves upon [BIP 173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki).
 
@@ -14,129 +14,54 @@ Compliant with the original CashAddr [specification](https://github.com/bitcoinc
 $ npm install --save ecashaddrjs
 ```
 
-### Manually
-
-You may also download the distribution file manually and place it within your third-party scripts directory: [dist/cashaddrjs.min.js](https://unpkg.com/ecashaddrjs/dist/cashaddrjs.min.js).
-
 ## Usage
 
-Convert a `bitcoincash:` prefixed address to an `ecash:` prefixed address
+See tests for detailed usage. Note that conversion to and from BTC address format is not supported in this library, but is available in `ecash-lib`.
+
+Examples below.
 
 ### In Node.js
 
 ```javascript
-const ecashaddr = require('ecashaddrjs');
+const {
+    encodeCashAddress,
+    decodeCashAddress,
+    isValidCashAddress,
+    getOutputScriptFromAddress,
+} = require('ecashaddrjs');
 const bitcoincashAddress =
     'bitcoincash:qpadrekpz6gjd8w0zfedmtqyld0r2j4qmuj6vnmhp6';
-const { prefix, type, hash } = ecashaddr.decode(bitcoincashAddress);
+const { prefix, type, hash } = decodeCashAddress(bitcoincashAddress);
 console.log(prefix); // 'bitcoincash'
-console.log(type); // 'P2PKH'
-console.log(hash); // Uint8Array [ 118, 160, ..., 115 ]
-console.log(ecashaddr.encode('ecash', type, hash));
+console.log(type); // 'p2pkh'
+console.log(hash); // '7ad1e6c11691269dcf1272ddac04fb5e354aa0df'
+console.log(encodeCashAddress('ecash', type, hash));
 // 'ecash:qpadrekpz6gjd8w0zfedmtqyld0r2j4qmuthccqd8d'
-console.log(ecashaddr.isValidCashAddress(bitcoincashAddress)); // true
-console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'bitcoincash'); // true
-console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // false
+console.log(isValidCashAddress(bitcoincashAddress)); // true
+console.log(isValidCashAddress(bitcoincashAddress), 'bitcoincash'); // true
+console.log(isValidCashAddress(bitcoincashAddress), 'ecash'); // false
+
 // getOutputScriptFromAddress
-// p2pkh
 console.log(
-    ecashaddr.getOutputScriptFromAddress(
+    getOutputScriptFromAddress(
         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
     ),
 ); // 76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac
-// p2sh
-console.log(
-    ecashaddr.getOutputScriptFromAddress(
-        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
-    ),
-); // a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087
-```
-
-### Working with chronik-client in Node.js
-
-[chronik](https://www.npmjs.com/package/chronik-client) is the reference indexer for eCash. It queries the blockchain using address hash160 and type parameters.
-
-The `type` and `hash` parameters can be returned in a format ready for chronik by calling `cashaddr.decode(address, true)`
-
-```javascript
-const ecashaddr = require('ecashaddrjs');
-const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient('https://chronik.be.cash/xec');
-const chronikQueryAddress = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
-const { prefix, type, hash } = ecashaddr.decode(chronikQueryAddress, true);
-console.log(prefix); // 'ecash'
-console.log(type); // 'p2pkh' (instead of 'P2PKH', returned without the 'true' flag)
-console.log(hash); // '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d' (instead of Uint8Array [ 149, 241, ..., 29 ], returned without the 'true' flag)
-console.log(ecashaddr.encode('ecash', type, hash)); // encode supports chronik output inputs
-// 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035'
-// use chronik client to get a page of address tx history
-const history = await chronik
-    .script(type, hash)
-    .history(/*page=*/ 0, /*page_size=*/ 10);
 ```
 
 ### React
 
 ```javascript
-import cashaddr from 'ecashaddrjs';
+import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 
+// Note that this specific prefix conversion use case is simplified by the Address
+// class availabe in ecash-lib
 function convertBitcoincashToEcash(bitcoincashAddress) {
-    /* NOTE
-  This function assumes input parameter 'bitcoincashAddress' is a valid bitcoincash: address
-  cashaddr.decode() will throw an error if 'bitcoincashAddress' lacks a prefix
-  */
-    const { prefix, type, hash } = cashaddr.decode(bitcoincashAddress);
-    const ecashAddress = cashaddr.encode('ecash', type, hash);
+    const { prefix, type, hash } = decodeCashAddress(bitcoincashAddress);
+    const ecashAddress = encodeCashAddress('ecash', type, hash);
     return ecashAddress;
 }
 ```
-
-### Browser
-
-```html
-<html>
-    <head>
-        <script src="https://unpkg.com/ecashaddrjs/dist/cashaddrjs.min.js"></script>
-    </head>
-    <body>
-        <script>
-            function convertBitcoincashToEcash(bitcoincashAddress) {
-                /* NOTE
-    This function assumes input parameter 'bitcoincashAddress' is a valid bitcoincash: address
-    cashaddr.decode() will throw an error if 'bitcoincashAddress' lacks a prefix
-    */
-                const { prefix, type, hash } =
-                    cashaddr.decode(bitcoincashAddress);
-                const ecashAddress = cashaddr.encode('ecash', type, hash);
-                return ecashAddress;
-            }
-            const eCashAddr = convertBitcoincashToEcash(
-                'bitcoincash:qpadrekpz6gjd8w0zfedmtqyld0r2j4qmuj6vnmhp6',
-            );
-            console.log(eCashAddr);
-            // ecash:qpadrekpz6gjd8w0zfedmtqyld0r2j4qmuthccqd8d
-        </script>
-    </body>
-</html>
-```
-
-#### Script Tag
-
-You may include a script tag in your HTML and the `ecashaddr` module will be defined globally on subsequent scripts.
-
-```html
-<html>
-    <head>
-        ...
-        <script src="https://unpkg.com/ecashaddrjs/dist/cashaddrjs.min.js"></script>
-    </head>
-    ...
-</html>
-```
-
-#### jsFiddle
-
-https://jsfiddle.net/zghd6c2y/
 
 #### Change Log
 
@@ -160,3 +85,12 @@ https://jsfiddle.net/zghd6c2y/
 -   1.6.0 - Implement typescript [D16744](https://reviews.bitcoinabc.org/D16744)
 -   1.6.1 - Replace `Buffer` with `Uint8Array` and stop using `webpack` to build [D17170](https://reviews.bitcoinabc.org/D17170)
 -   1.6.2 - Lint to monorepo standards [D17183](https://reviews.bitcoinabc.org/D17183)
+
+2.0.0 [D17269](https://reviews.bitcoinabc.org/D17269)
+
+-   Remove all dependencies
+-   Remove `toLegacy`. This is now available in `ecash-lib`
+-   Remove `chronikReady` param and always return `hash` as a hex string
+-   Remove support for uppercase address type inputs 'P2PKH' and 'P2SH'
+-   New function `getOutputScriptFromTypeAndHash`
+-   Remove validation against accepted prefix types

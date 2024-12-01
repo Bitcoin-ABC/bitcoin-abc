@@ -17,7 +17,7 @@ import {
     OP_HASH160,
 } from './opcode.js';
 import { Bytes } from './io/bytes.js';
-import * as cashaddr from 'ecashaddrjs';
+import { Address } from './address/address';
 
 /** A Bitcoin Script locking/unlocking a UTXO */
 export class Script {
@@ -58,37 +58,24 @@ export class Script {
     }
 
     public static fromAddress(address: string): Script {
-        // Note that hash is always returned as a string when decode is called with 'true'
-        let decodedAddress;
-        try {
-            decodedAddress = cashaddr.decode(address, false);
-        } catch (err) {
-            throw new Error(`Error decoding address "${address}": ${err}`);
-        }
+        // make Address from address
+        const thisAddress = Address.fromCashAddress(address);
 
-        if (typeof decodedAddress.hash !== 'string') {
-            // cashaddr.decode returns hash as string | uint8array
-            // When called with chronikReady=false param, hash is always returned as a uint8array
-            // typescript does not know this though so we need this gate to prevent an error
-            switch (decodedAddress.type) {
-                case 'P2PKH': {
-                    return Script.p2pkh(decodedAddress.hash);
-                }
-                case 'P2SH': {
-                    return Script.p2sh(decodedAddress.hash);
-                }
-                default: {
-                    // Note we should never get here, as ecashaddrjs decode method
-                    // only supports p2pkh and p2sh
-                    throw new Error(
-                        `Unsupported address type: ${decodedAddress.type}`,
-                    );
-                }
+        switch (thisAddress.type) {
+            case 'p2pkh': {
+                return Script.p2pkh(fromHex(thisAddress.hash));
+            }
+            case 'p2sh': {
+                return Script.p2sh(fromHex(thisAddress.hash));
+            }
+            default: {
+                // Note we should never get here, as Address constructor
+                // only supports p2pkh and p2sh
+                throw new Error(
+                    `Unsupported address type: ${thisAddress.type}`,
+                );
             }
         }
-        // Note we should never get here, as ecashaddrjs decode method
-        // always returns hash as a Uint8Array when called with (<addr>, false)
-        throw new Error(`Error decoding address "${address}"`);
     }
 
     /** Iterate over the Ops of this Script */

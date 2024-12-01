@@ -4,7 +4,7 @@
 
 'use strict';
 const assert = require('assert');
-const cashaddr = require('ecashaddrjs');
+const { getOutputScriptFromAddress } = require('ecashaddrjs');
 const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const {
@@ -34,7 +34,7 @@ describe('alias-server alias.js', async function () {
         const mongoUri = mongoServer.getUri();
         testMongoClient = new MongoClient(mongoUri);
         // Get outputScript for the IFP address used in parseAliasTx tests
-        registrationOutputScript = cashaddr.getOutputScriptFromAddress(
+        registrationOutputScript = getOutputScriptFromAddress(
             aliasConstants.registrationAddress,
         );
     });

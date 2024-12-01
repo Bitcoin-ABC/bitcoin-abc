@@ -4,7 +4,7 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import cashaddr from 'ecashaddrjs';
+import { decodeCashAddress } from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
@@ -230,9 +230,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
     it('New regtest chain', async () => {
         // Get addresses / scripts (used in all tests)
         p2pkhAddress = await get_p2pkh_address;
-        p2pkhHash = cashaddr.decode(p2pkhAddress, true).hash as string;
+        p2pkhHash = decodeCashAddress(p2pkhAddress).hash;
         p2shAddress = await get_p2sh_address;
-        p2shHash = cashaddr.decode(p2shAddress, true).hash as string;
+        p2shHash = decodeCashAddress(p2shAddress).hash;
         p2pkScript = await get_p2pk_script;
         otherScript = await get_other_script;
 

@@ -11,7 +11,7 @@ import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
 import { meetsAliasSpec } from 'validation';
 import { queryAliasServer } from 'alias';
-import cashaddr from 'ecashaddrjs';
+import { decodeCashAddress } from 'ecashaddrjs';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
@@ -432,7 +432,7 @@ const Alias = () => {
         let decoded;
         let isValidAddress = false;
         try {
-            decoded = cashaddr.decode(value, true);
+            decoded = decodeCashAddress(value);
             const { hash } = decoded;
             // We only support 20-byte payloads
             isValidAddress = hash.length === 40;

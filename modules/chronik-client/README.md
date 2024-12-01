@@ -116,3 +116,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   1.4.0 - Add `isFinal` key to `Tx` object [D17177](https://reviews.bitcoinabc.org/D17177)
 -   2.0.0 - **(Breaking change)** Change `auth` in `GenesisInfo` to hex string instead of `Uint8Array`, maintaining consistency with other API behavior [D17194](https://reviews.bitcoinabc.org/D17194)
 -   2.1.0 - Add support for `validateRawTx` endpoint [D15631](https://reviews.bitcoinabc.org/D15631)
+-   2.1.1 - Upgrade to dependency-free `ecashaddrjs` [D17269](https://reviews.bitcoinabc.org/D17269)

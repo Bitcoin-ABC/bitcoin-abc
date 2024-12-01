@@ -4,7 +4,7 @@
 
 'use strict';
 const assert = require('assert');
-const cashaddr = require('ecashaddrjs');
+const { decodeCashAddress } = require('ecashaddrjs');
 const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const { getUnprocessedTxHistory } = require('../src/chronik');
@@ -29,9 +29,8 @@ describe('alias-server chronik.js', () => {
         const mockedChronik = new MockChronikClient();
 
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, allTxHistoryFromChronik);
@@ -56,9 +55,8 @@ describe('alias-server chronik.js', () => {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, allTxHistory);
@@ -82,9 +80,8 @@ describe('alias-server chronik.js', () => {
         // Initialize chronik mock with full tx history of test alias address
         const mockedChronik = new MockChronikClient();
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, allTxHistory);

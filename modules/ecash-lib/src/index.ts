@@ -8,6 +8,7 @@ export * from './hash.js';
 export * from './op.js';
 export * from './opcode.js';
 export * from './script.js';
+export * from './address/address';
 export * from './sigHashType.js';
 export * from './tx.js';
 export * from './txBuilder.js';

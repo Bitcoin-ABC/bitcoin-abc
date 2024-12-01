@@ -11,7 +11,7 @@ import {
     LegacyCashtabWallet,
     SlpDecimals,
 } from 'wallet';
-import cashaddr from 'ecashaddrjs';
+import { isValidCashAddress } from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import CashtabSettings, {
     cashtabSettingsValidation,
@@ -33,7 +33,7 @@ export const getContactAddressError = (
     address: string,
     contacts: CashtabContact[],
 ): false | string => {
-    const isValidCashAddress = cashaddr.isValidCashAddress(
+    const thisIsValidCashAddress = isValidCashAddress(
         address,
         appConfig.prefix,
     );
@@ -41,7 +41,7 @@ export const getContactAddressError = (
     if (!address.startsWith('ecash:')) {
         return `Addresses in Contacts must start with "ecash:" prefix`;
     }
-    if (!isValidCashAddress) {
+    if (!thisIsValidCashAddress) {
         return `Invalid address`;
     }
     for (const contact of contacts) {
@@ -326,7 +326,7 @@ export const isValidContactList = (contactList: CashtabContact[]): boolean => {
             // Address must be a valid XEC address, name must be a string
             const { address, name } = contact;
             if (
-                (cashaddr.isValidCashAddress(address, appConfig.prefix) ||
+                (isValidCashAddress(address, appConfig.prefix) ||
                     isValidAliasSendInput(address)) &&
                 typeof name === 'string'
             ) {
@@ -457,7 +457,7 @@ export const isValidAirdropExclusionArray = (
     for (const address of addressStringArray) {
         if (
             !address.startsWith(appConfig.prefix) ||
-            !cashaddr.isValidCashAddress(address, appConfig.prefix)
+            !isValidCashAddress(address, appConfig.prefix)
         ) {
             return false;
         }
@@ -505,10 +505,7 @@ export const isValidMultiSendUserInput = (
         }
 
         const address = addressAndValueThisLine[0].trim();
-        const isValidAddress = cashaddr.isValidCashAddress(
-            address,
-            appConfig.prefix,
-        );
+        const isValidAddress = isValidCashAddress(address, appConfig.prefix);
 
         if (!isValidAddress) {
             return `Invalid address "${address}" at line ${i + 1}`;
@@ -703,10 +700,7 @@ export function parseAddressInput(
     parsedAddressInput.address.value = cleanAddress;
 
     // Validate address
-    const isValidAddr = cashaddr.isValidCashAddress(
-        cleanAddress,
-        appConfig.prefix,
-    );
+    const isValidAddr = isValidCashAddress(cleanAddress, appConfig.prefix);
 
     // Is this valid address?
     if (!isValidAddr) {
@@ -716,7 +710,7 @@ export function parseAddressInput(
                 // If it would be a valid alias except for the missing '.xec', this is a useful validation error
                 parsedAddressInput.address.error = `Aliases must end with '.xec'`;
                 parsedAddressInput.address.isAlias = true;
-            } else if (cashaddr.isValidCashAddress(cleanAddress, 'etoken')) {
+            } else if (isValidCashAddress(cleanAddress, 'etoken')) {
                 // If it is, though, a valid eToken address
                 parsedAddressInput.address.error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
             } else {
@@ -856,7 +850,7 @@ export function parseAddressInput(
                     // address validation
                     // Note: for now, Cashtab only supports valid cash addresses for secondary outputs
                     // TODO support aliases
-                    const isValidNthAddress = cashaddr.isValidCashAddress(
+                    const isValidNthAddress = isValidCashAddress(
                         nthAddress,
                         appConfig.prefix,
                     );

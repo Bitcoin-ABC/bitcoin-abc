@@ -56,6 +56,7 @@ templates:
   #    relative to the repository top level (no trailing /).
   #  - DEPENDS_MOCK_CHRONIK_CLIENT: "true" if these tests require
   #    the mock-chronik-client library, otherwise unset
+  #  - DEPENDS_B58_TS: "true" if these tests require b58-ts to be built, otherwise unset
   #  - DEPENDS_ECASH_LIB_WASM: "true" if these tests require ecash-lib-wasm
   #    to be built, otherwise unset
   #  - DEPENDS_ECASH_LIB: "true" if these tests require ecash-lib to be
@@ -77,6 +78,16 @@ templates:
 
       PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
       TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
+
+      # Install b58-ts dependencies if this test uses them
+      if [ -z "${DEPENDS_B58_TS+x}" ] ; then
+        echo "Test does not depend on b58-ts, skipping b58-ts dependencies..."
+      else
+        echo "Test depends on b58-ts. Installing b58-ts dependencies..."
+        pushd "${TOPLEVEL}/modules/b58-ts"
+        npm ci
+        npm run build
+      fi
 
       # Install ecashaddrjs dependencies if this test uses them
       if [ -z "${DEPENDS_ECASHADDRJS+x}" ] ; then
@@ -211,6 +222,16 @@ templates:
 
       PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
       TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
+
+       # Install b58-ts dependencies if this test uses them
+      if [ -z "${DEPENDS_B58_TS+x}" ] ; then
+        echo "Test does not depend on b58-ts, skipping b58-ts dependencies..."
+      else
+        echo "Test depends on b58-ts. Installing b58-ts dependencies..."
+        pushd "${TOPLEVEL}/modules/b58-ts"
+        npm ci
+        npm run build
+      fi
 
       # Install ecashaddrjs dependencies if this test uses them
       if [ -z "${DEPENDS_ECASHADDRJS+x}" ] ; then
@@ -800,6 +821,11 @@ builds:
       pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
       ./build-wasm.sh
 
+      # b58-ts
+      pushd "${TOPLEVEL}/modules/b58-ts"
+      npm ci
+      npm run build
+
       # ecash-lib
       pushd "${TOPLEVEL}/modules/ecash-lib"
       npm ci
@@ -866,6 +892,7 @@ builds:
       DEPENDS_ECASH_SCRIPT: "true"
       DEPENDS_ECASHADDRJS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_B58_TS: "true"
       DEPENDS_ECASH_LIB: "true"
       DEPENDS_ECASH_AGORA: "true"
     templates:
@@ -883,6 +910,7 @@ builds:
       DEPENDS_ECASHADDRJS: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_B58_TS: "true"
       DEPENDS_ECASH_LIB: "true"
       RUN_NPM_BUILD: "true"
     templates:
@@ -926,8 +954,9 @@ builds:
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       RUN_NPM_BUILD: "true"
-      DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_B58_TS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_ECASHADDRJS: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
     templates:
       - js-mocha
@@ -943,6 +972,7 @@ builds:
       DEPENDS_ECASHADDRJS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
+      DEPENDS_B58_TS: "true"
       DEPENDS_ECASH_LIB: "true"
     templates:
       - js-mocha
@@ -968,6 +998,7 @@ builds:
       DEPENDS_ECASHADDRJS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
+      DEPENDS_B58_TS: "true"
       DEPENDS_ECASH_LIB: "true"
     templates:
       - js-mocha-integration-tests
@@ -988,8 +1019,9 @@ builds:
       - Cargo.lock
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
-      DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_B58_TS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_ECASHADDRJS: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
     templates:
       - js-mocha-integration-tests

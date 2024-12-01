@@ -14,7 +14,7 @@ import {
     initWasm,
     shaRmd160,
 } from 'ecash-lib';
-import { decode, encode } from 'ecashaddrjs';
+import { decodeCashAddress, encodeCashAddress } from 'ecashaddrjs';
 import express, { Express, Request, Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 
@@ -66,9 +66,9 @@ initWasm().then(async () => {
 
     // Generate the pubkey for this wallet so we can show a refund address
     const walletPublicKey = ecc.derivePubkey(walletPrivateKey);
-    const walletAddress = encode(
+    const walletAddress = encodeCashAddress(
         config.prefix,
-        'P2PKH',
+        'p2pkh',
         shaRmd160(walletPublicKey),
     );
     const walletP2PKH = Script.fromAddress(walletAddress);
@@ -156,7 +156,7 @@ initWasm().then(async () => {
             // the prefix, and also checks the validity of the address.
             let destinationScript;
             try {
-                const { prefix, type, hash } = decode(address);
+                const { prefix, type, hash } = decodeCashAddress(address);
                 if (prefix !== config.prefix) {
                     return invalidAddress(
                         res,
@@ -164,7 +164,7 @@ initWasm().then(async () => {
                         `wrong prefix (expected ${config.prefix})`,
                     );
                 }
-                address = encode(prefix, type, hash);
+                address = encodeCashAddress(prefix, type, hash);
                 destinationScript = Script.fromAddress(address);
             } catch (err: unknown) {
                 return invalidAddress(res, address, (err as Error).message);

@@ -5,7 +5,7 @@
 import { BN } from 'slp-mdm';
 import { toSatoshis, toXec } from 'wallet';
 import { TokenIdUtxos } from 'chronik-client';
-import cashaddr from 'ecashaddrjs';
+import { encodeOutputScript } from 'ecashaddrjs';
 import appConfig from 'config/app';
 
 /**
@@ -57,7 +57,7 @@ export const getAirdropTx = (
         // Get this holder's address
         let address;
         try {
-            address = cashaddr.encodeOutputScript(utxo.script);
+            address = encodeOutputScript(utxo.script);
         } catch (err) {
             // If the output script is not p2pkh or p2sh, we cannot get its address
             // We do not include non-p2pkh and non-p2sh scripts in airdrops
@@ -122,7 +122,7 @@ export const getAirdropTx = (
         // Get this holder's address
         let address;
         try {
-            address = cashaddr.encodeOutputScript(utxo.script);
+            address = encodeOutputScript(utxo.script);
         } catch (err) {
             continue;
         }
@@ -187,7 +187,7 @@ export const getAirdropTx = (
         // Get this holder's address
         let address;
         try {
-            address = cashaddr.encodeOutputScript(utxo.script);
+            address = encodeOutputScript(utxo.script);
         } catch (err) {
             // If the output script is not p2pkh or p2sh, we cannot get its address
             // We do not include non-p2pkh and non-p2sh scripts in airdrops
@@ -275,7 +275,7 @@ export const getEqualAirdropTx = (
         // Get this holder's address
         let address;
         try {
-            address = cashaddr.encodeOutputScript(utxo.script);
+            address = encodeOutputScript(utxo.script);
         } catch (err) {
             // If the output script is not p2pkh or p2sh, we cannot get its address
             // We do not include non-p2pkh and non-p2sh scripts in airdrops

@@ -6,7 +6,7 @@ import { BN } from 'slp-mdm';
 import * as bip39 from 'bip39';
 import randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
-import cashaddr from 'ecashaddrjs';
+import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { fromHex, Script, P2PKHSignatory, ALL_BIP143, Ecc } from 'ecash-lib';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
@@ -292,9 +292,13 @@ const getPathInfo = (
 ): CashtabPathInfo => {
     const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
-    const address = cashaddr.encode(appConfig.prefix, 'P2PKH', node.identifier);
+    const address = encodeCashAddress(
+        appConfig.prefix,
+        'p2pkh',
+        node.identifier,
+    );
     // Note the 'true' modifier here means we will always return a string
-    const { hash } = cashaddr.decode(address, true);
+    const { hash } = decodeCashAddress(address);
     const skWif = node.toWIF();
     // Get sk and pk
     const sk = wif.decode(skWif).privateKey;

@@ -13,7 +13,11 @@ import {
     CoinGeckoPrice,
     toXec,
 } from '../src/utils';
-import cashaddr from 'ecashaddrjs';
+import {
+    encodeCashAddress,
+    encodeOutputScript,
+    getTypeAndHashFromOutputScript,
+} from 'ecashaddrjs';
 import BigNumber from 'bignumber.js';
 import {
     TOKEN_SERVER_OUTPUTSCRIPT,
@@ -212,7 +216,7 @@ export const getMinerFromCoinbaseTx = (
         // the first position.
         const minerPayoutSript = coinbaseOutputs[0].outputScript;
         try {
-            const minerAddress = cashaddr.encodeOutputScript(minerPayoutSript);
+            const minerAddress = encodeOutputScript(minerPayoutSript);
             return `unknown, ...${minerAddress.slice(-4)}`;
         } catch (err) {
             console.log(
@@ -505,7 +509,7 @@ export const parseMemoOutputScript = (
 
             // The address is a hex-encoded hash160
             // all memo addresses are p2pkh
-            const address = cashaddr.encode('ecash', 'P2PKH', stackArray[1]);
+            const address = encodeCashAddress('ecash', 'p2pkh', stackArray[1]);
 
             // Link to the address in the msg
             msg += `<a href="${
@@ -600,7 +604,7 @@ export const parseMemoOutputScript = (
 
             // The address is a hex-encoded hash160
             // all memo addresses are p2pkh
-            const address = cashaddr.encode('ecash', 'P2PKH', stackArray[1]);
+            const address = encodeCashAddress('ecash', 'p2pkh', stackArray[1]);
 
             // Link to the address in the msg
             msg += `<a href="${
@@ -1135,7 +1139,7 @@ export const parseBlockTxs = (
     const staker = getStakerFromCoinbaseTx(blockHeight, coinbaseTx.outputs);
     if (staker !== false) {
         try {
-            staker.staker = cashaddr.encodeOutputScript(staker.staker);
+            staker.staker = encodeOutputScript(staker.staker);
         } catch {
             staker.staker = 'script(' + staker.staker + ')';
         }
@@ -1234,7 +1238,7 @@ export const getEncryptedCashtabMsg = (
     }
 
     let msgRecipientString = `${returnAddressPreview(
-        cashaddr.encodeOutputScript(receivingOutputscripts[0]),
+        encodeOutputScript(receivingOutputscripts[0]),
     )}`;
     if (receivingOutputscripts.length > 1) {
         // Subtract 1 because you have already rendered one receiving address
@@ -1600,7 +1604,7 @@ export const getBlockTgMessage = (
                 }
                 case opReturn.knownApps.cashtabMsgEncrypted.app: {
                     msg = getEncryptedCashtabMsg(
-                        cashaddr.encodeOutputScript(
+                        encodeOutputScript(
                             xecSendingOutputScripts.values().next().value!,
                         ), // Assume first input is sender
                         xecReceivingOutputs,
@@ -1613,7 +1617,7 @@ export const getBlockTgMessage = (
                 case opReturn.knownApps.airdrop.app: {
                     msg = getAirdropTgMsg(
                         stackArray!,
-                        cashaddr.encodeOutputScript(
+                        encodeOutputScript(
                             xecSendingOutputScripts.values().next().value!,
                         ), // Assume first input is sender
                         xecReceivingOutputs,
@@ -1773,7 +1777,7 @@ export const getBlockTgMessage = (
                     );
 
                 const tokenBurningAddressStr = returnAddressPreview(
-                    cashaddr.encodeOutputScript(
+                    encodeOutputScript(
                         xecSendingOutputScripts.values().next().value!,
                     ),
                 );
@@ -1855,7 +1859,7 @@ export const getBlockTgMessage = (
                           xecSendingOutputScripts.size > 1
                               ? `${xecSendingOutputScripts.size} addresses`
                               : returnAddressPreview(
-                                    cashaddr.encodeOutputScript(
+                                    encodeOutputScript(
                                         xecSendingOutputScripts.values().next()
                                             .value!,
                                     ),
@@ -1873,7 +1877,7 @@ export const getBlockTgMessage = (
             }/tx/${txid}">${displayedSentAmount} for ${displayedTxFee}</a>${
                 xecSenderEmoji !== '' || xecReceiverEmoji !== ''
                     ? ` ${xecSenderEmoji}${returnAddressPreview(
-                          cashaddr.encodeOutputScript(
+                          encodeOutputScript(
                               xecSendingOutputScripts.values().next().value!,
                           ),
                       )} ${config.emojis.arrowRight} ${
@@ -1881,7 +1885,7 @@ export const getBlockTgMessage = (
                           xecSendingOutputScripts.values().next().value
                               ? 'itself'
                               : `${xecReceiverEmoji}${returnAddressPreview(
-                                    cashaddr.encodeOutputScript(
+                                    encodeOutputScript(
                                         xecReceivingAddressOutputs.keys().next()
                                             .value!,
                                     ),
@@ -2191,7 +2195,7 @@ export const guessRejectReason = async (
                 // if it is not possible.
                 if (typeof address !== 'undefined') {
                     try {
-                        const wrongWinnerAddress = cashaddr.encodeOutputScript(
+                        const wrongWinnerAddress = encodeOutputScript(
                             wrongWinner.staker,
                         );
                         return `wrong staking reward payout (${wrongWinnerAddress} instead of ${address})`;
@@ -2584,7 +2588,7 @@ export const summarizeTxHistory = (
                                     // a listing, an ad setup, a buy, or a cancel
                                     try {
                                         const { type } =
-                                            cashaddr.getTypeAndHashFromOutputScript(
+                                            getTypeAndHashFromOutputScript(
                                                 outputScript!,
                                             );
                                         if (type === 'p2sh') {
@@ -2668,7 +2672,7 @@ export const summarizeTxHistory = (
                                         }
                                     } catch {
                                         console.error(
-                                            `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
+                                            `Error in getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
                                         );
                                         // Do not parse it as an agora tx
                                     }
@@ -2692,7 +2696,7 @@ export const summarizeTxHistory = (
                                     // No other known use cases at the moment
                                     try {
                                         const { type } =
-                                            cashaddr.getTypeAndHashFromOutputScript(
+                                            getTypeAndHashFromOutputScript(
                                                 outputScript,
                                             );
 
@@ -2710,7 +2714,7 @@ export const summarizeTxHistory = (
                                         }
                                     } catch {
                                         console.error(
-                                            `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
+                                            `Error in getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
                                         );
                                         // Do not parse it as an agora tx
                                     }
@@ -2891,7 +2895,7 @@ export const summarizeTxHistory = (
                                     // an SLP listing, a buy, or a cancel
                                     try {
                                         const addrType =
-                                            cashaddr.getTypeAndHashFromOutputScript(
+                                            getTypeAndHashFromOutputScript(
                                                 outputScript!,
                                             ).type;
                                         if (addrType === 'p2sh') {
@@ -2986,7 +2990,7 @@ export const summarizeTxHistory = (
                                         }
                                     } catch {
                                         console.error(
-                                            `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
+                                            `Error in getTypeAndHashFromOutputScript(${outputScript}) from txid ${tx.txid}`,
                                         );
                                         // Do not parse it as an agora tx
                                     }
@@ -3017,7 +3021,7 @@ export const summarizeTxHistory = (
                                         // No other known use cases at the moment
                                         try {
                                             const addrType =
-                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                getTypeAndHashFromOutputScript(
                                                     outputScript,
                                                 ).type;
                                             if (addrType === 'p2sh') {
@@ -3062,7 +3066,7 @@ export const summarizeTxHistory = (
                                         // No other known use cases at the moment
                                         try {
                                             const addrType =
-                                                cashaddr.getTypeAndHashFromOutputScript(
+                                                getTypeAndHashFromOutputScript(
                                                     outputScript,
                                                 ).type;
                                             if (addrType === 'p2sh') {
@@ -3079,7 +3083,7 @@ export const summarizeTxHistory = (
                                             }
                                         } catch {
                                             console.error(
-                                                `Error in cashaddr.getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
+                                                `Error in getTypeAndHashFromOutputScript(${outputScript}) for output from txid ${tx.txid}`,
                                             );
                                             // Do not parse it as an agora tx
                                         }
@@ -3303,7 +3307,7 @@ export const summarizeTxHistory = (
         const staker = topStakers[i];
         const { count } = staker[1];
         const pct = (100 * (count / blockCount)).toFixed(0);
-        const addr = cashaddr.encodeOutputScript(staker[0]);
+        const addr = encodeOutputScript(staker[0]);
         let thisStakerPercentStake;
         if (
             typeof activeStakers !== 'undefined' &&

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import cashaddr from 'ecashaddrjs';
+import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
 import {
     isValidTokenId,
@@ -158,7 +158,7 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
                 parsed.protocol = 'Alias Registration';
                 parsed.data = `${Buffer.from(stackArray[2], 'hex').toString(
                     'utf8',
-                )} to ${cashaddr.encode(
+                )} to ${encodeCashAddress(
                     'ecash',
                     addressType as AddressType,
                     stackArray[3].slice(1),
@@ -276,7 +276,7 @@ export const getAliasTargetOutput = (
     // Get the type and hash of the address in string format
     let decoded;
     try {
-        decoded = cashaddr.decode(address, true);
+        decoded = decodeCashAddress(address);
     } catch (err) {
         throw new Error(`Invalid address "${address}"`);
     }

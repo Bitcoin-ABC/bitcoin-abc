@@ -31,7 +31,7 @@ import { explorer } from 'config/explorer';
 import { token as tokenConfig } from 'config/token';
 import { queryAliasServer, Alias } from 'alias';
 import aliasSettings from 'config/alias';
-import cashaddr from 'ecashaddrjs';
+import { isValidCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { isMobile, getUserLocale } from 'helpers';
 import {
@@ -987,7 +987,7 @@ const Token: React.FC = () => {
         } else if (
             parsedAddressInput.address.error &&
             typeof address === 'string' &&
-            cashaddr.isValidCashAddress(address, 'etoken')
+            isValidCashAddress(address, 'etoken')
         ) {
             // If address is a valid eToken address, no error
             // We support sending to etoken: addresses on SendToken screen

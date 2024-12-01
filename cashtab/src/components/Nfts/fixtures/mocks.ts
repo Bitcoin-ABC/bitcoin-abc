@@ -4,7 +4,7 @@
 
 import { Script, slpSend, fromHex } from 'ecash-lib';
 import { AgoraOneshot, AgoraOffer } from 'ecash-agora';
-import cashaddr from 'ecashaddrjs';
+import { decodeCashAddress } from 'ecashaddrjs';
 import { CashtabWallet, CashtabWalletPaths } from 'wallet';
 import { XecTxType } from 'chronik';
 import { Token } from 'chronik-client';
@@ -1378,9 +1378,7 @@ const saturnFiveEnforcedOutputs = [
     {
         value: saturnFive.listPriceSatoshis,
         script: Script.p2pkh(
-            fromHex(
-                cashaddr.decode(saturnFive.sellerAddress, true).hash as string,
-            ),
+            fromHex(decodeCashAddress(saturnFive.sellerAddress).hash),
         ),
     },
 ];
@@ -1471,9 +1469,7 @@ const transvaalEnforcedOutputs = [
     {
         value: transvaal.listPriceSatoshis,
         script: Script.p2pkh(
-            fromHex(
-                cashaddr.decode(transvaal.sellerAddress, true).hash as string,
-            ),
+            fromHex(decodeCashAddress(transvaal.sellerAddress).hash),
         ),
     },
 ];
@@ -1563,9 +1559,7 @@ const argentinaEnforcedOutputs = [
     {
         value: argentina.listPriceSatoshis,
         script: Script.p2pkh(
-            fromHex(
-                cashaddr.decode(argentina.sellerAddress, true).hash as string,
-            ),
+            fromHex(decodeCashAddress(argentina.sellerAddress).hash),
         ),
     },
 ];

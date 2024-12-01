@@ -8,7 +8,7 @@ import secrets from '../secrets';
 import unrevivedBlock from './mocks/block';
 import { jsonReviver, getCoingeckoApiUrl } from '../src/utils';
 import { blockInvalidedTgMsg } from './mocks/blockInvalidated';
-import cashaddr from 'ecashaddrjs';
+import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
 import {
     handleBlockFinalized,
     handleBlockInvalidated,
@@ -59,8 +59,7 @@ describe('ecash-herald events.js', async function () {
         // Tell mockedChronik what response we expect for chronik.script(type, hash).utxos
         const { outputScriptInfoMap } = thisBlock;
         outputScriptInfoMap.forEach((info, outputScript) => {
-            const { type, hash } =
-                cashaddr.getTypeAndHashFromOutputScript(outputScript);
+            const { type, hash } = getTypeAndHashFromOutputScript(outputScript);
             const { utxos } = info;
             mockedChronik.setUtxosByScript(
                 type as 'p2pkh' | 'p2sh',

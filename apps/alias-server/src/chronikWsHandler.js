@@ -5,7 +5,7 @@
 'use strict';
 const { handleBlockFinalized, handleAddedToMempool } = require('./events');
 const { deletePendingAliases } = require('./db');
-const cashaddr = require('ecashaddrjs');
+const { decodeCashAddress } = require('ecashaddrjs');
 const AsyncLock = require('async-lock');
 const blockFinalizedLock = new AsyncLock();
 
@@ -44,7 +44,7 @@ module.exports = {
         // Wait for WS to be connected:
         await ws.waitForOpen();
         console.log(`Connected to websocket`);
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address, true);
         ws.subscribeToScript(type, hash);
         ws.subscribeToBlocks();
         return ws;

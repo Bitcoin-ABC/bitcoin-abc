@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const assert = require('assert');
-const cashaddr = require('ecashaddrjs');
+const { decodeCashAddress } = require('ecashaddrjs');
 const { main } = require('../src/main');
 const aliasConstants = require('../constants/alias');
 const { generated } = require('./mocks/aliasMocks');
@@ -79,9 +79,8 @@ describe('alias-server main.js', async function () {
 
         // Add tx history to mockedChronik
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);

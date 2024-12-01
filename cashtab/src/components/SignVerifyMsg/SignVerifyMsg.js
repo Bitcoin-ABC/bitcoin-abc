@@ -11,12 +11,13 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
-import cashaddr from 'ecashaddrjs';
+import { isValidCashAddress } from 'ecashaddrjs';
 import { toast } from 'react-toastify';
 import { theme } from 'assets/styles/theme';
 import appConfig from 'config/app';
 import { PageHeader } from 'components/Common/Atoms';
 import { ThemedSignAndVerifyMsg } from 'components/Common/CustomIcons';
+import { Address } from 'ecash-lib';
 
 const SignVerifyForm = styled.div`
     display: flex;
@@ -125,10 +126,7 @@ const SignVerifyMsg = () => {
             }));
         } else if (name === 'addressToVerify') {
             // Validate addressToVerify
-            const isValidAddr = cashaddr.isValidCashAddress(
-                value,
-                appConfig.prefix,
-            );
+            const isValidAddr = isValidCashAddress(value, appConfig.prefix);
             setFormDataError(previous => ({
                 ...previous,
                 [name]: isValidAddr ? false : 'Invalid cash address',
@@ -154,7 +152,9 @@ const SignVerifyMsg = () => {
         try {
             verification = xecMessage.verify(
                 formData.msgToVerify,
-                cashaddr.toLegacy(formData.addressToVerify),
+                Address.fromCashAddress(formData.addressToVerify)
+                    .legacy()
+                    .toString(),
                 formData.signatureToVerify,
                 utxolib.networks.ecash.messagePrefix,
             );

@@ -14,7 +14,7 @@ const {
 } = require('./db');
 const { getAliasPrice } = require('./utils');
 const aliasConstants = require('../constants/alias');
-const cashaddr = require('ecashaddrjs');
+const { isValidCashAddress } = require('ecashaddrjs');
 const helmet = require('helmet');
 
 module.exports = {
@@ -136,10 +136,7 @@ module.exports = {
             let address = req.params.address;
 
             // Validate input is an ecash: address
-            const isValidAddress = cashaddr.isValidCashAddress(
-                address,
-                'ecash',
-            );
+            const isValidAddress = isValidCashAddress(address, 'ecash');
             if (!isValidAddress) {
                 return res.status(500).json({
                     error: `Error fetching /address/${address}: Input must be a valid eCash address`,

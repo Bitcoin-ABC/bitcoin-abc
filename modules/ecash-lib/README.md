@@ -105,3 +105,4 @@ console.log(toHex(rawTx));
 -   1.0.0 - **(Breaking change)** Modify `GenesisInfo` so that `auth` and `data` types match [D17194](https://reviews.bitcoinabc.org/D17194)
 -   1.0.1 - Include `ecashaddrjs` and `chronik-client` installations from `npmjs` instead of local, to prevent need for peer dependencies [D17215](https://reviews.bitcoinabc.org/D17215)
 -   1.1.0 - Add support for the original pre-UAHF Bitcoin signatures, so we can sign transactions for other blockchains like BTC/DOGE/... [D17255](https://reviews.bitcoinabc.org/D17255)
+-   1.2.0 - Add `Address` class for cashaddr and legacy addresses. [D17269](https://reviews.bitcoinabc.org/D17269)

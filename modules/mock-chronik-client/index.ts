@@ -2,7 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import * as cashaddr from 'ecashaddrjs';
+import {
+    getOutputScriptFromAddress,
+    encodeCashAddress,
+    decodeCashAddress,
+} from 'ecashaddrjs';
 import {
     Block,
     TxHistoryPage,
@@ -689,8 +693,8 @@ export class MockChronikClient {
         hash: string,
         utxos: ScriptUtxo[],
     ): ScriptUtxos {
-        const outputScript = cashaddr.getOutputScriptFromAddress(
-            cashaddr.encode('ecash', type, hash),
+        const outputScript = getOutputScriptFromAddress(
+            encodeCashAddress('ecash', type, hash),
         );
         return { outputScript, utxos };
     }
@@ -699,7 +703,7 @@ export class MockChronikClient {
         address: string,
         utxos: ScriptUtxo[],
     ): ScriptUtxos {
-        const outputScript = cashaddr.getOutputScriptFromAddress(address);
+        const outputScript = getOutputScriptFromAddress(address);
         return { outputScript, utxos };
     }
     private _getTokenIdUtxos(tokenId: string, utxos: Utxo[]): TokenIdUtxos {
@@ -865,7 +869,7 @@ export class MockWsEndpoint {
      */
     public subscribeToAddress(address: string) {
         // Get type and hash
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
 
         // Subscribe to script
         this.subscribeToScript(type as 'p2pkh' | 'p2sh', hash as string);
@@ -874,7 +878,7 @@ export class MockWsEndpoint {
     /** Unsubscribe from the given address */
     public unsubscribeFromAddress(address: string) {
         // Get type and hash
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
 
         // Unsubscribe from script
         this.unsubscribeFromScript(type as 'p2pkh' | 'p2sh', hash as string);

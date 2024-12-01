@@ -6,7 +6,7 @@
 const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const assert = require('assert');
-const cashaddr = require('ecashaddrjs');
+const { decodeCashAddress } = require('ecashaddrjs');
 const {
     handleAppStartup,
     handleBlockFinalized,
@@ -96,9 +96,8 @@ describe('alias-server events.js', async function () {
 
         // Add tx history to mockedChronik
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
@@ -232,9 +231,8 @@ describe('alias-server events.js', async function () {
 
         // Add tx history to mockedChronik
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
@@ -272,9 +270,8 @@ describe('alias-server events.js', async function () {
 
         // Add tx history to mockedChronik
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
@@ -314,9 +311,8 @@ describe('alias-server events.js', async function () {
 
         // Add tx history to mockedChronik
         // Set the script
-        const { type, hash } = cashaddr.decode(
+        const { type, hash } = decodeCashAddress(
             aliasConstants.registrationAddress,
-            true,
         );
         // Set the mock tx history
         mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);

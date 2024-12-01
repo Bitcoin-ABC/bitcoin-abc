@@ -5,7 +5,7 @@
 import config from '../config';
 import secrets from '../secrets';
 import axios from 'axios';
-import cashaddr from 'ecashaddrjs';
+import { encodeOutputScript } from 'ecashaddrjs';
 import {
     parseBlockTxs,
     getBlockTgMessage,
@@ -246,7 +246,7 @@ export const handleBlockInvalidated = async (
     let stakingRewardWinnerAddress = 'unknown';
     if (stakingRewardWinner !== false) {
         try {
-            stakingRewardWinnerAddress = cashaddr.encodeOutputScript(
+            stakingRewardWinnerAddress = encodeOutputScript(
                 stakingRewardWinner.staker,
             );
         } catch {

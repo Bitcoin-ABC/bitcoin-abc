@@ -5,7 +5,10 @@
 import assert from 'assert';
 import config from '../config';
 import secrets from '../secrets';
-import cashaddr from 'ecashaddrjs';
+import {
+    getTypeAndHashFromOutputScript,
+    encodeOutputScript,
+} from 'ecashaddrjs';
 import unrevivedBlock from './mocks/block';
 import { jsonReviver, getCoingeckoApiUrl } from '../src/utils';
 import { blockInvalidedTgMsg } from './mocks/blockInvalidated';
@@ -131,8 +134,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         // Tell mockedChronik what response we expect for chronik.script(type, hash).utxos
         const { outputScriptInfoMap } = thisBlock;
         outputScriptInfoMap.forEach((info, outputScript) => {
-            const { type, hash } =
-                cashaddr.getTypeAndHashFromOutputScript(outputScript);
+            const { type, hash } = getTypeAndHashFromOutputScript(outputScript);
             const { utxos } = info;
             mockedChronik.setUtxosByScript(
                 type as 'p2pkh' | 'p2sh',
@@ -180,7 +182,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         mock.onGet(config.stakingRewardApiUrl).reply(200, {
             nextBlockHeight: thisBlock.parsedBlock.height + 1,
             scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
-            address: cashaddr.encodeOutputScript(
+            address: encodeOutputScript(
                 thisBlock.blockTxs[0].outputs[2].outputScript,
             ),
         });
@@ -268,7 +270,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         mock.onGet(config.stakingRewardApiUrl).reply(200, {
             nextBlockHeight: thisBlock.parsedBlock.height + 1,
             scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
-            address: cashaddr.encodeOutputScript(
+            address: encodeOutputScript(
                 thisBlock.blockTxs[0].outputs[2].outputScript,
             ),
         });
@@ -351,7 +353,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         mock.onGet(config.stakingRewardApiUrl).reply(200, {
             nextBlockHeight: thisBlock.parsedBlock.height + 1,
             scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
-            address: cashaddr.encodeOutputScript(
+            address: encodeOutputScript(
                 thisBlock.blockTxs[0].outputs[2].outputScript,
             ),
         });

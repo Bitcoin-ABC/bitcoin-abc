@@ -1,6 +1,6 @@
 {
     "name": "ecash-lib",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Library for eCash transaction building",
     "main": "./dist/indexNodeJs.js",
     "browser": "./dist/indexBrowser.js",
@@ -38,6 +38,7 @@
         "mocha": "^10.4.0",
         "mocha-junit-reporter": "^2.2.1",
         "nyc": "^15.1.0",
+        "random-js": "^2.1.0",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "tsx": "^4.7.2",
@@ -45,6 +46,7 @@
         "typescript-eslint": "^7.6.0"
     },
     "dependencies": {
+        "b58-ts": "file:../b58-ts",
         "ecashaddrjs": "file:../ecashaddrjs"
     }
 }

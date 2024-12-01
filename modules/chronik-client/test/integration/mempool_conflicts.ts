@@ -4,7 +4,7 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import cashaddr from 'ecashaddrjs';
+import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
@@ -126,8 +126,7 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
     let subscriptions: Array<WsSubScriptClient> = [];
 
     it('New clean chain', async () => {
-        const { type, hash } =
-            cashaddr.getTypeAndHashFromOutputScript(P2SH_OP_TRUE);
+        const { type, hash } = getTypeAndHashFromOutputScript(P2SH_OP_TRUE);
 
         // Initialize a new instance of ChronikClient
         const chronik = new ChronikClient(chronikUrl);

@@ -19,7 +19,7 @@ import makeBlockie from 'ethereum-blockies-base64';
 import TelegramBot from 'node-telegram-bot-api';
 import { alertNewTokenIcon } from './telegram';
 import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
-import cashaddr from 'ecashaddrjs';
+import { isValidCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
 import { Ecc } from 'ecash-lib';
 import { RateLimitRequestHandler } from 'express-rate-limit';
 import axios from 'axios';
@@ -34,7 +34,7 @@ import { IFs } from 'memfs';
 
 // Get outputscript of the server wallet
 // Used to check eligibility of reward recipients
-const SERVER_WALLET_OUTPUTSCRIPT = cashaddr.getOutputScriptFromAddress(
+const SERVER_WALLET_OUTPUTSCRIPT = getOutputScriptFromAddress(
     secrets.prod.wallet.address,
 );
 
@@ -176,7 +176,7 @@ export const startExpressServer = (
 
             logIpInfo(req);
 
-            if (!cashaddr.isValidCashAddress(address, 'ecash')) {
+            if (!isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
                     address,
                     error: `Invalid eCash address`,
@@ -298,7 +298,7 @@ export const startExpressServer = (
                 });
             }
 
-            if (!cashaddr.isValidCashAddress(address, 'ecash')) {
+            if (!isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
                     address,
                     error: `Invalid eCash address`,
@@ -448,7 +448,7 @@ export const startExpressServer = (
                 });
             }
 
-            if (!cashaddr.isValidCashAddress(address, 'ecash')) {
+            if (!isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
                     address,
                     error: `Invalid eCash address`,

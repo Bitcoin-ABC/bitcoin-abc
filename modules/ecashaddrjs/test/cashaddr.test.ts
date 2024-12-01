@@ -7,7 +7,16 @@
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
 
-import cashaddr from '../src/cashaddr';
+import {
+    encodeCashAddress,
+    decodeCashAddress,
+    uint8arrayToHexString,
+    getTypeAndHashFromOutputScript,
+    getOutputScriptFromAddress,
+    isValidCashAddress,
+    encodeOutputScript,
+    getOutputScriptFromTypeAndHash,
+} from '../src/cashaddr';
 import { AddressType } from '../src/types';
 import { assert } from 'chai';
 import { Random, MersenneTwister19937 } from 'random-js';
@@ -17,7 +26,7 @@ const { ValidationError } = validation;
 describe('cashaddr', () => {
     const NETWORKS = ['ecash', 'ectest', 'etoken'];
 
-    const ADDRESS_TYPES: AddressType[] = ['P2PKH', 'P2SH'];
+    const ADDRESS_TYPES: AddressType[] = ['p2pkh', 'p2sh'];
 
     const VALID_SIZES = [20, 24, 28, 32, 40, 48, 56, 64];
 
@@ -54,12 +63,6 @@ describe('cashaddr', () => {
         'ecash:qqq3728yw0y47sqn6l2na30mcw6zm78dzq653y7pv5',
     ];
 
-    const EXPECTED_P2PKH_OUTPUTS_LEGACY = [
-        '1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu',
-        '1KXrWXciRDZUpQwQmuM1DbwsKDLYAYsVLR',
-        '16w1D5WRVKJuZUsSRzdLp9w3YGcgoxDXb',
-    ];
-
     const TEST_P2SH_OUTPUTSCRIPTS = [
         'a91476a04053bda0a88bda5177b86a15c3b29f55987387',
         'a914cb481232299cd5743151ac4b2d63ae198e7bb0a987',
@@ -72,34 +75,16 @@ describe('cashaddr', () => {
         'ecash:pqq3728yw0y47sqn6l2na30mcw6zm78dzqd3vtezhf',
     ];
 
-    const EXPECTED_P2SH_OUTPUTS_LEGACY = [
-        '3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC',
-        '3LDsS579y7sruadqu11beEJoTjdFiFCdX4',
-        '31nwvkZwyPdgzjBJZXfDmSWsC4ZLKpYyUw',
-    ];
-
     const EXPECTED_P2PKH_OUTPUTS_TESTNET = [
         'ectest:qpm2qsznhks23z7629mms6s4cwef74vcwvmvqr33lm',
         'ectest:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ysxxjl7ez',
         'ectest:qqq3728yw0y47sqn6l2na30mcw6zm78dzqul0yev09',
     ];
 
-    const EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY = [
-        'mrLC19Je2BuWQDkWSTriGYPyQJXKkkBmCx',
-        'mz3ooahhEEzjbXR2VUKP3XACBCwF5zhQBy',
-        'mfctJGAVEWkZgfxV9zy1AjNFuXsKi2VXB8',
-    ];
-
     const EXPECTED_P2SH_OUTPUTS_TESTNET = [
         'ectest:ppm2qsznhks23z7629mms6s4cwef74vcwvvfavkjyx',
         'ectest:pr95sy3j9xwd2ap32xkykttr4cvcu7as4y8rmacazl',
         'ectest:pqq3728yw0y47sqn6l2na30mcw6zm78dzqt6jt705c',
-    ];
-
-    const EXPECTED_P2SH_OUTPUTS_TESTNET_LEGACY = [
-        '2N44ThNe8NXHyv4bsX8AoVCXquBRW94Ls7W',
-        '2NBn5Vp3BaaPD7NGPa8dUGBJ4g5qRXq92wG',
-        '2MsM9zVVyar93CWorEfH6PPW8QQmW3s1uh6',
     ];
 
     const ALL_VALID_MAINNET_ADDRESSES = EXPECTED_P2PKH_OUTPUTS.concat(
@@ -124,11 +109,11 @@ describe('cashaddr', () => {
         return hash;
     }
 
-    describe('#encode()', () => {
+    describe('#encodeCashAddress()', () => {
         it('should fail on an invalid prefix', () => {
             assert.throws(() => {
-                cashaddr.encode(
-                    'some invalid prefix',
+                encodeCashAddress(
+                    'some invalid prefix because spaces',
                     ADDRESS_TYPES[0],
                     new Uint8Array([]),
                 );
@@ -137,13 +122,17 @@ describe('cashaddr', () => {
 
         it('should fail on a prefix with mixed letter case', () => {
             assert.throws(() => {
-                cashaddr.encode('EcAsH', ADDRESS_TYPES[0], new Uint8Array([]));
+                encodeCashAddress(
+                    'EcAsH',
+                    ADDRESS_TYPES[0],
+                    new Uint8Array([]),
+                );
             }, ValidationError);
         });
 
         it('should fail on an invalid type', () => {
             assert.throws(() => {
-                cashaddr.encode(
+                encodeCashAddress(
                     NETWORKS[0],
                     'some invalid type' as unknown as AddressType,
                     new Uint8Array([]),
@@ -155,7 +144,7 @@ describe('cashaddr', () => {
             for (const size of VALID_SIZES) {
                 const hash = getRandomHash(size - 1);
                 assert.throws(() => {
-                    cashaddr.encode(NETWORKS[0], ADDRESS_TYPES[0], hash);
+                    encodeCashAddress(NETWORKS[0], ADDRESS_TYPES[0], hash);
                 }, ValidationError);
             }
         });
@@ -163,11 +152,11 @@ describe('cashaddr', () => {
         it('should encode test hashes on mainnet correctly with uint8Array hash input', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encode('ecash', 'P2PKH', TEST_HASHES[index]),
+                    encodeCashAddress('ecash', 'p2pkh', TEST_HASHES[index]),
                     EXPECTED_P2PKH_OUTPUTS[index],
                 );
                 assert.equal(
-                    cashaddr.encode('ecash', 'P2SH', TEST_HASHES[index]),
+                    encodeCashAddress('ecash', 'p2sh', TEST_HASHES[index]),
                     EXPECTED_P2SH_OUTPUTS[index],
                 );
             }
@@ -176,17 +165,17 @@ describe('cashaddr', () => {
         it('should encode test hashes on mainnet correctly with string input for hash', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encode(
+                    encodeCashAddress(
                         'ecash',
-                        'P2PKH',
+                        'p2pkh',
                         TEST_HASHES_STRINGS[index],
                     ),
                     EXPECTED_P2PKH_OUTPUTS[index],
                 );
                 assert.equal(
-                    cashaddr.encode(
+                    encodeCashAddress(
                         'ecash',
-                        'P2SH',
+                        'p2sh',
                         TEST_HASHES_STRINGS[index],
                     ),
                     EXPECTED_P2SH_OUTPUTS[index],
@@ -197,11 +186,11 @@ describe('cashaddr', () => {
         it('should encode test hashes on mainnet correctly with lower case for type', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encode('ecash', 'p2pkh', TEST_HASHES[index]),
+                    encodeCashAddress('ecash', 'p2pkh', TEST_HASHES[index]),
                     EXPECTED_P2PKH_OUTPUTS[index],
                 );
                 assert.equal(
-                    cashaddr.encode('ecash', 'p2sh', TEST_HASHES[index]),
+                    encodeCashAddress('ecash', 'p2sh', TEST_HASHES[index]),
                     EXPECTED_P2SH_OUTPUTS[index],
                 );
             }
@@ -210,56 +199,79 @@ describe('cashaddr', () => {
         it('should encode test hashes on testnet correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encode('ectest', 'P2PKH', TEST_HASHES[index]),
+                    encodeCashAddress('ectest', 'p2pkh', TEST_HASHES[index]),
                     EXPECTED_P2PKH_OUTPUTS_TESTNET[index],
                 );
                 assert.equal(
-                    cashaddr.encode('ectest', 'P2SH', TEST_HASHES[index]),
+                    encodeCashAddress('ectest', 'p2sh', TEST_HASHES[index]),
                     EXPECTED_P2SH_OUTPUTS_TESTNET[index],
                 );
             }
         });
     });
 
-    describe('#getTypeAndHashFromOutputScript()', () => {
+    describe('#getTypeAndHashFromOutputScript() and #getOutputScriptFromTypeAndHash()', () => {
         it('should get type and hash from outputScripts on mainnet correctly', () => {
             for (const index in TEST_HASHES_STRINGS) {
+                // outputScript => {type, hash}
                 assert.deepEqual(
-                    cashaddr.getTypeAndHashFromOutputScript(
+                    getTypeAndHashFromOutputScript(
                         TEST_P2PKH_OUTPUTSCRIPTS[index],
                     ),
                     { type: 'p2pkh', hash: TEST_HASHES_STRINGS[index] },
                 );
+                // {type, hash} => outputScript
                 assert.deepEqual(
-                    cashaddr.getTypeAndHashFromOutputScript(
+                    getOutputScriptFromTypeAndHash(
+                        'p2pkh',
+                        TEST_HASHES_STRINGS[index],
+                    ),
+                    TEST_P2PKH_OUTPUTSCRIPTS[index],
+                );
+                // outputScript => {type, hash}
+                assert.deepEqual(
+                    getTypeAndHashFromOutputScript(
                         TEST_P2SH_OUTPUTSCRIPTS[index],
                     ),
                     { type: 'p2sh', hash: TEST_HASHES_STRINGS[index] },
+                );
+                // {type, hash} => outputScript
+                assert.deepEqual(
+                    getOutputScriptFromTypeAndHash(
+                        'p2sh',
+                        TEST_HASHES_STRINGS[index],
+                    ),
+                    TEST_P2SH_OUTPUTSCRIPTS[index],
                 );
             }
         });
         it('should fail on unsupported outputScripts', () => {
             assert.throws(() => {
+                // Unsupported type
+                getOutputScriptFromTypeAndHash(
+                    'p2pksh' as unknown as AddressType,
+                    '00'.repeat(20),
+                );
+            }, ValidationError);
+            assert.throws(() => {
                 // missing initial a
-                cashaddr.getTypeAndHashFromOutputScript(
+                getTypeAndHashFromOutputScript(
                     '91476a04053bda0a88bda5177b86a15c3b29f55987387',
                 );
             }, ValidationError);
             assert.throws(() => {
                 // p2pkh prefix and p2sh suffix
-                cashaddr.getTypeAndHashFromOutputScript(
+                getTypeAndHashFromOutputScript(
                     '76a91476a04053bda0a88bda5177b86a15c3b29f55987387',
                 );
             }, ValidationError);
             assert.throws(() => {
                 // some random string
-                cashaddr.getTypeAndHashFromOutputScript(
-                    'chronikWouldNeverReturnThis',
-                );
+                getTypeAndHashFromOutputScript('chronikWouldNeverReturnThis');
             }, ValidationError);
             assert.throws(() => {
                 // Invalid hash length of 21 bytes (20 and 24 are valid)
-                cashaddr.getTypeAndHashFromOutputScript(
+                getTypeAndHashFromOutputScript(
                     'a91476a04053bda0a88bda5177b86a15c3b29f5598737387',
                 );
             }, ValidationError);
@@ -270,13 +282,11 @@ describe('cashaddr', () => {
         it('should encode outputScripts on mainnet correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encodeOutputScript(
-                        TEST_P2PKH_OUTPUTSCRIPTS[index],
-                    ),
+                    encodeOutputScript(TEST_P2PKH_OUTPUTSCRIPTS[index]),
                     EXPECTED_P2PKH_OUTPUTS[index],
                 );
                 assert.equal(
-                    cashaddr.encodeOutputScript(TEST_P2SH_OUTPUTSCRIPTS[index]),
+                    encodeOutputScript(TEST_P2SH_OUTPUTSCRIPTS[index]),
                     EXPECTED_P2SH_OUTPUTS[index],
                 );
             }
@@ -284,14 +294,14 @@ describe('cashaddr', () => {
         it('should encode outputScripts to testnet prefix correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encodeOutputScript(
+                    encodeOutputScript(
                         TEST_P2PKH_OUTPUTSCRIPTS[index],
                         'ectest',
                     ),
                     EXPECTED_P2PKH_OUTPUTS_TESTNET[index],
                 );
                 assert.equal(
-                    cashaddr.encodeOutputScript(
+                    encodeOutputScript(
                         TEST_P2SH_OUTPUTSCRIPTS[index],
                         'ectest',
                     ),
@@ -302,33 +312,33 @@ describe('cashaddr', () => {
         it('should fail on unsupported outputScripts', () => {
             assert.throws(() => {
                 // missing initial a
-                cashaddr.encodeOutputScript(
+                encodeOutputScript(
                     '91476a04053bda0a88bda5177b86a15c3b29f55987387',
                 );
             }, ValidationError);
             assert.throws(() => {
                 // p2pkh prefix and p2sh suffix
-                cashaddr.encodeOutputScript(
+                encodeOutputScript(
                     '76a91476a04053bda0a88bda5177b86a15c3b29f55987387',
                 );
             }, ValidationError);
             assert.throws(() => {
                 // some random string
-                cashaddr.encodeOutputScript('chronikWouldNeverReturnThis');
+                encodeOutputScript('chronikWouldNeverReturnThis');
             }, ValidationError);
             assert.throws(() => {
                 // Invalid hash length of 21 bytes (20 and 24 are valid)
-                cashaddr.encodeOutputScript(
+                encodeOutputScript(
                     'a91476a04053bda0a88bda5177b86a15c3b29f5598737387',
                 );
             }, ValidationError);
         });
     });
 
-    describe('#decode()', () => {
+    describe('#decodeCashAddress()', () => {
         it('should fail when the version byte is invalid', () => {
             assert.throws(() => {
-                cashaddr.decode(
+                decodeCashAddress(
                     'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
                 );
             }, ValidationError);
@@ -336,46 +346,46 @@ describe('cashaddr', () => {
 
         it('should fail when given an address with mixed letter case', () => {
             assert.throws(() => {
-                cashaddr.decode(
+                decodeCashAddress(
                     'ecash:QPM2QSZNHKS23Z7629MMS6s4cwef74vcwvA87RKUU2',
                 );
             }, ValidationError);
             assert.throws(() => {
-                cashaddr.decode(
+                decodeCashAddress(
                     'eCASH:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                 );
             }, ValidationError);
             assert.throws(() => {
-                cashaddr.decode(
+                decodeCashAddress(
                     'Ecash:QPM2QSZNHKS23Z7629MMS6s4cwef74vcwvA87RKUU2',
                 );
             }, ValidationError);
         });
 
-        it('should decode a valid address regardless of letter case', () => {
-            assert.deepEqual(
-                cashaddr.decode(
+        it('should decodeCashAddress a valid address regardless of letter case', () => {
+            assert.equal(
+                decodeCashAddress(
                     'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                 ).hash,
-                cashaddr.decode(
+                decodeCashAddress(
                     'ECASH:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVA87RKUU2',
                 ).hash,
             );
         });
 
-        it('should decode valid addresses correctly and return hash160 as a string if user so specifies for P2PKH addresses', () => {
+        it('should decodeCashAddress valid p2pkh addresses correctly', () => {
             for (const index in EXPECTED_P2PKH_OUTPUTS) {
                 assert.equal(
-                    cashaddr.decode(EXPECTED_P2PKH_OUTPUTS[index], true).hash,
+                    decodeCashAddress(EXPECTED_P2PKH_OUTPUTS[index]).hash,
                     TEST_HASHES_STRINGS[index],
                 );
             }
         });
 
-        it('should decode valid addresses correctly and return hash160 as a string if user so specifies for P2SH addresses', () => {
+        it('should decodeCashAddress valid p2sh addresses correctly', () => {
             for (const index in EXPECTED_P2SH_OUTPUTS) {
                 assert.equal(
-                    cashaddr.decode(EXPECTED_P2SH_OUTPUTS[index], true).hash,
+                    decodeCashAddress(EXPECTED_P2SH_OUTPUTS[index]).hash,
                     TEST_HASHES_STRINGS[index],
                 );
             }
@@ -383,9 +393,9 @@ describe('cashaddr', () => {
 
         it('should accept prefixless input if checksum is valid', () => {
             assert.deepEqual(
-                cashaddr.decode('qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2')
+                decodeCashAddress('qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2')
                     .hash,
-                cashaddr.decode(
+                decodeCashAddress(
                     'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                 ).hash,
             );
@@ -393,7 +403,7 @@ describe('cashaddr', () => {
 
         it('should reject prefixless input if checksum is invalid', () => {
             assert.throws(() => {
-                cashaddr.decode(
+                decodeCashAddress(
                     'qpm2qsznhks23z7629mms6s4cwef74vcwvINVALIDCHECKSUM',
                 );
             }, ValidationError);
@@ -401,7 +411,7 @@ describe('cashaddr', () => {
 
         it('should reject any input that has two prefixes for some reason', () => {
             assert.throws(() => {
-                cashaddr.decode(
+                decodeCashAddress(
                     'ecash:bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                 );
             }, ValidationError);
@@ -413,7 +423,7 @@ describe('cashaddr', () => {
                     if (network !== anotherNetwork) {
                         const hash = getRandomHash(20);
                         assert.throws(() => {
-                            const address = cashaddr.encode(
+                            const address = encodeCashAddress(
                                 network,
                                 ADDRESS_TYPES[0],
                                 hash,
@@ -422,7 +432,7 @@ describe('cashaddr', () => {
                                 anotherNetwork,
                                 address.split(':')[1],
                             ].join(':');
-                            cashaddr.decode(invalidAddress);
+                            decodeCashAddress(invalidAddress);
                         }, ValidationError);
                     }
                 }
@@ -430,11 +440,11 @@ describe('cashaddr', () => {
         });
     });
 
-    describe('#encode() #decode()', () => {
+    describe('#encodeCashAddress() #decodeCashAddress()', () => {
         it('should encode and decode all sizes correctly', () => {
             for (const size of VALID_SIZES) {
                 const hash = getRandomHash(size);
-                const address = cashaddr.encode(
+                const address = encodeCashAddress(
                     NETWORKS[0],
                     ADDRESS_TYPES[0],
                     hash,
@@ -443,10 +453,10 @@ describe('cashaddr', () => {
                     prefix,
                     type,
                     hash: actualHash,
-                } = cashaddr.decode(address);
+                } = decodeCashAddress(address);
                 assert.equal(prefix, NETWORKS[0]);
                 assert.equal(type, ADDRESS_TYPES[0]);
-                assert.deepEqual(actualHash, hash);
+                assert.deepEqual(actualHash, uint8arrayToHexString(hash));
             }
         });
 
@@ -454,60 +464,15 @@ describe('cashaddr', () => {
             for (const type of ADDRESS_TYPES) {
                 for (const network of NETWORKS) {
                     const hash = getRandomHash(20);
-                    const address = cashaddr.encode(network, type, hash);
+                    const address = encodeCashAddress(network, type, hash);
                     const {
                         prefix,
                         type: actualType,
                         hash: actualHash,
-                    } = cashaddr.decode(address);
+                    } = decodeCashAddress(address);
                     assert.equal(prefix, network);
                     assert.equal(actualType, type);
-                    assert.deepEqual(actualHash, hash);
-                }
-            }
-        });
-
-        it('should encode and decode all types and networks if type input is lowercase', () => {
-            for (const type of ADDRESS_TYPES) {
-                for (const network of NETWORKS) {
-                    const hash = getRandomHash(20);
-                    const address = cashaddr.encode(
-                        network,
-                        type.toLowerCase() as AddressType,
-                        hash,
-                    );
-                    const {
-                        prefix,
-                        type: actualType,
-                        hash: actualHash,
-                    } = cashaddr.decode(address);
-                    assert.equal(prefix, network);
-                    assert.equal(actualType, type);
-                    assert.deepEqual(actualHash, hash);
-                }
-            }
-        });
-
-        it('should encode and decode all types and networks if type input is lowercase and desired return data is formatted for chronik', () => {
-            for (const type of ADDRESS_TYPES) {
-                for (const network of NETWORKS) {
-                    const hash = getRandomHash(20);
-                    const address = cashaddr.encode(
-                        network,
-                        type.toLowerCase() as AddressType,
-                        hash,
-                    );
-                    const {
-                        prefix,
-                        type: actualType,
-                        hash: actualHash,
-                    } = cashaddr.decode(address, true);
-                    assert.equal(prefix, network);
-                    assert.equal(actualType, type.toLowerCase());
-                    assert.deepEqual(
-                        actualHash,
-                        cashaddr.uint8arrayToHexString(hash),
-                    );
+                    assert.deepEqual(actualHash, uint8arrayToHexString(hash));
                 }
             }
         });
@@ -517,63 +482,16 @@ describe('cashaddr', () => {
             for (let i = 0; i < NUM_TESTS; ++i) {
                 for (const type of ADDRESS_TYPES) {
                     const hash = getRandomHash(20);
-                    const address = cashaddr.encode(NETWORKS[0], type, hash);
+                    const address = encodeCashAddress(NETWORKS[0], type, hash);
                     const {
                         prefix,
                         type: actualType,
                         hash: actualHash,
-                    } = cashaddr.decode(address);
+                    } = decodeCashAddress(address);
                     assert.equal(prefix, NETWORKS[0]);
                     assert.equal(actualType, type);
-                    assert.deepEqual(actualHash, hash);
+                    assert.deepEqual(actualHash, uint8arrayToHexString(hash));
                 }
-            }
-        });
-    });
-
-    describe('#toLegacy()', () => {
-        it('should fail when the version byte is invalid and cashaddr.decode throws an error', () => {
-            assert.throws(() => {
-                cashaddr.toLegacy(
-                    'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
-                );
-            }, ValidationError);
-        });
-        it('should fail when given input that is not a valid cashaddress', () => {
-            assert.throws(() => {
-                cashaddr.toLegacy('1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu');
-            }, ValidationError);
-        });
-        it('should convert mainnet p2pkh ecash addresses to expected legacy format', () => {
-            for (const index in EXPECTED_P2PKH_OUTPUTS) {
-                assert.equal(
-                    cashaddr.toLegacy(EXPECTED_P2PKH_OUTPUTS[index]),
-                    EXPECTED_P2PKH_OUTPUTS_LEGACY[index],
-                );
-            }
-        });
-        it('should convert testnet p2pkh ecash addresses to expected legacy format', () => {
-            for (const index in EXPECTED_P2PKH_OUTPUTS_TESTNET) {
-                assert.equal(
-                    cashaddr.toLegacy(EXPECTED_P2PKH_OUTPUTS_TESTNET[index]),
-                    EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY[index],
-                );
-            }
-        });
-        it('should convert mainnet p2sh ecash addresses to expected legacy format', () => {
-            for (const index in EXPECTED_P2SH_OUTPUTS) {
-                assert.equal(
-                    cashaddr.toLegacy(EXPECTED_P2SH_OUTPUTS[index]),
-                    EXPECTED_P2SH_OUTPUTS_LEGACY[index],
-                );
-            }
-        });
-        it('should convert testnet p2sh ecash addresses to expected legacy format', () => {
-            for (const index in EXPECTED_P2SH_OUTPUTS_TESTNET) {
-                assert.equal(
-                    cashaddr.toLegacy(EXPECTED_P2SH_OUTPUTS_TESTNET[index]),
-                    EXPECTED_P2SH_OUTPUTS_TESTNET_LEGACY[index],
-                );
             }
         });
     });
@@ -581,7 +499,7 @@ describe('cashaddr', () => {
     describe('#isValidCashAddress()', () => {
         it('returns false for address with invalid version byte', () => {
             assert.equal(
-                cashaddr.isValidCashAddress(
+                isValidCashAddress(
                     'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
                 ),
                 false,
@@ -589,16 +507,14 @@ describe('cashaddr', () => {
         });
         it('returns false for a legacy address', () => {
             assert.equal(
-                cashaddr.isValidCashAddress(
-                    EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY[0],
-                ),
+                isValidCashAddress('mrLC19Je2BuWQDkWSTriGYPyQJXKkkBmCx'),
                 false,
             );
         });
         it('returns true for mainnet and testnet p2pkh and p2sh cashaddresses', () => {
             for (const index in ALL_VALID_ADDRESSES) {
                 assert.equal(
-                    cashaddr.isValidCashAddress(ALL_VALID_ADDRESSES[index]),
+                    isValidCashAddress(ALL_VALID_ADDRESSES[index]),
                     true,
                 );
             }
@@ -609,10 +525,7 @@ describe('cashaddr', () => {
                 const thisPrefixlessAddrress = thisPrefixedAddress.slice(
                     thisPrefixedAddress.indexOf(':') + 1,
                 );
-                assert.equal(
-                    cashaddr.isValidCashAddress(thisPrefixlessAddrress),
-                    true,
-                );
+                assert.equal(isValidCashAddress(thisPrefixlessAddrress), true);
             }
         });
         it('returns true for prefixless ecash: checksummed addresses against specified ecash: prefix type', () => {
@@ -622,10 +535,7 @@ describe('cashaddr', () => {
                     thisPrefixedAddress.indexOf(':') + 1,
                 );
                 assert.equal(
-                    cashaddr.isValidCashAddress(
-                        thisPrefixlessAddrress,
-                        'ecash',
-                    ),
+                    isValidCashAddress(thisPrefixlessAddrress, 'ecash'),
                     true,
                 );
             }
@@ -633,7 +543,7 @@ describe('cashaddr', () => {
         it('returns true for mainnet p2pkh and p2sh cashaddresses if ecash prefix is specified', () => {
             for (const index in ALL_VALID_MAINNET_ADDRESSES) {
                 assert.equal(
-                    cashaddr.isValidCashAddress(
+                    isValidCashAddress(
                         ALL_VALID_MAINNET_ADDRESSES[index],
                         'ecash',
                     ),
@@ -644,7 +554,7 @@ describe('cashaddr', () => {
         it('returns true for testnet p2pkh cashaddresses if testnet prefix is specified', () => {
             for (const index in ALL_VALID_TESTNET_ADDRESSES) {
                 assert.equal(
-                    cashaddr.isValidCashAddress(
+                    isValidCashAddress(
                         ALL_VALID_TESTNET_ADDRESSES[index],
                         'ectest',
                     ),
@@ -655,7 +565,7 @@ describe('cashaddr', () => {
         it('returns false for testnet p2pkh cashaddresses if mainnet prefix is specified', () => {
             for (const index in ALL_VALID_TESTNET_ADDRESSES) {
                 assert.equal(
-                    cashaddr.isValidCashAddress(
+                    isValidCashAddress(
                         ALL_VALID_TESTNET_ADDRESSES[index],
                         'ecash',
                     ),
@@ -667,25 +577,22 @@ describe('cashaddr', () => {
             // We keep these tests for JS users of this TS lib
             // The type coercions here are to allow ts compilation and running of tests
             assert.equal(
-                cashaddr.isValidCashAddress(
+                isValidCashAddress(
                     { address: 'some invalid address' } as unknown as string,
                     'ecash',
                 ),
                 false,
             );
             assert.equal(
-                cashaddr.isValidCashAddress(
-                    false as unknown as string,
-                    'ecash',
-                ),
+                isValidCashAddress(false as unknown as string, 'ecash'),
                 false,
             );
             assert.equal(
-                cashaddr.isValidCashAddress(null as unknown as string, 'ecash'),
+                isValidCashAddress(null as unknown as string, 'ecash'),
                 false,
             );
             assert.equal(
-                cashaddr.isValidCashAddress(
+                isValidCashAddress(
                     [
                         'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                     ] as unknown as string,
@@ -699,15 +606,11 @@ describe('cashaddr', () => {
         it('should get outputScripts from address on mainnet correctly', () => {
             for (const index in EXPECTED_P2PKH_OUTPUTS) {
                 assert.equal(
-                    cashaddr.getOutputScriptFromAddress(
-                        EXPECTED_P2PKH_OUTPUTS[index],
-                    ),
+                    getOutputScriptFromAddress(EXPECTED_P2PKH_OUTPUTS[index]),
                     TEST_P2PKH_OUTPUTSCRIPTS[index],
                 );
                 assert.equal(
-                    cashaddr.getOutputScriptFromAddress(
-                        EXPECTED_P2SH_OUTPUTS[index],
-                    ),
+                    getOutputScriptFromAddress(EXPECTED_P2SH_OUTPUTS[index]),
                     TEST_P2SH_OUTPUTSCRIPTS[index],
                 );
             }
@@ -715,13 +618,13 @@ describe('cashaddr', () => {
         it('should get outputScripts from testnet addresses correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.getOutputScriptFromAddress(
+                    getOutputScriptFromAddress(
                         EXPECTED_P2PKH_OUTPUTS_TESTNET[index],
                     ),
                     TEST_P2PKH_OUTPUTSCRIPTS[index],
                 );
                 assert.equal(
-                    cashaddr.getOutputScriptFromAddress(
+                    getOutputScriptFromAddress(
                         EXPECTED_P2SH_OUTPUTS_TESTNET[index],
                     ),
                     TEST_P2SH_OUTPUTSCRIPTS[index],
@@ -730,7 +633,7 @@ describe('cashaddr', () => {
         });
         it('should fail on invalid addresses', () => {
             assert.throws(() => {
-                cashaddr.getOutputScriptFromAddress('notAnAddress');
+                getOutputScriptFromAddress('notAnAddress');
             }, ValidationError);
         });
     });

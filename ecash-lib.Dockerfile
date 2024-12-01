@@ -47,8 +47,8 @@ COPY --from=wasmbuilder /app/modules .
 
 # Build ecash-lib
 WORKDIR /app/modules/ecash-lib
-# Install ecashaddrjs from npm, so that module users install it automatically
-RUN npm install ecashaddrjs@latest
+# Install b58-ts from npm, so that module users install it automatically
+RUN npm install b58-ts@latest
 # Install chronik-client from npm, so that module users install it automatically
 RUN npm install -D chronik-client@latest
 RUN npm ci

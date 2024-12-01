@@ -3,7 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const cashaddr = require('ecashaddrjs');
+const {
+    getOutputScriptFromAddress,
+    encodeCashAddress,
+} = require('ecashaddrjs');
 const config = require('../config');
 const {
     getAliasFromHex,
@@ -25,7 +28,7 @@ module.exports = {
         // Get expected output script match for parseAliasTx
         // Do it here and not in parseAliasTx so that you don't do it for every single tx
         // Will all be the same for a given set of tx history
-        const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
+        const registrationOutputScript = getOutputScriptFromAddress(
             aliasConstants.registrationAddress,
         );
 
@@ -178,7 +181,7 @@ module.exports = {
 
                 let address;
                 try {
-                    address = cashaddr.encode(
+                    address = encodeCashAddress(
                         'ecash',
                         addressType,
                         addressTypeAndHash.data.slice(2),

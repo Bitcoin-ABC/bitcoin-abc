@@ -21,7 +21,7 @@ import CashtabSwitch from 'components/Common/Switch';
 import { Input, TextArea, InputFlex } from 'components/Common/Inputs';
 import { CopyPasteIcon, AirdropIcon } from 'components/Common/CustomIcons';
 import { getTokenGenesisInfo } from 'chronik';
-import cashaddr from 'ecashaddrjs';
+import { encodeOutputScript } from 'ecashaddrjs';
 import Spinner from 'components/Common/Spinner';
 import { AirdropForm, FormRow, SwitchHolder, AirdropTitle } from './styled';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
@@ -142,9 +142,7 @@ const Airdrop = () => {
                 // For SLP1 tokens, there will only be one genesis address
                 // For ALP or others, assume it is the first genesis address, though it may not exist
                 // based on how we calculate this address
-                const mintAddress = cashaddr.encodeOutputScript(
-                    genesisOutputScripts[0],
-                );
+                const mintAddress = encodeOutputScript(genesisOutputScripts[0]);
                 console.info(
                     `Mint address for ${genesisInfo.tokenName} is ${mintAddress}`,
                 );

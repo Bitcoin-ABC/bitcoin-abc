@@ -4,7 +4,7 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import cashaddr from 'ecashaddrjs';
+import { decodeCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
@@ -179,11 +179,11 @@ describe('Get script().history and script().utxos()', () => {
         otherScript = await get_other_script;
 
         // Get hashes for addresses (used in all tests)
-        const decodedP2pkh = cashaddr.decode(p2pkhAddress, true);
+        const decodedP2pkh = decodeCashAddress(p2pkhAddress);
         if (typeof decodedP2pkh.hash === 'string') {
             p2pkhAddressHash = decodedP2pkh.hash;
         }
-        const decodedP2sh = cashaddr.decode(p2shAddress, true);
+        const decodedP2sh = decodeCashAddress(p2shAddress);
         if (typeof decodedP2sh.hash === 'string') {
             p2shAddressHash = decodedP2sh.hash;
         }
@@ -243,7 +243,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2pkh',
             p2pkhAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2pkhAddress),
+            getOutputScriptFromAddress(p2pkhAddress),
         );
 
         // p2sh
@@ -251,7 +251,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2sh',
             p2shAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2shAddress),
+            getOutputScriptFromAddress(p2shAddress),
         );
 
         // p2pk
@@ -492,7 +492,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2pkh',
             p2pkhAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2pkhAddress),
+            getOutputScriptFromAddress(p2pkhAddress),
             p2pkhTxids,
         );
 
@@ -502,7 +502,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2sh',
             p2shAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2shAddress),
+            getOutputScriptFromAddress(p2shAddress),
             p2shTxids,
         );
 
@@ -697,7 +697,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2pkh',
             p2pkhAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2pkhAddress),
+            getOutputScriptFromAddress(p2pkhAddress),
             p2pkhTxids,
         );
 
@@ -706,7 +706,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2sh',
             p2shAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2shAddress),
+            getOutputScriptFromAddress(p2shAddress),
             p2shTxids,
         );
 
@@ -782,7 +782,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2pkh',
             p2pkhAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2pkhAddress),
+            getOutputScriptFromAddress(p2pkhAddress),
             p2pkhTxids,
         );
 
@@ -791,7 +791,7 @@ describe('Get script().history and script().utxos()', () => {
             chronik,
             'p2sh',
             p2shAddressHash,
-            cashaddr.getOutputScriptFromAddress(p2shAddress),
+            getOutputScriptFromAddress(p2shAddress),
             p2shTxids,
         );
 

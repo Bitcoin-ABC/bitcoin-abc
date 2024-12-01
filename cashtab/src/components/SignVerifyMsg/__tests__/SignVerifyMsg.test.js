@@ -16,8 +16,12 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { initWasm } from 'ecash-lib';
 
 describe('<SignVerifyMsg />', () => {
+    beforeAll(async () => {
+        await initWasm();
+    });
     let user;
     beforeEach(() => {
         // Set up userEvent

@@ -10,8 +10,6 @@
 import base32 from './base32';
 import convertBits from './convertBits';
 import { AddressType, DecodedAddress, TypeAndHash } from './types';
-import bigInt, { BigInteger } from 'big-integer';
-import bs58check from 'bs58check';
 import validation from './validation';
 const { validate, ValidationError } = validation;
 
@@ -30,7 +28,7 @@ const { validate, ValidationError } = validation;
  * @param hash Hash to encode represented as an array of 8-bit integers.
  * @throws {ValidationError}
  */
-function encode(
+export function encodeCashAddress(
     prefix: string,
     type: AddressType,
     hash: Uint8Array | string,
@@ -39,7 +37,10 @@ function encode(
         typeof prefix === 'string' && isValidPrefix(prefix),
         'Invalid prefix: ' + prefix + '.',
     );
-    validate(typeof type === 'string', 'Invalid type: ' + type + '.');
+    validate(
+        type === 'p2pkh' || type === 'p2sh',
+        'Invalid type: ' + type + '.',
+    );
     validate(
         hash instanceof Uint8Array || typeof hash === 'string',
         'Invalid hash: ' + hash + '. Must be string or Uint8Array.',
@@ -67,10 +68,9 @@ function encode(
  * Decodes the given address into its constituting prefix, type and hash. See [#encode()]{@link encode}.
  *
  * @param address Address to decode. E.g.: 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2'.
- * @param chronikReady Return hash160 as a string, and return type as lowercase. Inputs expected by chronik.
  * @throws {ValidationError}
  */
-function decode(address: string, chronikReady = false): DecodedAddress {
+export function decodeCashAddress(address: string): DecodedAddress {
     validate(
         typeof address === 'string' && hasSingleCase(address),
         'Invalid address: ' + address + '.',
@@ -120,17 +120,19 @@ function decode(address: string, chronikReady = false): DecodedAddress {
     const type = getType(versionByte);
     return {
         prefix: prefix as string,
-        type: chronikReady ? (type.toLowerCase() as AddressType) : type,
-        hash: chronikReady ? uint8arrayToHexString(hash) : hash,
+        type,
+        hash: uint8arrayToHexString(hash),
     };
 }
 
 /**
- * All valid address prefixes.
+ * All valid address prefixes
+ * Note that as of 2.0.0 we do not validate against these prefixes
+ * However we do use them to guess prefix for prefixless addrs
  *
  * @private
  */
-const VALID_PREFIXES = [
+export const VALID_PREFIXES = [
     'ecash',
     'bitcoincash',
     'simpleledger',
@@ -142,29 +144,15 @@ const VALID_PREFIXES = [
 ];
 
 /**
- * Valid mainnet prefixes
- *
- * @private
- */
-const VALID_PREFIXES_MAINNET = [
-    'ecash',
-    'bitcoincash',
-    'simpleledger',
-    'etoken',
-];
-
-/**
- * Checks whether a string is a valid prefix; ie., it has a single letter case
- * and is one of 'ecash', 'ectest', 'etoken', etc
+ * Checks whether a string is a valid prefix
+ * ie., it has a single letter case and no spaces
+ * Could be extended to validate for accepted prefixes
  *
  * @private
  * @param prefix
  */
 function isValidPrefix(prefix: string): boolean {
-    return (
-        hasSingleCase(prefix) &&
-        VALID_PREFIXES.indexOf(prefix.toLowerCase()) !== -1
-    );
+    return hasSingleCase(prefix) && !prefix.includes(' ');
 }
 
 /**
@@ -190,11 +178,13 @@ function prefixToUint5Array(prefix: string): Uint8Array {
  * @param checksum Computed checksum.
  * TODO update big-integer so we can use correct types
  */
-function checksumToUint5Array(checksum: BigInteger): Uint8Array {
+function checksumToUint5Array(checksum: bigint): Uint8Array {
     const result = new Uint8Array(8);
     for (let i = 0; i < 8; ++i) {
-        result[7 - i] = checksum.and(31).toJSNumber();
-        checksum = checksum.shiftRight(5);
+        // Extract the least significant 5 bits (31 is 11111 in binary)
+        result[7 - i] = Number(checksum & 31n);
+        // Shift right by 5 bits
+        checksum >>= 5n;
     }
     return result;
 }
@@ -210,10 +200,8 @@ function checksumToUint5Array(checksum: BigInteger): Uint8Array {
 function getTypeBits(type: AddressType): number {
     switch (type) {
         case 'p2pkh':
-        case 'P2PKH':
             return 0;
         case 'p2sh':
-        case 'P2SH':
             return 8;
         default:
             throw new ValidationError('Invalid type: ' + type + '.');
@@ -230,9 +218,9 @@ function getTypeBits(type: AddressType): number {
 function getType(versionByte: number): AddressType {
     switch (versionByte & 120) {
         case 0:
-            return 'P2PKH';
+            return 'p2pkh';
         case 8:
-            return 'P2SH';
+            return 'p2sh';
         default:
             throw new ValidationError(
                 'Invalid address type in version byte: ' + versionByte + '.',
@@ -349,22 +337,28 @@ function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
  * @private
  * @param data Array of 5-bit integers over which the checksum is to be computed.
  */
-function polymod(data: Uint8Array): BigInteger {
+function polymod(data: Uint8Array): bigint {
     const GENERATOR = [
-        0x98f2bc8e61, 0x79b76d99e2, 0xf33e5fb3c4, 0xae2eabe2a8, 0x1e4f43e470,
+        BigInt('0x98f2bc8e61'),
+        BigInt('0x79b76d99e2'),
+        BigInt('0xf33e5fb3c4'),
+        BigInt('0xae2eabe2a8'),
+        BigInt('0x1e4f43e470'),
     ];
-    let checksum = bigInt(1);
-    for (let i = 0; i < data.length; ++i) {
-        const value = data[i];
-        const topBits = checksum.shiftRight(35);
-        checksum = checksum.and(0x07ffffffff).shiftLeft(5).xor(value);
+    let checksum = 1n; // BigInt for 1
+
+    for (let i = 0; i < data.length; i += 1) {
+        const value = BigInt(data[i]);
+        const topBits = checksum >> 35n;
+        checksum = ((checksum & 0x07ffffffffn) << 5n) ^ value;
+
         for (let j = 0; j < GENERATOR.length; ++j) {
-            if (topBits.shiftRight(j).and(1).equals(1)) {
-                checksum = checksum.xor(GENERATOR[j]);
+            if ((topBits >> BigInt(j)) & 1n) {
+                checksum ^= GENERATOR[j];
             }
         }
     }
-    return checksum.xor(1);
+    return checksum ^ 1n;
 }
 
 /**
@@ -378,7 +372,7 @@ function polymod(data: Uint8Array): BigInteger {
 function validChecksum(prefix: string, payload: Uint8Array): boolean {
     const prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
     const checksumData = concat(prefixData, payload);
-    return polymod(checksumData).equals(0);
+    return polymod(checksumData) === 0n;
 }
 
 /**
@@ -413,7 +407,7 @@ function stringToUint8Array(string: string): Uint8Array {
  * @private
  * @param uint8Array Input string.
  */
-function uint8arrayToHexString(uint8Array: Uint8Array): string {
+export function uint8arrayToHexString(uint8Array: Uint8Array): string {
     let hexString = '';
     for (let i = 0; i < uint8Array.length; i++) {
         let hex = uint8Array[i].toString(16);
@@ -437,7 +431,9 @@ function uint8arrayToHexString(uint8Array: Uint8Array): string {
  * @param outputScript an ecash tx outputScript
  * @throws {ValidationError}
  */
-function getTypeAndHashFromOutputScript(outputScript: string): TypeAndHash {
+export function getTypeAndHashFromOutputScript(
+    outputScript: string,
+): TypeAndHash {
     const p2pkhPrefix = '76a914';
     const p2pkhSuffix = '88ac';
 
@@ -488,6 +484,23 @@ function getTypeAndHashFromOutputScript(outputScript: string): TypeAndHash {
     return { type, hash };
 }
 
+export const getOutputScriptFromTypeAndHash = (
+    type: AddressType,
+    hash: string,
+): string => {
+    validate(
+        type === 'p2pkh' || type === 'p2sh',
+        'Invalid type: ' + type + '.',
+    );
+    let outputScript;
+    if (type === 'p2pkh') {
+        outputScript = `76a914${hash}88ac`;
+    } else {
+        outputScript = `a914${hash}87`;
+    }
+    return outputScript;
+};
+
 /**
  * Encodes a given outputScript into an eCash address using the optionally specified prefix.
  *
@@ -496,49 +509,15 @@ function getTypeAndHashFromOutputScript(outputScript: string): TypeAndHash {
  * @param prefix Cash address prefix. E.g.: 'ecash'.
  * @throws {ValidationError}
  */
-function encodeOutputScript(outputScript: string, prefix = 'ecash'): string {
+export function encodeOutputScript(
+    outputScript: string,
+    prefix = 'ecash',
+): string {
     // Get type and hash from outputScript
     const { type, hash } = getTypeAndHashFromOutputScript(outputScript);
 
     // The encode function validates hash for correct length
-    return encode(prefix, type, hash);
-}
-
-/**
- * Converts an ecash address to legacy format
- *
- * @static
- * @param  cashaddress a valid p2pkh or p2sh ecash address
- * @throws {ValidationError}
- */
-function toLegacy(cashaddress: string): string {
-    const { prefix, type, hash } = decode(cashaddress);
-    const isMainnet = VALID_PREFIXES_MAINNET.includes(prefix);
-
-    // Get correct version byte for legacy format
-    let versionByte: number;
-    switch (type) {
-        case 'P2PKH':
-            versionByte = isMainnet ? 0 : 111;
-            break;
-        case 'P2SH':
-            versionByte = isMainnet ? 5 : 196;
-            break;
-        default:
-            throw new ValidationError('Unsupported address type: ' + type);
-    }
-
-    // Create a new Uint8Array to hold the data
-    const uint8Array = new Uint8Array(1 + hash.length);
-
-    // Set the version byte
-    uint8Array[0] = versionByte;
-
-    // Set the hash
-    uint8Array.set(hash as Uint8Array, 1);
-
-    // Encode to base58check without using Buffer
-    return bs58check.encode(uint8Array);
+    return encodeCashAddress(prefix, type, hash);
 }
 
 /**
@@ -550,12 +529,12 @@ function toLegacy(cashaddress: string): string {
  * @param optionalPrefix cashaddr prefix
  * @throws {ValidationError}
  */
-function isValidCashAddress(
+export function isValidCashAddress(
     cashaddress: string,
     optionalPrefix: boolean | string = false,
 ): boolean {
     try {
-        const { prefix } = decode(cashaddress);
+        const { prefix } = decodeCashAddress(cashaddress);
         if (optionalPrefix) {
             return prefix === optionalPrefix;
         }
@@ -574,8 +553,8 @@ function isValidCashAddress(
  * @returns the outputScript associated with this address and type
  * @throws {ValidationError} if decode fails
  */
-function getOutputScriptFromAddress(address: string): string {
-    const { type, hash } = decode(address, true);
+export function getOutputScriptFromAddress(address: string): string {
+    const { type, hash } = decodeCashAddress(address);
     let registrationOutputScript;
     if (type === 'p2pkh') {
         registrationOutputScript = `76a914${hash}88ac`;
@@ -584,20 +563,3 @@ function getOutputScriptFromAddress(address: string): string {
     }
     return registrationOutputScript;
 }
-
-const cashaddr = {
-    encode: encode,
-    decode: decode,
-    uint8arrayToHexString: uint8arrayToHexString,
-    encodeOutputScript: encodeOutputScript,
-    getTypeAndHashFromOutputScript: getTypeAndHashFromOutputScript,
-    toLegacy: toLegacy,
-    isValidCashAddress: isValidCashAddress,
-    getOutputScriptFromAddress: getOutputScriptFromAddress,
-};
-
-// Note: we use this kind of strange export = cashaddr syntax to preserve existing import syntax
-// i.e. we want to continue supporting apps that use
-// const cashaddr = require('ecashaddrjs');
-
-export = cashaddr;

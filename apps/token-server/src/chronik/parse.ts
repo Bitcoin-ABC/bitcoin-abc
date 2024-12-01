@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Tx } from 'chronik-client';
-import cashaddr from 'ecashaddrjs';
+import { getOutputScriptFromAddress } from 'ecashaddrjs';
 
 /**
  * parse.ts
@@ -44,7 +44,7 @@ export function addressReceivedToken(
     tokenId: string,
 ): boolean {
     // Tx outputs have outputScript as a key, not address
-    const outputScript = cashaddr.getOutputScriptFromAddress(address);
+    const outputScript = getOutputScriptFromAddress(address);
 
     const { outputs } = tx;
 

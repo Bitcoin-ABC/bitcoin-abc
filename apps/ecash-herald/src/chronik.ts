@@ -10,7 +10,7 @@ import {
     Utxo,
 } from 'chronik-client';
 import { getEmojiFromBalanceSats } from './utils';
-import cashaddr from 'ecashaddrjs';
+import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
 
 // Max txs we can get in one request
 const CHRONIK_MAX_PAGESIZE = 200;
@@ -86,8 +86,7 @@ export const getOutputscriptInfoMap = async (
     // info related to this balance to outputScriptInfoMap
     outputScripts.forEach(outputScript => {
         // Decode output script
-        const { type, hash } =
-            cashaddr.getTypeAndHashFromOutputScript(outputScript);
+        const { type, hash } = getTypeAndHashFromOutputScript(outputScript);
         outputScriptInfoPromises.push(
             new Promise((resolve, reject) => {
                 chronik

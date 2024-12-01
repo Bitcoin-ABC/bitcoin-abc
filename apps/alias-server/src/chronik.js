@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const cashaddr = require('ecashaddrjs');
+const { decodeCashAddress } = require('ecashaddrjs');
 const config = require('../config');
 
 module.exports = {
@@ -53,7 +53,7 @@ module.exports = {
         processedTxCount,
     ) {
         let potentiallyUnprocessedTxs = [];
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
 
         // Get first page of most recent chronik tx history
         const txHistoryFirstPageResponse =
@@ -149,7 +149,7 @@ module.exports = {
     },
     getAllTxHistory: async function (chronik, address) {
         let allTxHistory = [];
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
         const txHistoryFirstPageResponse =
             await module.exports.getTxHistoryPage(chronik, type, hash);
         const { txs, numPages } = txHistoryFirstPageResponse;

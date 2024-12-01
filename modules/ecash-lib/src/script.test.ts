@@ -122,14 +122,12 @@ describe('Script', () => {
         );
     });
 
-    it('Script.fromAddress() throws expected decode error from ecashaddrjs', () => {
+    it('Script.fromAddress() throws expected decode error', () => {
         expect(() => {
             Script.fromAddress(
                 '41047fa64f6874fb7213776b24c40bc915451b57ef7f17ad7b982561f99f7cdc7010d141b856a092ee169c5405323895e1962c6b0d7c101120d360164c9e4b3997bdac',
             );
-        }).to.throw(
-            'Error decoding address "41047fa64f6874fb7213776b24c40bc915451b57ef7f17ad7b982561f99f7cdc7010d141b856a092ee169c5405323895e1962c6b0d7c101120d360164c9e4b3997bdac": ValidationError: Invalid value: 1.',
-        );
+        }).to.throw('Invalid value: 1.');
     });
 
     it('Script.ops', () => {

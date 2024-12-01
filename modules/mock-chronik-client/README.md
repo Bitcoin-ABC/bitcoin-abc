@@ -188,3 +188,7 @@ If you have any implementation questions regarding this mock tool please check t
 2.1.0
 
 -   Support for Agora plugin websocket subscriptions [D17369](https://reviews.bitcoinabc.org/D17369)
+
+2.1.1
+
+-   Upgrade to dependency-free `ecashaddrjs` [D17269](https://reviews.bitcoinabc.org/D17269)

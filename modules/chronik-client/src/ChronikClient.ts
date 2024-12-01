@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import cashaddr from 'ecashaddrjs';
+import { decodeCashAddress } from 'ecashaddrjs';
 import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
 import * as proto from '../proto/chronik';
@@ -204,7 +204,7 @@ export class ChronikClient {
 
     /** Create object that allows fetching script history or UTXOs by p2pkh or p2sh address */
     public address(address: string): ScriptEndpoint {
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
 
         return new ScriptEndpoint(this._proxyInterface, type, hash as string);
     }
@@ -746,7 +746,7 @@ export class WsEndpoint {
      */
     public subscribeToAddress(address: string) {
         // Get type and hash
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
 
         // Subscribe to script
         this.subscribeToScript(type as 'p2pkh' | 'p2sh', hash as string);
@@ -755,7 +755,7 @@ export class WsEndpoint {
     /** Unsubscribe from the given address */
     public unsubscribeFromAddress(address: string) {
         // Get type and hash
-        const { type, hash } = cashaddr.decode(address, true);
+        const { type, hash } = decodeCashAddress(address);
 
         // Unsubscribe from script
         this.unsubscribeFromScript(type as 'p2pkh' | 'p2sh', hash as string);

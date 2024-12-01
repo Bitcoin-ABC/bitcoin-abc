@@ -13,7 +13,7 @@ import { jsonReviver } from '../src/utils';
 import { handleBlockFinalized, StoredMock } from '../src/events';
 import { parseBlockTxs } from '../src/parse';
 import { sendBlockSummary } from '../src/telegram';
-import cashaddr from 'ecashaddrjs';
+import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { caching } from 'cache-manager';
@@ -175,8 +175,7 @@ async function generateMock(
     });
 
     outputScripts.forEach(outputScript => {
-        const { type, hash } =
-            cashaddr.getTypeAndHashFromOutputScript(outputScript);
+        const { type, hash } = getTypeAndHashFromOutputScript(outputScript);
 
         const outputScriptInfo = outputScriptInfoMap.get(outputScript);
         if (typeof outputScriptInfo !== 'undefined') {

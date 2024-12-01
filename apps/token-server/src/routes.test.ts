@@ -5,7 +5,7 @@
 import * as http from 'http';
 import request from 'supertest';
 import config from '../config';
-import cashaddr from 'ecashaddrjs';
+import { encodeCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
 import { startExpressServer } from '../src/routes';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import TelegramBot from 'node-telegram-bot-api';
@@ -54,18 +54,17 @@ describe('routes.js', async function () {
     let app: http.Server;
     let badDbApp: http.Server;
     const SERVER_WALLET_ADDRESS = secrets.prod.wallet.address;
-    const SERVER_WALLET_OUTPUTSCRIPT = cashaddr.getOutputScriptFromAddress(
+    const SERVER_WALLET_OUTPUTSCRIPT = getOutputScriptFromAddress(
         SERVER_WALLET_ADDRESS,
     );
     const ELIGIBLE_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
-    const ELIGIBLE_OUTPUTSCRIPT =
-        cashaddr.getOutputScriptFromAddress(ELIGIBLE_ADDRESS);
+    const ELIGIBLE_OUTPUTSCRIPT = getOutputScriptFromAddress(ELIGIBLE_ADDRESS);
     const INELIGIBLE_ADDRESS =
         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
     const INELIGIBLE_OUTPUTSCRIPT =
-        cashaddr.getOutputScriptFromAddress(INELIGIBLE_ADDRESS);
+        getOutputScriptFromAddress(INELIGIBLE_ADDRESS);
     const INVALID_ADDRESS = 'ecash:erroraddress';
-    const ERROR_ADDRESS = cashaddr.encode(
+    const ERROR_ADDRESS = encodeCashAddress(
         'ecash',
         'p2pkh',
         '0000000000000000000000000000000000000000',

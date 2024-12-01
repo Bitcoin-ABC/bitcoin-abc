@@ -5,7 +5,12 @@
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import { getStackArray } from 'ecash-script';
-import cashaddr from 'ecashaddrjs';
+import {
+    getTypeAndHashFromOutputScript,
+    encodeOutputScript,
+    encodeCashAddress,
+    decodeCashAddress,
+} from 'ecashaddrjs';
 import {
     getHashes,
     decimalizeTokenAmount,
@@ -393,7 +398,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             isTokenTx = true;
             // If this is a token tx, iterate over inputs for Agora info
             try {
-                const { type } = cashaddr.getTypeAndHashFromOutputScript(
+                const { type } = getTypeAndHashFromOutputScript(
                     // we try..catch for this not existing
                     // not good practice but we are just implementing ts here now, refactor later
                     input.outputScript as string,
@@ -421,7 +426,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 }
             } catch (err) {
                 console.error(
-                    `Error in cashaddr.getTypeAndHashFromOutputScript(${input.outputScript}) from txid ${txid}`,
+                    `Error in getTypeAndHashFromOutputScript(${input.outputScript}) from txid ${txid}`,
                 );
                 // Do not parse it as an agora tx
             }
@@ -453,8 +458,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         }
         if (!walletIncludesThisOutputScript) {
             try {
-                const destinationAddress =
-                    cashaddr.encodeOutputScript(outputScript);
+                const destinationAddress = encodeOutputScript(outputScript);
                 destinationAddresses.add(destinationAddress);
             } catch (err) {
                 // Skip non-address recipients
@@ -504,7 +508,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         });
                         break;
                     }
-                    const aliasAddress = cashaddr.encode(
+                    const aliasAddress = encodeCashAddress(
                         'ecash',
                         addressType,
                         stackArray[3].slice(1),
@@ -779,11 +783,11 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             // Ad setup tx has p2sh recipient
             const listingScript = recipients[0];
             try {
-                const { type } = cashaddr.decode(listingScript, true);
+                const { type } = decodeCashAddress(listingScript);
                 isAgoraAdSetup = type === 'p2sh' && isTokenTx;
             } catch (err) {
                 console.error(
-                    `Error in cashaddr.decode(${listingScript}, true)`,
+                    `Error in decodeCashAddress(${listingScript}, true)`,
                     err,
                 );
                 // No action, will be parsed as not AgoraAdSetup
@@ -803,13 +807,13 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             // and this is an empp ALP and agora tx
             if (recipients.length >= 1) {
                 try {
-                    const { type } = cashaddr.decode(recipients[0], true);
+                    const { type } = decodeCashAddress(recipients[0]);
                     if (type === 'p2sh') {
                         isAgoraOffer = true;
                     }
                 } catch (err) {
                     console.error(
-                        `Error in cashaddr.decode(${recipients[0]}, true) while parsing for ALP listing tx`,
+                        `Error in decodeCashAddress(${recipients[0]}, true) while parsing for ALP listing tx`,
                         err,
                     );
                     // No action, will be parsed as not AgoraOffer
@@ -901,7 +905,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 // For sales of agora partial txs, we assume the amount sold
                 // goes to a p2pkh address
                 if (renderedTxType === ParsedTokenTxType.AgoraSale) {
-                    const { type } = cashaddr.getTypeAndHashFromOutputScript(
+                    const { type } = getTypeAndHashFromOutputScript(
                         output.outputScript,
                     );
                     if (type === 'p2pkh') {
@@ -977,9 +981,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     let replyAddress: string | undefined;
     if (xecTxType === XecTxType.Received) {
         try {
-            replyAddress = cashaddr.encodeOutputScript(
-                inputs[0].outputScript as string,
-            );
+            replyAddress = encodeOutputScript(inputs[0].outputScript as string);
         } catch (err) {
             // Handle error
         }

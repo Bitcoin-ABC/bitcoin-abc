@@ -1,6 +1,6 @@
 {
     "name": "ecashaddrjs",
-    "version": "1.6.2",
+    "version": "2.0.0",
     "description": "eCash cashaddr address format support for Node.js and web browsers.",
     "main": "dist/cashaddr.js",
     "types": "dist/cashaddr.d.ts",
@@ -41,7 +41,7 @@
         "@babel/core": "^7.21.3",
         "@babel/preset-env": "^7.20.2",
         "@types/chai": "^5.0.1",
-        "@types/mocha": "^10.0.7",
+        "@types/mocha": "^10.0.10",
         "@typescript-eslint/parser": "^8.15.0",
         "buffer": "^6.0.3",
         "chai": "^4.3.7",
@@ -54,12 +54,6 @@
         "nyc": "^15.1.0",
         "random-js": "^2.1.0",
         "ts-loader": "^9.5.1",
-        "ts-node": "^10.9.2",
-        "webpack": "^5.76.2",
-        "webpack-cli": "^5.0.1"
-    },
-    "dependencies": {
-        "big-integer": "1.6.36",
-        "bs58check": "^3.0.1"
+        "ts-node": "^10.9.2"
     }
 }
