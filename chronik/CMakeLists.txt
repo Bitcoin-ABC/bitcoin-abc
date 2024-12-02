@@ -108,6 +108,20 @@ corrosion_import_crate(
         chronik_lib
 )
 
+if (CMAKE_CROSSCOMPILING AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # Corrosion will not pass down all the compilation flags to the cxx crate.
+    # The crate can find the appropriated flags by itself most of the time but
+    # when crosscompiling for Darwin it is not enough. We need to manually pass
+    # the flags down by rebuilding part of the cmake generated command line.
+    set(CORROSION_CFLAGS "-isysroot${CMAKE_OSX_SYSROOT} ${CMAKE_C_FLAGS}")
+    set(CORROSION_CXXFLAGS "-isysroot${CMAKE_OSX_SYSROOT} ${CMAKE_CXX_FLAGS}")
+    corrosion_set_env_vars(
+        chronik_lib
+        CFLAGS=${CORROSION_CFLAGS}
+        CXXFLAGS=${CORROSION_CXXFLAGS}
+    )
+endif()
+
 set(Rust_TRIPLE
     "${Rust_CARGO_TARGET_ARCH}"
     "${Rust_CARGO_TARGET_VENDOR}"

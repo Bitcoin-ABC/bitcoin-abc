@@ -213,21 +213,14 @@ case "$HOST" in
         ;;
 esac
 
-case "$HOST" in
-    *darwin*)
-        # We don't build chronik for MacOS, so we don't need rustup
-        ;;
-    *)
-        curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
-        echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
-        chmod +x rustup-init
-        ./rustup-init -y --default-toolchain=1.76.0
-        rm ./rustup-init
-        # shellcheck disable=SC1091
-        source "$HOME/.cargo/env"
-        rustup target add "${RUST_TARGET}"
-        ;;
-esac
+curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
+echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
+chmod +x rustup-init
+./rustup-init -y --default-toolchain=1.76.0
+rm ./rustup-init
+# shellcheck disable=SC1091
+source "$HOME/.cargo/env"
+rustup target add "${RUST_TARGET}"
 
 # Make $HOST-specific native binaries from depends available in $PATH
 export PATH="${BASEPREFIX}/${HOST}/native/bin:${PATH}"
@@ -298,13 +291,16 @@ case "$HOST" in
     *mingw*)  HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
 esac
 
+# Needed for rustup, cargo and rustc
+export LD_LIBRARY_PATH="${LIBRARY_PATH}"
+
 # CMake flags
 case "$HOST" in
     *mingw*)
-        CMAKE_EXTRA_OPTIONS=(-DBUILD_BITCOIN_SEEDER=OFF -DBUILD_BITCOIN_CHRONIK=ON -DCPACK_STRIP_FILES=ON -DCPACK_PACKAGE_FILE_NAME="${DISTNAME}-win64-setup-unsigned")
+        CMAKE_EXTRA_OPTIONS=(-DBUILD_BITCOIN_SEEDER=OFF -DCPACK_STRIP_FILES=ON -DCPACK_PACKAGE_FILE_NAME="${DISTNAME}-win64-setup-unsigned")
         ;;
     *linux*)
-        CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON -DBUILD_BITCOIN_CHRONIK=ON -DBUILD_BITCOIN_CHRONIK_PLUGINS=OFF -DUSE_LINKER=)
+        CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON  -DUSE_LINKER=)
         ;;
     *darwin*)
         # GUIX doesn't properly set /bin/cc and /bin/c++ so cmake will pick the
@@ -313,7 +309,13 @@ case "$HOST" in
         export CC=clang
         export CXX=clang++
 
-        # Prevent clang from using gcc libs
+        # Needed for the crates that read this environment variable. Otherwise
+        # they could default to a lower and unsupported target.
+        export MACOSX_DEPLOYMENT_TARGET=11.0
+
+        # Prevent clang from using gcc libs.
+        # We need to unset LIBRARY_PATH because clang targeting darwin will look
+        # at it first, before even its sysroot.
         unset LIBRARY_PATH
         unset CPATH
         unset C_INCLUDE_PATH
@@ -332,8 +334,7 @@ mkdir -p "$DISTSRC"
     # binary tarballs.
     INSTALLPATH=$(pwd)/installed/${DISTNAME}
     mkdir -p "${INSTALLPATH}"
-    # Needed for rustup, cargo and rustc
-    export LD_LIBRARY_PATH="${LIBRARY_PATH}"
+
     # rocksdb-sys uses libclang to parse the headers but it doesn't know what
     # the host arch is. As a consequence it fails to parse gnu/stubs.h if the
     # multilib headers are not installed because it falls back to the 32 bits
@@ -358,6 +359,7 @@ mkdir -p "$DISTSRC"
       -DENABLE_REDUCE_EXPORTS=ON \
       -DCMAKE_INSTALL_PREFIX="${INSTALLPATH}" \
       -DCCACHE=OFF \
+      -DBUILD_BITCOIN_CHRONIK=ON \
       "${CMAKE_EXTRA_OPTIONS[@]}" \
       "${CMAKE_C_FLAGS}" \
       "${CMAKE_CXX_FLAGS}" \
