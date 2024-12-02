@@ -6,6 +6,12 @@ include(SanitizeHelper)
 function(check_compiler_flags RESULT LANGUAGE)
 	sanitize_c_cxx_definition("have_${LANGUAGE}_" "${ARGN}" TEST_NAME)
 
+	set(WERROR_UNUSED_ARG "-Werror=unused-command-line-argument")
+	CHECK_CXX_COMPILER_FLAG(${WERROR_UNUSED_ARG} IS_WERROR_SUPPORTED)
+	if(${IS_WERROR_SUPPORTED})
+		list(APPEND CMAKE_REQUIRED_FLAGS ${WERROR_UNUSED_ARG})
+	endif()
+
 	if("${LANGUAGE}" STREQUAL "C")
 		CHECK_C_COMPILER_FLAG("${ARGN}" ${TEST_NAME})
 	elseif("${LANGUAGE}" STREQUAL "CXX")
@@ -137,7 +143,7 @@ function(_internal_custom_check_linker_flag RESULT FLAG)
 	set(WERROR_UNUSED_ARG -Werror=unused-command-line-argument)
 	check_compiler_flags(IS_WERROR_SUPPORTED CXX ${WERROR_UNUSED_ARG})
 	if(${IS_WERROR_SUPPORTED})
-		set(CMAKE_REQUIRED_FLAGS ${WERROR_UNUSED_ARG})
+		list(APPEND CMAKE_REQUIRED_FLAGS ${WERROR_UNUSED_ARG})
 	endif()
 
 	# Save the current linker flags
