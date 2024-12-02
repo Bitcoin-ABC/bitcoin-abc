@@ -149,7 +149,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         try:
             self.setup()
-            self._run_test_internal()
+            if self.options.test_methods:
+                self.run_test_methods()
+            else:
+                self._run_test_internal()
         except SkipTest as e:
             self.log.warning(f"Test Skipped: {e.message}")
             self.success = TestStatus.SKIPPED
@@ -164,6 +167,13 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         finally:
             exit_code = self.shutdown()
             sys.exit(exit_code)
+
+    def run_test_methods(self):
+        for method_name in self.options.test_methods:
+            self.log.info(f"Attempting to execute method: {method_name}")
+            method = getattr(self, method_name)
+            method()
+            self.log.info(f"Method '{method_name}' executed successfully.")
 
     def parse_args(self):
         parser = argparse.ArgumentParser(usage="%(prog)s [options]")
@@ -290,6 +300,16 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             help=(
                 "adjust test timeouts by a factor. "
                 "Setting it to 0 disables all timeouts"
+            ),
+        )
+        parser.add_argument(
+            "--test_methods",
+            dest="test_methods",
+            nargs="*",
+            help=(
+                "Run specified test methods sequentially instead of the full test."
+                " Use only for methods that do not depend on any context set up in"
+                " run_test or other methods."
             ),
         )
 
