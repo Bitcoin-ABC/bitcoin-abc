@@ -1,2 +1,3 @@
 declare var MockChronikClient: any;
-export { MockChronikClient };
+declare var MockAgora: any;
+export { MockAgora, MockChronikClient };

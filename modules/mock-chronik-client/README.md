@@ -160,3 +160,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.12.1
 
 -   Build published version with dependencies from `npm` [D17227](https://reviews.bitcoinabc.org/D17227)
+
+1.12.2
+
+-   Add `MockAgora` to stub ts declarations [D17274](https://reviews.bitcoinabc.org/D17274)
