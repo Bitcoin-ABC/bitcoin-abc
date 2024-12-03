@@ -6,9 +6,11 @@ include(SanitizeHelper)
 function(check_compiler_flags RESULT LANGUAGE)
 	sanitize_c_cxx_definition("have_${LANGUAGE}_" "${ARGN}" TEST_NAME)
 
+	# Assume the flag exists for the C++ compiler if it's supported for the C
+	# compiler.
 	set(WERROR_UNUSED_ARG "-Werror=unused-command-line-argument")
-	CHECK_CXX_COMPILER_FLAG(${WERROR_UNUSED_ARG} IS_WERROR_SUPPORTED)
-	if(${IS_WERROR_SUPPORTED})
+	CHECK_C_COMPILER_FLAG(${WERROR_UNUSED_ARG} IS_C_WERROR_UNUSED_ARG_SUPPORTED)
+	if(${IS_C_WERROR_UNUSED_ARG_SUPPORTED})
 		list(APPEND CMAKE_REQUIRED_FLAGS ${WERROR_UNUSED_ARG})
 	endif()
 
@@ -138,11 +140,13 @@ function(_internal_custom_check_linker_flag RESULT FLAG)
 	# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
 	# warning when an unknown linker flag is set.
 	# Using -Werror will promote these warnings to errors so
-	# CHECK_CXX_COMPILER_FLAG() will return false, preventing the flag from
-	# being set.
+	# CHECK_C_COMPILER_FLAG() will return false, preventing the flag from being
+	# added.
+	# Assume the flag exists for the C++ compiler if it's supported for the C
+	# compiler.
 	set(WERROR_UNUSED_ARG -Werror=unused-command-line-argument)
-	check_compiler_flags(IS_WERROR_SUPPORTED CXX ${WERROR_UNUSED_ARG})
-	if(${IS_WERROR_SUPPORTED})
+	check_compiler_flags(IS_C_WERROR_UNUSED_ARG_SUPPORTED C ${WERROR_UNUSED_ARG})
+	if(${IS_C_WERROR_UNUSED_ARG_SUPPORTED})
 		list(APPEND CMAKE_REQUIRED_FLAGS ${WERROR_UNUSED_ARG})
 	endif()
 
