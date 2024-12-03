@@ -164,3 +164,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.12.2
 
 -   Add `MockAgora` to stub ts declarations [D17274](https://reviews.bitcoinabc.org/D17274)
+
+1.12.3
+
+-   Add dummy `plugin` method to allow construction of `new Agora()` from `ecash-agora` with a `MockChronikClient` [D17279](https://reviews.bitcoinabc.org/D17279)

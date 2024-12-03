@@ -242,10 +242,6 @@ describe('<Token /> available actions rendered', () => {
             output: { txid: adListTxid },
         });
 
-        // We need to give mockedChronik a plugin function
-        // This is required for creating a new Agora(mockedChronik)
-        mockedChronik.plugin = () => 'dummy plugin';
-
         // Mock response for agora select params check
         // Note
         // We obtain EXPECTED_OFFER_P2SH by adding
@@ -1777,10 +1773,6 @@ describe('<Token /> available actions rendered', () => {
             input: offerHex,
             output: { txid: offerTxid },
         });
-
-        // We need to give mockedChronik a plugin function
-        // This is required for creating a new Agora(mockedChronik)
-        mockedChronik.plugin = () => 'dummy plugin';
 
         // Mock response for agora select params check
         // Note

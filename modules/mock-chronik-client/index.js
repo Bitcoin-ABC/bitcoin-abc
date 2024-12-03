@@ -91,6 +91,10 @@ module.exports = {
             // Can access self from inside a method and still get the class
             const self = this;
 
+            // We need to give mockedChronik a plugin function
+            // This is required for creating a new Agora(mockedChronik)
+            self.plugin = () => 'dummy plugin';
+
             // API call mock return objects
             // Can be set with self.setMock
             self.mockedResponses = {

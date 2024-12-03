@@ -53,10 +53,6 @@ describe('<Agora />', () => {
             localforage,
         );
 
-        // We need to give mockedChronik a plugin function
-        // This is required for creating a new Agora(mockedChronik)
-        mockedChronik.plugin = () => 'dummy plugin';
-
         // Mock chronik calls used to build token cache to show
         // the user can load a page without having the token info cached
         for (const tokenCacheMock of [
