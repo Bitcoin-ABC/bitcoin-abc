@@ -353,6 +353,11 @@ class OrphanHandlingTest(BitcoinTestFramework):
         peer_orphans.wait_for_parent_requests([int(missing_parent_B["txid"], 16)])
         peer_orphans.assert_never_requested(int(inflight_parent_AB["txid"], 16))
 
+        # But inflight_parent_AB will be requested eventually if original peer
+        # doesn't respond
+        node.bumpmocktime(GETDATA_TX_INTERVAL)
+        peer_orphans.wait_for_parent_requests([int(inflight_parent_AB["txid"], 16)])
+
     @cleanup
     def test_orphan_of_orphan(self):
         node = self.nodes[0]
