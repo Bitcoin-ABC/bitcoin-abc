@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useContext } from 'react';
 import Modal from 'components/Common/Modal';
-import { WalletContext } from 'wallet/context';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import {
     isValidTokenName,
     isValidTokenTicker,
@@ -41,12 +41,12 @@ import { getAlpGenesisTargetOutputs } from 'token-protocols/alp';
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
-import { getWalletState } from 'utils/cashMethods';
 import {
     hasEnoughToken,
     undecimalizeTokenAmount,
     TokenUtxo,
     SlpDecimals,
+    CashtabPathInfo,
 } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
@@ -82,6 +82,16 @@ interface CreateTokenFormProps {
 const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
     nftChildGenesisInput,
 }) => {
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
+    const { chronik, ecc, chaintipBlockheight, cashtabState } = ContextValue;
+    const { settings, wallets } = cashtabState;
+    const wallet = wallets[0];
+    const { tokens } = wallet.state;
+
     // Constant to handle rendering of CreateTokenForm for NFT Minting
     const isNftMint = Array.isArray(nftChildGenesisInput);
 
@@ -91,14 +101,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
     const navigate = useNavigate();
     const location = useLocation();
     const userLocale = getUserLocale(navigator);
-    const { chronik, ecc, chaintipBlockheight, cashtabState } =
-        React.useContext(WalletContext);
-    const { settings, wallets } = cashtabState;
-
-    const wallet = wallets.length > 0 ? wallets[0] : false;
-
-    const walletState = getWalletState(wallet);
-    const { tokens } = walletState;
 
     // eToken icon adds
     const [tokenIcon, setTokenIcon] = useState<null | File>(null);
@@ -645,7 +647,11 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                           ...genesisInfo,
                           // Set as Cashtab active wallet public key
                           authPubkey: toHex(
-                              wallet.paths.get(appConfig.derivationPath).pk,
+                              (
+                                  wallet.paths.get(
+                                      appConfig.derivationPath,
+                                  ) as CashtabPathInfo
+                              ).pk,
                           ),
                           // Note we are omitting the "data" key for now
                       },

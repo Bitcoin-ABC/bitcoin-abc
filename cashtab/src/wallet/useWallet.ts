@@ -61,6 +61,42 @@ import { Ecc } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
 import { ToastIcon } from 'react-toastify/dist/types';
 
+export interface UseWalletReturnType {
+    chronik: ChronikClient;
+    agora: Agora;
+    ecc: Ecc;
+    chaintipBlockheight: number;
+    fiatPrice: number | null;
+    cashtabLoaded: boolean;
+    loading: boolean;
+    apiError: boolean;
+    refreshAliases: (address: string) => Promise<void>;
+    aliases: AddressAliasStatus;
+    setAliases: React.Dispatch<React.SetStateAction<AddressAliasStatus>>;
+    aliasServerError: false | string;
+    setAliasServerError: React.Dispatch<React.SetStateAction<false | string>>;
+    aliasPrices: null | AliasPrices;
+    setAliasPrices: React.Dispatch<React.SetStateAction<null | AliasPrices>>;
+    updateCashtabState: (
+        key: string,
+        value:
+            | CashtabWallet[]
+            | CashtabCache
+            | CashtabContact[]
+            | CashtabSettings
+            | CashtabCacheJson
+            | StoredCashtabWallet[]
+            | (LegacyCashtabWallet | StoredCashtabWallet)[],
+    ) => Promise<boolean>;
+    processChronikWsMsg: (
+        msg: WsMsgClient,
+        cashtabState: CashtabState,
+        fiatPrice: null | number,
+        aliasesEnabled: boolean,
+    ) => Promise<boolean>;
+    cashtabState: CashtabState;
+}
+
 const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [cashtabLoaded, setCashtabLoaded] = useState<boolean>(false);
     const [ws, setWs] = useState<null | WsEndpoint>(null);
@@ -1145,7 +1181,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         updateCashtabState,
         processChronikWsMsg,
         cashtabState,
-    };
+    } as UseWalletReturnType;
 };
 
 export default useWallet;
