@@ -3053,7 +3053,9 @@ bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
 }
 
 bool PeerManagerImpl::AlreadyHaveProof(const avalanche::ProofId &proofid) {
-    assert(m_avalanche);
+    if (!Assume(m_avalanche)) {
+        return false;
+    }
 
     auto localProof = m_avalanche->getLocalProof();
     if (localProof && localProof->getId() == proofid) {
@@ -5277,6 +5279,9 @@ void PeerManagerImpl::ProcessMessage(
             }
 
             if (inv.IsMsgProof()) {
+                if (!m_avalanche) {
+                    continue;
+                }
                 const avalanche::ProofId proofid(inv.hash);
                 const bool fAlreadyHave = AlreadyHaveProof(proofid);
                 logInv(inv, fAlreadyHave);
@@ -7559,6 +7564,9 @@ void PeerManagerImpl::ProcessMessage(
                     continue;
                 }
                 if (inv.IsMsgProof()) {
+                    if (!m_avalanche) {
+                        continue;
+                    }
                     LOCK(cs_proofrequest);
                     m_proofrequest.ReceivedResponse(
                         pfrom.GetId(), avalanche::ProofId(inv.hash));
@@ -8942,7 +8950,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     //
     // Message: getdata (proof)
     //
-    {
+    if (m_avalanche) {
         LOCK(cs_proofrequest);
         std::vector<std::pair<NodeId, avalanche::ProofId>> expired;
         auto requestable =
@@ -8966,7 +8974,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 m_proofrequest.ForgetInvId(proofid);
             }
         }
-    } // release cs_proofrequest
+    }
 
     //
     // Message: getdata (transactions)

@@ -54,6 +54,7 @@ class NetConstants:
         max_getdata_in_flight,
         max_peer_announcements,
         bypass_request_limits_permission_flags,
+        getdata_supports_notfound,
     ):
         self.getdata_interval = getdata_interval
         self.inbound_peer_delay = inbound_peer_delay
@@ -64,6 +65,7 @@ class NetConstants:
         self.bypass_request_limits_permission_flags = (
             bypass_request_limits_permission_flags
         )
+        self.getdata_supports_notfound = getdata_supports_notfound
 
 
 class TestContext:
@@ -78,7 +80,7 @@ class TestContext:
 
 PROOF_TEST_CONTEXT = TestContext(
     MSG_AVA_PROOF,
-    "avalanche proof",
+    "avaproof",
     NetConstants(
         getdata_interval=60,  # seconds
         inbound_peer_delay=2,  # seconds
@@ -86,6 +88,7 @@ PROOF_TEST_CONTEXT = TestContext(
         max_getdata_in_flight=100,
         max_peer_announcements=5000,
         bypass_request_limits_permission_flags="bypass_proof_request_limits",
+        getdata_supports_notfound=True,
     ),
 )
 
@@ -99,12 +102,13 @@ STAKE_CONTENDER_TEST_CONTEXT = TestContext(
         max_getdata_in_flight=100,
         max_peer_announcements=5000,
         bypass_request_limits_permission_flags=None,
+        getdata_supports_notfound=False,
     ),
 )
 
 TX_TEST_CONTEXT = TestContext(
     MSG_TX,
-    "transaction",
+    "tx",
     NetConstants(
         getdata_interval=60,  # seconds
         inbound_peer_delay=2,  # seconds
@@ -112,6 +116,7 @@ TX_TEST_CONTEXT = TestContext(
         max_getdata_in_flight=100,
         max_peer_announcements=5000,
         bypass_request_limits_permission_flags="relay",
+        getdata_supports_notfound=True,
     ),
 )
 
@@ -495,7 +500,15 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # No getdata request should be made by the node
         assert peer.getdata_count == 0
 
-        # If we craft a getdata message, it is also ignored by the node
+    def test_getdata_notfound(self, context):
+        self.log.info(
+            f"Request a item of type {context.inv_name} that is expected to be ignored"
+        )
+        peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
+
+        # If we craft a random getdata message, it is ignored by the node
+        itemid = random.randint(0, 2**256 - 1)
+        inv = CInv(t=context.inv_type, h=itemid)
         with self.nodes[0].assert_debug_log(
             [
                 "received getdata (1 invsz)",
@@ -506,13 +519,22 @@ class InventoryDownloadTest(BitcoinTestFramework):
             msg.inv.append(inv)
             peer.send_and_ping(msg)
 
-        # There should be no notfound message sent in response to the getdata message
         with p2p_lock:
-            assert "notfound" not in peer.last_message
+            if context.constants.getdata_supports_notfound:
+                assert "notfound" in peer.last_message
+            else:
+                assert "notfound" not in peer.last_message
 
     def run_test(self):
         for context in [STAKE_CONTENDER_TEST_CONTEXT]:
             self.test_inv_ignore(context)
+
+        for context in [
+            TX_TEST_CONTEXT,
+            PROOF_TEST_CONTEXT,
+            STAKE_CONTENDER_TEST_CONTEXT,
+        ]:
+            self.test_getdata_notfound(context)
 
         for context in [TX_TEST_CONTEXT, PROOF_TEST_CONTEXT]:
             self.log.info(f"Starting tests using {context.inv_name} inventory type")
@@ -547,6 +569,12 @@ class InventoryDownloadTest(BitcoinTestFramework):
                     f"Nodes are setup with {NUM_INBOUND} incoming connections each"
                 )
                 test(context)
+
+        # Restart node0 without avalanche and test that avalanche messages are ignored
+        self.restart_node(0, extra_args=self.extra_args[0] + ["-avalanche=0"])
+        for context in [PROOF_TEST_CONTEXT, STAKE_CONTENDER_TEST_CONTEXT]:
+            self.test_inv_ignore(context)
+            self.test_getdata_notfound(context)
 
 
 if __name__ == "__main__":
