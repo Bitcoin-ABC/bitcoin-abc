@@ -211,13 +211,19 @@ const NavButtonDesktop = css`
     font-weight: normal;
     font-family: 'Poppins';
 
+    span,
+    p {
+        line-height: 1em;
+    }
+
     :hover {
-        color: ${props => props.theme.eCashPurple};
+        color: ${props => props.theme.secondaryAccent};
         svg,
         g,
         path {
-            fill: ${props => props.theme.eCashPurple};
+            fill: ${props => props.theme.secondaryAccent};
         }
+        background: ${props => props.theme.secondaryBackground};
     }
 
     svg {
