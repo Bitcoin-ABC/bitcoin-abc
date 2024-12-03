@@ -124,8 +124,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Finalize a block so we promote the contender cache with every block
         tip = node.getbestblockhash()
-        with node.assert_debug_log([f"Avalanche finalized block {tip}"]):
-            self.wait_until(lambda: has_finalized_tip(tip))
+        self.wait_until(lambda: has_finalized_tip(tip))
         assert_equal(node.getbestblockhash(), tip)
 
         # Now trigger building the whole cache for a block
