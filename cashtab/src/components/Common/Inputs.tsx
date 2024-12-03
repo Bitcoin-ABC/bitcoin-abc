@@ -196,6 +196,7 @@ interface ModalInputProps {
     value: null | string;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     error: string | boolean;
+    type?: string;
 }
 export const ModalInput: React.FC<ModalInputProps> = ({
     placeholder = '',
@@ -203,6 +204,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({
     value = '',
     handleInput,
     error = false,
+    type = 'text',
 }) => {
     return (
         <CashtabInputWrapper>
@@ -213,6 +215,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({
                     placeholder={placeholder}
                     invalid={typeof error === 'string'}
                     onChange={e => handleInput(e)}
+                    type={type}
                 />
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>

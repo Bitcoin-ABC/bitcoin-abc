@@ -68,7 +68,9 @@ const OnBoarding = () => {
                         name="mnemonic"
                         value={importedMnemonic}
                         error={
-                            isValidMnemonic ? false : 'Invalid 12-word mnemonic'
+                            isValidMnemonic
+                                ? false
+                                : 'Invalid 12-word mnemonic. Note: all letters must be lowercase.'
                         }
                         handleInput={handleInput}
                     />

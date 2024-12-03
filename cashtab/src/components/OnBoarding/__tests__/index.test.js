@@ -125,7 +125,9 @@ describe('<OnBoarding />', () => {
 
         // The validation msg is in the document
         expect(
-            screen.getByText('Invalid 12-word mnemonic'),
+            screen.getByText(
+                'Invalid 12-word mnemonic. Note: all letters must be lowercase.',
+            ),
         ).toBeInTheDocument();
 
         // Type in the rest
@@ -136,7 +138,9 @@ describe('<OnBoarding />', () => {
 
         // The validation msg is not in the document
         expect(
-            screen.queryByText('Invalid 12-word mnemonic'),
+            screen.queryByText(
+                'Invalid 12-word mnemonic. Note: all letters must be lowercase.',
+            ),
         ).not.toBeInTheDocument();
 
         // The button is not disabled

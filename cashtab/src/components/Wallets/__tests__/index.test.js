@@ -376,7 +376,11 @@ describe('<Wallets />', () => {
             'pioneer waste next tired armed course expand stairs load brick asthma ',
         );
         // The validation msg is in the document
-        expect(screen.getByText('Invalid mnemonic')).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                'Invalid 12-word mnemonic. Note: all letters must be lowercase.',
+            ),
+        ).toBeInTheDocument();
 
         // Type in the rest
         await user.type(
@@ -385,7 +389,11 @@ describe('<Wallets />', () => {
         );
 
         // The validation msg is not in the document
-        expect(screen.queryByText('Invalid mnemonic')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(
+                'Invalid 12-word mnemonic. Note: all letters must be lowercase.',
+            ),
+        ).not.toBeInTheDocument();
 
         // The button is not disabled
         expect(importBtn).toHaveProperty('disabled', false);

@@ -101,7 +101,7 @@ const Wallets = () => {
                 [name]:
                     validateMnemonic(value) === true
                         ? false
-                        : 'Invalid mnemonic',
+                        : 'Invalid 12-word mnemonic. Note: all letters must be lowercase.',
             }));
         }
         setFormData(previous => ({
