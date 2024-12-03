@@ -921,6 +921,39 @@ static RPCHelpMan gettime() {
     };
 }
 
+static RPCHelpMan getinfo() {
+    return RPCHelpMan{
+        "getinfo",
+        "Returns basic information about the node\n",
+        {},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "info",
+            "",
+            {
+                {RPCResult::Type::STR_HEX, "version_number",
+                 "The version number"},
+                {RPCResult::Type::STR, "version_full",
+                 "The full version as a string"},
+                {RPCResult::Type::BOOL, "avalanche",
+                 "Wether avalanche is enabled"},
+            },
+        },
+        RPCExamples{HelpExampleCli("getinfo", "") +
+                    HelpExampleRpc("getinfo", "")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+
+            UniValue infoObj(UniValue::VOBJ);
+            infoObj.pushKV("version_number", CLIENT_VERSION);
+            infoObj.pushKV("version_full", FormatFullVersion());
+            infoObj.pushKV("avalanche", !!node.avalanche);
+            return infoObj;
+        },
+    };
+}
+
 void RegisterMiscRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -937,6 +970,7 @@ void RegisterMiscRPCCommands(CRPCTable &t) {
         { "util",               getcurrencyinfo,         },
         { "util",               getindexinfo,            },
         { "util",               gettime,                 },
+        { "util",               getinfo,                 },
 
         /* Not shown in help */
         { "hidden",             setmocktime,             },
