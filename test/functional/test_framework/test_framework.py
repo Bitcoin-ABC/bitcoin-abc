@@ -799,9 +799,17 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
     def sync_proofs(self, nodes=None, wait=1, timeout=60):
         """
-        Wait until everybody has the same proofs in their proof pools
+        Wait until everybody has the same proofs in their proof pools.
+        If the nodes have avalanche disabled they are skipped.
         """
-        rpc_connections = nodes or self.nodes
+        rpc_connections = []
+        for candidate in nodes or self.nodes:
+            if candidate.getinfo()["avalanche"]:
+                rpc_connections.append(candidate)
+
+        if not rpc_connections:
+            return
+
         timeout = int(timeout * self.options.timeout_factor)
         stop_time = time.time() + timeout
 

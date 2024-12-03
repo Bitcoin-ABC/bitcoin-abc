@@ -12,7 +12,7 @@ class GetInfoRPCTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [["-avalanche=1"]]
+        self.extra_args = [["-avalanche=0"]]
 
     def run_test(self):
         node = self.nodes[0]
@@ -21,11 +21,11 @@ class GetInfoRPCTest(BitcoinTestFramework):
 
         assert_equal(info["version_number"], node.getnetworkinfo()["version"])
         assert_equal(info["version_full"], get_cli_version(self, node))
-        assert_equal(info["avalanche"], True)
-
-        self.restart_node(0, extra_args=["-avalanche=0"])
-        info = node.getinfo()
         assert_equal(info["avalanche"], False)
+
+        self.restart_node(0, extra_args=["-avalanche=1"])
+        info = node.getinfo()
+        assert_equal(info["avalanche"], True)
 
 
 if __name__ == "__main__":
