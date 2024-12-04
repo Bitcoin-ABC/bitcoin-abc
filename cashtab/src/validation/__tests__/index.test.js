@@ -19,7 +19,6 @@ import {
     meetsAliasSpec,
     isValidAliasSendInput,
     isProbablyNotAScam,
-    isValidSideshiftObj,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
     parseAddressInput,
@@ -45,35 +44,6 @@ import vectors from 'validation/fixtures/vectors';
 import appConfig from 'config/app';
 
 describe('Cashtab validation functions', () => {
-    it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
-        const mockSideshift = {
-            show: () => {
-                return true;
-            },
-            hide: () => {
-                return true;
-            },
-            addEventListener: () => {
-                return true;
-            },
-        };
-        expect(isValidSideshiftObj(mockSideshift)).toBe(true);
-    });
-    it(`isValidSideshiftObj() returns false if the sideshift library object failed to instantiate`, () => {
-        expect(isValidSideshiftObj(null)).toBe(false);
-    });
-    it(`isValidSideshiftObj() returns false for an invalid sideshift library object`, () => {
-        const mockSideshift = {
-            show: () => {
-                return true;
-            },
-            hide: () => {
-                return true;
-            },
-            addEvenListener: 'not-a-function',
-        };
-        expect(isValidSideshiftObj(mockSideshift)).toBe(false);
-    });
     it(`validateMnemonic() returns true for a valid mnemonic`, () => {
         const mnemonic =
             'labor tail bulb distance estate collect lecture into smile differ yard legal';

@@ -28,10 +28,3 @@ jest.mock('bip39', () => ({
             'grant grass sock faculty behave guitar pepper tiger sustain task occur soon',
     ),
 }));
-
-// Mock a valid sideshift object in window
-window.sideshift = {
-    show: jest.fn(),
-    hide: jest.fn(),
-    addEventListener: jest.fn(),
-};

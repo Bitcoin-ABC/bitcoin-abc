@@ -29,33 +29,6 @@ import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 import { getMaxDecimalizedQty } from 'token-protocols';
 import { CashtabContact } from 'config/CashtabState';
 
-interface Sideshift {
-    show: () => void;
-    hide: () => void;
-    addEventListener: (name: string, fn: () => void) => void;
-}
-/**
- * Checks whether the instantiated sideshift library object has loaded
- * correctly with the expected API.
- *
- * @param {Object} sideshiftObj the instantiated sideshift library object
- * @returns {boolean} whether or not this sideshift object is valid
- */
-export const isValidSideshiftObj = (
-    sideshiftObj: Sideshift | unknown,
-): boolean => {
-    return (
-        sideshiftObj !== null &&
-        typeof sideshiftObj === 'object' &&
-        'show' in sideshiftObj &&
-        typeof sideshiftObj.show === 'function' &&
-        'hide' in sideshiftObj &&
-        typeof sideshiftObj.hide === 'function' &&
-        'addEventListener' in sideshiftObj &&
-        typeof sideshiftObj.addEventListener === 'function'
-    );
-};
-
 export const getContactAddressError = (
     address: string,
     contacts: CashtabContact[],

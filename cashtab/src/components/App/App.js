@@ -14,7 +14,6 @@ import {
     ContactsIcon,
     ThemedSignAndVerifyMsg,
     ThemedUserProfileIcon,
-    SwapIcon,
     TokensIcon,
     RewardIcon,
     NftIcon,
@@ -36,7 +35,6 @@ import Alias from 'components/Alias/Alias';
 import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
-import Swap from 'components/Swap/Swap';
 import Rewards from 'components/Rewards';
 import NotFound from 'components/App/NotFound';
 import OnBoarding from 'components/OnBoarding';
@@ -288,12 +286,6 @@ const App = () => {
                                                         'true' && (
                                                         <>
                                                             <Route
-                                                                path="/swap"
-                                                                element={
-                                                                    <Swap />
-                                                                }
-                                                            />
-                                                            <Route
                                                                 path="/rewards"
                                                                 element={
                                                                     <Rewards />
@@ -424,19 +416,6 @@ const App = () => {
                                         process.env.REACT_APP_TESTNET !==
                                             'true' && (
                                             <>
-                                                <NavItem
-                                                    active={
-                                                        location.pathname ===
-                                                        '/swap'
-                                                    }
-                                                    onClick={() =>
-                                                        navigate('/swap')
-                                                    }
-                                                >
-                                                    {' '}
-                                                    <p>Swap</p>
-                                                    <SwapIcon />
-                                                </NavItem>
                                                 <NavItem
                                                     active={
                                                         location.pathname ===

@@ -268,19 +268,6 @@ describe('<App />', () => {
             screen.getByText('Airdrop scaled to token balance'),
         ).toBeInTheDocument();
 
-        // ... but, we can still click these items with the testing library, so we do
-        // Navigate to Swap screen
-        await user.click(
-            screen.getByRole('button', {
-                name: /Swap/i,
-            }),
-        );
-
-        // Now we see the Swap screen
-        expect(
-            screen.getByRole('button', { name: /Open SideShift/ }),
-        ).toBeInTheDocument();
-
         // Navigate to SignVerifyMsg screen
         await user.click(
             screen.getByRole('button', {
