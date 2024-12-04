@@ -3584,9 +3584,26 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         // When we reach this point, we switched to a new tip (stored in
         // pindexNewTip).
         if (avalanche) {
+            const CBlockIndex *pfinalized =
+                WITH_LOCK(cs_avalancheFinalizedBlockIndex,
+                          return m_avalancheFinalizedBlockIndex);
             for (const CBlockIndex *pindex : blocksToReconcile) {
                 avalanche->addToReconcile(pindex);
-                avalanche->computeStakingReward(pindex);
+
+                // Compute staking rewards for all blocks with more chainwork to
+                // just after the finalized block. We could stop at the fork
+                // point, but this is more robust.
+                if (blocks_connected) {
+                    const CBlockIndex *pindexTest = pindex;
+                    while (pindexTest && pindexTest != pfinalized) {
+                        if (pindexTest->nHeight < pindex->nHeight - 3) {
+                            // Only compute up to some max depth
+                            break;
+                        }
+                        avalanche->computeStakingReward(pindexTest);
+                        pindexTest = pindexTest->pprev;
+                    }
+                }
             }
         }
 

@@ -1092,6 +1092,58 @@ static RPCHelpMan getstakingreward() {
     };
 }
 
+static RPCHelpMan hasstakingreward() {
+    return RPCHelpMan{
+        "hasstakingreward",
+        "Return true if a staking reward winner exists based on the previous "
+        "block hash.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The previous block hash, hex encoded."},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether staking reward winner has been computed for "
+                  "previous block hash or not."},
+        RPCExamples{HelpExampleRpc("hasstakingreward", "<blockhash>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
+            avalanche::Processor &avalanche = EnsureAvalanche(node);
+
+            const BlockHash blockhash(
+                ParseHashV(request.params[0], "blockhash"));
+
+            const CBlockIndex *pprev;
+            {
+                LOCK(cs_main);
+                pprev = chainman.m_blockman.LookupBlockIndex(blockhash);
+            }
+
+            if (!pprev) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    strprintf("Block not found: %s\n", blockhash.ToString()));
+            }
+
+            if (!IsStakingRewardsActivated(
+                    config.GetChainParams().GetConsensus(), pprev)) {
+                throw JSONRPCError(
+                    RPC_INTERNAL_ERROR,
+                    strprintf(
+                        "Staking rewards are not activated for block %s\n",
+                        blockhash.ToString()));
+            }
+
+            std::vector<std::pair<avalanche::ProofId, CScript>> winners;
+            if (!avalanche.getStakingRewardWinners(blockhash, winners)) {
+                return false;
+            }
+            return winners.size() > 0;
+        },
+    };
+}
+
 static RPCHelpMan setstakingreward() {
     return RPCHelpMan{
         "setstakingreward",
@@ -1766,6 +1818,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         getavalanchepeerinfo,      },
         { "avalanche",         getavalancheproofs,        },
         { "avalanche",         getstakingreward,          },
+        { "hidden",            hasstakingreward,          },
         { "avalanche",         setstakingreward,          },
         { "avalanche",         getremoteproofs,           },
         { "avalanche",         getrawavalancheproof,      },

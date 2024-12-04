@@ -13,6 +13,7 @@ from test_framework.messages import (
     AvalancheProofVoteResponse,
     AvalancheVote,
     AvalancheVoteError,
+    CBlockHeader,
     CTxOut,
     ToHex,
 )
@@ -96,9 +97,9 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             can_find_inv_in_poll(quorum, hash_tip_final)
             return node.isfinalblock(tip_expected)
 
-        def create_cb(payout_script, amount):
+        def create_cb(payout_script, amount, height):
             # Build a coinbase with no staking reward
-            cb = create_coinbase(node.getblockcount() + 1)
+            cb = create_coinbase(height)
             # Keep only the block reward output
             cb.vout = cb.vout[:1]
             # Change the block reward to account for the staking reward
@@ -128,7 +129,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
 
         def new_block(tip, payout_script, amount, expect_accepted=None):
             # Create a new block paying to the specified payout script
-            cb = create_cb(payout_script, amount)
+            cb = create_cb(payout_script, amount, node.getblockcount() + 1)
             block = create_block(
                 int(tip, 16), cb, node.getblock(tip)["time"] + 1, version=4
             )
@@ -219,6 +220,44 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
         assert_equal(node.getbestblockhash(), tip)
 
         # Tip should finalize
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        self.log.info("Staking rewards multiple blocks test case")
+
+        def new_unsubmitted_block(tip, payout_script, amount, height):
+            # Create a new block paying to the specified payout script
+            cb = create_cb(payout_script, amount, height)
+            block = create_block(
+                int(tip, 16), cb, node.getblockheader(tip)["time"] + 1, version=4
+            )
+            block.solve()
+
+            # Only submit the header
+            node.submitheader(CBlockHeader(block).serialize().hex())
+            return block
+
+        height = node.getblockcount()
+        out_of_order_block = new_unsubmitted_block(
+            tip, SCRIPT_UNSPENDABLE, staking_rewards_amount, height + 1
+        )
+        newtip = new_unsubmitted_block(
+            out_of_order_block.hash,
+            SCRIPT_UNSPENDABLE,
+            staking_rewards_amount,
+            height + 2,
+        )
+
+        # Submit the blocks out of order so that FindMostWorkChain selects newtip as most work
+        node.submitblock(ToHex(newtip))
+        node.submitblock(ToHex(out_of_order_block))
+        tip = newtip.hash
+
+        # Both blocks should still have staking reward winners computed
+        assert node.hasstakingreward(out_of_order_block.hash)
+        assert node.hasstakingreward(tip)
+
+        # New tip should finalize
+        assert_equal(node.getbestblockhash(), tip)
         self.wait_until(lambda: has_finalized_tip(tip))
 
 
