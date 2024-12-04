@@ -349,14 +349,7 @@ public:
         return *this;
     }
 
-    int getint() const {
-        if (m_value > std::numeric_limits<int>::max()) {
-            return std::numeric_limits<int>::max();
-        } else if (m_value < std::numeric_limits<int>::min()) {
-            return std::numeric_limits<int>::min();
-        }
-        return m_value;
-    }
+    int64_t getint() const { return m_value; }
 
     std::vector<uint8_t> getvch() const { return serialize(m_value); }
 

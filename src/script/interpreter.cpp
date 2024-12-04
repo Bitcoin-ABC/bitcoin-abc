@@ -583,9 +583,9 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                int n = CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                int64_t n = CScriptNum(stacktop(-1), fRequireMinimal).getint();
                 popstack(stack);
-                if (n < 0 || n >= (int)stack.size()) {
+                if (n < 0 || uint64_t(n) >= uint64_t(stack.size())) {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
@@ -998,7 +998,7 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                const int nKeysCount =
+                const int64_t nKeysCount =
                     CScriptNum(stacktop(-idxKeyCount), fRequireMinimal)
                         .getint();
                 if (nKeysCount < 0 || nKeysCount > MAX_PUBKEYS_PER_MULTISIG) {
@@ -1018,7 +1018,7 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                const int nSigsCount =
+                const int64_t nSigsCount =
                     CScriptNum(stacktop(-idxSigCount), fRequireMinimal)
                         .getint();
                 if (nSigsCount < 0 || nSigsCount > nKeysCount) {
