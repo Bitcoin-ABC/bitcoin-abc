@@ -35,7 +35,7 @@ const ModalTitle = styled.div`
     font-size: 20px;
     text-align: center;
     width: 100%;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
 `;
 
 const MODAL_HEIGHT_DELTA = 68;
@@ -53,7 +53,7 @@ const ModalBody = styled.div`
     ${CashtabScroll}
 `;
 const ModalDescription = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 16px;
     margin: 12px 0;
     text-align: center;
@@ -90,8 +90,7 @@ const ModalConfirm = styled(ModalBaseButton)`
         props.disabled
             ? props.theme.buttons.disabled.color
             : props.theme.buttons.primary.color};
-    border: 1px solid
-        ${props => (props.disabled ? 'none' : props.theme.eCashBlue)};
+    border: 1px solid ${props => (props.disabled ? 'none' : props.theme.accent)};
     ${props =>
         props.disabled
             ? `background: ${props.theme.buttons.disabled.background};`
@@ -100,12 +99,12 @@ const ModalConfirm = styled(ModalBaseButton)`
 `;
 const ModalCancel = styled(ModalBaseButton)`
     color: ${props => props.theme.buttons.primary.color};
-    border: 1px solid ${props => props.theme.eCashPurple};
+    border: 1px solid ${props => props.theme.secondaryAccent};
     background-image: ${props => props.theme.buttons.secondary.backgroundImage};
     background-size: 200% auto;
     :hover {
         color: ${props => props.theme.buttons.primary.color};
-        background-color: ${props => props.theme.buttons.modal.background};
+        background-color: ${props => props.theme.secondaryAccent + '60'};
     }
 `;
 const ModalExit = styled.button`
@@ -116,11 +115,11 @@ const ModalExit = styled.button`
     top: 5px;
     background: none;
     border: none !important;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-weight: bold;
     cursor: pointer;
     :hover {
-        color: ${props => props.theme.eCashPurple};
+        color: ${props => props.theme.secondaryAccent};
     }
 `;
 

@@ -13,7 +13,7 @@ const QrCodeCtn = styled.div``;
 export const ReceiveCtn = styled.div`
     width: 100%;
     h2 {
-        color: ${props => props.theme.contrast};
+        color: ${props => props.theme.primaryText};
         margin: 0 0 20px;
         margin-top: 10px;
     }

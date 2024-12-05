@@ -26,10 +26,10 @@ const LoaderCss = css`
         position: absolute;
         width: 42px;
         height: 42px;
-        border: 3px solid ${props => props.theme.eCashBlue};
+        border: 3px solid ${props => props.theme.accent};
         border-radius: 50%;
         animation: ${rotate} 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        border-color: ${props => props.theme.eCashBlue} transparent transparent
+        border-color: ${props => props.theme.accent} transparent transparent
             transparent;
     }
     div:nth-child(1) {

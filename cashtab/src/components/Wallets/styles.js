@@ -12,7 +12,7 @@ export const WalletsList = styled.div`
     width: 100%;
     align-items: center;
     gap: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     box-sizing: border-box;
     *,
     *:before,
@@ -33,7 +33,7 @@ export const WalletsPanel = styled.div`
 export const Wallet = styled.div`
     display: flex;
     flex-direction: column;
-    border-top: 0.5px solid ${props => props.theme.separator};
+    border-top: 0.5px solid ${props => props.theme.border};
     gap: 0 12px;
     padding: 6px 0;
 `;
@@ -53,7 +53,7 @@ export const WalletName = styled.div`
 
 export const ActiveWalletName = styled(WalletName)`
     font-weight: bold;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
 `;
 
 export const SvgButtonPanel = styled.div`
@@ -77,12 +77,12 @@ export const WalletBalance = styled.div`
 
 export const ActivateButton = styled.button`
     cursor: pointer;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
     border-radius: 9px;
-    border: 2px solid ${props => props.theme.eCashBlue};
+    border: 2px solid ${props => props.theme.accent};
     background: transparent;
     :hover {
-        background-color: ${props => props.theme.eCashBlue};
-        color: ${props => props.theme.contrast};
+        background-color: ${props => props.theme.accent};
+        color: ${props => props.theme.primaryText};
     }
 `;

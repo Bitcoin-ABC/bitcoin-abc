@@ -41,8 +41,9 @@ const Finalized = styled.svg`
     stroke-width: 2;
     stroke: #fff;
     stroke-miterlimit: 10;
-    box-shadow: inset 0px 0px 0px ${props => props.theme.eCashBlue};
-    animation: ${fill} 0.4s ease-in-out 0.4s forwards,
+    box-shadow: inset 0px 0px 0px ${props => props.theme.accent};
+    animation:
+        ${fill} 0.4s ease-in-out 0.4s forwards,
         ${scale} 0.3s ease-in-out 0.9s both;
 `;
 
@@ -51,7 +52,7 @@ const Circle = styled.circle`
     stroke-dashoffset: 166;
     stroke-width: 2;
     stroke-miterlimit: 10;
-    stroke: ${props => props.theme.eCashBlue};
+    stroke: ${props => props.theme.accent};
     fill: none;
     animation: ${stroke} 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 `;

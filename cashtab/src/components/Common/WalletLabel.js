@@ -57,7 +57,7 @@ const WalletDropdown = styled.select`
     cursor: pointer;
     font-size: 18px;
     padding: 6px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     border: none;
     border-radius: 9px;
     background-color: transparent;

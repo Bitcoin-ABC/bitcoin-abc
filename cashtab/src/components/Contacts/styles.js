@@ -12,7 +12,7 @@ export const ContactList = styled.div`
     width: 100%;
     align-items: center;
     gap: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     box-sizing: border-box;
     *,
     *:before,
@@ -38,7 +38,7 @@ export const Row = styled.div`
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-    border-bottom: 0.5px solid ${props => props.theme.separator};
+    border-bottom: 0.5px solid ${props => props.theme.border};
     padding: 6px 0;
 `;
 export const ButtonRow = styled.div`

@@ -31,42 +31,11 @@ export const Tabs = styled.div`
     margin: 20px 0;
 `;
 
-export const TabLabel = styled.button`
-    :focus,
-    :active {
-        outline: none;
-    }
-    color: ${props => props.theme.lightWhite};
-    border: none;
-    background: none;
-    font-size: 18px;
-    cursor: pointer;
-    margin: 0 20px;
-    padding: 0;
-
-    @media (max-width: 400px) {
-        font-size: 16px;
-    }
-
-    ${({ active, ...props }) =>
-        active &&
-        `    
-        color: ${props.theme.contrast};
-        border-bottom: 2px solid ${props.theme.eCashBlue}   
-       
-  `}
-    ${({ token, ...props }) =>
-        token &&
-        `
-        border-color:${props.theme.eCashPurple} 
-  `}
-`;
-
 export const TxHistoryCtn = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     background-color: ${props => props.theme.primaryBackground};
     padding: 20px;
     border-radius: 10px;
@@ -79,33 +48,6 @@ export const AlertLink = styled(Link)`
     color: red;
     :hover {
         color: #000;
-    }
-`;
-
-export const ExternalLink = styled.a`
-    color: ${props => props.theme.darkBlue};
-    width: 100%;
-    font-size: 16px;
-    margin: 0 0 20px 0;
-    border: 1px solid ${props => props.theme.darkBlue};
-    padding: 14px 0;
-    display: inline-block;
-    border-radius: 3px;
-    transition: all 200ms ease-in-out;
-    svg {
-        fill: ${props => props.theme.darkBlue};
-        transition: all 200ms ease-in-out;
-    }
-    :hover {
-        color: ${props => props.theme.eCashBlue};
-        border-color: ${props => props.theme.eCashBlue};
-        svg {
-            fill: ${props => props.theme.eCashBlue};
-        }
-    }
-    @media (max-width: 768px) {
-        padding: 10px 0;
-        font-size: 14px;
     }
 `;
 

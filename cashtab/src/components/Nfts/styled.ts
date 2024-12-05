@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { token as tokenConfig } from 'config/token';
 
 export const NftsCtn = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: 100%;
     h2 {
         margin: 0 0 20px;
@@ -16,7 +16,7 @@ export const NftsCtn = styled.div`
 
 export const SubHeader = styled.div`
     width: 100%;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 24px;
     line-height: 24px;
     margin-bottom: 12px;
@@ -25,7 +25,7 @@ export const SubHeader = styled.div`
 export const OfferTitle = styled.div`
     margin-top: 12px;
     margin-bottom: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 20px;
     text-align: center;
     font-weight: bold;

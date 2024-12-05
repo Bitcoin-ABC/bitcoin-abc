@@ -11,7 +11,7 @@ export const OuterCtn = styled.div`
 `;
 
 export const TokenScreenWrapper = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: 100%;
     h2 {
         margin: 0 0 20px;
@@ -20,7 +20,7 @@ export const TokenScreenWrapper = styled.div`
 `;
 
 export const InfoModalParagraph = styled.p`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     text-align: left;
 `;
 export const DataAndQuestionButton = styled.div`
@@ -57,7 +57,7 @@ export const TokenStatsTable = styled.div`
     align-items: center;
     justify-content: center;
     width: 100%;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     gap: 12px;
     background-color: ${props => props.theme.primaryBackground};
     border-radius: 20px 20px 0 0;
@@ -110,26 +110,26 @@ export const SwitchHolder = styled.div`
     margin: 12px;
 `;
 export const TokenSentLink = styled.a`
-    color: ${props => props.theme.walletBackground};
+    color: ${props => props.theme.toastText};
     text-decoration: none;
 `;
 export const AliasAddressPreviewLabel = styled.div`
     text-align: center;
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.primaryText};
     padding-left: 1px;
     white-space: nowrap;
 `;
 
 export const ButtonDisabledMsg = styled.div`
     font-size: 14px;
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.formError};
     word-break: break-all;
 `;
 export const ButtonDisabledSpan = styled.span`
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.formError};
 `;
 export const NftTitle = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 20px;
     text-align: center;
     font-weight: bold;
@@ -142,7 +142,7 @@ export const NftTable = styled.div`
     width: 100%;
     background-color: ${props => props.theme.secondaryBackground}
     border-radius: 9px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     max-height: 220px;
     overflow: auto;
     &::-webkit-scrollbar {
@@ -151,14 +151,14 @@ export const NftTable = styled.div`
 
     &::-webkit-scrollbar-track {
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-        background-color: ${props => props.theme.eCashBlue};
+        background-color: ${props => props.theme.accent};
         border-radius: 10px;
         height: 80%;
     }
 
     &::-webkit-scrollbar-thumb {
         border-radius: 10px;
-        color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.accent};
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
     }
 `;
@@ -177,9 +177,9 @@ export const NftTokenIdAndCopyIcon = styled.div`
         height: 18px;
         :hover {
             g {
-                fill: ${props => props.theme.eCashPurple};
+                fill: ${props => props.theme.secondaryAccent};
             }
-            fill: ${props => props.theme.eCashPurple};
+            fill: ${props => props.theme.secondaryAccent};
         }
     }
 `;
@@ -196,28 +196,28 @@ export const NftNameTitle = styled.div`
     margin-top: 12px;
     font-size: 24px;
     font-weight: bold;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     word-break: break-all;
 `;
 export const NftCollectionTitle = styled.div`
     font-size: 18px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     word-break: break-all;
 `;
 
 export const ListPricePreview = styled.div`
     text-align: center;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const AgoraPreviewParagraph = styled.p`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const AgoraPreviewTable = styled.div`
     display: flex;
     flex-wrap: wrap;
     width: 100%;
     font-size: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const AgoraPreviewRow = styled.div`
     display: flex;
@@ -239,9 +239,9 @@ export const AgoraPreviewLabel = styled.div`
 `;
 
 export const NftOfferWrapper = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     border-radius: 0 0 20px 20px;
-    border: 1px solid ${props => props.theme.lightGrey};
+    border: 1px solid ${props => props.theme.border};
     border-top: none;
     div {
         margin-top: 0px;

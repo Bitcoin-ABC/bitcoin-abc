@@ -26,7 +26,7 @@ import Modal from 'components/Common/Modal';
 import Spinner from 'components/Common/Spinner';
 
 const AliasWrapper = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     margin: 12px 0;
     box-sizing: border-box;
     *,
@@ -51,7 +51,7 @@ const AltAddressHolder = styled.div`
     margin-bottom: 12px;
 `;
 const AliasHeader = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-weight: bold;
     font-size: 20px;
     margin: 12px 0;
@@ -62,17 +62,17 @@ const Panel = styled.div`
     flex-wrap: wrap;
     padding: 12px;
     width: 100%;
-    background-color: ${props => props.theme.panel};
+    background-color: ${props => props.theme.secondaryBackground};
     border-radius: 9px;
     margin-bottom: 12px;
     gap: 12px;
 `;
 const AliasTag = styled.div`
     display: flex;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     background-color: #0074c2;
     &:hover {
-        background-color: ${props => props.theme.eCashPurple};
+        background-color: ${props => props.theme.secondaryAccent};
     }
     gap: 12px;
     border-radius: 3px;
@@ -85,16 +85,16 @@ export const AliasLabel = styled.div`
 `;
 
 const AliasRegisteredLink = styled.a`
-    color: ${props => props.theme.walletBackground};
+    color: ${props => props.theme.toastText};
     text-decoration: none;
 `;
 
 export const AliasAvailable = styled.span`
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
 `;
 
 export const AliasPending = styled.span`
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.formError};
 `;
 
 export const NamespaceCtn = styled.div`
@@ -103,11 +103,11 @@ export const NamespaceCtn = styled.div`
     margin-bottom: 20px;
     overflow-wrap: break-word;
     h2 {
-        color: ${props => props.theme.contrast};
+        color: ${props => props.theme.primaryText};
         margin: 0 0 20px;
     }
     h3 {
-        color: ${props => props.theme.contrast};
+        color: ${props => props.theme.primaryText};
         margin: 0 0 10px;
     }
     white-space: pre-wrap;

@@ -10,7 +10,7 @@ const Centered = styled.div`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 
 const NotFound = () => (

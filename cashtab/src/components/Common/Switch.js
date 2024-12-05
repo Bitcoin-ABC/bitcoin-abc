@@ -33,8 +33,8 @@ const SwitchInner = styled.span`
         content: attr(data-on);
         ${props =>
             props.bgImageOn
-                ? `background: ${props.theme.eCashBlue} url(${props.bgImageOn}) 20%/contain no-repeat`
-                : `background-color: ${props.theme.eCashBlue}`};
+                ? `background: ${props.theme.accent} url(${props.bgImageOn}) 20%/contain no-repeat`
+                : `background-color: ${props.theme.accent}`};
         text-transform: uppercase;
         padding-left: 10px;
         color: #fff;

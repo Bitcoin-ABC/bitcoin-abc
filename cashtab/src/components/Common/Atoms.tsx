@@ -4,7 +4,6 @@
 
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { Link } from 'react-router-dom';
 import { CopyIconButton } from 'components/Common/Buttons';
 import { explorer } from 'config/explorer';
 
@@ -39,7 +38,7 @@ export const LoadingCtn = styled.div`
     svg {
         width: 50px;
         height: 50px;
-        fill: ${props => props.theme.eCashBlue};
+        fill: ${props => props.theme.accent};
     }
 `;
 
@@ -52,11 +51,11 @@ export const TokenParamLabel = styled.span`
 `;
 
 export const AlertMsg = styled.p`
-    color: ${props => props.theme.forms.error} !important;
+    color: ${props => props.theme.formError} !important;
 `;
 
 export const ConvertAmount = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: 100%;
     font-size: 14px;
     margin-bottom: 10px;
@@ -65,18 +64,9 @@ export const ConvertAmount = styled.div`
     }
 `;
 
-export const StyledLink = styled(Link)`
-    color: ${props => props.theme.buttons.styledLink};
-    text-decoration: none;
-    padding: 8px;
-    position: relative;
-    border: solid 1px silver;
-    border-radius: 10px;
-`;
-
 export const SwitchLabel = styled.div`
     text-align: left;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 18px;
     word-break: break-all;
 `;
@@ -92,7 +82,7 @@ export const Alert = styled.div`
 export const Info = styled.div`
     background-color: #fff2f0;
     border-radius: 12px;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
     padding: 12px;
     margin: 12px 0;
 `;
@@ -104,7 +94,6 @@ export const BlockNotificationLink = styled.a`
     display: flex;
     justify-content: flex-start;
     width: 100%;
-    color: ${props => props.theme.walletBackground};
     text-decoration: none;
 `;
 export const BlockNotificationDesc = styled.div`
@@ -122,9 +111,9 @@ export const TokenIdAndCopyIcon = styled.div`
         height: 18px;
         :hover {
             g {
-                fill: ${props => props.theme.eCashPurple};
+                fill: ${props => props.theme.secondaryAccent};
             }
-            fill: ${props => props.theme.eCashPurple};
+            fill: ${props => props.theme.secondaryAccent};
         }
     }
 `;
@@ -157,7 +146,7 @@ export const TokenIdPreview: React.FC<TokenIdPreviewProps> = ({ tokenId }) => {
 export const PageHeader = styled.h2`
     margin: 0;
     margin-top: 20px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     display: flex;
     align-items: center;
     justify-content: center;
@@ -179,9 +168,9 @@ const CopyTokenIdWrapper = styled.div`
         height: 18px;
         :hover {
             g {
-                fill: ${props => props.theme.eCashPurple};
+                fill: ${props => props.theme.secondaryAccent};
             }
-            fill: ${props => props.theme.eCashPurple};
+            fill: ${props => props.theme.secondaryAccent};
         }
     }
 `;

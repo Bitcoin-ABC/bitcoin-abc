@@ -24,14 +24,14 @@ import Switch from 'components/Common/Switch';
 import { PageHeader } from 'components/Common/Atoms';
 
 const VersionContainer = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 
 const ConfigIconWrapper = styled.div`
     svg {
         height: 42px;
         width: 42px;
-        fill: ${props => props.theme.eCashBlue};
+        fill: ${props => props.theme.accent};
     }
 `;
 const StyledConfigure = styled.div`
@@ -57,7 +57,7 @@ const HeadlineAndIcon = styled.div`
 `;
 const Headline = styled.div`
     font-size: 20px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-weight: bold;
 `;
 
@@ -72,7 +72,7 @@ const SettingsLabel = styled.div`
     text-align: left;
     display: flex;
     gap: 9px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 
 const Switches = styled.div`
@@ -85,7 +85,6 @@ const GeneralSettingsItem = styled.div`
     align-items: center;
     justify-content: center;
     gap: 12px;
-    color: ${props => props.theme.lightWhite};
 `;
 
 const Configure = () => {

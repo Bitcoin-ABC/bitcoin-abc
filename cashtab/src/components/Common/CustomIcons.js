@@ -63,14 +63,14 @@ export const TokenNotificationIcon = () => (
 );
 
 export const ThemedLinkSolid = styled(LinkSolid)`
-    fill: ${props => props.theme.contrast};
+    fill: ${props => props.theme.primaryText};
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
     width: 1.3em;
 `;
 
 export const ThemedPdfSolid = styled(Pdf)`
-    fill: ${props => props.theme.contrast};
+    fill: ${props => props.theme.primaryText};
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
     width: 1.3em;
@@ -100,9 +100,9 @@ export const SocialLink = styled.a`
     @media (hover: hover) {
         :hover {
             svg {
-                fill: ${props => props.theme.eCashPurple};
+                fill: ${props => props.theme.secondaryAccent};
                 path:not(#F) {
-                    fill: ${props => props.theme.eCashPurple};
+                    fill: ${props => props.theme.secondaryAccent};
                 }
             }
         }
@@ -118,7 +118,7 @@ export const ThemedFacebookIcon = styled(Facebook)`
 `;
 
 export const ThemedAliasOutlined = styled(User)`
-    fill: ${props => props.theme.icons.outlined} !important;
+    fill: ${props => props.theme.primaryText} !important;
     height: 12px;
     width: 12px;
 `;
@@ -133,7 +133,7 @@ export const LoadingBlock = styled.div`
     svg {
         width: 50px;
         height: 50px;
-        fill: ${props => props.theme.eCashBlue};
+        fill: ${props => props.theme.accent};
     }
 `;
 
@@ -162,9 +162,9 @@ const PaywallPaymentIconWrapper = styled.div`
     svg,
     g,
     path {
-        fill: ${props => props.theme.eCashBlue};
+        fill: ${props => props.theme.accent};
     }
-    fill: ${props => props.theme.eCashBlue};
+    fill: ${props => props.theme.accent};
 `;
 export const PaywallPaymentIcon = () => (
     <PaywallPaymentIconWrapper>
@@ -176,8 +176,8 @@ export const MintIcon = () => <Mint title="tx-mint" />;
 export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
 export const AddContactIcon = () => <AddContact title="add-contact" />;
 const TrashCanWrapper = styled.div`
-    stroke: ${props => props.theme.eCashBlue};
-    fill: ${props => props.theme.eCashBlue};
+    stroke: ${props => props.theme.accent};
+    fill: ${props => props.theme.accent};
     cursor: pointer;
 `;
 export const TrashcanIcon = () => (
@@ -186,8 +186,8 @@ export const TrashcanIcon = () => (
     </TrashCanWrapper>
 );
 const EditWrapper = styled.div`
-    stroke: ${props => props.theme.eCashBlue};
-    fill: ${props => props.theme.eCashBlue};
+    stroke: ${props => props.theme.accent};
+    fill: ${props => props.theme.accent};
     cursor: pointer;
 `;
 export const EditIcon = () => (
@@ -231,9 +231,9 @@ const GithubIconWrapper = styled.div`
     svg,
     g,
     path {
-        fill: ${props => props.theme.contrast};
+        fill: ${props => props.theme.primaryText};
     }
-    fill: ${props => props.theme.contrast};
+    fill: ${props => props.theme.primaryText};
 `;
 export const GithubIcon = () => (
     <GithubIconWrapper>

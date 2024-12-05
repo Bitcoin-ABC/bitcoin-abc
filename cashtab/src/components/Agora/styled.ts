@@ -5,7 +5,7 @@
 import styled from 'styled-components';
 
 export const ActiveOffers = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: 100%;
     h2 {
         margin: 0 0 20px;
@@ -15,7 +15,7 @@ export const ActiveOffers = styled.div`
 export const OfferTitle = styled.div`
     margin-top: 12px;
     margin-bottom: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 20px;
     text-align: center;
     font-weight: bold;

@@ -18,7 +18,7 @@ export const CollectionWrapper = styled.div<{ isCollapsed: boolean }>`
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: ${props => (props.isCollapsed ? '20%' : '100%')};
     padding: 16px;
     @media (max-width: 1600px) {
@@ -87,7 +87,7 @@ export const TitleAndIconAndCollapseArrow = styled.button`
     align-items: center;
     border: none;
     background-color: transparent;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     cursor: pointer;
 `;
 
@@ -175,7 +175,7 @@ export const ModalFlex = styled.div`
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const ModalRow = styled.div`
     display: flex;

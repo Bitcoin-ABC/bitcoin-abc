@@ -17,19 +17,19 @@ export const SwitchRow = styled.div`
 `;
 export const SwitchLabel = styled.div`
     text-align: left;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-size: 18px;
 `;
 export const EditIcon = styled.div`
     cursor: pointer;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     &:hover {
-        color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.accent};
     }
     word-wrap: break-word;
 `;
 export const TokenCreatedLink = styled.a`
-    color: ${props => props.theme.walletBackground};
+    color: ${props => props.theme.toastText};
     text-decoration: none;
 `;
 export const IconModalForm = styled.div`
@@ -44,7 +44,7 @@ export const IconModalRow = styled.div`
     gap: 3px;
 `;
 export const SliderLabel = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const SliderBox = styled.div`
     width: 100%;
@@ -54,10 +54,10 @@ export const CropperContainer = styled.div`
     position: relative;
 `;
 export const CreateTokenTitle = styled.h3`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const TokenCreationSummaryTable = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -76,7 +76,7 @@ export const TokenParam = styled.div`
 `;
 export const ButtonDisabledMsg = styled.div`
     font-size: 14px;
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.formError};
     word-break: break-all;
 `;
 export const TokenTypeDescription = styled.div`
@@ -90,7 +90,7 @@ export const TokenInfoParagraph = styled.div`
     width: 100%;
     text-align: justify;
     padding: 0 6px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 export const OuterCtn = styled.div`
     background-color: ${props => props.theme.primaryBackground};

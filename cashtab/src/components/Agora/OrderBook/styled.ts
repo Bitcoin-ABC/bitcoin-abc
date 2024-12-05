@@ -46,11 +46,11 @@ export const OfferTitleCtn = styled.div`
         margin: 0;
         font-size: 24px;
         line-height: 1.2em;
-        color: ${props => props.theme.contrast};
+        color: ${props => props.theme.primaryText};
         font-weight: 600;
         text-decoration: none;
         :hover {
-            color: ${props => props.theme.eCashBlue};
+            color: ${props => props.theme.accent};
         }
     }
 `;
@@ -91,7 +91,7 @@ export const DepthBarCol = styled.div`
 export const OrderBookRow = styled.button<{ selected: boolean }>`
     color: ${props =>
         props.selected
-            ? `${props.theme.contrast}!important`
+            ? `${props.theme.primaryText}!important`
             : 'rgba(255, 255, 255, 0.6)'};
     font-weight: ${props => (props.selected ? '600' : '400')};
     height: 32px !important;
@@ -125,7 +125,6 @@ export const DepthBar = styled.div<{ depthPercent: number }>`
     position: absolute;
     top: 0;
     right: 0;
-    background-color: ${props => props.theme.eCashBlue};
     background-color: ${props => props.theme.agoraDepthBar};
     height: 100%;
     width: ${props => props.depthPercent}%;
@@ -165,7 +164,7 @@ export const BuyOrderCtn = styled.div`
     flex-direction: column;
     word-break: break-all;
     padding: 20px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     background-color: ${props => props.theme.primaryBackground};
     border-radius: 0 0 20px 20px;
     flex-grow: 1;

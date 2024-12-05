@@ -31,8 +31,8 @@ export const Collapse = styled.div`
     cursor: pointer;
 `;
 const Incoming = css`
-    color: ${props => props.theme.eCashBlue};
-    fill: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
+    fill: ${props => props.theme.accent};
 `;
 const Genesis = css`
     color: ${props => props.theme.genesisGreen};
@@ -48,16 +48,16 @@ const Genesis = css`
     }
 `;
 const Burn = css`
-    color: ${props => props.theme.eCashPurple};
-    fill: ${props => props.theme.eCashPurple};
+    color: ${props => props.theme.secondaryAccent};
+    fill: ${props => props.theme.secondaryAccent};
     svg {
-        fill: ${props => props.theme.eCashPurple};
+        fill: ${props => props.theme.secondaryAccent};
     }
     path {
-        fill: ${props => props.theme.eCashPurple};
+        fill: ${props => props.theme.secondaryAccent};
     }
     g {
-        fill: ${props => props.theme.eCashPurple};
+        fill: ${props => props.theme.secondaryAccent};
     }
 `;
 export const MainRow = styled.div`
@@ -67,8 +67,8 @@ export const MainRow = styled.div`
     align-items: center;
     gap: 12px;
     width: 100%;
-    color: ${props => props.theme.contrast};
-    fill: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
+    fill: ${props => props.theme.primaryText};
     ${props =>
         (props.type === 'Received' ||
             props.type === 'Staking Reward' ||
@@ -101,7 +101,8 @@ export const Timestamp = styled.div`
     display: flex;
     width: 100%;
     text-align: left;
-    color: ${props => props.theme.lightWhite};
+    font-size: 14px;
+    color: ${props => props.theme.secondaryText};
 `;
 export const AmountCol = styled.div`
     flex-direction: row;
@@ -116,7 +117,7 @@ export const AmountTop = styled.div`
 export const AmountBottom = styled.div`
     display: flex;
     width: 100%;
-    color: ${props => props.theme.lightWhite};
+    color: ${props => props.theme.secondaryText};
     justify-content: flex-end;
 `;
 export const CashtabMsg = styled.div`
@@ -140,13 +141,13 @@ export const Expand = styled.div`
     svg {
         height: 33px;
         width: 33px;
-        fill: ${props => props.theme.contrast};
+        fill: ${props => props.theme.primaryText};
     }
     path {
-        fill: ${props => props.theme.contrast};
+        fill: ${props => props.theme.primaryText};
     }
     g {
-        fill: ${props => props.theme.contrast};
+        fill: ${props => props.theme.primaryText};
     }
 `;
 export const ExpandAvalancheWrapper = styled.div`
@@ -155,7 +156,7 @@ export const ExpandAvalancheWrapper = styled.div`
     align-items: center;
 `;
 export const ExpandAvalancheLabel = styled.div`
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
     font-style: italic;
 `;
 export const ExpandButtonPanel = styled.div`

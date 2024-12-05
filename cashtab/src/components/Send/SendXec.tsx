@@ -101,25 +101,25 @@ const SwitchAndLabel = styled.div`
     gap: 12px;
 `;
 const SwitchLabel = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 const SwitchContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.primaryText};
     white-space: nowrap;
     margin: 12px 0;
 `;
 
 const SentLink = styled.a`
-    color: ${props => props.theme.walletBackground};
+    color: ${props => props.theme.toastText};
     text-decoration: none;
 `;
 
 const AliasAddressPreviewLabel = styled.div`
     text-align: center;
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.primaryText};
     padding-left: 1px;
     white-space: nowrap;
 `;
@@ -136,20 +136,20 @@ const ParsedBip21InfoRow = styled.div`
     word-break: break-word;
 `;
 const ParsedBip21InfoLabel = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     text-align: left;
     width: 100%;
 `;
 const ParsedBip21Info = styled.div`
     background-color: #fff2f0;
     border-radius: 12px;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
     padding: 12px;
     text-align: left;
 `;
 
 const LocaleFormattedValue = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     font-weight: bold;
     font-size: 1.17em;
     margin-bottom: 0;
@@ -197,7 +197,7 @@ const ParsedTokenSend = styled.div`
     gap: 12px;
     background-color: #fff2f0;
     border-radius: 12px;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
     padding: 12px;
     text-align: left;
 `;
@@ -665,14 +665,14 @@ const SendXec: React.FC = () => {
                 type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
                     ? getNftChildSendTargetOutputs(tokenId as string, address)
                     : type === 'ALP_TOKEN_TYPE_STANDARD'
-                    ? getAlpSendTargetOutputs(
-                          tokenInputInfo as TokenInputInfo,
-                          address,
-                      )
-                    : getSlpSendTargetOutputs(
-                          tokenInputInfo as TokenInputInfo,
-                          address,
-                      );
+                      ? getAlpSendTargetOutputs(
+                            tokenInputInfo as TokenInputInfo,
+                            address,
+                        )
+                      : getSlpSendTargetOutputs(
+                            tokenInputInfo as TokenInputInfo,
+                            address,
+                        );
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,

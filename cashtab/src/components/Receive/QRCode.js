@@ -12,13 +12,10 @@ import appConfig from 'config/app';
 export const CustomQRCode = styled(QRCodeSVG)`
     cursor: pointer;
     border-radius: 10px;
-    background: ${props => props.theme.qr.background};
+    background: ${props => props.theme.qrBackground};
     margin: 12px;
     path:first-child {
-        fill: ${props => props.theme.qr.background};
-    }
-    :hover {
-        border-color: ${props => props.theme.qr.eCashBlue};
+        fill: ${props => props.theme.qrBackground};
     }
     @media (max-width: 768px) {
         border-radius: 18px;
@@ -31,17 +28,17 @@ const Copied = styled.div`
     font-weight: bold;
     width: 100%;
     text-align: center;
-    background-color: ${props => props.theme.eCashBlue};
+    background-color: ${props => props.theme.accent};
     border: 1px solid;
-    border-color: ${props => props.theme.eCashBlue};
-    color: ${props => props.theme.contrast};
+    border-color: ${props => props.theme.accent};
+    color: ${props => props.theme.primaryText};
     position: absolute;
     top: 65px;
     padding: 30px 0;
 `;
 const PrefixLabel = styled.span`
     text-align: right;
-    color: ${props => props.theme.eCashBlue};
+    color: ${props => props.theme.accent};
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -50,7 +47,7 @@ const PrefixLabel = styled.span`
     user-select: none;
 `;
 const AddressHighlightTrim = styled.span`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -63,7 +60,7 @@ const ReceiveAddressHolder = styled.div`
     width: 100%;
     font-size: 30px;
     font-weight: bold;
-    color: ${props => props.theme.lightWhite};
+    color: ${props => props.theme.secondaryText};
     text-align: center;
     cursor: pointer;
     margin-bottom: 10px;
@@ -86,7 +83,7 @@ const ReceiveAddressHolder = styled.div`
         -ms-user-select: none;
         user-select: none;
         cursor: pointer;
-        color: ${props => props.theme.contrast};
+        color: ${props => props.theme.primaryText};
         padding: 10px 0;
         background: transparent;
         margin-bottom: 15px;
@@ -97,7 +94,7 @@ const ReceiveAddressHolder = styled.div`
     }
     input::selection {
         background: transparent;
-        color: ${props => props.theme.contrast};
+        color: ${props => props.theme.primaryText};
     }
 `;
 

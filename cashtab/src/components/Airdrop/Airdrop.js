@@ -39,7 +39,7 @@ const FormRow = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 const SwitchHolder = styled.div`
     display: flex;

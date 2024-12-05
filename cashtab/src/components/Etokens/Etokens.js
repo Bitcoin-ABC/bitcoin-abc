@@ -15,7 +15,7 @@ import { Input } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 
 const EtokensCtn = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: 100%;
     background-color: ${props => props.theme.primaryBackground};
     padding: 20px;

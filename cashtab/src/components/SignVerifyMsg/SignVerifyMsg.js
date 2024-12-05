@@ -37,14 +37,14 @@ const Row = styled.div`
 `;
 const SignatureLabel = styled.div`
     font-size: 18px;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     text-align: left;
     font-weight: bold;
     width: 100%;
 `;
 const SignatureHolder = styled.code`
     width: 100%;
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     word-break: break-all;
 `;
 

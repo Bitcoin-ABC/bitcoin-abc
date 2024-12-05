@@ -27,13 +27,13 @@ const InputRow = styled.div<{ invalid?: boolean }>`
     select {
         border: ${props =>
             props.invalid
-                ? `1px solid ${props.theme.forms.error}`
-                : `1px solid ${props.theme.forms.border}`};
+                ? `1px solid ${props.theme.formError}`
+                : `1px solid ${props.theme.border}`};
     }
     button,
     select {
         color: ${props =>
-            props.invalid ? props.theme.forms.error : props.theme.contrast};
+            props.invalid ? props.theme.formError : props.theme.primaryText};
     }
 `;
 
@@ -44,19 +44,19 @@ const CashtabInput = styled.input<{ invalid?: boolean }>`
     padding: 16px 12px;
     border-radius: 9px;
     width: 100%;
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.primaryText};
     :focus-visible {
         outline: none;
     }
-    ${props => props.invalid && `border: 1px solid ${props.theme.forms.error}`};
+    ${props => props.invalid && `border: 1px solid ${props.theme.formError}`};
 `;
 
 const ModalInputField = styled(CashtabInput)<{ invalid?: boolean }>`
     background-color: transparent;
     border: ${props =>
         props.invalid
-            ? `1px solid ${props.theme.forms.error}`
-            : `1px solid ${props.theme.eCashBlue} !important`};
+            ? `1px solid ${props.theme.formError}`
+            : `1px solid ${props.theme.accent} !important`};
 `;
 
 const CashtabTextArea = styled.textarea<{ height: number }>`
@@ -65,7 +65,7 @@ const CashtabTextArea = styled.textarea<{ height: number }>`
     padding: 16px 12px;
     border-radius: 9px;
     width: 100%;
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.primaryText};
     :focus-visible {
         outline: none;
     }
@@ -77,13 +77,13 @@ const CashtabTextArea = styled.textarea<{ height: number }>`
     }
     &::-webkit-scrollbar-track {
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-        background-color: ${props => props.theme.eCashBlue};
+        background-color: ${props => props.theme.accent};
         border-radius: 10px;
         height: 80%;
     }
     &::-webkit-scrollbar-thumb {
         border-radius: 10px;
-        color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.accent};
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
     }
 `;
@@ -95,7 +95,7 @@ const LeftInput = styled(CashtabInput)`
 const OnMaxBtn = styled.button<{ invalid?: boolean }>`
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     color: ${props =>
-        props.invalid ? props.theme.forms.error : props.theme.contrast};
+        props.invalid ? props.theme.formError : props.theme.primaryText};
     border-radius: 0 9px 9px 0;
     background-color: ${props => props.theme.secondaryBackground};
     border-left: none !important;
@@ -117,7 +117,7 @@ const CurrencyDropdown = styled.select<{ invalid?: boolean }>`
     font-size: 18px;
     padding: 6px;
     color: ${props =>
-        props.invalid ? props.theme.forms.error : props.theme.primaryText};
+        props.invalid ? props.theme.formError : props.theme.primaryText};
     background-color: ${props => props.theme.secondaryBackground};
     border-color: ${props => props.theme.border};
     :focus-visible {
@@ -143,7 +143,7 @@ const CurrencyOption = styled.option`
 
 const ErrorMsg = styled.div`
     font-size: 14px;
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.formError};
     word-break: break-all;
 `;
 
@@ -225,10 +225,10 @@ export const ModalInput: React.FC<ModalInputProps> = ({
 
 const Count = styled.span<{ invalid?: boolean }>`
     color: ${props =>
-        props.invalid ? props.theme.eCashPurple : props.theme.contrast};
+        props.invalid ? props.theme.secondaryAccent : props.theme.primaryText};
 `;
 const CountHolder = styled.div`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
 `;
 const CountAndErrorFlex = styled.div`
     display: flex;
@@ -238,7 +238,7 @@ const CountAndErrorFlex = styled.div`
 const TextAreaErrorMsg = styled.div`
     order: 0;
     font-size: 14px;
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.formError};
     word-break: break-all;
 `;
 
@@ -286,8 +286,8 @@ export const TextArea: React.FC<TextAreaProps> = ({
                             {customCount !== false
                                 ? customCount
                                 : value === null
-                                ? 0
-                                : value.length}
+                                  ? 0
+                                  : value.length}
                         </Count>
                         /{max}
                     </CountHolder>
@@ -572,7 +572,7 @@ const CashtabSlider = styled.input<{
 }>`
     width: ${props => (props.fixedWidth ? '256px' : '100%')};
     accent-color: ${props =>
-        props.isInvalid ? props.theme.encryptionRed : props.theme.eCashBlue};
+        props.isInvalid ? props.theme.error : props.theme.accent};
 `;
 const SliderInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
@@ -581,15 +581,15 @@ const SliderInput = styled.input<{ invalid?: boolean }>`
     padding: 6px 3px;
     border-radius: 9px;
     border: ${props =>
-        props.invalid ? `1px solid ${props.theme.forms.error}` : `none`};
+        props.invalid ? `1px solid ${props.theme.formError}` : `none`};
     width: 100%;
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.primaryText};
     :focus-visible {
         outline: none;
     }
 `;
 export const SliderLabel = styled.span`
-    color: ${props => props.theme.contrast};
+    color: ${props => props.theme.primaryText};
     width: 50%;
     text-align: right;
     line-height: 14px;

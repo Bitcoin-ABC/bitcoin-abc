@@ -15,12 +15,12 @@ export const ExtensionFrame = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
     *::placeholder {
-        color: ${props => props.theme.forms.placeholder} !important;
+        color: ${props => props.theme.secondaryText} !important;
     }
     a {
-        color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.accent};
         &:hover {
-            color: ${props => props.theme.eCashPurple};
+            color: ${props => props.theme.secondaryAccent};
             text-decoration: none;
         }
     }
@@ -105,7 +105,7 @@ export const Footer = styled.div`
         flex-direction: row;
         bottom: 0;
         overflow: visible;
-        box-shadow: 0px 0px 24px 1px ${props => props.theme.accentTransparent};
+        box-shadow: 0px 0px 24px 1px ${props => props.theme.menuGlow};
         border-right: none;
     }
 `;
