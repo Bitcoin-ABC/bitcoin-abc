@@ -1,6 +1,6 @@
 # Copyright (c) 2010 ArtForz -- public domain half-a-node
 # Copyright (c) 2012 Jeff Garzik
-# Copyright (c) 2010-2019 The Bitcoin Core developers
+# Copyright (c) 2010-present The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test objects for interacting with a bitcoind node over the p2p protocol.
@@ -297,7 +297,7 @@ class P2PConnection(asyncio.Protocol):
                 self._log_message("receive", m)
                 return m
         except Exception as e:
-            logger.exception("Error reading message:", repr(e))
+            logger.exception(f"Error reading message: {repr(e)}")
             raise
 
     def on_message(self, message):
