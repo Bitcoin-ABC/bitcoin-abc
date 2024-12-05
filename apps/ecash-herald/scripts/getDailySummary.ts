@@ -120,7 +120,8 @@ const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
         timestamp,
         timeFirstSeenTxs,
         tokenInfoMap,
-        3, // tokens to show
+        3, // agora tokens to show
+        0, // non-agora tokens to show
         priceInfo,
         activeStakers,
     );

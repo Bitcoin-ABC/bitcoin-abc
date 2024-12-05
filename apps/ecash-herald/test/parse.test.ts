@@ -364,7 +364,8 @@ describe('parse.js functions', function () {
                 mockUtcNewDayTimestampSeconds,
                 dailyTxs,
                 tokenInfoMap,
-                10, // show all tested tokens
+                10, // show all tested agora tokens
+                10, // show all tested non-agora tokens
                 {
                     usd: 0.00003487,
                     usd_market_cap: 689047177.8128564,
@@ -408,7 +409,6 @@ describe('parse.js functions', function () {
                     '<a href="https://cashtab.com/#/token/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
                     '🔊 <b><i>$0.465</i></b>\n' +
-                    '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰 ($0.465)\n' +
                     '<a href="https://cashtab.com/#/token/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
                     '\n' +
@@ -449,7 +449,8 @@ describe('parse.js functions', function () {
                 dailyTxs,
                 // we can't get any token cache info
                 new Map(),
-                10, // show all tested tokens
+                10, // show all tested agora tokens
+                10, // show all tested non-agora tokens
                 {
                     usd: 0.00003487,
                     usd_market_cap: 689047177.8128564,
@@ -493,7 +494,6 @@ describe('parse.js functions', function () {
                     '<a href="https://cashtab.com/#/token/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">01d...896</a>: 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
                     '🔊 <b><i>$0.465</i></b>\n' +
-                    '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">78e...e2c</a>: 💰 ($0.465)\n' +
                     '<a href="https://cashtab.com/#/token/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">0fb...316</a>: 🏷❌\n' +
                     '\n' +
@@ -533,7 +533,8 @@ describe('parse.js functions', function () {
                 mockUtcNewDayTimestampSeconds,
                 dailyTxs,
                 tokenInfoMap,
-                10, // show all tested tokens
+                10, // show all tested agora tokens
+                10, // show all tested non-agora tokens
             ),
             [
                 '<b>15 Oct 2024</b>\n' +
@@ -565,7 +566,6 @@ describe('parse.js functions', function () {
                     '<a href="https://cashtab.com/#/token/01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896">Bull</a> (BULL): 🏷\n' +
                     '\n🏛🖼 <b><i>3 Agora NFT txs from 2 NFTs in 2 collections</i></b>\n' +
                     '🔊 <b><i>13k XEC</i></b>\n' +
-                    '💰Buy, 🏷List, ❌Cancel\n' +
                     '<a href="https://cashtab.com/#/token/78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c">xolosArmyPOP</a> (RMZPOP): 💰 (13k XEC)\n' +
                     '<a href="https://cashtab.com/#/token/0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316">Flags</a> (FLAGS): 🏷❌\n' +
                     '\n' +

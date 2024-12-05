@@ -2301,7 +2301,8 @@ export const initializeOrIncrementTokenData = (
  * @param now unix timestamp in seconds
  * @param txs array of CONFIRMED Txs
  * @param tokenInfoMap tokenId => genesisInfo
- * @param tokensToShow how many tokens to render, useful for showing more or less info
+ * @param agoraTokensMaxRender how many agora tokens to render, useful for showing more or less info
+ * @param nonAgoraTokensMaxRender same for non-agora token actions. this info is less interesting in the summary.
  * @param priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
  * @param activeStakers
  */
@@ -2309,7 +2310,8 @@ export const summarizeTxHistory = (
     now: number,
     txs: Tx[],
     tokenInfoMap: false | Map<string, GenesisInfo>,
-    tokensToShow: number,
+    agoraTokensMaxRender: number,
+    nonAgoraTokensMaxRender: number,
     priceInfo?: PriceInfo,
     activeStakers?: CoinDanceStaker[],
 ): string[] => {
@@ -3415,17 +3417,18 @@ export const summarizeTxHistory = (
             );
         }
 
-        const AGORA_TOKENS_TO_SHOW = tokensToShow;
-
         // Handle case where we do not see as many agora tokens as our max
         const agoraTokensToShow =
-            agoraTokenCount < AGORA_TOKENS_TO_SHOW
+            agoraTokenCount < agoraTokensMaxRender
                 ? agoraTokenCount
-                : AGORA_TOKENS_TO_SHOW;
+                : agoraTokensMaxRender;
         const newsworthyAgoraTokens = agoraTokens.slice(0, agoraTokensToShow);
 
-        if (agoraTokenCount > AGORA_TOKENS_TO_SHOW) {
-            tgMsg.push(`<u>Top ${AGORA_TOKENS_TO_SHOW}</u>`);
+        if (
+            agoraTokenCount > agoraTokensMaxRender &&
+            agoraTokensMaxRender !== 0
+        ) {
+            tgMsg.push(`<u>Top ${agoraTokensMaxRender}</u>`);
         }
 
         // Emoji key
@@ -3552,11 +3555,6 @@ export const summarizeTxHistory = (
             tgMsg.push(`<u>Top ${AGORA_COLLECTIONS_TO_SHOW}</u>`);
         }
 
-        // Repeat emoji key
-        tgMsg.push(
-            `${config.emojis.agoraBuy}Buy, ${config.emojis.agoraList}List, ${config.emojis.agoraCancel}Cancel`,
-        );
-
         for (let i = 0; i < newsworthyAgoraCollections.length; i += 1) {
             const tokenId = newsworthyAgoraCollections[i];
             const tokenActionInfo = sortedNftAgoraActions.get(tokenId);
@@ -3634,15 +3632,17 @@ export const summarizeTxHistory = (
             }</i></b>`,
         );
 
-        const NON_AGORA_TOKENS_TO_SHOW = tokensToShow;
         const nonAgoraTokensToShow =
-            nonAgoraTokenCount < NON_AGORA_TOKENS_TO_SHOW
+            nonAgoraTokenCount < nonAgoraTokensMaxRender
                 ? nonAgoraTokenCount
-                : NON_AGORA_TOKENS_TO_SHOW;
+                : nonAgoraTokensMaxRender;
         const newsworthyTokens = nonAgoraTokens.slice(0, nonAgoraTokensToShow);
 
-        if (nonAgoraTokenCount > NON_AGORA_TOKENS_TO_SHOW) {
-            tgMsg.push(`<u>Top ${NON_AGORA_TOKENS_TO_SHOW}</u>`);
+        if (
+            nonAgoraTokenCount > nonAgoraTokensMaxRender &&
+            nonAgoraTokensMaxRender !== 0
+        ) {
+            tgMsg.push(`<u>Top ${nonAgoraTokensMaxRender}</u>`);
         }
 
         for (let i = 0; i < newsworthyTokens.length; i += 1) {
@@ -3656,7 +3656,9 @@ export const summarizeTxHistory = (
             const isAlp =
                 tokenTypeMap.get(tokenId) === 'ALP_TOKEN_TYPE_STANDARD';
             tgMsg.push(
-                `${isAlp ? config.emojis.alp : ''}<a href="${config.tokenLandingBase}/${tokenId}">${
+                `${isAlp ? config.emojis.alp : ''}<a href="${
+                    config.tokenLandingBase
+                }/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
                         : genesisInfo.tokenName
@@ -3692,8 +3694,10 @@ export const summarizeTxHistory = (
             );
         }
 
-        // Line break for new section
-        tgMsg.push('');
+        if (nonAgoraTokensMaxRender > 0) {
+            // Line break for new section if not rendered as a one-liner
+            tgMsg.push('');
+        }
     }
 
     // NFT summary
@@ -3727,20 +3731,20 @@ export const summarizeTxHistory = (
             }</i></b>`,
         );
 
-        const NON_AGORA_COLLECTIONS_TO_SHOW = tokensToShow;
         const nonAgoraCollectionsToShow =
-            collectionsWithNonAgoraActionsCount < NON_AGORA_COLLECTIONS_TO_SHOW
+            collectionsWithNonAgoraActionsCount < nonAgoraTokensMaxRender
                 ? collectionsWithNonAgoraActionsCount
-                : NON_AGORA_COLLECTIONS_TO_SHOW;
+                : nonAgoraTokensMaxRender;
         const newsworthyCollections = collectionsWithNonAgoraActions.slice(
             0,
             nonAgoraCollectionsToShow,
         );
 
         if (
-            collectionsWithNonAgoraActionsCount > NON_AGORA_COLLECTIONS_TO_SHOW
+            collectionsWithNonAgoraActionsCount > nonAgoraTokensMaxRender &&
+            nonAgoraTokensMaxRender !== 0
         ) {
-            tgMsg.push(`<u>Top ${NON_AGORA_COLLECTIONS_TO_SHOW}</u>`);
+            tgMsg.push(`<u>Top ${nonAgoraTokensMaxRender}</u>`);
         }
 
         for (let i = 0; i < newsworthyCollections.length; i += 1) {
@@ -3789,8 +3793,10 @@ export const summarizeTxHistory = (
                 }`,
             );
         }
-        // Line break for new section
-        tgMsg.push('');
+        if (nonAgoraTokensMaxRender > 0) {
+            // Line break for new section if not rendered as a one-liner
+            tgMsg.push('');
+        }
     }
 
     // Genesis and mints token summary

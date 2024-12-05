@@ -372,12 +372,14 @@ export const handleUtcMidnight = async (
         // Do not include this info in the tg msg
     }
 
-    const TOKENS_TO_SHOW_PROD = 3;
+    const AGORA_TOKENS_MAX_RENDER = 3;
+    const NON_AGORA_TOKENS_MAX_RENDER = 0;
     const dailySummaryTgMsgs = summarizeTxHistory(
         newDayTimestamp,
         timeFirstSeenTxs,
         tokenInfoMap,
-        TOKENS_TO_SHOW_PROD,
+        AGORA_TOKENS_MAX_RENDER,
+        NON_AGORA_TOKENS_MAX_RENDER,
         priceInfo,
         activeStakers,
     );
