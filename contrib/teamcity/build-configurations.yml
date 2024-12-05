@@ -425,6 +425,18 @@ builds:
     artifacts:
       doc/*: doc
 
+  build-explorer:
+    runOnDiffRegex:
+      - web/explorer/
+      - Cargo.lock
+      - Cargo.toml
+    script: |
+      # Build the main explorer project, will run on all sub dir
+      pushd "${TOPLEVEL}/web/explorer"
+      cargo build --locked
+      cargo test
+    timeout: 1200
+
   build-fuzzer:
     runOnDiffRegex:
       - src/test/fuzz/

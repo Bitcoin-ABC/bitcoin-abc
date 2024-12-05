@@ -10,6 +10,6 @@ COPY web/explorer .
 WORKDIR /usr/src/explorer/explorer-exe
 RUN mv config.dist.toml config.toml
 
-RUN cargo build --release
+RUN cargo build --release --locked
 
 CMD ["cargo", "run", "--release", "--locked"]
