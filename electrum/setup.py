@@ -43,9 +43,6 @@ def load_module(module_path):
 version = load_module(os.path.join(ELECTRUM_ROOT, "electrumabc", "version.py"))
 constants = load_module(os.path.join(ELECTRUM_ROOT, "electrumabc", "constants.py"))
 
-if sys.version_info[:3] < (3, 7):
-    sys.exit(f"Error: {constants.PROJECT_NAME} requires Python version >= 3.7...")
-
 data_files = []
 
 if platform.system() in ["Linux", "FreeBSD", "DragonFly"]:
@@ -173,6 +170,7 @@ setup(
         "gui": requirements_binaries,
         "all": requirements_hw + requirements_binaries,
     },
+    python_requires=">=3.9",
     packages=[
         "electrumabc",
         "electrumabc.avalanche",
@@ -232,11 +230,7 @@ setup(
         "Operating System :: POSIX",
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3",
         "Topic :: Security :: Cryptography",
         "Topic :: Office/Business :: Financial",
     ],
