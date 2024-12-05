@@ -261,8 +261,8 @@ class TrezorPlugin(HWPluginBase):
         if (
             method == TIM_RECOVER
             and recovery_type == RECOVERY_TYPE_SCRAMBLED_WORDS
-            and model != "T"
-        ):  # I'm pretty sure this only applies to the '1' not the 'T'
+            and model == "1"  # This only applies to the model '1'
+        ):
             handler.show_error(
                 _(
                     "You will be asked to enter 24 words regardless of your "

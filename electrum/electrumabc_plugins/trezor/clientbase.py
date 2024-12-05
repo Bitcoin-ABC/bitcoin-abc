@@ -223,7 +223,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         return self.client.version >= self.plugin.minimum_firmware
 
     def get_trezor_model(self):
-        """Returns '1' for Trezor One, 'T' for Trezor T."""
+        """Returns '1' for Trezor One, 'T' for Trezor T, etc."""
         return self.features.model
 
     def device_model_name(self):
@@ -232,6 +232,10 @@ class TrezorClientBase(HardwareClientBase, PrintError):
             return "Trezor One"
         elif model == "T":
             return "Trezor T"
+        elif model == "Safe 3":
+            return "Safe 3"
+        elif model == "Safe 5":
+            return "Safe 5"
         return None
 
     def show_address(self, address_str, script_type, multisig=None):
