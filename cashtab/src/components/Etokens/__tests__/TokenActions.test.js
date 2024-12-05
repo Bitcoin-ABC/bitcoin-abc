@@ -972,7 +972,7 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(listButton);
 
         // We see expected confirmation modal to list the NFT
-        expect(screen.getByText(/List GC for \$5 USD/)).toBeInTheDocument();
+        expect(screen.getByText(/List GC for \$ 5 USD/)).toBeInTheDocument();
 
         // We can cancel and not list the NFT
         await userEvent.click(screen.getByText('Cancel'));

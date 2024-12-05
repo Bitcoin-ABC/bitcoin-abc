@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { WalletContext, isWalletContextLoaded } from 'wallet/context';
+import { WalletContext } from 'wallet/context';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import PrimaryButton from 'components/Common/Buttons';
@@ -34,6 +34,7 @@ import {
     TxLink,
     Info,
 } from 'components/Common/Atoms';
+import { getWalletState } from 'utils/cashMethods';
 import {
     sendXec,
     getMultisendTargetOutputs,
@@ -234,11 +235,7 @@ interface CashtabTxInfo {
     parseAllAsBip21?: boolean;
 }
 const SendXec: React.FC = () => {
-    const ContextValue = useContext(WalletContext);
-    if (!isWalletContextLoaded(ContextValue)) {
-        // Confirm we have all context required to load the page
-        return null;
-    }
+    const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
     const {
         chaintipBlockheight,
@@ -250,8 +247,9 @@ const SendXec: React.FC = () => {
         ecc,
     } = ContextValue;
     const { settings, wallets, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
-    const { balanceSats, tokens } = wallet.state;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const walletState = getWalletState(wallet);
+    const { balanceSats, tokens } = walletState;
 
     const [isOneToManyXECSend, setIsOneToManyXECSend] =
         useState<boolean>(false);
@@ -784,7 +782,7 @@ const SendXec: React.FC = () => {
             const satoshisToSend =
                 selectedCurrency === 'XEC'
                     ? toSatoshis(parseFloat(formData.amount))
-                    : fiatToSatoshis(formData.amount, fiatPrice as number);
+                    : fiatToSatoshis(formData.amount, fiatPrice);
 
             targetOutputs.push({
                 script: Script.fromAddress(cleanAddress),
@@ -1045,7 +1043,7 @@ const SendXec: React.FC = () => {
             balanceSats,
             userLocale,
             selectedCurrency,
-            fiatPrice as number,
+            fiatPrice,
         );
 
         setSendAmountError(

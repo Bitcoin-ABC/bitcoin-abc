@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { WalletContext, isWalletContextLoaded } from 'wallet/context';
+import { WalletContext } from 'wallet/context';
 import PrimaryButton, {
     SecondaryButton,
     IconButton,
@@ -14,6 +14,7 @@ import { TxLink, SwitchLabel, Info, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Event } from 'components/Common/GoogleAnalytics';
+import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import {
     isValidTokenSendOrBurnAmount,
@@ -69,8 +70,6 @@ import {
     xecToNanoSatoshis,
     TokenUtxo,
     SlpDecimals,
-    CashtabPathInfo,
-    ScriptUtxoWithToken,
 } from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
@@ -153,11 +152,6 @@ import Collection, {
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
 const Token: React.FC = () => {
-    const ContextValue = useContext(WalletContext);
-    if (!isWalletContextLoaded(ContextValue)) {
-        // Confirm we have all context required to load the page
-        return null;
-    }
     const {
         apiError,
         cashtabState,
@@ -167,22 +161,28 @@ const Token: React.FC = () => {
         ecc,
         chaintipBlockheight,
         fiatPrice,
-    } = ContextValue;
+    } = useContext(WalletContext);
     const { settings, wallets, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     // We get sk/pk/hash when wallet changes
-    const { sk, pk, address } = wallet.paths.get(
-        appConfig.derivationPath,
-    ) as CashtabPathInfo;
-    const changeScript = Script.fromAddress(address);
-    const { tokens, balanceSats } = wallet.state;
+    const sk =
+        wallet === false
+            ? false
+            : wallet.paths.get(appConfig.derivationPath).sk;
+    const pk =
+        wallet === false
+            ? false
+            : wallet.paths.get(appConfig.derivationPath).pk;
+    const changeScript =
+        wallet === false
+            ? false
+            : Script.p2pkh(
+                  fromHex(wallet.paths.get(appConfig.derivationPath).hash),
+              );
+    const walletState = getWalletState(wallet);
+    const { tokens, balanceSats } = walletState;
 
     const { tokenId } = useParams();
-
-    if (typeof tokenId === 'undefined') {
-        // We can't render this component without tokenId, any tokenId
-        return null;
-    }
 
     const validTokenId = isValidTokenId(tokenId);
 
@@ -470,7 +470,7 @@ const Token: React.FC = () => {
             : getFormattedFiatPrice(
                   settings,
                   userLocale,
-                  parseFloat(formData.tokenListPrice) / (fiatPrice as number), // NB for selectedCurrency to be fiat fiatPrice is not null
+                  parseFloat(formData.tokenListPrice) / fiatPrice,
                   null,
               );
     };
@@ -513,7 +513,7 @@ const Token: React.FC = () => {
               } ${selectedCurrency.toUpperCase()} (${getFormattedFiatPrice(
                   settings,
                   userLocale,
-                  parseFloat(inputPrice) / (fiatPrice as number),
+                  parseFloat(inputPrice) / fiatPrice,
                   null,
               )}) per token`;
     };
@@ -547,8 +547,7 @@ const Token: React.FC = () => {
             let undecimalizedBigIntCirculatingSupply = 0n;
             let mintBatons = 0;
             for (const utxo of tokenUtxos.utxos) {
-                // getting utxos by tokenId returns only token utxos
-                const { token } = utxo as ScriptUtxoWithToken;
+                const { token } = utxo;
                 const { amount, isMintBaton } = token;
                 undecimalizedBigIntCirculatingSupply += BigInt(amount);
                 if (isMintBaton) {
@@ -632,8 +631,7 @@ const Token: React.FC = () => {
         try {
             const thisNftOffer = await agora.activeOffersByTokenId(tokenId);
             // Note we only expect an array of length 0 or 1 here
-            // We only call this function on NFTs so we only expect OneshotOffer[]
-            setNftActiveOffer(thisNftOffer as OneshotOffer[]);
+            setNftActiveOffer(thisNftOffer);
         } catch (err) {
             console.error(
                 `Error querying agora.activeOffersByTokenId(${tokenId})`,
@@ -757,7 +755,7 @@ const Token: React.FC = () => {
 
     async function sendToken() {
         // GA event
-        Event('SendToken.js', 'Send', tokenId as string);
+        Event('SendToken.js', 'Send', tokenId);
 
         const { address, amount } = formData;
 
@@ -898,7 +896,7 @@ const Token: React.FC = () => {
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             amount,
-            tokenBalance as string, // we do not render the slide without tokenBalance
+            tokenBalance,
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
@@ -916,7 +914,7 @@ const Token: React.FC = () => {
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             amount,
-            tokenBalance as string, // we do not render the slide without tokenBalance
+            tokenBalance,
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
@@ -949,7 +947,7 @@ const Token: React.FC = () => {
         const { value, name } = e.target;
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
-            tokenBalance as string, // we do not render token actions without tokenBalance
+            tokenBalance,
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
@@ -1038,9 +1036,11 @@ const Token: React.FC = () => {
         // Clear this error before updating field
         setSendTokenAmountError(false);
         try {
+            const amount = tokenBalance;
+
             setFormData({
                 ...formData,
-                amount: tokenBalance as string, // we do not render token actions without tokenBalance
+                amount,
             });
         } catch (err) {
             console.error(`Error in onMax:`);
@@ -1086,7 +1086,7 @@ const Token: React.FC = () => {
         const { name, value } = e.target;
         const isValidBurnAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             value,
-            tokenBalance as string, // we do not render token actions without tokenBalance
+            tokenBalance,
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
@@ -1136,7 +1136,7 @@ const Token: React.FC = () => {
             return;
         }
 
-        Event('SendToken.js', 'Burn eToken', tokenId as string);
+        Event('SendToken.js', 'Burn eToken', tokenId);
 
         try {
             // Get input utxos for slpv1 burn tx
@@ -1200,7 +1200,7 @@ const Token: React.FC = () => {
     }
 
     async function handleMint() {
-        Event('SendToken.js', 'Mint eToken', tokenId as string);
+        Event('SendToken.js', 'Mint eToken', tokenId);
 
         // We only use 1 mint baton
         const mintBaton = mintBatons[0];
@@ -1348,7 +1348,7 @@ const Token: React.FC = () => {
                       parseFloat(
                           (
                               parseFloat(formData.nftListPrice as string) /
-                              (fiatPrice as number)
+                              fiatPrice
                           ).toFixed(2),
                       ),
                   );
@@ -1378,13 +1378,7 @@ const Token: React.FC = () => {
             {
                 value: listPriceSatoshis,
                 script: Script.p2pkh(
-                    fromHex(
-                        (
-                            wallet.paths.get(
-                                appConfig.derivationPath,
-                            ) as CashtabPathInfo
-                        ).hash,
-                    ),
+                    fromHex(wallet.paths.get(appConfig.derivationPath).hash),
                 ),
             },
         ];
@@ -1560,7 +1554,7 @@ const Token: React.FC = () => {
                 : new BN(
                       new BN(
                           parseFloat(formData.tokenListPrice as string) /
-                              (fiatPrice as number),
+                              fiatPrice,
                       ).toFixed(NANOSAT_DECIMALS),
                   );
         const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceInXec);
@@ -1635,6 +1629,11 @@ const Token: React.FC = () => {
         if (typeof tokenId !== 'string') {
             // Should never happen
             toast.error(`Error listing ALP partial: tokenId is undefined`);
+            return;
+        }
+        if (changeScript === false) {
+            // Should never happen
+            toast.error(`Error listing ALP partial: wallet is not loaded`);
             return;
         }
 
@@ -2073,16 +2072,38 @@ const Token: React.FC = () => {
                                         ? `${parseFloat(
                                               formData.nftListPrice,
                                           ).toLocaleString(userLocale)}
-                                                        XEC ${getFormattedFiatPrice(
-                                                            settings,
-                                                            userLocale,
-                                                            formData.nftListPrice,
-                                                            fiatPrice,
-                                                        )}?`
+                                                        XEC (${
+                                                            settings
+                                                                ? `${
+                                                                      supportedFiatCurrencies[
+                                                                          settings
+                                                                              .fiatCurrency
+                                                                      ].symbol
+                                                                  } `
+                                                                : '$ '
+                                                        }${(
+                                              parseFloat(
+                                                  formData.nftListPrice,
+                                              ) * fiatPrice
+                                          ).toLocaleString(userLocale, {
+                                              minimumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                              maximumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                          })} ${
+                                              settings && settings.fiatCurrency
+                                                  ? settings.fiatCurrency.toUpperCase()
+                                                  : 'USD'
+                                          })?`
                                         : `${
-                                              supportedFiatCurrencies[
-                                                  settings.fiatCurrency
-                                              ].symbol
+                                              settings
+                                                  ? `${
+                                                        supportedFiatCurrencies[
+                                                            settings
+                                                                .fiatCurrency
+                                                        ].symbol
+                                                    } `
+                                                  : '$ '
                                           }${parseFloat(
                                               formData.nftListPrice,
                                           ).toLocaleString(userLocale)} ${
@@ -2092,7 +2113,7 @@ const Token: React.FC = () => {
                                           } (${(
                                               parseFloat(
                                                   formData.nftListPrice,
-                                              ) / (fiatPrice as number)
+                                              ) / fiatPrice
                                           ).toLocaleString(userLocale, {
                                               minimumFractionDigits:
                                                   appConfig.cashDecimals,
@@ -2199,10 +2220,8 @@ const Token: React.FC = () => {
                                             to={`/token/${cachedInfo.groupTokenId}`}
                                         >
                                             {
-                                                (
-                                                    cashtabCache.tokens.get(
-                                                        cachedInfo.groupTokenId,
-                                                    ) as CashtabCachedTokenInfo
+                                                cashtabCache.tokens.get(
+                                                    cachedInfo.groupTokenId,
                                                 ).genesisInfo.tokenName
                                             }
                                         </Link>
@@ -2383,6 +2402,7 @@ const Token: React.FC = () => {
                         </Alert>
                     )}
                     {isSupportedToken &&
+                        pk !== false &&
                         isBlacklisted !== null &&
                         !isBlacklisted &&
                         isNftChild && (
@@ -2422,6 +2442,7 @@ const Token: React.FC = () => {
                             </>
                         )}
                     {isSupportedToken &&
+                        pk !== false &&
                         isBlacklisted !== null &&
                         !isBlacklisted &&
                         !isNftParent &&
@@ -2513,21 +2534,29 @@ const Token: React.FC = () => {
                                     );
                                 })}
                             </NftTable>
-                            <NftTitle>Listings in this Collection</NftTitle>
-                            <Collection
-                                groupTokenId={tokenId as string}
-                                agora={agora}
-                                chronik={chronik}
-                                cashtabCache={cashtabCache}
-                                settings={settings}
-                                fiatPrice={fiatPrice}
-                                userLocale={userLocale}
-                                wallet={wallet}
-                                activePk={pk}
-                                chaintipBlockheight={chaintipBlockheight}
-                                ecc={ecc}
-                                noCollectionInfo
-                            />
+                            {pk !== false && (
+                                <>
+                                    <NftTitle>
+                                        Listings in this Collection
+                                    </NftTitle>
+                                    <Collection
+                                        groupTokenId={tokenId as string}
+                                        agora={agora}
+                                        chronik={chronik}
+                                        cashtabCache={cashtabCache}
+                                        settings={settings}
+                                        fiatPrice={fiatPrice}
+                                        userLocale={userLocale}
+                                        wallet={wallet}
+                                        activePk={pk}
+                                        chaintipBlockheight={
+                                            chaintipBlockheight
+                                        }
+                                        ecc={ecc}
+                                        noCollectionInfo
+                                    />
+                                </>
+                            )}
                         </>
                     )}
                     {apiError && <ApiError />}
@@ -2677,8 +2706,7 @@ const Token: React.FC = () => {
                                                             }}
                                                             disabled={
                                                                 apiError ||
-                                                                nftListPriceError !==
-                                                                    false ||
+                                                                nftListPriceError ||
                                                                 formData.nftListPrice ===
                                                                     ''
                                                             }
@@ -2841,8 +2869,7 @@ const Token: React.FC = () => {
                                                                 }}
                                                                 disabled={
                                                                     apiError ||
-                                                                    tokenListPriceError !==
-                                                                        false ||
+                                                                    tokenListPriceError ||
                                                                     formData.tokenListPrice ===
                                                                         '' ||
                                                                     formData.tokenListPrice ===
@@ -2958,10 +2985,8 @@ const Token: React.FC = () => {
                                                             }}
                                                             disabled={
                                                                 apiError ||
-                                                                sendTokenAmountError !==
-                                                                    false ||
-                                                                sendTokenAddressError !==
-                                                                    false ||
+                                                                sendTokenAmountError ||
+                                                                sendTokenAddressError ||
                                                                 formData.address ===
                                                                     '' ||
                                                                 (!isNftChild &&

@@ -90,7 +90,7 @@ export interface PartialOffer extends AgoraOffer {
 
 interface OrderBookProps {
     tokenId: string;
-    cachedTokenInfo: CashtabCachedTokenInfo | undefined;
+    cachedTokenInfo: CashtabCachedTokenInfo;
     settings: CashtabSettings;
     userLocale: string;
     fiatPrice: null | number;

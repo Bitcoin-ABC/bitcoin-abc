@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect, useContext } from 'react';
-import { WalletContext, isWalletContextLoaded } from 'wallet/context';
+import React, { useState, useEffect } from 'react';
+import { WalletContext } from 'wallet/context';
 import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
@@ -17,7 +17,6 @@ import OrderBook from './OrderBook';
 import { token as tokenConfig } from 'config/token';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import { DogeIcon } from 'components/Common/CustomIcons';
-import { CashtabPathInfo } from 'wallet';
 
 interface CashtabActiveOffers {
     offeredFungibleTokenIds: string[];
@@ -31,11 +30,7 @@ interface ServerBlacklistResponse {
 
 const Agora: React.FC = () => {
     const userLocale = getUserLocale(navigator);
-    const ContextValue = useContext(WalletContext);
-    if (!isWalletContextLoaded(ContextValue)) {
-        // Confirm we have all context required to load the page
-        return null;
-    }
+    const ContextValue = React.useContext(WalletContext);
     const {
         ecc,
         fiatPrice,
@@ -46,11 +41,9 @@ const Agora: React.FC = () => {
         chaintipBlockheight,
     } = ContextValue;
     const { wallets, settings, cashtabCache } = cashtabState;
-    // Note that wallets must be a non-empty array of CashtabWallet[] here, because
-    // context is loaded, and App component only renders Onboarding screen if user has no wallet
-    const wallet = wallets[0];
-    const pk = (wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo)
-        .pk;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const pk =
+        wallet === false ? null : wallet.paths.get(appConfig.derivationPath).pk;
 
     // active agora partial offers organized for rendering this screen
     const [activeOffersCashtab, setActiveOffersCashtab] =

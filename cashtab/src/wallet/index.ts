@@ -59,9 +59,6 @@ export interface StoredCashtabPathInfo {
      */
     sk: number[];
 }
-export interface ScriptUtxoWithToken extends ScriptUtxo {
-    token: Token;
-}
 export interface NonTokenUtxo extends Omit<ScriptUtxo, 'token'> {
     path: number;
 }
