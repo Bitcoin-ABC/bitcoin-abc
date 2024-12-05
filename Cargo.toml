@@ -20,6 +20,8 @@ members = [
     "modules/ecash-lib-wasm",
     "modules/ecash-secp256k1",
     "modules/ecash-secp256k1/ecash-secp256k1-sys",
+    "web/explorer/explorer-exe",
+    "web/explorer/explorer-server",
 ]
 
 [workspace.package]
