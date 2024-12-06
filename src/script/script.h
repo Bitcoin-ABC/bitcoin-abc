@@ -9,6 +9,7 @@
 #include <attributes.h>
 #include <crypto/common.h>
 #include <prevector.h>
+#include <script/intmath.h>
 #include <serialize.h>
 
 #include <cassert>
@@ -272,10 +273,18 @@ public:
     }
 
     inline CScriptNum operator+(const int64_t &rhs) const {
-        return CScriptNum(m_value + rhs);
+        int64_t result;
+        if (AddInt63Overflow(m_value, rhs, result)) {
+            throw scriptnum_error("script number overflow");
+        }
+        return CScriptNum(result);
     }
     inline CScriptNum operator-(const int64_t &rhs) const {
-        return CScriptNum(m_value - rhs);
+        int64_t result;
+        if (SubInt63Overflow(m_value, rhs, result)) {
+            throw scriptnum_error("script number overflow");
+        }
+        return CScriptNum(result);
     }
     inline CScriptNum operator+(const CScriptNum &rhs) const {
         return operator+(rhs.m_value);
@@ -327,20 +336,14 @@ public:
     }
 
     inline CScriptNum &operator+=(const int64_t &rhs) {
-        assert(
-            rhs == 0 ||
-            (rhs > 0 && m_value <= std::numeric_limits<int64_t>::max() - rhs) ||
-            (rhs < 0 && m_value >= std::numeric_limits<int64_t>::min() - rhs));
-        m_value += rhs;
+        assert(m_value != std::numeric_limits<int64_t>::min());
+        *this = *this + CScriptNum(rhs);
         return *this;
     }
 
     inline CScriptNum &operator-=(const int64_t &rhs) {
-        assert(
-            rhs == 0 ||
-            (rhs > 0 && m_value >= std::numeric_limits<int64_t>::min() + rhs) ||
-            (rhs < 0 && m_value <= std::numeric_limits<int64_t>::max() + rhs));
-        m_value -= rhs;
+        assert(m_value != std::numeric_limits<int64_t>::min());
+        *this = *this - CScriptNum(rhs);
         return *this;
     }
 

@@ -7,6 +7,7 @@
 #include <test/util/setup_common.h>
 
 #include <script/intmath.h>
+#include <script/script.h>
 
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -112,6 +113,21 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
             BOOST_CHECK_EQUAL(result, result_emulated);
         }
         BOOST_CHECK_EQUAL(had_overflow, had_overflow_emulated);
+        // Test CScriptNum + and +=
+        if (expect_overflow) {
+            BOOST_CHECK_EXCEPTION(CScriptNum(a_64) + CScriptNum(b_64),
+                                  scriptnum_error,
+                                  HasReason("script number overflow"));
+            CScriptNum lhs(a_64);
+            BOOST_CHECK_EXCEPTION(lhs += CScriptNum(b_64), scriptnum_error,
+                                  HasReason("script number overflow"));
+        } else {
+            BOOST_CHECK_EQUAL((CScriptNum(a_64) + CScriptNum(b_64)).getint(),
+                              a + b);
+            CScriptNum lhs(a_64);
+            BOOST_CHECK_EQUAL((lhs += CScriptNum(b_64)).getint(), a + b);
+            BOOST_CHECK_EQUAL(lhs.getint(), a + b);
+        }
     }
     {
         bool expect_overflow = !IsInScriptBounds(a - b);
@@ -130,6 +146,21 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
             BOOST_CHECK_EQUAL(result, result_emulated);
         }
         BOOST_CHECK_EQUAL(had_overflow, had_overflow_emulated);
+        // Test CScriptNum - and -=
+        if (expect_overflow) {
+            BOOST_CHECK_EXCEPTION(CScriptNum(a_64) - CScriptNum(b_64),
+                                  scriptnum_error,
+                                  HasReason("script number overflow"));
+            CScriptNum lhs(a_64);
+            BOOST_CHECK_EXCEPTION(lhs -= CScriptNum(b_64), scriptnum_error,
+                                  HasReason("script number overflow"));
+        } else {
+            BOOST_CHECK_EQUAL((CScriptNum(a_64) - CScriptNum(b_64)).getint(),
+                              a - b);
+            CScriptNum lhs(a_64);
+            BOOST_CHECK_EQUAL((lhs -= CScriptNum(b_64)).getint(), a - b);
+            BOOST_CHECK_EQUAL(lhs.getint(), a - b);
+        }
     }
 }
 

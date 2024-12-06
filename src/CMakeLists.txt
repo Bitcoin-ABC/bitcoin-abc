@@ -920,6 +920,7 @@ if(BUILD_CHAINSTATE)
 		scheduler.cpp
 		script/bitfield.cpp
 		script/interpreter.cpp
+		script/intmath.cpp
 		script/script.cpp
 		script/scriptcache.cpp
 		script/script_error.cpp
