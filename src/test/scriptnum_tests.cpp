@@ -32,10 +32,9 @@ static const int64_t values[] = {0,
 static const int64_t offsets[] = {1,      0x79,   0x80,   0x81,   0xFF,
                                   0x7FFF, 0x8000, 0xFFFF, 0x10000};
 
-static void CheckCreateVch(const int64_t &num) {
-    CScriptNum scriptnum(num);
-    CScriptNum scriptnum2(scriptnum.getvch(), false, MAX_SCRIPTNUM_BYTE_SIZE);
-    CScriptNum scriptnum3(scriptnum2.getvch(), false, MAX_SCRIPTNUM_BYTE_SIZE);
+static void CheckCreateVch(const int64_t &num, const size_t nMaxNumSize) {
+    // If scriptnum doesn't fit in nMaxNumSize, this will throw scriptnum_error
+    CScriptNum(CScriptNum(num).getvch(), false, nMaxNumSize);
 }
 
 static void CheckAdd(const int64_t &num1, const int64_t &num2) {
@@ -125,10 +124,23 @@ static void CheckCompare(const int64_t &num1, const int64_t &num2) {
 
 static void RunCreate(const int64_t &num) {
     CScriptNum scriptnum(num);
-    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE) {
-        CheckCreateVch(num);
+
+    // Test in 31+sign-bit context
+    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE_31_BIT) {
+        CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT);
     } else {
-        BOOST_CHECK_THROW(CheckCreateVch(num), scriptnum_error);
+        BOOST_CHECK_EXCEPTION(
+            CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT),
+            scriptnum_error, HasReason("script number overflow"));
+    }
+
+    // Test in 63+sign-bit context
+    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE_63_BIT) {
+        CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_63_BIT);
+    } else {
+        BOOST_CHECK_EXCEPTION(
+            CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_63_BIT),
+            scriptnum_error, HasReason("script number overflow"));
     }
 }
 

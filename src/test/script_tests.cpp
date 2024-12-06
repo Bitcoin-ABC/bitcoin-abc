@@ -151,7 +151,7 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
         // anything about what happens when they are flipped. Keep them as-is.
         extra_flags &=
             ~(SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_ENABLE_REPLAY_PROTECTION |
-              SCRIPT_ENABLE_SCHNORR_MULTISIG);
+              SCRIPT_ENABLE_SCHNORR_MULTISIG | SCRIPT_ENABLE_63_BIT_INTS);
         uint32_t combined_flags =
             expect ? (flags & ~extra_flags) : (flags | extra_flags);
         // Weed out invalid flag combinations.

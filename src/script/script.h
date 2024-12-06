@@ -37,7 +37,8 @@ static const int MAX_SCRIPT_SIZE = 10000;
 static const int MAX_STACK_SIZE = 1000;
 
 // Maximum byte size of integers for arithmetic opcodes when interpreting Script
-constexpr size_t MAX_SCRIPTNUM_BYTE_SIZE = 4;
+constexpr size_t MAX_SCRIPTNUM_BYTE_SIZE_31_BIT = 4;
+constexpr size_t MAX_SCRIPTNUM_BYTE_SIZE_63_BIT = 8;
 
 // Threshold for nLockTime: below this value it is interpreted as block number,
 // otherwise as UNIX timestamp. Thresold is Tue Nov 5 00:53:20 1985 UTC

@@ -713,9 +713,10 @@ static void CheckDivMod(const valtype &a, const valtype &b,
     // a % b % b = a % b
     CheckTestResultForAllFlags(
         {a, b},
-        CScript() << OP_MOD
-                  << CScriptNum(b, true, MAX_SCRIPTNUM_BYTE_SIZE).getint()
-                  << OP_MOD,
+        CScript()
+            << OP_MOD
+            << CScriptNum(b, true, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT).getint()
+            << OP_MOD,
         {modExpected});
 }
 
