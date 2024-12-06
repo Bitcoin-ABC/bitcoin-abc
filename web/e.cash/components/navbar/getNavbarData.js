@@ -12,11 +12,12 @@ export const ApiDataProvider = ({ children }) => {
         const api = 'https://avalanche.cash/api/pricebydate/XEC';
         fetch(api)
             .then(response => response.json())
-            .then(data =>
-                setPriceLinkText(
-                    `1 XEC = $${parseFloat(data.Price_in_USD).toFixed(6)}`,
-                ),
-            )
+            .then(data => {
+                const price = parseFloat(data.Price_in_USD);
+                if (!isNaN(price)) {
+                    setPriceLinkText(`1 XEC = $${price.toFixed(6)}`);
+                }
+            })
             .catch(err => console.log(err));
     };
 
