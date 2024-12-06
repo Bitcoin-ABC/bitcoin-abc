@@ -792,7 +792,9 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Now send the compact block with all transactions prefilled, and
         # verify that we don't get disconnected.
         comp_block = HeaderAndShortIDs()
-        comp_block.initialize_from_block(block, prefill_list=[0, 1, 2, 3, 4])
+        comp_block.initialize_from_block(
+            block, prefill_list=list(range(len(block.vtx)))
+        )
         msg = msg_cmpctblock(comp_block.to_p2p())
         test_node.send_and_ping(msg)
 
