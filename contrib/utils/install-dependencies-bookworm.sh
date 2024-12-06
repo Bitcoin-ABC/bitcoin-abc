@@ -64,6 +64,7 @@ PACKAGES=(
   libzmq3-dev
   lld
   make
+  nasm
   ninja-build
   nsis
   pandoc

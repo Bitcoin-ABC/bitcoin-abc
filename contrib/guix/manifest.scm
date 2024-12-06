@@ -1,4 +1,5 @@
 (use-modules (gnu packages)
+             ((gnu packages assembly) #:select (nasm))
              (gnu packages autotools)
              ((gnu packages bash) #:select (bash-minimal))
              (gnu packages bison)
@@ -592,11 +593,12 @@ inspecting signatures in Mach-O binaries.")
     (cond ((string-suffix? "-mingw32" target)
            (list
                  clang-18
-                 zip
                  (make-mingw-pthreads-cross-toolchain "x86_64-w64-mingw32")
+                 nasm
                  nsis-x86_64
                  nss-certs
-                 osslsigncode))
+                 osslsigncode
+                 zip))
           ((string-contains target "-linux-")
            (list
                  (list gcc-toolchain-12 "static")
