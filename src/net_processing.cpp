@@ -5292,8 +5292,7 @@ void PeerManagerImpl::ProcessMessage(
 
                 if (!m_chainman.IsInitialBlockDownload()) {
                     const bool fAlreadyHave{m_txdownloadman.AddTxAnnouncement(
-                        pfrom.GetId(), txid, current_time,
-                        /*p2p_inv=*/true)};
+                        pfrom.GetId(), txid, current_time)};
                     logInv(inv, fAlreadyHave);
                 }
 

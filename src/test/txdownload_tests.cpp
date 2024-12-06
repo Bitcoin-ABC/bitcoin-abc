@@ -168,8 +168,7 @@ BOOST_FIXTURE_TEST_CASE(tx_rejection_types, TestChain100Setup) {
                 parent_txid),
             /*keep=*/keep,
             /*inv=*/
-            txdownload_impl.AddTxAnnouncement(nodeid, parent_txid, now,
-                                              /*p2p_inv=*/true),
+            txdownload_impl.AddTxAnnouncement(nodeid, parent_txid, now),
         };
         BOOST_TEST_MESSAGE("Testing behavior for result "
                            << static_cast<int>(result));

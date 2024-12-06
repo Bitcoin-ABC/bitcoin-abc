@@ -47,9 +47,8 @@ void TxDownloadManager::DisconnectedPeer(NodeId nodeid) {
     m_impl->DisconnectedPeer(nodeid);
 }
 bool TxDownloadManager::AddTxAnnouncement(NodeId peer, const TxId &txid,
-                                          std::chrono::microseconds now,
-                                          bool p2p_inv) {
-    return m_impl->AddTxAnnouncement(peer, txid, now, p2p_inv);
+                                          std::chrono::microseconds now) {
+    return m_impl->AddTxAnnouncement(peer, txid, now);
 }
 std::vector<TxId>
 TxDownloadManager::GetRequestsToSend(NodeId nodeid,
@@ -175,48 +174,44 @@ void TxDownloadManagerImpl::DisconnectedPeer(NodeId nodeid) {
 }
 
 bool TxDownloadManagerImpl::AddTxAnnouncement(NodeId peer, const TxId &txid,
-                                              std::chrono::microseconds now,
-                                              bool p2p_inv) {
+                                              std::chrono::microseconds now) {
     // If this is an orphan we are trying to resolve, consider this peer as a
     // orphan resolution candidate instead.
-    // - received as an p2p inv
     // - exists in orphanage
     // - peer can be an orphan resolution candidate
-    if (p2p_inv) {
-        if (auto orphan_tx{m_opts.m_mempool.withOrphanage(
-                [&txid](const TxOrphanage &orphanage) {
-                    return orphanage.GetTx(txid);
-                })}) {
-            auto unique_parents{GetUniqueParents(*orphan_tx)};
-            std::erase_if(unique_parents, [&](const auto &parent_txid) {
-                return AlreadyHaveTx(parent_txid,
-                                     /*include_reconsiderable=*/false);
-            });
+    if (auto orphan_tx{m_opts.m_mempool.withOrphanage(
+            [&txid](const TxOrphanage &orphanage) {
+                return orphanage.GetTx(txid);
+            })}) {
+        auto unique_parents{GetUniqueParents(*orphan_tx)};
+        std::erase_if(unique_parents, [&](const auto &parent_txid) {
+            return AlreadyHaveTx(parent_txid,
+                                 /*include_reconsiderable=*/false);
+        });
 
-            // The missing parents may have all been rejected or accepted since
-            // the orphan was added to the orphanage. Do not delete from the
-            // orphanage, as it may be queued for processing.
-            if (unique_parents.empty()) {
-                return true;
-            }
-
-            if (MaybeAddOrphanResolutionCandidate(unique_parents, txid, peer,
-                                                  now)) {
-                m_opts.m_mempool.withOrphanage(
-                    [&txid, peer](TxOrphanage &orphanage) {
-                        orphanage.AddAnnouncer(txid, peer);
-                    });
-            }
-
-            // Return even if the peer isn't an orphan resolution candidate.
-            // This would be caught by AlreadyHaveTx.
+        // The missing parents may have all been rejected or accepted since
+        // the orphan was added to the orphanage. Do not delete from the
+        // orphanage, as it may be queued for processing.
+        if (unique_parents.empty()) {
             return true;
         }
+
+        if (MaybeAddOrphanResolutionCandidate(unique_parents, txid, peer,
+                                              now)) {
+            m_opts.m_mempool.withOrphanage(
+                [&txid, peer](TxOrphanage &orphanage) {
+                    orphanage.AddAnnouncer(txid, peer);
+                });
+        }
+
+        // Return even if the peer isn't an orphan resolution candidate.
+        // This would be caught by AlreadyHaveTx.
+        return true;
     }
 
     // If this is an inv received from a peer and we already have it, we can
     // drop it.
-    if (p2p_inv && AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
+    if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
         return true;
     }
 

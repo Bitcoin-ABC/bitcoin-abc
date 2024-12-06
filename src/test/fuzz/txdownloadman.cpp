@@ -221,9 +221,8 @@ FUZZ_TARGET_INIT(txdownloadman, initialize) {
                        !todo.m_should_add_extra_compact_tx);
             },
             [&] {
-                txdownloadman.AddTxAnnouncement(
-                    rand_peer, rand_tx->GetId(), time,
-                    /*p2p_inv=*/fuzzed_data_provider.ConsumeBool());
+                txdownloadman.AddTxAnnouncement(rand_peer, rand_tx->GetId(),
+                                                time);
             },
             [&] { txdownloadman.GetRequestsToSend(rand_peer, time); },
             [&] {
@@ -391,9 +390,8 @@ FUZZ_TARGET_INIT(txdownloadman_impl, initialize) {
                 }
             },
             [&] {
-                txdownload_impl.AddTxAnnouncement(
-                    rand_peer, rand_tx->GetId(), time,
-                    /*p2p_inv=*/fuzzed_data_provider.ConsumeBool());
+                txdownload_impl.AddTxAnnouncement(rand_peer, rand_tx->GetId(),
+                                                  time);
             },
             [&] {
                 const auto getdata_requests =

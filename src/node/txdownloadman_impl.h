@@ -135,7 +135,7 @@ public:
      * missing parents so that we can request them.
      */
     bool AddTxAnnouncement(NodeId peer, const TxId &txid,
-                           std::chrono::microseconds now, bool p2p_inv);
+                           std::chrono::microseconds now);
 
     /** Get getdata requests to send. */
     std::vector<TxId> GetRequestsToSend(NodeId nodeid,
