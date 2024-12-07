@@ -5,11 +5,11 @@ RUN apt-get update && \
   apt-get install -y libssl-dev pkg-config protobuf-compiler
 
 WORKDIR /usr/src/explorer
-COPY . .
+COPY web/explorer .
 
 WORKDIR /usr/src/explorer/explorer-exe
 RUN mv config.dist.toml config.toml
 
 RUN cargo build --release
 
-CMD ["cargo", "run", "--release"]
+CMD ["cargo", "run", "--release", "--locked"]

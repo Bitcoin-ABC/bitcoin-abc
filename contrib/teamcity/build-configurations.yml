@@ -1051,7 +1051,7 @@ builds:
 
   preview-explorer:
     docker:
-      context: web/explorer
+      dockerfile: explorer.Dockerfile
       port: 3035
 
   preview-cashtab:
