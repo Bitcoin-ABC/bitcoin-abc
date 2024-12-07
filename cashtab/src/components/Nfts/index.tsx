@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
-import { WalletContext } from 'wallet/context';
+import React, { useState, useEffect, useContext } from 'react';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { toHex } from 'ecash-lib';
@@ -18,10 +18,14 @@ import Collection, {
     OneshotOffer,
 } from 'components/Agora/Collection';
 import { NftIcon } from 'components/Common/CustomIcons';
+import { CashtabPathInfo } from 'wallet';
 
 const Nfts: React.FC = () => {
-    const userLocale = getUserLocale(navigator);
-    const ContextValue = React.useContext(WalletContext);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const {
         ecc,
         fiatPrice,
@@ -31,12 +35,12 @@ const Nfts: React.FC = () => {
         chaintipBlockheight,
     } = ContextValue;
     const { wallets, settings, cashtabCache } = cashtabState;
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const wallet = wallets[0];
     // We get public key when wallet changes
-    const pk =
-        wallet === false
-            ? false
-            : wallet.paths.get(appConfig.derivationPath).pk;
+    const pk = (wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo)
+        .pk;
+
+    const userLocale = getUserLocale(navigator);
 
     const [chronikQueryError, setChronikQueryError] = useState<null | boolean>(
         null,
@@ -91,9 +95,6 @@ const Nfts: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (pk === false) {
-            return;
-        }
         getMyNfts();
     }, [wallet.name]);
 
@@ -110,7 +111,7 @@ const Nfts: React.FC = () => {
                     Error querying listed NFTs. Please try again later.
                 </Alert>
             )}
-            {pk !== false && !chronikQueryError && (
+            {!chronikQueryError && (
                 <>
                     <SwitchHolder>
                         <Switch

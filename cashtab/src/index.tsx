@@ -24,15 +24,19 @@ initWasm()
         const agora = new Agora(chronik);
 
         const container = document.getElementById('root');
-        const root = createRoot(container);
-        root.render(
-            <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
-                <Router>
-                    {GA.init() && <GA.RouteTracker />}
-                    <App />
-                </Router>
-            </WalletProvider>,
-        );
+        if (container) {
+            const root = createRoot(container);
+            root.render(
+                <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
+                    <Router>
+                        {GA.init() && <GA.RouteTracker />}
+                        <App />
+                    </Router>
+                </WalletProvider>,
+            );
+        } else {
+            console.error('Failed to find the root element');
+        }
     })
     .catch(console.error);
 

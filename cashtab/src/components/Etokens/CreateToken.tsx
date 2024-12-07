@@ -2,9 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React from 'react';
-import { WalletContext } from 'wallet/context';
-import { getWalletState } from 'utils/cashMethods';
+import React, { useContext } from 'react';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { toXec } from 'wallet';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import { AlertMsg } from 'components/Common/Atoms';
@@ -13,10 +12,15 @@ import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 
 const CreateToken: React.FC = () => {
-    const { apiError, fiatPrice, cashtabState } =
-        React.useContext(WalletContext);
-
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
+    const { apiError, fiatPrice, cashtabState } = ContextValue;
     const { settings, wallets } = cashtabState;
+    const wallet = wallets[0];
+    const { balanceSats } = wallet.state;
 
     const minTokenCreationFiatPriceString =
         fiatPrice !== null
@@ -26,10 +30,6 @@ const CreateToken: React.FC = () => {
                   settings.fiatCurrency
               ].slug.toUpperCase()})`
             : '';
-
-    const wallet = wallets.length > 0 ? wallets[0] : false;
-    const walletState = getWalletState(wallet);
-    const { balanceSats } = walletState;
 
     return (
         <>
