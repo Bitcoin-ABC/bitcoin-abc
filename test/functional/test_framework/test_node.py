@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional
 from .address import ADDRESS_ECREG_UNSPENDABLE
 from .authproxy import JSONRPCException
 from .descriptors import descsum_create
+from .jsonrpctools import ChronikElectrumClient
 from .messages import XEC, CTransaction, FromHex
 from .p2p import P2P_SUBVERSION
 from .util import (
@@ -75,6 +76,7 @@ class TestNode:
         rpc_port,
         p2p_port,
         chronik_port,
+        chronik_electrum_port,
         timewait,
         timeout_factor,
         bitcoind,
@@ -106,6 +108,7 @@ class TestNode:
         self.rpc_port = rpc_port
         self.p2p_port = p2p_port
         self.chronik_port = chronik_port
+        self.chronik_electrum_port = chronik_electrum_port
         self.name = f"testnode-{i}"
         self.rpc_timeout = timewait
         self.binary = bitcoind
@@ -960,6 +963,16 @@ class TestNode:
             host,
             self.chronik_port,
             timeout=DEFAULT_TIMEOUT * self.timeout_factor,
+        )
+
+    def get_chronik_electrum_client(self) -> ChronikElectrumClient:
+        # host is always None in practice, we should get rid of it at some
+        # point. In the meantime, let's properly handle the API.
+        host = self.host if self.host is not None else "127.0.0.1"
+        return ChronikElectrumClient(
+            host,
+            self.chronik_electrum_port,
+            timeout=ChronikElectrumClient.DEFAULT_TIMEOUT * self.timeout_factor,
         )
 
     def bumpmocktime(self, seconds):

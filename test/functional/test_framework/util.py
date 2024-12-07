@@ -307,6 +307,7 @@ class PortName(enum.Enum):
     P2P = 0
     RPC = 1
     CHRONIK = 2
+    CHRONIKELECTRUM = 3
 
 
 # The maximum number of nodes a single test can spawn
@@ -315,7 +316,7 @@ MAX_NODES = 64
 # default testnet port)
 PORT_MIN = int(os.getenv("TEST_RUNNER_PORT_MIN", default=20000))
 # The number of ports to "reserve" for p2p and rpc, each
-PORT_RANGE = 4000
+PORT_RANGE = 3000
 # The number of times we increment the port counters and test it again before
 # giving up.
 MAX_PORT_RETRY = 5
@@ -323,6 +324,7 @@ PORT_START_MAP: Dict[PortName, int] = {
     PortName.P2P: 0,
     PortName.RPC: PORT_RANGE,
     PortName.CHRONIK: PORT_RANGE * 2,
+    PortName.CHRONIKELECTRUM: PORT_RANGE * 3,
 }
 
 # Globals used for incrementing ports. Initially uninitialized because they
@@ -418,6 +420,10 @@ def chronik_port(n: int) -> int:
     return unique_port(PortName.CHRONIK, n)
 
 
+def chronikelectrum_port(n: int) -> int:
+    return unique_port(PortName.CHRONIKELECTRUM, n)
+
+
 def rpc_url(datadir, chain, host, port):
     rpc_u, rpc_p = get_auth_cookie(datadir, chain)
     if host is None:
@@ -460,6 +466,7 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
         f.write(f"port={p2p_port(n)}\n")
         f.write(f"rpcport={rpc_port(n)}\n")
         f.write(f"chronikbind=127.0.0.1:{chronik_port(n)}\n")
+        f.write(f"chronikelectrumbind=127.0.0.1:{chronikelectrum_port(n)}\n")
         # Disable server-side timeouts to avoid intermittent issues
         f.write("rpcservertimeout=99000\n")
         # Chronik by default is tuned for initial sync, tune it down for regtest
