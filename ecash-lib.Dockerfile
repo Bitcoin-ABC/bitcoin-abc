@@ -19,6 +19,10 @@ COPY Cargo.toml .
 WORKDIR /app/chronik/
 COPY chronik/ .
 
+# explorer must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/web/explorer
+COPY web/explorer/ .
+
 # Copy secp256k1 to same directory structure as monorepo
 WORKDIR /app/src/secp256k1
 COPY src/secp256k1/ .
