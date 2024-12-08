@@ -4,7 +4,7 @@
 # 3) nginx stage to serve frontend assets
 
 # Stage 1 - rust machine for building ecash-lib-wasm
-FROM rust:1.76.0 AS WasmBuilder
+FROM rust:1.76.0 AS wasmbuilder
 
 RUN apt-get update \
   && apt-get install clang binaryen -y \
@@ -42,9 +42,9 @@ RUN CC=clang ./build-wasm.sh
 # Stage 2
 FROM node:20-bookworm-slim AS builder
 
-# Copy static assets from WasmBuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
+# Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
 WORKDIR /app/modules
-COPY --from=WasmBuilder /app/modules .
+COPY --from=wasmbuilder /app/modules .
 
 # Build all local Cashtab dependencies
 
