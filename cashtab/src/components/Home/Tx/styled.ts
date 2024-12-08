@@ -4,6 +4,7 @@
 
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
+import { RenderedTxType } from './index';
 
 export const TxWrapper = styled.div`
     border-bottom: 1px solid ${props => props.theme.border};
@@ -60,7 +61,9 @@ const Burn = css`
         fill: ${props => props.theme.secondaryAccent};
     }
 `;
-export const MainRow = styled.div`
+export const MainRow = styled.div<{
+    type?: RenderedTxType;
+}>`
     display: flex;
     justify-content: space-between;
     flex-direction: row;
@@ -129,7 +132,7 @@ export const TokenEntry = styled.div`
     width: 100%;
 `;
 // Button panel for actions on each tx
-export const Expand = styled.div`
+export const Expand = styled.div<{ showPanel: boolean }>`
     display: flex;
     overflow: hidden;
     height: ${props => (props.showPanel ? '36px' : '0px')};
@@ -178,7 +181,7 @@ export const ReplyLink = styled(PanelLink)`
 export const AddressLink = styled.a`
     padding: 0 3px;
 `;
-export const AppAction = styled.div`
+export const AppAction = styled.div<{ type?: string }>`
     display: flex;
     gap: 12px;
     width: 100%;
@@ -205,7 +208,9 @@ export const AppDescMsg = styled.div`
     word-break: break-all;
     text-align: left;
 `;
-export const TokenAction = styled(AppAction)`
+export const TokenAction = styled(AppAction)<{
+    tokenTxType?: RenderedTxType;
+}>`
     ${props => props.tokenTxType === 'Received' && Incoming}
     ${props =>
         (props.tokenTxType === 'Created' || props.tokenTxType === 'Minted') &&

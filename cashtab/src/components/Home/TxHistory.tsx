@@ -4,8 +4,11 @@
 
 import React from 'react';
 import Tx from 'components/Home/Tx';
-import { CashtabTx } from 'wallet';
-import CashtabState from 'config/CashtabState';
+import { CashtabTx, CashtabWallet, LegacyCashtabWallet } from 'wallet';
+import CashtabState, { CashtabContact } from 'config/CashtabState';
+import CashtabCache from 'config/CashtabCache';
+import CashtabSettings from 'config/CashtabSettings';
+import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
 
 interface TxHistoryProps {
     txs: CashtabTx[];
@@ -13,7 +16,17 @@ interface TxHistoryProps {
     fiatPrice: number | null;
     fiatCurrency: string;
     cashtabState: CashtabState;
-    updateCashtabState: () => void;
+    updateCashtabState: (
+        key: string,
+        value:
+            | CashtabWallet[]
+            | CashtabCache
+            | CashtabContact[]
+            | CashtabSettings
+            | CashtabCacheJson
+            | StoredCashtabWallet[]
+            | (LegacyCashtabWallet | StoredCashtabWallet)[],
+    ) => Promise<boolean>;
     chaintipBlockheight: number;
     userLocale: string;
 }

@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
 
@@ -11,7 +10,13 @@ const CopyWrapper = styled.div`
     cursor: pointer;
 `;
 
-const CopyToClipboard = ({
+interface CopyToClipboardProps {
+    data: string;
+    showToast?: boolean;
+    customMsg?: string;
+    children: React.ReactNode;
+}
+const CopyToClipboard: React.FC<CopyToClipboardProps> = ({
     data,
     showToast = false,
     customMsg = false,
@@ -34,13 +39,6 @@ const CopyToClipboard = ({
             {children}
         </CopyWrapper>
     );
-};
-
-CopyToClipboard.propTypes = {
-    data: PropTypes.string,
-    showToast: PropTypes.bool,
-    customMsg: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-    children: PropTypes.node,
 };
 
 export default CopyToClipboard;

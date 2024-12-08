@@ -36,7 +36,7 @@ import {
     ExpandAvalancheLabel,
     ExpandAvalancheWrapper,
     TxDescSendRcvMsg,
-} from 'components/Home/Tx/styles';
+} from 'components/Home/Tx/styled';
 import {
     SendIcon,
     ReceiveIcon,
@@ -67,16 +67,24 @@ import {
     AgoraSaleIcon,
     AgoraCancelIcon,
 } from 'components/Common/CustomIcons';
-import PropTypes from 'prop-types';
-import { supportedFiatCurrencies } from 'config/CashtabSettings';
+import CashtabSettings, {
+    supportedFiatCurrencies,
+} from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
-import { parseTx } from 'chronik';
+import { parseTx, XecTxType } from 'chronik';
 import {
     toFormattedXec,
     decimalizedTokenQtyToLocaleFormat,
 } from 'utils/formatting';
-import { toXec, decimalizeTokenAmount } from 'wallet';
+import {
+    toXec,
+    decimalizeTokenAmount,
+    CashtabTx,
+    SlpDecimals,
+    CashtabWallet,
+    LegacyCashtabWallet,
+} from 'wallet';
 import { opReturn } from 'config/opreturn';
 import cashaddr from 'ecashaddrjs';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -95,8 +103,43 @@ import { CopyIconButton } from 'components/Common/Buttons';
 import appConfig from 'config/app';
 import { scriptOps } from 'ecash-agora';
 import { Script, fromHex, OP_0 } from 'ecash-lib';
+import CashtabState, { CashtabContact } from 'config/CashtabState';
+import CashtabCache from 'config/CashtabCache';
+import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
 
-const Tx = ({
+export type RenderedTxType =
+    | 'Created'
+    | 'Minted'
+    | 'Burned'
+    | 'Agora Cancel'
+    | 'Agora Offer'
+    | XecTxType
+    | 'Agora Buy'
+    | 'Agora Sale'
+    | 'GENESIS'
+    | 'SEND'
+    | 'Fan-out';
+interface TxProps {
+    tx: CashtabTx;
+    hashes: string[];
+    fiatPrice: null | number;
+    fiatCurrency: string;
+    cashtabState: CashtabState;
+    updateCashtabState: (
+        key: string,
+        value:
+            | CashtabWallet[]
+            | CashtabCache
+            | CashtabContact[]
+            | CashtabSettings
+            | CashtabCacheJson
+            | StoredCashtabWallet[]
+            | (LegacyCashtabWallet | StoredCashtabWallet)[],
+    ) => Promise<boolean>;
+    chaintipBlockheight: number;
+    userLocale: string;
+}
+const Tx: React.FC<TxProps> = ({
     tx,
     hashes,
     fiatPrice,
@@ -113,7 +156,9 @@ const Tx = ({
     );
     const { cashtabCache, contactList } = cashtabState;
 
-    let replyAddress, replyAddressPreview, knownSender;
+    let replyAddress: string | undefined,
+        replyAddressPreview: string | undefined,
+        knownSender: CashtabContact | undefined;
     let isAgoraAdSetup = false;
     let isAgoraCancel = false;
     let isAgoraPurchase = false;
@@ -124,7 +169,9 @@ const Tx = ({
         // We only render these previews in history if this outputScript
         // can be encoded as a p2sh or p2pkh address
         try {
-            replyAddress = cashaddr.encodeOutputScript(inputs[0].outputScript);
+            replyAddress = cashaddr.encodeOutputScript(
+                inputs[0].outputScript as string,
+            );
             replyAddressPreview = `${replyAddress.slice(
                 6,
                 9,
@@ -169,7 +216,7 @@ const Tx = ({
     // For now, we parse only token actions and non-EMPP OP_RETURN
     // TODO parse EMPP
 
-    let appActions = [];
+    const appActions = [];
     if (stackArray.length !== 0) {
         // If we have an OP_RETURN output
         switch (stackArray[0]) {
@@ -195,7 +242,7 @@ const Tx = ({
                     stackArray[3].length === 42
                 ) {
                     const addressTypeByte = stackArray[3].slice(0, 2);
-                    let addressType;
+                    let addressType: 'p2pkh' | 'p2sh';
                     if (addressTypeByte === '00') {
                         addressType = 'p2pkh';
                     } else if (addressTypeByte === '08') {
@@ -598,7 +645,7 @@ const Tx = ({
             }
         }
     }
-    let tokenActions = [];
+    const tokenActions: React.ReactNode[] = [];
     for (let i = 0; i < tokenEntries.length; i += 1) {
         // Each entry will get a parsed token action row
         const entry = tokenEntries[i];
@@ -686,7 +733,9 @@ const Tx = ({
             if (typeof input.token !== 'undefined') {
                 try {
                     const { type } = cashaddr.getTypeAndHashFromOutputScript(
-                        input.outputScript,
+                        // we try..catch for this not existing
+                        // not good practice but we are just implementing ts here now, refactor later
+                        input.outputScript as string,
                     );
                     if (type === 'p2sh') {
                         // Check if this is a cancellation
@@ -749,8 +798,8 @@ const Tx = ({
             if (
                 stackArray.length === 3 &&
                 stackArray[0] === '50' &&
-                stackArray[1].startsWith('41') &
-                    stackArray[2].startsWith('534c5032')
+                stackArray[1].startsWith('41') &&
+                stackArray[2].startsWith('534c5032')
             ) {
                 // and this is an empp ALP and agora tx
                 if (recipients.length >= 1) {
@@ -892,7 +941,7 @@ const Tx = ({
 
             const decimalizedAmount = decimalizeTokenAmount(
                 renderedTokenAmount.toString(),
-                decimals,
+                decimals as SlpDecimals,
             );
             const formattedAmount = decimalizedTokenQtyToLocaleFormat(
                 decimalizedAmount,
@@ -955,16 +1004,23 @@ const Tx = ({
 
     const [showPanel, setShowPanel] = useState(false);
     const [showAddNewContactModal, setShowAddNewContactModal] = useState(false);
-    const emptyFormData = {
+    interface TxFormData {
+        newContactName: string;
+    }
+    const emptyFormData: TxFormData = {
         newContactName: '',
     };
-    const emptyFormDataErrors = {
+    interface TxFormDataErrors {
+        newContactName: false | string;
+    }
+    const emptyFormDataErrors: TxFormDataErrors = {
         newContactName: false,
     };
-    const [formData, setFormData] = useState(emptyFormData);
-    const [formDataErrors, setFormDataErrors] = useState(emptyFormDataErrors);
+    const [formData, setFormData] = useState<TxFormData>(emptyFormData);
+    const [formDataErrors, setFormDataErrors] =
+        useState<TxFormDataErrors>(emptyFormDataErrors);
 
-    const addNewContact = async addressToAdd => {
+    const addNewContact = async (addressToAdd: string) => {
         // Check to see if the contact exists
         const contactExists = contactList.find(
             contact => contact.address === addressToAdd,
@@ -1003,7 +1059,7 @@ const Tx = ({
      * e.target.value will be input value
      * e.target.name will be name of originating input field
      */
-    const handleInput = e => {
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
         if (name === 'newContactName') {
@@ -1031,7 +1087,7 @@ const Tx = ({
             ? new Date(
                   parseInt(
                       `${
-                          timeFirstSeen !== 0 ? timeFirstSeen : block.timestamp
+                          timeFirstSeen !== 0 ? timeFirstSeen : block?.timestamp
                       }000`,
                   ),
               )
@@ -1063,7 +1119,7 @@ const Tx = ({
                         xecTxType === 'Sent' &&
                         typeof recipients[0] !== 'undefined'
                             ? () => addNewContact(recipients[0])
-                            : () => addNewContact(replyAddress)
+                            : () => addNewContact(replyAddress as string)
                     }
                     handleCancel={() => setShowAddNewContactModal(false)}
                     showCancelButton
@@ -1167,7 +1223,6 @@ const Tx = ({
                                 ) : (
                                     <>
                                         <CopyIconButton
-                                            style={{ zIndex: '2' }}
                                             name={`Copy amount`}
                                             data={toXec(
                                                 satoshisSent,
@@ -1204,12 +1259,13 @@ const Tx = ({
                                                 fiatCurrency
                                             ].symbol
                                         }
-                                        {(
-                                            fiatPrice * toXec(satoshisSent)
-                                        ).toLocaleString(userLocale, {
-                                            maximumFractionDigits: 2,
-                                            minimumFractionDigits: 2,
-                                        })}
+                                        {fiatPrice !== null &&
+                                            (
+                                                fiatPrice * toXec(satoshisSent)
+                                            ).toLocaleString(userLocale, {
+                                                maximumFractionDigits: 2,
+                                                minimumFractionDigits: 2,
+                                            })}
                                     </>
                                 )}
                             </AmountBottom>
@@ -1283,45 +1339,6 @@ const Tx = ({
             </TxWrapper>
         </>
     );
-};
-
-Tx.propTypes = {
-    tx: PropTypes.shape({
-        txid: PropTypes.string,
-        timeFirstSeen: PropTypes.number,
-        block: PropTypes.shape({
-            timestamp: PropTypes.number,
-            height: PropTypes.number,
-        }),
-        inputs: PropTypes.array,
-        outputs: PropTypes.array,
-        tokenEntries: PropTypes.array,
-    }),
-    hashes: PropTypes.arrayOf(PropTypes.string),
-    fiatPrice: PropTypes.number,
-    fiatCurrency: PropTypes.string,
-    cashtabState: PropTypes.shape({
-        contactList: PropTypes.arrayOf(
-            PropTypes.shape({
-                address: PropTypes.string.isRequired,
-                name: PropTypes.string.isRequired,
-            }),
-        ),
-        settings: PropTypes.shape({
-            fiatCurrency: PropTypes.string.isRequired,
-            sendModal: PropTypes.bool.isRequired,
-            autoCameraOn: PropTypes.bool.isRequired,
-            hideMessagesFromUnknownSenders: PropTypes.bool.isRequired,
-            balanceVisible: PropTypes.bool.isRequired,
-            minFeeSends: PropTypes.bool.isRequired,
-        }),
-        cashtabCache: PropTypes.shape({
-            tokens: PropTypes.object.isRequired,
-        }),
-    }),
-    updateCashtabState: PropTypes.func,
-    chaintipBlockheight: PropTypes.number,
-    userLocale: PropTypes.string,
 };
 
 export default Tx;
