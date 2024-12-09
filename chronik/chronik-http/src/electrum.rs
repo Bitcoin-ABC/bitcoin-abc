@@ -4,9 +4,14 @@
 
 //! Module for [`ChronikElectrumServer`].
 
+use std::str::FromStr;
 use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
+use bitcoinsuite_core::{
+    hash::{Hashed, Sha256},
+    tx::TxId,
+};
 use futures::future;
 use itertools::izip;
 use karyon_jsonrpc::{RPCError, RPCMethod, RPCService, Server};
@@ -15,7 +20,7 @@ use rustls::pki_types::{
     pem::PemObject,
     {CertificateDer, PrivateKeyDer},
 };
-use serde_json::Value;
+use serde_json::{json, Value};
 use thiserror::Error;
 
 use crate::{
@@ -52,8 +57,8 @@ pub struct ChronikElectrumServerParams {
 #[derive(Debug)]
 pub struct ChronikElectrumServer {
     hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
-    _indexer: ChronikIndexerRef,
-    _node: NodeRef,
+    indexer: ChronikIndexerRef,
+    node: NodeRef,
     tls_cert_path: String,
     tls_privkey_path: String,
 }
@@ -108,14 +113,18 @@ pub enum ChronikElectrumServerError {
 
 struct ChronikElectrumRPCServerEndpoint {}
 
+struct ChronikElectrumRPCBlockchainEndpoint {
+    indexer: ChronikIndexerRef,
+    node: NodeRef,
+}
+
 impl ChronikElectrumServer {
     /// Binds the Chronik server on the given hosts
     pub fn setup(params: ChronikElectrumServerParams) -> Result<Self> {
         Ok(ChronikElectrumServer {
             hosts: params.hosts,
-            // FIXME below params are unused but will be used in the future
-            _indexer: params.indexer,
-            _node: params.node,
+            indexer: params.indexer,
+            node: params.node,
             tls_cert_path: params.tls_cert_path,
             tls_privkey_path: params.tls_privkey_path,
         })
@@ -126,6 +135,11 @@ impl ChronikElectrumServer {
         // The behavior is to bind the endpoint name to its method name like so:
         // endpoint.method as the name of the RPC
         let server_endpoint = Arc::new(ChronikElectrumRPCServerEndpoint {});
+        let blockchain_endpoint =
+            Arc::new(ChronikElectrumRPCBlockchainEndpoint {
+                indexer: self.indexer,
+                node: self.node,
+            });
 
         let tls_cert_path = self.tls_cert_path.clone();
         let tls_privkey_path = self.tls_privkey_path.clone();
@@ -133,6 +147,7 @@ impl ChronikElectrumServer {
         let servers = izip!(
             self.hosts,
             std::iter::repeat(server_endpoint),
+            std::iter::repeat(blockchain_endpoint),
             std::iter::repeat(tls_cert_path),
             std::iter::repeat(tls_privkey_path)
         )
@@ -140,6 +155,7 @@ impl ChronikElectrumServer {
             |(
                 (host, protocol),
                 server_endpoint,
+                blockchain_endpoint,
                 tls_cert_path,
                 tls_privkey_path,
             )| {
@@ -208,6 +224,7 @@ impl ChronikElectrumServer {
 
                     let server = builder
                         .service(server_endpoint)
+                        .service(blockchain_endpoint)
                         .build()
                         .await
                         .map_err(|err| ServingFailed(err.to_string()))?;
@@ -245,5 +262,116 @@ impl RPCService for ChronikElectrumRPCServerEndpoint {
 impl ChronikElectrumRPCServerEndpoint {
     async fn ping(&self, _params: Value) -> Result<Value, RPCError> {
         Ok(Value::Null)
+    }
+}
+
+impl RPCService for ChronikElectrumRPCBlockchainEndpoint {
+    fn name(&self) -> String {
+        "blockchain".to_string()
+    }
+
+    fn get_method(&self, name: &str) -> Option<RPCMethod<'_>> {
+        match name {
+            "transaction.get" => Some(Box::new(move |params: Value| {
+                Box::pin(self.transaction_get(params))
+            })),
+            _ => None,
+        }
+    }
+}
+
+impl ChronikElectrumRPCBlockchainEndpoint {
+    async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
+        let txid_hex: Value;
+        let verbose: Value;
+        match params {
+            Value::Array(arr) => {
+                txid_hex = arr
+                    .first()
+                    .ok_or(RPCError::InvalidParams(
+                        "Missing mandatory 'txid' parameter",
+                    ))?
+                    .clone();
+                verbose = match arr.get(1) {
+                    Some(val) => val.clone(),
+                    None => Value::Bool(false),
+                };
+            }
+            Value::Object(obj) => {
+                txid_hex = match obj.get("txid") {
+                    Some(txid) => Ok(txid.clone()),
+                    None => Err(RPCError::InvalidParams(
+                        "Missing mandatory 'txid' parameter",
+                    )),
+                }?;
+                verbose = match obj.get("verbose") {
+                    Some(verbose) => verbose.clone(),
+                    None => Value::Bool(false),
+                };
+            }
+            _ => {
+                return Err(RPCError::InvalidParams(
+                    "'params' must be an array or an object",
+                ))
+            }
+        };
+        let txid_hex = match txid_hex {
+            Value::String(s) => Ok(s),
+            _ => Err(RPCError::InvalidParams(
+                "'txid' must be a hexadecimal string",
+            )),
+        }?;
+        let txid = TxId::from_str(&txid_hex)
+            .or(Err(RPCError::InvalidParams("Failed to parse txid")))?;
+
+        let verbose = match verbose {
+            Value::Bool(v) => Ok(v),
+            _ => Err(RPCError::InvalidParams("'verbose' must be a boolean")),
+        }?;
+
+        let indexer = self.indexer.read().await;
+        let query_tx = indexer.txs(&self.node);
+        let raw_tx = hex::encode(
+            query_tx
+                .raw_tx_by_id(&txid)
+                .or(Err(RPCError::InvalidRequest("Unknown transaction id")))?
+                .raw_tx,
+        );
+        if !verbose {
+            return Ok(Value::String(raw_tx));
+        }
+
+        let tx = query_tx
+            .tx_by_id(txid)
+            // The following error should be unreachable, unless raw_tx_by_id
+            // and tx_by_id are inconsistent
+            .or(Err(RPCError::InvalidRequest("Unknown transaction id")))?;
+        let blockchaininfo = indexer.blocks(&self.node).blockchain_info();
+        if blockchaininfo.is_err() {
+            return Err(RPCError::InternalError);
+        }
+        if tx.block.is_none() {
+            // mempool transaction
+            return Ok(json!({
+                "confirmations": 0,
+                "hash": txid_hex,
+                "hex": raw_tx,
+                "time": tx.time_first_seen,
+            }));
+        }
+        let block = tx.block.unwrap();
+        let blockhash = Sha256::from_le_slice(block.hash.as_ref()).unwrap();
+        let confirmations =
+            blockchaininfo.ok().unwrap().tip_height - block.height + 1;
+        // TODO: more verbose fields, inputs, outputs
+        //      (but for now only "confirmations" is used in Electrum ABC)
+        Ok(json!({
+            "blockhash": blockhash.hex_be(),
+            "blocktime": block.timestamp,
+            "confirmations": confirmations,
+            "hash": txid_hex,
+            "hex": raw_tx,
+            "time": tx.time_first_seen,
+        }))
     }
 }
