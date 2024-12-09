@@ -33,13 +33,7 @@ The ZMQ functional test requires a python ZMQ library. To install it:
 
 #### Running the tests
 
-Individual tests can be run by directly calling the test script, eg:
-
-```
-test/functional/example_test.py
-```
-
-or can be run through the test_runner harness, eg:
+Individual tests can be run through the test_runner harness, eg:
 
 ```
 test/functional/test_runner.py example_test
