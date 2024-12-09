@@ -30,9 +30,9 @@ logger = logging.getLogger("TestFramework.utils")
 def assert_approx(v, vexp, vspan=10):
     """Assert that `v` is within `vspan` of `vexp`"""
     if v < vexp - vspan:
-        raise AssertionError(f"{str(v)} < [{str(vexp - vspan)}..{str(vexp + vspan)}]")
+        raise AssertionError(f"{v} < [{vexp - vspan}..{vexp + vspan}]")
     if v > vexp + vspan:
-        raise AssertionError(f"{str(v)} > [{str(vexp - vspan)}..{str(vexp + vspan)}]")
+        raise AssertionError(f"{v} > [{vexp - vspan}..{vexp + vspan}]")
 
 
 def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
@@ -46,13 +46,9 @@ def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
     """
     target_fee = satoshi_round(tx_size * fee_per_kB / 1000)
     if fee < (tx_size - wiggleroom) * fee_per_kB / 1000:
-        raise AssertionError(
-            f"Fee of {str(fee)} XEC too low! (Should be {str(target_fee)} XEC)"
-        )
+        raise AssertionError(f"Fee of {fee} XEC too low! (Should be {target_fee} XEC)")
     if fee > (tx_size + wiggleroom) * fee_per_kB / 1000:
-        raise AssertionError(
-            f"Fee of {str(fee)} XEC too high! (Should be {str(target_fee)} XEC)"
-        )
+        raise AssertionError(f"Fee of {fee} XEC too high! (Should be {target_fee} XEC)")
 
 
 def assert_equal(thing1, thing2, *args):
@@ -64,12 +60,12 @@ def assert_equal(thing1, thing2, *args):
 
 def assert_greater_than(thing1, thing2):
     if thing1 <= thing2:
-        raise AssertionError(f"{str(thing1)} <= {str(thing2)}")
+        raise AssertionError(f"{thing1} <= {thing2}")
 
 
 def assert_greater_than_or_equal(thing1, thing2):
     if thing1 < thing2:
-        raise AssertionError(f"{str(thing1)} < {str(thing2)}")
+        raise AssertionError(f"{thing1} < {thing2}")
 
 
 def assert_raises(exc, fun, *args, **kwds):
@@ -207,12 +203,12 @@ def assert_array_result(object_array, to_match, expected, should_not_find=False)
             num_matched = num_matched + 1
         for key, value in expected.items():
             if item[key] != value:
-                raise AssertionError(f"{str(item)} : expected {str(key)}={str(value)}")
+                raise AssertionError(f"{item} : expected {key}={value}")
             num_matched = num_matched + 1
     if num_matched == 0 and not should_not_find:
-        raise AssertionError(f"No objects matched {str(to_match)}")
+        raise AssertionError(f"No objects matched {to_match}")
     if num_matched > 0 and should_not_find:
-        raise AssertionError(f"Objects were found {str(to_match)}")
+        raise AssertionError(f"Objects were found {to_match}")
 
 
 # Utility functions
@@ -231,7 +227,7 @@ def check_json_precision():
 def EncodeDecimal(o):
     if isinstance(o, Decimal):
         return str(o)
-    raise TypeError(f"{repr(o)} is not JSON serializable")
+    raise TypeError(f"{o!r} is not JSON serializable")
 
 
 def count_bytes(hex_string):
@@ -461,9 +457,9 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
             f.write(f"{chain_name_conf_arg}=1\n")
         if chain_name_conf_section:
             f.write(f"[{chain_name_conf_section}]\n")
-        f.write(f"port={str(p2p_port(n))}\n")
-        f.write(f"rpcport={str(rpc_port(n))}\n")
-        f.write(f"chronikbind=127.0.0.1:{str(chronik_port(n))}\n")
+        f.write(f"port={p2p_port(n)}\n")
+        f.write(f"rpcport={rpc_port(n)}\n")
+        f.write(f"chronikbind=127.0.0.1:{chronik_port(n)}\n")
         # Disable server-side timeouts to avoid intermittent issues
         f.write("rpcservertimeout=99000\n")
         # Chronik by default is tuned for initial sync, tune it down for regtest
@@ -494,7 +490,7 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
 
 
 def get_datadir_path(dirname, n):
-    return os.path.join(dirname, f"node{str(n)}")
+    return os.path.join(dirname, f"node{n}")
 
 
 def append_config(datadir, options):
@@ -618,7 +614,7 @@ def find_output(node, txid, amount, *, blockhash=None):
     for i in range(len(txdata["vout"])):
         if txdata["vout"][i]["value"] == amount:
             return i
-    raise RuntimeError(f"find_output txid {txid} : {str(amount)} not found")
+    raise RuntimeError(f"find_output txid {txid} : {amount} not found")
 
 
 # Create large OP_RETURN txouts that can be appended to a transaction
