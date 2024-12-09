@@ -557,7 +557,7 @@ def run_tests(
     # Run Tests
     start_time = time.time()
     test_results = execute_test_processes(
-        num_jobs, test_list, tests_dir, tmpdir, flags, failfast
+        num_jobs, test_list, build_dir, tests_dir, tmpdir, flags, failfast
     )
     runtime = time.time() - start_time
 
@@ -588,7 +588,7 @@ def run_tests(
 
 
 def execute_test_processes(
-    num_jobs, test_list, tests_dir, tmpdir, flags, failfast=False
+    num_jobs, test_list, build_dir, tests_dir, tmpdir, flags, failfast=False
 ):
     update_queue = Queue()
     job_queue = Queue()
@@ -631,6 +631,19 @@ def execute_test_processes(
                 print(test_result.stdout)
                 print(bold("stderr:"))
                 print(test_result.stderr)
+
+                # Write a symlink to the failed test directory for easy inspection
+                lastfailurepath = os.path.join(build_dir, "lastfailure")
+                if os.path.lexists(lastfailurepath):
+                    os.remove(lastfailurepath)
+                try:
+                    os.symlink(
+                        test_result.testdir, lastfailurepath, target_is_directory=True
+                    )
+                except OSError as e:
+                    if os.name == "nt":
+                        pass
+                    raise e
 
                 if failfast:
                     logging.debug("Early exiting after test failure")

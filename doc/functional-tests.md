@@ -161,6 +161,9 @@ test/functional/combine_logs.py -c <test data directory> | less -r
 
 will pipe the colorized logs from the test into less.
 
+The last failed test data directory can also be accessed via the ./lastfailure
+symlink to avoid copy-pasting a new directory on each iterated test run.
+
 Use `--tracerpc` to trace out all the RPC calls and responses to the console.
 For some tests (eg any that use `submitblock` to submit a full block over RPC),
 this can result in a lot of screen output.
