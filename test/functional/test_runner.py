@@ -18,7 +18,6 @@ import configparser
 import datetime
 import json
 import logging
-import multiprocessing
 import os
 import re
 import shutil
@@ -150,7 +149,7 @@ TEST_PARAMS = {
 # we only run a test if its execution time in seconds does not exceed
 # EXTENDED_CUTOFF
 DEFAULT_EXTENDED_CUTOFF = 40
-DEFAULT_JOBS = (multiprocessing.cpu_count() // 3) + 1
+DEFAULT_JOBS = ((os.cpu_count() or 1) // 3) + 1
 
 SETUP_SCRIPTS_SUBDIR = "setup_scripts"
 
