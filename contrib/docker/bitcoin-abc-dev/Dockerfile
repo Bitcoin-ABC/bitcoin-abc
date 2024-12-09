@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bookworm
 
 # Expected to run from the project root
 COPY . /bitcoin-abc
@@ -8,7 +8,7 @@ VOLUME /bitcoin-abc
 # it after it's done
 RUN mkdir -p /install
 WORKDIR /install
-RUN /bitcoin-abc/contrib/utils/install-dependencies-bullseye.sh
+RUN /bitcoin-abc/contrib/utils/install-dependencies-bookworm.sh
 
 WORKDIR /bitcoin-abc
 RUN rm -rf /install

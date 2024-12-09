@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 
 ARG RELEASE_ARCHIVE
 COPY "${RELEASE_ARCHIVE}" /tmp
