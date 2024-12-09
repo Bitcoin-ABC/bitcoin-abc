@@ -113,7 +113,9 @@ if (CMAKE_CROSSCOMPILING AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # The crate can find the appropriated flags by itself most of the time but
     # when crosscompiling for Darwin it is not enough. We need to manually pass
     # the flags down by rebuilding part of the cmake generated command line.
-    set(CORROSION_CFLAGS "-isysroot${CMAKE_OSX_SYSROOT} ${CMAKE_C_FLAGS}")
+    # Note that we can't use LDFLAGS to pass down linker flags this way, so use
+    # use the CFLAGS instead. This might introduce warning for unused args.
+    set(CORROSION_CFLAGS "-isysroot${CMAKE_OSX_SYSROOT} ${CMAKE_C_FLAGS} -fuse-ld=lld")
     set(CORROSION_CXXFLAGS "-isysroot${CMAKE_OSX_SYSROOT} ${CMAKE_CXX_FLAGS}")
     corrosion_set_env_vars(
         chronik_lib
@@ -237,6 +239,11 @@ include(AddCompilerFlags)
 custom_check_linker_flag(LINKER_HAS_ATOMIC "-latomic")
 if(LINKER_HAS_ATOMIC)
     target_link_libraries(chronik atomic)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    find_library(CORE_FOUNDATION CoreFoundation REQUIRED)
+    target_link_libraries(chronik "${CORE_FOUNDATION}")
 endif()
 
 # Add chronik to server
