@@ -2,11 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { BN } from 'slp-mdm';
-import styled from 'styled-components';
-import { WalletContext } from 'wallet/context';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, { SecondaryLink } from 'components/Common/Buttons';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
@@ -24,84 +23,78 @@ import { CopyPasteIcon, AirdropIcon } from 'components/Common/CustomIcons';
 import { getTokenGenesisInfo } from 'chronik';
 import cashaddr from 'ecashaddrjs';
 import Spinner from 'components/Common/Spinner';
-
-const AirdropForm = styled.div`
-    margin-top: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    svg {
-        height: 24px;
-        width: 24px;
-    }
-`;
-const FormRow = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    color: ${props => props.theme.primaryText};
-`;
-const SwitchHolder = styled.div`
-    display: flex;
-    align-content: center;
-    gap: 12px;
-`;
-const AirdropTitle = styled.div`
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    text-align: center;
-    justify-content: center;
-`;
+import { AirdropForm, FormRow, SwitchHolder, AirdropTitle } from './styled';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { CashtabPathInfo } from 'wallet';
 
 const Airdrop = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { chronik, cashtabState, updateCashtabState } = ContextValue;
     const { wallets, cashtabCache } = cashtabState;
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const wallet = wallets[0];
     const location = useLocation();
 
-    const [calculatingAirdrop, setCalculatingAirdrop] = useState(false);
-    const [formData, setFormData] = useState({
+    const [calculatingAirdrop, setCalculatingAirdrop] =
+        useState<boolean>(false);
+
+    interface AirdropFormData {
+        tokenId: string;
+        totalAirdrop: string;
+    }
+    const [formData, setFormData] = useState<AirdropFormData>({
         tokenId: '',
         totalAirdrop: '',
     });
 
-    const [tokenInfo, setTokenInfo] = useState(undefined);
-    const [mintAddress, setMintAddress] = useState(undefined);
+    const [tokenInfo, setTokenInfo] = useState<
+        undefined | CashtabCachedTokenInfo
+    >(undefined);
+    const [mintAddress, setMintAddress] = useState<undefined | string>(
+        undefined,
+    );
 
-    const [equalDistributionRatio, setEqualDistributionRatio] = useState(false);
-    const [tokenIdIsValid, setTokenIdIsValid] = useState(null);
-    const [totalAirdropIsValid, setTotalAirdropIsValid] = useState(null);
-    const [airdropRecipients, setAirdropRecipients] = useState('');
-    const [showAirdropOutputs, setShowAirdropOutputs] = useState(false);
-    const [ignoreOwnAddress, setIgnoreOwnAddress] = useState(false);
-    const [ignoreMintAddress, setIgnoreMintAddress] = useState(false);
+    const [equalDistributionRatio, setEqualDistributionRatio] =
+        useState<boolean>(false);
+    const [tokenIdIsValid, setTokenIdIsValid] = useState<null | boolean>(null);
+    const [totalAirdropIsValid, setTotalAirdropIsValid] = useState<
+        null | boolean
+    >(null);
+    const [airdropRecipients, setAirdropRecipients] = useState<string>('');
+    const [showAirdropOutputs, setShowAirdropOutputs] =
+        useState<boolean>(false);
+    const [ignoreOwnAddress, setIgnoreOwnAddress] = useState<boolean>(false);
+    const [ignoreMintAddress, setIgnoreMintAddress] = useState<boolean>(false);
 
     // flag to reflect the exclusion list checkbox
-    const [ignoreCustomAddresses, setIgnoreCustomAddresses] = useState(false);
+    const [ignoreCustomAddresses, setIgnoreCustomAddresses] =
+        useState<boolean>(false);
     // the exclusion list values
     const [ignoreCustomAddressesList, setIgnoreCustomAddressesList] =
-        useState('');
+        useState<string>('');
     const [
         ignoreCustomAddressesListIsValid,
         setIgnoreCustomAddressesListIsValid,
-    ] = useState(false);
+    ] = useState<boolean>(false);
     const [ignoreCustomAddressListError, setIgnoreCustomAddressListError] =
-        useState(false);
+        useState<false | string>(false);
 
     // flag to reflect the ignore minimum etoken balance switch
-    const [ignoreMinEtokenBalance, setIgnoreMinEtokenBalance] = useState(false);
+    const [ignoreMinEtokenBalance, setIgnoreMinEtokenBalance] =
+        useState<boolean>(false);
     const [ignoreMinEtokenBalanceAmount, setIgnoreMinEtokenBalanceAmount] =
-        useState(new BN(0));
+        useState<string>('0');
     const [
         ignoreMinEtokenBalanceAmountIsValid,
         setIgnoreMinEtokenBalanceAmountIsValid,
-    ] = useState(false);
+    ] = useState<boolean>(false);
     const [
         ignoreMinEtokenBalanceAmountError,
         setIgnoreMinEtokenBalanceAmountError,
-    ] = useState(false);
+    ] = useState<false | string>(false);
 
     useEffect(() => {
         if (location && location.state && location.state.airdropEtokenId) {
@@ -113,7 +106,7 @@ const Airdrop = () => {
                 target: {
                     value: location.state.airdropEtokenId,
                 },
-            });
+            } as React.ChangeEvent<HTMLInputElement>);
         }
     }, []);
 
@@ -122,7 +115,7 @@ const Airdrop = () => {
             // If we have a valid tokenId in the input field
 
             // See if we have this token info already available in cache
-            let thisTokenInfo = cashtabCache.tokens.get(formData.tokenId);
+            const thisTokenInfo = cashtabCache.tokens.get(formData.tokenId);
 
             // If not, get it
             if (typeof thisTokenInfo === 'undefined') {
@@ -165,7 +158,7 @@ const Airdrop = () => {
         }
     }, [tokenInfo]);
 
-    const getTokenInfo = async tokenId => {
+    const getTokenInfo = async (tokenId: string) => {
         let tokenCacheInfo;
         try {
             tokenCacheInfo = await getTokenGenesisInfo(chronik, tokenId);
@@ -194,7 +187,7 @@ const Airdrop = () => {
         }
     };
 
-    const handleTokenIdInput = e => {
+    const handleTokenIdInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setTokenIdIsValid(isValidTokenId(value));
         setFormData(p => ({
@@ -203,7 +196,9 @@ const Airdrop = () => {
         }));
     };
 
-    const handleTotalAirdropInput = e => {
+    const handleTotalAirdropInput = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { name, value } = e.target;
         setTotalAirdropIsValid(isValidXecAirdrop(value));
         setFormData(p => ({
@@ -212,7 +207,9 @@ const Airdrop = () => {
         }));
     };
 
-    const handleMinEtokenBalanceChange = e => {
+    const handleMinEtokenBalanceChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { value } = e.target;
 
         if (new BN(value).gt(new BN(0))) {
@@ -248,7 +245,9 @@ const Airdrop = () => {
 
         const excludedAddresses = [];
         if (ignoreOwnAddress) {
-            excludedAddresses.push(wallet.paths.get(1899).address);
+            excludedAddresses.push(
+                (wallet.paths.get(1899) as CashtabPathInfo).address,
+            );
         }
         if (ignoreMintAddress) {
             if (typeof mintAddress === 'undefined') {
@@ -314,31 +313,37 @@ const Airdrop = () => {
         return setCalculatingAirdrop(false);
     };
 
-    const handleIgnoreMinEtokenBalanceAmt = e => {
-        setIgnoreMinEtokenBalance(e);
+    const handleIgnoreMinEtokenBalanceAmt = (
+        updater: (prev: boolean) => boolean,
+    ) => {
+        setIgnoreMinEtokenBalance(updater);
         // Also reset the balance amount
-        setIgnoreMinEtokenBalanceAmount(new BN(0));
+        setIgnoreMinEtokenBalanceAmount('0');
     };
 
-    const handleIgnoreOwnAddress = e => {
-        setIgnoreOwnAddress(e);
+    const handleIgnoreOwnAddress = (updater: (prev: boolean) => boolean) => {
+        setIgnoreOwnAddress(updater);
     };
 
-    const handleIgnoreMintAddress = e => {
-        setIgnoreMintAddress(e);
+    const handleIgnoreMintAddress = (updater: (prev: boolean) => boolean) => {
+        setIgnoreMintAddress(updater);
     };
 
-    const handleIgnoreCustomAddresses = e => {
-        setIgnoreCustomAddresses(e);
+    const handleIgnoreCustomAddresses = (
+        updater: (prev: boolean) => boolean,
+    ) => {
+        setIgnoreCustomAddresses(updater);
     };
 
-    const handleIgnoreCustomAddressesList = e => {
+    const handleIgnoreCustomAddressesList = (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         // if the checkbox is not checked then skip the input validation
         if (!ignoreCustomAddresses) {
             return;
         }
 
-        let customAddressList = e.target.value;
+        const customAddressList = e.target.value;
 
         // validate the exclusion list input
         const addressListIsValid =
@@ -481,6 +486,7 @@ const Airdrop = () => {
                     </SwitchHolder>
                     {ignoreMinEtokenBalance && (
                         <Input
+                            name="ignoreMinEtokenBalanceAmount"
                             error={ignoreMinEtokenBalanceAmountError}
                             placeholder="Minimum eToken balance"
                             handleInput={handleMinEtokenBalanceChange}
@@ -544,8 +550,7 @@ const Airdrop = () => {
                                 name="airdropRecipients"
                                 placeholder="Please input parameters above."
                                 value={airdropRecipients}
-                                rows="10"
-                                readOnly
+                                disabled
                             />
                         </FormRow>
                         <FormRow>

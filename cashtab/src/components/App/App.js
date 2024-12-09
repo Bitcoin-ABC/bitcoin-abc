@@ -27,7 +27,7 @@ import Receive from 'components/Receive/Receive';
 import CreateToken from 'components/Etokens/CreateToken';
 import SendXec from 'components/Send/SendXec';
 import Token from 'components/Etokens/Token';
-import Airdrop from 'components/Airdrop/Airdrop';
+import Airdrop from 'components/Airdrop';
 import BackupWallet from 'components/BackupWallet/BackupWallet';
 import Contacts from 'components/Contacts';
 import Wallets from 'components/Wallets';

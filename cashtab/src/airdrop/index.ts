@@ -4,6 +4,7 @@
 
 import { BN } from 'slp-mdm';
 import { toSatoshis, toXec } from 'wallet';
+import { TokenIdUtxos } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
 
@@ -14,14 +15,13 @@ import appConfig from 'config/app';
 
 /**
  * Get a list of addresses and XEC amounts for an airdrop tx according to given settings
- * @param {TokenIdUtxos} tokenUtxos output from chronik.tokenId(airdroppedTokenId).utxos()
- * @param {string[]} excludedAddresses user specified settings for this airdrop
- * @param {number} airdropAmountXec user input for XEC amount to be airdropped
- * @param {string} minTokenQtyUndecimalized Amount of a token users must have to be eligible for an airdrop
+ * @param tokenUtxos output from chronik.tokenId(airdroppedTokenId).utxos()
+ * @param excludedAddresses user specified settings for this airdrop
+ * @param airdropAmountXec user input for XEC amount to be airdropped
+ * @param minTokenQtyUndecimalized Amount of a token users must have to be eligible for an airdrop
  * NOTE: minTokenQty is entered by the user accounting for tokenDecimals, but is UNDECIMALIZED in this function,
  * As we do not decimalize any parameters here (airdrop calcs are all relative to total, so we do not need to
  * account for specific decimals)
- * @param {boolean} allHoldersReceiveSame some airdrop users wish to send all token holders the same xec drop
  * Airdrop rules
  * 1) When we ignore an address, we also ignore the balance held by that address in determining payout weight
  * 2) We include unconfirmed txs in airdrop calculations
@@ -29,11 +29,11 @@ import appConfig from 'config/app';
  * 4) We only send airdrops to P2PKH or P2SH recipients.
  */
 export const getAirdropTx = (
-    tokenUtxos,
-    excludedAddresses,
-    airdropAmountXec,
+    tokenUtxos: TokenIdUtxos,
+    excludedAddresses: string[],
+    airdropAmountXec: string,
     minTokenQtyUndecimalized = '0',
-) => {
+): string => {
     const { tokenId, utxos } = tokenUtxos;
     // Iterate over tokenUtxos to get total token supply
 
@@ -49,6 +49,11 @@ export const getAirdropTx = (
     // But we only want to know the total amount held by each holding outputScript
     const tokenHolders = new Map();
     for (const utxo of utxos) {
+        if (typeof utxo.token === 'undefined') {
+            // Note: all these tokens will have utxo key, since they came from the tokenId call
+            // We do this check for typescript
+            continue;
+        }
         // Get this holder's address
         let address;
         try {
@@ -95,7 +100,7 @@ export const getAirdropTx = (
         );
     }
 
-    const airdropAmountSatoshis = toSatoshis(airdropAmountXec);
+    const airdropAmountSatoshis = toSatoshis(parseFloat(airdropAmountXec));
 
     // Remove tokenHolders with ineligible balance
     const ineligibleRecipientsLowBalance = new Set();
@@ -109,6 +114,11 @@ export const getAirdropTx = (
     const eligibleTokenHolders = new Map();
     let eligibleCirculatingSupply = new BN(0);
     for (const utxo of utxos) {
+        if (typeof utxo.token === 'undefined') {
+            // Note: all these tokens will have utxo key, since they came from the tokenId call
+            // We do this check for typescript
+            continue;
+        }
         // Get this holder's address
         let address;
         try {
@@ -167,8 +177,13 @@ export const getAirdropTx = (
     // Now that we know ALL ineligible recipients, we must again iterate over token utxos to get the
     // correct circulating supply
     let finalEligibleCirculatingSupply = new BN(0);
-    let airdropRecipients = new Map();
+    const airdropRecipients = new Map();
     for (const utxo of utxos) {
+        if (typeof utxo.token === 'undefined') {
+            // Note: all these tokens will have utxo key, since they came from the tokenId call
+            // We do this check for typescript
+            continue;
+        }
         // Get this holder's address
         let address;
         try {
@@ -227,7 +242,7 @@ export const getAirdropTx = (
     }
 
     // Now we can build our csv
-    const airdropArray = [];
+    const airdropArray: string[] = [];
     airdropRecipients.forEach((tokenQty, address) => {
         const satsToReceive = Math.floor(
             tokenQty
@@ -242,16 +257,21 @@ export const getAirdropTx = (
 };
 
 export const getEqualAirdropTx = (
-    tokenUtxos,
-    excludedAddresses,
-    airdropAmountXec,
+    tokenUtxos: TokenIdUtxos,
+    excludedAddresses: string[],
+    airdropAmountXec: string,
     minTokenQtyUndecimalized = '0',
-) => {
+): string => {
     const { tokenId, utxos } = tokenUtxos;
     const minTokenAmount = new BN(minTokenQtyUndecimalized);
     const tokenHolders = new Map();
     // Iterate over tokenUtxos to get total token supply
     for (const utxo of utxos) {
+        if (typeof utxo.token === 'undefined') {
+            // Note: all these tokens will have utxo key, since they came from the tokenId call
+            // We do this check for typescript
+            continue;
+        }
         // Get this holder's address
         let address;
         try {
@@ -312,7 +332,7 @@ export const getEqualAirdropTx = (
 
     // How much XEC does each holder get?
     const equalAirdropAmount = Math.floor(
-        toSatoshis(airdropAmountXec) / totalRecipients,
+        toSatoshis(parseFloat(airdropAmountXec)) / totalRecipients,
     );
     if (equalAirdropAmount < appConfig.dustSats) {
         throw new Error(
@@ -321,7 +341,7 @@ export const getEqualAirdropTx = (
     }
 
     // Now we can build our csv
-    const airdropArray = [];
+    const airdropArray: string[] = [];
     tokenHolders.forEach((tokenQty, address) => {
         airdropArray.push(`${address}, ${toXec(equalAirdropAmount)}`);
     });

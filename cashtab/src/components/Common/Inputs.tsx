@@ -246,10 +246,10 @@ interface TextAreaProps {
     placeholder: string;
     name: string;
     value: string | null;
-    handleInput: React.ChangeEventHandler<HTMLTextAreaElement>;
+    handleInput?: React.ChangeEventHandler<HTMLTextAreaElement>;
     disabled?: boolean;
     height?: number;
-    error: string | boolean;
+    error?: string | boolean;
     showCount?: boolean;
     customCount?: boolean | number;
     max?: string | number;
@@ -286,8 +286,8 @@ export const TextArea: React.FC<TextAreaProps> = ({
                             {customCount !== false
                                 ? customCount
                                 : value === null
-                                  ? 0
-                                  : value.length}
+                                ? 0
+                                : value.length}
                         </Count>
                         /{max}
                     </CountHolder>
