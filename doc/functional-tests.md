@@ -56,7 +56,7 @@ Run all possible tests with
 test/functional/test_runner.py --extended
 ```
 
-By default, up to 4 tests will be run in parallel by test_runner. To specify
+By default, the test_runner will run many tests in parallel. To specify
 how many jobs to run, append `--jobs=n`
 
 The individual tests and the test_runner harness have many command-line
