@@ -294,6 +294,12 @@ esac
 # Needed for rustup, cargo and rustc
 export LD_LIBRARY_PATH="${LIBRARY_PATH}"
 
+# Work around a false positive in aws-lc-sys which detects a bug in GCC even if
+# the version is free of the bug. It seeems to not affect the cmake build for
+# this crate, so use that instead.
+# See https://github.com/aws/aws-lc-rs/issues/474
+export AWS_LC_SYS_CMAKE_BUILDER=1
+
 # CMake flags
 case "$HOST" in
     *mingw*)
