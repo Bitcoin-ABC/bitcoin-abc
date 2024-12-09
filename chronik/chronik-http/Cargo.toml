@@ -47,10 +47,8 @@ http-body-util = "0.1"
 hyper = "1.1"
 
 # JSON RPC over TCP
-# The github source is a temporary fix waiting for deployment of a bugfix:
-# https://github.com/karyontech/karyon/pull/12
-karyon_jsonrpc = { git = "https://github.com/karyontech/karyon.git", rev = "02bf00ffd54e3fc843b44727646cd78a7fdac448" }
-karyon_net = { git = "https://github.com/karyontech/karyon.git", rev = "02bf00ffd54e3fc843b44727646cd78a7fdac448" }
+karyon_jsonrpc = "0.1.8"
+karyon_net = "0.1.8"
 
 # Protobuf en-/decoding
 prost = "0.11"

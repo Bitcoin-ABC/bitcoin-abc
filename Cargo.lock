@@ -2216,16 +2216,18 @@ dependencies = [
 
 [[package]]
 name = "karyon_async_rustls"
-version = "0.1.7"
-source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "965ec6ac0817451789c448f70d50eb370ba5bab1613a8c78852ce55644395d4d"
 dependencies = [
  "futures-rustls",
 ]
 
 [[package]]
 name = "karyon_core"
-version = "0.1.7"
-source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f846da30dc53033e8577fcd098327455a8413d9ad103df8f2e919e3cb12626f"
 dependencies = [
  "async-channel 2.3.1",
  "async-process",
@@ -2244,8 +2246,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc"
-version = "0.1.7"
-source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c05b320f751e9fc20b9edadfd0b9ecca79de7372c71bd29792cb38ae7dc1bf41"
 dependencies = [
  "async-channel 2.3.1",
  "async-trait",
@@ -2262,8 +2265,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc_macro"
-version = "0.1.7"
-source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fe0ad0d10fd352d0c11ca07b0c17c2cef348567b51830298cd5bd42bb99ca75"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2273,8 +2277,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_net"
-version = "0.1.7"
-source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ab4a79deb768cbff5eb26fc28453a23f94b4df87beadf1f3d0734c9e998c092"
 dependencies = [
  "async-channel 2.3.1",
  "async-trait",
