@@ -584,7 +584,7 @@ dependencies = [
  "bitflags 2.6.0",
  "cexpr",
  "clang-sys",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "lazy_static",
  "lazycell",
  "log",
@@ -2183,15 +2183,6 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
@@ -2226,8 +2217,7 @@ dependencies = [
 [[package]]
 name = "karyon_async_rustls"
 version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b99bec3a7ba318a17691a9a076a9b7869d648d5c6c1819af263fe044aba02de"
+source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
 dependencies = [
  "futures-rustls",
 ]
@@ -2235,8 +2225,7 @@ dependencies = [
 [[package]]
 name = "karyon_core"
 version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd8d73020b4f44001d7050529394f2e77aa09471b313f14cd77d55055708a3f2"
+source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
 dependencies = [
  "async-channel 2.3.1",
  "async-process",
@@ -2256,8 +2245,7 @@ dependencies = [
 [[package]]
 name = "karyon_jsonrpc"
 version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b98cc37abaf638400d71b93676d55b26501177793693421b0614535b301b70ca"
+source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
 dependencies = [
  "async-channel 2.3.1",
  "async-trait",
@@ -2275,8 +2263,7 @@ dependencies = [
 [[package]]
 name = "karyon_jsonrpc_macro"
 version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa6058343007de2346854300b72c211e59fe6a441be45c50529f6038754aa851"
+source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2287,8 +2274,7 @@ dependencies = [
 [[package]]
 name = "karyon_net"
 version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1afbfa8354701220d5024c2c2ce026ff967cdb2f5781d43d4872f7e08194497"
+source = "git+https://github.com/karyontech/karyon.git?rev=02bf00ffd54e3fc843b44727646cd78a7fdac448#02bf00ffd54e3fc843b44727646cd78a7fdac448"
 dependencies = [
  "async-channel 2.3.1",
  "async-trait",
