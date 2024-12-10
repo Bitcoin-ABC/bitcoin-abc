@@ -717,15 +717,34 @@ void SetupServerArgs(NodeContext &node) {
         "Enable the scripthash index for the Chronik indexer (default: 0) ",
         ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
     argsman.AddArg(
-        "-chronikelectrumbind=<addr>[:port]",
+        "-chronikelectrumbind=<addr>[:port][:t|s]",
         strprintf(
-            "Bind the Chronik Electrum interface to the given address:port. "
-            "If not set the Electrum interface will not start. This option can "
-            "be specified multiple times (default: disabled; default port: %u, "
-            "testnet: %u, regtest: %u)",
+            "Bind the Chronik Electrum interface to the given "
+            "address:port:protocol. If not set, the Electrum interface will "
+            "not start. This option can be specified multiple times. The "
+            "protocol is selected by a single letter, where 't' means TCP and "
+            "'s' means TLS. If TLS is selected, the certificate chain and "
+            "private key must both be passed (see -chronikelectrumcert and "
+            "-chronikelectrumprivkey (default: disabled; default port: %u, "
+            "testnet: %u, regtest: %u; default protocol: TCP)",
             defaultBaseParams->ChronikElectrumPort(),
             testnetBaseParams->ChronikElectrumPort(),
             regtestBaseParams->ChronikElectrumPort()),
+        ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::HIDDEN);
+    argsman.AddArg(
+        "-chronikelectrumcert",
+        "Path to the certificate file to be used by the Chronik Electrum "
+        "server when the TLS protocol is selected. The file should contain "
+        "the whole certificate chain (typically a .pem file). If used the "
+        "-chronikelectrumprivkey must be set as well.",
+        ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::HIDDEN);
+    argsman.AddArg(
+        "-chronikelectrumprivkey",
+        "Path to the private key file to be used by the Chronik Electrum "
+        "server when the TLS protocol is selected. If used the "
+        "-chronikelectrumcert must be set as well.",
         ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
         OptionsCategory::HIDDEN);
 #endif

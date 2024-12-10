@@ -21,7 +21,7 @@ use chronik_db::{
     index_tx::TxNumCacheSettings, io::GroupHistorySettings, mem::MempoolTx,
 };
 use chronik_http::electrum::{
-    ChronikElectrumServer, ChronikElectrumServerParams,
+    ChronikElectrumProtocol, ChronikElectrumServer, ChronikElectrumServerParams,
 };
 use chronik_http::server::{
     ChronikServer, ChronikServerParams, ChronikSettings,
@@ -43,6 +43,18 @@ pub enum ChronikError {
     /// Chronik host address failed to parse
     #[error("Invalid Chronik host address {0:?}: {1}")]
     InvalidChronikHost(String, AddrParseError),
+
+    /// Chronik Electrum host address failed to parse
+    #[error("Invalid Chronik Electrum host address {0:?}: {1}")]
+    InvalidChronikElectrumHostAddr(String, AddrParseError),
+
+    /// Chronik electrum host address failed to parse
+    #[error("Invalid Chronik Electrum host address format {0:?}")]
+    InvalidChronikElectrumHostFormat(String),
+
+    /// Chronik electrum host address failed to parse
+    #[error("Invalid Chronik Electrum host protocol {0:?}")]
+    InvalidChronikElectrumHostProtocol(u8),
 
     /// Unknown net repr
     #[error("Unknown net repr {0}")]
@@ -158,7 +170,13 @@ fn try_setup_chronik(
         let electrum_hosts = params
             .electrum_hosts
             .into_iter()
-            .map(|host| parse_socket_addr(host, params.electrum_default_port))
+            .map(|host| {
+                parse_socket_addr_protocol(
+                    host,
+                    params.electrum_default_port,
+                    params.electrum_default_protocol,
+                )
+            })
             .collect::<Result<Vec<_>>>()?;
         log!(
             "Starting Chronik Electrum interface bound to {:?}\n",
@@ -169,6 +187,8 @@ fn try_setup_chronik(
                 hosts: electrum_hosts,
                 indexer: indexer.clone(),
                 node: node.clone(),
+                tls_cert_path: params.electrum_cert_path,
+                tls_privkey_path: params.electrum_privkey_path,
             })?;
         runtime.spawn({
             let node = Arc::clone(&node);
@@ -199,6 +219,46 @@ fn parse_socket_addr(host: String, default_port: u16) -> Result<SocketAddr> {
         .parse::<IpAddr>()
         .map_err(|err| InvalidChronikHost(host, err))?;
     Ok(SocketAddr::new(ip_addr, default_port))
+}
+
+fn parse_socket_addr_protocol(
+    host: String,
+    default_port: u16,
+    default_protocol: u8,
+) -> Result<(SocketAddr, ChronikElectrumProtocol)> {
+    let split_host = host.split(':').collect::<Vec<_>>();
+    let split_host_len = split_host.len();
+    if split_host_len > 3 {
+        return Err(InvalidChronikElectrumHostFormat(host).into());
+    }
+
+    let addr_port = split_host[..split_host_len.min(2)].join(":");
+
+    let mut protocol_letter = default_protocol;
+    if split_host_len > 2 {
+        protocol_letter = split_host[2]
+            .bytes()
+            .next()
+            .ok_or(InvalidChronikElectrumHostFormat(host.clone()))?;
+    }
+
+    let protocol = match protocol_letter {
+        b't' => ChronikElectrumProtocol::Tcp,
+        b's' => ChronikElectrumProtocol::Tls,
+        _ => {
+            return Err(
+                InvalidChronikElectrumHostProtocol(protocol_letter).into()
+            )
+        }
+    };
+
+    if let Ok(addr) = addr_port.parse::<SocketAddr>() {
+        return Ok((addr, protocol));
+    }
+    let ip_addr = host
+        .parse::<IpAddr>()
+        .map_err(|err| InvalidChronikElectrumHostAddr(host, err))?;
+    Ok((SocketAddr::new(ip_addr, default_port), protocol))
 }
 
 fn decompress_script(script: &[u8]) -> Result<Vec<u8>> {

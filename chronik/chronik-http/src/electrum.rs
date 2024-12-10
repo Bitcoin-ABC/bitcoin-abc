@@ -8,8 +8,13 @@ use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use futures::future;
+use itertools::izip;
 use karyon_jsonrpc::{RPCError, RPCMethod, RPCService, Server};
 use karyon_net::{Addr, Endpoint};
+use rustls::pki_types::{
+    pem::PemObject,
+    {CertificateDer, PrivateKeyDer},
+};
 use serde_json::Value;
 use thiserror::Error;
 
@@ -18,24 +23,39 @@ use crate::{
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
 
+/// Chronik Electrum protocol
+#[derive(Clone, Copy, Debug)]
+pub enum ChronikElectrumProtocol {
+    /// TCP
+    Tcp,
+    /// TLS
+    Tls,
+}
+
 /// Params defining what and where to serve for [`ChronikElectrumServer`].
 #[derive(Clone, Debug)]
 pub struct ChronikElectrumServerParams {
     /// Host address (port + IP) where to serve the electrum server at.
-    pub hosts: Vec<SocketAddr>,
+    pub hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
     /// Indexer to read data from
     pub indexer: ChronikIndexerRef,
     /// Access to the bitcoind node
     pub node: NodeRef,
+    /// The TLS certificate chain file
+    pub tls_cert_path: String,
+    /// The TLS private key file
+    pub tls_privkey_path: String,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
 /// instance.
 #[derive(Debug)]
 pub struct ChronikElectrumServer {
-    hosts: Vec<SocketAddr>,
+    hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
     _indexer: ChronikIndexerRef,
     _node: NodeRef,
+    tls_cert_path: String,
+    tls_privkey_path: String,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -48,6 +68,42 @@ pub enum ChronikElectrumServerError {
     /// Serving Electrum failed
     #[error("Chronik Electrum failed serving: {0}")]
     ServingFailed(String),
+
+    /// Chronik Electrum TLS invalid configuration
+    #[error("Chronik Electrum TLS configuration is invalid: {0}")]
+    InvalidTlsConfiguration(String),
+
+    /// Chronik Electrum TLS configuration failed
+    #[error("Chronik Electrum TLS configuration failed: {0}")]
+    TlsConfigurationFailed(String),
+
+    /// Missing certificate chain file
+    #[error(
+        "Chronik Electrum TLS configuration requires a certificate chain file \
+         (see -chronikelectrumcert)"
+    )]
+    MissingCertificateFile,
+
+    /// Certificate chain file not found
+    #[error(
+        "Chronik Electrum TLS configuration failed to open the certificate \
+         chain file {0}: {1}"
+    )]
+    CertificateFileNotFound(String, String),
+
+    /// Missing private key file
+    #[error(
+        "Chronik Electrum TLS configuration requires a private key file (see \
+         -chronikelectrumprivkey)"
+    )]
+    MissingPrivateKeyFile,
+
+    /// Private key file not found
+    #[error(
+        "Chronik Electrum TLS configuration failed to open the private key \
+         file {0}, {1}"
+    )]
+    PrivateKeyFileNotFound(String, String),
 }
 
 struct ChronikElectrumRPCServerEndpoint {}
@@ -60,6 +116,8 @@ impl ChronikElectrumServer {
             // FIXME below params are unused but will be used in the future
             _indexer: params.indexer,
             _node: params.node,
+            tls_cert_path: params.tls_cert_path,
+            tls_privkey_path: params.tls_privkey_path,
         })
     }
 
@@ -69,24 +127,85 @@ impl ChronikElectrumServer {
         // endpoint.method as the name of the RPC
         let server_endpoint = Arc::new(ChronikElectrumRPCServerEndpoint {});
 
-        let servers = self
-            .hosts
-            .into_iter()
-            .zip(std::iter::repeat(server_endpoint))
-            .map(|(host, server_endpoint)| {
+        let tls_cert_path = self.tls_cert_path.clone();
+        let tls_privkey_path = self.tls_privkey_path.clone();
+
+        let servers = izip!(
+            self.hosts,
+            std::iter::repeat(server_endpoint),
+            std::iter::repeat(tls_cert_path),
+            std::iter::repeat(tls_privkey_path)
+        )
+        .map(
+            |(
+                (host, protocol),
+                server_endpoint,
+                tls_cert_path,
+                tls_privkey_path,
+            )| {
                 Box::pin(async move {
+                    let mut require_tls_config = false;
                     // Don't use the karyon Endpoint parsing as it doesn't
                     // appear to support IPv6.
-                    let tcp_host =
-                        Endpoint::Tcp(Addr::Ip(host.ip()), host.port());
+                    let endpoint = match protocol {
+                        ChronikElectrumProtocol::Tcp => {
+                            Endpoint::Tcp(Addr::Ip(host.ip()), host.port())
+                        }
+                        ChronikElectrumProtocol::Tls => {
+                            require_tls_config = true;
+                            Endpoint::Tls(Addr::Ip(host.ip()), host.port())
+                        }
+                    };
 
-                    let builder = Server::builder_with_json_codec(
-                        tcp_host,
+                    let mut builder = Server::builder_with_json_codec(
+                        endpoint,
                         ElectrumCodec {},
                     )
                     .map_err(|err| {
                         FailedBindingAddress(host, err.to_string())
                     })?;
+
+                    if require_tls_config {
+                        if tls_cert_path.is_empty() {
+                            return Err(MissingCertificateFile);
+                        }
+                        if tls_privkey_path.is_empty() {
+                            return Err(MissingPrivateKeyFile);
+                        }
+
+                        let certs: Vec<_> = CertificateDer::pem_file_iter(
+                            tls_cert_path.as_str(),
+                        )
+                        .map_err(|err| {
+                            CertificateFileNotFound(
+                                tls_cert_path,
+                                err.to_string(),
+                            )
+                        })?
+                        .map(|cert| cert.unwrap())
+                        .collect();
+                        let private_key = PrivateKeyDer::from_pem_file(
+                            tls_privkey_path.as_str(),
+                        )
+                        .map_err(|err| {
+                            PrivateKeyFileNotFound(
+                                tls_privkey_path,
+                                err.to_string(),
+                            )
+                        })?;
+
+                        let tls_config = rustls::ServerConfig::builder()
+                            .with_no_client_auth()
+                            .with_single_cert(certs, private_key)
+                            .map_err(|err| {
+                                InvalidTlsConfiguration(err.to_string())
+                            })?;
+                        builder =
+                            builder.tls_config(tls_config).map_err(|err| {
+                                TlsConfigurationFailed(err.to_string())
+                            })?;
+                    }
+
                     let server = builder
                         .service(server_endpoint)
                         .build()
@@ -98,7 +217,8 @@ impl ChronikElectrumServer {
 
                     Ok::<(), ChronikElectrumServerError>(())
                 })
-            });
+            },
+        );
 
         let (result, _, _) = futures::future::select_all(servers).await;
         result?;

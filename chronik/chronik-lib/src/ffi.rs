@@ -47,6 +47,12 @@ mod ffi_inner {
         pub electrum_hosts: Vec<String>,
         /// Electrum default port
         pub electrum_default_port: u16,
+        /// Electrum default protocol
+        pub electrum_default_protocol: u8,
+        /// Electrum certificate chain file path
+        pub electrum_cert_path: String,
+        /// Electrum private key file path
+        pub electrum_privkey_path: String,
     }
 
     /// Settings for tuning the TxNumCache.

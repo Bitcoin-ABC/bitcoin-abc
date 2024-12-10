@@ -55,6 +55,16 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         return {{_("Using -chronikallowpause on a mainnet chain is not allowed "
                    "for security reasons.")}};
     }
+
+    const auto electrum_hosts = args.GetArgs("-chronikelectrumbind");
+    if (!electrum_hosts.empty()) {
+        if (args.IsArgSet("-chronikelectrumcert") ^
+            args.IsArgSet("-chronikelectrumprivkey")) {
+            return {{_("The -chronikelectrumcert and -chronikelectrumprivkey "
+                       "options should both be set or unset.")}};
+        }
+    }
+
     return {{
         .net = ParseNet(params.NetworkIDString()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -83,9 +93,11 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                     (size_t)args.GetIntArg("-chroniktxnumcachebucketsize",
                                            DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
             },
-        .electrum_hosts =
-            ToRustVec<rust::String>(args.GetArgs("-chronikelectrumbind")),
+        .electrum_hosts = ToRustVec<rust::String>(electrum_hosts),
         .electrum_default_port = BaseParams().ChronikElectrumPort(),
+        .electrum_default_protocol = 't',
+        .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),
+        .electrum_privkey_path = args.GetArg("-chronikelectrumprivkey", ""),
     }};
 }
 
