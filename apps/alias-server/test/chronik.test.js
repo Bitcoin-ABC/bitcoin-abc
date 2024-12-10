@@ -13,7 +13,9 @@ const {
     unconfirmedTxs,
     unconfirmedTxsAfterConfirmation,
 } = require('./mocks/txHistoryMocks');
-const { MockChronikClient } = require('../../../modules/mock-chronik-client');
+const {
+    MockChronikClient,
+} = require('../../../modules/mock-chronik-client/dist');
 
 // todo make txsperpage a param and test different values
 describe('alias-server chronik.js', () => {
@@ -31,9 +33,8 @@ describe('alias-server chronik.js', () => {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, allTxHistoryFromChronik);
+        mockedChronik.setTxHistoryByScript(type, hash, allTxHistoryFromChronik);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
@@ -59,9 +60,8 @@ describe('alias-server chronik.js', () => {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, allTxHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, allTxHistory);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
@@ -86,9 +86,8 @@ describe('alias-server chronik.js', () => {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, allTxHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, allTxHistory);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,

@@ -1144,10 +1144,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064410fed2b69cf2c9f0ca92318461d707292347ef567d6866d3889b510d1d1ab8615451dd1d56608457d4f40e8eb97f61dad4f3dc9fbef57099105a6a3e32e0efe8e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac4f7b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             '63e4bba044135367eb71c71bc78aee91ecce0551fbdfbdb975e668fb808547ed';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1283,10 +1280,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064418305d1f7771a13e90b0cb15adf1c0a39b4381d1ec1bc3bebfa67cbbb5c9461b1a9d0c5a66ca5935aad771cbe869c9002add8b9d9822724ce73db8d15554f26cb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0200000000000000003c6a040074616235486f772061626f75742061206c6f6e672d6973682043617368746162206d7367207769746820656d6f6a697320f09f8eaff09f988e11820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
         const txid =
             'b1d49881be9c810e4408881438efb9e910d9e03bcc12a7bfcd652a0952d06f42';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1386,10 +1380,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064410fed2b69cf2c9f0ca92318461d707292347ef567d6866d3889b510d1d1ab8615451dd1d56608457d4f40e8eb97f61dad4f3dc9fbef57099105a6a3e32e0efe8e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac4f7b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             '63e4bba044135367eb71c71bc78aee91ecce0551fbdfbdb975e668fb808547ed';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1526,10 +1517,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064413b207f573a7abb9ec0d149fa71cbde63272a0e6b58298a81bc39ac2001729205bd1e9284c9d5a268f7abe63c5c953bf932ac06c13e408341bde4e4807d7f2fe94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0260ae0a00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acf7d30300000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             'a6e905185097cc1ffb289ca366ff7322f8aaf95713d1e5d1a4e89663e609530f';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1592,10 +1580,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064411aa35b343dea193092b46c01b877677d595d854686655ae24a3387a10955656a7604dca1cae999239d8ae76dc16ec9db72560832e8a9b0fb09f4ba6e1fb384b14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03d0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac98080000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acab710e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             'a306834359b3591c68dc3ee8227e5e10225e6ab3c5a7496ead6e119aaaf31635';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1655,10 +1640,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441e11f1d96347ab50d56b111e9fd5ef68f9f1c69c76e1f8a65ec1fa58bd2e0eaee7a33b2c961ed5e58231c793b5d8a2950e2def6e7613df1055e681bc8f25d0a5b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff019c820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
         const txid =
             '521eda8ad78014c60374931dcc4e35f312847f9332e16cb846cd387a984e95d2';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1763,10 +1745,7 @@ describe('<SendXec />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441d95dfbf01e233d19684fd525d1cc39eb82a53ebfc97b8f2f9160f418ce863f4360f9fd1d6c182abde1d582ed39c6998ec5e4cdbde1b09736f6abe390a6ab8d8f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac40e20100000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acca980c00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             'f153119862f52dbe765ed5d66a5ff848d0386c5d987af9bef5e49a7e62a2c889';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -1912,14 +1891,8 @@ describe('<SendXec />', () => {
         // Mock API calls for fetching this token info from cache
         const token_id = mockTokenId;
         // Set chronik mocks required for cache preparation and supply calc
-        mockedChronik.setMock('token', {
-            input: token_id,
-            output: new Error('some chronik error'),
-        });
-        mockedChronik.setMock('tx', {
-            input: token_id,
-            output: slp1FixedBear.tx,
-        });
+        mockedChronik.setToken(token_id, new Error('some chronik error'));
+        mockedChronik.setTx(token_id, slp1FixedBear.tx);
 
         render(
             <CashtabTestWrapper
@@ -2009,22 +1982,13 @@ describe('<SendXec />', () => {
             '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006441bac61dbfa47bc7b92952caaa867c2c5fd11bde4cfa36c21b818dbb80c15b19a0c94845e916bc57bc5f35f32ca379bd48a6ee1dc4ded52794bcee231655b105f14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a59dcc96f885dcbf56d473ba74b3202adb00dbc1142e379efa3784b559d7be97aa3d777eb4001613f205191d177c9896f652132d397a65cdfa93c69657d59f1b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acbb800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             '6de2d27d40bced679a8b8e55c85230ed8da0977c30ad31247fefc0b1eba0976e';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         // Mock API calls for fetching this token info from cache
         const token_id = slp1FixedBear.tokenId;
         // Set chronik mocks required for cache preparation and supply calc
-        mockedChronik.setMock('token', {
-            input: slp1FixedBear.tokenId,
-            output: slp1FixedBear.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: slp1FixedBear.tokenId,
-            output: slp1FixedBear.tx,
-        });
+        mockedChronik.setToken(slp1FixedBear.tokenId, slp1FixedBear.token);
+        mockedChronik.setTx(slp1FixedBear.tokenId, slp1FixedBear.tx);
 
         const { tokenName, tokenTicker } = slp1FixedBear.token.genesisInfo;
 
@@ -2129,22 +2093,12 @@ describe('<SendXec />', () => {
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441fff980a72dab5fed2ef4b94c54c5b91dd2e4d22fab32bd8daa8ba8118fc45b121cceb8c43a869966219d1e6b1ebf6c34436287a349fbd132a11b8928cdf642784121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441c8203434106d39d750461d8a6939412f432220cba2e957f19a699e5ed57a4357bb257dfcde9aa5618d6b87721f939b69312c429eba28c056f06efad33b4875314121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003a6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000022020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac18310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             'cf78a0c9f88027ab90dec0fe2180ef4d4d45ab431e179ce262ea19502202da52';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
-
+        mockedChronik.setBroadcastTx(hex, txid);
         // Mock API calls for fetching this token info from cache
         const token_id = alpMocks.tokenId;
         // Set chronik mocks required for cache preparation and supply calc
-        mockedChronik.setMock('token', {
-            input: alpMocks.tokenId,
-            output: alpMocks.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: alpMocks.tokenId,
-            output: alpMocks.tx,
-        });
+        mockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
 
         const { tokenName, tokenTicker } = alpMocks.token.genesisInfo;
 
@@ -2249,22 +2203,16 @@ describe('<SendXec />', () => {
             '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d0100000064415b08020f453b87695e24d8ea104fab2c98c1e944502582599e945b407a8900dc75bcd599cbbb2cd3216402e9d6b0b1329aec686033cd838c9555777eaad8c0704121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644164f0fe5c018e1b2ef2ed49e0ff1d87e5fe116e32ca30db8422ae09cc825976abc705ae59faee5d3372638bc297cd70f77582f5d0c513bfabfd9146dfb916d3ad4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             '57f665440f7ab0686fece1d744484140d3013e301b45842f5e9371597871ea8c';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         // Mock API calls for fetching this token info from cache
         const token_id = slp1NftChildMocks.tokenId;
         // Set chronik mocks required for cache preparation and supply calc
-        mockedChronik.setMock('token', {
-            input: slp1NftChildMocks.tokenId,
-            output: slp1NftChildMocks.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: slp1NftChildMocks.tokenId,
-            output: slp1NftChildMocks.tx,
-        });
+        mockedChronik.setToken(
+            slp1NftChildMocks.tokenId,
+            slp1NftChildMocks.token,
+        );
+        mockedChronik.setTx(slp1NftChildMocks.tokenId, slp1NftChildMocks.tx);
 
         const { tokenName, tokenTicker } = slp1NftChildMocks.token.genesisInfo;
 

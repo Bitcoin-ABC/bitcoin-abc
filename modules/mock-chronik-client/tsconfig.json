@@ -1,12 +1,14 @@
 {
     "compilerOptions": {
-        "target": "es2020",
+        "target": "es2016",
         "module": "commonjs",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
         "outDir": "./dist",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
-        "alwaysStrict": true,
         "skipLibCheck": true
     }
 }

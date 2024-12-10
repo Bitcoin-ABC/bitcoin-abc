@@ -168,3 +168,15 @@ If you have any implementation questions regarding this mock tool please check t
 1.12.3
 
 -   Add dummy `plugin` method to allow construction of `new Agora()` from `ecash-agora` with a `MockChronikClient` [D17279](https://reviews.bitcoinabc.org/D17279)
+
+2.0.0
+
+[D17332](https://reviews.bitcoinabc.org/D17332)
+
+-   Full implementation of typescript
+-   Set history and utxos by script, address, or tokenId in one step (prev 2)
+-   Set history by lokadId in one step (prev 2)
+-   Better type checking
+-   Improved mock websocket (now it more closely follows the API of chronik-client)
+-   Add `broadcastTxs` method
+-   Add `chronikInfo` method

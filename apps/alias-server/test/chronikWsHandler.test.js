@@ -10,7 +10,9 @@ const {
     initializeWebsocket,
     parseWebsocketMessage,
 } = require('../src/chronikWsHandler');
-const { MockChronikClient } = require('../../../modules/mock-chronik-client');
+const {
+    MockChronikClient,
+} = require('../../../modules/mock-chronik-client/dist');
 // Mock mongodb
 const {
     initializeDb,
@@ -86,7 +88,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const telegramBot = null;
         const channelId = null;
 
-        await initializeWebsocket(
+        const ws = await initializeWebsocket(
             mockedChronik,
             wsTestAddress,
             db,
@@ -96,9 +98,9 @@ describe('alias-server chronikWsHandler.js', async function () {
         );
 
         // Confirm websocket opened
-        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        assert.strictEqual(ws.waitForOpenCalled, true);
         // Confirm subscribe was called
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
+        assert.equal(ws.subs.scripts.length, 1);
     });
     it('initializeWebsocket returns expected websocket object for a p2sh address', async function () {
         const wsTestAddress =
@@ -109,7 +111,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const telegramBot = null;
         const channelId = null;
 
-        await initializeWebsocket(
+        const ws = await initializeWebsocket(
             mockedChronik,
             wsTestAddress,
             db,
@@ -119,9 +121,9 @@ describe('alias-server chronikWsHandler.js', async function () {
         );
 
         // Confirm websocket opened
-        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        assert.strictEqual(ws.waitForOpenCalled, true);
         // Confirm subscribe was called
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
+        assert.equal(ws.subs.scripts.length, 1);
     });
     it('parseWebsocketMessage correctly processes a chronik websocket BLK_FINALIZED message if block is avalanche finalized', async function () {
         // Initialize chronik mock
@@ -142,9 +144,8 @@ describe('alias-server chronikWsHandler.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         const result = await parseWebsocketMessage(
             mockedChronik,
@@ -184,9 +185,8 @@ describe('alias-server chronikWsHandler.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         // Initialize mocks for second call to parseWebsocketMessage
         const nextMockedChronik = new MockChronikClient();
@@ -199,10 +199,9 @@ describe('alias-server chronikWsHandler.js', async function () {
 
         // Add tx history to nextMockedChronik
         // Set the script
-        nextMockedChronik.setScript(type, hash);
         // Set the mock tx history
         // For now, assume it's the same as before, i.e. no new txs found
-        nextMockedChronik.setTxHistory(type, hash, generated.txHistory);
+        nextMockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         const firstCallPromise = parseWebsocketMessage(
             mockedChronik,
@@ -262,10 +261,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const mockedChronik = new MockChronikClient();
 
         // Mock chronik response
-        mockedChronik.setMock('tx', {
-            input: incomingTxid,
-            output: pendingTxObject,
-        });
+        mockedChronik.setTx(incomingTxid, pendingTxObject);
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,
@@ -303,10 +299,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const mockedChronik = new MockChronikClient();
 
         // Mock chronik response
-        mockedChronik.setMock('tx', {
-            input: incomingTxid,
-            output: pendingTxObject,
-        });
+        mockedChronik.setTx(incomingTxid, pendingTxObject);
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,

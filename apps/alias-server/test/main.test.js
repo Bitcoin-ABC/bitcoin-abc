@@ -17,7 +17,9 @@ const {
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 // Mock chronik
-const { MockChronikClient } = require('../../../modules/mock-chronik-client');
+const {
+    MockChronikClient,
+} = require('../../../modules/mock-chronik-client/dist');
 const NodeCache = require('node-cache');
 
 describe('alias-server main.js', async function () {
@@ -68,17 +70,11 @@ describe('alias-server main.js', async function () {
         };
 
         // Tell mockedChronik what response we expect
-        mockedChronik.setMock('blockchainInfo', {
-            input: null,
-            output: mockBlockchaininfoResponse,
-        });
+        mockedChronik.setBlockchainInfo(mockBlockchaininfoResponse);
 
         // Mock chronik block call for a finalized chaintip
-        mockedChronik.setMock('block', {
-            input: mockBlockchaininfoResponse.tipHash,
-            output: {
-                blockInfo: { isFinal: true },
-            },
+        mockedChronik.setBlock(mockBlockchaininfoResponse.tipHash, {
+            blockInfo: { isFinal: true },
         });
 
         // Add tx history to mockedChronik
@@ -87,9 +83,8 @@ describe('alias-server main.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         // Define params
         const chronik = mockedChronik;
@@ -107,7 +102,7 @@ describe('alias-server main.js', async function () {
             returnMocks,
         );
         // Confirm websocket opened
-        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        assert.strictEqual(result.aliasWebsocket.waitForOpenCalled, true);
         // Check that startup was called
         assert.deepEqual(
             result.appStartup,

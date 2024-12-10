@@ -65,20 +65,16 @@ describe('<Airdrop />', () => {
         const airdropTokenId =
             '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e';
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: airdropTokenId,
-            output: easterEggTokenChronikTokenDetails,
-        });
+        mockedChronik.setToken(
+            airdropTokenId,
+            easterEggTokenChronikTokenDetails,
+        );
 
         // Set tx mock so we can get its minting address
-        mockedChronik.setMock('tx', {
-            input: airdropTokenId,
-            output: easterEggTokenChronikGenesisTx,
-        });
+        mockedChronik.setTx(airdropTokenId, easterEggTokenChronikGenesisTx);
 
         // Mock the chronik.tokenId(formData.tokenId).utxos(); call
-        mockedChronik.setTokenId(airdropTokenId);
-        mockedChronik.setUtxosByTokenId(airdropTokenId, tokenUtxos);
+        mockedChronik.setUtxosByTokenId(airdropTokenId, tokenUtxos.utxos);
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/airdrop" />);
 
@@ -169,20 +165,16 @@ describe('<Airdrop />', () => {
         const airdropTokenId =
             'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1';
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: airdropTokenId,
-            output: decimalsTokenInfo,
-        });
+        mockedChronik.setToken(airdropTokenId, decimalsTokenInfo);
 
         // Set tx mock so we can get its minting address
-        mockedChronik.setMock('tx', {
-            input: airdropTokenId,
-            output: decimalsTokenGenesis,
-        });
+        mockedChronik.setTx(airdropTokenId, decimalsTokenGenesis);
 
         // Mock the chronik.tokenId(formData.tokenId).utxos(); call
-        mockedChronik.setTokenId(airdropTokenId);
-        mockedChronik.setUtxosByTokenId(airdropTokenId, tokenUtxosDecimals);
+        mockedChronik.setUtxosByTokenId(
+            airdropTokenId,
+            tokenUtxosDecimals.utxos,
+        );
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/airdrop" />);
 

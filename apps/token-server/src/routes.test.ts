@@ -25,6 +25,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { initializeDb, initialBlacklist } from '../src/db';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { ChronikClient, ScriptUtxo, Tx } from 'chronik-client';
 
 // Clone initialBlacklist before initializing the database
 // initializeDb(initialBlacklist) will modify the entries by adding an "_id" key
@@ -74,7 +75,6 @@ describe('routes.js', async function () {
     // Seen ~ 2x before the amount of time required
     const eligibleTimeFirstSeen =
         Math.ceil(Date.now() / 1000) - 2 * config.eligibilityResetSeconds;
-    mockedChronikClient.setAddress(ELIGIBLE_ADDRESS);
     mockedChronikClient.setTxHistoryByAddress(ELIGIBLE_ADDRESS, [
         {
             timeFirstSeen: eligibleTimeFirstSeen,
@@ -85,39 +85,32 @@ describe('routes.js', async function () {
                     token: { tokenId: config.rewardsTokenId },
                 },
             ],
-        },
+        } as Tx,
     ]);
 
-    mockedChronikClient.setAddress(SERVER_WALLET_ADDRESS);
-    mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, {
-        outputScript: SERVER_WALLET_OUTPUTSCRIPT,
-        utxos: [
-            { ...MOCK_SCRIPT_UTXO, value: 10000 },
-            {
-                ...MOCK_SPENDABLE_TOKEN_UTXO,
-                outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
-                token: {
-                    ...MOCK_UTXO_TOKEN,
-                    tokenId: config.rewardsTokenId,
-                    // Note, can change this to '10' or something less than config.rewardAmountTokenSats
-                    // to test behavior of server if it is out of tokens
-                    // Bad ROI on adding this test outright as we need lots of scripting
-                    // to overcome the need for multiple mocked server wallets
-                    amount: config.rewardAmountTokenSats,
-                },
+    mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, [
+        { ...MOCK_SCRIPT_UTXO, value: 10000 },
+        {
+            ...MOCK_SPENDABLE_TOKEN_UTXO,
+            outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+            token: {
+                ...MOCK_UTXO_TOKEN,
+                tokenId: config.rewardsTokenId,
+                // Note, can change this to '10' or something less than config.rewardAmountTokenSats
+                // to test behavior of server if it is out of tokens
+                // Bad ROI on adding this test outright as we need lots of scripting
+                // to overcome the need for multiple mocked server wallets
+                amount: config.rewardAmountTokenSats,
             },
-        ],
-    });
-    mockedChronikClient.setMock('broadcastTx', {
-        input: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006441aa58606dc2133b1547da04323797794c8ae8a245518c82b6a360db52f9451b33b301eeb18c5851fd98989a7c24b384bfb49c18e37d1ffdf4e6bc42c30575913041210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff111111111111111111111111111111111111111111111111111111111111111100000000644168bf907b93ffc6f1dad8378ca5de1a35e4b3d3fae7f151fed92eabffa301ba01dce9d79108e4a4374414f5ac7364d99ef5ff506ef5a69cc58e91e4871e4f27f541210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac68250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
-        output: {
-            txid: '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
         },
-    });
+    ] as ScriptUtxo[]);
+    mockedChronikClient.setBroadcastTx(
+        '02000000021111111111111111111111111111111111111111111111111111111111111111010000006441aa58606dc2133b1547da04323797794c8ae8a245518c82b6a360db52f9451b33b301eeb18c5851fd98989a7c24b384bfb49c18e37d1ffdf4e6bc42c30575913041210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff111111111111111111111111111111111111111111111111111111111111111100000000644168bf907b93ffc6f1dad8378ca5de1a35e4b3d3fae7f151fed92eabffa301ba01dce9d79108e4a4374414f5ac7364d99ef5ff506ef5a69cc58e91e4871e4f27f541210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac68250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
+        '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
+    );
     // Set an ineligible mock
     // Seen just now
     const ineligibleTimeFirstSeen = Math.ceil(Date.now() / 1000);
-    mockedChronikClient.setAddress(INELIGIBLE_ADDRESS);
     mockedChronikClient.setTxHistoryByAddress(INELIGIBLE_ADDRESS, [
         {
             timeFirstSeen: ineligibleTimeFirstSeen,
@@ -128,10 +121,9 @@ describe('routes.js', async function () {
                     token: { tokenId: config.rewardsTokenId },
                 },
             ],
-        },
+        } as Tx,
     ]);
     // Mock chronik throwing an error
-    mockedChronikClient.setAddress(ERROR_ADDRESS);
     mockedChronikClient.setTxHistoryByAddress(
         ERROR_ADDRESS,
         new Error('some chronik error'),
@@ -140,24 +132,22 @@ describe('routes.js', async function () {
     // Address with no tx history
     // i.e. eligible for an XEC airdrop
     const NEW_ADDRESS = 'ecash:qrfkcnzdm0dvkrc20dhcf7qv23vt736ynuujzxnzs6';
-    mockedChronikClient.setAddress(NEW_ADDRESS);
     mockedChronikClient.setTxHistoryByAddress(NEW_ADDRESS, []);
 
     // Address with tx history
     // i.e. not eligible for an XEC airdrop
     const USED_ADDRESS = 'ecash:qrplfw9x5hrdnra3t42s3543gh3vtg8xgyr4t4lrun';
-    mockedChronikClient.setAddress(USED_ADDRESS);
-    mockedChronikClient.setTxHistoryByAddress(USED_ADDRESS, [{ isTx: true }]);
+    mockedChronikClient.setTxHistoryByAddress(USED_ADDRESS, [
+        { isTx: true },
+    ] as unknown as Tx[]);
 
     // Mock an XEC airdrop tx
     const expectedXecAirdropTxid =
         'd19c496e82bd160c841968ec0d2b61bf64cb884b002835649594cd973967d33b';
-    mockedChronikClient.setMock('broadcastTx', {
-        input: '02000000011111111111111111111111111111111111111111111111111111111111111111000000006441d51a04ca0cba7e791ceb0d39f19b45162756087e7058cf5dec770cbcabbc89598b5b6f966a3609b01a34b1e5b6853c46f843bd8b3507c0dbd6acc4329182b88841210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff0268100000000000001976a914d36c4c4ddbdacb0f0a7b6f84f80c5458bf47449f88accd150000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
-        output: {
-            txid: expectedXecAirdropTxid,
-        },
-    });
+    mockedChronikClient.setBroadcastTx(
+        '02000000011111111111111111111111111111111111111111111111111111111111111111000000006441d51a04ca0cba7e791ceb0d39f19b45162756087e7058cf5dec770cbcabbc89598b5b6f966a3609b01a34b1e5b6853c46f843bd8b3507c0dbd6acc4329182b88841210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff0268100000000000001976a914d36c4c4ddbdacb0f0a7b6f84f80c5458bf47449f88accd150000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
+        expectedXecAirdropTxid,
+    );
 
     // Mock a stub telegram bot
     const mockedTgBot = { sendPhoto: () => {} };
@@ -179,7 +169,7 @@ describe('routes.js', async function () {
         app = startExpressServer(
             TEST_PORT,
             testDb,
-            mockedChronikClient,
+            mockedChronikClient as unknown as ChronikClient,
             mockedTgBot as unknown as TelegramBot,
             fs,
             ecc,
@@ -204,7 +194,7 @@ describe('routes.js', async function () {
         badDbApp = startExpressServer(
             TEST_PORT_BAD_DB,
             {} as unknown as Db,
-            mockedChronikClient,
+            mockedChronikClient as unknown as ChronikClient,
             mockedTgBot as unknown as TelegramBot,
             fs,
             ecc,

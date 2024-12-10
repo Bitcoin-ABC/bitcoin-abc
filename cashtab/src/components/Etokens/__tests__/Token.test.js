@@ -64,19 +64,12 @@ describe('<Token />', () => {
             localforage,
         );
         // Set chronik mocks required for cache preparation and supply calc
-        mockedChronik.setMock('token', {
-            input: slp1FixedBear.tokenId,
-            output: slp1FixedBear.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: slp1FixedBear.tokenId,
-            output: slp1FixedBear.tx,
-        });
-        mockedChronik.setTokenId(slp1FixedBear.tokenId);
-        mockedChronik.setUtxosByTokenId(slp1FixedBear.tokenId, {
-            tokenId: slp1FixedBear.tokenId,
-            utxos: slp1FixedBear.utxos,
-        });
+        mockedChronik.setToken(slp1FixedBear.tokenId, slp1FixedBear.token);
+        mockedChronik.setTx(slp1FixedBear.tokenId, slp1FixedBear.tx);
+        mockedChronik.setUtxosByTokenId(
+            slp1FixedBear.tokenId,
+            slp1FixedBear.utxos,
+        );
 
         // Set up userEvent
         user = userEvent.setup();
@@ -588,10 +581,7 @@ describe('<Token />', () => {
         const txid =
             '6de2d27d40bced679a8b8e55c85230ed8da0977c30ad31247fefc0b1eba0976e';
 
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -640,10 +630,7 @@ describe('<Token />', () => {
         const txid =
             'f3023fd2265ed98438f5d4d01d31a1d94633b496e03d4aad5acd8da240e38736';
 
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(
             <CashtabTestWrapper
@@ -794,29 +781,22 @@ describe('<Token />', () => {
             localforage,
         );
         // Set mock tokeninfo call
-        mintMockedChronik.setMock('token', {
-            input: slp1FixedCachet.tokenId,
-            output: slp1FixedCachet.token,
-        });
-        mintMockedChronik.setMock('tx', {
-            input: slp1FixedCachet.tokenId,
-            output: slp1FixedCachet.tx,
-        });
-        mockedChronik.setTokenId(slp1FixedCachet.tokenId);
-        mockedChronik.setUtxosByTokenId(slp1FixedCachet.tokenId, {
-            tokenId: slp1FixedCachet.tokenId,
-            utxos: slp1FixedCachet.utxos,
-        });
+        mintMockedChronik.setToken(
+            slp1FixedCachet.tokenId,
+            slp1FixedCachet.token,
+        );
+        mintMockedChronik.setTx(slp1FixedCachet.tokenId, slp1FixedCachet.tx);
+        mintMockedChronik.setUtxosByTokenId(
+            slp1FixedCachet.tokenId,
+            slp1FixedCachet.utxos,
+        );
 
         const hex =
             '02000000028ec326590f3e42afae0e458995599c4c892af8e749efc7cc6bcfca8b0f2a5b4b020000006441672ba8ac8941cc69b6f49f80da73046e65a125376dc0311b5467d678350924d598d5750cd2c19dd8b42016cef9629969373336ce2eb50c1d741985a652449db44121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441dfb3546c5e588030696f1e4a1ef00d039743514be0304505415ad9de4cf4ea0b4e9d0fda1ba3869241825e269867f6a45251477057a68ba39883eb4d25008cd64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000396a04534c50000101044d494e5420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1010208000000000000273122020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac517e0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             '567114b4adbb5e8969a587ac58866c0ccf0c91ded1fd0d96d75f8cb7aeb6f33a';
 
-        mintMockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mintMockedChronik.setBroadcastTx(hex, txid);
         render(
             <CashtabTestWrapper
                 chronik={mintMockedChronik}
@@ -860,19 +840,9 @@ describe('<Token />', () => {
     it('For an uncached token with no balance, we show a spinner while loading the token info, then show an info screen and open agora offers', async () => {
         // Set mock tokeninfo call
         const CACHET_TOKENID = slp1FixedCachet.tokenId;
-        mockedChronik.setMock('token', {
-            input: CACHET_TOKENID,
-            output: slp1FixedCachet.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: CACHET_TOKENID,
-            output: slp1FixedCachet.tx,
-        });
-        mockedChronik.setTokenId(CACHET_TOKENID);
-        mockedChronik.setUtxosByTokenId(CACHET_TOKENID, {
-            tokenId: slp1FixedCachet.tokenId,
-            utxos: slp1FixedCachet.utxos,
-        });
+        mockedChronik.setToken(CACHET_TOKENID, slp1FixedCachet.token);
+        mockedChronik.setTx(CACHET_TOKENID, slp1FixedCachet.tx);
+        mockedChronik.setUtxosByTokenId(CACHET_TOKENID, slp1FixedCachet.utxos);
 
         render(
             <CashtabTestWrapper
@@ -912,19 +882,12 @@ describe('<Token />', () => {
     it('For an uncached token with no balance, we show a chronik query error if we are unable to fetch the token info', async () => {
         // Set mock tokeninfo call
         const CACHET_TOKENID = slp1FixedCachet.tokenId;
-        mockedChronik.setMock('token', {
-            input: CACHET_TOKENID,
-            output: new Error('some error'),
-        });
-        mockedChronik.setMock('tx', {
-            input: CACHET_TOKENID,
-            output: new Error('some error'),
-        });
-        mockedChronik.setTokenId(CACHET_TOKENID);
-        mockedChronik.setUtxosByTokenId(CACHET_TOKENID, {
-            tokenId: slp1FixedCachet.tokenId,
-            utxos: new Error('some error'),
-        });
+        mockedChronik.setToken(CACHET_TOKENID, new Error('some error'));
+        mockedChronik.setTx(CACHET_TOKENID, new Error('some error'));
+        mockedChronik.setUtxosByTokenId(
+            CACHET_TOKENID,
+            new Error('some error'),
+        );
 
         render(
             <CashtabTestWrapper

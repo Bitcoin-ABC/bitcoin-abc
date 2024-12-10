@@ -12,7 +12,9 @@ const {
     handleBlockFinalized,
     handleAddedToMempool,
 } = require('../src/events');
-const { MockChronikClient } = require('../../../modules/mock-chronik-client');
+const {
+    MockChronikClient,
+} = require('../../../modules/mock-chronik-client/dist');
 // Mock mongodb
 const {
     initializeDb,
@@ -90,10 +92,7 @@ describe('alias-server events.js', async function () {
         };
 
         // Tell mockedChronik what response we expect
-        mockedChronik.setMock('blockchainInfo', {
-            input: null,
-            output: mockBlockchaininfoResponse,
-        });
+        mockedChronik.setBlockchainInfo(mockBlockchaininfoResponse);
 
         // Add tx history to mockedChronik
         // Set the script
@@ -101,17 +100,15 @@ describe('alias-server events.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         // Mock chronik block call for a finalized chaintip
-        mockedChronik.setMock('block', {
-            input: mockBlockchaininfoResponse.tipHash,
-            output: {
-                blockInfo: { isFinal: true },
-            },
-        });
+        mockedChronik.setBlock(
+            mockBlockchaininfoResponse.tipHash,
+
+            { blockInfo: { isFinal: true } },
+        );
 
         const db = testDb;
         const telegramBot = null;
@@ -171,10 +168,7 @@ describe('alias-server events.js', async function () {
         const mockedChronik = new MockChronikClient();
 
         // Tell mockedChronik what response we expect
-        mockedChronik.setMock('blockchainInfo', {
-            input: null,
-            output: new Error('some chronik error'),
-        });
+        mockedChronik.setBlockchainInfo(new Error('some chronik error'));
 
         const db = null;
         const telegramBot = null;
@@ -204,17 +198,11 @@ describe('alias-server events.js', async function () {
         };
 
         // Tell mockedChronik what response we expect
-        mockedChronik.setMock('blockchainInfo', {
-            input: null,
-            output: mockBlockchaininfoResponse,
-        });
+        mockedChronik.setBlockchainInfo(mockBlockchaininfoResponse);
 
         // Mock chronik block call for unfinalized chaintip
-        mockedChronik.setMock('block', {
-            input: mockBlockchaininfoResponse.tipHash,
-            output: {
-                blockInfo: { isFinal: false },
-            },
+        mockedChronik.setBlock(mockBlockchaininfoResponse.tipHash, {
+            blockInfo: { isFinal: false },
         });
 
         const db = null;
@@ -248,9 +236,8 @@ describe('alias-server events.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         const telegramBot = null;
         const channelId = null;
@@ -289,9 +276,8 @@ describe('alias-server events.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         const telegramBot = null;
         const channelId = null;
@@ -332,9 +318,8 @@ describe('alias-server events.js', async function () {
             aliasConstants.registrationAddress,
             true,
         );
-        mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(type, hash, generated.txHistory);
+        mockedChronik.setTxHistoryByScript(type, hash, generated.txHistory);
 
         const telegramBot = null;
         const channelId = null;
@@ -368,10 +353,7 @@ describe('alias-server events.js', async function () {
         const mockedChronik = new MockChronikClient();
 
         // Mock an error from the chronik.tx call
-        mockedChronik.setMock('tx', {
-            input: incomingTxid,
-            output: new Error('Some chronik error'),
-        });
+        mockedChronik.setTx(incomingTxid, new Error('Some chronik error'));
 
         await assert.rejects(
             async () => {
@@ -408,10 +390,7 @@ describe('alias-server events.js', async function () {
         const mockedChronik = new MockChronikClient();
 
         // Mock chronik response
-        mockedChronik.setMock('tx', {
-            input: incomingTxid,
-            output: pendingTxObject,
-        });
+        mockedChronik.setTx(incomingTxid, pendingTxObject);
 
         assert.strictEqual(
             await handleAddedToMempool(

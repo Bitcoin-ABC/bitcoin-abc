@@ -57,19 +57,9 @@ describe('<Token /> available actions rendered', () => {
 
         // Build chronik mocks that Cashtab would use to add token info to cache
         for (const tokenMock of supportedTokens) {
-            mockedChronik.setMock('token', {
-                input: tokenMock.tokenId,
-                output: tokenMock.token,
-            });
-            mockedChronik.setMock('tx', {
-                input: tokenMock.tokenId,
-                output: tokenMock.tx,
-            });
-            mockedChronik.setTokenId(tokenMock.tokenId);
-            mockedChronik.setUtxosByTokenId(tokenMock.tokenId, {
-                tokenId: tokenMock.tokenId,
-                utxos: tokenMock.utxos,
-            });
+            mockedChronik.setToken(tokenMock.tokenId, tokenMock.token);
+            mockedChronik.setTx(tokenMock.tokenId, tokenMock.tx);
+            mockedChronik.setUtxosByTokenId(tokenMock.tokenId, tokenMock.utxos);
             // Set empty tx history to mock no existing NFTs
             mockedChronik.setTxHistoryByTokenId(tokenMock.tokenId, []);
         }
@@ -225,22 +215,14 @@ describe('<Token /> available actions rendered', () => {
             '0200000002666de5d5852807a13612b6ea0373643266d435822daeb39c29e5d4b67e893cda0100000064414feb64ffdf50b0eb40a6fe0c34da65e94e0cbbbc2e58f2b290f3b2bf31480b34a57c4862ee177129dc8a1ce645573cd240e5e83d336d19ff22c3a7675bc903564121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064410f0461f0e843cc5b78196e3fdb3b89d64948629645f3b44ea960c2a5ac8f5835189697165a01cc259a0f4eff931c83e110019ee5c7721a43e0dde11ba04e068d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d80000000800000000001d9600060500000000000017a914e49e695e2f466e34447cb253567b8b277b60e3908722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const adPrepTxid =
             '280b6fda5a11a94145f3b4203fb4f199d875d3621c8e4cc9d63501e73b9649bc';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: adPrepHex,
-            output: { txid: adPrepTxid },
-        });
+        mockedChronik.setBroadcastTx(adPrepHex, adPrepTxid);
 
         // SLP1 ad list
         const adListHex =
             '0200000001bc49963be70135d6c94c8e1c62d375d899f1b43f20b4f34541a9115ada6f0b2801000000dd0441475230075041525449414c41b11b013fb8140dcce13f93ee99584b1c6b547ee076ed63f9ec0a6c0068ad84c5420ecd608af68134366576bae4196a83f6a8f521c50dea4acc75dda6215c7fec414c8c4c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000000000000000300dbf30400000000003dc7010000000000d226af0c000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d8000000220200000000000017a91472df09389a835adb0e13e32bf1c91144ed107eef8700000000';
         const adListTxid =
             '823f652e22d154fc7bdd77ee9d9fa37c77e9649235f1430958bef68b7428b9ae';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: adListHex,
-            output: { txid: adListTxid },
-        });
+        mockedChronik.setBroadcastTx(adListHex, adListTxid);
 
         // Mock response for agora select params check
         // Note
@@ -250,9 +232,8 @@ describe('<Token /> available actions rendered', () => {
         // Note that Date() and Math.random() must be mocked to keep this deterministic
         const EXPECTED_OFFER_P2SH = '72df09389a835adb0e13e32bf1c91144ed107eef';
 
-        mockedChronik.setScript('p2sh', EXPECTED_OFFER_P2SH);
         // We mock no existing utxos
-        mockedChronik.setUtxos('p2sh', EXPECTED_OFFER_P2SH, { utxos: [] });
+        mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
         const agora = new Agora(mockedChronik);
 
         render(
@@ -406,11 +387,7 @@ describe('<Token /> available actions rendered', () => {
             '0200000002cc04a35686950a66845ebf8e37677fffcc5ee0e2b63e3f05822838273149660c010000006441878aa7e698097a4961646a2da44f701d8895cb065113fcf1d2e9f073afbc37025a5587e121bd0311a24a7af60445abfc4de7e3675a3a9f51cffddc875d88fca24121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064412f509f90f23f4b85b27452e0f25d33cef07ad8fef898e2d308c43fb0dfd6f7e00f7201336be4089171ddc094a24688882b518ec0c6958c904df12d0239a7342f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff150000000000000000d96a04534c500001810453454e44200c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc08000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000005222020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac0d070f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             'cdc6afbf1ddd796388692ec9106816be1f9229ece11e545c1cbe6854ccf087ec';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -534,19 +511,12 @@ describe('<Token /> available actions rendered', () => {
 
         // Build chronik mocks that Cashtab would use to add token info to cache
         for (const tokenMock of supportedTokens) {
-            mintNftMockedChronik.setMock('token', {
-                input: tokenMock.tokenId,
-                output: tokenMock.token,
-            });
-            mintNftMockedChronik.setMock('tx', {
-                input: tokenMock.tokenId,
-                output: tokenMock.tx,
-            });
-            mintNftMockedChronik.setTokenId(tokenMock.tokenId);
-            mintNftMockedChronik.setUtxosByTokenId(tokenMock.tokenId, {
-                tokenId: tokenMock.tokenId,
-                utxos: tokenMock.utxos,
-            });
+            mintNftMockedChronik.setToken(tokenMock.tokenId, tokenMock.token);
+            mintNftMockedChronik.setTx(tokenMock.tokenId, tokenMock.tx);
+            mintNftMockedChronik.setUtxosByTokenId(
+                tokenMock.tokenId,
+                tokenMock.utxos,
+            );
             // Set empty tx history to mock no existing NFTs
             mintNftMockedChronik.setTxHistoryByTokenId(tokenMock.tokenId, []);
         }
@@ -556,10 +526,7 @@ describe('<Token /> available actions rendered', () => {
         const txid =
             'd215995b67194576b66ef9c593a66d9255a3ec21e424ecfbb6046643b8e0dbe6';
 
-        mintNftMockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mintNftMockedChronik.setBroadcastTx(hex, txid);
         render(
             <CashtabTestWrapper
                 chronik={mintNftMockedChronik}
@@ -701,19 +668,15 @@ describe('<Token /> available actions rendered', () => {
 
         // Build chronik mocks that Cashtab would use to add token info to cache
         for (const tokenMock of supportedTokens) {
-            renderChildNftsMockedChronik.setMock('token', {
-                input: tokenMock.tokenId,
-                output: tokenMock.token,
-            });
-            renderChildNftsMockedChronik.setMock('tx', {
-                input: tokenMock.tokenId,
-                output: tokenMock.tx,
-            });
-            renderChildNftsMockedChronik.setTokenId(tokenMock.tokenId);
-            renderChildNftsMockedChronik.setUtxosByTokenId(tokenMock.tokenId, {
-                tokenId: tokenMock.tokenId,
-                utxos: tokenMock.utxos,
-            });
+            renderChildNftsMockedChronik.setToken(
+                tokenMock.tokenId,
+                tokenMock.token,
+            );
+            renderChildNftsMockedChronik.setTx(tokenMock.tokenId, tokenMock.tx);
+            renderChildNftsMockedChronik.setUtxosByTokenId(
+                tokenMock.tokenId,
+                tokenMock.utxos,
+            );
             // Set tx history of parent tokenId to empty
             renderChildNftsMockedChronik.setTxHistoryByTokenId(
                 tokenMock.tokenId,
@@ -838,32 +801,21 @@ describe('<Token /> available actions rendered', () => {
             '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441e4365d350b1dfee55e60cc2600ba094ed0e05c1d6a297bd3fe3f0721b88d9ec09b7d114cf0aab08a3b264153858f1a48f839f3639a8a8f9b11214038080cb9e34121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064411e9913b28017832fa38944675eb8815411fd210f9dfc8f0aa806bed055f52b6592488fdd1f9be942c19dcb98d7ddd7c55bc8b1233a64ad3dfa1c65eebbd48f254121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a22283260800000000000000019a0400000000000017a91407d2b0e6ec7b96cbfbe4a7d54e28d28fbcf65e408710310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const adPrepTxid =
             '7b4f2b1cf9716ead03f91910bd0c08956c381987e1cb3cd9f9b4d555a7b9ba25';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: adPrepHex,
-            output: { txid: adPrepTxid },
-        });
+        mockedChronik.setBroadcastTx(adPrepHex, adPrepTxid);
 
         // NFT ad list
         const adListHex =
             '020000000125bab9a755d5b4f9d93ccbe18719386c95080cbd1019f903ad6e71f91c2b4f7b01000000a70441475230074f4e4553484f544106bd7c3cc4f6aca45a7f97644b8cb5e745dee224246f38605171e8f9e0d6e036af3ea4853b08e1baa92e091bd0ceabf83d4a246e07e6b0b008a3e091b111f22a414c56222b50fe00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac7521031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dad074f4e4553484f5488044147523087ffffffff020000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326080000000000000001220200000000000017a914729833ae294590bbcf28bfbb9ad54c01b6cdb6288700000000';
         const adListTxid =
             '97cf0fed5062419ad456f22457cfeb3b15909f1de2350be48c53b24944e0de89';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: adListHex,
-            output: { txid: adListTxid },
-        });
+        mockedChronik.setBroadcastTx(adListHex, adListTxid);
 
         // NFT send
         const hex =
             '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441fff60607ba0fb6eda064075b321abc3980c249efcc0e91d4d95e464500a654476e59b76dd19bdd66f5d207a0d731550c93ce724a09e00a3bff3fcfbc08c970844121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fe754300443dfb293619693087016c9d9a8437489d48cb7c0c3fcb6b5af6277833ff7156355aeb557145c4075b7917d90d79239ba7bf776a38fef935d8da2f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             'daa5872d1ef95a05bd3ee59fc532aa7921a54b783a5af68c5aa9146f61d2e134';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -1011,10 +963,7 @@ describe('<Token /> available actions rendered', () => {
             '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441fff60607ba0fb6eda064075b321abc3980c249efcc0e91d4d95e464500a654476e59b76dd19bdd66f5d207a0d731550c93ce724a09e00a3bff3fcfbc08c970844121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fe754300443dfb293619693087016c9d9a8437489d48cb7c0c3fcb6b5af6277833ff7156355aeb557145c4075b7917d90d79239ba7bf776a38fef935d8da2f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             'daa5872d1ef95a05bd3ee59fc532aa7921a54b783a5af68c5aa9146f61d2e134';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -1119,19 +1068,15 @@ describe('<Token /> available actions rendered', () => {
 
         // Build chronik mocks that Cashtab would use to add token info to cache
         for (const tokenMock of supportedTokens) {
-            renderChildNftsMockedChronik.setMock('token', {
-                input: tokenMock.tokenId,
-                output: tokenMock.token,
-            });
-            renderChildNftsMockedChronik.setMock('tx', {
-                input: tokenMock.tokenId,
-                output: tokenMock.tx,
-            });
-            renderChildNftsMockedChronik.setTokenId(tokenMock.tokenId);
-            renderChildNftsMockedChronik.setUtxosByTokenId(tokenMock.tokenId, {
-                tokenId: tokenMock.tokenId,
-                utxos: tokenMock.utxos,
-            });
+            renderChildNftsMockedChronik.setToken(
+                tokenMock.tokenId,
+                tokenMock.token,
+            );
+            renderChildNftsMockedChronik.setTx(tokenMock.tokenId, tokenMock.tx);
+            renderChildNftsMockedChronik.setUtxosByTokenId(
+                tokenMock.tokenId,
+                tokenMock.utxos,
+            );
             // Set tx history of parent tokenId to empty
             renderChildNftsMockedChronik.setTxHistoryByTokenId(
                 tokenMock.tokenId,
@@ -1203,23 +1148,17 @@ describe('<Token /> available actions rendered', () => {
         const heismanNftTokenId = heismanNftOneOffer.token.tokenId;
 
         // Mock the API calls for getting and caching this token's info
-        mockedChronik.setMock('token', {
-            input: heismanNftTokenId,
-            output: heismanNftOneCache.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: heismanNftTokenId,
-            output: heismanNftOneCache.tx,
-        });
+        mockedChronik.setToken(heismanNftTokenId, heismanNftOneCache.token);
+        mockedChronik.setTx(heismanNftTokenId, heismanNftOneCache.tx);
         // Also mock for the collection
-        mockedChronik.setMock('token', {
-            input: heismanCollectionCacheMocks.tokenId,
-            output: heismanCollectionCacheMocks.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: heismanCollectionCacheMocks.tokenId,
-            output: heismanCollectionCacheMocks.tx,
-        });
+        mockedChronik.setToken(
+            heismanCollectionCacheMocks.tokenId,
+            heismanCollectionCacheMocks.token,
+        );
+        mockedChronik.setTx(
+            heismanCollectionCacheMocks.tokenId,
+            heismanCollectionCacheMocks.tx,
+        );
 
         // Mock an error querying this NFT listing
         const mockedAgora = new MockAgora();
@@ -1255,23 +1194,17 @@ describe('<Token /> available actions rendered', () => {
         const heismanNftTokenId = heismanNftOneOffer.token.tokenId;
 
         // Mock the API calls for getting and caching this token's info
-        mockedChronik.setMock('token', {
-            input: heismanNftTokenId,
-            output: heismanNftOneCache.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: heismanNftTokenId,
-            output: heismanNftOneCache.tx,
-        });
+        mockedChronik.setToken(heismanNftTokenId, heismanNftOneCache.token);
+        mockedChronik.setTx(heismanNftTokenId, heismanNftOneCache.tx);
         // Also mock for the collection
-        mockedChronik.setMock('token', {
-            input: heismanCollectionCacheMocks.tokenId,
-            output: heismanCollectionCacheMocks.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: heismanCollectionCacheMocks.tokenId,
-            output: heismanCollectionCacheMocks.tx,
-        });
+        mockedChronik.setToken(
+            heismanCollectionCacheMocks.tokenId,
+            heismanCollectionCacheMocks.token,
+        );
+        mockedChronik.setTx(
+            heismanCollectionCacheMocks.tokenId,
+            heismanCollectionCacheMocks.tx,
+        );
 
         // Mock an error querying this NFT listing
         const mockedAgora = new MockAgora();
@@ -1362,10 +1295,7 @@ describe('<Token /> available actions rendered', () => {
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441999a894cafbab21d590da6ce07e572935144c480bce48c4df3efb74e9ee2fd3a4de61a40f93c28775c7b135a6a9ccba7d880bd5776d289b6c8ae5752afee24b34121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441f6e2b2a66d8676854e281f5af375bc56d4f359cb4be1e178d330720384da79a5216bd7a132bfd44654835c95a8d81b099b03e953d4a720187255ef1c9a1b646e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003a6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000022020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac18310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             '33313eaf3365d9bf440645c5fffa8ed91681d1e1464afe598a564cdc76855c04';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         // Mock NOT blacklisted
         when(fetch)
@@ -1461,10 +1391,7 @@ describe('<Token /> available actions rendered', () => {
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c250100000064416f667f359f04e273d524eac5fdaede0bfaf483daaf74f2ab5ba849c3a126b36b059003ef22b647d5265b74938e50c40505c1ad56474d0af2930192994011b9c84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441ed0c24a83ec9137bc2cc367f674b1932de280f3bc2fbfd9cd70b840e61ccf5fa272e714ba06d3060574df97bc135acae2367d00fdd67ce2bbf347193a871348c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000656a5030534c503200044255524e49884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c10270000000031534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c01301b0f00000022020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac28330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             'f71293a94bd444c0b82ce6a6a8a1d2ae182f6a848cd2382bb6ca496955184fdf';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         // Mock NOT blacklisted
         when(fetch)
@@ -1545,10 +1472,7 @@ describe('<Token /> available actions rendered', () => {
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c250100000064413919d2894e681586f285af178ef2c8d86b2f008e31519b1592c76cae7bee17eb4bb1558db35b225a15a2ba1c1f3d86564e12adfa0d5c012427f096398cdff20e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644126a0f23966db5ba3212e4d5c545a186d407af4d110335e521c867e63549ade8d25da8a911343d9bf9275bbb58255cd445a1b3fc14ae35a89b8964cfbe47299aa4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000336a5030534c503200044255524e49884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c40420f00000022020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac8c330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             'f413a14acc391c2541f0dea477cf7ee07cf6256bc3b201d6b276272f2fdda407';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         // Mock NOT blacklisted
         when(fetch)
@@ -1669,19 +1593,12 @@ describe('<Token /> available actions rendered', () => {
         );
 
         // Mock cache info
-        mintAlpMockedChronik.setMock('token', {
-            input: alpMocks.tokenId,
-            output: alpMocks.token,
-        });
-        mintAlpMockedChronik.setMock('tx', {
-            input: alpMocks.tokenId,
-            output: alpMocks.tx,
-        });
-        mintAlpMockedChronik.setTokenId(alpMocks.tokenId);
-        mintAlpMockedChronik.setUtxosByTokenId(alpMocks.tokenId, {
-            tokenId: alpMocks.tokenId,
-            utxos: alpMocks.utxos,
-        });
+        mintAlpMockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mintAlpMockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
+        mintAlpMockedChronik.setUtxosByTokenId(
+            alpMocks.tokenId,
+            alpMocks.utxos,
+        );
         // Set empty tx history
         mintAlpMockedChronik.setTxHistoryByTokenId(alpMocks.tokenId, []);
 
@@ -1690,10 +1607,7 @@ describe('<Token /> available actions rendered', () => {
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25020000006441acdadb019c561b7bfa761695503eb1250d3ae1f34e66eeb3c4c8fb561b4ec95291bde678871451316a8f0472922d25936dd341eb90eb6bb3ccde98b00a2138da4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fc7a554a708c3e6a2fc72e7c96871521678d0a36e336a599b39eac6a36f4ecedcfd2a728c8e639b5946fde677f1afa9e31468531476dd66fce1adfc760e7e2ff4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000356a5032534c503200044d494e5449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c01ffffffffffff0122020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac22310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
             '28c733455a50be334948600bcdf0817610b0321ceba3da52c7c7ffec995320f0';
-        mintAlpMockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mintAlpMockedChronik.setBroadcastTx(hex, txid);
 
         // Mock NOT blacklisted
         when(fetch)
@@ -1768,11 +1682,7 @@ describe('<Token /> available actions rendered', () => {
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441d32ae72fa880a40975a475147443a3a7fe10308178ad38d80e6a2428921732b0699849443d8e24124a8ee5b75f1e9f74628fdb8cd0c9704d8cd0c70df65828e94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064415fc18bb026bc3122776e708b8cdba9225494c704c1feca7aefb36b592abed96568cd57cb3504769bc4019ec0f36990c28c57012cefe805e4d3b046cc308bc86b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000866a504b41475230075041525449414c01009b630800000000005532000000000000d6b24701000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d37534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c0200420f000000400000000000220200000000000017a91450eb4978c85ec89b63e37e6b87409c9f5815c7058722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac83300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const offerTxid =
             'e00be7011ee5d585cbd54049570ea0754ab0d5c05acf6cb01c25afa3aa61663d';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: offerHex,
-            output: { txid: offerTxid },
-        });
+        mockedChronik.setBroadcastTx(offerHex, offerTxid);
 
         // Mock response for agora select params check
         // Note
@@ -1782,9 +1692,8 @@ describe('<Token /> available actions rendered', () => {
         // Note that Date() and Math.random() must be mocked to keep this deterministic
         const EXPECTED_OFFER_P2SH = '50eb4978c85ec89b63e37e6b87409c9f5815c705';
 
-        mockedChronik.setScript('p2sh', EXPECTED_OFFER_P2SH);
         // We mock no existing utxos
-        mockedChronik.setUtxos('p2sh', EXPECTED_OFFER_P2SH, { utxos: [] });
+        mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
 
         // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
         // agora object to build the partial

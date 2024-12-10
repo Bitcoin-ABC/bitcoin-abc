@@ -13,12 +13,15 @@ import {
     initializeWebsocket,
     parseWebsocketMessage,
 } from '../src/chronikWsHandler';
-import { MockChronikClient } from '../../../modules/mock-chronik-client';
+import {
+    MockChronikClient,
+    MockWsEndpoint,
+} from '../../../modules/mock-chronik-client';
 import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { caching, MemoryCache } from 'cache-manager';
-import { WsMsgClient } from 'chronik-client';
+import { ChronikClient, TokenInfo, WsMsgClient, Tx } from 'chronik-client';
 import { StoredMock } from '../src/events';
 const block: StoredMock = JSON.parse(
     JSON.stringify(unrevivedBlock),
@@ -41,14 +44,17 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         const channelId = mockChannelId;
 
         const result = await initializeWebsocket(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             telegramBot,
             channelId,
             memoryCache,
         );
 
         // Confirm websocket opened
-        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        assert.strictEqual(
+            (result as unknown as MockWsEndpoint).waitForOpenCalled,
+            true,
+        );
         // Confirm subscribed to blocks
         assert.deepEqual(result.subs.blocks, true);
     });
@@ -59,14 +65,17 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         const channelId = mockChannelId;
 
         const result = await initializeWebsocket(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             telegramBot,
             channelId,
             memoryCache,
         );
 
         // Confirm websocket opened
-        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        assert.strictEqual(
+            (result as unknown as MockWsEndpoint).waitForOpenCalled,
+            true,
+        );
         // Confirm subscribed to blocks
         assert.deepEqual(result.subs.blocks, true);
     });
@@ -94,7 +103,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         for (let i = 0; i < unsupportedWebsocketMsgs.length; i += 1) {
             const thisUnsupportedMsg = unsupportedWebsocketMsgs[i];
             const result = await parseWebsocketMessage(
-                mockedChronik,
+                mockedChronik as unknown as ChronikClient,
                 thisUnsupportedMsg as WsMsgClient,
                 telegramBot,
                 channelId,
@@ -125,8 +134,11 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             const { type, hash } =
                 cashaddr.getTypeAndHashFromOutputScript(outputScript);
             const { utxos } = info;
-            mockedChronik.setScript(type, hash);
-            mockedChronik.setUtxos(type, hash, { outputScript, utxos });
+            mockedChronik.setUtxosByScript(
+                type as 'p2pkh' | 'p2sh',
+                hash,
+                utxos,
+            );
         });
 
         // Tell mockedChronik what response we expect for chronik.tx
@@ -137,12 +149,9 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             // Instead of saving all the chronik responses as mocks, which would be very large
             // Just set them as mocks based on tokenInfoMap, which contains the info we need
             tokenIds.forEach(tokenId => {
-                mockedChronik.setMock('token', {
-                    input: tokenId,
-                    output: {
-                        genesisInfo: tokenInfoMap.get(tokenId),
-                    },
-                });
+                mockedChronik.setToken(tokenId, {
+                    genesisInfo: tokenInfoMap.get(tokenId),
+                } as TokenInfo);
             });
         }
         const thisBlockExpectedMsgs = thisBlock.blockSummaryTgMsgs;
@@ -182,7 +191,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         ).reply(200, thisBlock.activeStakers);
 
         const result = await parseWebsocketMessage(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             mockWsMsg as WsMsgClient,
             telegramBot,
             channelId,
@@ -226,18 +235,12 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             tokenIds.forEach(tokenId => {
                 // If this is the first one, set an error response
                 if (index === 0) {
-                    mockedChronik.setMock('token', {
-                        input: tokenId,
-                        output: new Error('some error'),
-                    });
+                    mockedChronik.setToken(tokenId, new Error('some error'));
                 } else {
                     index += 1;
-                    mockedChronik.setMock('tx', {
-                        input: tokenId,
-                        output: {
-                            genesisInfo: tokenInfoMap.get(tokenId),
-                        },
-                    });
+                    mockedChronik.setTx(tokenId, {
+                        genesisInfo: tokenInfoMap.get(tokenId),
+                    } as unknown as Tx);
                 }
             });
         }
@@ -271,7 +274,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         });
 
         const result = await parseWebsocketMessage(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             mockWsMsg as WsMsgClient,
             telegramBot,
             channelId,
@@ -318,18 +321,12 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             tokenIds.forEach(tokenId => {
                 // If this is the first one, set an error response
                 if (index === 0) {
-                    mockedChronik.setMock('token', {
-                        input: tokenId,
-                        output: new Error('some error'),
-                    });
+                    mockedChronik.setToken(tokenId, new Error('some error'));
                 } else {
                     index += 1;
-                    mockedChronik.setMock('token', {
-                        input: tokenId,
-                        output: {
-                            genesisInfo: tokenInfoMap.get(tokenId),
-                        },
-                    });
+                    mockedChronik.setToken(tokenId, {
+                        genesisInfo: tokenInfoMap.get(tokenId),
+                    } as unknown as TokenInfo);
                 }
             });
         }
@@ -360,7 +357,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         });
 
         const result = await parseWebsocketMessage(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             mockWsMsg as WsMsgClient,
             telegramBot,
             channelId,
@@ -391,7 +388,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         const channelId = mockChannelId;
 
         const result = await parseWebsocketMessage(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             mockWsMsg as WsMsgClient,
             telegramBot,
             channelId,

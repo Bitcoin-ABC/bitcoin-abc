@@ -595,10 +595,10 @@ describe('<App />', () => {
         );
 
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: EASTER_EGG_TOKENID,
-            output: easterEggTokenChronikTokenDetails,
-        });
+        mockedChronik.setToken(
+            EASTER_EGG_TOKENID,
+            easterEggTokenChronikTokenDetails,
+        );
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 

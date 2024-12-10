@@ -25,7 +25,7 @@ export const main = async (
     });
     // Initialize websocket connection
     try {
-        await initializeWebsocket(
+        return await initializeWebsocket(
             chronik,
             telegramBot,
             telegramChannelId,

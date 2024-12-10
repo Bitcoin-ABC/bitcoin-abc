@@ -60,14 +60,14 @@ describe('<Agora />', () => {
             bullCacheMocks,
             scamCacheMocks,
         ]) {
-            mockedChronik.setMock('token', {
-                input: tokenCacheMock.token.tokenId,
-                output: tokenCacheMock.token,
-            });
-            mockedChronik.setMock('tx', {
-                input: tokenCacheMock.token.tokenId,
-                output: tokenCacheMock.tx,
-            });
+            mockedChronik.setToken(
+                tokenCacheMock.token.tokenId,
+                tokenCacheMock.token,
+            );
+            mockedChronik.setTx(
+                tokenCacheMock.token.tokenId,
+                tokenCacheMock.tx,
+            );
         }
 
         // Mock the fetch call to Cashtab's price API
@@ -430,10 +430,7 @@ describe('<Agora />', () => {
         const cancelTxid =
             'de8f638c5b11592825ff74f2ec59892f721bc1151486efe86d99a44bf05865bf';
 
-        mockedChronik.setMock('broadcastTx', {
-            input: cancelHex,
-            output: { txid: cancelTxid },
-        });
+        mockedChronik.setBroadcastTx(cancelHex, cancelTxid);
 
         render(
             <CashtabTestWrapper
@@ -722,10 +719,7 @@ describe('<Agora />', () => {
         const buyTxid =
             '6fbee4e0460e3730f000e2927d69d881b8a536b80fd43b839d32e34c3490ff00';
 
-        mockedChronik.setMock('broadcastTx', {
-            input: buyHex,
-            output: { txid: buyTxid },
-        });
+        mockedChronik.setBroadcastTx(buyHex, buyTxid);
 
         render(
             <CashtabTestWrapper
@@ -874,14 +868,14 @@ describe('<Agora />', () => {
         // Mock chronik calls used to build token cache to show
         // the user can load a page without having the token info cached
         for (const tokenCacheMock of [cachetCacheMocks, bullCacheMocks]) {
-            emptyWalletMockedChronik.setMock('token', {
-                input: tokenCacheMock.token.tokenId,
-                output: tokenCacheMock.token,
-            });
-            emptyWalletMockedChronik.setMock('tx', {
-                input: tokenCacheMock.token.tokenId,
-                output: tokenCacheMock.tx,
-            });
+            emptyWalletMockedChronik.setToken(
+                tokenCacheMock.token.tokenId,
+                tokenCacheMock.token,
+            );
+            emptyWalletMockedChronik.setTx(
+                tokenCacheMock.token.tokenId,
+                tokenCacheMock.tx,
+            );
         }
 
         render(

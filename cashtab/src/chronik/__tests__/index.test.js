@@ -90,16 +90,10 @@ describe('Cashtab chronik.js functions', () => {
             const mockedChronik = new MockChronikClient();
 
             // Set mock for chronik.token(tokenId)
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: tokenInfo,
-            });
+            mockedChronik.setToken(tokenId, tokenInfo);
 
             // Set mock for chronik.tx(tokenId)
-            mockedChronik.setMock('tx', {
-                input: tokenId,
-                output: genesisTx,
-            });
+            mockedChronik.setTx(tokenId, genesisTx);
 
             it(`getTokenGenesisInfo: ${description}`, async () => {
                 expect(
@@ -114,16 +108,10 @@ describe('Cashtab chronik.js functions', () => {
             const mockedChronik = new MockChronikClient();
 
             // Set mock for chronik.token(tokenId)
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: tokenInfo,
-            });
+            mockedChronik.setToken(tokenId, tokenInfo);
 
             // Set mock for chronik.tx(tokenId)
-            mockedChronik.setMock('tx', {
-                input: tokenId,
-                output: genesisTx,
-            });
+            mockedChronik.setTx(tokenId, genesisTx);
 
             it(`getTokenGenesisInfo: ${description}`, async () => {
                 await expect(
@@ -139,16 +127,10 @@ describe('Cashtab chronik.js functions', () => {
         for (const tokenId of tokenIds) {
             const { token, tx } = chronikTokenMocks[tokenId];
             // Set mock for chronik.token(tokenId)
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: token,
-            });
+            mockedChronik.setToken(tokenId, token);
 
             // Set mock for chronik.tx(tokenId)
-            mockedChronik.setMock('tx', {
-                input: tokenId,
-                output: tx,
-            });
+            mockedChronik.setTx(tokenId, tx);
         }
 
         // Initialize an empty token cache
@@ -174,16 +156,10 @@ describe('Cashtab chronik.js functions', () => {
         for (const tokenId of tokenIds) {
             const { token, tx } = chronikTokenMocks[tokenId];
             // Set mock for chronik.token(tokenId)
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: token,
-            });
+            mockedChronik.setToken(tokenId, token);
 
             // Set mock for chronik.tx(tokenId)
-            mockedChronik.setMock('tx', {
-                input: tokenId,
-                output: tx,
-            });
+            mockedChronik.setTx(tokenId, tx);
         }
 
         // Initialize an empty token cache
@@ -247,16 +223,8 @@ describe('Cashtab chronik.js functions', () => {
 
         // Set tx history for all paths
         const mockedChronik = new MockChronikClient();
-        mockedChronik.setAddress(defaultAddress);
-        mockedChronik.setUtxosByAddress(defaultAddress, {
-            outputScript: 'string',
-            utxos: [{ value: 546 }],
-        });
-        mockedChronik.setAddress(secondaryAddress);
-        mockedChronik.setUtxosByAddress(secondaryAddress, {
-            outputScript: 'string',
-            utxos: [{ value: 546 }],
-        });
+        mockedChronik.setUtxosByAddress(defaultAddress, [{ value: 546 }]);
+        mockedChronik.setUtxosByAddress(secondaryAddress, [{ value: 546 }]);
         expect(
             await getUtxos(mockedChronik, mockTxHistoryWallet),
         ).toStrictEqual([
@@ -271,16 +239,10 @@ describe('Cashtab chronik.js functions', () => {
         for (const tokenId of tokenIds) {
             const { token, tx } = tokensInHistory[tokenId];
             // Set mock for chronik.token(tokenId)
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: token,
-            });
+            mockedChronik.setToken(tokenId, token);
 
             // Set mock for chronik.tx(tokenId)
-            mockedChronik.setMock('tx', {
-                input: tokenId,
-                output: tx,
-            });
+            mockedChronik.setTx(tokenId, tx);
         }
 
         // Revive JSON wallet
@@ -292,12 +254,10 @@ describe('Cashtab chronik.js functions', () => {
         const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
 
         // Set tx history for all paths
-        mockedChronik.setAddress(defaultAddress);
         mockedChronik.setTxHistoryByAddress(
             defaultAddress,
             mockPath1899History,
         );
-        mockedChronik.setAddress(secondaryAddress);
         mockedChronik.setTxHistoryByAddress(
             secondaryAddress,
             mockPath145History,
@@ -325,10 +285,7 @@ describe('Cashtab chronik.js functions', () => {
         const mockedChronik = new MockChronikClient();
         for (const tokenId of tokenIds) {
             // Mock an error in getting cached token info
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: new Error('Some chronik error'),
-            });
+            mockedChronik.setToken(tokenId, new Error('Some chronik error'));
         }
 
         // Revive JSON wallet
@@ -340,12 +297,10 @@ describe('Cashtab chronik.js functions', () => {
         const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
 
         // Set tx history for all paths
-        mockedChronik.setAddress(defaultAddress);
         mockedChronik.setTxHistoryByAddress(
             defaultAddress,
             mockPath1899History,
         );
-        mockedChronik.setAddress(secondaryAddress);
         mockedChronik.setTxHistoryByAddress(
             secondaryAddress,
             mockPath145History,
@@ -375,7 +330,6 @@ describe('Cashtab chronik.js functions', () => {
             const mockedChronik = new MockChronikClient();
             const tokenId =
                 '1111111111111111111111111111111111111111111111111111111111111111';
-            mockedChronik.setTokenId(tokenId);
             mockedChronik.setTxHistoryByTokenId(tokenId, [
                 { txid: 'deadbeef' },
             ]);
@@ -388,7 +342,6 @@ describe('Cashtab chronik.js functions', () => {
             const mockedChronik = new MockChronikClient();
             const tokenId =
                 '1111111111111111111111111111111111111111111111111111111111111111';
-            mockedChronik.setTokenId(tokenId);
             mockedChronik.setTxHistoryByTokenId(
                 tokenId,
                 [
@@ -411,7 +364,6 @@ describe('Cashtab chronik.js functions', () => {
             const mockedChronik = new MockChronikClient();
             const tokenId =
                 '1111111111111111111111111111111111111111111111111111111111111111';
-            mockedChronik.setTokenId(tokenId);
             mockedChronik.setTxHistoryByTokenId(tokenId, []);
             expect(
                 await getAllTxHistoryByTokenId(mockedChronik, tokenId),

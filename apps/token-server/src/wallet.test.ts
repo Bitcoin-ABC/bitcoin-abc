@@ -6,6 +6,7 @@ import * as assert from 'assert';
 import { getWalletFromSeed, syncWallet } from '../src/wallet';
 import vectors from '../test/vectors';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
+import { ChronikClient } from 'chronik-client';
 
 describe('wallet.ts', function () {
     describe('We can generate an ecash address and its wif from a valid bip39 mnemonic', function () {
@@ -30,15 +31,14 @@ describe('wallet.ts', function () {
 
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(wallet.address);
-            mockedChronik.setUtxosByAddress(wallet.address, {
-                outputScript: 'outputScript',
-                utxos: mockUtxos,
-            });
+            mockedChronik.setUtxosByAddress(wallet.address, mockUtxos);
 
             it(description, async function () {
                 // We call syncWallet on wallet
-                await syncWallet(mockedChronik, wallet);
+                await syncWallet(
+                    mockedChronik as unknown as ChronikClient,
+                    wallet,
+                );
                 // The wallet object is now synced, we do not need to rely on it being returned from the function
                 assert.deepEqual(wallet, returned);
             });
@@ -47,10 +47,15 @@ describe('wallet.ts', function () {
             const { description, wallet, error } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(wallet.address);
             mockedChronik.setUtxosByAddress(wallet.address, error);
             it(description, async function () {
-                await assert.rejects(syncWallet(mockedChronik, wallet), error);
+                await assert.rejects(
+                    syncWallet(
+                        mockedChronik as unknown as ChronikClient,
+                        wallet,
+                    ),
+                    error,
+                );
             });
         });
     });

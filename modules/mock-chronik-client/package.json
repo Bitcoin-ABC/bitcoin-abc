@@ -1,18 +1,33 @@
 {
     "dependencies": {
-        "ecashaddrjs": "file:../ecashaddrjs"
+        "chronik-client": "file:../chronik-client",
+        "ecashaddrjs": "file:../ecashaddrjs",
+        "ws": "^8.18.0"
     },
     "name": "mock-chronik-client",
     "description": "Testing utility to mock the Chronik indexer client and support unit tests that need to mock chronik related API calls.",
-    "version": "1.12.3",
-    "main": "index.js",
+    "version": "2.0.0",
+    "main": "./dist/index.js",
     "devDependencies": {
-        "mocha": "^10.2.0",
+        "@types/chai": "^5.0.1",
+        "@types/chai-as-promised": "^8.0.1",
+        "@types/mocha": "^10.0.10",
+        "@types/ws": "^8.5.13",
+        "chai": "^5.1.2",
+        "chai-as-promised": "^8.0.1",
+        "eslint": "8.57",
+        "eslint-plugin-header": "^3.1.1",
+        "mocha": "^10.8.2",
         "mocha-junit-reporter": "^2.2.1",
-        "nyc": "^15.1.0"
+        "nyc": "^15.1.0",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.2",
+        "typescript-eslint": "^8.18.0"
     },
     "scripts": {
-        "test": "mocha",
+        "test": "mocha --import=tsx index.test.ts",
+        "build": "tsc",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter"
     },

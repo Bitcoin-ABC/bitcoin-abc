@@ -88,15 +88,6 @@ templates:
         npm run build
       fi
 
-      # Install mock-chronik-client dependencies if this test uses them
-      if [ -z "${DEPENDS_MOCK_CHRONIK_CLIENT+x}" ] ; then
-        echo "Test does not depend on mock-chronik-client, skipping mock-chronik-client dependencies..."
-      else
-        echo "Test depends on mock-chronik-client. Installing mock-chronik-client dependencies..."
-        pushd "${TOPLEVEL}/modules/mock-chronik-client"
-        npm ci
-      fi
-
       # Build ecash-lib-wasm for ecash-lib's WebAssembly part
       if [ -z "${DEPENDS_ECASH_LIB_WASM+x}" ] ; then
         echo "Test does not depend on ecash-lib-wasm, skipping"
@@ -112,6 +103,16 @@ templates:
         echo "Test depends on chronik-client. Building TypeScript..."
         pushd "${TOPLEVEL}/modules/chronik-client"
         npm ci
+      fi
+
+      # Install mock-chronik-client dependencies if this test uses them
+      if [ -z "${DEPENDS_MOCK_CHRONIK_CLIENT+x}" ] ; then
+        echo "Test does not depend on mock-chronik-client, skipping mock-chronik-client dependencies..."
+      else
+        echo "Test depends on mock-chronik-client. Installing mock-chronik-client dependencies..."
+        pushd "${TOPLEVEL}/modules/mock-chronik-client"
+        npm ci
+        npm run build
       fi
 
       if [ -z "${DEPENDS_ECASH_LIB+x}" ] ; then

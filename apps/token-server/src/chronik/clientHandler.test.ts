@@ -6,6 +6,7 @@ import * as assert from 'assert';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import { getHistoryAfterTimestamp } from '../../src/chronik/clientHandler';
 import vectors from '../../test/vectors';
+import { ChronikClient } from 'chronik-client';
 
 describe('chronik/clientHandler.js', function () {
     describe('We can get all tx history from after a given timestamp', function () {
@@ -23,12 +24,11 @@ describe('chronik/clientHandler.js', function () {
 
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(address);
             mockedChronik.setTxHistoryByAddress(address, mocks.history);
             it(description, async function () {
                 assert.deepEqual(
                     await getHistoryAfterTimestamp(
-                        mockedChronik,
+                        mockedChronik as unknown as ChronikClient,
                         address,
                         timestamp,
                         pageSize,
@@ -44,13 +44,12 @@ describe('chronik/clientHandler.js', function () {
 
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(address);
             mockedChronik.setTxHistoryByAddress(address, mocks.history);
 
             it(description, async function () {
                 await assert.rejects(
                     getHistoryAfterTimestamp(
-                        mockedChronik,
+                        mockedChronik as unknown as ChronikClient,
                         address,
                         timestamp,
                         pageSize,

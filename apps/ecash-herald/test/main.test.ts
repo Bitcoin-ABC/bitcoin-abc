@@ -4,8 +4,12 @@
 
 import assert from 'assert';
 import { main } from '../src/main';
-import { MockChronikClient } from '../../../modules/mock-chronik-client';
+import {
+    MockChronikClient,
+    MockWsEndpoint,
+} from '../../../modules/mock-chronik-client';
 import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
+import { ChronikClient } from 'chronik-client';
 
 describe('ecash-herald main.js', async function () {
     it('main() starts the app on successful websocket connection', async function () {
@@ -13,9 +17,13 @@ describe('ecash-herald main.js', async function () {
         const mockedChronik = new MockChronikClient();
         const channelId = mockChannelId;
 
-        await main(mockedChronik, new MockTelegramBot(), channelId);
+        const ws = await main(
+            mockedChronik as unknown as ChronikClient,
+            new MockTelegramBot(),
+            channelId,
+        );
 
         // Confirm websocket opened
-        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        assert.strictEqual((ws as MockWsEndpoint).waitForOpenCalled, true);
     });
 });

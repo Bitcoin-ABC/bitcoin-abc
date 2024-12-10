@@ -51,10 +51,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
             } = tx;
             it(`sendXec: ${description}`, async () => {
                 const chronik = new MockChronikClient();
-                chronik.setMock('broadcastTx', {
-                    input: hex,
-                    output: { txid },
-                });
+                chronik.setBroadcastTx(hex, txid);
                 expect(
                     await sendXec(
                         chronik,
@@ -79,10 +76,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 if (typeof hex !== 'undefined') {
                     // For error cases that are not thrown until after the tx is successfully built,
                     // set a tx broadcast error that can be thrown by the broadcasting eCash node
-                    chronik.setMock('broadcastTx', {
-                        input: hex,
-                        output: new Error(msg),
-                    });
+                    chronik.setBroadcastTx(hex, new Error(msg));
                 }
 
                 await expect(
@@ -105,12 +99,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
             '0200000003c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064417353fc52d6f47efffddf90656dcbd4313f476c292625e24c71660b7b075f36f2c163ff2c713ad8e593490cbbaa32b424c93671908731912de255327e394c65eb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468010000006441ef045f01ba4b6dd75b470787de704c366ad8869369ae445f9fb744ee3ec220533324423ae6028e6fb72fbd3d7f6359eb9c1b35322ced7e2d263170a4092bebaa4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468020000006441faa831725c8e38a909cbf3ba594360b2d51fd884397347f4c0ce0d1379096636db4126d7f9caf34f7480d3700ffbed062352ea7e0b2fac15f5a35df880b9154c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff01d0070000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
         const txid =
             '73af2c7dcf70811ef6fa68c671673529289b1304e1cb3979f9792780f2b885ab';
-        chronik.setMock('broadcastTx', {
-            input: hex,
-            output: {
-                txid,
-            },
-        });
+        chronik.setBroadcastTx(hex, txid);
         const walletWithEdgeCaseUtxos = {
             ...wallet,
             state: {
@@ -303,14 +292,8 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
             } = tx;
             it(`Build and broadcast an SLP V1 SEND and BURN tx from in-node chronik-client utxos: ${description}`, async () => {
                 const chronik = new MockChronikClient();
-                chronik.setMock('broadcastTx', {
-                    input: hex,
-                    output: { txid },
-                });
-                chronik.setMock('broadcastTx', {
-                    input: burn.hex,
-                    output: { txid: burn.txid },
-                });
+                chronik.setBroadcastTx(hex, txid);
+                chronik.setBroadcastTx(burn.hex, burn.txid);
 
                 // Get tokenInputs and sendAmounts
                 const tokenInputInfo = getSendTokenInputs(
@@ -377,10 +360,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
             const { hex, txid } = rawTx;
             it(`sendXec: ${description}`, async () => {
                 const chronik = new MockChronikClient();
-                chronik.setMock('broadcastTx', {
-                    input: hex,
-                    output: { txid },
-                });
+                chronik.setBroadcastTx(hex, txid);
                 expect(
                     await sendXec(
                         chronik,

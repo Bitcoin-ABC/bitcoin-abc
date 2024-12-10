@@ -11,6 +11,7 @@ import {
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import vectors from '../test/vectors';
 import { Ecc, initWasm } from 'ecash-lib';
+import { ChronikClient } from 'chronik-client';
 
 describe('transactions.ts', function () {
     let ecc: Ecc;
@@ -84,19 +85,12 @@ describe('transactions.ts', function () {
             } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(wallet.address);
-            mockedChronik.setUtxosByAddress(wallet.address, {
-                outputScript: 'outputScript',
-                utxos,
-            });
-            mockedChronik.setMock('broadcastTx', {
-                input: returned.hex,
-                output: { txid: returned.response.txid },
-            });
+            mockedChronik.setUtxosByAddress(wallet.address, utxos);
+            mockedChronik.setBroadcastTx(returned.hex, returned.response.txid);
             it(description, async function () {
                 assert.deepEqual(
                     await sendReward(
-                        mockedChronik,
+                        mockedChronik as unknown as ChronikClient,
                         ecc,
                         wallet,
                         tokenId,
@@ -119,17 +113,11 @@ describe('transactions.ts', function () {
             } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(wallet.address);
-            mockedChronik.setUtxosByAddress(
-                wallet.address,
-                utxos instanceof Error
-                    ? utxos
-                    : { outputScript: 'outputScript', utxos },
-            );
+            mockedChronik.setUtxosByAddress(wallet.address, utxos);
             it(description, async function () {
                 await assert.rejects(
                     sendReward(
-                        mockedChronik,
+                        mockedChronik as unknown as ChronikClient,
                         ecc,
                         wallet,
                         tokenId,
@@ -154,19 +142,12 @@ describe('transactions.ts', function () {
             } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(wallet.address);
-            mockedChronik.setUtxosByAddress(wallet.address, {
-                outputScript: 'outputScript',
-                utxos,
-            });
-            mockedChronik.setMock('broadcastTx', {
-                input: returned.hex,
-                output: { txid: returned.response.txid },
-            });
+            mockedChronik.setUtxosByAddress(wallet.address, utxos);
+            mockedChronik.setBroadcastTx(returned.hex, returned.response.txid);
             it(description, async function () {
                 assert.deepEqual(
                     await sendXecAirdrop(
-                        mockedChronik,
+                        mockedChronik as unknown as ChronikClient,
                         ecc,
                         wallet,
                         xecAirdropAmountSats,
@@ -187,17 +168,11 @@ describe('transactions.ts', function () {
             } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
-            mockedChronik.setAddress(wallet.address);
-            mockedChronik.setUtxosByAddress(
-                wallet.address,
-                utxos instanceof Error
-                    ? utxos
-                    : { outputScript: 'outputScript', utxos },
-            );
+            mockedChronik.setUtxosByAddress(wallet.address, utxos);
             it(description, async function () {
                 await assert.rejects(
                     sendXecAirdrop(
-                        mockedChronik,
+                        mockedChronik as unknown as ChronikClient,
                         ecc,
                         wallet,
                         xecAirdropAmountSats,

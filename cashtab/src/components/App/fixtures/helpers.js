@@ -171,62 +171,50 @@ export const prepareMockedChronikCallsForLegacyWallet = (
 ) => {
     // mock chronik endpoint returns
     const CASHTAB_TESTS_TIPHEIGHT = 800000;
-    chronikClient.setMock('blockchainInfo', {
-        output: apiError
-            ? new Error('Error fetching blockchainInfo')
-            : { tipHeight: CASHTAB_TESTS_TIPHEIGHT },
-    });
-
-    // Mock scriptutxos to match context
-    chronikClient.setAddress(wallet.Path1899.cashAddress);
-    chronikClient.setUtxosByAddress(
-        wallet.Path1899.cashAddress,
-        apiError
-            ? new Error('Error fetching utxos')
-            : {
-                  outputScript: `76a914${wallet.Path1899.hash160}88ac`,
-                  utxos: wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
-              },
-    );
-
-    // We set legacy paths to contain no utxos
-    chronikClient.setAddress(wallet.Path145.cashAddress);
-    chronikClient.setUtxosByAddress(
-        wallet.Path145.cashAddress,
-        apiError
-            ? new Error('Error fetching utxos')
-            : {
-                  outputScript: `76a914${wallet.Path145.hash160}88ac`,
-                  utxos: [],
-              },
-    );
-    chronikClient.setAddress(wallet.Path245.cashAddress);
-    chronikClient.setUtxosByAddress(
-        wallet.Path245.cashAddress,
-        apiError
-            ? new Error('Error fetching utxos')
-            : {
-                  outputScript: `76a914${wallet.Path245.hash160}88ac`,
-                  utxos: [],
-              },
-    );
-
-    // TX history mocks
-    chronikClient.setTxHistoryByAddress(
-        wallet.Path1899.cashAddress,
-        apiError
-            ? new Error('Error fetching history')
-            : wallet.state.parsedTxHistory,
-    );
-    // We set legacy paths to contain no utxos
-    chronikClient.setTxHistoryByAddress(
-        wallet.Path145.cashAddress,
-        apiError ? new Error('Error fetching history') : [],
-    );
-    chronikClient.setTxHistoryByAddress(
-        wallet.Path245.cashAddress,
-        apiError ? new Error('Error fetching history') : [],
-    );
+    if (apiError) {
+        chronikClient.setBlockchainInfo(
+            new Error('Error fetching blockchainInfo'),
+        );
+        chronikClient.setUtxosByAddress(
+            wallet.Path1899.cashAddress,
+            new Error('Error fetching utxos'),
+        );
+        chronikClient.setTxHistoryByAddress(
+            wallet.Path1899.cashAddress,
+            new Error('Error fetching history'),
+        );
+        chronikClient.setUtxosByAddress(
+            wallet.Path145.cashAddress,
+            new Error('Error fetching utxos'),
+        );
+        chronikClient.setUtxosByAddress(
+            wallet.Path245.cashAddress,
+            new Error('Error fetching utxos'),
+        );
+        // We set legacy paths to contain no utxos
+        chronikClient.setTxHistoryByAddress(
+            wallet.Path145.cashAddress,
+            new Error('Error fetching history'),
+        );
+        chronikClient.setTxHistoryByAddress(
+            wallet.Path245.cashAddress,
+            new Error('Error fetching history'),
+        );
+    } else {
+        chronikClient.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
+        chronikClient.setUtxosByAddress(
+            wallet.Path1899.cashAddress,
+            wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+        );
+        chronikClient.setTxHistoryByAddress(
+            wallet.Path1899.cashAddress,
+            wallet.state.parsedTxHistory,
+        );
+        chronikClient.setUtxosByAddress(wallet.Path145.cashAddress, []);
+        chronikClient.setUtxosByAddress(wallet.Path245.cashAddress, []);
+        chronikClient.setTxHistoryByAddress(wallet.Path145.cashAddress, []);
+        chronikClient.setTxHistoryByAddress(wallet.Path245.cashAddress, []);
+    }
 };
 
 /**
@@ -243,11 +231,13 @@ export const prepareMockedChronikCallsForPre_2_9_0Wallet = (
 ) => {
     // mock chronik endpoint returns
     const CASHTAB_TESTS_TIPHEIGHT = 800000;
-    chronikClient.setMock('blockchainInfo', {
-        output: apiError
-            ? new Error('Error fetching blockchainInfo')
-            : { tipHeight: CASHTAB_TESTS_TIPHEIGHT },
-    });
+    if (apiError) {
+        chronikClient.setBlockchainInfo(
+            new Error('Error fetching blockchainInfo'),
+        );
+    } else {
+        chronikClient.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
+    }
 
     // If you are mocking a legacy wallet to test a migration, return prepareMockedChronikCallsForLegacyWallet
     if (!('paths' in wallet)) {
@@ -261,32 +251,31 @@ export const prepareMockedChronikCallsForPre_2_9_0Wallet = (
     // Iterate over paths to create chronik mocks
     for (const path of wallet.paths) {
         // Mock scriptutxos to match context
-        chronikClient.setAddress(path.address);
-        chronikClient.setUtxosByAddress(
-            path.address,
-            apiError
-                ? new Error('Error fetching utxos')
-                : {
-                      outputScript: `76a914${path.hash}88ac`,
-                      utxos:
-                          path.path === 1899
-                              ? wallet.state.nonSlpUtxos.concat(
-                                    wallet.state.slpUtxos,
-                                )
-                              : [],
-                  },
-        );
-
-        // Mock tx history
-        chronikClient.setTxHistoryByAddress(
-            path.address,
-            apiError
-                ? new Error('Error fetching history')
-                : path.path === 1899
-                ? wallet.state.parsedTxHistory
-                : // No tx history at legacy paths
-                  [],
-        );
+        if (apiError) {
+            chronikClient.setUtxosByAddress(
+                path.address,
+                new Error('Error fetching utxos'),
+            );
+            chronikClient.setTxHistoryByAddress(
+                path.address,
+                new Error('Error fetching history'),
+            );
+        } else {
+            if (path.path === 1899) {
+                chronikClient.setUtxosByAddress(
+                    path.address,
+                    wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+                );
+                chronikClient.setTxHistoryByAddress(
+                    path.address,
+                    wallet.state.parsedTxHistory,
+                );
+            } else {
+                // No history or utxos at legacy paths
+                chronikClient.setUtxosByAddress(path.address, []);
+                chronikClient.setTxHistoryByAddress(path.address, []);
+            }
+        }
     }
 };
 
@@ -304,18 +293,20 @@ export const prepareMockedChronikCallsForWallet = (
 ) => {
     // mock chronik endpoint returns
     const CASHTAB_TESTS_TIPHEIGHT = 800000;
-    chronikClient.setMock('blockchainInfo', {
-        output: apiError
-            ? new Error('Error fetching blockchainInfo')
-            : { tipHeight: CASHTAB_TESTS_TIPHEIGHT },
-    });
-    // Mock an avalanche-finalized block details
-    chronikClient.setMock('block', {
-        input: CASHTAB_TESTS_TIPHEIGHT,
-        output: apiError
-            ? new Error('Error fetching block')
-            : { blockInfo: { isFinal: true } },
-    });
+    if (apiError) {
+        chronikClient.setBlockchainInfo(
+            new Error('Error fetching blockchainInfo'),
+        );
+        chronikClient.setBlock(
+            CASHTAB_TESTS_TIPHEIGHT,
+            new Error('Error fetching block'),
+        );
+    } else {
+        chronikClient.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
+        chronikClient.setBlock(CASHTAB_TESTS_TIPHEIGHT, {
+            blockInfo: { isFinal: true },
+        });
+    }
 
     // Mock token calls
     // This info is same shape for all wallets supported in these functions
@@ -357,10 +348,8 @@ export const prepareMockedChronikCallsForWallet = (
                 timestamp: 1678408305,
             },
         };
-        chronikClient.setMock('token', {
-            input: tokenId,
-            output: mockedTokenResponse,
-        });
+        chronikClient.setToken(tokenId, mockedTokenResponse);
+
         const mockedTxResponse = {
             txid: tokenId,
             version: 2,
@@ -445,10 +434,7 @@ export const prepareMockedChronikCallsForWallet = (
                 timestamp: 1678408305,
             },
         };
-        chronikClient.setMock('tx', {
-            input: tokenId,
-            output: mockedTxResponse,
-        });
+        chronikClient.setTx(tokenId, mockedTxResponse);
     }
 
     // If you are mocking a legacy wallet to test a migration, return prepareMockedChronikCallsForLegacyWallet
@@ -471,32 +457,30 @@ export const prepareMockedChronikCallsForWallet = (
     // Iterate over paths to create chronik mocks
     wallet.paths.forEach((pathInfo, path) => {
         // Mock scriptutxos to match context
-        chronikClient.setAddress(pathInfo.address);
-        chronikClient.setUtxosByAddress(
-            pathInfo.address,
-            apiError
-                ? new Error('Error fetching utxos')
-                : {
-                      outputScript: `76a914${pathInfo.hash}88ac`,
-                      utxos:
-                          path === 1899
-                              ? wallet.state.nonSlpUtxos.concat(
-                                    wallet.state.slpUtxos,
-                                )
-                              : [],
-                  },
-        );
-
-        // Mock tx history
-        chronikClient.setTxHistoryByAddress(
-            pathInfo.address,
-            apiError
-                ? new Error('Error fetching history')
-                : path === 1899
-                ? wallet.state.parsedTxHistory
-                : // No tx history at legacy paths
-                  [],
-        );
+        if (apiError) {
+            chronikClient.setUtxosByAddress(
+                pathInfo.address,
+                new Error('Error fetching utxos'),
+            );
+            chronikClient.setTxHistoryByAddress(
+                pathInfo.address,
+                new Error('Error fetching history'),
+            );
+        } else {
+            if (path === 1899) {
+                chronikClient.setUtxosByAddress(
+                    pathInfo.address,
+                    wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+                );
+                chronikClient.setTxHistoryByAddress(
+                    pathInfo.address,
+                    wallet.state.parsedTxHistory,
+                );
+            } else {
+                chronikClient.setUtxosByAddress(pathInfo.address, []);
+                chronikClient.setTxHistoryByAddress(pathInfo.address, []);
+            }
+        }
     });
 };
 

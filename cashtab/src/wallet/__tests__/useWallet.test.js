@@ -713,10 +713,8 @@ describe('useWallet hook rendering in different localforage states', () => {
         // Mock chronik.tx response for this tx to be a new token tx
         const MOCK_TXID =
             '1111111111111111111111111111111111111111111111111111111111111111';
-        mockedChronik.setMock('tx', {
-            input: MOCK_TXID,
-            output: mockIncomingTokenTxDetails,
-        });
+        mockedChronik.setTx(MOCK_TXID, mockIncomingTokenTxDetails);
+
         const { result } = renderHook(() => useWallet(mockedChronik));
 
         // Wait for the wallet to load

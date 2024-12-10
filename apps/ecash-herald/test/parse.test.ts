@@ -13,7 +13,7 @@ import { jsonReviver } from '../src/utils';
 import memoFixtures from './mocks/memo';
 import { consumeNextPush } from 'ecash-script';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
-import { TxOutput } from 'chronik-client';
+import { Block, ChronikClient, TxOutput } from 'chronik-client';
 import { caching } from 'cache-manager';
 import { StoredMock } from '../src/events';
 import {
@@ -338,7 +338,12 @@ describe('parse.js functions', function () {
             } = invalidatedBlocksTestFixtures[i];
 
             const mockedChronik = new MockChronikClient();
-            mockedChronik.mockedResponses.block = mockedBlock;
+            if (typeof mockedBlock.height !== 'undefined') {
+                mockedChronik.setBlock(
+                    mockedBlock.height,
+                    mockedBlock.block as Block,
+                );
+            }
 
             const testMemoryCache = await caching('memory', {
                 max: 100,
@@ -348,7 +353,7 @@ describe('parse.js functions', function () {
 
             assert.strictEqual(
                 await guessRejectReason(
-                    mockedChronik,
+                    mockedChronik as unknown as ChronikClient,
                     height,
                     coinbaseData,
                     testMemoryCache,

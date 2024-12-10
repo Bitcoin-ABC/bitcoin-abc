@@ -3,7 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import assert from 'assert';
-import { GenesisInfo } from 'chronik-client';
+import {
+    ChronikClient,
+    GenesisInfo,
+    TokenInfo,
+    Tx,
+    Block,
+} from 'chronik-client';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import {
     getTokenInfoMap,
@@ -29,14 +35,11 @@ describe('chronik.js functions', function () {
         // and build expected result
         const expectedTokenInfoMap: TokenInfoMap = new Map();
         mockTokenCalls.forEach((tokenInfo, tokenId) => {
-            mockedChronik.setMock('token', {
-                input: tokenId,
-                output: tokenInfo,
-            });
+            mockedChronik.setToken(tokenId, tokenInfo);
             expectedTokenInfoMap.set(tokenId, tokenInfo.genesisInfo);
         });
         const tokenInfoMap = await getTokenInfoMap(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             new Set([alitaTokenId, bearNipTokenId, powTokenId]),
         );
 
@@ -52,15 +55,19 @@ describe('chronik.js functions', function () {
 
         // Create a set of only one token id
         const tokenIdSet: Set<string> = new Set([alitaTokenId]);
-        mockedChronik.setMock('token', {
-            input: alitaTokenId,
-            output: mockTokenCalls.get(alitaTokenId),
-        });
+        mockedChronik.setToken(
+            alitaTokenId,
+            mockTokenCalls.get(alitaTokenId) as TokenInfo,
+        );
+
         expectedTokenInfoMap.set(
             alitaTokenId,
             mockTokenCalls.get(alitaTokenId)!.genesisInfo as GenesisInfo,
         );
-        const tokenInfoMap = await getTokenInfoMap(mockedChronik, tokenIdSet);
+        const tokenInfoMap = await getTokenInfoMap(
+            mockedChronik as unknown as ChronikClient,
+            tokenIdSet,
+        );
 
         assert.deepEqual(tokenInfoMap, expectedTokenInfoMap);
     });
@@ -71,20 +78,17 @@ describe('chronik.js functions', function () {
         const tokenIdSet = new Set([alitaTokenId, bearNipTokenId, powTokenId]);
         // Tell mockedChronik what responses we expect
         // Include one error response
-        mockedChronik.setMock('tx', {
-            input: alitaTokenId,
-            output: mockTxCalls.get(alitaTokenId),
-        });
-        mockedChronik.setMock('tx', {
-            input: bearNipTokenId,
-            output: mockTxCalls.get(bearNipTokenId),
-        });
-        mockedChronik.setMock('tx', {
-            input: powTokenId,
-            output: new Error('some error'),
-        });
+        mockedChronik.setTx(alitaTokenId, mockTxCalls.get(alitaTokenId) as Tx);
+        mockedChronik.setTx(
+            bearNipTokenId,
+            mockTxCalls.get(bearNipTokenId) as Tx,
+        );
+        mockedChronik.setTx(powTokenId, mockTxCalls.get(powTokenId) as Tx);
 
-        const tokenInfoMap = await getTokenInfoMap(mockedChronik, tokenIdSet);
+        const tokenInfoMap = await getTokenInfoMap(
+            mockedChronik as unknown as ChronikClient,
+            tokenIdSet,
+        );
 
         assert.strictEqual(tokenInfoMap, false);
     });
@@ -95,17 +99,11 @@ describe('chronik.js functions', function () {
         const setWithNonToken = new Set([alitaTokenId, swapTxid]);
         // Tell mockedChronik what responses we expect
         // Include one error response
-        mockedChronik.setMock('tx', {
-            input: alitaTokenId,
-            output: mockTxCalls.get(alitaTokenId),
-        });
-        mockedChronik.setMock('tx', {
-            input: swapTxid,
-            output: mockTxCalls.get(swapTxid),
-        });
+        mockedChronik.setTx(alitaTokenId, mockTxCalls.get(alitaTokenId) as Tx);
+        mockedChronik.setTx(swapTxid, mockTxCalls.get(swapTxid) as Tx);
 
         const tokenInfoMap = await getTokenInfoMap(
-            mockedChronik,
+            mockedChronik as unknown as ChronikClient,
             setWithNonToken,
         );
 
@@ -122,8 +120,11 @@ describe('chronik.js functions', function () {
         ];
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
-        mockedChronik.setTxHistoryByBlock(MOCK_HEIGHT, MOCK_TXS);
-        const txsInBlock = await getAllBlockTxs(mockedChronik, MOCK_HEIGHT);
+        mockedChronik.setTxHistoryByBlock(MOCK_HEIGHT, MOCK_TXS as Tx[]);
+        const txsInBlock = await getAllBlockTxs(
+            mockedChronik as unknown as ChronikClient,
+            MOCK_HEIGHT,
+        );
         assert.deepEqual(txsInBlock, MOCK_TXS);
     });
     it('getAllBlockTxs can get all block txs if a block has more than one page of txs', async function () {
@@ -142,9 +143,13 @@ describe('chronik.js functions', function () {
         ];
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
-        mockedChronik.setTxHistoryByBlock(MOCK_HEIGHT, MOCK_TXS);
+        mockedChronik.setTxHistoryByBlock(MOCK_HEIGHT, MOCK_TXS as Tx[]);
         // Call with pageSize smaller than tx size
-        const txsInBlock = await getAllBlockTxs(mockedChronik, MOCK_HEIGHT, 2);
+        const txsInBlock = await getAllBlockTxs(
+            mockedChronik as unknown as ChronikClient,
+            MOCK_HEIGHT,
+            2,
+        );
         assert.deepEqual(txsInBlock, MOCK_TXS);
     });
     it('getBlocksAgoFromChaintipByTimestamp will get start and end blockheights for a given timestamp and window if we have fewer than expected blocks in that window', async function () {
@@ -153,8 +158,9 @@ describe('chronik.js functions', function () {
 
         // Mock the chaintip
         const mockChaintip = 800000;
-        mockedChronik.setMock('blockchainInfo', {
-            output: { tipHeight: mockChaintip },
+        mockedChronik.setBlockchainInfo({
+            tipHeight: mockChaintip,
+            tipHash: 'hash',
         });
 
         // Arbitrary timestamp to test
@@ -169,26 +175,23 @@ describe('chronik.js functions', function () {
             mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
 
         // Guessed block is older than secondsAgo
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
-        });
+        mockedChronik.setBlock(guessedBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo - 1 },
+        } as Block);
 
         // Set 2 newer blocks
         // So this one, at guessedBlockheight + 1, is in the window
         const expectedStartBlockheight = guessedBlockheight + 1;
-        mockedChronik.setMock('block', {
-            input: expectedStartBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo + 2 } },
-        });
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight + 2,
-            output: { blockInfo: { timestamp: now - secondsAgo + 3 } },
-        });
+        mockedChronik.setBlock(expectedStartBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo + 2 },
+        } as Block);
+        mockedChronik.setBlock(guessedBlockheight + 2, {
+            blockInfo: { timestamp: now - secondsAgo + 3 },
+        } as Block);
 
         assert.deepEqual(
             await getBlocksAgoFromChaintipByTimestamp(
-                mockedChronik,
+                mockedChronik as unknown as ChronikClient,
                 now,
                 secondsAgo,
             ),
@@ -204,8 +207,9 @@ describe('chronik.js functions', function () {
 
         // Mock the chaintip
         const mockChaintip = 800000;
-        mockedChronik.setMock('blockchainInfo', {
-            output: { tipHeight: mockChaintip },
+        mockedChronik.setBlockchainInfo({
+            tipHeight: mockChaintip,
+            tipHash: 'hash',
         });
 
         // Arbitrary timestamp to test
@@ -220,26 +224,23 @@ describe('chronik.js functions', function () {
             mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
 
         // Guessed block is NEWER than secondsAgo
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
-        });
+        mockedChronik.setBlock(guessedBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo + 5 },
+        } as Block);
 
         // Set 3 older blocks, with 1 still in the window
         const expectedStartBlockheight = guessedBlockheight - 1;
-        mockedChronik.setMock('block', {
-            input: expectedStartBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo + 4 } },
-        });
+        mockedChronik.setBlock(expectedStartBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo + 4 },
+        } as Block);
         // Since this block is out of the window, we expect the start height to be proceeding block
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight - 2,
-            output: { blockInfo: { timestamp: now - secondsAgo - 3 } },
-        });
+        mockedChronik.setBlock(guessedBlockheight - 2, {
+            blockInfo: { timestamp: now - secondsAgo - 3 },
+        } as Block);
 
         assert.deepEqual(
             await getBlocksAgoFromChaintipByTimestamp(
-                mockedChronik,
+                mockedChronik as unknown as ChronikClient,
                 now,
                 secondsAgo,
             ),
@@ -255,8 +256,9 @@ describe('chronik.js functions', function () {
 
         // Mock the chaintip
         const mockChaintip = 800000;
-        mockedChronik.setMock('blockchainInfo', {
-            output: { tipHeight: mockChaintip },
+        mockedChronik.setBlockchainInfo({
+            tipHeight: mockChaintip,
+            tipHash: 'hash',
         });
 
         // Arbitrary timestamp to test
@@ -271,20 +273,18 @@ describe('chronik.js functions', function () {
             mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
 
         // Guessed block is exactly secondsAgo
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo } },
-        });
+        mockedChronik.setBlock(guessedBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo },
+        } as Block);
 
         // Set 1 older block
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight - 1,
-            output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
-        });
+        mockedChronik.setBlock(guessedBlockheight - 1, {
+            blockInfo: { timestamp: now - secondsAgo - 1 },
+        } as Block);
 
         assert.deepEqual(
             await getBlocksAgoFromChaintipByTimestamp(
-                mockedChronik,
+                mockedChronik as unknown as ChronikClient,
                 now,
                 secondsAgo,
             ),
@@ -300,8 +300,9 @@ describe('chronik.js functions', function () {
 
         // Mock the chaintip
         const mockChaintip = 800000;
-        mockedChronik.setMock('blockchainInfo', {
-            output: { tipHeight: mockChaintip },
+        mockedChronik.setBlockchainInfo({
+            tipHeight: mockChaintip,
+            tipHash: 'hash',
         });
 
         // Arbitrary timestamp to test
@@ -316,23 +317,21 @@ describe('chronik.js functions', function () {
             mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
 
         // Guessed block is older than secondsAgo
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
-        });
+        mockedChronik.setBlock(guessedBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo - 1 },
+        } as Block);
 
         // Set 100 newer blocks, all of them still outside the window
         for (let i = 0; i < 200; i += 1) {
-            mockedChronik.setMock('block', {
-                input: guessedBlockheight + 1 + i,
-                output: { blockInfo: { timestamp: now - secondsAgo - 1 } },
-            });
+            mockedChronik.setBlock(guessedBlockheight + 1 + i, {
+                blockInfo: { timestamp: now - secondsAgo - 1 },
+            } as Block);
         }
 
         await assert.rejects(
             async () => {
                 await getBlocksAgoFromChaintipByTimestamp(
-                    mockedChronik,
+                    mockedChronik as unknown as ChronikClient,
                     now,
                     secondsAgo,
                 );
@@ -349,8 +348,9 @@ describe('chronik.js functions', function () {
 
         // Mock the chaintip
         const mockChaintip = 800000;
-        mockedChronik.setMock('blockchainInfo', {
-            output: { tipHeight: mockChaintip },
+        mockedChronik.setBlockchainInfo({
+            tipHeight: mockChaintip,
+            tipHash: 'hash',
         });
 
         // Arbitrary timestamp to test
@@ -365,23 +365,21 @@ describe('chronik.js functions', function () {
             mockChaintip - secondsAgo / SECONDS_PER_BLOCK;
 
         // Guessed block is newer than secondsAgo, i.e. within the window
-        mockedChronik.setMock('block', {
-            input: guessedBlockheight,
-            output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
-        });
+        mockedChronik.setBlock(guessedBlockheight, {
+            blockInfo: { timestamp: now - secondsAgo + 5 },
+        } as Block);
 
         // Set 200 older blocks, all of them still within the window
         for (let i = 0; i < 200; i += 1) {
-            mockedChronik.setMock('block', {
-                input: guessedBlockheight - 1 - i,
-                output: { blockInfo: { timestamp: now - secondsAgo + 5 } },
-            });
+            mockedChronik.setBlock(guessedBlockheight - 1 - i, {
+                blockInfo: { timestamp: now - secondsAgo + 5 },
+            } as Block);
         }
 
         await assert.rejects(
             async () => {
                 await getBlocksAgoFromChaintipByTimestamp(
-                    mockedChronik,
+                    mockedChronik as unknown as ChronikClient,
                     now,
                     secondsAgo,
                 );

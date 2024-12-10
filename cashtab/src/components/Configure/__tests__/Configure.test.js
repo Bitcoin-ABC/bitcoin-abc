@@ -144,10 +144,7 @@ describe('<Configure />', () => {
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064416a14b2f97b4b24a409799b68a6da2d34ada9fa0f305eeffe11d9234cd8ee17dcb033de65840107dd52c35207fb2d2a88eadac270e582a8bc7cd66df4437800234121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acdb6c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             '5f334f32bec07b1029ae579460c704e33ba05b91e3bc2bba9ee215bc585cd6ab';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
@@ -239,14 +236,14 @@ describe('<Configure />', () => {
         );
 
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: appConfig.vipTokens.cachet.tokenId,
-            output: cachetTokenAndTx.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: appConfig.vipTokens.cachet.tokenId,
-            output: cachetTokenAndTx.tx,
-        });
+        mockedChronik.setToken(
+            appConfig.vipTokens.cachet.tokenId,
+            cachetTokenAndTx.token,
+        );
+        mockedChronik.setTx(
+            appConfig.vipTokens.cachet.tokenId,
+            cachetTokenAndTx.tx,
+        );
 
         render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
@@ -305,24 +302,21 @@ describe('<Configure />', () => {
         );
 
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: appConfig.vipTokens.cachet.tokenId,
-            output: cachetTokenAndTx.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: appConfig.vipTokens.cachet.tokenId,
-            output: cachetTokenAndTx.tx,
-        });
+        mockedChronik.setToken(
+            appConfig.vipTokens.cachet.tokenId,
+            cachetTokenAndTx.token,
+        );
+        mockedChronik.setTx(
+            appConfig.vipTokens.cachet.tokenId,
+            cachetTokenAndTx.tx,
+        );
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a8ae2e6e418b09c8a189547c7412a551617d2f26e55ee5af787ef9ad3f583f6086995640fc06039a04e113dc3d18ce3c51b817f59d31dbb8193dcfa4b7a862664121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb96d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             'c16de907537369994417459369faad6595842d569b7b4a9544288ac8a4c81dbb';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
@@ -403,24 +397,21 @@ describe('<Configure />', () => {
         );
 
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: appConfig.vipTokens.grumpy.tokenId,
-            output: vipTokenChronikTokenMocks.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: appConfig.vipTokens.grumpy.tokenId,
-            output: vipTokenChronikTokenMocks.tx,
-        });
+        mockedChronik.setToken(
+            appConfig.vipTokens.grumpy.tokenId,
+            vipTokenChronikTokenMocks.token,
+        );
+        mockedChronik.setTx(
+            appConfig.vipTokens.grumpy.tokenId,
+            vipTokenChronikTokenMocks.tx,
+        );
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a8ae2e6e418b09c8a189547c7412a551617d2f26e55ee5af787ef9ad3f583f6086995640fc06039a04e113dc3d18ce3c51b817f59d31dbb8193dcfa4b7a862664121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb96d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
             'c16de907537369994417459369faad6595842d569b7b4a9544288ac8a4c81dbb';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
+        mockedChronik.setBroadcastTx(hex, txid);
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const tokenSendHex =
@@ -428,10 +419,7 @@ describe('<Configure />', () => {
         const tokenSendTxid =
             'a9981db09af60875966df3f47a80588d0975fec799c658b702b22633604904d1';
 
-        mockedChronik.setMock('broadcastTx', {
-            input: tokenSendHex,
-            output: { txid: tokenSendTxid },
-        });
+        mockedChronik.setBroadcastTx(tokenSendHex, tokenSendTxid);
 
         render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 

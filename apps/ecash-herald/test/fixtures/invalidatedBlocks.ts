@@ -149,7 +149,8 @@ const invalidatedBlockFixture = [
             scriptHex: '76a914b03bb6f8567bade53cc3a716e0414c1082a8530088ac',
         },
         mockedBlock: {
-            865428: {
+            height: 865428,
+            block: {
                 blockInfo: {
                     hash: '00000000000000000692216bd4f235fc2cd98872640ba6a3bec0130cbfe59a14',
                 },
