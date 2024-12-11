@@ -916,13 +916,15 @@ bool Processor::eraseStakingRewardWinner(const BlockHash &prevBlockHash) {
 }
 
 void Processor::cleanupStakingRewards(const int minHeight) {
-    LOCK(cs_stakingRewards);
-    // std::erase_if is only defined since C++20
-    for (auto it = stakingRewards.begin(); it != stakingRewards.end();) {
-        if (it->second.blockheight < minHeight) {
-            it = stakingRewards.erase(it);
-        } else {
-            ++it;
+    {
+        LOCK(cs_stakingRewards);
+        // std::erase_if is only defined since C++20
+        for (auto it = stakingRewards.begin(); it != stakingRewards.end();) {
+            if (it->second.blockheight < minHeight) {
+                it = stakingRewards.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 
