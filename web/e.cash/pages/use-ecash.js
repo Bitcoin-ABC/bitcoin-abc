@@ -143,6 +143,7 @@ function UseEcash(props) {
                             link="https://ecash.poker/"
                             corner="bottomRight"
                             color="accent"
+                            openInNewTab
                         />
                     </TextImageBlock>
                     <TextImageBlock
@@ -167,6 +168,7 @@ function UseEcash(props) {
                             link="https://paybutton.org/"
                             corner="bottomRight"
                             color="accent"
+                            openInNewTab
                         />
                     </TextImageBlock>
                     <TextImageBlock
@@ -187,6 +189,7 @@ function UseEcash(props) {
                             link="https://elpstoken.com/"
                             corner="bottomRight"
                             color="accent"
+                            openInNewTab
                         />
                     </TextImageBlock>
                 </Container>
