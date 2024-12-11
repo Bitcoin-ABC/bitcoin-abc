@@ -350,6 +350,17 @@ builds:
         "Bitcoin ABC Benchmark" \
         "${BUILD_DIR}/src/bench/BitcoinABC_Bench.json"
 
+  build-bitcoinsuite-chronik-client:
+    runOnDiffRegex:
+      - modules/bitcoinsuite-chronik-client/
+    script: |
+      # Navigate to the bitcoinsuite-chronik-client directory
+      pushd "${TOPLEVEL}/modules/bitcoinsuite-chronik-client"
+      cargo build
+      cargo test
+      popd
+    timeout: 1200
+
   build-chronik:
     runOnDiffRegex:
       - chronik/

@@ -634,6 +634,23 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-chronik-client"
 version = "0.1.0"
+dependencies = [
+ "abc-rust-error",
+ "bitcoinsuite-core 0.1.0",
+ "bytes",
+ "chronik-proto",
+ "hex",
+ "pretty_assertions",
+ "prost",
+ "prost-build",
+ "reqwest",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
+name = "bitcoinsuite-chronik-client"
+version = "0.1.0"
 source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
 dependencies = [
  "bitcoinsuite-core 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
@@ -1412,7 +1429,7 @@ name = "explorer-exe"
 version = "0.1.0"
 dependencies = [
  "axum 0.5.17",
- "bitcoinsuite-chronik-client",
+ "bitcoinsuite-chronik-client 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
  "bitcoinsuite-error",
  "explorer-server",
  "futures",
@@ -1427,7 +1444,7 @@ dependencies = [
  "axum 0.5.17",
  "base64 0.13.1",
  "bitcoin",
- "bitcoinsuite-chronik-client",
+ "bitcoinsuite-chronik-client 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
  "bitcoinsuite-core 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
  "bitcoinsuite-error",
  "chrono",
