@@ -335,11 +335,13 @@ public:
         return avaproofsNodeCounter.load();
     }
     bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
+                                 !cs_stakeContenderCache);
     bool canShareLocalProof();
 
     bool computeStakingReward(const CBlockIndex *pindex)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
+                                 !cs_stakeContenderCache);
     bool eraseStakingRewardWinner(const BlockHash &prevBlockHash)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     void cleanupStakingRewards(const int minHeight)
@@ -379,18 +381,19 @@ public:
 
     /** Promote stake contender cache entries to the latest chain tip */
     void promoteStakeContendersToTip()
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_peerManager,
-                                 !cs_finalizationTip);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards,
+                                 !cs_peerManager, !cs_finalizationTip);
 
 private:
     void updatedBlockTip()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
-                                 !cs_finalizationTip, !cs_stakeContenderCache);
+                                 !cs_finalizationTip, !cs_stakeContenderCache,
+                                 !cs_stakingRewards);
     void transactionAddedToMempool(const CTransactionRef &tx)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     void runEventLoop()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
-                                 !cs_finalizedItems);
+                                 !cs_stakeContenderCache, !cs_finalizedItems);
     void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
@@ -398,6 +401,10 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
     AnyVoteItem getVoteItemFromInv(const CInv &inv) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
+
+    /** Helper to set the local winner in the contender cache */
+    void setContenderStatusForLocalWinner(const CBlockIndex *pindex)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
 
     /**
      * We don't need many blocks but a low false positive rate.

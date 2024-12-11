@@ -2487,13 +2487,10 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
                       -1);
 
     // contender2 was promoted
-    // TODO contender2 is REJECTED because the locally selected stake winner is
-    // not yet factored into stake contenders. This will be ACCEPTED once it
-    // does.
     const StakeContenderId contender2_block2 =
         StakeContenderId(chaintip->GetBlockHash(), proofid2);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
-                      1);
+                      0);
 
     // Advance the finalization tip
     AvalancheTest::setFinalizationTip(*m_processor, chaintip);
@@ -2514,7 +2511,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block1),
                       -1);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
-                      1);
+                      0);
 
     // Manually set contenders as winners
     m_processor->setStakingRewardWinners(

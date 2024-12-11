@@ -163,13 +163,15 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         tip = self.generate(node, 1)[0]
 
         # Staking rewards has been computed
-        # TODO When implemented, the response could be ACCEPTED if this proof was
-        # selected as a winner. For now, it is always INVALID.
         contender_id = make_contender_id(tip, manual_winner.proofid)
         poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-        assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.INVALID, contender_id)]
-        )
+        expectedVote = AvalancheContenderVoteError.INVALID
+        if node.getstakingreward(tip)[0]["proofid"] == uint256_hex(
+            manual_winner.proofid
+        ):
+            # If manual_winner happens to be selected as the winner, it will be accepted
+            expectedVote = AvalancheContenderVoteError.ACCEPTED
+        assert_response([AvalancheVote(expectedVote, contender_id)])
 
         # Manually set this contender as a winner
         node.setstakingreward(tip, manual_winner.payout_script.hex())

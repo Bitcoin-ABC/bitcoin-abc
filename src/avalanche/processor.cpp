@@ -899,15 +899,23 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     StakingReward _stakingRewards;
     _stakingRewards.blockheight = pindex->nHeight;
 
+    bool rewardsInserted = false;
     if (WITH_LOCK(cs_peerManager, return peerManager->selectStakingRewardWinner(
                                       pindex, _stakingRewards.winners))) {
         LOCK(cs_stakingRewards);
-        return stakingRewards
-            .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
-            .second;
+        rewardsInserted =
+            stakingRewards
+                .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
+                .second;
     }
 
-    return false;
+    if (m_stakingPreConsensus) {
+        // If pindex has not been promoted in the contender cache yet, this will
+        // be a no-op.
+        setContenderStatusForLocalWinner(pindex);
+    }
+
+    return rewardsInserted;
 }
 
 bool Processor::eraseStakingRewardWinner(const BlockHash &prevBlockHash) {
@@ -1029,11 +1037,31 @@ void Processor::promoteStakeContendersToTip() {
         return;
     }
 
-    LOCK(cs_peerManager);
-    LOCK(cs_stakeContenderCache);
-    stakeContenderCache.promoteToBlock(activeTip, *peerManager);
+    {
+        LOCK(cs_peerManager);
+        LOCK(cs_stakeContenderCache);
+        stakeContenderCache.promoteToBlock(activeTip, *peerManager);
+    }
+
+    // If staking rewards have not been computed yet, we will try again when
+    // they have been.
+    setContenderStatusForLocalWinner(activeTip);
 
     // TODO reconcile remoteProofs contenders
+}
+
+void Processor::setContenderStatusForLocalWinner(const CBlockIndex *pindex) {
+    const BlockHash prevblockhash = pindex->GetBlockHash();
+    std::vector<std::pair<ProofId, CScript>> winners;
+    getStakingRewardWinners(prevblockhash, winners);
+    if (winners.size() == 0) {
+        // Staking rewards not computed yet
+        return;
+    }
+
+    const StakeContenderId contenderId(prevblockhash, winners[0].first);
+    LOCK(cs_stakeContenderCache);
+    stakeContenderCache.finalize(contenderId);
 }
 
 void Processor::updatedBlockTip() {
