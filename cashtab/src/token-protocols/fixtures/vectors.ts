@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { CashtabUtxo, TokenUtxo, SlpDecimals } from 'wallet';
-import { TokenTargetOutput } from 'token-protocols';
+import { TokenTargetOutput, RenderedTokenType } from 'token-protocols';
 import { OutPoint, Token, TokenType } from 'chronik-client';
 import appConfig from 'config/app';
 import { Script, fromHex } from 'ecash-lib';
@@ -38,6 +38,12 @@ interface GetMaxDecimalizedQtyReturn {
     decimals: SlpDecimals;
     returned: string;
 }
+
+interface GetRenderedTokenTypeReturn {
+    description: string;
+    tokenType: TokenType;
+    returned: RenderedTokenType;
+}
 interface TokenProtocolsVectors {
     getAllSendUtxos: { expectedReturns: GetAllSendUtxosReturn[] };
     getSendTokenInputs: {
@@ -46,6 +52,9 @@ interface TokenProtocolsVectors {
     };
     getMaxDecimalizedQty: {
         expectedReturns: GetMaxDecimalizedQtyReturn[];
+    };
+    getRenderedTokenType: {
+        expectedReturns: GetRenderedTokenTypeReturn[];
     };
 }
 
@@ -758,6 +767,83 @@ const vectors: TokenProtocolsVectors = {
                 protocol: 'SLP',
                 decimals: 0,
                 returned: '18446744073709551615',
+            },
+        ],
+    },
+    getRenderedTokenType: {
+        // note I use number:1 everywhere here as it is not (currently) used by the function
+        expectedReturns: [
+            {
+                description: 'Renders ALP_TOKEN_TYPE_STANDARD',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 1,
+                },
+                returned: RenderedTokenType.ALP,
+            },
+            {
+                description: 'Renders ALP_TOKEN_TYPE_UNKNOWN',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_UNKNOWN',
+                    number: 1,
+                },
+                returned: RenderedTokenType.ALP_UNKNOWN,
+            },
+            {
+                description: 'Renders SLP_TOKEN_TYPE_FUNGIBLE',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                returned: RenderedTokenType.SLP,
+            },
+            {
+                description: 'Renders SLP_TOKEN_TYPE_MINT_VAULT',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+                    number: 1,
+                },
+                returned: RenderedTokenType.MINTVAULT,
+            },
+            {
+                description: 'Renders SLP_TOKEN_TYPE_NFT1_GROUP',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 1,
+                },
+                returned: RenderedTokenType.COLLECTION,
+            },
+            {
+                description: 'Renders SLP_TOKEN_TYPE_NFT1_CHILD',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 1,
+                },
+                returned: RenderedTokenType.NFT,
+            },
+            {
+                description: 'Renders SLP_TOKEN_TYPE_UNKNOWN',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_UNKNOWN',
+                    number: 1,
+                },
+                returned: RenderedTokenType.SLP_UNKNOWN,
+            },
+            {
+                description: 'Renders a totally unknown token',
+                tokenType: {
+                    protocol: 'SLPALP' as 'SLP', // some totally new type
+                    type: 'SLP_TOKEN_TYPE_ERC20' as 'SLP_TOKEN_TYPE_UNKNOWN',
+                    number: 1,
+                },
+                returned: RenderedTokenType.UNKNOWN_UNKNOWN,
             },
         ],
     },

@@ -182,12 +182,16 @@ const wallet: CashtabWallet = {
                     timestamp: 1695161321,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 25000,
-                    stackArray: [],
                     recipients: [
                         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                     ],
+                    satoshisSent: 25000,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                 },
             },
             {
@@ -289,12 +293,16 @@ const wallet: CashtabWallet = {
                     timestamp: 1695161321,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 10000,
-                    stackArray: [],
                     recipients: [
                         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                     ],
+                    satoshisSent: 10000,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                 },
             },
             {
@@ -348,12 +356,16 @@ const wallet: CashtabWallet = {
                     timestamp: 1695161321,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 100000,
-                    stackArray: [],
                     recipients: [
                         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                     ],
+                    satoshisSent: 100000,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                 },
             },
         ],
@@ -535,12 +547,16 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
                     timestamp: 1695161321,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 25000,
-                    stackArray: [],
                     recipients: [
                         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                     ],
+                    satoshisSent: 25000,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                 },
             },
             {
@@ -642,12 +658,16 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
                     timestamp: 1695161321,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 10000,
-                    stackArray: [],
                     recipients: [
                         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                     ],
+                    satoshisSent: 10000,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                 },
             },
             {
@@ -701,12 +721,16 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
                     timestamp: 1695161321,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 100000,
-                    stackArray: [],
                     recipients: [
                         'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                     ],
+                    satoshisSent: 100000,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
                 },
             },
         ],

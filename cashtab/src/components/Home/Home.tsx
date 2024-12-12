@@ -11,7 +11,7 @@ import ApiError from 'components/Common/ApiError';
 import Receive from 'components/Receive/Receive';
 import { Alert, Info } from 'components/Common/Atoms';
 import { getUserLocale } from 'helpers';
-import { CashtabPathInfo, getHashes } from 'wallet';
+import { CashtabPathInfo, getHashes, CashtabTx } from 'wallet';
 import PrimaryButton, {
     SecondaryButton,
     PrimaryLink,
@@ -178,12 +178,36 @@ const Home: React.FC = () => {
         }
     };
 
+    /**
+     * Type guard for latest CashtabTx[] type
+     * Prevents rendering tx history until wallet has loaded (or migrated)
+     * latest tx history
+     */
+    const isValidParsedTxHistory = (
+        parsedTxHistory: CashtabTx[],
+    ): parsedTxHistory is CashtabTx[] => {
+        if (Array.isArray(parsedTxHistory)) {
+            if (parsedTxHistory.length > 0) {
+                const testEntry = parsedTxHistory[0];
+                // Migrated parsedTxHistory has appActions array in every tx
+                return Array.isArray(testEntry.parsed.appActions);
+            }
+            // Empty array is always valid
+            return true;
+        }
+        return false;
+    };
+
     return (
         <>
             {apiError && <ApiError />}
             <TxHistoryCtn data-testid="tx-history">
                 <TxHistory
-                    txs={Array.isArray(parsedTxHistory) ? parsedTxHistory : []}
+                    txs={
+                        isValidParsedTxHistory(parsedTxHistory)
+                            ? parsedTxHistory
+                            : []
+                    }
                     hashes={hashes}
                     fiatPrice={fiatPrice}
                     fiatCurrency={

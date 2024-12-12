@@ -4,7 +4,7 @@
 
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
-import { RenderedTxType } from './index';
+import { XecTxType } from 'chronik';
 
 export const TxWrapper = styled.div`
     border-bottom: 1px solid ${props => props.theme.border};
@@ -62,7 +62,7 @@ const Burn = css`
     }
 `;
 export const MainRow = styled.div<{
-    type?: RenderedTxType;
+    type?: XecTxType;
 }>`
     display: flex;
     justify-content: space-between;
@@ -209,7 +209,7 @@ export const AppDescMsg = styled.div`
     text-align: left;
 `;
 export const TokenAction = styled(AppAction)<{
-    tokenTxType?: RenderedTxType;
+    tokenTxType?: string;
 }>`
     ${props => props.tokenTxType === 'Received' && Incoming}
     ${props =>

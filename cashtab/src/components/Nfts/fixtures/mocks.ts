@@ -8,6 +8,7 @@ import cashaddr from 'ecashaddrjs';
 import { CashtabWallet, CashtabWalletPaths } from 'wallet';
 import { XecTxType } from 'chronik';
 import { Token } from 'chronik-client';
+import { RenderedTokenType } from 'token-protocols';
 
 export const nftMarketWallet: CashtabWallet = {
     state: {
@@ -400,8 +401,11 @@ export const nftMarketWallet: CashtabWallet = {
                     timestamp: 1720807766,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 1754,
+                    recipients: [
+                        'ecash:pz3dhqpgk02fq3sv3hurf5j5kvw49ql0ks2eyjpcy0',
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
+                    ],
+                    satoshisSent: 0,
                     stackArray: [
                         '534c5000',
                         '41',
@@ -409,9 +413,19 @@ export const nftMarketWallet: CashtabWallet = {
                         '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
                         '0000000000000001',
                     ],
-                    recipients: [
-                        'ecash:pz3dhqpgk02fq3sv3hurf5j5kvw49ql0ks2eyjpcy0',
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
+                            renderedTxType: 'Agora Sale',
+                            renderedTokenType: 'NFT' as RenderedTokenType,
+                            tokenSatoshis: '0',
+                        },
                     ],
+                    replyAddress:
+                        'ecash:pq5ghfhus093wpfj95887hnjh4cfj3ue9uz40ydh0e',
                 },
             },
             {
@@ -521,8 +535,11 @@ export const nftMarketWallet: CashtabWallet = {
                     timestamp: 1720807766,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
-                    satoshisSent: 3000,
+                    recipients: [
+                        'ecash:pq5ghfhus093wpfj95887hnjh4cfj3ue9uz40ydh0e',
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
+                    ],
+                    satoshisSent: 0,
                     stackArray: [
                         '534c5000',
                         '41',
@@ -530,9 +547,19 @@ export const nftMarketWallet: CashtabWallet = {
                         '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
                         '0000000000000001',
                     ],
-                    recipients: [
-                        'ecash:pq5ghfhus093wpfj95887hnjh4cfj3ue9uz40ydh0e',
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
+                            renderedTxType: 'SEND',
+                            renderedTokenType: 'NFT' as RenderedTokenType,
+                            tokenSatoshis: '0',
+                        },
                     ],
+                    replyAddress:
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
                 },
             },
             {
@@ -662,8 +689,10 @@ export const nftMarketWallet: CashtabWallet = {
                     timestamp: 1720807766,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
-                    satoshisSent: 989960,
+                    recipients: [
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
+                    ],
+                    satoshisSent: 0,
                     stackArray: [
                         '534c5000',
                         '41',
@@ -676,7 +705,27 @@ export const nftMarketWallet: CashtabWallet = {
                         '',
                         '0000000000000001',
                     ],
-                    recipients: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
+                            renderedTxType: 'GENESIS',
+                            renderedTokenType: 'NFT' as RenderedTokenType,
+                            tokenSatoshis: '1',
+                        },
+                        {
+                            tokenId:
+                                '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
+                            renderedTxType: 'NONE',
+                            renderedTokenType:
+                                'Collection' as RenderedTokenType,
+                            tokenSatoshis: '0',
+                        },
+                    ],
+                    replyAddress:
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
                 },
             },
             {
@@ -975,8 +1024,10 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 isFinal: true,
                 parsed: {
-                    xecTxType: XecTxType.Sent,
-                    satoshisSent: 996949,
+                    recipients: [
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
+                    ],
+                    satoshisSent: 0,
                     stackArray: [
                         '534c5000',
                         '81',
@@ -995,7 +1046,21 @@ export const nftMarketWallet: CashtabWallet = {
                         '0000000000000001',
                         '0000000000000001',
                     ],
-                    recipients: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
+                            renderedTxType: 'Fan Out',
+                            renderedTokenType:
+                                'Collection' as RenderedTokenType,
+                            tokenSatoshis: '0',
+                            nftFanInputsCreated: 0,
+                        },
+                    ],
+                    replyAddress:
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
                 },
             },
             {
@@ -1100,8 +1165,10 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 isFinal: true,
                 parsed: {
-                    xecTxType: XecTxType.Sent,
-                    satoshisSent: 999298,
+                    recipients: [
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
+                    ],
+                    satoshisSent: 0,
                     stackArray: [
                         '534c5000',
                         '81',
@@ -1114,7 +1181,20 @@ export const nftMarketWallet: CashtabWallet = {
                         '02',
                         '000000000000000c',
                     ],
-                    recipients: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
+                            renderedTxType: 'GENESIS',
+                            renderedTokenType:
+                                'Collection' as RenderedTokenType,
+                            tokenSatoshis: '12',
+                        },
+                    ],
+                    replyAddress:
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
                 },
             },
             {
@@ -1176,12 +1256,17 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 isFinal: true,
                 parsed: {
-                    xecTxType: XecTxType.Received,
-                    satoshisSent: 1000000,
-                    stackArray: [],
                     recipients: [
+                        'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ],
+                    satoshisSent: 0,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 },
             },
         ],

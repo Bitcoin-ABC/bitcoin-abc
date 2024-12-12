@@ -8,6 +8,7 @@ import { getMaxDecimalizedSlpQty } from 'token-protocols/slpv1';
 import { decimalizeTokenAmount, undecimalizeTokenAmount } from 'wallet';
 import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
+import { TokenType } from 'chronik-client';
 
 // Cashtab spec
 // This is how Cashtab defines a token utxo to be received
@@ -129,4 +130,61 @@ export const getMaxDecimalizedQty = (
     return tokenProtocol === 'SLP'
         ? getMaxDecimalizedSlpQty(decimals)
         : getMaxDecimalizedAlpQty(decimals);
+};
+
+export enum RenderedTokenType {
+    NFT = 'NFT',
+    SLP = 'SLP',
+    COLLECTION = 'Collection',
+    MINTVAULT = 'Mint Vault',
+    ALP = 'ALP',
+    ALP_UNKNOWN = 'Unknown ALP',
+    SLP_UNKNOWN = 'Unknown SLP',
+    UNKNOWN_UNKNOWN = 'Unknown Token Type',
+    FAN_OUT = 'Fan Output Tx',
+}
+/**
+ * Get a human-readable name for a token by its type
+ * e.g. "NFT" for "SLP1_CHILD"
+ */
+export const getRenderedTokenType = (
+    tokenType: TokenType,
+): RenderedTokenType => {
+    const { protocol, type } = tokenType;
+    if (protocol === 'ALP') {
+        switch (type) {
+            case 'ALP_TOKEN_TYPE_STANDARD': {
+                return RenderedTokenType.ALP;
+            }
+            case 'ALP_TOKEN_TYPE_UNKNOWN': {
+                return RenderedTokenType.ALP_UNKNOWN;
+            }
+            default: {
+                return RenderedTokenType.ALP_UNKNOWN;
+            }
+        }
+    } else if (protocol === 'SLP') {
+        switch (type) {
+            case 'SLP_TOKEN_TYPE_FUNGIBLE': {
+                return RenderedTokenType.SLP;
+            }
+            case 'SLP_TOKEN_TYPE_MINT_VAULT': {
+                return RenderedTokenType.MINTVAULT;
+            }
+            case 'SLP_TOKEN_TYPE_NFT1_GROUP': {
+                return RenderedTokenType.COLLECTION;
+            }
+            case 'SLP_TOKEN_TYPE_NFT1_CHILD': {
+                return RenderedTokenType.NFT;
+            }
+            case 'SLP_TOKEN_TYPE_UNKNOWN': {
+                return RenderedTokenType.SLP_UNKNOWN;
+            }
+            default: {
+                return RenderedTokenType.SLP_UNKNOWN;
+            }
+        }
+    } else {
+        return RenderedTokenType.UNKNOWN_UNKNOWN;
+    }
 };

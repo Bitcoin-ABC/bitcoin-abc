@@ -6,6 +6,7 @@ import {
     getAllSendUtxos,
     getSendTokenInputs,
     getMaxDecimalizedQty,
+    getRenderedTokenType,
 } from 'token-protocols';
 import vectors from '../fixtures/vectors';
 import { initWasm } from 'ecash-lib';
@@ -77,6 +78,15 @@ describe('Cashtab supported token protocol methods', () => {
                 expectedReturn;
             it(`getMaxDecimalizedQty: ${description}`, () => {
                 expect(getMaxDecimalizedQty(decimals, protocol)).toBe(returned);
+            });
+        });
+    });
+    describe('We can get a human readable token type from TokenType', () => {
+        const { expectedReturns } = vectors.getRenderedTokenType;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, tokenType, returned } = expectedReturn;
+            it(`getRenderedTokenType: ${description}`, () => {
+                expect(getRenderedTokenType(tokenType)).toBe(returned);
             });
         });
     });

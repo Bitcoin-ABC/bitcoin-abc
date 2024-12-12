@@ -14,6 +14,7 @@ import {
 import { XecTxType } from 'chronik';
 import { fromHex } from 'ecash-lib';
 import * as wif from 'wif';
+import { RenderedTokenType } from 'token-protocols';
 
 interface LegacyPathInfo_Pre_2_1_0 {
     publicKey: string;
@@ -275,7 +276,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NORMAL',
                 parsed: {
-                    xecTxType: XecTxType.Received,
+                    recipients: [
+                        'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                    ],
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -285,9 +288,19 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '0000000000000001',
                         '0000000000000377',
                     ],
-                    recipients: [
-                        'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            renderedTxType: 'SEND',
+                            renderedTokenType: 'SLP' as RenderedTokenType,
+                            tokenSatoshis: '1',
+                        },
                     ],
+                    replyAddress:
+                        'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                 },
             },
             {
@@ -346,7 +359,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1698187386,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 553,
                     stackArray: [
                         '2e786563',
@@ -354,9 +369,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '6e6577746f6e',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'newton',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -415,7 +441,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697463218,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 551,
                     stackArray: [
                         '2e786563',
@@ -423,9 +451,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '646f657374686973636c656172',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'doesthisclear',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -484,7 +523,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697216026,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 551,
                     stackArray: [
                         '2e786563',
@@ -492,9 +533,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '776f726b736e6f77',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'worksnow',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -553,7 +605,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697211295,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 554,
                     stackArray: [
                         '2e786563',
@@ -561,9 +615,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '7465737434',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'test4',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -622,7 +687,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697211196,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 555,
                     stackArray: [
                         '2e786563',
@@ -630,9 +697,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '74657374',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'test',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -691,7 +769,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697211196,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 555,
                     stackArray: [
                         '2e786563',
@@ -699,9 +779,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '74657374',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'test',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -760,7 +851,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697025138,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 554,
                     stackArray: [
                         '2e786563',
@@ -768,9 +861,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '616c696173',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'alias',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -829,7 +933,9 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1697025138,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
                     satoshisSent: 554,
                     stackArray: [
                         '2e786563',
@@ -837,9 +943,20 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         '616c696173',
                         '003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     ],
-                    recipients: [
-                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'alias',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
                     ],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -897,12 +1014,23 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     timestamp: 1696282475,
                 },
                 parsed: {
-                    xecTxType: XecTxType.Sent,
-                    satoshisSent: 2200,
-                    stackArray: ['00746162', '7374696c6c20776f726b73'],
                     recipients: [
                         'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
                     ],
+                    satoshisSent: 2200,
+                    stackArray: ['00746162', '7374696c6c20776f726b73'],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'Cashtab Msg',
+                            lokadId: '00746162',
+                            isValid: true,
+                            action: {
+                                msg: 'still works',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
                 },
             },
         ],
@@ -1467,13 +1595,28 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
             timestamp: 1707162498,
         },
         parsed: {
-            xecTxType: XecTxType.Received,
-            satoshisSent: 1000000,
+            recipients: [
+                'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
+                'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
+            ],
+            satoshisSent: 0,
             stackArray: [
                 '00746162',
                 '6865726520697320612043617368746162204d736720666f722075736520696e204361736874616220696e746567726174696f6e207465737473',
             ],
-            recipients: ['ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y'],
+            xecTxType: 'Received' as XecTxType,
+            appActions: [
+                {
+                    app: 'Cashtab Msg',
+                    lokadId: '00746162',
+                    isValid: true,
+                    action: {
+                        msg: 'here is a Cashtab Msg for use in Cashtab integration tests',
+                    },
+                },
+            ],
+            parsedTokenEntries: [],
+            replyAddress: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
         },
     },
 ];
