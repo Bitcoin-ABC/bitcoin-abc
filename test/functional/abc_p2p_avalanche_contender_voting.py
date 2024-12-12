@@ -47,9 +47,20 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Build a fake quorum of nodes.
         def get_quorum():
-            return [
-                get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
-            ]
+            def new_ava_interface(node):
+                # This test depends on each proof being added to the contender cache before
+                # the next block arrives, so we wait until that happens.
+                peer = get_ava_p2p_interface(self, node)
+                blockhash = node.getbestblockhash()
+                self.wait_until(
+                    lambda: node.getstakecontendervote(
+                        blockhash, uint256_hex(peer.proof.proofid)
+                    )
+                    == AvalancheContenderVoteError.PENDING
+                )
+                return peer
+
+            return [new_ava_interface(node) for _ in range(0, QUORUM_NODE_COUNT)]
 
         # Pick one node from the quorum for polling.
         quorum = get_quorum()

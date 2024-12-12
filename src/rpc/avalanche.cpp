@@ -9,6 +9,7 @@
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/stakecontender.h>
 #include <avalanche/validation.h>
 #include <common/args.h>
 #include <config.h>
@@ -1803,6 +1804,38 @@ static RPCHelpMan getflakyproofs() {
         }};
 }
 
+static RPCHelpMan getstakecontendervote() {
+    return RPCHelpMan{
+        "getstakecontendervote",
+        "Return the stake contender avalanche vote.\n",
+        {
+            {"prevblockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The prevblockhash used to compute the stake contender ID, hex "
+             "encoded."},
+            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The proofid used to compute the stake contender ID, hex "
+             "encoded."},
+        },
+        RPCResult{RPCResult::Type::NUM, "vote",
+                  "The vote that would be returned if polled."},
+        RPCExamples{HelpExampleRpc("getstakecontendervote",
+                                   "<prevblockhash> <proofid>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            avalanche::Processor &avalanche = EnsureAvalanche(node);
+
+            const BlockHash prevblockhash(
+                ParseHashV(request.params[0], "prevblockhash"));
+            const avalanche::ProofId proofid(
+                ParseHashV(request.params[1], "proofid"));
+            const avalanche::StakeContenderId contenderId(prevblockhash,
+                                                          proofid);
+            return avalanche.getStakeContenderStatus(contenderId);
+        },
+    };
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -1831,6 +1864,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         verifyavalanchedelegation, },
         { "avalanche",         setflakyproof,             },
         { "avalanche",         getflakyproofs,            },
+        { "hidden",            getstakecontendervote,     },
     };
     // clang-format on
 
