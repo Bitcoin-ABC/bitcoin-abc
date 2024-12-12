@@ -43,6 +43,7 @@ import Button from '/components/button';
 import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
 import ecashpoker from '/public/images/ecash-poker-logo.png';
+import pay2stay from '/public/images/Pay2Stay.png';
 
 function TileSection({ title, items, children }) {
     return (
@@ -127,6 +128,33 @@ function UseEcash(props) {
                 <Blob left="60%" top="60%" />
                 <Blob left="0" top="90%" />
                 <Container>
+                    <TextImageBlock
+                        id="pay2stay"
+                        title="Pay2Stay"
+                        image={pay2stay}
+                        alt="Pay2Stay logo"
+                    >
+                        <p>
+                            Experience the fastest, safest, and fairest private
+                            event ticketing app. Gain control of your time and
+                            money as you host, join, or promote exclusive
+                            events.
+                        </p>
+                        <p>
+                            Guest list management. QR code check-ins. Time-based
+                            and upfront pricing models. Instant refunds.
+                            Tailored for small and medium in-person private
+                            events. Sign up is free forever!
+                        </p>
+                        <p>Built using eCash&apos;s eToken technology.</p>
+                        <Button
+                            text="Get Started"
+                            link="https://pay2stay.com/"
+                            corner="bottomRight"
+                            color="accent"
+                            openInNewTab
+                        />
+                    </TextImageBlock>
                     <TextImageBlock
                         id="ecashpoker"
                         title="eCash Poker"
