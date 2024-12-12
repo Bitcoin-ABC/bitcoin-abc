@@ -566,8 +566,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         node.disconnect_p2ps()
 
-        assert_avalancheinfo(
-            {
+        self.wait_until(
+            lambda: node.getavalancheinfo()
+            == {
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
