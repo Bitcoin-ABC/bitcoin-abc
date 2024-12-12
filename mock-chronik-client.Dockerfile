@@ -18,6 +18,7 @@ RUN npm install ecashaddrjs@latest
 # So it won't really be bloating their node_modules
 RUN npm install chronik-client@latest
 RUN npm ci
+RUN npm run build
 
 # Publish the module
 CMD [ "npm", "publish" ]

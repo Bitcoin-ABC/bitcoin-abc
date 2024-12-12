@@ -180,3 +180,7 @@ If you have any implementation questions regarding this mock tool please check t
 -   Improved mock websocket (now it more closely follows the API of chronik-client)
 -   Add `broadcastTxs` method
 -   Add `chronikInfo` method
+
+2.0.1
+
+-   Build before deployment so it also works for non-ts users [D17338](https://reviews.bitcoinabc.org/D17338)
