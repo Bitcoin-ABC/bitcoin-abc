@@ -12,7 +12,7 @@ Features:
 * keeps statistics over (exponential) windows of 2 hours, 8 hours,
   1 day and 1 week, to base decisions on.
 * very low memory (a few tens of megabytes) and cpu requirements.
-* crawlers run in parallel (by default 24 threads simultaneously).
+* multithreaded crawlers run in parallel.
 
 REQUIREMENTS
 ------------
