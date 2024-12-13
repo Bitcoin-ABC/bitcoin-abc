@@ -5,7 +5,7 @@
 import config from '../config';
 import fs from 'fs';
 import path from 'path';
-import { ChronikClient, Tx } from 'chronik-client';
+import { ChronikClient, ScriptUtxo, TokenInfo, Tx } from 'chronik-client';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import { jsonReplacer, getCoingeckoApiUrl } from '../src/utils';
 import unrevivedBlockMocks from '../test/mocks/block';
@@ -99,7 +99,7 @@ const txids = [
 
 async function generateMock(
     chronik: ChronikClient,
-    mockedChronik: typeof MockChronikClient,
+    mockedChronik: MockChronikClient,
     telegramBot: TelegramBot,
     mockedTelegramBot: MockTelegramBot,
     channelId: string,
@@ -163,36 +163,35 @@ async function generateMock(
     // Instead of saving all the chronik responses as mocks, which would be very large
     // Just set them as mocks based on tokenInfoMap, which contains the info we need
     tokenIds.forEach(tokenId => {
-        mockedChronik.setMock('token', {
-            input: tokenId,
-            output: {
-                genesisInfo: tokenInfoMap.has(tokenId)
-                    ? tokenInfoMap.get(tokenId)
-                    : {
-                          tokenTicker: 'STUB',
-                          tokenName: 'Placeholder Token Name',
-                          decimals: 0,
-                      },
-            },
-        });
+        mockedChronik.setToken(tokenId, {
+            genesisInfo: tokenInfoMap.has(tokenId)
+                ? tokenInfoMap.get(tokenId)
+                : {
+                      tokenTicker: 'STUB',
+                      tokenName: 'Placeholder Token Name',
+                      decimals: 0,
+                  },
+        } as TokenInfo);
     });
 
     outputScripts.forEach(outputScript => {
         const { type, hash } =
             cashaddr.getTypeAndHashFromOutputScript(outputScript);
-        mockedChronik.setScript(type, hash);
 
         const outputScriptInfo = outputScriptInfoMap.get(outputScript);
         if (typeof outputScriptInfo !== 'undefined') {
             const { utxos } = outputScriptInfo;
-            mockedChronik.setUtxos(type, hash, { outputScript, utxos });
+            mockedChronik.setUtxosByScript(
+                type as 'p2pkh' | 'p2sh',
+                hash,
+                utxos,
+            );
         } else {
             // If you don't have a mock for this particular outputScript in block.js,
             // mock it as an address with a single utxo for 100 XEC
-            mockedChronik.setUtxos(type, hash, {
-                outputScript,
-                utxos: [{ value: 10000 }],
-            });
+            mockedChronik.setUtxosByScript(type as 'p2pkh' | 'p2sh', hash, [
+                { value: 10000 } as ScriptUtxo,
+            ]);
         }
     });
 
@@ -219,7 +218,7 @@ async function generateMock(
         ttl: CACHE_TTL,
     });
     const returnedMocks = (await handleBlockFinalized(
-        mockedChronik,
+        mockedChronik as unknown as ChronikClient,
         mockedTelegramBot,
         channelId,
         MOCK_HASH,
