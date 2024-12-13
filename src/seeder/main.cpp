@@ -454,7 +454,7 @@ int main(int argc, char **argv) {
     tfm::format(std::cout, "Starting %i crawler threads...", opts.nThreads);
     pthread_attr_t attr_crawler;
     pthread_attr_init(&attr_crawler);
-    pthread_attr_setstacksize(&attr_crawler, 0x20000);
+    pthread_attr_setstacksize(&attr_crawler, 0x40000);
     for (int i = 0; i < opts.nThreads; i++) {
         pthread_t thread;
         int threadStatus = pthread_create(&thread, &attr_crawler, ThreadCrawler,
