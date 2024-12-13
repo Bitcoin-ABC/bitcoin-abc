@@ -280,41 +280,58 @@ impl RPCService for ChronikElectrumRPCBlockchainEndpoint {
     }
 }
 
+/// Get a mandatory JSONRPC param by index or by name.
+macro_rules! get_param {
+    ($params:expr, $index:expr, $key:expr) => {{
+        match $params {
+            Value::Array(ref arr) => Ok(arr
+                .get($index)
+                .ok_or(RPCError::InvalidParams(concat!(
+                    "Missing mandatory '",
+                    $key,
+                    "' parameter"
+                )))?
+                .clone()),
+            Value::Object(ref obj) => match obj.get($key) {
+                Some(value) => Ok(value.clone()),
+                None => Err(RPCError::InvalidParams(concat!(
+                    "Missing mandatory '",
+                    $key,
+                    "' parameter"
+                ))),
+            },
+            _ => Err(RPCError::InvalidParams(
+                "'params' must be an array or an object",
+            )),
+        }
+    }};
+}
+
+/// Get an optional JSONRPC param by index or by name, return the
+/// provided default if the param not specified.
+macro_rules! get_optional_param {
+    ($params:expr, $index:expr, $key:expr, $default:expr) => {{
+        match $params {
+            Value::Array(ref arr) => match arr.get($index) {
+                Some(val) => Ok(val.clone()),
+                None => Ok($default),
+            },
+            Value::Object(ref obj) => match obj.get($key) {
+                Some(value) => Ok(value.clone()),
+                None => Ok($default),
+            },
+            _ => Err(RPCError::InvalidParams(
+                "'params' must be an array or an object",
+            )),
+        }
+    }};
+}
+
 impl ChronikElectrumRPCBlockchainEndpoint {
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
-        let txid_hex: Value;
-        let verbose: Value;
-        match params {
-            Value::Array(arr) => {
-                txid_hex = arr
-                    .first()
-                    .ok_or(RPCError::InvalidParams(
-                        "Missing mandatory 'txid' parameter",
-                    ))?
-                    .clone();
-                verbose = match arr.get(1) {
-                    Some(val) => val.clone(),
-                    None => Value::Bool(false),
-                };
-            }
-            Value::Object(obj) => {
-                txid_hex = match obj.get("txid") {
-                    Some(txid) => Ok(txid.clone()),
-                    None => Err(RPCError::InvalidParams(
-                        "Missing mandatory 'txid' parameter",
-                    )),
-                }?;
-                verbose = match obj.get("verbose") {
-                    Some(verbose) => verbose.clone(),
-                    None => Value::Bool(false),
-                };
-            }
-            _ => {
-                return Err(RPCError::InvalidParams(
-                    "'params' must be an array or an object",
-                ))
-            }
-        };
+        let txid_hex = get_param!(params, 0, "txid")?;
+        let verbose =
+            get_optional_param!(params, 1, "verbose", Value::Bool(false))?;
         let txid_hex = match txid_hex {
             Value::String(s) => Ok(s),
             _ => Err(RPCError::InvalidParams(

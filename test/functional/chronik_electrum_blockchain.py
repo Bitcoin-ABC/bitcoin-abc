@@ -34,7 +34,61 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
     def run_test(self):
         self.client = self.nodes[0].get_chronik_electrum_client()
+        self.test_invalid_params()
+        self.test_transaction_get()
 
+    def test_invalid_params(self):
+        # Invalid params type
+        for response in (
+            self.client.synchronous_request("blockchain.transaction.get", params=None),
+            self.client.synchronous_request("blockchain.transaction.get", params=42),
+        ):
+            assert_equal(
+                response.error,
+                {"code": -32602, "message": "'params' must be an array or an object"},
+            )
+
+        # Missing mandatory argument in otherwise valid params
+        for response in (
+            self.client.synchronous_request("blockchain.transaction.get", params=[]),
+            self.client.synchronous_request("blockchain.transaction.get", params={}),
+            self.client.synchronous_request(
+                "blockchain.transaction.get",
+                params={"nottxid": 32 * "ff", "verbose": False},
+            ),
+            self.client.blockchain.transaction.get(verbose=True),
+        ):
+            assert_equal(
+                response.error,
+                {"code": -32602, "message": "Missing mandatory 'txid' parameter"},
+            )
+
+        # Non-string json type for txid
+        assert_equal(
+            self.client.blockchain.transaction.get(txid=int(32 * "ff", 16)).error,
+            {"code": -32602, "message": "'txid' must be a hexadecimal string"},
+        )
+
+        for response in (
+            # non-hex characters
+            self.client.blockchain.transaction.get("les sanglots longs"),
+            # odd number of hex chars
+            self.client.blockchain.transaction.get(GENESIS_CB_TXID[:-1]),
+            # valid hex but invalid length for a txid
+            self.client.blockchain.transaction.get(GENESIS_CB_TXID[:-2]),
+        ):
+            assert_equal(
+                response.error,
+                {"code": -32602, "message": "Failed to parse txid"},
+            )
+
+        # Valid txid, but no such transaction was found
+        assert_equal(
+            self.client.blockchain.transaction.get(txid=32 * "ff").error,
+            {"code": -32600, "message": "Unknown transaction id"},
+        )
+
+    def test_transaction_get(self):
         for response in (
             self.client.blockchain.transaction.get(GENESIS_CB_TXID),
             self.client.blockchain.transaction.get(GENESIS_CB_TXID, False),
