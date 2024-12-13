@@ -428,14 +428,28 @@ int main(int argc, char **argv) {
         dnsThread.clear();
         for (int i = 0; i < opts.nDnsThreads; i++) {
             dnsThread.push_back(new CDnsThread(&opts, i));
-            pthread_create(&threadDns, nullptr, ThreadDNS, dnsThread[i]);
+            int threadStatus =
+                pthread_create(&threadDns, nullptr, ThreadDNS, dnsThread[i]);
+            if (threadStatus != 0) {
+                tfm::format(std::cerr, "Failed to create DNS thread (%i)\n",
+                            threadStatus);
+                return EXIT_FAILURE;
+            }
             tfm::format(std::cout, ".");
             UninterruptibleSleep(20ms);
         }
         tfm::format(std::cout, "done\n");
     }
     tfm::format(std::cout, "Starting seeder...");
-    pthread_create(&threadSeed, nullptr, ThreadSeeder, nullptr);
+    {
+        int threadStatus =
+            pthread_create(&threadSeed, nullptr, ThreadSeeder, nullptr);
+        if (threadStatus != 0) {
+            tfm::format(std::cerr, "Failed to create seeder thread (%i)\n",
+                        threadStatus);
+            return EXIT_FAILURE;
+        }
+    }
     tfm::format(std::cout, "done\n");
     tfm::format(std::cout, "Starting %i crawler threads...", opts.nThreads);
     pthread_attr_t attr_crawler;
@@ -443,12 +457,34 @@ int main(int argc, char **argv) {
     pthread_attr_setstacksize(&attr_crawler, 0x20000);
     for (int i = 0; i < opts.nThreads; i++) {
         pthread_t thread;
-        pthread_create(&thread, &attr_crawler, ThreadCrawler, &opts.nThreads);
+        int threadStatus = pthread_create(&thread, &attr_crawler, ThreadCrawler,
+                                          &opts.nThreads);
+        if (threadStatus != 0) {
+            tfm::format(std::cerr, "Failed to create crawler thread (%i)\n",
+                        threadStatus);
+            return EXIT_FAILURE;
+        }
     }
     pthread_attr_destroy(&attr_crawler);
     tfm::format(std::cout, "done\n");
-    pthread_create(&threadStats, nullptr, ThreadStats, nullptr);
-    pthread_create(&threadDump, nullptr, ThreadDumper, &opts.dumpInterval);
+    {
+        int threadStatus =
+            pthread_create(&threadStats, nullptr, ThreadStats, nullptr);
+        if (threadStatus != 0) {
+            tfm::format(std::cerr, "Failed to create stats thread (%i)\n",
+                        threadStatus);
+            return EXIT_FAILURE;
+        }
+    }
+    {
+        int threadStatus = pthread_create(&threadDump, nullptr, ThreadDumper,
+                                          &opts.dumpInterval);
+        if (threadStatus != 0) {
+            tfm::format(std::cerr, "Failed to create dump thread (%i)\n",
+                        threadStatus);
+            return EXIT_FAILURE;
+        }
+    }
     void *res;
     pthread_join(threadDump, &res);
     return EXIT_SUCCESS;
