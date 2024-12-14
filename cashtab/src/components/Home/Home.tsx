@@ -2,17 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from 'wallet/context';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Link } from 'react-router-dom';
 import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
-import { getWalletState } from 'utils/cashMethods';
 import Receive from 'components/Receive/Receive';
 import { Alert, Info } from 'components/Common/Atoms';
 import { getUserLocale } from 'helpers';
-import { getHashes } from 'wallet';
+import { CashtabPathInfo, getHashes } from 'wallet';
 import PrimaryButton, {
     SecondaryButton,
     PrimaryLink,
@@ -69,8 +68,12 @@ export const TokenRewardButton = styled(SecondaryButton)`
     }
 `;
 
-const Home = () => {
-    const ContextValue = React.useContext(WalletContext);
+const Home: React.FC = () => {
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const {
         fiatPrice,
         apiError,
@@ -79,10 +82,9 @@ const Home = () => {
         chaintipBlockheight,
     } = ContextValue;
     const { settings, wallets } = cashtabState;
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const wallet = wallets[0];
     const hashes = getHashes(wallet);
-    const walletState = getWalletState(wallet);
-    const { parsedTxHistory } = walletState;
+    const { parsedTxHistory } = wallet.state;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     // Want to show a msg to users who have just claimed a free XEC reward, or users who have just received
@@ -99,6 +101,10 @@ const Home = () => {
     const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
 
     const claimAirdropForNewWallet = async () => {
+        if (typeof process.env.REACT_APP_RECAPTCHA_SITE_KEY === 'undefined') {
+            // Recaptcha env var must be set to claimAirdropForNewWallet
+            return;
+        }
         // Disable the button to prevent double claims
         setAirdropPending(true);
         const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
@@ -112,7 +118,7 @@ const Home = () => {
             claimResponse = await (
                 await fetch(
                     `${tokenConfig.rewardsServerBaseUrl}/claimxec/${
-                        wallet.paths.get(1899).address
+                        (wallet.paths.get(1899) as CashtabPathInfo).address
                     }`,
                     {
                         method: 'POST',
@@ -150,7 +156,7 @@ const Home = () => {
             claimResponse = await (
                 await fetch(
                     `${tokenConfig.rewardsServerBaseUrl}/claim/${
-                        wallet.paths.get(1899).address
+                        (wallet.paths.get(1899) as CashtabPathInfo).address
                     }`,
                 )
             ).json();
@@ -239,9 +245,7 @@ const Home = () => {
                                             disabled={airdropPending}
                                         >
                                             {airdropPending ? (
-                                                <InlineLoader
-                                                    style={{ margin: 'auto' }}
-                                                />
+                                                <InlineLoader />
                                             ) : (
                                                 'Claim Free XEC'
                                             )}
@@ -254,9 +258,7 @@ const Home = () => {
                                             disabled={tokenRewardsPending}
                                         >
                                             {tokenRewardsPending ? (
-                                                <InlineLoader
-                                                    style={{ margin: 'auto' }}
-                                                />
+                                                <InlineLoader />
                                             ) : (
                                                 'Claim Token Rewards'
                                             )}
