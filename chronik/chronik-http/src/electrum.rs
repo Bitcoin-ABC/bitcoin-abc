@@ -4,7 +4,6 @@
 
 //! Module for [`ChronikElectrumServer`].
 
-use std::str::FromStr;
 use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
@@ -275,6 +274,9 @@ impl RPCService for ChronikElectrumRPCBlockchainEndpoint {
             "transaction.get" => Some(Box::new(move |params: Value| {
                 Box::pin(self.transaction_get(params))
             })),
+            "transaction.get_height" => Some(Box::new(move |params: Value| {
+                Box::pin(self.transaction_get_height(params))
+            })),
             _ => None,
         }
     }
@@ -330,17 +332,11 @@ macro_rules! get_optional_param {
 impl ChronikElectrumRPCBlockchainEndpoint {
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
         let txid_hex = get_param!(params, 0, "txid")?;
+        let txid =
+            TxId::try_from(&txid_hex).map_err(RPCError::InvalidParams)?;
+
         let verbose =
             get_optional_param!(params, 1, "verbose", Value::Bool(false))?;
-        let txid_hex = match txid_hex {
-            Value::String(s) => Ok(s),
-            _ => Err(RPCError::InvalidParams(
-                "'txid' must be a hexadecimal string",
-            )),
-        }?;
-        let txid = TxId::from_str(&txid_hex)
-            .or(Err(RPCError::InvalidParams("Failed to parse txid")))?;
-
         let verbose = match verbose {
             Value::Bool(v) => Ok(v),
             _ => Err(RPCError::InvalidParams("'verbose' must be a boolean")),
@@ -371,7 +367,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             // mempool transaction
             return Ok(json!({
                 "confirmations": 0,
-                "hash": txid_hex,
+                "hash": txid.to_string(),
                 "hex": raw_tx,
                 "time": tx.time_first_seen,
             }));
@@ -386,9 +382,29 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             "blockhash": blockhash.hex_be(),
             "blocktime": block.timestamp,
             "confirmations": confirmations,
-            "hash": txid_hex,
+            "hash": txid.to_string(),
             "hex": raw_tx,
             "time": tx.time_first_seen,
         }))
+    }
+
+    async fn transaction_get_height(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        let txid_hex = get_param!(params, 0, "txid")?;
+        let txid =
+            TxId::try_from(&txid_hex).map_err(RPCError::InvalidParams)?;
+
+        let indexer = self.indexer.read().await;
+        let query_tx = indexer.txs(&self.node);
+        let tx = query_tx
+            .tx_by_id(txid)
+            .or(Err(RPCError::InvalidRequest("Unknown txid")))?;
+
+        match tx.block {
+            Some(block) => Ok(json!(block.height)),
+            None => Ok(json!(0)), // mempool transaction
+        }
     }
 }

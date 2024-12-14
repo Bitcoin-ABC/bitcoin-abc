@@ -25,6 +25,9 @@ ripemd = "0.1"
 # Serialize structs
 serde = { version = "1.0", features = ["derive"] }
 
+# JSON en-/decoding
+serde_json = "1.0.133"
+
 # Implementation of SHA-256 etc. cryptographic hash functions
 sha2 = "0.10"
 

@@ -13,6 +13,7 @@ from test_framework.blocktools import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet import MiniWallet
 
 COINBASE_TX_HEX = (
     "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d"
@@ -25,7 +26,6 @@ COINBASE_TX_HEX = (
 
 class ChronikElectrumBlockchain(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [["-chronik"]]
 
@@ -34,6 +34,9 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
     def run_test(self):
         self.client = self.nodes[0].get_chronik_electrum_client()
+        self.node = self.nodes[0]
+        self.wallet = MiniWallet(self.node)
+
         self.test_invalid_params()
         self.test_transaction_get()
 
@@ -66,7 +69,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         # Non-string json type for txid
         assert_equal(
             self.client.blockchain.transaction.get(txid=int(32 * "ff", 16)).error,
-            {"code": -32602, "message": "'txid' must be a hexadecimal string"},
+            {"code": -32602, "message": "TxId must be a hexadecimal string"},
         )
 
         for response in (
@@ -79,7 +82,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         ):
             assert_equal(
                 response.error,
-                {"code": -32602, "message": "Failed to parse txid"},
+                {"code": -32602, "message": "Cannot parse TxId from hex string"},
             )
 
         # Valid txid, but no such transaction was found
@@ -106,18 +109,43 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 {
                     "blockhash": GENESIS_BLOCK_HASH,
                     "blocktime": TIME_GENESIS_BLOCK,
-                    "confirmations": 1,
+                    "confirmations": 201,
                     "hash": GENESIS_CB_TXID,
                     "hex": COINBASE_TX_HEX,
                     "time": 0,
                 },
             )
+
         self.generate(self.nodes[0], 2)
         assert_equal(
             self.client.blockchain.transaction.get(
                 txid=GENESIS_CB_TXID, verbose=True
             ).result["confirmations"],
-            3,
+            203,
+        )
+
+    def test_transaction_get_height(self):
+        response = self.client.blockchain.transaction.get_height(GENESIS_CB_TXID)
+        assert_equal(response.result, 0)
+
+        self.wallet.rescan_utxos()
+        tx = self.wallet.send_self_transfer(from_node=self.node)
+
+        response = self.client.blockchain.transaction.get(tx["txid"])
+        assert_equal(response.result, tx["hex"])
+
+        # A mempool transaction has height 0
+        response = self.client.blockchain.transaction.get_height(tx["txid"])
+        assert_equal(response.result, 0)
+
+        # Mine the tx
+        self.generate(self.node, 1)
+        response = self.client.blockchain.transaction.get_height(tx["txid"])
+        assert_equal(response.result, 203)
+
+        response = self.client.blockchain.transaction.get_height(32 * "ff")
+        assert_equal(
+            response.error, {"code": -32600, "message": "Unknown transaction id"}
         )
 
 

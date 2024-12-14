@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -133,6 +135,18 @@ impl TryFrom<&'_ [u8]> for TxId {
 
     fn try_from(value: &'_ [u8]) -> Result<Self, Self::Error> {
         Ok(TxId(Sha256d::from_le_slice(value)?))
+    }
+}
+
+impl TryFrom<&'_ serde_json::Value> for TxId {
+    type Error = &'static str;
+
+    fn try_from(value: &'_ serde_json::Value) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            Some(txid_hex) => TxId::from_str(txid_hex)
+                .or(Err("Cannot parse TxId from hex string")),
+            None => Err("TxId must be a hexadecimal string"),
+        }
     }
 }
 
