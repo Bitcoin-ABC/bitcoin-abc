@@ -1837,40 +1837,35 @@ class Transaction:
                     def get_bh():
                         if eph.get("block_height") or not self_txid:
                             return False
-                        lh = (
-                            wallet.network.get_server_height()
-                            or wallet.get_local_height()
-                        )
 
-                        def got_tx_info(r):
+                        def got_tx_height(r):
                             # indicate to other thread we got the block_height reply
                             # from network
                             q.put("block_height")
-                            try:
-                                # will raise of error reply
-                                confs = r.get("result").get("confirmations", 0)
-                                if confs and lh:
-                                    # the whole point.. was to get this piece of data..
-                                    # the block_height
-                                    eph["block_height"] = bh = lh - confs + 1
-                                    print_error(
-                                        "fetch_input_data: got tx block height", bh
-                                    )
-                                else:
-                                    print_error(
-                                        "fetch_input_data: tx block height could not be"
-                                        " determined"
-                                    )
-                            except Exception as e:
-                                print_error("fetch_input_data: get_bh fail:", str(e), r)
+                            if not isinstance(r, dict):
+                                print_error(
+                                    "fetch_input_data: unexpected response type", r
+                                )
+                                return
+                            tx_height = r.get("result", 0)
+                            if tx_height:
+                                eph["block_height"] = tx_height
+                                print_error(
+                                    "fetch_input_data: got tx block height", tx_height
+                                )
+                            else:
+                                print_error(
+                                    "fetch_input_data: tx block height could not be"
+                                    " determined"
+                                )
 
                         wallet.network.queue_request(
-                            "blockchain.transaction.get",
-                            [self_txid, True],
+                            "blockchain.transaction.get_height",
+                            [self_txid],
                             interface=None,
-                            callback=got_tx_info,
+                            callback=got_tx_height,
                         )
-                        callback_funcs_to_cancel.add(got_tx_info)
+                        callback_funcs_to_cancel.add(got_tx_height)
                         return True
 
                     if get_bh():
@@ -1889,7 +1884,7 @@ class Transaction:
                                 break
                             if r == "block_height":
                                 # ignore block_height reply from network.. was already
-                                # processed in other thread in got_tx_info above
+                                # processed in other thread in got_tx_height above
                                 continue
                             if r.get("error"):
                                 msg = r.get("error")
