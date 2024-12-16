@@ -48,9 +48,9 @@ RUN CC=clang ./build-wasm.sh
 
 FROM node:20-bookworm-slim
 
-# Copy static assets from WasmBuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
+# Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
 WORKDIR /app/modules
-COPY --from=WasmBuilder /app/modules .
+COPY --from=wasmbuilder /app/modules .
 
 # Build all local ecash-herald dependencies
 
