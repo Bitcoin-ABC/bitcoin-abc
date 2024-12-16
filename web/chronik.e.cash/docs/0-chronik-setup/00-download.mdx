@@ -21,11 +21,14 @@ export const version = rawVersion.trim();
 export const downloadUrl = 'https://download.bitcoinabc.org';
 export const files = {
     linux: {
-        x86_64: `bitcoin-abc-${version}-x86_64-linux-gnu-chronik-experimental.tar.gz`,
-        aarch64: `bitcoin-abc-${version}-aarch64-linux-gnu-chronik-experimental.tar.gz`,
+        x86_64: `bitcoin-abc-${version}-x86_64-linux-gnu.tar.gz`,
+        aarch64: `bitcoin-abc-${version}-aarch64-linux-gnu.tar.gz`,
     },
     windows: {
         win64: `bitcoin-abc-${version}-win64-setup-unsigned.exe`,
+    },
+    macos: {
+        x86_64: `bitcoin-abc-${version}-x86_64-apple-darwin.tar.gz`,
     },
 };
 export const downloadUrls = {
@@ -35,6 +38,9 @@ export const downloadUrls = {
     },
     windows: {
         win64: `${downloadUrl}/${version}/win/${files.windows.win64}`,
+    },
+    macos: {
+        x86_64: `${downloadUrl}/${version}/osx/${files.macos.x86_64}`,
     },
 };
 
@@ -80,4 +86,12 @@ rm ${files.windows.win64}`}
 
 ## MacOS
 
-Chronik is currently not built by default for MacOS, but you can [build it from source yourself](build-chronik#macos).
+<a href={downloadUrls.macos.x86_64}>
+    Click here to download Bitcoin ABC Chronik for MacOS x86_64
+</a>
+
+<CodeBlock language="bash">
+    {`curl -O ${downloadUrls.macos.x86_64}
+tar xf ${files.macos.x86_64}
+rm ${files.macos.x86_64}`}
+</CodeBlock>
