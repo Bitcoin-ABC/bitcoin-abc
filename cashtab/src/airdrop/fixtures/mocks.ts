@@ -2,8 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { TokenIdUtxos } from 'chronik-client';
 // In-node chronik return data for chronik.tokenId(50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e).utxos()
-export const tokenUtxos = {
+export const tokenUtxos: TokenIdUtxos = {
     tokenId: '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
     utxos: [
         {
@@ -206,6 +207,14 @@ export const tokenUtxos = {
         },
     ],
 };
+export const p2pkhHoldersTokenUtxos = new Map([
+    ['76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac', 88n],
+    ['76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac', 1n],
+    ['76a914a5417349420ec53b27522fed1a63b1672c0f28ff88ac', 3n],
+    ['76a914a714013e6336a0378a1f71ade875b2138813a3ec88ac', 4n],
+    ['76a914c1aadc99f96fcfcfe5642ca29a53e701f0b801c388ac', 1n],
+    ['76a914d4fa9121bcd065dd93e58831569cf51ef5a74f6188ac', 3n],
+]);
 
 // Build tokenUtxos with no p2pkh or p2sh scripts
 const badUtxos = [];

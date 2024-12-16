@@ -14,7 +14,12 @@ import {
     isValidAirdropExclusionArray,
 } from 'validation';
 import { SwitchLabel, PageHeader } from 'components/Common/Atoms';
-import { getAirdropTx, getEqualAirdropTx } from 'airdrop';
+import {
+    getAirdropTx,
+    getEqualAirdropTx,
+    getAgoraHolders,
+    getP2pkhHolders,
+} from 'airdrop';
 import Communist from 'assets/communist.png';
 import { toast } from 'react-toastify';
 import CashtabSwitch from 'components/Common/Switch';
@@ -33,7 +38,7 @@ const Airdrop = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { chronik, cashtabState, updateCashtabState } = ContextValue;
+    const { chronik, agora, cashtabState, updateCashtabState } = ContextValue;
     const { wallets, cashtabCache } = cashtabState;
     const wallet = wallets[0];
     const location = useLocation();
@@ -230,17 +235,6 @@ const Airdrop = () => {
         // hide any previous airdrop outputs
         setShowAirdropOutputs(false);
 
-        let tokenUtxos;
-        try {
-            tokenUtxos = await chronik.tokenId(formData.tokenId).utxos();
-        } catch (err) {
-            console.error(`Error getting token utxos from chronik`, err);
-            toast.error('Error retrieving airdrop recipients');
-            // Clear result field from earlier calc, if present, on any error
-            setAirdropRecipients('');
-            return setCalculatingAirdrop(false);
-        }
-
         const excludedAddresses = [];
         if (ignoreOwnAddress) {
             excludedAddresses.push(
@@ -283,19 +277,47 @@ const Airdrop = () => {
                 .toString();
         }
 
+        // Get the holder map
+
+        let tokenHolderMap;
+        try {
+            const agoraHolders = await getAgoraHolders(agora, formData.tokenId);
+            const p2pkhHolders = await getP2pkhHolders(
+                chronik,
+                formData.tokenId,
+            );
+            tokenHolderMap = new Map(
+                [...agoraHolders].concat(
+                    [...p2pkhHolders].map(([k, v]) => [
+                        k,
+                        (agoraHolders.get(k) || 0n) + v,
+                    ]),
+                ),
+            );
+        } catch (err) {
+            console.error(
+                `Error getting token holders from chronik and agora`,
+                err,
+            );
+            toast.error('Error retrieving airdrop recipients');
+            // Clear result field from earlier calc, if present, on any error
+            setAirdropRecipients('');
+            return setCalculatingAirdrop(false);
+        }
+
         // Get the csv
         let csv;
 
         try {
             csv = equalDistributionRatio
                 ? getEqualAirdropTx(
-                      tokenUtxos,
+                      tokenHolderMap,
                       excludedAddresses,
                       formData.totalAirdrop,
                       undecimalizedMinTokenAmount,
                   )
                 : getAirdropTx(
-                      tokenUtxos,
+                      tokenHolderMap,
                       excludedAddresses,
                       formData.totalAirdrop,
                       undecimalizedMinTokenAmount,

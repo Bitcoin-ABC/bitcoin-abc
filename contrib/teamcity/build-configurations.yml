@@ -801,14 +801,15 @@ builds:
       npm ci
       npm run build
 
-      # mock-chronik-client
-      echo "Installing mock-chronik-client dependencies..."
-      pushd "${TOPLEVEL}/modules/mock-chronik-client"
-      npm ci
-
       # chronik-client
       echo "Installing chronik-client dependencies..."
       pushd "${TOPLEVEL}/modules/chronik-client"
+      npm ci
+      npm run build
+
+      # mock-chronik-client
+      echo "Installing mock-chronik-client dependencies..."
+      pushd "${TOPLEVEL}/modules/mock-chronik-client"
       npm ci
       npm run build
 

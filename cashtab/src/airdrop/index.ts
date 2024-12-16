@@ -4,14 +4,115 @@
 
 import { BN } from 'slp-mdm';
 import { toSatoshis, toXec } from 'wallet';
-import { TokenIdUtxos } from 'chronik-client';
-import { encodeOutputScript } from 'ecashaddrjs';
+import { ChronikClient } from 'chronik-client';
+import { Agora, AgoraPartial } from 'ecash-agora';
+import { shaRmd160 } from 'ecash-lib';
+import {
+    encodeCashAddress,
+    getOutputScriptFromAddress,
+    getTypeAndHashFromOutputScript,
+    encodeOutputScript,
+} from 'ecashaddrjs';
 import appConfig from 'config/app';
 
 /**
  * airdrops/index.js
- * Methods for calculating token airdrops in Cashtab
+ * Functions that support calculating token airdrops in Cashtab
  */
+
+/**
+ * Map of outputScript => tokenSatoshis
+ */
+type TokenHolderMap = Map<string, bigint>;
+
+/**
+ * token UTXOS may be held by active agora offers
+ * In this case, we do not want to airdrop XEC to the agora p2sh
+ * Instead we get the p2pkh address that created this offer
+ * And we assign that address a balance of the qty being offered
+ */
+export const getAgoraHolders = async (
+    agora: Agora,
+    tokenId: string,
+): Promise<TokenHolderMap> => {
+    const activeOffers = await agora.activeOffersByTokenId(tokenId);
+    const agoraHolders = new Map();
+    for (const offer of activeOffers) {
+        const offerInfo = offer.variant.params;
+        const offeredTokens = BigInt(offer.token.amount);
+        const pk =
+            offerInfo instanceof AgoraPartial
+                ? offerInfo.makerPk
+                : offerInfo.cancelPk;
+        // Note the use of shaRmd160 requires initWasm()
+        const hash = shaRmd160(pk);
+        const addr = encodeCashAddress('ecash', 'p2pkh', hash);
+        const outputScript = getOutputScriptFromAddress(addr);
+
+        // Have we already added this holder to the map?
+        const thisAgoraHolderBalance = agoraHolders.get(outputScript);
+        if (typeof thisAgoraHolderBalance === 'undefined') {
+            // Initialize an agora holder
+            agoraHolders.set(outputScript, offeredTokens);
+        } else {
+            // Increment an agora holder
+            agoraHolders.set(
+                outputScript,
+                thisAgoraHolderBalance + offeredTokens,
+            );
+        }
+    }
+    return agoraHolders;
+};
+
+export const getP2pkhHolders = async (
+    chronik: ChronikClient,
+    tokenId: string,
+): Promise<TokenHolderMap> => {
+    // Get all utxos for this tokenId
+    const utxos = (await chronik.tokenId(tokenId).utxos()).utxos;
+    const p2pkhHolders: TokenHolderMap = new Map();
+    for (const utxo of utxos) {
+        if (typeof utxo.token === 'undefined') {
+            // Ignore non-token utxos
+
+            // Should never happen, as we can only get token utxos
+            // from chronik.tokenId(tokenId).utxos()
+            continue;
+        }
+        const { script } = utxo;
+
+        // Validate script for p2pkh
+        try {
+            const { type } = getTypeAndHashFromOutputScript(script);
+            if (type !== 'p2pkh') {
+                continue;
+            }
+        } catch {
+            // If we have an error in getTypeAndHashFromOutputScript, then it is not p2pkh
+            continue;
+        }
+
+        const tokenSatoshis = utxo.token.amount;
+
+        if (tokenSatoshis === '0') {
+            // We do not add a 0-qty holder
+            // this happens for a holder who e.g. only holds a mint baton
+            continue;
+        }
+
+        // Have we already added this holder to the map?
+        const thisHolderBalance = p2pkhHolders.get(script);
+        if (typeof thisHolderBalance === 'undefined') {
+            // Initialize a p2pkh holder
+            p2pkhHolders.set(script, BigInt(tokenSatoshis));
+        } else {
+            // Increment an agora holder
+            p2pkhHolders.set(script, thisHolderBalance + BigInt(tokenSatoshis));
+        }
+    }
+    return p2pkhHolders;
+};
 
 /**
  * Get a list of addresses and XEC amounts for an airdrop tx according to given settings
@@ -29,224 +130,77 @@ import appConfig from 'config/app';
  * 4) We only send airdrops to P2PKH or P2SH recipients.
  */
 export const getAirdropTx = (
-    tokenUtxos: TokenIdUtxos,
+    tokenHolders: TokenHolderMap,
     excludedAddresses: string[],
     airdropAmountXec: string,
     minTokenQtyUndecimalized = '0',
 ): string => {
-    const { tokenId, utxos } = tokenUtxos;
-    // Iterate over tokenUtxos to get total token supply
+    // The total supply (in tokenSatoshis) held by all p2pkh holders
+    const totalQtyHeldByTokenHolders = new BN(
+        Array.from(tokenHolders.entries())
+            .reduce((acc, [, value]) => acc + value, 0n)
+            .toString(),
+    );
 
-    // Initialize circulatingSupply
-    // For the purposes of airdrop calculations, this is the total supply of a token held
-    // at p2pkh or p2sh addresses
+    // The total ELIGIBLE supply (in tokenSatoshis) is the sum of the supply held by
+    // all tokenHolders; i.e. after excluding holders via settings or balance reqs
     let circulatingSupply = new BN(0);
 
+    // User-configured param to only reward users holding a certain qty of token
     const minTokenAmount = new BN(minTokenQtyUndecimalized);
 
-    // Map of outputScript: amount
-    // Some holders are expected to have multiple utxos of a token
-    // But we only want to know the total amount held by each holding outputScript
-    const tokenHolders = new Map();
-    for (const utxo of utxos) {
-        if (typeof utxo.token === 'undefined') {
-            // Note: all these tokens will have utxo key, since they came from the tokenId call
-            // We do this check for typescript
-            continue;
+    // Required balance to earn at least 546 satoshis in this airdrop, the minimum amount
+    // an output can hold on eCash network
+    const minTokenAmountDust = totalQtyHeldByTokenHolders
+        .times(appConfig.dustSats)
+        .div(toSatoshis(parseFloat(airdropAmountXec)))
+        .integerValue(BN.ROUND_UP);
+
+    // Update tokenHolders to be address => tokenSatoshisBigNumber
+    // We determine eligible supply here by only adding holings of eligible holders
+    const airdropRecipients = new Map();
+    tokenHolders.forEach((tokenSatoshis, outputScript) => {
+        // We only expect p2pkh outputScripts, so no errors are expected encoding the address
+        const address = encodeOutputScript(outputScript);
+        const tokenSatoshisBigNumber = new BN(tokenSatoshis.toString());
+
+        if (
+            !excludedAddresses.includes(address) &&
+            tokenSatoshisBigNumber.gte(minTokenAmount) &&
+            tokenSatoshisBigNumber.gte(minTokenAmountDust)
+        ) {
+            // We only add this token holder to the map if it is not excluded by settings
+            airdropRecipients.set(address, tokenSatoshisBigNumber);
+            circulatingSupply = circulatingSupply.plus(tokenSatoshisBigNumber);
         }
-        // Get this holder's address
-        let address;
-        try {
-            address = encodeOutputScript(utxo.script);
-        } catch (err) {
-            // If the output script is not p2pkh or p2sh, we cannot get its address
-            // We do not include non-p2pkh and non-p2sh scripts in airdrops
-            // In calculating airdrop txs,
-            // token amounts held at such scripts are not considered part of circulatingSupply
-            continue;
-        }
-
-        if (excludedAddresses.includes(address)) {
-            // If this is an ignored address, go to the next utxo
-            continue;
-        }
-
-        // Get amount of token in this utxo
-        const tokenAmountThisUtxo = new BN(utxo.token.amount);
-
-        if (tokenAmountThisUtxo.eq(0)) {
-            // Ignore 0 amounts
-            // These could be from malformed txs or minting batons
-            continue;
-        }
-
-        // Increment the token qty held at this address in the tokenHolders map
-        const addrInMap = tokenHolders.get(address);
-        tokenHolders.set(
-            address,
-            typeof addrInMap === 'undefined'
-                ? tokenAmountThisUtxo
-                : addrInMap.plus(tokenAmountThisUtxo),
-        );
-
-        // Increment circulatingSupply for this airdrop calculation
-        circulatingSupply = circulatingSupply.plus(new BN(utxo.token.amount));
-    }
+    });
 
     // If no holders are p2pkh or p2sh, throw an error
     if (circulatingSupply.eq(0)) {
-        throw new Error(
-            `No token balance of token "${tokenId}" held by p2pkh or p2sh addresses`,
-        );
-    }
-
-    const airdropAmountSatoshis = toSatoshis(parseFloat(airdropAmountXec));
-
-    // Remove tokenHolders with ineligible balance
-    const ineligibleRecipientsLowBalance = new Set();
-    tokenHolders.forEach((tokenQty, address) => {
-        if (tokenQty.lt(minTokenAmount)) {
-            ineligibleRecipientsLowBalance.add(address);
-        }
-    });
-
-    // We need to iterate over all the utxos again, as now the relevant circulatingSupply will be different
-    const eligibleTokenHolders = new Map();
-    let eligibleCirculatingSupply = new BN(0);
-    for (const utxo of utxos) {
-        if (typeof utxo.token === 'undefined') {
-            // Note: all these tokens will have utxo key, since they came from the tokenId call
-            // We do this check for typescript
-            continue;
-        }
-        // Get this holder's address
-        let address;
-        try {
-            address = encodeOutputScript(utxo.script);
-        } catch (err) {
-            continue;
-        }
-
-        if (
-            excludedAddresses.includes(address) ||
-            ineligibleRecipientsLowBalance.has(address)
-        ) {
-            // If this is an ignored address, go to the next utxo
-            // OR if this is an ineligible address due to low token balance, go to the next utxo
-            continue;
-        }
-
-        // Get amount of token in this utxo
-        const tokenAmountThisUtxo = new BN(utxo.token.amount);
-
-        if (tokenAmountThisUtxo.eq(0)) {
-            // Ignore 0 amounts
-            // These could be from malformed txs or minting batons
-            continue;
-        }
-
-        // Increment the token qty held at this address in the tokenHolders map
-        const addrInMap = eligibleTokenHolders.get(address);
-        eligibleTokenHolders.set(
-            address,
-            typeof addrInMap === 'undefined'
-                ? tokenAmountThisUtxo
-                : addrInMap.plus(tokenAmountThisUtxo),
-        );
-
-        // Increment circulatingSupply for this airdrop calculation
-        eligibleCirculatingSupply = eligibleCirculatingSupply.plus(
-            new BN(utxo.token.amount),
-        );
-    }
-
-    // Recipients who would receive less than dust sats are ineligible
-    const ineligibleRecipientsDust = new Set();
-    eligibleTokenHolders.forEach((tokenQty, address) => {
-        const satsToReceive = Math.floor(
-            tokenQty
-                .div(eligibleCirculatingSupply)
-                .times(airdropAmountSatoshis)
-                .toNumber(),
-        );
-        if (satsToReceive < appConfig.dustSats) {
-            ineligibleRecipientsDust.add(address);
-        }
-    });
-
-    // Now that we know ALL ineligible recipients, we must again iterate over token utxos to get the
-    // correct circulating supply
-    let finalEligibleCirculatingSupply = new BN(0);
-    const airdropRecipients = new Map();
-    for (const utxo of utxos) {
-        if (typeof utxo.token === 'undefined') {
-            // Note: all these tokens will have utxo key, since they came from the tokenId call
-            // We do this check for typescript
-            continue;
-        }
-        // Get this holder's address
-        let address;
-        try {
-            address = encodeOutputScript(utxo.script);
-        } catch (err) {
-            // If the output script is not p2pkh or p2sh, we cannot get its address
-            // We do not include non-p2pkh and non-p2sh scripts in airdrops
-            // In calculating airdrop txs,
-            // token amounts held at such scripts are not considered part of circulatingSupply
-            continue;
-        }
-
-        if (
-            excludedAddresses.includes(address) ||
-            ineligibleRecipientsLowBalance.has(address) ||
-            ineligibleRecipientsDust.has(address)
-        ) {
-            // If this is an ignored address
-            // OR if this address is ineligible for low token balance
-            // OR if this address is ineligible because it would receive dust
-            // go to the next utxo
-            continue;
-        }
-
-        // Get amount of token in this utxo
-        const tokenAmountThisUtxo = new BN(utxo.token.amount);
-
-        if (tokenAmountThisUtxo.eq(0)) {
-            // Ignore 0 amounts
-            // These could be from malformed txs or minting batons
-            continue;
-        }
-
-        // Increment the token qty held at this address in the tokenHolders map
-        const addrInMap = airdropRecipients.get(address);
-        airdropRecipients.set(
-            address,
-            typeof addrInMap === 'undefined'
-                ? tokenAmountThisUtxo
-                : addrInMap.plus(tokenAmountThisUtxo),
-        );
-
-        // Increment circulatingSupply for this airdrop calculation
-        finalEligibleCirculatingSupply = finalEligibleCirculatingSupply.plus(
-            new BN(utxo.token.amount),
-        );
-    }
-
-    // It is possible that we have no airdropRecipients because, after all exclusions are made,
-    // The only "eligible" recipients left would receive dust
-    // This is easy to do by setting an aidrop amount that is too low
-    if (airdropRecipients.size === 0) {
         throw new Error(
             'No eligible recipients with these airdrop settings. Try raising the airdrop amount.',
         );
     }
 
+    const airdropAmountSatoshis = toSatoshis(parseFloat(airdropAmountXec));
+
+    // Sort airdropRecipients by most to least for easy reading of results
+    // Convert Map to sorted array of entries (descending by BigNumber value)
+    const sortedAirdropRecipientsArr = Array.from(
+        airdropRecipients.entries(),
+    ).sort(
+        (a, b) => b[1].comparedTo(a[1]), // b[1] is the BigNumber value of b, a[1] for a
+    );
+
+    // If you want to convert back to a Map:
+    const sortedAirdropRecipients = new Map(sortedAirdropRecipientsArr);
+
     // Now we can build our csv
     const airdropArray: string[] = [];
-    airdropRecipients.forEach((tokenQty, address) => {
+    sortedAirdropRecipients.forEach((tokenSatoshisBigNumber, address) => {
         const satsToReceive = Math.floor(
-            tokenQty
-                .div(finalEligibleCirculatingSupply)
+            tokenSatoshisBigNumber
+                .div(circulatingSupply)
                 .times(airdropAmountSatoshis)
                 .toNumber(),
         );
@@ -257,74 +211,32 @@ export const getAirdropTx = (
 };
 
 export const getEqualAirdropTx = (
-    tokenUtxos: TokenIdUtxos,
+    tokenHolders: TokenHolderMap,
     excludedAddresses: string[],
     airdropAmountXec: string,
     minTokenQtyUndecimalized = '0',
 ): string => {
-    const { tokenId, utxos } = tokenUtxos;
     const minTokenAmount = new BN(minTokenQtyUndecimalized);
-    const tokenHolders = new Map();
-    // Iterate over tokenUtxos to get total token supply
-    for (const utxo of utxos) {
-        if (typeof utxo.token === 'undefined') {
-            // Note: all these tokens will have utxo key, since they came from the tokenId call
-            // We do this check for typescript
-            continue;
-        }
-        // Get this holder's address
-        let address;
-        try {
-            address = encodeOutputScript(utxo.script);
-        } catch (err) {
-            // If the output script is not p2pkh or p2sh, we cannot get its address
-            // We do not include non-p2pkh and non-p2sh scripts in airdrops
-            // In calculating airdrop txs,
-            // token amounts held at such scripts are not considered part of circulatingSupply
-            continue;
-        }
+    // Update tokenHolders to be address => tokenSatoshisBigNumber
+    // We determine eligible supply here by only adding holings of eligible holders
+    const airdropRecipients = new Map();
+    tokenHolders.forEach((tokenSatoshis, outputScript) => {
+        // We only expect p2pkh outputScripts, so no errors are expected encoding the address
+        const address = encodeOutputScript(outputScript);
+        const tokenSatoshisBigNumber = new BN(tokenSatoshis.toString());
 
-        if (excludedAddresses.includes(address)) {
-            // If this is an ignored address, go to the next utxo
-            continue;
-        }
-
-        // Get amount of token in this utxo
-        const tokenAmountThisUtxo = new BN(utxo.token.amount);
-
-        if (tokenAmountThisUtxo.eq(0)) {
-            // Ignore 0 amounts
-            // These could be from malformed txs or minting batons
-            continue;
-        }
-
-        // Increment the token qty held at this address in the tokenHolders map
-        const addrInMap = tokenHolders.get(address);
-        tokenHolders.set(
-            address,
-            typeof addrInMap === 'undefined'
-                ? tokenAmountThisUtxo
-                : addrInMap.plus(tokenAmountThisUtxo),
-        );
-    }
-
-    // If no holders are p2pkh or p2sh, throw an error
-    if (tokenHolders.size === 0) {
-        throw new Error(
-            `No token balance of token "${tokenId}" held by p2pkh or p2sh addresses`,
-        );
-    }
-
-    // Remove tokenHolders with ineligible balance
-    tokenHolders.forEach((tokenQty, address, thisMap) => {
-        if (tokenQty.lt(minTokenAmount)) {
-            thisMap.delete(address);
+        if (
+            !excludedAddresses.includes(address) &&
+            tokenSatoshisBigNumber.gte(minTokenAmount)
+        ) {
+            // We only add this token holder to the map if it is not excluded by settings
+            airdropRecipients.set(address, tokenSatoshisBigNumber);
         }
     });
 
-    const totalRecipients = tokenHolders.size;
-
-    if (tokenHolders.size === 0) {
+    const totalRecipients = airdropRecipients.size;
+    // If no holders are p2pkh or p2sh, throw an error
+    if (totalRecipients === 0) {
         throw new Error(
             `No token holders with more than the minimum eligible balance specified. Try a higher minimum eToken holder balance.`,
         );
@@ -340,9 +252,22 @@ export const getEqualAirdropTx = (
         );
     }
 
+    // Sort airdropRecipients by most to least for easy reading of results
+    // Note that in this case, they all get paid the same
+    // But we are still putting the richest addresses first
+    // never go full communism
+    const sortedAirdropRecipientsArr = Array.from(
+        airdropRecipients.entries(),
+    ).sort(
+        (a, b) => b[1].comparedTo(a[1]), // b[1] is the BigNumber value of b, a[1] for a
+    );
+
+    // If you want to convert back to a Map:
+    const sortedAirdropRecipients = new Map(sortedAirdropRecipientsArr);
+
     // Now we can build our csv
     const airdropArray: string[] = [];
-    tokenHolders.forEach((tokenQty, address) => {
+    sortedAirdropRecipients.forEach((tokenQty, address) => {
         airdropArray.push(`${address}, ${toXec(equalAirdropAmount)}`);
     });
 
