@@ -86,6 +86,7 @@ RUN npm run build
 WORKDIR /app/modules/mock-chronik-client
 COPY modules/mock-chronik-client/ .
 RUN npm ci
+RUN npm run build
 
 # Now that local dependencies are ready, build ecash-herald
 WORKDIR /app/apps/ecash-herald
