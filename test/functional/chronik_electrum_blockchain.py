@@ -90,7 +90,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         # Non-string json type for txid
         assert_equal(
             self.client.blockchain.transaction.get(txid=int(32 * "ff", 16)).error,
-            {"code": -32602, "message": "TxId must be a hexadecimal string"},
+            {"code": 1, "message": "Invalid tx hash"},
         )
 
         for response in (
@@ -103,13 +103,27 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         ):
             assert_equal(
                 response.error,
-                {"code": -32602, "message": "Cannot parse TxId from hex string"},
+                {"code": 1, "message": "Invalid tx hash"},
             )
+
+        # Invalid type for boolean argument
+        assert_equal(
+            self.client.blockchain.transaction.get(
+                txid=32 * "ff", verbose="true"
+            ).error,
+            {
+                "code": 1,
+                "message": "Invalid verbose argument; expected boolean",
+            },
+        )
 
         # Valid txid, but no such transaction was found
         assert_equal(
             self.client.blockchain.transaction.get(txid=32 * "ff").error,
-            {"code": -32600, "message": "Unknown transaction id"},
+            {
+                "code": 1,
+                "message": "No transaction matching the requested hash was found",
+            },
         )
 
     def test_transaction_get(self):

@@ -369,22 +369,27 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 2);
         let txid_hex = get_param!(params, 0, "txid")?;
-        let txid =
-            TxId::try_from(&txid_hex).map_err(RPCError::InvalidParams)?;
+        let txid = TxId::try_from(&txid_hex)
+            .map_err(|err| RPCError::CustomError(1, err))?;
 
         let verbose =
             get_optional_param!(params, 1, "verbose", Value::Bool(false))?;
         let verbose = match verbose {
             Value::Bool(v) => Ok(v),
-            _ => Err(RPCError::InvalidParams("'verbose' must be a boolean")),
+            _ => Err(RPCError::CustomError(
+                1,
+                "Invalid verbose argument; expected boolean",
+            )),
         }?;
 
         let indexer = self.indexer.read().await;
         let query_tx = indexer.txs(&self.node);
+        let unknown_txid_msg =
+            "No transaction matching the requested hash was found";
         let raw_tx = hex::encode(
             query_tx
                 .raw_tx_by_id(&txid)
-                .or(Err(RPCError::InvalidRequest("Unknown transaction id")))?
+                .or(Err(RPCError::CustomError(1, unknown_txid_msg)))?
                 .raw_tx,
         );
         if !verbose {
@@ -395,7 +400,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             .tx_by_id(txid)
             // The following error should be unreachable, unless raw_tx_by_id
             // and tx_by_id are inconsistent
-            .or(Err(RPCError::InvalidRequest("Unknown transaction id")))?;
+            .or(Err(RPCError::CustomError(1, unknown_txid_msg)))?;
         let blockchaininfo = indexer.blocks(&self.node).blockchain_info();
         if blockchaininfo.is_err() {
             return Err(RPCError::InternalError);
@@ -431,8 +436,8 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     ) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 1);
         let txid_hex = get_param!(params, 0, "txid")?;
-        let txid =
-            TxId::try_from(&txid_hex).map_err(RPCError::InvalidParams)?;
+        let txid = TxId::try_from(&txid_hex)
+            .map_err(|err| RPCError::CustomError(1, err))?;
 
         let indexer = self.indexer.read().await;
         let query_tx = indexer.txs(&self.node);

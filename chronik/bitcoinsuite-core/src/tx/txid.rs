@@ -143,9 +143,10 @@ impl TryFrom<&'_ serde_json::Value> for TxId {
 
     fn try_from(value: &'_ serde_json::Value) -> Result<Self, Self::Error> {
         match value.as_str() {
-            Some(txid_hex) => TxId::from_str(txid_hex)
-                .or(Err("Cannot parse TxId from hex string")),
-            None => Err("TxId must be a hexadecimal string"),
+            Some(txid_hex) => {
+                TxId::from_str(txid_hex).or(Err("Invalid tx hash"))
+            }
+            None => Err("Invalid tx hash"),
         }
     }
 }
