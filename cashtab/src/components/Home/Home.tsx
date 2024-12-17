@@ -202,24 +202,24 @@ const Home: React.FC = () => {
         <>
             {apiError && <ApiError />}
             <TxHistoryCtn data-testid="tx-history">
-                <TxHistory
-                    txs={
-                        isValidParsedTxHistory(parsedTxHistory)
-                            ? parsedTxHistory
-                            : []
-                    }
-                    hashes={hashes}
-                    fiatPrice={fiatPrice}
-                    fiatCurrency={
-                        settings && settings.fiatCurrency
-                            ? settings.fiatCurrency
-                            : 'usd'
-                    }
-                    cashtabState={cashtabState}
-                    updateCashtabState={updateCashtabState}
-                    userLocale={userLocale}
-                    chaintipBlockheight={chaintipBlockheight}
-                />
+                {isValidParsedTxHistory(parsedTxHistory) ? (
+                    <TxHistory
+                        txs={parsedTxHistory}
+                        hashes={hashes}
+                        fiatPrice={fiatPrice}
+                        fiatCurrency={
+                            settings && settings.fiatCurrency
+                                ? settings.fiatCurrency
+                                : 'usd'
+                        }
+                        cashtabState={cashtabState}
+                        updateCashtabState={updateCashtabState}
+                        userLocale={userLocale}
+                        chaintipBlockheight={chaintipBlockheight}
+                    />
+                ) : (
+                    <InlineLoader />
+                )}
                 {isNewishWallet && (
                     <>
                         <Info style={{ marginBottom: '20px' }}>
