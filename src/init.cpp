@@ -547,7 +547,7 @@ void SetupServerArgs(NodeContext &node) {
                              "default: %d). Make sure you have enough RAM. In "
                              "addition, unused memory allocated to the mempool "
                              "is shared with this cache (see -maxmempool).",
-                             MIN_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
+                             MIN_DB_CACHE >> 20, DEFAULT_DB_CACHE >> 20),
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-includeconf=<file>",

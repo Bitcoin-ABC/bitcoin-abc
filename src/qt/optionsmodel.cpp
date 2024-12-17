@@ -111,7 +111,7 @@ void OptionsModel::Init(bool resetSettings) {
     SetPruneEnabled(settings.value("bPrune").toBool());
 
     if (!settings.contains("nDatabaseCache")) {
-        settings.setValue("nDatabaseCache", (qint64)DEFAULT_DB_CACHE_MB);
+        settings.setValue("nDatabaseCache", (qint64)DEFAULT_DB_CACHE >> 20);
     }
     if (!gArgs.SoftSetArg(
             "-dbcache",
@@ -595,7 +595,7 @@ void OptionsModel::checkAndMigrate() {
         // force people to upgrade to the new value if they are using 100MB
         if (settingsVersion < 130000 && settings.contains("nDatabaseCache") &&
             settings.value("nDatabaseCache").toLongLong() == 100) {
-            settings.setValue("nDatabaseCache", (qint64)DEFAULT_DB_CACHE_MB);
+            settings.setValue("nDatabaseCache", (qint64)DEFAULT_DB_CACHE >> 20);
         }
 
         settings.setValue(strSettingsVersionKey, CLIENT_VERSION);

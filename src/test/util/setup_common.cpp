@@ -202,11 +202,10 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.chainman =
         std::make_unique<ChainstateManager>(chainman_opts, blockman_opts);
     m_node.chainman->m_blockman.m_block_tree_db =
-        std::make_unique<CBlockTreeDB>(DBParams{
-            .path = m_args.GetDataDirNet() / "blocks" / "index",
-            .cache_bytes =
-                static_cast<size_t>(m_kernel_cache_sizes.block_tree_db),
-            .memory_only = true});
+        std::make_unique<CBlockTreeDB>(
+            DBParams{.path = m_args.GetDataDirNet() / "blocks" / "index",
+                     .cache_bytes = m_kernel_cache_sizes.block_tree_db,
+                     .memory_only = true});
     // Call Upgrade on the block database so that the version field is set,
     // else LoadBlockIndexGuts will fail (see D8319).
     m_node.chainman->m_blockman.m_block_tree_db->Upgrade();

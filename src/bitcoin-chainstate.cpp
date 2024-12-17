@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     };
     ChainstateManager chainman{chainman_opts, blockman_opts};
 
-    kernel::CacheSizes cache_sizes{DEFAULT_KERNEL_CACHE_MB << 20};
+    kernel::CacheSizes cache_sizes{DEFAULT_KERNEL_CACHE};
     node::ChainstateLoadOptions options;
     options.check_interrupt = [] { return false; };
     auto [status, error] = node::LoadChainstate(chainman, cache_sizes, options);
