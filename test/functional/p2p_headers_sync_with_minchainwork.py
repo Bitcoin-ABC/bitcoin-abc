@@ -65,16 +65,21 @@ class RejectLowDifficultyHeadersTest(BitcoinTestFramework):
 
         def check_node3_chaintips(num_tips, tip_hash, height):
             node3_chaintips = self.nodes[3].getchaintips()
-            assert len(node3_chaintips) == num_tips
-            assert {
-                "height": height,
-                "hash": tip_hash,
-                "branchlen": height,
-                "status": "headers-only",
-            } in node3_chaintips
+            return (
+                len(node3_chaintips) == num_tips
+                and {
+                    "height": height,
+                    "hash": tip_hash,
+                    "branchlen": height,
+                    "status": "headers-only",
+                }
+                in node3_chaintips
+            )
 
-        check_node3_chaintips(
-            2, self.nodes[0].getbestblockhash(), NODE1_BLOCKS_REQUIRED - 1
+        self.wait_until(
+            lambda: check_node3_chaintips(
+                2, self.nodes[0].getbestblockhash(), NODE1_BLOCKS_REQUIRED - 1
+            )
         )
 
         for node in self.nodes[1:3]:
@@ -112,8 +117,10 @@ class RejectLowDifficultyHeadersTest(BitcoinTestFramework):
         assert len(self.nodes[2].getchaintips()) == 1
 
         self.log.info("Check that node3 accepted these headers as well")
-        check_node3_chaintips(
-            2, self.nodes[0].getbestblockhash(), NODE1_BLOCKS_REQUIRED
+        self.wait_until(
+            lambda: check_node3_chaintips(
+                2, self.nodes[0].getbestblockhash(), NODE1_BLOCKS_REQUIRED
+            )
         )
 
         self.log.info("Generate long chain for node0/node1/node3")
