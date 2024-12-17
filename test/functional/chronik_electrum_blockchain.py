@@ -43,13 +43,34 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
     def test_invalid_params(self):
         # Invalid params type
         for response in (
-            self.client.synchronous_request("blockchain.transaction.get", params=None),
+            self.client.synchronous_request("blockchain.transaction.get", params="foo"),
             self.client.synchronous_request("blockchain.transaction.get", params=42),
         ):
             assert_equal(
                 response.error,
                 {"code": -32602, "message": "'params' must be an array or an object"},
             )
+
+        assert_equal(
+            self.client.synchronous_request(
+                "blockchain.transaction.get", params=None
+            ).error,
+            {"code": -32602, "message": "Missing required params"},
+        )
+
+        # Too many params
+        for response in (
+            self.client.blockchain.transaction.get(1, 2, 3),
+            self.client.blockchain.transaction.get(txid=1, verbose=2, blockhash=3),
+        ):
+            assert_equal(
+                response.error,
+                {"code": -32602, "message": "Expected at most 2 parameters"},
+            )
+        assert_equal(
+            self.client.blockchain.transaction.get_height(1, 2).error,
+            {"code": -32602, "message": "Expected at most 1 parameter"},
+        )
 
         # Missing mandatory argument in otherwise valid params
         for response in (

@@ -34,6 +34,11 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         assert_equal(response.result, None)
         assert_equal(response.error, {"code": -32601, "message": "Method not found"})
 
+        response = self.client.server.ping("spam")
+        assert_equal(
+            response.error, {"code": -32602, "message": "Expected at most 0 parameters"}
+        )
+
     def test_success(self):
         # This method return {... "result":null} which JSON-decodes to None
         response = self.client.server.ping()

@@ -258,8 +258,44 @@ impl RPCService for ChronikElectrumRPCServerEndpoint {
     }
 }
 
+/// Enforce maximum number of parameters for a JSONRPC method
+macro_rules! check_max_number_of_params {
+    ($params:expr, $max_num_params:expr) => {
+        let err_max = RPCError::InvalidParams(if $max_num_params == 1 {
+            "Expected at most 1 parameter"
+        } else {
+            concat!("Expected at most ", $max_num_params, " parameters")
+        });
+        match $params {
+            Value::Array(ref arr) => {
+                if arr.len() > $max_num_params {
+                    return Err(err_max);
+                }
+            }
+            Value::Object(ref obj) => {
+                if obj.len() > $max_num_params {
+                    return Err(err_max);
+                }
+            }
+            Value::Null => {
+                if $max_num_params != 0 {
+                    return Err(RPCError::InvalidParams(
+                        "Missing required params",
+                    ));
+                }
+            }
+            _ => {
+                return Err(RPCError::InvalidParams(
+                    "'params' must be an array or an object",
+                ))
+            }
+        };
+    };
+}
+
 impl ChronikElectrumRPCServerEndpoint {
-    async fn ping(&self, _params: Value) -> Result<Value, RPCError> {
+    async fn ping(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 0);
         Ok(Value::Null)
     }
 }
@@ -331,6 +367,7 @@ macro_rules! get_optional_param {
 
 impl ChronikElectrumRPCBlockchainEndpoint {
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 2);
         let txid_hex = get_param!(params, 0, "txid")?;
         let txid =
             TxId::try_from(&txid_hex).map_err(RPCError::InvalidParams)?;
@@ -392,6 +429,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         &self,
         params: Value,
     ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
         let txid_hex = get_param!(params, 0, "txid")?;
         let txid =
             TxId::try_from(&txid_hex).map_err(RPCError::InvalidParams)?;
