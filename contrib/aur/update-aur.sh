@@ -15,6 +15,8 @@ fi
 # directory, its main use is for running unprivileged commands in scripts, which
 # is exactly what we need for running makepkg which can't run as root.
 run_as_nobody() {
+  # Make sure the nobody account isn't expired
+  chage -E -1 nobody
   su -l nobody -s /bin/bash -c "cd ${PWD} && $1"
 }
 
