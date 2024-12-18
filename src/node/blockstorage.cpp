@@ -556,38 +556,6 @@ CBlockFileInfo *BlockManager::GetBlockFileInfo(size_t n) {
     return &m_blockfile_info.at(n);
 }
 
-bool BlockManager::UndoWriteToDisk(
-    const CBlockUndo &blockundo, FlatFilePos &pos, const BlockHash &hashBlock,
-    const CMessageHeader::MessageMagic &messageStart) const {
-    // Open history file to append
-    AutoFile fileout{OpenUndoFile(pos)};
-    if (fileout.IsNull()) {
-        LogError("%s: OpenUndoFile failed\n", __func__);
-        return false;
-    }
-
-    // Write index header
-    unsigned int nSize = GetSerializeSize(blockundo);
-    fileout << messageStart << nSize;
-
-    // Write undo data
-    long fileOutPos = ftell(fileout.Get());
-    if (fileOutPos < 0) {
-        LogError("%s: ftell failed\n", __func__);
-        return false;
-    }
-    pos.nPos = (unsigned int)fileOutPos;
-    fileout << blockundo;
-
-    // calculate & write checksum
-    HashWriter hasher{};
-    hasher << hashBlock;
-    hasher << blockundo;
-    fileout << hasher.GetHash();
-
-    return true;
-}
-
 bool BlockManager::UndoReadFromDisk(CBlockUndo &blockundo,
                                     const CBlockIndex &index) const {
     const FlatFilePos pos{WITH_LOCK(::cs_main, return index.GetUndoPos())};
@@ -938,17 +906,38 @@ bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
 
     // Write undo information to disk
     if (block.GetUndoPos().IsNull()) {
-        FlatFilePos _pos;
-        if (!FindUndoPos(state, block.nFile, _pos,
+        FlatFilePos pos;
+        if (!FindUndoPos(state, block.nFile, pos,
                          ::GetSerializeSize(blockundo) + 40)) {
-            LogError("ConnectBlock(): FindUndoPos failed\n");
+            LogError("%s: FindUndoPos failed\n", __func__);
             return false;
         }
-        if (!UndoWriteToDisk(blockundo, _pos, block.pprev->GetBlockHash(),
-                             GetParams().DiskMagic())) {
+        // Open history file to append
+        AutoFile fileout{OpenUndoFile(pos)};
+        if (fileout.IsNull()) {
+            LogError("%s: OpenUndoFile failed\n", __func__);
             return FatalError(m_opts.notifications, state,
                               "Failed to write undo data");
         }
+        // Write index header
+        unsigned int nSize = GetSerializeSize(blockundo);
+        fileout << GetParams().DiskMagic() << nSize;
+
+        // Write undo data
+        long fileOutPos = ftell(fileout.Get());
+        if (fileOutPos < 0) {
+            LogError("%s: ftell failed\n", __func__);
+            return false;
+        }
+        pos.nPos = (unsigned int)fileOutPos;
+        fileout << blockundo;
+
+        // calculate & write checksum
+        HashWriter hasher{};
+        hasher << block.pprev->GetBlockHash();
+        hasher << blockundo;
+        fileout << hasher.GetHash();
+
         // rev files are written in block height order, whereas blk files are
         // written as blocks come in (often out of order) we want to flush the
         // rev (undo) file once we've written the last block, which is indicated
@@ -956,24 +945,24 @@ bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
         // does not catch the case where the undo writes are keeping up with the
         // block writes (usually when a synced up node is getting newly mined
         // blocks) -- this case is caught in the FindNextBlockPos function
-        if (_pos.nFile < cursor.file_num &&
+        if (pos.nFile < cursor.file_num &&
             static_cast<uint32_t>(block.nHeight) ==
-                m_blockfile_info[_pos.nFile].nHeightLast) {
+                m_blockfile_info[pos.nFile].nHeightLast) {
             // Do not propagate the return code, a failed flush here should not
             // be an indication for a failed write. If it were propagated here,
             // the caller would assume the undo data not to be written, when in
             // fact it is. Note though, that a failed flush might leave the data
             // file untrimmed.
-            if (!FlushUndoFile(_pos.nFile, true)) {
+            if (!FlushUndoFile(pos.nFile, true)) {
                 LogPrintLevel(BCLog::BLOCKSTORE, BCLog::Level::Warning,
-                              "Failed to flush undo file %05i\n", _pos.nFile);
+                              "Failed to flush undo file %05i\n", pos.nFile);
             }
-        } else if (_pos.nFile == cursor.file_num &&
+        } else if (pos.nFile == cursor.file_num &&
                    block.nHeight > cursor.undo_height) {
             cursor.undo_height = block.nHeight;
         }
         // update nUndoPos in block index
-        block.nUndoPos = _pos.nPos;
+        block.nUndoPos = pos.nPos;
         block.nStatus = block.nStatus.withUndo();
         m_dirty_blockindex.insert(&block);
     }

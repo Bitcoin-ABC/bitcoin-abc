@@ -165,10 +165,6 @@ private:
     bool
     WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
                      const CMessageHeader::MessageMagic &messageStart) const;
-    bool
-    UndoWriteToDisk(const CBlockUndo &blockundo, FlatFilePos &pos,
-                    const BlockHash &hashBlock,
-                    const CMessageHeader::MessageMagic &messageStart) const;
     /**
      * Calculate the block/rev files to delete based on height specified
      * by user with RPC command pruneblockchain
