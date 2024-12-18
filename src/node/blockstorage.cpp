@@ -568,7 +568,7 @@ bool BlockManager::UndoReadFromDisk(CBlockUndo &blockundo,
     // Open history file to read
     AutoFile filein{OpenUndoFile(pos, true)};
     if (filein.IsNull()) {
-        LogError("%s: OpenUndoFile failed\n", __func__);
+        LogError("OpenUndoFile failed for %s\n", pos.ToString());
         return false;
     }
 
@@ -884,13 +884,13 @@ bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
             static_cast<unsigned int>(GetSerializeSize(blockundo))};
         if (!FindUndoPos(state, block.nFile, pos,
                          blockundo_size + UNDO_DATA_DISK_OVERHEAD)) {
-            LogError("%s: FindUndoPos failed\n", __func__);
+            LogError("FindUndoPos failed\n");
             return false;
         }
         // Open history file to append
         AutoFile fileout{OpenUndoFile(pos)};
         if (fileout.IsNull()) {
-            LogError("%s: OpenUndoFile failed\n", __func__);
+            LogError("OpenUndoFile failed\n");
             return FatalError(m_opts.notifications, state,
                               "Failed to write undo data");
         }
@@ -1089,12 +1089,12 @@ FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight) {
         FindNextBlockPos(block_size + BLOCK_SERIALIZATION_HEADER_SIZE, nHeight,
                          block.GetBlockTime())};
     if (pos.IsNull()) {
-        LogError("%s: FindNextBlockPos failed\n", __func__);
+        LogError("FindNextBlockPos failed\n");
         return FlatFilePos();
     }
     AutoFile fileout{OpenBlockFile(pos)};
     if (fileout.IsNull()) {
-        LogError("%s: OpenBlockFile failed\n", __func__);
+        LogError("OpenBlockFile failed\n");
         m_opts.notifications.fatalError("Failed to write block");
         return FlatFilePos();
     }
