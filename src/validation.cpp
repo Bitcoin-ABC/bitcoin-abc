@@ -90,6 +90,8 @@ using node::SnapshotMetadata;
 #define MICRO 0.000001
 #define MILLI 0.001
 
+/** Size threshold for warning about slow UTXO set flush to disk. 1 GiB */
+static constexpr size_t WARN_FLUSH_COINS_SIZE = 1 << 30;
 /**
  * Time window to wait between writing blocks/block index and chainstate to
  * disk.
@@ -2674,10 +2676,15 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                 }
 
                 if (!CoinsTip().GetBestBlock().IsNull()) {
+                    if (coins_mem_usage >= WARN_FLUSH_COINS_SIZE) {
+                        LogWarning("Flushing large (%d GiB) UTXO set to disk, "
+                                   "it may take several minutes\n",
+                                   coins_mem_usage >> 30);
+                    }
                     LOG_TIME_MILLIS_WITH_CATEGORY(
                         strprintf(
-                            "write coins cache to disk (%d coins, %.2fkB)",
-                            coins_count, coins_mem_usage / 1000),
+                            "write coins cache to disk (%d coins, %.2fKiB)",
+                            coins_count, coins_mem_usage >> 10),
                         BCLog::BENCH);
 
                     // Typical Coin structures on disk are around 48 bytes in
