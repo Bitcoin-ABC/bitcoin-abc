@@ -2259,7 +2259,7 @@ class Network(util.DaemonThread):
             return _(
                 "The transaction was rejected due to its use of non-standard inputs."
             )
-        elif r"absurdly-high-fee" in server_msg:
+        elif r"Fee exceeds maximum configured by user" in server_msg:
             return _(
                 "The transaction was rejected because it specifies an absurdly high"
                 " fee."
