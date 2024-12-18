@@ -869,33 +869,6 @@ bool BlockManager::FindUndoPos(BlockValidationState &state, int nFile,
     return true;
 }
 
-bool BlockManager::WriteBlockToDisk(
-    const CBlock &block, FlatFilePos &pos,
-    const CMessageHeader::MessageMagic &messageStart) const {
-    // Open history file to append
-    AutoFile fileout{OpenBlockFile(pos)};
-    if (fileout.IsNull()) {
-        LogError("WriteBlockToDisk: OpenBlockFile failed\n");
-        return false;
-    }
-
-    // Write index header
-    unsigned int nSize = GetSerializeSize(block);
-    fileout << messageStart << nSize;
-
-    // Write block
-    long fileOutPos = ftell(fileout.Get());
-    if (fileOutPos < 0) {
-        LogError("WriteBlockToDisk: ftell failed\n");
-        return false;
-    }
-
-    pos.nPos = (unsigned int)fileOutPos;
-    fileout << block;
-
-    return true;
-}
-
 bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
                                          BlockValidationState &state,
                                          CBlockIndex &block) {
@@ -1118,17 +1091,35 @@ FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight) {
     // Account for the 4 magic message start bytes + the 4 length bytes (8 bytes
     // total, defined as BLOCK_SERIALIZATION_HEADER_SIZE)
     nBlockSize += static_cast<unsigned int>(BLOCK_SERIALIZATION_HEADER_SIZE);
-    FlatFilePos blockPos{
+    FlatFilePos pos{
         FindNextBlockPos(nBlockSize, nHeight, block.GetBlockTime())};
-    if (blockPos.IsNull()) {
+    if (pos.IsNull()) {
         LogError("%s: FindNextBlockPos failed\n", __func__);
         return FlatFilePos();
     }
-    if (!WriteBlockToDisk(block, blockPos, GetParams().DiskMagic())) {
+    // Open history file to append
+    AutoFile fileout{OpenBlockFile(pos)};
+    if (fileout.IsNull()) {
+        LogError("%s: OpenBlockFile failed\n", __func__);
         m_opts.notifications.fatalError("Failed to write block");
         return FlatFilePos();
     }
-    return blockPos;
+
+    // Write index header
+    unsigned int nSize = GetSerializeSize(block);
+    fileout << GetParams().DiskMagic() << nSize;
+
+    // Write block
+    long fileOutPos = ftell(fileout.Get());
+    if (fileOutPos < 0) {
+        LogError("%s: ftell failed\n", __func__);
+        return FlatFilePos();
+    }
+
+    pos.nPos = (unsigned int)fileOutPos;
+    fileout << block;
+
+    return pos;
 }
 
 class ImportingNow {
