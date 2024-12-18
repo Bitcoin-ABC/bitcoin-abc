@@ -55,8 +55,15 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 
 /** Size of header written by SaveBlockToDisk before a serialized CBlock */
-static constexpr size_t BLOCK_SERIALIZATION_HEADER_SIZE =
-    CMessageHeader::MESSAGE_START_SIZE + sizeof(unsigned int);
+static constexpr size_t BLOCK_SERIALIZATION_HEADER_SIZE{
+    CMessageHeader::MESSAGE_START_SIZE + sizeof(unsigned int)};
+
+/**
+ * Total overhead when writing undo data: header (8 bytes) plus checksum (32
+ * bytes)
+ */
+static constexpr size_t UNDO_DATA_DISK_OVERHEAD{
+    BLOCK_SERIALIZATION_HEADER_SIZE + uint256::size()};
 
 extern std::atomic_bool fReindex;
 

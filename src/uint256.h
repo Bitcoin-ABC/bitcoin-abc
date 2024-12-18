@@ -90,7 +90,7 @@ public:
 
     const uint8_t *end() const { return &m_data[WIDTH]; }
 
-    unsigned int size() const { return sizeof(m_data); }
+    static constexpr unsigned int size() { return WIDTH; }
 
     uint64_t GetUint64(int pos) const {
         const uint8_t *ptr = m_data + pos * 8;
