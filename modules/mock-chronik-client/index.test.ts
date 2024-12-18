@@ -4,7 +4,15 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { MockChronikClient, MockAgora } from './index';
+import {
+    MockChronikClient,
+    MockAgora,
+    TOKEN_ID_PREFIX,
+    GROUP_TOKEN_ID_PREFIX,
+    PUBKEY_PREFIX,
+    PLUGIN_NAME,
+    AgoraQueryParamVariants,
+} from './index';
 import mocks from './mocks';
 import * as cashaddr from 'ecashaddrjs';
 
@@ -240,6 +248,50 @@ describe('MockChronikClient', () => {
 
         // We can unsubscribe from a plugin
         ws.unsubscribeFromPlugin('name', 'group');
+        expect(ws.subs.plugins).to.deep.equal([]);
+
+        // We can use available Agora method to subscribe to Agora plugin by token id
+        const mockAgora = new MockAgora();
+        const tokenIdSub: AgoraQueryParamVariants = {
+            type: 'TOKEN_ID',
+            tokenId,
+        };
+        mockAgora.subscribeWs(ws, tokenIdSub);
+        expect(ws.subs.plugins).to.deep.equal([
+            { group: `${TOKEN_ID_PREFIX}${tokenId}`, pluginName: PLUGIN_NAME },
+        ]);
+        mockAgora.unsubscribeWs(ws, tokenIdSub);
+        expect(ws.subs.plugins).to.deep.equal([]);
+
+        // We can sub/unsub by group tokenId
+        const groupTokenIdSub: AgoraQueryParamVariants = {
+            type: 'GROUP_TOKEN_ID',
+            groupTokenId: tokenId,
+        };
+        mockAgora.subscribeWs(ws, groupTokenIdSub);
+        expect(ws.subs.plugins).to.deep.equal([
+            {
+                group: `${GROUP_TOKEN_ID_PREFIX}${tokenId}`,
+                pluginName: PLUGIN_NAME,
+            },
+        ]);
+        mockAgora.unsubscribeWs(ws, groupTokenIdSub);
+        expect(ws.subs.plugins).to.deep.equal([]);
+
+        // We can sub/unsub by pubkey
+        const mockPubKey = '12'.repeat(32);
+        const pubkeySub: AgoraQueryParamVariants = {
+            type: 'PUBKEY',
+            pubkeyHex: mockPubKey,
+        };
+        mockAgora.subscribeWs(ws, pubkeySub);
+        expect(ws.subs.plugins).to.deep.equal([
+            {
+                group: `${PUBKEY_PREFIX}${mockPubKey}`,
+                pluginName: PLUGIN_NAME,
+            },
+        ]);
+        mockAgora.unsubscribeWs(ws, pubkeySub);
         expect(ws.subs.plugins).to.deep.equal([]);
     });
     it('We can set and get tx history by script', async () => {

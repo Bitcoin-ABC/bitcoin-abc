@@ -184,3 +184,7 @@ If you have any implementation questions regarding this mock tool please check t
 2.0.1
 
 -   Build before deployment so it also works for non-ts users [D17338](https://reviews.bitcoinabc.org/D17338)
+
+2.1.0
+
+-   Support for Agora plugin websocket subscriptions [D17369](https://reviews.bitcoinabc.org/D17369)

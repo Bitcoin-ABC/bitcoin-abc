@@ -1,6 +1,7 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import * as cashaddr from 'ecashaddrjs';
 import {
     Block,
@@ -41,6 +42,20 @@ interface MockAgoraMockResponses {
     };
 }
 
+export type AgoraQueryParamVariants =
+    | {
+          type: 'TOKEN_ID';
+          tokenId: string;
+      }
+    | {
+          type: 'GROUP_TOKEN_ID';
+          groupTokenId: string;
+      }
+    | {
+          type: 'PUBKEY';
+          pubkeyHex: string;
+      };
+
 interface MockAgoraInterface {
     mockedResponses: MockAgoraMockResponses;
     /** Methods used to set expected responses */
@@ -64,7 +79,17 @@ interface MockAgoraInterface {
     activeOffersByPubKey: (pubKey: string) => void;
     activeOffersByGroupTokenId: (groupTokenId: string) => void;
     activeOffersByTokenId: (tokenId: string) => void;
+    subscribeWs: (ws: MockWsEndpoint, params: AgoraQueryParamVariants) => void;
+    unsubscribeWs: (
+        ws: MockWsEndpoint,
+        params: AgoraQueryParamVariants,
+    ) => void;
 }
+
+export const TOKEN_ID_PREFIX = '54'; // toHex(strToBytes('T'));
+export const PUBKEY_PREFIX = '50'; // toHex(strToBytes('P'));
+export const GROUP_TOKEN_ID_PREFIX = '47'; // toHex(strToBytes('G'));
+export const PLUGIN_NAME = 'agora';
 
 /**
  * MockAgora
@@ -149,6 +174,31 @@ export class MockAgora implements MockAgoraInterface {
         return this._throwOrReturnValue(
             this.mockedResponses.activeOffersByTokenId[tokenId],
         );
+    };
+
+    /** Subscribe to updates from the websocket for some params */
+    subscribeWs = (ws: MockWsEndpoint, params: AgoraQueryParamVariants) => {
+        const groupHex = this._groupHex(params);
+        ws.subscribeToPlugin(PLUGIN_NAME, groupHex);
+    };
+
+    /** Unsubscribe from updates from the websocket for some params */
+    unsubscribeWs = (ws: MockWsEndpoint, params: AgoraQueryParamVariants) => {
+        const groupHex = this._groupHex(params);
+        ws.unsubscribeFromPlugin(PLUGIN_NAME, groupHex);
+    };
+
+    private _groupHex = (params: AgoraQueryParamVariants): string => {
+        switch (params.type) {
+            case 'TOKEN_ID':
+                return TOKEN_ID_PREFIX + params.tokenId;
+            case 'GROUP_TOKEN_ID':
+                return GROUP_TOKEN_ID_PREFIX + params.groupTokenId;
+            case 'PUBKEY':
+                return PUBKEY_PREFIX + params.pubkeyHex;
+            default:
+                throw new Error('Unsupported type');
+        }
     };
 
     // Checks whether the user set this mock response to be an error.
@@ -795,12 +845,6 @@ export class MockWsEndpoint {
 
     /** Unsubscribe from the given script type and payload. */
     public unsubscribeFromScript(type: AddressType, payload: string) {
-        // Build sub according to chronik expected type
-        const subscription: WsSubScriptClient = {
-            scriptType: type,
-            payload,
-        };
-
         // Find the requested unsub script and remove it
         const unsubIndex = this.subs.scripts.findIndex(
             sub => sub.scriptType === type && sub.payload === payload,
