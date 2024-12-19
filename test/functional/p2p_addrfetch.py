@@ -83,6 +83,7 @@ class P2PAddrFetch(BitcoinTestFramework):
         # Expect addr-fetch peer connection to be disconnected after 5 minutes.
         node.setmocktime(time_now + 301)
         peer.wait_for_disconnect(timeout=5)
+        self.wait_until(lambda: len(node.getpeerinfo()) == 0)
         self.assert_getpeerinfo(peer_ids=[])
 
 

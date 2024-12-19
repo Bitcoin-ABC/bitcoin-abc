@@ -295,7 +295,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         for peer in quorum[:5]:
             peer.peer_disconnect()
             peer.wait_for_disconnect()
-        assert_equal(len(node.getpeerinfo()), 6)
+        self.wait_until(lambda: len(node.getpeerinfo()) == 6)
 
         proofs_absent = [peer.proof for peer in quorum[:5]]
 
