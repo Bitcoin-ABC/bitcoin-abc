@@ -12,11 +12,11 @@ WORKDIR /app/modules/mock-chronik-client
 # Copy all project files as they are required for building
 COPY modules/mock-chronik-client .
 # Install ecashaddrjs from npm, so that module users install it automatically
-RUN npm install ecashaddrjs@latest
+RUN npm install ecashaddrjs@2.0.0
 # Install chronik-client from npm, so that module users install it automatically
 # Note that in practice any user of chronik-client probably already has chronik-client installed
 # So it won't really be bloating their node_modules
-RUN npm install chronik-client@latest
+RUN npm install chronik-client@2.1.1
 RUN npm ci
 RUN npm run build
 
