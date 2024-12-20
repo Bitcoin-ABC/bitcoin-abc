@@ -60,6 +60,11 @@ COPY modules/chronik-client/ .
 RUN npm ci
 RUN npm run build
 
+# b58-ts (required for ecash-lib)
+WORKDIR /app/modules/b58-ts
+COPY modules/b58-ts .
+RUN npm ci
+
 # ecash-lib
 WORKDIR /app/modules/ecash-lib
 RUN npm ci
