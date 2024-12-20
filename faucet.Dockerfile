@@ -18,6 +18,10 @@ RUN apt-get update \
 WORKDIR /app/
 COPY Cargo.toml .
 
+# explorer must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/web/explorer
+COPY web/explorer/ .
+
 # Copy chronik to same directory structure as monorepo
 # This needs to be in place to run ./build-wasm
 WORKDIR /app/chronik/
