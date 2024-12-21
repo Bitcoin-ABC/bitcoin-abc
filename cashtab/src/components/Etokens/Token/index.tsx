@@ -391,6 +391,8 @@ const Token: React.FC = () => {
     const openWithScanner =
         settings && settings.autoCameraOn === true && isMobile(navigator);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [confirmMintModalVisible, setConfirmMintModalVisible] =
+        useState<boolean>(false);
 
     interface TokenScreenFormData {
         amount: string;
@@ -1068,6 +1070,17 @@ const Token: React.FC = () => {
         } else {
             // if the user does not have the send confirmation enabled in settings then send directly
             sendToken();
+        }
+    };
+
+    const mintOrShowConfirmationModal = () => {
+        if (settings.sendModal) {
+            // If the user has enabled send confirmations,
+            // show a modal before the tx is sent
+            setConfirmMintModalVisible(settings.sendModal);
+        } else {
+            // Mint
+            handleMint();
         }
     };
 
@@ -2045,6 +2058,20 @@ const Token: React.FC = () => {
                                 {tokenTicker} to {formData.address}?
                             </p>
                         </Modal>
+                    )}
+                    {confirmMintModalVisible && (
+                        <Modal
+                            title="Confirm Mint"
+                            description={`Are you sure you want to mint ${formData.mintAmount} ${tokenTicker}?`}
+                            handleOk={() => {
+                                handleMint();
+                                setConfirmMintModalVisible(false);
+                            }}
+                            handleCancel={() =>
+                                setConfirmMintModalVisible(false)
+                            }
+                            showCancelButton
+                        />
                     )}
                     {showConfirmBurnEtoken && (
                         <Modal
@@ -3251,7 +3278,9 @@ const Token: React.FC = () => {
                                                 />
 
                                                 <SecondaryButton
-                                                    onClick={handleMint}
+                                                    onClick={
+                                                        mintOrShowConfirmationModal
+                                                    }
                                                     disabled={
                                                         mintAmountError !==
                                                             false ||

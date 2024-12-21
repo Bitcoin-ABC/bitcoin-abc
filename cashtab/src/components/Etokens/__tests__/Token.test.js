@@ -837,6 +837,156 @@ describe('<Token />', () => {
             ),
         );
     });
+    it('We can mint an slpv1 token if we have a mint baton and confirm modals enabled', async () => {
+        // Mock context with a mint baton utxo
+        const mintBatonUtxo = {
+            outpoint: {
+                txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
+                outIdx: 2,
+            },
+            blockHeight: -1,
+            isCoinbase: false,
+            value: 546,
+            isFinal: false,
+            token: {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                amount: '0',
+                isMintBaton: true,
+            },
+            path: 1899,
+        };
+        const balanceUtxo = {
+            outpoint: {
+                txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
+                outIdx: 2,
+            },
+            blockHeight: -1,
+            isCoinbase: false,
+            value: 546,
+            isFinal: false,
+            token: {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                amount: '20000',
+                isMintBaton: false,
+            },
+            path: 1899,
+        };
+        const mintMockedChronik = await initializeCashtabStateForTests(
+            {
+                ...walletWithXecAndTokens,
+                state: {
+                    ...walletWithXecAndTokens.state,
+                    slpUtxos: [
+                        ...walletWithXecAndTokens.state.slpUtxos,
+                        mintBatonUtxo,
+                        balanceUtxo,
+                    ],
+                },
+            },
+            localforage,
+        );
+        // Set mock tokeninfo call
+        mintMockedChronik.setToken(
+            slp1FixedCachet.tokenId,
+            slp1FixedCachet.token,
+        );
+        mintMockedChronik.setTx(slp1FixedCachet.tokenId, slp1FixedCachet.tx);
+        mintMockedChronik.setUtxosByTokenId(
+            slp1FixedCachet.tokenId,
+            slp1FixedCachet.utxos,
+        );
+
+        const hex =
+            '02000000028ec326590f3e42afae0e458995599c4c892af8e749efc7cc6bcfca8b0f2a5b4b020000006441672ba8ac8941cc69b6f49f80da73046e65a125376dc0311b5467d678350924d598d5750cd2c19dd8b42016cef9629969373336ce2eb50c1d741985a652449db44121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441dfb3546c5e588030696f1e4a1ef00d039743514be0304505415ad9de4cf4ea0b4e9d0fda1ba3869241825e269867f6a45251477057a68ba39883eb4d25008cd64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000396a04534c50000101044d494e5420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1010208000000000000273122020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac517e0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '567114b4adbb5e8969a587ac58866c0ccf0c91ded1fd0d96d75f8cb7aeb6f33a';
+
+        mintMockedChronik.setBroadcastTx(hex, txid);
+
+        render(<CashtabTestWrapper chronik={mintMockedChronik} ecc={ecc} />);
+
+        // Default route is home
+        await screen.findByTestId('tx-history');
+
+        // Click the hamburger menu
+        await user.click(screen.queryByTitle('Show Other Screens'));
+
+        // Navigate to Settings screen
+        await user.click(
+            screen.getByRole('button', {
+                name: /Settings/i,
+            }),
+        );
+
+        // Now we see the Settings screen
+        expect(screen.getByTitle('Settings')).toBeInTheDocument();
+
+        // Send confirmations are disabled by default
+
+        // Enable send confirmations
+        await user.click(screen.getByTitle('Toggle Send Confirmations'));
+
+        // Navigate to the Tokens screen
+        await user.click(screen.getByText('Tokens'));
+        // Navigate to the CACHET screen
+        await user.click(screen.getByText('CACHET'));
+        // Wait for element to get token info and load
+        expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
+
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // The mint switch is rendered
+        const mintSwitch = screen.getByTitle('Toggle Mint');
+        expect(mintSwitch).toBeInTheDocument();
+
+        // Click the mint switch
+        await user.click(mintSwitch);
+
+        // Fill out the form
+        await user.type(screen.getByPlaceholderText('Mint Amount'), '100.33');
+
+        // Mint it
+        await user.click(screen.getByRole('button', { name: /Mint CACHET/ }));
+
+        // Because send confirms are enabled, we see the Mint confirm modal
+        expect(
+            screen.getByText(`Are you sure you want to mint 100.33 CACHET?`),
+        ).toBeInTheDocument();
+
+        // We are sure
+        await user.click(screen.getByText('OK'));
+
+        const burnTokenSuccessNotification = await screen.findByText(
+            '⚗️ Minted 100.33 CACHET',
+        );
+        await waitFor(() =>
+            expect(burnTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // The modal is gone
+        expect(
+            screen.queryByText(`Are you sure you want to mint 100.33 CACHET?`),
+        ).not.toBeInTheDocument();
+    });
     it('For an uncached token with no balance, we show a spinner while loading the token info, then show an info screen and open agora offers', async () => {
         // Set mock tokeninfo call
         const CACHET_TOKENID = slp1FixedCachet.tokenId;
