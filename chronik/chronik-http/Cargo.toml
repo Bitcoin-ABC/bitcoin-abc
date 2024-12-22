@@ -50,7 +50,11 @@ hyper = "1.1"
 itertools = "0.13.0"
 
 # JSON RPC network library
-karyon_net = "0.1.8"
+karyon_jsonrpc = { version = "0.2.0", default-features = false, features = [
+    "tokio",
+    "tcp",
+    "tls",
+] }
 
 # Protobuf en-/decoding
 prost = "0.11"
@@ -69,11 +73,6 @@ tower-http = { version = "0.5", features = ["cors"] }
 
 # Trait representing an asynchronous server. 
 tower-service = "0.3"
-
-# JSON RPC
-[dependencies.karyon_jsonrpc]
-version = "0.1.8"
-features = ["tcp", "tls"]
 
 # Async runtime
 [dependencies.tokio]
