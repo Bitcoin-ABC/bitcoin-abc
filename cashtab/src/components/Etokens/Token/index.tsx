@@ -446,7 +446,7 @@ const Token: React.FC = () => {
         );
         // Get formatted price in XEC
         const renderedActualPrice = getFormattedFiatPrice(
-            settings,
+            settings.fiatCurrency,
             userLocale,
             actualPricePerToken.toNumber(),
             null,
@@ -464,13 +464,13 @@ const Token: React.FC = () => {
         // from the created Agora Partial (which we get from getAgoraPartialActualPrice())
         return selectedCurrency === appConfig.ticker
             ? getFormattedFiatPrice(
-                  settings,
+                  settings.fiatCurrency,
                   userLocale,
                   formData.tokenListPrice,
                   null,
               )
             : getFormattedFiatPrice(
-                  settings,
+                  settings.fiatCurrency,
                   userLocale,
                   parseFloat(formData.tokenListPrice) / (fiatPrice as number), // NB for selectedCurrency to be fiat fiatPrice is not null
                   null,
@@ -498,12 +498,12 @@ const Token: React.FC = () => {
         }
         return selectedCurrency === appConfig.ticker
             ? `${getFormattedFiatPrice(
-                  settings,
+                  settings.fiatCurrency,
                   userLocale,
                   inputPrice,
                   null,
               )} (${getFormattedFiatPrice(
-                  settings,
+                  settings.fiatCurrency,
                   userLocale,
                   inputPrice,
                   fiatPrice,
@@ -513,7 +513,7 @@ const Token: React.FC = () => {
                       ? parseFloat(inputPrice).toLocaleString(userLocale)
                       : inputPrice
               } ${selectedCurrency.toUpperCase()} (${getFormattedFiatPrice(
-                  settings,
+                  settings.fiatCurrency,
                   userLocale,
                   parseFloat(inputPrice) / (fiatPrice as number),
                   null,
@@ -2101,7 +2101,7 @@ const Token: React.FC = () => {
                                               formData.nftListPrice,
                                           ).toLocaleString(userLocale)}
                                                         XEC ${getFormattedFiatPrice(
-                                                            settings,
+                                                            settings.fiatCurrency,
                                                             userLocale,
                                                             formData.nftListPrice,
                                                             fiatPrice,

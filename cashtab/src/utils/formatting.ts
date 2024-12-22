@@ -173,7 +173,7 @@ export interface CashtabSettings {
  * Format so you have 2 decimals of price precision and account for crazy leading zeros *
  */
 export const getFormattedFiatPrice = (
-    settings: CashtabSettings,
+    fiatTicker: string,
     userLocale: string,
     priceXec: number | string,
     fiatPrice: number | null,
@@ -183,7 +183,7 @@ export const getFormattedFiatPrice = (
     const renderedPrice = renderFiat ? priceXec * fiatPrice : priceXec;
     let ticker = 'XEC';
     if (renderFiat) {
-        ticker = settings.fiatCurrency.toUpperCase();
+        ticker = fiatTicker.toUpperCase();
     }
     const renderedDecimalPlaces = getMinimumFractionDigits(renderedPrice);
 

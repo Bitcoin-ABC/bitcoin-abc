@@ -350,7 +350,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     ${
                         fiatPrice !== null
                             ? ` (${getFormattedFiatPrice(
-                                  settings,
+                                  settings.fiatCurrency,
                                   userLocale,
                                   toXec(askedSats),
                                   fiatPrice,
@@ -664,7 +664,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     } for ${toXec(askedSats).toLocaleString(userLocale)} XEC${
                         fiatPrice !== null
                             ? ` (${getFormattedFiatPrice(
-                                  settings,
+                                  settings.fiatCurrency,
                                   userLocale,
                                   toXec(askedSats),
                                   fiatPrice,
@@ -692,7 +692,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                         )} XEC${
                             fiatPrice !== null
                                 ? ` (${getFormattedFiatPrice(
-                                      settings,
+                                      settings.fiatCurrency,
                                       userLocale,
                                       toXec(askedSats),
                                       fiatPrice,
@@ -782,7 +782,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                             )}
                                             <OrderbookPrice>
                                                 {getFormattedFiatPrice(
-                                                    settings,
+                                                    settings.fiatCurrency,
                                                     userLocale,
                                                     nanoSatoshisToXec(
                                                         Number(
@@ -836,7 +836,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 {fiatPrice !== null && (
                                     <h3>
                                         {getFormattedFiatPrice(
-                                            settings,
+                                            settings.fiatCurrency,
                                             userLocale,
                                             toXec(askedSats),
                                             fiatPrice,

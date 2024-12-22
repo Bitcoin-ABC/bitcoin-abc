@@ -139,7 +139,7 @@ describe('Correctly executes formatting functions', () => {
         expectedReturns.forEach(vector => {
             const {
                 description,
-                settings,
+                fiatTicker,
                 userLocale,
                 priceXec,
                 fiatPrice,
@@ -148,7 +148,7 @@ describe('Correctly executes formatting functions', () => {
             it(`getFormattedFiatPrice: ${description}`, () => {
                 expect(
                     getFormattedFiatPrice(
-                        settings,
+                        fiatTicker,
                         userLocale,
                         priceXec,
                         fiatPrice,

@@ -158,7 +158,7 @@ export default {
         expectedReturns: [
             {
                 description: 'Fiat price > 1',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 100000,
                 fiatPrice: 0.000033,
@@ -166,7 +166,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.1 and < 1',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 10000,
                 fiatPrice: 0.000033,
@@ -174,7 +174,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.01 and < 0.1',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1000,
                 fiatPrice: 0.000033,
@@ -182,7 +182,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.001 and < 0.01',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 100,
                 fiatPrice: 0.000033,
@@ -190,7 +190,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.00001 and < 0.0001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 10,
                 fiatPrice: 0.000033,
@@ -198,7 +198,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.000001 and < 0.00001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1,
                 fiatPrice: 0.000033,
@@ -206,7 +206,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.0000001 and < 0.000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.1,
                 fiatPrice: 0.000033,
@@ -214,7 +214,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.00000001 and < 0.0000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.01,
                 fiatPrice: 0.000033,
@@ -222,7 +222,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.000000001 and < 0.00000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.001,
                 fiatPrice: 0.000033,
@@ -230,7 +230,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.0000000001 and < 0.000000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.0001,
                 fiatPrice: 0.000033,
@@ -238,7 +238,7 @@ export default {
             },
             {
                 description: 'Fiat price > 0.00000000001 and < 0.0000000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.00001,
                 fiatPrice: 0.000033,
@@ -246,7 +246,7 @@ export default {
             },
             {
                 description: 'Lowest possible fiat price',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1e-11, // 1 nanosat,
                 fiatPrice: 1,
@@ -255,7 +255,7 @@ export default {
             {
                 description:
                     'Fiat price > 0.0000000001 and < 0.000000001 and alt currency',
-                settings: { fiatCurrency: 'gbp' },
+                fiatTicker: 'gbp',
                 userLocale: 'en-US',
                 priceXec: 0.0001,
                 fiatPrice: 0.000033,
@@ -264,7 +264,7 @@ export default {
             {
                 description:
                     'Fiat price > 0.0000000001 and < 0.000000001 and alt currency and non-decimal locale',
-                settings: { fiatCurrency: 'jpy' },
+                fiatTicker: 'jpy',
                 userLocale: 'ar',
                 priceXec: 0.0001,
                 fiatPrice: 0.000033,
@@ -278,7 +278,7 @@ export default {
             },
             {
                 description: 'Smallest possible XEC price at a low fiat price',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1e-11, // 1 nanosat,
                 fiatPrice: 0.000033,
@@ -287,7 +287,7 @@ export default {
             {
                 description:
                     'Smallest possible XEC price at an even lower fiat price',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1e-11, // 1 nanosat,
                 fiatPrice: 0.0000033,
@@ -296,7 +296,7 @@ export default {
             {
                 description:
                     'Smallest possible XEC price at a lower still fiat price',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1e-11, // 1 nanosat,
                 fiatPrice: 0.00000033,
@@ -304,7 +304,7 @@ export default {
             },
             {
                 description: 'A fiat price too low to reasonably render',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1e-11, // 1 nanosat,
                 fiatPrice: 0.00000000033,
@@ -312,7 +312,7 @@ export default {
             },
             {
                 description: 'Price with problems in component testing',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1.101e-8,
                 fiatPrice: 0.00003299,
@@ -320,7 +320,7 @@ export default {
             },
             {
                 description: 'XEC price > 1',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 100,
                 fiatPrice: null,
@@ -328,7 +328,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.1 and < 1',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.33,
                 fiatPrice: null,
@@ -336,7 +336,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.01 and < 0.1',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.033,
                 fiatPrice: null,
@@ -344,7 +344,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.001 and < 0.01',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.0033,
                 fiatPrice: null,
@@ -352,7 +352,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.00001 and < 0.0001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.00033,
                 fiatPrice: null,
@@ -360,7 +360,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.000001 and < 0.00001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.000033,
                 fiatPrice: null,
@@ -368,7 +368,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.0000001 and < 0.000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.0000033,
                 fiatPrice: null,
@@ -376,7 +376,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.00000001 and < 0.0000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.00000033,
                 fiatPrice: null,
@@ -384,7 +384,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.000000001 and < 0.00000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.000000033,
                 fiatPrice: null,
@@ -392,7 +392,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.0000000001 and < 0.000000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.0000000033,
                 fiatPrice: null,
@@ -400,7 +400,7 @@ export default {
             },
             {
                 description: 'XEC price > 0.00000000001 and < 0.0000000001',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 0.00000000033,
                 fiatPrice: null,
@@ -408,7 +408,7 @@ export default {
             },
             {
                 description: 'Lowest possible XEC price',
-                settings: { fiatCurrency: 'usd' },
+                fiatTicker: 'usd',
                 userLocale: 'en-US',
                 priceXec: 1e-11, // 1 nanosat
                 fiatPrice: null,

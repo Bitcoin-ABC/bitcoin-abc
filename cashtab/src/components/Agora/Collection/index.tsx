@@ -269,7 +269,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                 >
                     {`Bought ${getNftName(agoraOneshot.token.tokenId)} for
                     ${getFormattedFiatPrice(
-                        settings,
+                        settings.fiatCurrency,
                         userLocale,
                         toXec(agoraOneshot.askedSats()),
                         fiatPrice,
@@ -448,7 +448,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         const priceSatoshis = params.enforcedOutputs[1].value;
         const priceXec = toXec(priceSatoshis);
         const formattedPrice = getFormattedFiatPrice(
-            settings,
+            settings.fiatCurrency,
             userLocale,
             priceXec,
             fiatPrice,
@@ -510,7 +510,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         offer.variant.params.enforcedOutputs[1].value;
                     const priceXec = toXec(priceSatoshis);
                     const formattedPrice = getFormattedFiatPrice(
-                        settings,
+                        settings.fiatCurrency,
                         userLocale,
                         priceXec,
                         fiatPrice,
