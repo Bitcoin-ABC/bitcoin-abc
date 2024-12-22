@@ -2,22 +2,24 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use karyon_net::{
+use karyon_jsonrpc::{
     codec::{Codec, Decoder, Encoder},
-    Error, Result,
+    error::{Error, Result},
 };
 
 #[derive(Clone)]
 pub(crate) struct ElectrumCodec;
 
 impl Codec for ElectrumCodec {
-    type Item = serde_json::Value;
+    type Error = Error;
+    type Message = serde_json::Value;
 }
 
 impl Encoder for ElectrumCodec {
-    type EnItem = serde_json::Value;
+    type EnError = Error;
+    type EnMessage = serde_json::Value;
 
-    fn encode(&self, src: &Self::EnItem, dst: &mut [u8]) -> Result<usize> {
+    fn encode(&self, src: &Self::EnMessage, dst: &mut [u8]) -> Result<usize> {
         let msg = serde_json::to_string(src)
             .map_err(|err| Error::Encode(err.to_string()))?;
         let buf = msg.as_bytes();
@@ -31,9 +33,13 @@ impl Encoder for ElectrumCodec {
 }
 
 impl Decoder for ElectrumCodec {
-    type DeItem = serde_json::Value;
+    type DeError = Error;
+    type DeMessage = serde_json::Value;
 
-    fn decode(&self, src: &mut [u8]) -> Result<Option<(usize, Self::DeItem)>> {
+    fn decode(
+        &self,
+        src: &mut [u8],
+    ) -> Result<Option<(usize, Self::DeMessage)>> {
         let de = serde_json::Deserializer::from_slice(src);
         let mut iter = de.into_iter::<serde_json::Value>();
 

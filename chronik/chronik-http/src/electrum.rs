@@ -13,8 +13,12 @@ use bitcoinsuite_core::{
 };
 use futures::future;
 use itertools::izip;
-use karyon_jsonrpc::{RPCError, RPCMethod, RPCService, Server};
-use karyon_net::{Addr, Endpoint};
+use karyon_jsonrpc::{
+    error::RPCError,
+    net::{Addr, Endpoint},
+    rpc_impl, rpc_method,
+    server::ServerBuilder,
+};
 use rustls::pki_types::{
     pem::PemObject,
     {CertificateDer, PrivateKeyDer},
@@ -110,13 +114,6 @@ pub enum ChronikElectrumServerError {
     PrivateKeyFileNotFound(String, String),
 }
 
-struct ChronikElectrumRPCServerEndpoint {}
-
-struct ChronikElectrumRPCBlockchainEndpoint {
-    indexer: ChronikIndexerRef,
-    node: NodeRef,
-}
-
 impl ChronikElectrumServer {
     /// Binds the Chronik server on the given hosts
     pub fn setup(params: ChronikElectrumServerParams) -> Result<Self> {
@@ -172,7 +169,7 @@ impl ChronikElectrumServer {
                         }
                     };
 
-                    let mut builder = Server::builder_with_json_codec(
+                    let mut builder = ServerBuilder::new_with_codec(
                         endpoint,
                         ElectrumCodec {},
                     )
@@ -242,22 +239,6 @@ impl ChronikElectrumServer {
     }
 }
 
-impl RPCService for ChronikElectrumRPCServerEndpoint {
-    fn name(&self) -> String {
-        "server".to_string()
-    }
-
-    fn get_method(&self, name: &str) -> Option<RPCMethod<'_>> {
-        match name {
-            // TODO Create a macro to generate this or avoid duplicated code.
-            "ping" => {
-                Some(Box::new(move |params: Value| Box::pin(self.ping(params))))
-            }
-            _ => None,
-        }
-    }
-}
-
 /// Enforce maximum number of parameters for a JSONRPC method
 macro_rules! check_max_number_of_params {
     ($params:expr, $max_num_params:expr) => {
@@ -291,31 +272,6 @@ macro_rules! check_max_number_of_params {
             }
         };
     };
-}
-
-impl ChronikElectrumRPCServerEndpoint {
-    async fn ping(&self, params: Value) -> Result<Value, RPCError> {
-        check_max_number_of_params!(params, 0);
-        Ok(Value::Null)
-    }
-}
-
-impl RPCService for ChronikElectrumRPCBlockchainEndpoint {
-    fn name(&self) -> String {
-        "blockchain".to_string()
-    }
-
-    fn get_method(&self, name: &str) -> Option<RPCMethod<'_>> {
-        match name {
-            "transaction.get" => Some(Box::new(move |params: Value| {
-                Box::pin(self.transaction_get(params))
-            })),
-            "transaction.get_height" => Some(Box::new(move |params: Value| {
-                Box::pin(self.transaction_get_height(params))
-            })),
-            _ => None,
-        }
-    }
 }
 
 /// Get a mandatory JSONRPC param by index or by name.
@@ -365,7 +321,24 @@ macro_rules! get_optional_param {
     }};
 }
 
+struct ChronikElectrumRPCServerEndpoint {}
+
+struct ChronikElectrumRPCBlockchainEndpoint {
+    indexer: ChronikIndexerRef,
+    node: NodeRef,
+}
+
+#[rpc_impl(name = "server")]
+impl ChronikElectrumRPCServerEndpoint {
+    async fn ping(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 0);
+        Ok(Value::Null)
+    }
+}
+
+#[rpc_impl(name = "blockchain")]
 impl ChronikElectrumRPCBlockchainEndpoint {
+    #[rpc_method(name = "transaction.get")]
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 2);
         let txid_hex = get_param!(params, 0, "txid")?;
@@ -430,6 +403,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }))
     }
 
+    #[rpc_method(name = "transaction.get_height")]
     async fn transaction_get_height(
         &self,
         params: Value,
