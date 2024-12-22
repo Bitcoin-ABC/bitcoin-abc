@@ -27,6 +27,10 @@ COPY chronik/ .
 WORKDIR /app/web/explorer
 COPY web/explorer/ .
 
+# bitcoinsuite-chronik-client must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/modules/bitcoinsuite-chronik-client
+COPY modules/bitcoinsuite-chronik-client/ .
+
 # Copy secp256k1 to same directory structure as monorepo
 WORKDIR /app/src/secp256k1
 COPY src/secp256k1/ .

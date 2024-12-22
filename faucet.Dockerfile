@@ -22,6 +22,10 @@ COPY Cargo.toml .
 WORKDIR /app/web/explorer
 COPY web/explorer/ .
 
+# bitcoinsuite-chronik-client must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/modules/bitcoinsuite-chronik-client
+COPY modules/bitcoinsuite-chronik-client/ .
+
 # Copy chronik to same directory structure as monorepo
 # This needs to be in place to run ./build-wasm
 WORKDIR /app/chronik/
