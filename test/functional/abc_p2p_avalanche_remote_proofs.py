@@ -60,7 +60,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             services=NODE_NETWORK | NODE_AVALANCHE,
         )
 
-        assert_equal(len(node.getpeerinfo()), 2)
+        self.wait_until(lambda: len(node.getpeerinfo()) == 2)
         outbound.nodeid = node.getpeerinfo()[-1]["id"]
 
         self.log.info("Check we save the remote proofs for our avalanche peers")
@@ -124,6 +124,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             connection_type="avalanche",
             services=NODE_NETWORK | NODE_AVALANCHE,
         )
+        self.wait_until(lambda: len(node.getpeerinfo()) == 1)
         outbound.nodeid = node.getpeerinfo()[-1]["id"]
         assert_remote_proofs(outbound.nodeid, [remoteFromProof(outbound.proof)])
 
