@@ -168,11 +168,27 @@ describe('<OrderBook />', () => {
         // We see the spot price on the depth bar
         expect(screen.getByText('$0.33 USD')).toBeInTheDocument();
 
+        // We can toggle to see the spot price in XEC
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
+
+        // Spot price on depth bar is now in XEC
+        expect(screen.queryByText('$0.33 USD')).not.toBeInTheDocument();
+        expect(screen.getByText('10,000.97 XEC')).toBeInTheDocument();
+
+        // The price of the selected amount is also now in XEC
+        expect(await screen.findByText('1k XEC')).toBeInTheDocument();
+
+        // Toggle back
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
+
         // The min offer amount is selected by default
         expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
-        // We see the formatted price in XEC
-        expect(await screen.findByText('1k XEC')).toBeInTheDocument();
-        // We see the price in fiat
+
+        // We see the price of the min offer amount in fiat
         expect(screen.getByText('$0.033 USD')).toBeInTheDocument();
 
         // Query the slider by its role and aria-labelledby attribute
@@ -184,7 +200,6 @@ describe('<OrderBook />', () => {
         // We can move the slider and see the price of different quantities
         fireEvent.change(slider, { target: { value: 170 } });
         expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
-        expect(await screen.findByText('17k XEC')).toBeInTheDocument();
         expect(screen.getByText('$0.56 USD')).toBeInTheDocument();
 
         // Slider action is for informational purposes only here, though, because
@@ -238,8 +253,8 @@ describe('<OrderBook />', () => {
 
         // The min offer amount is selected by default
         expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
-        // We see the formatted price in XEC
-        expect(await screen.findByText('1k XEC')).toBeInTheDocument();
+        // We DO NOT see the formatted price in XEC as fiat is toggled
+        expect(screen.queryByText('1k XEC')).not.toBeInTheDocument();
         // We see the price in fiat
         expect(screen.getByText('$0.033 USD')).toBeInTheDocument();
 
@@ -252,7 +267,8 @@ describe('<OrderBook />', () => {
         // We can move the slider and see the price of different quantities
         fireEvent.change(slider, { target: { value: 170 } });
         expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
-        expect(await screen.findByText('17k XEC')).toBeInTheDocument();
+        // XEC amounts are only shown if toggle is selected
+        expect(screen.queryByText('17k XEC')).not.toBeInTheDocument();
         expect(screen.getByText('$0.56 USD')).toBeInTheDocument();
 
         // Slider action is for informational purposes only here, though, because
@@ -336,7 +352,10 @@ describe('<OrderBook />', () => {
         expect(
             await screen.findByText(CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
-        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        // Toggle is set to fiat, so we do not see xec
+        expect(
+            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -357,8 +376,8 @@ describe('<OrderBook />', () => {
             screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).toBeInTheDocument();
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -378,8 +397,8 @@ describe('<OrderBook />', () => {
             await screen.findByText(OTHER_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(OTHER_CACHET_SPOT_PRICE_MIN_BUY),
-        ).toBeInTheDocument();
+            screen.queryByText(OTHER_CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -471,7 +490,9 @@ describe('<OrderBook />', () => {
         expect(
             await screen.findByText(CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
-        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        expect(
+            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -487,8 +508,8 @@ describe('<OrderBook />', () => {
             screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).toBeInTheDocument();
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();

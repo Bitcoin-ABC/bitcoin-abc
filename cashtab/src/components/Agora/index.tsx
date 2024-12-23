@@ -250,6 +250,7 @@ const Agora: React.FC = () => {
                                         Toggle Buy / Manage Listings
                                     </SwitchLabel>
                                 </SwitchHolder>
+
                                 {manageMyOffers ? (
                                     <>
                                         <OfferTitle>

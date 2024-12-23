@@ -475,7 +475,9 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${BULL_SPOT_MIN_QTY} BULL`),
         ).toBeInTheDocument();
-        expect(screen.getByText(BULL_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        expect(
+            screen.queryByText(BULL_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(BULL_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -489,7 +491,9 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
-        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        expect(
+            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -611,8 +615,8 @@ describe('<Agora />', () => {
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).toBeInTheDocument();
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -762,7 +766,9 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
-        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        expect(
+            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -784,8 +790,8 @@ describe('<Agora />', () => {
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).toBeInTheDocument();
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -919,7 +925,9 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
-        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        expect(
+            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
@@ -941,8 +949,8 @@ describe('<Agora />', () => {
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).toBeInTheDocument();
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();

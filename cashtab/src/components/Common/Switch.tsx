@@ -4,12 +4,11 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 
-const Container = styled.div`
+const Container = styled.div<{ switchWidth?: number }>`
     width: ${props => props.switchWidth}px;
 `;
-const ToggleSwitch = styled.div`
+const ToggleSwitch = styled.div<{ switchWidth?: number }>`
     position: relative;
     width: ${props => props.switchWidth}px;
     -webkit-user-select: none;
@@ -17,7 +16,7 @@ const ToggleSwitch = styled.div`
     -ms-user-select: none;
     text-align: left;
 `;
-const SwitchLabel = styled.label`
+const SwitchLabel = styled.label<{ disabled?: boolean }>`
     display: block;
     overflow: hidden;
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
@@ -25,7 +24,12 @@ const SwitchLabel = styled.label`
     border-radius: 20px;
     margin: 0;
 `;
-const SwitchInner = styled.span`
+const SwitchInner = styled.span<{
+    bgImageOn: boolean | string;
+    small: boolean;
+    bgImageOff: boolean | string;
+    bgColorOff: boolean | string;
+}>`
     display: block;
     width: 200%;
     margin-left: -100%;
@@ -63,7 +67,7 @@ const SwitchInner = styled.span`
         text-align: right;
     }
 `;
-const SwitchItself = styled.span`
+const SwitchItself = styled.span<{ small?: boolean; right?: number }>`
     display: block;
     width: ${props => (props.small ? '10' : '24')}px;
     margin: 5px;
@@ -86,7 +90,21 @@ const SwitchInput = styled.input`
     }
 `;
 
-export const CashtabSwitch = ({
+interface CashtabSwitchProps {
+    name: string;
+    small?: boolean;
+    width?: number;
+    right?: number;
+    on?: string;
+    bgImageOn?: string;
+    off?: string;
+    bgImageOff?: string;
+    bgColorOff?: string;
+    checked: boolean;
+    disabled?: boolean;
+    handleToggle: () => void;
+}
+export const CashtabSwitch: React.FC<CashtabSwitchProps> = ({
     name,
     small = false,
     width,
@@ -135,21 +153,6 @@ export const CashtabSwitch = ({
             </ToggleSwitch>
         </Container>
     );
-};
-
-CashtabSwitch.propTypes = {
-    name: PropTypes.string,
-    on: PropTypes.string,
-    off: PropTypes.string,
-    small: PropTypes.bool,
-    width: PropTypes.number,
-    right: PropTypes.number,
-    bgImageOn: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-    bgImageOff: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-    bgColorOff: PropTypes.string,
-    checked: PropTypes.bool,
-    disabled: PropTypes.bool,
-    handleToggle: PropTypes.func,
 };
 
 export default CashtabSwitch;
