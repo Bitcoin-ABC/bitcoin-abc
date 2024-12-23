@@ -212,7 +212,7 @@ export const getMintTargetOutputs = (
     mintQty: string,
     tokenProtocolNumber: SUPPORTED_MINT_TYPES,
 ): TokenTargetOutput[] => {
-    // slp-mdm expects values in token satoshis, so we must undecimalize mintQty
+    // We must undecimalize mintQty
 
     // Get undecimalized string, i.e. "token satoshis"
     const tokenSatoshis = BigInt(undecimalizeTokenAmount(mintQty, decimals));
@@ -398,7 +398,7 @@ export const getNftParentFanTxTargetOutputs = (
     }
     // Note we may also get here with a qty less than SLP1_SEND_MAX_OUTPUTS
     // The user might not have 19 NFTs left to mint for this token
-    // Note we do not need a BN for fanOutputs. totalInputAmount needs BN because it could be enormous.
+    // Note we do not need a BigNumber for fanOutputs. totalInputAmount needs BigNumber because it could be enormous.
     // But here, fanOutputs will be less than or equal to 19
     const fanOutputs = maxOutputs
         ? SLP1_SEND_MAX_OUTPUTS

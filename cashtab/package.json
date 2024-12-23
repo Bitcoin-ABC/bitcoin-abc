@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.4.2",
+    "version": "3.4.3",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -27,6 +27,7 @@
     "dependencies": {
         "@bitgo/utxo-lib": "^11.0.0",
         "@zxing/browser": "^0.1.4",
+        "bignumber.js": "^9.1.2",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",
         "bitcoinjs-message": "^2.2.0",
@@ -45,7 +46,6 @@
         "react-router-dom": "^6.22.0",
         "react-toastify": "^10.0.5",
         "recaptcha-v3": "^1.11.3",
-        "slp-mdm": "^0.0.6",
         "swiper": "^11.1.14",
         "wif": "^4.0.0"
     },

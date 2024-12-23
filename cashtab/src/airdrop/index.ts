@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN } from 'slp-mdm';
+import BigNumber from 'bignumber.js';
 import { toSatoshis, toXec } from 'wallet';
 import { ChronikClient } from 'chronik-client';
 import { Agora, AgoraPartial } from 'ecash-agora';
@@ -136,7 +136,7 @@ export const getAirdropTx = (
     minTokenQtyUndecimalized = '0',
 ): string => {
     // The total supply (in tokenSatoshis) held by all p2pkh holders
-    const totalQtyHeldByTokenHolders = new BN(
+    const totalQtyHeldByTokenHolders = new BigNumber(
         Array.from(tokenHolders.entries())
             .reduce((acc, [, value]) => acc + value, 0n)
             .toString(),
@@ -144,17 +144,17 @@ export const getAirdropTx = (
 
     // The total ELIGIBLE supply (in tokenSatoshis) is the sum of the supply held by
     // all tokenHolders; i.e. after excluding holders via settings or balance reqs
-    let circulatingSupply = new BN(0);
+    let circulatingSupply = new BigNumber(0);
 
     // User-configured param to only reward users holding a certain qty of token
-    const minTokenAmount = new BN(minTokenQtyUndecimalized);
+    const minTokenAmount = new BigNumber(minTokenQtyUndecimalized);
 
     // Required balance to earn at least 546 satoshis in this airdrop, the minimum amount
     // an output can hold on eCash network
     const minTokenAmountDust = totalQtyHeldByTokenHolders
         .times(appConfig.dustSats)
         .div(toSatoshis(parseFloat(airdropAmountXec)))
-        .integerValue(BN.ROUND_UP);
+        .integerValue(BigNumber.ROUND_UP);
 
     // Update tokenHolders to be address => tokenSatoshisBigNumber
     // We determine eligible supply here by only adding holings of eligible holders
@@ -162,7 +162,7 @@ export const getAirdropTx = (
     tokenHolders.forEach((tokenSatoshis, outputScript) => {
         // We only expect p2pkh outputScripts, so no errors are expected encoding the address
         const address = encodeOutputScript(outputScript);
-        const tokenSatoshisBigNumber = new BN(tokenSatoshis.toString());
+        const tokenSatoshisBigNumber = new BigNumber(tokenSatoshis.toString());
 
         if (
             !excludedAddresses.includes(address) &&
@@ -216,14 +216,14 @@ export const getEqualAirdropTx = (
     airdropAmountXec: string,
     minTokenQtyUndecimalized = '0',
 ): string => {
-    const minTokenAmount = new BN(minTokenQtyUndecimalized);
+    const minTokenAmount = new BigNumber(minTokenQtyUndecimalized);
     // Update tokenHolders to be address => tokenSatoshisBigNumber
     // We determine eligible supply here by only adding holings of eligible holders
     const airdropRecipients = new Map();
     tokenHolders.forEach((tokenSatoshis, outputScript) => {
         // We only expect p2pkh outputScripts, so no errors are expected encoding the address
         const address = encodeOutputScript(outputScript);
-        const tokenSatoshisBigNumber = new BN(tokenSatoshis.toString());
+        const tokenSatoshisBigNumber = new BigNumber(tokenSatoshis.toString());
 
         if (
             !excludedAddresses.includes(address) &&

@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BN } from 'slp-mdm';
+import BigNumber from 'bignumber.js';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, { SecondaryLink } from 'components/Common/Buttons';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -215,7 +215,7 @@ const Airdrop = () => {
     ) => {
         const { value } = e.target;
 
-        if (new BN(value).gt(new BN(0))) {
+        if (new BigNumber(value).gt(0)) {
             setIgnoreMinEtokenBalanceAmountIsValid(true);
             setIgnoreMinEtokenBalanceAmountError(false);
         } else {
@@ -272,7 +272,9 @@ const Airdrop = () => {
                 setAirdropRecipients('');
                 return setCalculatingAirdrop(false);
             }
-            undecimalizedMinTokenAmount = new BN(ignoreMinEtokenBalanceAmount)
+            undecimalizedMinTokenAmount = new BigNumber(
+                ignoreMinEtokenBalanceAmount,
+            )
                 .times(10 ** tokenInfo.genesisInfo.decimals)
                 .toString();
         }

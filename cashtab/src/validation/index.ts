@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN } from 'slp-mdm';
+import BigNumber from 'bignumber.js';
 import {
     toXec,
     toSatoshis,
@@ -433,7 +433,7 @@ export const isValidXecAirdrop = (xecAirdrop: string): boolean => {
         typeof xecAirdrop === 'string' &&
         xecAirdrop.length > 0 &&
         xecAirdrop.trim() != '' &&
-        new BN(xecAirdrop).gt(0)
+        new BigNumber(xecAirdrop).gt(0)
     );
 };
 
@@ -1061,7 +1061,7 @@ export const isValidTokenSendOrBurnAmount = (
     // The user is not inputting decimals
 
     // Amount must be <= balance
-    const amountBN = new BN(amount);
+    const amountBN = new BigNumber(amount);
     // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
     if (amountBN.gt(tokenBalance)) {
         return `Amount ${amount} exceeds balance of ${tokenBalance}`;
@@ -1123,7 +1123,7 @@ export const isValidTokenMintAmount = (
         }
     }
     // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
-    const amountBN = new BN(amount);
+    const amountBN = new BigNumber(amount);
     // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
     const maxMintAmount = getMaxDecimalizedQty(decimals, tokenProtocol);
     if (amountBN.gt(maxMintAmount)) {
@@ -1248,15 +1248,15 @@ export const getAgoraPartialListPriceError = (
 
     const priceXec =
         selectedCurrency !== 'XEC'
-            ? new BN(
-                  new BN(xecListPrice)
+            ? new BigNumber(
+                  new BigNumber(xecListPrice)
                       .div(fiatPrice as number)
                       .toFixed(NANOSAT_DECIMALS),
               )
-            : new BN(xecListPrice);
+            : new BigNumber(xecListPrice);
 
     // Get the total price of the min buy amount
-    const priceXecMinBuy = priceXec.times(new BN(minBuyTokenQty));
+    const priceXecMinBuy = priceXec.times(new BigNumber(minBuyTokenQty));
 
     if (priceXecMinBuy.lt(toXec(appConfig.dustSats))) {
         // We cannot enforce an output to have less than dust satoshis

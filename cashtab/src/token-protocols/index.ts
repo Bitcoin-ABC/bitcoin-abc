@@ -118,8 +118,7 @@ export const getSendTokenInputs = (
         sendAmounts.push(change);
     }
 
-    // We return this interesting object due to expected input shape of slp-mdm
-    // NB sendAmounts must be an array of BNs, each one decimalized to the tokens decimal places
+    // NB sendAmounts must be an array of BigNumbers, each one decimalized to the tokens decimal places
     return { tokenInputs, tokenId, sendAmounts };
 };
 

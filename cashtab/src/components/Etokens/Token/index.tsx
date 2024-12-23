@@ -24,7 +24,7 @@ import {
     NANOSAT_DECIMALS,
     isValidTokenId,
 } from 'validation';
-import { BN } from 'slp-mdm';
+import BigNumber from 'bignumber.js';
 import { formatDate, getFormattedFiatPrice } from 'utils/formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
@@ -440,9 +440,9 @@ const Token: React.FC = () => {
             decimals as SlpDecimals,
         );
         // Get the unit price
-        // Use BN because this could be less than 1 satoshi
-        const actualPricePerToken = new BN(minAcceptedPriceXec).div(
-            new BN(minAcceptedTokens),
+        // Use BigNumber because this could be less than 1 satoshi
+        const actualPricePerToken = new BigNumber(minAcceptedPriceXec).div(
+            new BigNumber(minAcceptedTokens),
         );
         // Get formatted price in XEC
         const renderedActualPrice = getFormattedFiatPrice(
@@ -1570,8 +1570,8 @@ const Token: React.FC = () => {
         const priceInXec =
             selectedCurrency === appConfig.ticker
                 ? parseFloat(formData.tokenListPrice as string)
-                : new BN(
-                      new BN(
+                : new BigNumber(
+                      new BigNumber(
                           parseFloat(formData.tokenListPrice as string) /
                               (fiatPrice as number),
                       ).toFixed(NANOSAT_DECIMALS),

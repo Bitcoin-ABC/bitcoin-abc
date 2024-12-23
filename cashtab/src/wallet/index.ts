@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN } from 'slp-mdm';
+import BigNumber from 'bignumber.js';
 import * as bip39 from 'bip39';
 import randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
@@ -95,7 +95,7 @@ export interface CashtabWallet {
 }
 
 const SATOSHIS_PER_XEC = 100;
-const NANOSATS_PER_XEC = new BN(1e11);
+const NANOSATS_PER_XEC = new BigNumber(1e11);
 const STRINGIFIED_INTEGER_REGEX = /^[0-9]+$/;
 
 const SCI_REGEX_POSTIIVE = /^(\d*\.?\d+)e([+-]?\d+)$/i;
@@ -149,7 +149,9 @@ export const getBalanceSats = (nonSlpUtxos: NonTokenUtxo[]): number => {
  * @param xecAmount a number with no more than 2 decimal places
  */
 export const toSatoshis = (xecAmount: number): number => {
-    const satoshis = new BN(xecAmount).times(SATOSHIS_PER_XEC).toNumber();
+    const satoshis = new BigNumber(xecAmount)
+        .times(SATOSHIS_PER_XEC)
+        .toNumber();
     if (!Number.isInteger(satoshis)) {
         throw new Error(
             'Result not an integer. Check input for valid XEC amount.',
@@ -169,7 +171,7 @@ export const toXec = (satoshis: bigint | number): number => {
     if (!Number.isInteger(satoshis)) {
         throw new Error('Input param satoshis must be an integer');
     }
-    return new BN(satoshis).div(SATOSHIS_PER_XEC).toNumber();
+    return new BigNumber(satoshis).div(SATOSHIS_PER_XEC).toNumber();
 };
 
 /**
@@ -180,7 +182,7 @@ export const nanoSatoshisToXec = (nanosats: number): number => {
     if (!Number.isInteger(nanosats)) {
         throw new Error('Input param nanosats must be an integer');
     }
-    return new BN(nanosats).div(NANOSATS_PER_XEC).toNumber();
+    return new BigNumber(nanosats).div(NANOSATS_PER_XEC).toNumber();
 };
 
 /**
@@ -190,9 +192,9 @@ export const nanoSatoshisToXec = (nanosats: number): number => {
  * Given over-precise XEC values, this function will round to the nearest nanosat
  * @param xecAmount
  */
-export const xecToNanoSatoshis = (xecAmount: number | BN): number => {
+export const xecToNanoSatoshis = (xecAmount: number | BigNumber): number => {
     const nanosats = Math.round(
-        new BN(xecAmount).times(NANOSATS_PER_XEC).toNumber(),
+        new BigNumber(xecAmount).times(NANOSATS_PER_XEC).toNumber(),
     );
     return nanosats;
 };
@@ -214,7 +216,7 @@ export const hasEnoughToken = (
     if (typeof thisTokenBalance === 'undefined') {
         return false;
     }
-    return new BN(thisTokenBalance).gte(tokenQty);
+    return new BigNumber(thisTokenBalance).gte(tokenQty);
 };
 
 /**
