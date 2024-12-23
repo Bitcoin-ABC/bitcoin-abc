@@ -81,8 +81,15 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             lhs, rhs = check_remote_proofs(node, nodeid, remote_proofs)
             assert_equal(lhs, rhs)
 
-        assert_remote_proofs(inbound.nodeid, [remoteFromProof(inbound.proof)])
-        assert_remote_proofs(outbound.nodeid, [remoteFromProof(outbound.proof)])
+        def wait_for_remote_proofs(nodeid, remote_proofs):
+            def equal_remote_proofs():
+                lhs, rhs = check_remote_proofs(node, nodeid, remote_proofs)
+                return lhs == rhs
+
+            self.wait_until(equal_remote_proofs)
+
+        wait_for_remote_proofs(inbound.nodeid, [remoteFromProof(inbound.proof)])
+        wait_for_remote_proofs(outbound.nodeid, [remoteFromProof(outbound.proof)])
 
         proofs = []
         for _ in range(10):
@@ -91,7 +98,6 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
 
             inbound.send_avaproof(proof)
             outbound.send_avaproof(proof)
-
         inbound.sync_with_ping()
         outbound.sync_with_ping()
 
@@ -108,7 +114,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
 
         outbound.peer_disconnect()
         outbound.wait_for_disconnect()
-        self.wait_until(lambda: check_remote_proofs(node, outbound.nodeid, [])[0] == [])
+        wait_for_remote_proofs(outbound.nodeid, [])
 
         self.log.info("Check the compact proofs update the remote proofs status")
 
@@ -126,7 +132,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         )
         self.wait_until(lambda: len(node.getpeerinfo()) == 1)
         outbound.nodeid = node.getpeerinfo()[-1]["id"]
-        assert_remote_proofs(outbound.nodeid, [remoteFromProof(outbound.proof)])
+        wait_for_remote_proofs(outbound.nodeid, [remoteFromProof(outbound.proof)])
 
         now += 1
         node.setmocktime(now)
