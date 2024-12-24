@@ -2496,7 +2496,7 @@ const Token: React.FC = () => {
                                             <NftRow>
                                                 <NftTokenIdAndCopyIcon>
                                                     <a
-                                                        href={`${explorer.blockExplorerUrl}/tx/${nftTokenId}`}
+                                                        href={`#/token/${nftTokenId}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                     >
