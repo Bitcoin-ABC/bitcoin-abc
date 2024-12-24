@@ -2,17 +2,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from 'wallet/context';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { LoadingCtn } from 'components/Common/Atoms';
-import TokenList from './TokenList';
-import { getWalletState } from 'utils/cashMethods';
+import TokenList, { TokenInfoKv } from './TokenList';
+import { ExtendedCashtabCachedTokenInfo } from './TokenListItem';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
 import { PrimaryLink, SecondaryLink } from 'components/Common/Buttons';
 import { Input } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
 const EtokensCtn = styled.div`
     color: ${props => props.theme.primaryText};
@@ -49,51 +50,75 @@ export const SwitchCol = styled.div`
     align-items: center;
     margin: 12px 3px;
 `;
+
 const Etokens = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const userLocale = getUserLocale(navigator);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { loading, cashtabState } = ContextValue;
     const { wallets, cashtabCache } = cashtabState;
-    const wallet = wallets.length > 0 ? wallets[0] : false;
-    const walletState = getWalletState(wallet);
-    const { tokens } = walletState;
-    const userLocale = getUserLocale(navigator);
+    const wallet = wallets[0];
+    const { tokens } = wallet.state;
 
-    const [tokenSearch, setTokenSearch] = useState('');
+    const [tokenSearch, setTokenSearch] = useState<string>('');
+
     // tokensInWallet is a key value array of the cashtab cache tokens Map,
     // except that it contains only the tokens in wallet.state.tokens,
     // and, in addition to cached info, it has the user's token balance
-    const [tokensInWallet, setTokensInWallet] = useState(null);
+    const [tokensInWallet, setTokensInWallet] = useState<null | TokenInfoKv[]>(
+        null,
+    );
 
     // Tokens the user filters out with switches
     // This can impact the subset of searchable tokens
-    const [userFilteredTokens, setUserFilteredTokens] = useState(null);
+    const [userFilteredTokens, setUserFilteredTokens] = useState<
+        null | TokenInfoKv[]
+    >(null);
 
     // renderedTokens is a subset of userFilteredTokens,
     // filtered by the user's search query AND user switch selections
-    const [renderedTokens, setRenderedTokens] = useState(null);
+    const [renderedTokens, setRenderedTokens] = useState<null | TokenInfoKv[]>(
+        null,
+    );
 
-    const switchesOff = {
+    interface EtokensSwitches {
+        showAll: boolean;
+        showCollections: boolean;
+        showNfts: boolean;
+        showFungibleTokens: boolean;
+    }
+
+    const switchesOff: EtokensSwitches = {
         showAll: false,
         showCollections: false,
         showNfts: false,
         showFungibleTokens: false,
     };
-    const [switches, setSwitches] = useState({ ...switchesOff, showAll: true });
+    const [switches, setSwitches] = useState<EtokensSwitches>({
+        ...switchesOff,
+        showAll: true,
+    });
 
     useEffect(() => {
         // On page load, create a key value array of all the cached info for tokens you have in the wallet
         // Clone cashtab cache tokens
-        const tokenMapWithBalance = new Map(cashtabCache.tokens);
+        const tokenMapWithBalance: Map<string, ExtendedCashtabCachedTokenInfo> =
+            new Map();
+
         // Add balance to all cached tokens where balance info is available
         tokens.forEach((tokenBalance, tokenId) => {
             tokenMapWithBalance.set(tokenId, {
-                ...tokenMapWithBalance.get(tokenId),
+                // Note that we expect every token with balance to be cached
+                ...(cashtabCache.tokens.get(tokenId) as CashtabCachedTokenInfo),
                 balance: tokenBalance,
             });
         });
 
         // Convert to a keyValueArray so you can filter()
-        const cacheKeyValueArray = [...tokenMapWithBalance];
+        const cacheKeyValueArray: TokenInfoKv[] = [...tokenMapWithBalance];
         // Filter so you only have tokens with balance (or 0 balance and mint baton)
         const walletTokensKeyValueArray = cacheKeyValueArray.filter(kv =>
             tokens.has(kv[0]),
@@ -121,7 +146,7 @@ const Etokens = () => {
         // Adjust userFilteredTokens according to switch
         let activeSwitch;
         for (const switchCondition of Object.keys(switches)) {
-            if (switches[switchCondition]) {
+            if (switches[switchCondition as keyof EtokensSwitches]) {
                 activeSwitch = switchCondition;
             }
         }
@@ -183,12 +208,20 @@ const Etokens = () => {
         setRenderedTokens(newRenderedTokens);
     }, [userFilteredTokens]);
 
-    const handleTokenSearchInput = e => {
+    const handleTokenSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
         setTokenSearch(value);
 
         // make the search case insensitive
         const searchString = value.toLowerCase();
+
+        if (userFilteredTokens === null) {
+            // Not expected to happen as userFilteredTokens is only null before
+            // the screen loads tokens from the wallet
+            // But I have more confidence in this bail-out than
+            // in over-ruling typescript
+            return;
+        }
 
         // Get the tokens that include this search string in ticker or name
         const searchFilteredTokens = userFilteredTokens.filter(

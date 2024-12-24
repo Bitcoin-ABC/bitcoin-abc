@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.4.15",
+    "version": "3.4.16",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -59,6 +59,7 @@
         "@testing-library/react": "^16.0.1",
         "@testing-library/user-event": "^14.5.2",
         "@types/jest": "^29.5.14",
+        "@types/jest-when": "^3.5.5",
         "@types/lodash.debounce": "^4.0.9",
         "@types/randombytes": "^2.0.3",
         "@types/react": "^18.3.12",

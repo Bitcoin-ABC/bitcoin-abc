@@ -39,7 +39,7 @@ describe('<Etokens />', () => {
             .calledWith(priceApiUrl)
             .mockResolvedValue({
                 json: () => Promise.resolve(priceResponse),
-            });
+            } as Response);
     });
     afterEach(async () => {
         jest.clearAllMocks();
