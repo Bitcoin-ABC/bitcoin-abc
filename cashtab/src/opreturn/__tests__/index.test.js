@@ -5,8 +5,6 @@
 import {
     getCashtabMsgTargetOutput,
     getAirdropTargetOutput,
-    getAliasTargetOutput,
-    getAliasByteCount,
     getCashtabMsgByteCount,
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
@@ -58,50 +56,6 @@ describe('Cashtab opreturn methods', () => {
                 expect(() =>
                     getAirdropTargetOutput(tokenId, airdropMsg),
                 ).toThrow(errorMsg);
-            });
-        });
-    });
-
-    describe('Alias registration target output building functions', () => {
-        const { expectedReturns, expectedErrors } =
-            opReturnVectors.aliasRegistrations;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const { description, alias, address, returned } = expectedReturn;
-            it(`getAliasTargetOutput: ${description}`, () => {
-                expect(getAliasTargetOutput(alias, address)).toStrictEqual(
-                    returned,
-                );
-            });
-        });
-        // Error cases
-        expectedErrors.forEach(expectedError => {
-            const { description, alias, address, errorMsg } = expectedError;
-            it(`getAliasTargetOutput throws error for: ${description}`, () => {
-                expect(() => getAliasTargetOutput(alias, address)).toThrow(
-                    errorMsg,
-                );
-            });
-        });
-    });
-
-    describe('Determines byte count of user input alias registrations', () => {
-        const { expectedReturns, expectedErrors } =
-            opReturnVectors.aliasByteCounts;
-
-        // Successfully calculates alias bytecounts
-        expectedReturns.forEach(expectedReturn => {
-            const { description, alias, byteCount } = expectedReturn;
-            it(`getAliasByteCount: ${description}`, () => {
-                expect(getAliasByteCount(alias)).toBe(byteCount);
-            });
-        });
-        // Error cases
-        expectedErrors.forEach(expectedError => {
-            const { description, alias, errorMsg } = expectedError;
-            it(`getAliasByteCount throws error for: ${description}`, () => {
-                expect(() => getAliasByteCount(alias)).toThrow(errorMsg);
             });
         });
     });

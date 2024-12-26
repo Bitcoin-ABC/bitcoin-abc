@@ -397,121 +397,6 @@ export default {
             },
         ],
     },
-    meetsAliasSpecInputCases: {
-        expectedReturns: [
-            {
-                description:
-                    'returns true for a valid lowercase alphanumeric input',
-                inputStr: 'jasdf3873',
-                response: true,
-            },
-            {
-                description:
-                    'returns expected error if input contains uppercase char',
-                inputStr: 'jasDf3873',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description:
-                    'returns expected error if input contains special char',
-                inputStr: 'Glück',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description: 'returns expected error if input contains emoji',
-                inputStr: '😉',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description:
-                    'returns expected error if input contains other special characters',
-                inputStr: '( ͡° ͜ʖ ͡°)',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description:
-                    'returns expected error if input is an empty string',
-                inputStr: '​',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description:
-                    'returns expected error if input contains an empty space',
-                inputStr: '​jasdf3873',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description: 'returns expected error if input contains symbols',
-                inputStr: '​jasdf3873@#',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description: 'returns expected error if input is not a string',
-                inputStr: { testAlias: 'string at key' },
-                response: 'Alias input must be a string',
-            },
-            {
-                description:
-                    'returns expected error if input contains underscores',
-                inputStr: 'test_WITH_badchars',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-            {
-                description:
-                    'returns expected error if exceeds byte restriction',
-                inputStr: '0123456789012345678901',
-                response: `Invalid bytecount 22. Alias be 1-21 bytes.`,
-            },
-            {
-                description: 'returns true for an alias of max bytecount',
-                inputStr: '012345678901234567890',
-                response: true,
-            },
-        ],
-    },
-    validAliasSendInputCases: {
-        expectedReturns: [
-            {
-                description: 'Valid alias send input',
-                sendToAliasInput: 'chicken.xec',
-                response: true,
-            },
-            {
-                description: 'Valid alias missing prefix',
-                sendToAliasInput: 'chicken',
-                response: `Must include '.xec' suffix when sending to an eCash alias`,
-            },
-            {
-                description: 'Valid alias with double suffix',
-                sendToAliasInput: 'chicken.xec.xec',
-                response: `Must include '.xec' suffix when sending to an eCash alias`,
-            },
-            {
-                description: 'Valid alias with bad suffix',
-                sendToAliasInput: 'chicken.xe',
-                response: `Must include '.xec' suffix when sending to an eCash alias`,
-            },
-            {
-                description: 'Invalid alias (too long)',
-                sendToAliasInput: '0123456789012345678901.xec',
-                response: `Invalid bytecount 22. Alias be 1-21 bytes.`,
-            },
-            {
-                description: 'Invalid alias (nonalphanumeric)',
-                sendToAliasInput: 'Capitalized@.xec',
-                response:
-                    'Alias may only contain lowercase characters a-z and 0-9',
-            },
-        ],
-    },
     parseAddressInput: {
         expectedReturns: [
             // address only
@@ -524,7 +409,6 @@ export default {
                     address: {
                         value: '',
                         error: 'Invalid address',
-                        isAlias: false,
                     },
                 },
             },
@@ -538,7 +422,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                 },
             },
@@ -551,7 +434,6 @@ export default {
                     address: {
                         value: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                 },
             },
@@ -564,8 +446,7 @@ export default {
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
-                        error: false,
-                        isAlias: true,
+                        error: 'Invalid address',
                     },
                 },
             },
@@ -577,8 +458,7 @@ export default {
                 parsedAddressInput: {
                     address: {
                         value: 'chicken',
-                        error: `Aliases must end with '.xec'`,
-                        isAlias: true,
+                        error: `Invalid address`,
                     },
                 },
             },
@@ -594,7 +474,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '500000', error: false },
                     queryString: { value: 'amount=500000', error: false },
@@ -611,7 +490,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     amount: {
                         value: '500001',
@@ -631,7 +509,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '123.45', error: false },
                     queryString: { value: 'amount=123.45', error: false },
@@ -647,7 +524,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfg',
                         error: 'Invalid address',
-                        isAlias: false,
                     },
                     amount: { value: '500000', error: false },
                     queryString: { value: 'amount=500000', error: false },
@@ -663,7 +539,6 @@ export default {
                     address: {
                         value: 'etoken:qq9h6d0a5q65fgywv4ry64x04ep906mdkufhx2swv3',
                         error: `eToken addresses are not supported for ${appConfig.ticker} sends`,
-                        isAlias: false,
                     },
                     amount: { value: '500000', error: false },
                     queryString: { value: 'amount=500000', error: false },
@@ -680,7 +555,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     amount: {
                         value: '123.456',
@@ -697,8 +571,7 @@ export default {
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
-                        error: false,
-                        isAlias: true,
+                        error: 'Invalid address',
                     },
                     amount: { value: '125', error: false },
                     queryString: { value: 'amount=125', error: false },
@@ -712,8 +585,7 @@ export default {
                 parsedAddressInput: {
                     address: {
                         value: 'chicken',
-                        error: `Aliases must end with '.xec'`,
-                        isAlias: true,
+                        error: `Invalid address`,
                     },
                     amount: { value: '125', error: false },
                     queryString: { value: 'amount=125', error: false },
@@ -731,7 +603,6 @@ export default {
                     address: {
                         value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '110', error: false },
                     parsedAdditionalXecOutputs: {
@@ -760,7 +631,6 @@ export default {
                     address: {
                         value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '110', error: false },
                     parsedAdditionalXecOutputs: {
@@ -784,7 +654,6 @@ export default {
                     address: {
                         value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '110', error: false },
                     parsedAdditionalXecOutputs: {
@@ -808,7 +677,6 @@ export default {
                     address: {
                         value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '110', error: false },
                     parsedAdditionalXecOutputs: {
@@ -832,7 +700,6 @@ export default {
                     address: {
                         value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '110', error: false },
                     parsedAdditionalXecOutputs: {
@@ -857,7 +724,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     op_return_raw: {
                         value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
@@ -878,8 +744,7 @@ export default {
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
-                        error: false,
-                        isAlias: true,
+                        error: 'Invalid address',
                     },
                     op_return_raw: {
                         value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
@@ -901,7 +766,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     op_return_raw: {
                         value: 'notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
@@ -924,7 +788,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '500', error: false },
                     op_return_raw: {
@@ -949,7 +812,6 @@ export default {
                     address: {
                         value: 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv',
                         error: false,
-                        isAlias: false,
                     },
                     amount: { value: '110', error: false },
                     op_return_raw: {
@@ -981,7 +843,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     queryString: {
                         value: '*&@^&%@amount=-500000',
@@ -1001,7 +862,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111',
@@ -1020,7 +880,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     queryString: {
                         value: 'token_decimalized_qty=100.123',
@@ -1039,7 +898,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
@@ -1058,7 +916,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     token_id: {
                         value: 'gg11111111111111111111111111111111111111111111111111111111111111',
@@ -1082,7 +939,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     token_id: {
                         value: '1111111111111111111111111111111111111111111111111111111111111111',
@@ -1109,7 +965,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     token_id: {
                         value: '1111111111111111111111111111111111111111111111111111111111111111',
@@ -1136,7 +991,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     token_id: {
                         value: '1111111111111111111111111111111111111111111111111111111111111111',
@@ -1164,7 +1018,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     amount: {
                         value: null,
@@ -1186,7 +1039,6 @@ export default {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
-                        isAlias: false,
                     },
                     op_return_raw: {
                         error: 'Duplicated op_return_raw param',
@@ -1272,14 +1124,14 @@ export default {
                 isValid: false,
             },
             {
-                description: 'Valid alias formats are accepted',
+                description: 'Valid alias formats are not accepted',
                 contactList: [
                     {
                         address: 'beta.xec',
                         name: 'Test',
                     },
                 ],
-                isValid: true,
+                isValid: false,
             },
         ],
     },

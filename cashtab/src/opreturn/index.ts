@@ -2,22 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
+import { encodeCashAddress } from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
-import {
-    isValidTokenId,
-    meetsAliasSpec,
-    getOpReturnRawError,
-} from 'validation';
+import { isValidTokenId, getOpReturnRawError } from 'validation';
 import { getStackArray } from 'ecash-script';
-import {
-    Script,
-    pushBytesOp,
-    OP_RETURN,
-    OP_0,
-    fromHex,
-    TxOutput,
-} from 'ecash-lib';
+import { Script, pushBytesOp, OP_RETURN, fromHex, TxOutput } from 'ecash-lib';
 import { AddressType } from 'ecashaddrjs/dist/types';
 
 /**
@@ -254,87 +243,6 @@ export const getAirdropTargetOutput = (
 
     // Create output
     return { value: 0, script };
-};
-
-/**
- * Generate an OP_RETURN targetOutput for use in broadcasting a v0 alias registration
- *
- * @param alias
- * @param address
- * @throws validation errors on alias or address
- * @returns targetOutput ready for transaction building, see sendXec function at src/transactions
- */
-export const getAliasTargetOutput = (
-    alias: string,
-    address: string,
-): TxOutput => {
-    const aliasMeetsSpec = meetsAliasSpec(alias);
-    if (meetsAliasSpec(alias) !== true) {
-        throw new Error(`Invalid alias "${alias}": ${aliasMeetsSpec}`);
-    }
-
-    // Get the type and hash of the address in string format
-    let decoded;
-    try {
-        decoded = decodeCashAddress(address);
-    } catch (err) {
-        throw new Error(`Invalid address "${address}"`);
-    }
-    const { type, hash } = decoded;
-
-    // Determine address type and corresponding address version byte
-    let addressVersionByte;
-    // Version bytes per cashaddr spec,https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/cashaddr.md
-    if (type === 'p2pkh') {
-        addressVersionByte = '00'; // one byte 0 in hex
-    } else if (type === 'p2sh') {
-        addressVersionByte = '08'; // one byte 8 in hex
-    } else {
-        throw new Error(
-            `Unsupported address type ${type}. Only p2pkh and p2sh addresses are supported.`,
-        );
-    }
-
-    const script = Script.fromOps([
-        OP_RETURN,
-        // LOKAD
-        pushBytesOp(
-            Buffer.from(opReturn.appPrefixesHex.aliasRegistration, 'hex'),
-        ),
-        // alias protocol tx version to stack as OP_0 per spec
-        OP_0,
-        // utf-8 encoded alias
-        pushBytesOp(Buffer.from(alias, 'utf8')),
-        // spec-encoded registration address as <addressVersionByte> and <addressPayload>
-        pushBytesOp(Buffer.from(`${addressVersionByte}${hash}`, 'hex')),
-    ]);
-
-    // Create output
-    return { value: 0, script };
-};
-
-/**
- * Calculates the bytecount of the alias input
- *
- * @param alias alias input from a text input field
- * @returns aliasInputByteSize the byte size of the alias input
- */
-export const getAliasByteCount = (alias: string): number => {
-    if (typeof alias !== 'string') {
-        // Make sure .trim() is available
-        throw new Error('alias input must be a string');
-    }
-    // Do not validate the specific alias as the user may type in invalid aliases
-    // We still want to return a size
-    if (alias.trim() === '') {
-        return 0;
-    }
-
-    // Get alias as utf8
-    const aliasUtf8Hex = Buffer.from(alias, 'utf8');
-
-    // Return bytecount
-    return aliasUtf8Hex.length;
 };
 
 /**

@@ -13,7 +13,6 @@ import {
     WalletIcon,
     ContactsIcon,
     ThemedSignAndVerifyMsg,
-    ThemedUserProfileIcon,
     TokensIcon,
     RewardIcon,
     NftIcon,
@@ -31,7 +30,6 @@ import Airdrop from 'components/Airdrop';
 import BackupWallet from 'components/BackupWallet/BackupWallet';
 import Contacts from 'components/Contacts';
 import Wallets from 'components/Wallets';
-import Alias from 'components/Alias/Alias';
 import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
@@ -50,7 +48,6 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import TabCash from 'assets/tabcash.png';
 import { hasEnoughToken } from 'wallet';
 import ServiceWorkerWrapper from 'components/Common/ServiceWorkerWrapper';
-import aliasSettings from 'config/alias';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
 import ExtensionHeader from 'components/Common/ExtensionHeader';
@@ -268,12 +265,6 @@ const App = () => {
                                                     path="/signverifymsg"
                                                     element={<SignVerifyMsg />}
                                                 />
-                                                {aliasSettings.aliasEnabled && (
-                                                    <Route
-                                                        path="/alias"
-                                                        element={<Alias />}
-                                                    />
-                                                )}
                                                 <Route
                                                     path="/configure"
                                                     element={<Configure />}
@@ -443,18 +434,6 @@ const App = () => {
                                         <p>Sign & Verify</p>
                                         <ThemedSignAndVerifyMsg />
                                     </NavItem>
-                                    {aliasSettings.aliasEnabled && (
-                                        <NavItem
-                                            active={
-                                                location.pathname === '/alias'
-                                            }
-                                            onClick={() => navigate('/alias')}
-                                        >
-                                            {' '}
-                                            <p>Alias</p>
-                                            <ThemedUserProfileIcon />
-                                        </NavItem>
-                                    )}
                                     <NavItem
                                         active={
                                             location.pathname === '/configure'

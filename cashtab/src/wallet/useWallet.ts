@@ -19,9 +19,7 @@ import {
     getTokenBalances,
     getTokenGenesisInfo,
 } from 'chronik';
-import { queryAliasServer, AliasPrices, AddressAliasStatus } from 'alias';
 import appConfig from 'config/app';
-import aliasSettings from 'config/alias';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import CashtabSettings, {
     supportedFiatCurrencies,
@@ -43,7 +41,6 @@ import {
     hasUnfinalizedTxsInHistory,
     CashtabWallet,
     LegacyCashtabWallet,
-    CashtabPathInfo,
 } from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
@@ -70,13 +67,6 @@ export interface UseWalletReturnType {
     cashtabLoaded: boolean;
     loading: boolean;
     apiError: boolean;
-    refreshAliases: (address: string) => Promise<void>;
-    aliases: AddressAliasStatus;
-    setAliases: React.Dispatch<React.SetStateAction<AddressAliasStatus>>;
-    aliasServerError: false | string;
-    setAliasServerError: React.Dispatch<React.SetStateAction<false | string>>;
-    aliasPrices: null | AliasPrices;
-    setAliasPrices: React.Dispatch<React.SetStateAction<null | AliasPrices>>;
     updateCashtabState: (
         key: string,
         value:
@@ -92,7 +82,6 @@ export interface UseWalletReturnType {
         msg: WsMsgClient,
         cashtabState: CashtabState,
         fiatPrice: null | number,
-        aliasesEnabled: boolean,
     ) => Promise<boolean>;
     cashtabState: CashtabState;
 }
@@ -105,16 +94,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [checkFiatInterval, setCheckFiatInterval] =
         useState<null | NodeJS.Timeout>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [aliases, setAliases] = useState<AddressAliasStatus>({
-        registered: [],
-        pending: [],
-    });
-    const [aliasPrices, setAliasPrices] = useState<null | AliasPrices>(null);
-    const [aliasServerError, setAliasServerError] = useState<false | string>(
-        false,
-    );
-    const [aliasIntervalId, setAliasIntervalId] =
-        useState<null | NodeJS.Timeout>(null);
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState<CashtabState>(
         new CashtabState(),
@@ -651,12 +630,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // Set or update the onMessage handler
         // We can only set this when wallet is defined, so we do not set it in loadCashtabState
         ws.onMessage = msg => {
-            processChronikWsMsg(
-                msg,
-                cashtabState,
-                fiatPrice,
-                aliasSettings.aliasEnabled,
-            );
+            processChronikWsMsg(msg, cashtabState, fiatPrice);
         };
 
         // Check if current subscriptions match current wallet
@@ -710,7 +684,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         msg: WsMsgClient,
         cashtabState: CashtabState,
         fiatPrice: null | number,
-        aliasesEnabled: boolean,
     ) => {
         if (!('msgType' in msg)) {
             // No processing chronik error msgs
@@ -729,37 +702,11 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             return;
         }
 
-        // when new blocks are found, refresh alias prices
         if (msgType === 'BLK_FINALIZED') {
             // Handle avalanche finalized block
             const { blockHeight } = msg;
             // Set chaintip height
             setChaintipBlockheight(blockHeight);
-
-            if (aliasesEnabled) {
-                try {
-                    const aliasPricesResp = await queryAliasServer('prices');
-                    if (!aliasPricesResp || !('prices' in aliasPricesResp)) {
-                        throw new Error(
-                            'Invalid response from alias prices endpoint',
-                        );
-                    }
-
-                    // Only refresh alias prices if new tiers have been published.
-                    // The 'prices' API tracks historical pricing via an array of 'prices[].fees'.
-                    // Therefore a pricing update can be identified as a length change to the 'prices' object.
-                    if (
-                        aliasPrices &&
-                        aliasPrices.prices.length ===
-                            aliasPricesResp.prices.length
-                    ) {
-                        return;
-                    }
-                    setAliasPrices(aliasPricesResp);
-                } catch (err) {
-                    setAliasServerError(`${err}`);
-                }
-            }
 
             // If you have unfinalized txs in tx history,
             // Update cashtab state on avalanche finalized block
@@ -959,44 +906,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         return setFiatPrice(null);
     };
 
-    /**
-     * Retrieve registered and pending aliases for this active wallet from alias-server
-     * and stores them in the aliases state var for other components to access
-     * @param {string} thisAddress the address to be queried for attached aliases
-     */
-    const refreshAliases = async (thisAddress: string) => {
-        try {
-            const aliasesForThisAddress = await queryAliasServer(
-                'address',
-                thisAddress,
-            );
-            setAliases({
-                registered: (
-                    aliasesForThisAddress as AddressAliasStatus
-                ).registered.sort((a, b) => a.alias.localeCompare(b.alias)),
-                pending: (
-                    aliasesForThisAddress as AddressAliasStatus
-                ).pending.sort((a, b) => a.alias.localeCompare(b.alias)),
-            });
-            setAliasServerError(false);
-            // Clear interval if there are no pending aliases
-            if (
-                (aliasesForThisAddress as AddressAliasStatus).pending.length ===
-                    0 &&
-                aliasIntervalId
-            ) {
-                console.info(
-                    `refreshAliases(): No pending aliases, clearing interval ${aliasIntervalId}`,
-                );
-                clearInterval(aliasIntervalId);
-            }
-        } catch (err) {
-            const errorMsg = 'Error: Unable to retrieve aliases';
-            console.error(`refreshAliases(): ${errorMsg}`, err);
-            setAliasServerError(errorMsg);
-        }
-    };
-
     const cashtabBootup = async () => {
         await loadCashtabState();
     };
@@ -1119,49 +1028,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         updateWebsocket(cashtabState, fiatPrice);
     }, [cashtabState, fiatPrice, ws, cashtabLoaded]);
 
-    /**
-     * Set an interval to monitor pending alias txs
-     * @param {string} address
-     * @returns callback function to cleanup interval
-     */
-    const refreshAliasesOnStartup = async (address: string) => {
-        // Initial refresh to ensure `aliases` state var is up to date
-        await refreshAliases(address);
-        const aliasRefreshInterval = 30000;
-        const intervalId = setInterval(async function () {
-            if (aliases?.pending?.length > 0) {
-                await refreshAliases(address);
-            }
-        }, aliasRefreshInterval);
-        setAliasIntervalId(intervalId);
-        // Clear the interval when useWallet unmounts
-        return () => clearInterval(intervalId);
-    };
-
-    useEffect(() => {
-        if (
-            aliasSettings.aliasEnabled &&
-            aliases?.pending?.length > 0 &&
-            aliasIntervalId === null &&
-            typeof cashtabState.wallets !== 'undefined' &&
-            cashtabState.wallets.length > 0
-        ) {
-            // If
-            // 1) aliases are enabled in Cashtab
-            // 2) we have pending aliases
-            // 3) No interval is set to watch these pending aliases
-            // 4) We have an active wallet
-            // Set an interval to watch these pending aliases
-            refreshAliasesOnStartup(
-                (cashtabState.wallets[0].paths.get(1899) as CashtabPathInfo)
-                    .address,
-            );
-        } else if (aliases?.pending?.length === 0 && aliasIntervalId !== null) {
-            // If we have no pending aliases but we still have an interval to check them, clearInterval
-            clearInterval(aliasIntervalId);
-        }
-    }, [cashtabState.wallets[0]?.name, aliases]);
-
     return {
         chronik,
         agora,
@@ -1171,13 +1037,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         cashtabLoaded,
         loading,
         apiError,
-        refreshAliases,
-        aliases,
-        setAliases,
-        aliasServerError,
-        setAliasServerError,
-        aliasPrices,
-        setAliasPrices,
         updateCashtabState,
         processChronikWsMsg,
         cashtabState,

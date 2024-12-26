@@ -7,7 +7,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { when } from 'jest-when';
-import aliasSettings from 'config/alias';
 import { explorer } from 'config/explorer';
 import {
     initializeCashtabStateForTests,
@@ -38,8 +37,6 @@ const SEND_TOKEN_BALANCE =
 // These could change, which would break tests, which is expected behavior if we haven't
 // updated tests properly on changing the app
 const SEND_ADDRESS_VALIDATION_ERRORS_TOKEN = [
-    `Aliases must end with '.xec'`,
-    'eCash Alias does not exist or yet to receive 1 confirmation',
     'Invalid address',
     'eToken sends do not support bip21 query strings',
 ];
@@ -300,74 +297,6 @@ describe('<Token />', () => {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
     });
-    it('Accepts a valid alias', async () => {
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                ecc={ecc}
-                route={`/token/${SEND_TOKEN_TOKENID}`}
-            />,
-        );
-
-        // Wait for element to get token info and load
-        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
-
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
-            'checked',
-            true,
-        );
-
-        // Click Send
-        await user.click(await screen.findByTitle('Toggle Send'));
-
-        const addressInputEl = screen.getByPlaceholderText(/Address/);
-
-        const alias = 'twelvechar12';
-        const expectedResolvedAddress =
-            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue({
-                json: () =>
-                    Promise.resolve({
-                        alias: 'twelvechar12',
-                        address: expectedResolvedAddress,
-                        txid: '166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
-                        blockheight: 792419,
-                    }),
-            });
-
-        // The user enters a valid alias
-        const addressInput = 'twelvechar12.xec';
-        await user.type(addressInputEl, addressInput);
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS_TOKEN) {
-            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
-        }
-        // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS_TOKEN) {
-            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
-        }
-
-        // The alias address preview renders the expected address preview
-        expect(
-            screen.getByText(
-                `${expectedResolvedAddress.slice(
-                    0,
-                    10,
-                )}...${expectedResolvedAddress.slice(-5)}`,
-            ),
-        ).toBeInTheDocument();
-    });
     it('Displays a validation error for an invalid address', async () => {
         render(
             <CashtabTestWrapper
@@ -400,144 +329,6 @@ describe('<Token />', () => {
 
         // We get the expected error
         expect(screen.getByText('Invalid address')).toBeInTheDocument();
-    });
-    it('Displays a validation error for an alias without .xec suffix', async () => {
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                ecc={ecc}
-                route={`/token/${SEND_TOKEN_TOKENID}`}
-            />,
-        );
-
-        // Wait for element to get token info and load
-        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
-
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
-            'checked',
-            true,
-        );
-
-        // Click Send
-        await user.click(await screen.findByTitle('Toggle Send'));
-
-        const addressInputEl = screen.getByPlaceholderText(/Address/);
-
-        // The user enters a potentially valid alias without .xec suffix
-        const addressInput = 'chicken';
-        await user.type(addressInputEl, addressInput);
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // We get the expected error
-        expect(
-            screen.getByText(`Aliases must end with '.xec'`),
-        ).toBeInTheDocument();
-    });
-    it('Displays a validation error for valid alias that has not yet been registered', async () => {
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                ecc={ecc}
-                route={`/token/${SEND_TOKEN_TOKENID}`}
-            />,
-        );
-
-        // Wait for element to get token info and load
-        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
-
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
-            'checked',
-            true,
-        );
-
-        // Click Send
-        await user.click(await screen.findByTitle('Toggle Send'));
-
-        const addressInputEl = screen.getByPlaceholderText(/Address/);
-
-        const alias = 'notregistered';
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue({
-                json: () =>
-                    Promise.resolve({
-                        alias: 'notregistered',
-                        isRegistered: false,
-                        pending: [],
-                        registrationFeeSats: 551,
-                        processedBlockheight: 827598,
-                    }),
-            });
-
-        // The user enters a valid alias
-        const addressInput = `${alias}.xec`;
-        await user.type(addressInputEl, addressInput);
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // We get the expected error
-        expect(
-            screen.getByText(
-                `eCash Alias does not exist or yet to receive 1 confirmation`,
-            ),
-        ).toBeInTheDocument();
-    });
-    it('Displays expected error if alias server gives a bad response', async () => {
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                ecc={ecc}
-                route={`/token/${SEND_TOKEN_TOKENID}`}
-            />,
-        );
-
-        // Wait for element to get token info and load
-        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
-
-        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Sale
-        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
-            'checked',
-            true,
-        );
-
-        // Click Send
-        await user.click(await screen.findByTitle('Toggle Send'));
-
-        const addressInputEl = screen.getByPlaceholderText(/Address/);
-
-        const alias = 'servererror';
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue({
-                json: () => Promise.reject(new Error('some error')),
-            });
-
-        // The user enters a valid alias
-        const addressInput = `${alias}.xec`;
-        await user.type(addressInputEl, addressInput);
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // We get the expected error
-        expect(
-            screen.getByText(
-                `Error resolving alias at indexer, contact admin.`,
-            ),
-        ).toBeInTheDocument();
     });
     it('Displays a validation error if the user includes any query string', async () => {
         render(

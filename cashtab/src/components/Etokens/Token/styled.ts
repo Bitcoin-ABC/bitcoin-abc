@@ -113,12 +113,6 @@ export const TokenSentLink = styled.a`
     color: ${props => props.theme.toastText};
     text-decoration: none;
 `;
-export const AliasAddressPreviewLabel = styled.div`
-    text-align: center;
-    color: ${props => props.theme.primaryText};
-    padding-left: 1px;
-    white-space: nowrap;
-`;
 
 export const ButtonDisabledMsg = styled.div`
     font-size: 14px;

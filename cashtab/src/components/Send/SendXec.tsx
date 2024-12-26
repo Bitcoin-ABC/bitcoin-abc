@@ -27,13 +27,7 @@ import {
     CashtabParsedAddressInfo,
     isValidTokenSendOrBurnAmount,
 } from 'validation';
-import {
-    ConvertAmount,
-    Alert,
-    AlertMsg,
-    TxLink,
-    Info,
-} from 'components/Common/Atoms';
+import { ConvertAmount, Alert, AlertMsg, Info } from 'components/Common/Atoms';
 import {
     sendXec,
     getMultisendTargetOutputs,
@@ -52,10 +46,8 @@ import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
-import { Alias, queryAliasServer } from 'alias';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
-import aliasSettings from 'config/alias';
 import { isMobile, getUserLocale } from 'helpers';
 import { hasEnoughToken, fiatToSatoshis } from 'wallet';
 import { toast } from 'react-toastify';
@@ -116,13 +108,6 @@ const SentLink = styled.a`
     text-decoration: none;
 `;
 
-const AliasAddressPreviewLabel = styled.div`
-    text-align: center;
-    color: ${props => props.theme.primaryText};
-    padding-left: 1px;
-    white-space: nowrap;
-`;
-
 const AmountPreviewCtn = styled.div`
     margin: 12px;
     display: flex;
@@ -160,10 +145,6 @@ const SendToOneInputForm = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
-`;
-const InputAndAliasPreviewHolder = styled.div`
-    displaly: flex;
-    flex-direction: column;
 `;
 
 const InputModesHolder = styled.div<{ open: boolean }>`
@@ -303,9 +284,6 @@ const SendXec: React.FC = () => {
     const [cashtabMsgError, setCashtabMsgError] = useState<string | false>(
         false,
     );
-    const [aliasInputAddress, setAliasInputAddress] = useState<string | false>(
-        false,
-    );
     const [selectedCurrency, setSelectedCurrency] = useState<string>(
         appConfig.ticker,
     );
@@ -343,7 +321,6 @@ const SendXec: React.FC = () => {
         address: {
             value: null | string;
             error: false | string;
-            isAlias: boolean;
         };
         parsedAdditionalXecOutputs: {
             value: [string, string][];
@@ -372,7 +349,6 @@ const SendXec: React.FC = () => {
         address: {
             value: string;
             error: false;
-            isAlias: boolean;
         };
         token_id: {
             value: string;
@@ -423,7 +399,6 @@ const SendXec: React.FC = () => {
     const userLocale = getUserLocale(navigator);
     const clearInputForms = () => {
         setFormData(emptyFormData);
-        setAliasInputAddress(false); // clear alias address preview
         setParsedAddressInput(parseAddressInput('', 0));
         // Reset to XEC
         // Note, this ensures we never are in fiat send mode for multi-send
@@ -773,14 +748,8 @@ const SendXec: React.FC = () => {
             Event('Send.js', 'SendToMany', selectedCurrency);
         } else {
             // Handle XEC send to one address
-            let cleanAddress;
-            // check state on whether this is an alias or ecash address
-            if (aliasInputAddress) {
-                cleanAddress = aliasInputAddress;
-            } else {
-                // Get the non-alias param-free address
-                cleanAddress = formData.address.split('?')[0];
-            }
+            const cleanAddress = formData.address.split('?')[0];
+
             const satoshisToSend =
                 selectedCurrency === 'XEC'
                     ? toSatoshis(parseFloat(formData.amount))
@@ -860,7 +829,6 @@ const SendXec: React.FC = () => {
             // Clear tokenIdQueryError if we have one
             setTokenIdQueryError(false);
         }
-        setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         const parsedAddressInput = parseAddressInput(
             value,
@@ -872,7 +840,6 @@ const SendXec: React.FC = () => {
         // For example, a valid amount param should disable user amount input
         setParsedAddressInput(parsedAddressInput);
 
-        const address = parsedAddressInput.address.value;
         let renderedSendToError = parsedAddressInput.address.error;
         if (
             typeof parsedAddressInput.queryString !== 'undefined' &&
@@ -880,35 +847,6 @@ const SendXec: React.FC = () => {
         ) {
             // If you have a bad queryString, this should be the rendered error
             renderedSendToError = parsedAddressInput.queryString.error;
-        } else if (
-            parsedAddressInput.address.isAlias &&
-            parsedAddressInput.address.error === false &&
-            address !== null
-        ) {
-            // If we have a valid alias input, check the server for full validation
-            // extract alias without the `.xec`
-            const aliasName = address.slice(0, address.length - 4);
-
-            // retrieve the alias details for `aliasName` from alias-server
-            let aliasDetails: Alias;
-            try {
-                aliasDetails = (await queryAliasServer(
-                    'alias',
-                    aliasName,
-                )) as Alias;
-                if (!aliasDetails.address) {
-                    renderedSendToError =
-                        'eCash Alias does not exist or yet to receive 1 confirmation';
-                    setAliasInputAddress(false);
-                } else {
-                    // Valid address response returned
-                    setAliasInputAddress(aliasDetails.address);
-                }
-            } catch (err) {
-                setAliasInputAddress(false);
-                renderedSendToError =
-                    'Error resolving alias at indexer, contact admin.';
-            }
         }
 
         // Handle errors in op_return_raw as an address error if no other error is set
@@ -1350,34 +1288,15 @@ const SendXec: React.FC = () => {
             <InputModesHolder open={isOneToManyXECSend}>
                 <SendToOneHolder>
                     <SendToOneInputForm>
-                        <InputAndAliasPreviewHolder>
-                            <InputWithScanner
-                                placeholder={
-                                    aliasSettings.aliasEnabled
-                                        ? `Address or Alias`
-                                        : `Address`
-                                }
-                                name="address"
-                                value={formData.address}
-                                disabled={txInfoFromUrl !== false}
-                                handleInput={handleAddressChange}
-                                error={sendAddressError}
-                                loadWithScannerOpen={openWithScanner}
-                            />
-                            <AliasAddressPreviewLabel>
-                                <TxLink
-                                    href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    {aliasInputAddress &&
-                                        `${aliasInputAddress.slice(
-                                            0,
-                                            10,
-                                        )}...${aliasInputAddress.slice(-5)}`}
-                                </TxLink>
-                            </AliasAddressPreviewLabel>
-                        </InputAndAliasPreviewHolder>
+                        <InputWithScanner
+                            placeholder={'Address'}
+                            name="address"
+                            value={formData.address}
+                            disabled={txInfoFromUrl !== false}
+                            handleInput={handleAddressChange}
+                            error={sendAddressError}
+                            loadWithScannerOpen={openWithScanner}
+                        />
                         {isBip21MultipleOutputsSafe(parsedAddressInput) ? (
                             <Info>
                                 <b>

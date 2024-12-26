@@ -10,7 +10,7 @@ import PrimaryButton, {
     IconButton,
     CopyIconButton,
 } from 'components/Common/Buttons';
-import { TxLink, SwitchLabel, Info, Alert } from 'components/Common/Atoms';
+import { SwitchLabel, Info, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Event } from 'components/Common/GoogleAnalytics';
@@ -29,8 +29,6 @@ import { formatDate, getFormattedFiatPrice } from 'utils/formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
 import { token as tokenConfig } from 'config/token';
-import { queryAliasServer, Alias } from 'alias';
-import aliasSettings from 'config/alias';
 import { isValidCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { isMobile, getUserLocale } from 'helpers';
@@ -99,7 +97,6 @@ import {
     TokenStatsLabel,
     SwitchHolder,
     TokenSentLink,
-    AliasAddressPreviewLabel,
     InfoModalParagraph,
     ButtonDisabledMsg,
     ButtonDisabledSpan,
@@ -308,9 +305,6 @@ const Token: React.FC = () => {
     >(false);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState<string>('');
-    const [aliasInputAddress, setAliasInputAddress] = useState<false | string>(
-        false,
-    );
     const [selectedCurrency, setSelectedCurrency] = useState<string>(
         appConfig.ticker,
     );
@@ -754,7 +748,6 @@ const Token: React.FC = () => {
     // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
         setFormData(emptyFormData);
-        setAliasInputAddress(false); // clear alias address preview
     };
 
     async function sendToken() {
@@ -763,14 +756,7 @@ const Token: React.FC = () => {
 
         const { address, amount } = formData;
 
-        let cleanAddress: string;
-        // check state on whether this is an alias or ecash address
-        if (aliasInputAddress) {
-            cleanAddress = aliasInputAddress;
-        } else {
-            // Get the non-alias param-free address
-            cleanAddress = address.split('?')[0];
-        }
+        const cleanAddress = address.split('?')[0];
 
         try {
             // Get input utxos for slpv1 or ALP send tx
@@ -968,7 +954,6 @@ const Token: React.FC = () => {
     const handleTokenAddressChange = async (
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
-        setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         // validate for token address
         // validate for parameters
@@ -994,38 +979,6 @@ const Token: React.FC = () => {
             // If address is a valid eToken address, no error
             // We support sending to etoken: addresses on SendToken screen
             renderedError = false;
-        } else if (
-            typeof address === 'string' &&
-            parsedAddressInput.address.isAlias &&
-            parsedAddressInput.address.error === false
-        ) {
-            // if input is a valid alias (except for server validation check)
-
-            // extract alias without the `.xec`
-            const aliasName = address.slice(0, address.length - 4);
-
-            // retrieve the alias details for `aliasName` from alias-server
-            let aliasDetails: Alias;
-            try {
-                aliasDetails = (await queryAliasServer(
-                    'alias',
-                    aliasName,
-                )) as Alias;
-                if (!aliasDetails.address) {
-                    renderedError =
-                        'eCash Alias does not exist or yet to receive 1 confirmation';
-                } else {
-                    // Valid address response returned
-                    setAliasInputAddress(aliasDetails.address);
-                }
-            } catch (err) {
-                console.error(
-                    `handleTokenAddressChange(): error retrieving alias`,
-                    err,
-                );
-                renderedError =
-                    'Error resolving alias at indexer, contact admin.';
-            }
         }
 
         setSendTokenAddressError(renderedError);
@@ -2918,11 +2871,7 @@ const Token: React.FC = () => {
                                                     <SendTokenFormRow>
                                                         <InputRow>
                                                             <InputWithScanner
-                                                                placeholder={
-                                                                    aliasSettings.aliasEnabled
-                                                                        ? `Address or Alias`
-                                                                        : `Address`
-                                                                }
+                                                                placeholder={`Address`}
                                                                 name="address"
                                                                 value={
                                                                     formData.address
@@ -2937,21 +2886,6 @@ const Token: React.FC = () => {
                                                                     openWithScanner
                                                                 }
                                                             />
-                                                            <AliasAddressPreviewLabel>
-                                                                <TxLink
-                                                                    href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                >
-                                                                    {aliasInputAddress &&
-                                                                        `${aliasInputAddress.slice(
-                                                                            0,
-                                                                            10,
-                                                                        )}...${aliasInputAddress.slice(
-                                                                            -5,
-                                                                        )}`}
-                                                                </TxLink>
-                                                            </AliasAddressPreviewLabel>
                                                         </InputRow>
                                                     </SendTokenFormRow>
                                                     {!isNftChild && (

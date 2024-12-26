@@ -80,10 +80,6 @@ export const ThemedSignAndVerifyMsg = styled(Audit)`
     min-width: 24px;
 `;
 
-export const ThemedUserProfileIcon = styled(User)`
-    height: 33px;
-    width: 30px;
-`;
 export const SocialContainer = styled.div`
     margin: auto;
     display: flex;
@@ -115,12 +111,6 @@ export const ThemedXIcon = styled(XLogo)`
 export const ThemedFacebookIcon = styled(Facebook)`
     height: 42px;
     width: 100%;
-`;
-
-export const ThemedAliasOutlined = styled(User)`
-    fill: ${props => props.theme.primaryText} !important;
-    height: 12px;
-    width: 12px;
 `;
 
 export const LoadingBlock = styled.div`

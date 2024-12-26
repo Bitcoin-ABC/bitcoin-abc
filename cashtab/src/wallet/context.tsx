@@ -21,13 +21,6 @@ export function isWalletContextLoaded(
         'cashtabLoaded' in context &&
         'loading' in context &&
         'apiError' in context &&
-        'refreshAliases' in context &&
-        'aliases' in context &&
-        'setAliases' in context &&
-        'aliasServerError' in context &&
-        'setAliasServerError' in context &&
-        'aliasPrices' in context &&
-        'setAliasPrices' in context &&
         'updateCashtabState' in context &&
         'processChronikWsMsg' in context &&
         'cashtabState' in context
@@ -43,13 +36,6 @@ interface NullDefaultUseWalletReturnType {
     cashtabLoaded: undefined;
     loading: undefined;
     apiError: undefined;
-    refreshAliases: undefined;
-    aliases: undefined;
-    setAliases: undefined;
-    aliasServerError: undefined;
-    setAliasServerError: undefined;
-    aliasPrices: undefined;
-    setAliasPrices: undefined;
     updateCashtabState: undefined;
     processChronikWsMsg: undefined;
     cashtabState: undefined;
@@ -64,13 +50,6 @@ const nullDefaultUseWalletReturnType: NullDefaultUseWalletReturnType = {
     cashtabLoaded: undefined,
     loading: undefined,
     apiError: undefined,
-    refreshAliases: undefined,
-    aliases: undefined,
-    setAliases: undefined,
-    aliasServerError: undefined,
-    setAliasServerError: undefined,
-    aliasPrices: undefined,
-    setAliasPrices: undefined,
     updateCashtabState: undefined,
     processChronikWsMsg: undefined,
     cashtabState: undefined,

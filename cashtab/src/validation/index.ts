@@ -21,8 +21,6 @@ import tokenBlacklist from 'config/tokenBlacklist';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
-import aliasSettings from 'config/alias';
-import { getAliasByteCount } from 'opreturn';
 import { CashtabWallet, fiatToSatoshis } from 'wallet';
 import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
@@ -52,50 +50,6 @@ export const getContactAddressError = (
         }
     }
     return false;
-};
-/**
- * Does a given string meet the spec of a valid ecash alias
- * See spec a doc/standards/ecash-alias.md
- * Note that an alias is only "valid" if it has been registered
- * So here, we are only testing spec compliance
- * @param  inputStr
- * @returns true if isValid, string for reason why if not
- */
-export const meetsAliasSpec = (inputStr: string): true | string => {
-    if (typeof inputStr !== 'string') {
-        return 'Alias input must be a string';
-    }
-    if (!/^[a-z0-9]+$/.test(inputStr)) {
-        return 'Alias may only contain lowercase characters a-z and 0-9';
-    }
-    const aliasByteCount = getAliasByteCount(inputStr);
-    if (aliasByteCount > aliasSettings.aliasMaxLength) {
-        return `Invalid bytecount ${aliasByteCount}. Alias be 1-21 bytes.`;
-    }
-    return true;
-};
-
-/**
- * Validate user input of an alias for cases that require the .xec suffix
- * Note this only validates the format according to spec and requirements
- * Must validate with indexer for associated ecash address before a tx is broadcast
- * @param sendToAliasInput
- */
-export const isValidAliasSendInput = (
-    sendToAliasInput: string,
-): true | string => {
-    // To send to an alias, a user must include the '.xec' extension
-    // This is to prevent confusion with alias platforms on other crypto networks
-    const aliasParts = sendToAliasInput.split('.');
-    const aliasName = aliasParts[0];
-    const aliasMeetsSpec = meetsAliasSpec(aliasName);
-    if (aliasMeetsSpec !== true) {
-        return aliasMeetsSpec;
-    }
-    if (aliasParts.length !== 2 || aliasParts[1] !== 'xec') {
-        return `Must include '.xec' suffix when sending to an eCash alias`;
-    }
-    return true;
 };
 
 export const validateMnemonic = (
@@ -326,8 +280,7 @@ export const isValidContactList = (contactList: CashtabContact[]): boolean => {
             // Address must be a valid XEC address, name must be a string
             const { address, name } = contact;
             if (
-                (isValidCashAddress(address, appConfig.prefix) ||
-                    isValidAliasSendInput(address)) &&
+                isValidCashAddress(address, appConfig.prefix) &&
                 typeof name === 'string'
             ) {
                 // This contact is valid
@@ -649,7 +602,7 @@ export const shouldSendXecBeDisabled = (
 };
 
 export interface CashtabParsedAddressInfo {
-    address: { value: null | string; error: false | string; isAlias: boolean };
+    address: { value: null | string; error: false | string };
     amount?: { value: null | string; error: false | string };
     queryString?: { value: string; error: false | string };
     parsedAdditionalXecOutputs?: {
@@ -681,7 +634,7 @@ export function parseAddressInput(
 ): CashtabParsedAddressInfo {
     // Build return obj
     const parsedAddressInput: CashtabParsedAddressInfo = {
-        address: { value: null, error: false, isAlias: false },
+        address: { value: null, error: false },
     };
 
     // Reject non-string input
@@ -702,23 +655,14 @@ export function parseAddressInput(
     // Validate address
     const isValidAddr = isValidCashAddress(cleanAddress, appConfig.prefix);
 
-    // Is this valid address?
     if (!isValidAddr) {
-        // Check if this is an alias address
-        if (isValidAliasSendInput(cleanAddress) !== true) {
-            if (meetsAliasSpec(cleanAddress) === true) {
-                // If it would be a valid alias except for the missing '.xec', this is a useful validation error
-                parsedAddressInput.address.error = `Aliases must end with '.xec'`;
-                parsedAddressInput.address.isAlias = true;
-            } else if (isValidCashAddress(cleanAddress, 'etoken')) {
-                // If it is, though, a valid eToken address
-                parsedAddressInput.address.error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
-            } else {
-                // If your address is not a valid address and not a valid alias format
-                parsedAddressInput.address.error = `Invalid address`;
-            }
+        // If this is an invalid address
+        if (isValidCashAddress(cleanAddress, 'etoken')) {
+            // If this is a valid etoken address
+            parsedAddressInput.address.error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
         } else {
-            parsedAddressInput.address.isAlias = true;
+            // If your address is not a valid address and not a valid etoken address
+            parsedAddressInput.address.error = `Invalid address`;
         }
     }
 
@@ -849,14 +793,13 @@ export function parseAddressInput(
                     const nthAddress = value;
                     // address validation
                     // Note: for now, Cashtab only supports valid cash addresses for secondary outputs
-                    // TODO support aliases
                     const isValidNthAddress = isValidCashAddress(
                         nthAddress,
                         appConfig.prefix,
                     );
                     if (!isValidNthAddress) {
                         //
-                        // If your address is not a valid address and not a valid alias format
+                        // If your address is not a valid address
                         parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid address "${nthAddress}"`;
                         // We do not return a value for parsedAdditionalXecOutputs if there is a validation error
                         return parsedAddressInput;

@@ -16,8 +16,6 @@ import {
     migrateLegacyCashtabSettings,
     isValidCashtabCache,
     validateMnemonic,
-    meetsAliasSpec,
-    isValidAliasSendInput,
     isProbablyNotAScam,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
@@ -321,28 +319,6 @@ describe('Cashtab validation functions', () => {
                 expect(
                     parseAddressInput(addressInput, balanceSats, userLocale),
                 ).toStrictEqual(parsedAddressInput);
-            });
-        });
-    });
-    describe('Returns true if a given input meets alias spec or expected error msg if it does not', () => {
-        const { expectedReturns } = vectors.meetsAliasSpecInputCases;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const { description, inputStr, response } = expectedReturn;
-            it(`meetsAliasSpec: ${description}`, () => {
-                expect(meetsAliasSpec(inputStr)).toBe(response);
-            });
-        });
-    });
-    describe('Validates user alias input on Send and SendToken screens', () => {
-        const { expectedReturns } = vectors.validAliasSendInputCases;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const { description, sendToAliasInput, response } = expectedReturn;
-            it(`isValidAliasSendInput: ${description}`, () => {
-                expect(isValidAliasSendInput(sendToAliasInput)).toBe(response);
             });
         });
     });
