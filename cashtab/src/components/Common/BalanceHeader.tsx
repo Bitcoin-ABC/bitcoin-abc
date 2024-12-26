@@ -10,9 +10,8 @@ import CashtabSettings, {
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
 import { CashtabLoader } from 'components/Common/Spinner';
-import PropTypes from 'prop-types';
 
-export const BalanceXec = styled.div`
+export const BalanceXec = styled.div<{ balanceVisible: boolean }>`
     font-size: 28px;
     margin-bottom: 0px;
     font-weight: bold;
@@ -24,7 +23,7 @@ export const BalanceXec = styled.div`
         props.balanceVisible ? 'transparent' : props.theme.primaryText};
     text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
 `;
-export const BalanceFiat = styled.div`
+export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
     font-size: 16px;
     @media (max-width: 768px) {
         font-size: 16px;
@@ -43,7 +42,13 @@ const EcashPrice = styled.p`
     color: ${props => props.theme.secondaryText};
 `;
 
-const BalanceHeader = ({
+interface BalanceHeaderProps {
+    balanceSats: null | number;
+    settings: CashtabSettings;
+    fiatPrice: null | number;
+    userLocale: string;
+}
+const BalanceHeader: React.FC<BalanceHeaderProps> = ({
     balanceSats = null,
     settings = new CashtabSettings(),
     fiatPrice = null,
@@ -61,7 +66,7 @@ const BalanceHeader = ({
         formattedExchangeRate;
     if (renderBalanceHeader) {
         // Display XEC balance formatted for user's browser locale
-        balanceXec = toXec(balanceSats);
+        balanceXec = toXec(balanceSats as number);
 
         formattedBalanceXec = balanceXec.toLocaleString(userLocale, {
             minimumFractionDigits: appConfig.cashDecimals,
@@ -117,22 +122,6 @@ const BalanceHeader = ({
             )}
         </>
     );
-};
-
-BalanceHeader.propTypes = {
-    balanceSats: PropTypes.number,
-    settings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSender: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
-        }),
-        PropTypes.bool,
-    ]),
-    fiatPrice: PropTypes.number,
-    userLocale: PropTypes.string,
 };
 
 export default BalanceHeader;

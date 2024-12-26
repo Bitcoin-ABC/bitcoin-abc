@@ -4,7 +4,6 @@
 
 import * as React from 'react';
 import styled, { keyframes } from 'styled-components';
-import PropTypes from 'prop-types';
 
 // Ref https://stackoverflow.com/questions/41078478/css-animated-checkmark
 const stroke = keyframes`
@@ -35,15 +34,20 @@ const Wrapper = styled.div`
         fill: none;
     }
 `;
-const Finalized = styled.svg`
+
+// Note that we do not use the title prop
+// styled-components gives us a lint error for specifying it below if it is
+// not specified here
+// It is a prop of the component, we just happen to not have conditional style rules
+// based on this prop
+const Finalized = styled.svg<{ displayed: boolean; title: string }>`
     display: ${props => (props.displayed ? 'inherit' : 'none')};
     border-radius: 50%;
     stroke-width: 2;
     stroke: #fff;
     stroke-miterlimit: 10;
     box-shadow: inset 0px 0px 0px ${props => props.theme.accent};
-    animation:
-        ${fill} 0.4s ease-in-out 0.4s forwards,
+    animation: ${fill} 0.4s ease-in-out 0.4s forwards,
         ${scale} 0.3s ease-in-out 0.9s both;
 `;
 
@@ -64,7 +68,12 @@ const Check = styled.path`
     animation: ${stroke} 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
 `;
 
-export const AvalancheFinalized = ({ displayed = true }) => {
+interface AvalancheFinalizedProps {
+    displayed: boolean;
+}
+export const AvalancheFinalized: React.FC<AvalancheFinalizedProps> = ({
+    displayed = true,
+}) => {
     return (
         <Wrapper>
             <Finalized
@@ -78,10 +87,6 @@ export const AvalancheFinalized = ({ displayed = true }) => {
             </Finalized>
         </Wrapper>
     );
-};
-
-AvalancheFinalized.propTypes = {
-    displayed: PropTypes.bool,
 };
 
 export default AvalancheFinalized;

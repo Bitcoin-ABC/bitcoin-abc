@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const TokenBalance = styled.div`
@@ -18,26 +17,28 @@ const TokenBalance = styled.div`
     }
 `;
 
-const BalanceHeaderToken = ({
+interface BalanceHeaderTokenProps {
+    formattedDecimalizedTokenBalance: string | null;
+    name: string | undefined;
+    ticker: string | undefined;
+}
+const BalanceHeaderToken: React.FC<BalanceHeaderTokenProps> = ({
     formattedDecimalizedTokenBalance,
     name,
     ticker,
 }) => {
+    const renderedNameAndTicker =
+        typeof name !== 'undefined' && typeof ticker !== 'undefined'
+            ? `${name}${ticker !== '' ? ` (${ticker})` : ''}`
+            : '';
     return (
         <TokenBalance>
             {typeof formattedDecimalizedTokenBalance === 'string'
                 ? formattedDecimalizedTokenBalance
                 : ''}{' '}
-            {name} ({ticker})
+            {renderedNameAndTicker}
         </TokenBalance>
     );
-};
-
-// balance may be a string (XEC balance) or a BigNumber object (token balance)
-BalanceHeaderToken.propTypes = {
-    formattedDecimalizedTokenBalance: PropTypes.string,
-    name: PropTypes.string,
-    ticker: PropTypes.string,
 };
 
 export default BalanceHeaderToken;
