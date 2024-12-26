@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from 'react';
-import { WalletContext } from 'wallet/context';
+import React, { useState, useContext } from 'react';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import styled from 'styled-components';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import Seed from 'components/Common/Seed';
@@ -47,14 +47,18 @@ const SwitchRow = styled.div`
 const SwitchLabel = styled.div``;
 
 const BackupWallet = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { cashtabState } = ContextValue;
     const { wallets } = cashtabState;
 
     const userLocale = getUserLocale(navigator);
     const [showSeed, setShowSeed] = useState(false);
 
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const wallet = wallets[0];
 
     return (
         <BackupFlex>
