@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
@@ -13,11 +13,12 @@ import { SwitchHolder } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
 import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
-import OrderBook from './OrderBook';
+import OrderBook, { OrderBookInfo } from './OrderBook';
 import { token as tokenConfig } from 'config/token';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import { DogeIcon } from 'components/Common/CustomIcons';
 import { CashtabPathInfo } from 'wallet';
+import { InlineLoader } from 'components/Common/Spinner';
 
 interface CashtabActiveOffers {
     offeredFungibleTokenIds: string[];
@@ -57,6 +58,86 @@ const Agora: React.FC = () => {
         useState<null | CashtabActiveOffers>(null);
     const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
     const [manageMyOffers, setManageMyOffers] = useState<boolean>(false);
+    const orderBookInfoMapRef = useRef<Map<string, OrderBookInfo>>(new Map());
+
+    const [allOrderBooksLoaded, setAllOrderBooksLoaded] =
+        useState<boolean>(false);
+
+    interface SortSwitches {
+        byOfferCount: boolean;
+        byTokenId: boolean;
+    }
+    const sortSwitchesOff: SortSwitches = {
+        byOfferCount: false,
+        byTokenId: false,
+    };
+
+    // App loads with offers sorted by token ID, as this is the only sort available before
+    // we analyze data available from agora API calls
+    const [switches, setSwitches] = useState<SortSwitches>({
+        ...sortSwitchesOff,
+        byTokenId: true,
+    });
+
+    const sortOrderBooksByOfferCount = () => {
+        if (!orderBookInfoMapRef.current || activeOffersCashtab === null) {
+            return;
+        }
+
+        const sortedTokenIds = [
+            ...activeOffersCashtab.offeredFungibleTokenIds,
+        ].sort((a, b) => {
+            const offerCountA =
+                orderBookInfoMapRef.current.get(a)?.offerCount || 0;
+            const offerCountB =
+                orderBookInfoMapRef.current.get(b)?.offerCount || 0;
+            return offerCountB - offerCountA; // Sort by descending offer count
+        });
+
+        // Update the state with sorted token IDs
+        setActiveOffersCashtab(
+            (prev: CashtabActiveOffers | null): CashtabActiveOffers | null => {
+                if (prev === null) return null; // If prev is null, return null
+
+                return {
+                    ...prev,
+                    offeredFungibleTokenIds: sortedTokenIds,
+                };
+            },
+        );
+    };
+
+    const sortOrderBooksByTokenId = () => {
+        if (!orderBookInfoMapRef.current || activeOffersCashtab === null) {
+            return;
+        }
+
+        const sortedTokenIds = [
+            ...activeOffersCashtab.offeredFungibleTokenIds,
+        ].sort();
+
+        // Update the state with sorted token IDs
+        setActiveOffersCashtab(
+            (prev: CashtabActiveOffers | null): CashtabActiveOffers | null => {
+                if (prev === null) return null; // If prev is null, return null
+
+                return {
+                    ...prev,
+                    offeredFungibleTokenIds: sortedTokenIds,
+                };
+            },
+        );
+    };
+
+    useEffect(() => {
+        if (allOrderBooksLoaded) {
+            if (switches.byOfferCount) {
+                sortOrderBooksByOfferCount();
+            } else if (switches.byTokenId) {
+                sortOrderBooksByTokenId();
+            }
+        }
+    }, [allOrderBooksLoaded, switches]);
 
     /**
      * Specialized helper function to support use of Promise.all in adding new tokens to cache
@@ -216,6 +297,39 @@ const Agora: React.FC = () => {
         getListedTokens();
     }, [pk]);
 
+    const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (activeOffersCashtab === null) {
+            // We don't do anything here until we know how many active offers we need to load
+            return;
+        }
+        // Start the interval when the component mounts
+        intervalIdRef.current = setInterval(() => {
+            const currentSize = orderBookInfoMapRef.current.size;
+            if (
+                currentSize ===
+                activeOffersCashtab.offeredFungibleTokenIds.length
+            ) {
+                // We have loaded all offer info, can enable search using this info
+                setAllOrderBooksLoaded(true);
+
+                // Clear the interval when orderBookInfoMap is loaded
+                if (intervalIdRef.current !== null) {
+                    clearInterval(intervalIdRef.current);
+                    intervalIdRef.current = null; // Reset the ref to null
+                }
+            }
+        }, 5000); // Check every 5 seconds. This can take > 30s.
+
+        // Cleanup the interval when the component unmounts
+        return () => {
+            if (intervalIdRef.current) {
+                clearInterval(intervalIdRef.current);
+            }
+        };
+    }, [activeOffersCashtab]); // Empty dependency array ensures this effect runs once on mount
+
     return (
         <>
             {chronikQueryError ? (
@@ -249,6 +363,44 @@ const Agora: React.FC = () => {
                                     <SwitchLabel>
                                         Toggle Buy / Manage Listings
                                     </SwitchLabel>
+                                </SwitchHolder>
+
+                                <SwitchHolder>
+                                    <Switch
+                                        name="Sort by TokenId"
+                                        on=""
+                                        off=""
+                                        checked={switches.byTokenId}
+                                        handleToggle={() =>
+                                            setSwitches({
+                                                ...sortSwitchesOff,
+                                                byTokenId: true,
+                                            })
+                                        }
+                                    />
+                                    <SwitchLabel>Sort by TokenID</SwitchLabel>
+                                </SwitchHolder>
+                                <SwitchHolder>
+                                    <Switch
+                                        name="Sort by Offer Count"
+                                        on=""
+                                        off=""
+                                        disabled={!allOrderBooksLoaded}
+                                        checked={switches.byOfferCount}
+                                        handleToggle={() =>
+                                            setSwitches({
+                                                ...sortSwitchesOff,
+                                                byOfferCount: true,
+                                            })
+                                        }
+                                    />
+                                    <SwitchLabel>
+                                        Sort by Offer Count
+                                    </SwitchLabel>
+
+                                    {!allOrderBooksLoaded && (
+                                        <InlineLoader title="Loading OrderBook info..." />
+                                    )}
                                 </SwitchHolder>
 
                                 {manageMyOffers ? (
@@ -344,6 +496,9 @@ const Agora: React.FC = () => {
                                                                 agora={agora}
                                                                 chaintipBlockheight={
                                                                     chaintipBlockheight
+                                                                }
+                                                                orderBookInfoMap={
+                                                                    orderBookInfoMapRef.current
                                                                 }
                                                             />
                                                         );

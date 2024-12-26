@@ -89,6 +89,12 @@ export interface PartialOffer extends AgoraOffer {
     spotPriceNanoSatsPerTokenSat?: bigint;
 }
 
+export interface OrderBookInfo {
+    offerCount: number;
+    totalOfferedTokenSatoshis: bigint;
+    spotPriceNanoSatsPerTokenSat: bigint;
+}
+
 interface OrderBookProps {
     tokenId: string;
     cachedTokenInfo: CashtabCachedTokenInfo | undefined;
@@ -102,6 +108,7 @@ interface OrderBookProps {
     agora: Agora;
     chaintipBlockheight: number;
     noIcon?: boolean;
+    orderBookInfoMap?: Map<string, OrderBookInfo>;
 }
 const OrderBook: React.FC<OrderBookProps> = ({
     tokenId,
@@ -116,6 +123,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
     agora,
     chaintipBlockheight,
     noIcon,
+    orderBookInfoMap,
 }) => {
     const cancelOffer = async (agoraPartial: PartialOffer) => {
         // Get user fee from settings
@@ -535,8 +543,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // Also get the largest offer of all the offers. This will help us build
             // a styled orderbook.
             let deepestActiveOfferedTokens = 0n;
+            let totalOfferedTokenSatoshis = 0n;
             for (const activeOffer of activeOffers) {
                 const maxOfferTokens = BigInt(activeOffer.token.amount);
+                totalOfferedTokenSatoshis += maxOfferTokens;
                 if (maxOfferTokens > deepestActiveOfferedTokens) {
                     deepestActiveOfferedTokens = maxOfferTokens;
                 }
@@ -558,9 +568,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // This helps us to style the orderbook
             // We do not use a bignumber library because accuracy is not critical here, only used
             // for rendering depth bars
+
             for (const activeOffer of activeOffers) {
+                const thisOfferAmountTokenSatoshis = activeOffer.token.amount;
                 const depthPercent =
-                    (100 * Number(activeOffer.token.amount)) /
+                    (100 * Number(thisOfferAmountTokenSatoshis)) /
                     Number(deepestActiveOfferedTokens);
                 activeOffer.depthPercent = depthPercent;
             }
@@ -570,6 +582,16 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     Number(a.spotPriceNanoSatsPerTokenSat) -
                     Number(b.spotPriceNanoSatsPerTokenSat),
             );
+
+            // Update info map if present
+            if (typeof orderBookInfoMap !== 'undefined') {
+                orderBookInfoMap.set(tokenId, {
+                    totalOfferedTokenSatoshis,
+                    spotPriceNanoSatsPerTokenSat: activeOffers[0]
+                        .spotPriceNanoSatsPerTokenSat as bigint,
+                    offerCount: activeOffers.length,
+                });
+            }
             setActiveOffers(activeOffers);
         } catch (err) {
             console.error(`Error loading activeOffers for ${tokenId}`, err);

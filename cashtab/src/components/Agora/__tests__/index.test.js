@@ -455,6 +455,51 @@ describe('<Agora />', () => {
             ).not.toBeInTheDocument(),
         );
 
+        // Wait for Agora to load all orderBookInfo
+        await waitFor(
+            () =>
+                expect(
+                    screen.queryByTitle('Loading OrderBook info...'),
+                ).not.toBeInTheDocument(),
+            // This can take some time
+            // Fails with timeout 3000, sometimes fails with 5000
+            // May need to adjust if experience flakiness
+            { timeout: 6000 },
+        );
+
+        // When orderbook info has loaded, we see a switch to sort by offer count
+        expect(
+            await screen.findByTitle('Sort by Offer Count'),
+        ).toBeInTheDocument();
+
+        // On load, a switch indicates that the OrderBooks are sorted by tokenId
+        expect(screen.getByTitle('Sort by TokenId')).toBeChecked();
+
+        // On load, OrderBooks are sorted by token id
+        // Bull tokenId starts with 01d...; Cachet with aed...; so we expect Bull to be first
+        const initialOrder = screen
+            .getAllByRole('button', { name: /View larger icon for/ })
+            .map(el => el.getAttribute('title'));
+        expect(initialOrder).toEqual([BULL_TOKEN_ID, CACHET_TOKEN_ID]);
+
+        // Let's sort by offer count
+        await userEvent.click(screen.getByTitle('Sort by Offer Count'));
+
+        // Now we expect to see CACHET first, since there are 2 CACHET offers and 1 Bull offer
+        const sortedOrder = screen
+            .getAllByRole('button', { name: /View larger icon for/ })
+            .map(el => el.getAttribute('title'));
+        expect(sortedOrder).toEqual([CACHET_TOKEN_ID, BULL_TOKEN_ID]);
+
+        // We can revert to sorting by tokenId
+        await userEvent.click(screen.getByTitle('Sort by TokenId'));
+
+        // Now we are back to the initial ordering
+        const initialOrderAgain = screen
+            .getAllByRole('button', { name: /View larger icon for/ })
+            .map(el => el.getAttribute('title'));
+        expect(initialOrderAgain).toEqual([BULL_TOKEN_ID, CACHET_TOKEN_ID]);
+
         // Wait for element to get token info and load
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 

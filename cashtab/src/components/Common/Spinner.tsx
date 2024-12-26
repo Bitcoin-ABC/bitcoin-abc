@@ -65,9 +65,11 @@ const LoaderRingSpinner = styled.div`
     }
 `;
 
-export const InlineLoader = () => {
+export const InlineLoader: React.FC<{ title?: string }> = ({
+    title = 'Loading',
+}) => {
     return (
-        <LoaderRing title="Loading">
+        <LoaderRing title={title}>
             <div></div>
             <div></div>
             <div></div>
