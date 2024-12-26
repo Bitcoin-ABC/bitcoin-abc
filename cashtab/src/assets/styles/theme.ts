@@ -2,7 +2,42 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-export const theme = {
+import { DefaultTheme } from 'styled-components';
+
+export interface CashtabTheme extends DefaultTheme {
+    primaryBackground: string;
+    secondaryBackground: string;
+    accent: string;
+    secondaryAccent: string;
+    primaryText: string;
+    secondaryText: string;
+    border: string;
+    agoraDepthBar: string;
+    toastText: string;
+    error: string;
+    genesisGreen: string;
+    formError: string;
+    qrBackground: string;
+    backgroundImage: string;
+    menuGlow: string;
+    buttons: {
+        primary: {
+            backgroundImage: string;
+            color: string;
+            hoverShadow: string;
+        };
+        secondary: {
+            backgroundImage: string;
+            color: string;
+        };
+        disabled: {
+            background: string;
+            color: string;
+        };
+    };
+}
+
+export const theme: CashtabTheme = {
     primaryBackground: '#111313',
     secondaryBackground: '#2a2e2e',
     accent: '#00ABE7',

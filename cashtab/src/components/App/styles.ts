@@ -5,6 +5,7 @@
 import styled, { createGlobalStyle, css } from 'styled-components';
 import { ToastContainer } from 'react-toastify';
 import { CashtabScroll } from 'components/Common/Atoms';
+import { CashtabTheme } from 'assets/styles/theme';
 
 export const ExtensionFrame = createGlobalStyle`
     html, body {
@@ -15,7 +16,8 @@ export const ExtensionFrame = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
     *::placeholder {
-        color: ${props => props.theme.secondaryText} !important;
+        color: ${(props: { theme: CashtabTheme }) =>
+            props.theme.secondaryText} !important;
     }
     a {
         color: ${props => props.theme.accent};
@@ -63,7 +65,7 @@ export const WalletBody = styled.div`
     }
 `;
 
-export const WalletCtn = styled.div`
+export const WalletCtn = styled.div<{ showFooter?: boolean }>`
     width: 100%;
     background: ${props => props.theme.primaryBackground};
     position: relative;
@@ -125,7 +127,7 @@ export const NavWrapper = styled.div`
     }
 `;
 
-export const NavIcon = styled.span`
+export const NavIcon = styled.span<{ clicked?: boolean }>`
     display: none;
     @media (max-width: 768px) {
         @media (hover: hover) {
@@ -174,7 +176,7 @@ export const NavIcon = styled.span`
     }
 `;
 
-export const NavMenu = styled.div`
+export const NavMenu = styled.div<{ open?: boolean }>`
     @media (max-width: 768px) {
         position: absolute;
         bottom: 70px;
@@ -192,7 +194,7 @@ export const NavMenu = styled.div`
     }
 `;
 
-const NavButtonDesktop = css`
+const NavButtonDesktop = css<{ active?: boolean }>`
     width: 100%;
     cursor: pointer;
     padding: 5px 10px;

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
     HomeIcon,
     SendIcon,
@@ -41,12 +41,11 @@ import Agora from 'components/Agora';
 import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
-import { WalletContext } from 'wallet/context';
-import { getWalletState } from 'utils/cashMethods';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
-import { hasEnoughToken } from 'wallet';
+import { CashtabWallet, hasEnoughToken } from 'wallet';
 import ServiceWorkerWrapper from 'components/Common/ServiceWorkerWrapper';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
@@ -79,7 +78,11 @@ import {
 import 'react-toastify/dist/ReactToastify.min.css';
 
 const App = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const {
         cashtabState,
         updateCashtabState,
@@ -89,8 +92,6 @@ const App = () => {
     } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
-    const walletState = getWalletState(wallet);
-    const { balanceSats } = walletState;
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
@@ -102,9 +103,9 @@ const App = () => {
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
         ? hasEnoughToken(
-              wallet.state.tokens,
+              (wallet as CashtabWallet).state.tokens,
               '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-              1,
+              '1',
           )
         : false;
     return (
@@ -171,7 +172,11 @@ const App = () => {
                                             ></WalletLabel>
                                             <BalanceHeaderContainer title="Wallet Info">
                                                 <BalanceHeader
-                                                    balanceSats={balanceSats}
+                                                    balanceSats={
+                                                        (
+                                                            wallet as CashtabWallet
+                                                        ).state.balanceSats
+                                                    }
                                                     settings={settings}
                                                     fiatPrice={fiatPrice}
                                                     userLocale={

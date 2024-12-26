@@ -14,6 +14,11 @@
 // To learn more about the benefits of this model and instructions on how to
 // opt-in, read https://cra.link/PWA
 
+interface ServiceWorkerConfig {
+    onSuccess?: (registration: ServiceWorkerRegistration) => void;
+    onUpdate?: (registration: ServiceWorkerRegistration) => void;
+}
+
 const isLocalhost = Boolean(
     window.location.hostname === 'localhost' ||
         // [::1] is the IPv6 localhost address.
@@ -24,8 +29,12 @@ const isLocalhost = Boolean(
         ),
 );
 
-export function register(config) {
-    if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+export function register(config: ServiceWorkerConfig) {
+    if (
+        process.env.NODE_ENV === 'production' &&
+        'serviceWorker' in navigator &&
+        typeof process.env.PUBLIC_URL !== 'undefined'
+    ) {
         // The URL constructor is available in all browsers that support SW.
         const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
         if (publicUrl.origin !== window.location.origin) {
@@ -58,7 +67,7 @@ export function register(config) {
     }
 }
 
-function registerValidSW(swUrl, config) {
+function registerValidSW(swUrl: string, config: ServiceWorkerConfig) {
     navigator.serviceWorker
         .register(swUrl)
         .then(registration => {
@@ -102,7 +111,7 @@ function registerValidSW(swUrl, config) {
         });
 }
 
-function checkValidServiceWorker(swUrl, config) {
+function checkValidServiceWorker(swUrl: string, config: ServiceWorkerConfig) {
     // Check if the service worker can be found. If it can't reload the page.
     fetch(swUrl, {
         headers: { 'Service-Worker': 'script' },

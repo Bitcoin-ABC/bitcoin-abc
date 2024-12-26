@@ -7,11 +7,13 @@ import { useState, useEffect } from 'react';
 import UpgradeModal from 'components/Common/UpgradeModal';
 import * as serviceWorkerRegistration from 'serviceWorkerRegistration';
 
-const ServiceWorkerWrapper = () => {
-    const [waitingWorker, setWaitingWorker] = useState(null);
+const ServiceWorkerWrapper: React.FC = () => {
+    const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(
+        null,
+    );
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-    const onSWUpdate = registration => {
+    const onSWUpdate = (registration: ServiceWorkerRegistration) => {
         setShowUpgradeModal(true);
         setWaitingWorker(registration.waiting);
     };
@@ -20,20 +22,25 @@ const ServiceWorkerWrapper = () => {
         serviceWorkerRegistration.register({ onUpdate: onSWUpdate });
     }, []);
 
+    interface FirefoxLocation {
+        reload(forceReload?: boolean): void;
+    }
+
     const reloadPage = () => {
         waitingWorker?.postMessage({ type: 'SKIP_WAITING' });
         setShowUpgradeModal(false);
-        window.location.reload(true);
+        // Note this is only supported in Firefox, which is why the "update" modal
+        // occasionally will not work without a traditional "hard" refresh, i.e.
+        // ctrl+shift+r in chrome/brave desktop
+        (window.location as FirefoxLocation).reload(true);
     };
 
-    return (
-        showUpgradeModal && (
-            <UpgradeModal
-                handleOk={reloadPage}
-                handleCancel={() => setShowUpgradeModal(false)}
-            />
-        )
-    );
+    return showUpgradeModal ? (
+        <UpgradeModal
+            handleOk={reloadPage}
+            handleCancel={() => setShowUpgradeModal(false)}
+        />
+    ) : null;
 };
 
 export default ServiceWorkerWrapper;
