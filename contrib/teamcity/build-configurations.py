@@ -28,7 +28,13 @@ if sys.version_info < (3, 6):
 
 
 class BuildConfiguration:
-    def __init__(self, script_root, config_file, build_name=None):
+    def __init__(self, script_root, config_file, build_name=None, depth=0):
+        if depth > 20:
+            raise Exception(
+                f"More than 20 dependency levels in build {build_name}, is there a circular dependency ?"
+            )
+
+        self.depth = depth
         self.script_root = script_root
         self.config_file = config_file
         self.name = None
@@ -39,6 +45,7 @@ class BuildConfiguration:
         self.junit_reports_dir = None
         self.test_logs_dir = None
         self.jobs = (os.cpu_count() or 0) + 1
+        self.depends = []
 
         self.project_root = PurePath(
             subprocess.run(
@@ -90,6 +97,14 @@ class BuildConfiguration:
                 )
             )
 
+        dependencies = build.get("depends", [])
+        for dependency in dependencies:
+            self.depends.append(
+                BuildConfiguration(
+                    self.script_root, self.config_file, dependency, self.depth + 1
+                )
+            )
+
         # Get a list of the templates, if any
         templates = config.get("templates", {})
 
@@ -130,6 +145,8 @@ class BuildConfiguration:
         }
 
     def create_script_file(self, dest, content):
+        # Ensure the directory exists
+        dest.parent.mkdir(parents=True, exist_ok=True)
         # Write the content to a script file using a template
         with open(
             self.script_root.joinpath("bash_script.sh.in"), encoding="utf-8"
@@ -148,6 +165,11 @@ class BuildConfiguration:
         dest.chmod(dest.stat().st_mode | stat.S_IEXEC)
 
     def create_build_steps(self, artifact_dir, preview_url, ip_address):
+        for dependency in self.depends:
+            self.build_steps.extend(
+                dependency.create_build_steps(artifact_dir, preview_url, ip_address)
+            )
+
         # There are 3 possibilities to define the build steps:
         #  - By manually defining a script to run.
         #  - By specifying a docker configuration to build
@@ -160,13 +182,13 @@ class BuildConfiguration:
             script_file = self.build_directory.joinpath("script.sh")
             self.create_script_file(script_file, script)
 
-            self.build_steps = [
+            self.build_steps.append(
                 {
                     "bin": str(script_file),
                     "args": [],
                 }
-            ]
-            return
+            )
+            return self.build_steps
 
         # Check for a docker configuration
         docker_config = self.config.get("docker", None)
@@ -286,7 +308,7 @@ class BuildConfiguration:
                 }
             )
 
-            return
+            return self.build_steps
 
         # Get the cmake configuration definitions.
         self.cmake_flags = self.config.get("cmake_flags", [])
@@ -412,6 +434,8 @@ class BuildConfiguration:
                     "args": [],
                 }
             )
+
+        return self.build_steps
 
     def get(self, key, default):
         return self.config.get(key, default)
