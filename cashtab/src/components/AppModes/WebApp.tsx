@@ -6,6 +6,10 @@ import { useEffect } from 'react';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
 
+interface ExtendedWindow {
+    bitcoinAbc?: 'cashtab';
+}
+
 /**
  * Functional logic specific to the webapp at cashtab.com
  * i.e. stuff that should not be built with the browser extension
@@ -88,7 +92,11 @@ const WebApp = () => {
         // does not load with a popup
         const popupWaitInterval = 2000;
         await new Promise(resolve => setTimeout(resolve, popupWaitInterval));
-        return window && window.bitcoinAbc && window.bitcoinAbc === 'cashtab';
+        return (
+            window &&
+            typeof (window as ExtendedWindow).bitcoinAbc !== 'undefined' &&
+            (window as ExtendedWindow).bitcoinAbc === 'cashtab'
+        );
     };
 
     const handleExtensionStatus = async () => {
