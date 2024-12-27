@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from 'react';
-import { WalletContext } from 'wallet/context';
+import React, { useState, useContext } from 'react';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import {
     TrashcanIcon,
     EditIcon,
@@ -29,32 +29,53 @@ import {
     ButtonPanel,
 } from 'components/Contacts/styles';
 import { PageHeader } from 'components/Common/Atoms';
+import { CashtabContact } from 'config/CashtabState';
 
 const Contacts = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { cashtabState, updateCashtabState } = ContextValue;
     const { wallets, contactList } = cashtabState;
 
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const wallet = wallets[0];
 
-    const emptyFormData = {
+    interface ContactsFormData {
+        renamedContactName: string;
+        contactToBeDeletedName: string;
+        newContactName: string;
+        newContactAddress: string;
+    }
+    const emptyFormData: ContactsFormData = {
         renamedContactName: '',
         contactToBeDeletedName: '',
         newContactName: '',
         newContactAddress: '',
     };
-    const emptyFormDataErrors = {
+    interface ContactsFormErrors {
+        renamedContactName: false | string;
+        contactToBeDeletedName: false | string;
+        newContactName: false | string;
+        newContactAddress: false | string;
+    }
+    const emptyFormDataErrors: ContactsFormErrors = {
         renamedContactName: false,
         contactToBeDeletedName: false,
         newContactName: false,
         newContactAddress: false,
     };
     // State variables
-    const [formData, setFormData] = useState(emptyFormData);
-    const [formDataErrors, setFormDataErrors] = useState(emptyFormDataErrors);
-    const [contactToBeRenamed, setContactToBeRenamed] = useState(null);
-    const [contactToBeDeleted, setContactToBeDeleted] = useState(null);
-    const [showAddNewContactModal, setShowAddNewContactModal] = useState(false);
+    const [formData, setFormData] = useState<ContactsFormData>(emptyFormData);
+    const [formDataErrors, setFormDataErrors] =
+        useState<ContactsFormErrors>(emptyFormDataErrors);
+    const [contactToBeRenamed, setContactToBeRenamed] =
+        useState<null | CashtabContact>(null);
+    const [contactToBeDeleted, setContactToBeDeleted] =
+        useState<null | CashtabContact>(null);
+    const [showAddNewContactModal, setShowAddNewContactModal] =
+        useState<boolean>(false);
 
     /**
      * Update formData with user input
@@ -62,7 +83,7 @@ const Contacts = () => {
      * e.target.value will be input value
      * e.target.name will be name of originating input field
      */
-    const handleInput = e => {
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
         if (name === 'renamedContactName' || name === 'newContactName') {
@@ -73,6 +94,9 @@ const Contacts = () => {
             }));
         }
         if (name === 'contactToBeDeletedName') {
+            if (contactToBeDeleted === null) {
+                return;
+            }
             const deleteConfirmationError =
                 value === 'delete ' + contactToBeDeleted.name
                     ? false
@@ -99,14 +123,17 @@ const Contacts = () => {
     };
 
     const renameContact = async () => {
+        if (contactToBeRenamed === null) {
+            return;
+        }
         // Find the contact you want to rename
-        let contactToUpdate = contactList.find(
+        const contactToUpdate = contactList.find(
             contact => contact.address === contactToBeRenamed.address,
         );
-        const oldName = contactToUpdate.name;
 
         // if a match was found
         if (typeof contactToUpdate !== 'undefined') {
+            const oldName = contactToUpdate.name;
             // update the contact name
             contactToUpdate.name = formData.renamedContactName;
 
@@ -129,6 +156,9 @@ const Contacts = () => {
     };
 
     const deleteContact = async () => {
+        if (contactToBeDeleted === null) {
+            return;
+        }
         // filter contact from local contact list array
         const updatedContactList = contactList.filter(
             contact => contact.address !== contactToBeDeleted.address,
@@ -183,24 +213,24 @@ const Contacts = () => {
         }));
     };
 
-    const exportContactList = contactListArray => {
+    const exportContactList = (contactListArray: CashtabContact[]) => {
         if (!contactListArray) {
             toast.error('Unable to export contact list');
             return;
         }
 
         // convert object array into csv data
-        let csvContent =
+        const csvContent =
             'data:text/csv;charset=utf-8,' +
             contactListArray.map(
                 element => '\n' + element.name + '|' + element.address,
             );
 
         // encode csv
-        var encodedUri = encodeURI(csvContent);
+        const encodedUri = encodeURI(csvContent);
 
         // hidden DOM node to set the default file name
-        var csvLink = document.createElement('a');
+        const csvLink = document.createElement('a');
         csvLink.setAttribute('href', encodedUri);
         csvLink.setAttribute(
             'download',
