@@ -16,7 +16,7 @@ import {
     getSlpSendTargetOutputs,
 } from 'token-protocols/slpv1';
 import { getAlpSendTargetOutputs } from 'token-protocols/alp';
-import { sumOneToManyXec } from 'utils/cashMethods';
+import { sumOneToManyXec } from './helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
     isValidMultiSendUserInput,
