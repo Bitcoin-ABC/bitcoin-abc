@@ -102,7 +102,9 @@ interface CashtabSwitchProps {
     bgColorOff?: string;
     checked: boolean;
     disabled?: boolean;
-    handleToggle: () => void;
+    handleToggle: (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => void | (() => void);
 }
 export const CashtabSwitch: React.FC<CashtabSwitchProps> = ({
     name,

@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React from 'react';
+import React, { useContext } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from 'wallet/context';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import {
     DollarIcon,
     SettingsIcon,
@@ -15,7 +15,6 @@ import {
     GithubIcon,
 } from 'components/Common/CustomIcons';
 import TokenIcon from 'components/Etokens/TokenIcon';
-import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { isMobile } from 'helpers';
 import { hasEnoughToken } from 'wallet';
@@ -87,33 +86,34 @@ const GeneralSettingsItem = styled.div`
     gap: 12px;
 `;
 
-const Configure = () => {
-    const ContextValue = React.useContext(WalletContext);
+const Configure: React.FC = () => {
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { updateCashtabState, cashtabState } = ContextValue;
     const { settings, wallets } = cashtabState;
 
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const wallet = wallets[0];
 
-    // TODO deprecate getWalletState function
-    const walletState = getWalletState(wallet);
+    const { tokens } = wallet.state;
 
-    const { tokens } = walletState;
-
-    const handleSendModalToggle = e => {
+    const handleSendModalToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateCashtabState('settings', {
             ...settings,
             sendModal: e.target.checked,
         });
     };
 
-    const handleMinFeesToggle = e => {
+    const handleMinFeesToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateCashtabState('settings', {
             ...settings,
             minFeeSends: e.target.checked,
         });
     };
 
-    const handleCameraOverride = e => {
+    const handleCameraOverride = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateCashtabState('settings', {
             ...settings,
             autoCameraOn: e.target.checked,
