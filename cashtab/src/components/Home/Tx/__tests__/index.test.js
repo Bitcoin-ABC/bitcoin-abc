@@ -67,7 +67,6 @@ import {
     agoraPartialBuxBuyTx,
     agoraPartialBuxSellTx,
     SlpNftParentMintTx,
-    partialBuyBull,
     partialSellBull,
     alpBurnTx,
     alpAgoraListingTx,
@@ -76,7 +75,6 @@ import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
 import { getHashes } from 'wallet';
 import userEvent from '@testing-library/user-event';
-import { XecTxType } from 'chronik';
 
 const AVALANCHE_FINALIZED_CHAINTIP = 800000;
 
