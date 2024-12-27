@@ -877,20 +877,6 @@ builds:
       popd
       mv coverage/coverage.tar.gz "${BUILD_DIR}/"
 
-  alias-server-tests:
-    runOnDiffRegex:
-      - apps/alias-server/
-      - modules/mock-chronik-client/
-      - modules/ecashaddrjs/
-    env:
-      JS_PROJECT_ROOT: apps/alias-server
-      DEPENDS_ECASHADDRJS: "true"
-      DEPENDS_ECASH_SCRIPT: "true"
-      DEPENDS_CHRONIK_CLIENT: "true"
-      DEPENDS_MOCK_CHRONIK_CLIENT: "true"
-    templates:
-      - js-mocha
-
   ecash-herald-tests:
     runOnDiffRegex:
       - apps/ecash-herald/
