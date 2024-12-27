@@ -66,13 +66,14 @@ import {
     AgoraSaleIcon,
     AgoraCancelIcon,
     TokenSendIcon,
+    XecxIcon,
 } from 'components/Common/CustomIcons';
 import CashtabSettings, {
     supportedFiatCurrencies,
 } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
-import { ParsedTokenTxType } from 'chronik';
+import { ParsedTokenTxType, XecxAction } from 'chronik';
 import {
     toFormattedXec,
     decimalizedTokenQtyToLocaleFormat,
@@ -491,6 +492,41 @@ const Tx: React.FC<TxProps> = ({
                         );
                     }
                 }
+                break;
+            }
+            case opReturn.appPrefixesHex.xecx: {
+                if (isValid) {
+                    const { minBalanceTokenSatoshisToReceivePaymentThisRound } =
+                        action as XecxAction;
+                    const minBalanceXec = toXec(
+                        minBalanceTokenSatoshisToReceivePaymentThisRound,
+                    );
+                    renderedAppActions.push(
+                        <IconAndLabel>
+                            <XecxIcon />
+                            <AppDescLabel>
+                                XEC staking reward to all XECX holders with
+                                balance{' '}
+                                {`>= ${minBalanceXec.toLocaleString(
+                                    userLocale,
+                                    {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    },
+                                )} XECX`}
+                            </AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                } else {
+                    // invalid xecx
+                    renderedAppActions.push(
+                        <IconAndLabel>
+                            <XecxIcon />
+                            <AppDescLabel>Invalid XECX EMPP</AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                }
+
                 break;
             }
             case 'unknown': {

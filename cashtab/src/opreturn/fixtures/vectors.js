@@ -424,4 +424,187 @@ export const opReturnVectors = {
             },
         ],
     },
+    getXecxAppAction: {
+        expectedReturns: [
+            {
+                description: 'Gets XECX app action from valid EMPP XECX',
+                push: {
+                    remainingHex:
+                        '0008c43400000000000e21fdc39e01000000000000000000000000',
+                },
+                returned: {
+                    eligibleTokenSatoshis: 1781404606734,
+                    excludedHoldersCount: 0,
+                    ineligibleTokenSatoshis: 0,
+                    minBalanceTokenSatoshisToReceivePaymentThisRound: 3458056,
+                },
+            },
+            {
+                description:
+                    'Gets UnknownAction app action from invalid EMPP XECX (not version 0)',
+                push: {
+                    remainingHex:
+                        '0108c43400000000000e21fdc39e01000000000000000000000000',
+                },
+                returned: {
+                    decoded: Buffer.from(
+                        '0108c43400000000000e21fdc39e01000000000000000000000000',
+                        'hex',
+                    ).toString('utf8'),
+                    stack: '0108c43400000000000e21fdc39e01000000000000000000000000',
+                },
+            },
+        ],
+    },
+    getEmppAppAction: {
+        expectedReturns: [
+            {
+                description: 'Gets an XECX app action',
+                push: '584543580008c43400000000000e21fdc39e01000000000000000000000000',
+                returned: {
+                    app: 'XECX',
+                    isValid: true,
+                    lokadId: '58454358',
+                    action: {
+                        eligibleTokenSatoshis: 1781404606734,
+                        excludedHoldersCount: 0,
+                        ineligibleTokenSatoshis: 0,
+                        minBalanceTokenSatoshisToReceivePaymentThisRound: 3458056,
+                    },
+                },
+            },
+            {
+                description:
+                    'Gets an unknown app action for an invalid XECX action',
+                push: '584543580108c43400000000000e21fdc39e01000000000000000000000000',
+                returned: {
+                    app: 'XECX',
+                    isValid: false,
+                    lokadId: '58454358',
+                    action: {
+                        decoded: Buffer.from(
+                            '0108c43400000000000e21fdc39e01000000000000000000000000',
+                            'hex',
+                        ).toString('utf8'),
+                        stack: '0108c43400000000000e21fdc39e01000000000000000000000000',
+                    },
+                },
+            },
+            {
+                description: 'Parses arbitrary unknown empp action',
+                push: 'deadbeef',
+                returned: {
+                    action: {
+                        decoded: Buffer.from('deadbeef', 'hex').toString(
+                            'utf8',
+                        ),
+                        stack: 'deadbeef',
+                    },
+                    app: 'unknown',
+                    lokadId: 'deadbeef',
+                },
+            },
+            {
+                description: 'Returns undefined for ALP push',
+                push: '534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                returned: undefined,
+            },
+            {
+                description: 'Returns undefined for Agora push',
+                push: '41475230075041525449414c',
+                returned: undefined,
+            },
+        ],
+    },
+    getEmppAppActions: {
+        expectedReturns: [
+            {
+                description: 'Gets valid XECX action if only action',
+                stackArray: [
+                    '50',
+                    '584543580008c43400000000000e21fdc39e01000000000000000000000000',
+                ],
+                returned: [
+                    {
+                        app: 'XECX',
+                        isValid: true,
+                        lokadId: '58454358',
+                        action: {
+                            eligibleTokenSatoshis: 1781404606734,
+                            excludedHoldersCount: 0,
+                            ineligibleTokenSatoshis: 0,
+                            minBalanceTokenSatoshisToReceivePaymentThisRound: 3458056,
+                        },
+                    },
+                ],
+            },
+
+            {
+                description: 'Gets empty array for ALP action if only action',
+                stackArray: [
+                    '50',
+                    '534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                ],
+                returned: [],
+            },
+            {
+                description:
+                    'Returns valid XECX, invalid XECX, d nothing for ALP, and arbitrary unknown, given these 4 EMPP pushes',
+                stackArray: [
+                    '50',
+                    '584543580008c43400000000000e21fdc39e01000000000000000000000000',
+                    '584543580108c43400000000000e21fdc39e01000000000000000000000000',
+                    '534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                    'deadbeef',
+                ],
+                returned: [
+                    {
+                        app: 'XECX',
+                        isValid: true,
+                        lokadId: '58454358',
+                        action: {
+                            eligibleTokenSatoshis: 1781404606734,
+                            excludedHoldersCount: 0,
+                            ineligibleTokenSatoshis: 0,
+                            minBalanceTokenSatoshisToReceivePaymentThisRound: 3458056,
+                        },
+                    },
+                    {
+                        app: 'XECX',
+                        isValid: false,
+                        lokadId: '58454358',
+                        action: {
+                            decoded: Buffer.from(
+                                '0108c43400000000000e21fdc39e01000000000000000000000000',
+                                'hex',
+                            ).toString('utf8'),
+                            stack: '0108c43400000000000e21fdc39e01000000000000000000000000',
+                        },
+                    },
+                    {
+                        app: 'unknown',
+                        lokadId: 'deadbeef',
+                        action: {
+                            decoded: Buffer.from('deadbeef', 'hex').toString(
+                                'utf8',
+                            ),
+                            stack: 'deadbeef',
+                        },
+                    },
+                ],
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Throws if called with an invalid stackArray',
+                stackArray: { stackArray: ['50'] },
+                error: 'stackArray must be an array of OP_RETURN pushes with first entry OP_RESERVED',
+            },
+            {
+                description: 'Throws if called with non-EMPP stackArray',
+                stackArray: ['04'],
+                error: 'Not an EMPP stackArray',
+            },
+        ],
+    },
 };

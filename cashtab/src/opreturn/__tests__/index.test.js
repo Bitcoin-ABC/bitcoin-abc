@@ -8,6 +8,9 @@ import {
     getCashtabMsgByteCount,
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
+    getXecxAppAction,
+    getEmppAppAction,
+    getEmppAppActions,
 } from 'opreturn';
 import { opReturnVectors } from '../fixtures/vectors';
 
@@ -121,6 +124,45 @@ describe('Cashtab opreturn methods', () => {
             const { description, opReturnRaw, error } = expectedError;
             it(`parseOpReturnRaw throws error for: ${description}`, () => {
                 expect(() => parseOpReturnRaw(opReturnRaw)).toThrow(error);
+            });
+        });
+    });
+    describe('getXecxAppAction', () => {
+        const { expectedReturns } = opReturnVectors.getXecxAppAction;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, push, returned } = expectedReturn;
+            it(`getXecxAppAction: ${description}`, () => {
+                expect(getXecxAppAction(push)).toStrictEqual(returned);
+            });
+        });
+    });
+    describe('getEmppAppAction', () => {
+        const { expectedReturns } = opReturnVectors.getEmppAppAction;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, push, returned } = expectedReturn;
+            it(`getEmppAppAction: ${description}`, () => {
+                expect(getEmppAppAction(push)).toStrictEqual(returned);
+            });
+        });
+    });
+    describe('getEmppAppActions', () => {
+        const { expectedReturns, expectedErrors } =
+            opReturnVectors.getEmppAppActions;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, stackArray, returned } = expectedReturn;
+            it(`getEmppAppActions: ${description}`, () => {
+                expect(getEmppAppActions(stackArray)).toStrictEqual(returned);
+            });
+        });
+
+        // Error cases
+        expectedErrors.forEach(expectedError => {
+            const { description, stackArray, error } = expectedError;
+            it(`getEmppAppActions throws error for: ${description}`, () => {
+                expect(() => getEmppAppActions(stackArray)).toThrow(error);
             });
         });
     });

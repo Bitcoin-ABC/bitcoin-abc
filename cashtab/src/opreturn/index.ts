@@ -5,9 +5,17 @@
 import { encodeCashAddress } from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
 import { isValidTokenId, getOpReturnRawError } from 'validation';
-import { getStackArray } from 'ecash-script';
-import { Script, pushBytesOp, OP_RETURN, fromHex, TxOutput } from 'ecash-lib';
+import { consume, getStackArray } from 'ecash-script';
+import {
+    Script,
+    pushBytesOp,
+    OP_RETURN,
+    fromHex,
+    TxOutput,
+    Bytes,
+} from 'ecash-lib';
 import { AddressType } from 'ecashaddrjs/dist/types';
+import { AppAction, XecxAction, UnknownAction } from 'chronik';
 
 /**
  * Get targetOutput for a Cashtab Msg from user input string
@@ -271,4 +279,122 @@ export const getOpreturnParamTargetOutput = (
 
     // Create output
     return { value: 0, script };
+};
+
+export const getEmppAppActions = (stackArray: string[]): AppAction[] => {
+    if (!Array.isArray(stackArray) || stackArray.length === 0) {
+        throw new Error(
+            'stackArray must be an array of OP_RETURN pushes with first entry OP_RESERVED',
+        );
+    }
+
+    // Remove OP_RESERVED
+    const emppIdentifier = stackArray[0];
+    if (emppIdentifier !== opReturn.opReserved) {
+        throw new Error('Not an EMPP stackArray');
+    }
+
+    const appActions: AppAction[] = [];
+
+    // Note every element of stackArray after OP_RESERVED is an EMPP push
+    // The .slice(1) removes OP_RESERVED so we are only dealing with complete EMPP pushes
+    for (const push of stackArray.slice(1)) {
+        const emppAction = getEmppAppAction(push);
+
+        if (typeof emppAction !== 'undefined') {
+            appActions.push(emppAction);
+        }
+    }
+
+    return appActions;
+};
+
+export const getEmppAppAction = (push: string): AppAction | undefined => {
+    const lokadBytes = 4;
+    const emppStack = { remainingHex: push };
+    const lokadId = consume(emppStack, lokadBytes);
+    switch (lokadId) {
+        case opReturn.appPrefixesHex.xecx: {
+            const action = getXecxAppAction(emppStack);
+            return {
+                lokadId,
+                app: 'XECX',
+                isValid:
+                    'minBalanceTokenSatoshisToReceivePaymentThisRound' in action
+                        ? true
+                        : false,
+                action,
+            };
+        }
+        case opReturn.appPrefixesHex.agora:
+        case opReturn.appPrefixesHex.alp: {
+            // Do not parse ALP as an app action, this will parsed by chronik as an indexed token tx
+            // Do not parse AGORA as an app action, this is parsed elsewhere
+            return;
+        }
+        default: {
+            // Unknown EMPP action
+            return {
+                lokadId,
+                app: 'unknown',
+                action: {
+                    stack: push,
+                    decoded: Buffer.from(push, 'hex').toString('utf8'),
+                },
+            };
+        }
+    }
+};
+
+export const getXecxAppAction = (xecxEmppStack: {
+    remainingHex: string;
+}): XecxAction | UnknownAction => {
+    // Store this because we return it if we get unexpected spec
+    const fullXecxEmppPush = xecxEmppStack.remainingHex;
+
+    const supportedVersion = '00';
+
+    // Version is 1 byte
+    const version = consume(xecxEmppStack, 1);
+    const VALID_LENGTH_VERSION_0_XECX_EMPP = 54;
+    if (
+        version !== supportedVersion ||
+        fullXecxEmppPush.length !== VALID_LENGTH_VERSION_0_XECX_EMPP
+    ) {
+        // xecx lokadId EMPP push with unsupported version or bad v0 data
+        // Return full push
+        return {
+            stack: fullXecxEmppPush,
+            decoded: Buffer.from(fullXecxEmppPush, 'hex').toString('utf8'),
+        };
+    }
+
+    // Get minBalanceTokenSatoshisToReceivePaymentThisRoundHexStr as 1st push u64
+    const BYTES_U64 = 8;
+    const minBalanceTokenSatoshisToReceivePaymentThisRound = Number(
+        new Bytes(fromHex(consume(xecxEmppStack, BYTES_U64))).readU64(),
+    );
+
+    // Get eligibleTokenSatoshis as 2nd push u64
+    const eligibleTokenSatoshis = Number(
+        new Bytes(fromHex(consume(xecxEmppStack, BYTES_U64))).readU64(),
+    );
+
+    // Get ineligibleTokenSatoshis as 3rd push u64
+    const ineligibleTokenSatoshis = Number(
+        new Bytes(fromHex(consume(xecxEmppStack, BYTES_U64))).readU64(),
+    );
+
+    // Get excludedHoldersCount as 4th push u16
+    const BYTES_U16 = 2;
+    const excludedHoldersCount = new Bytes(
+        fromHex(consume(xecxEmppStack, BYTES_U16)),
+    ).readU16();
+
+    return {
+        minBalanceTokenSatoshisToReceivePaymentThisRound,
+        eligibleTokenSatoshis,
+        ineligibleTokenSatoshis,
+        excludedHoldersCount,
+    };
 };

@@ -69,6 +69,8 @@ import {
     offSpecEcashChatArticleReplyTx,
     CashtabMsg,
     offSpecCashtabMsg,
+    xecxTx,
+    invalidXecxTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -410,6 +412,18 @@ export default {
                 tx: offSpecCashtabMsg.tx,
                 hashes: [offSpecCashtabMsg.sendingHash],
                 parsed: offSpecCashtabMsg.parsed,
+            },
+            {
+                description: 'xecx tx',
+                tx: xecxTx.tx,
+                hashes: [xecxTx.sendingHash],
+                parsed: xecxTx.parsed,
+            },
+            {
+                description: 'invalid xecx tx',
+                tx: invalidXecxTx.tx,
+                hashes: [invalidXecxTx.sendingHash],
+                parsed: invalidXecxTx.parsed,
             },
         ],
     },

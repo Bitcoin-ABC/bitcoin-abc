@@ -70,6 +70,8 @@ import {
     partialSellBull,
     alpBurnTx,
     alpAgoraListingTx,
+    xecxTx,
+    invalidXecxTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3857,5 +3859,100 @@ describe('<Tx />', () => {
 
         // We see the expected token action text for a listed ALP fungible token tx, but no quantity
         expect(screen.getByText('Listed')).toBeInTheDocument();
+    });
+    it('Valid XECX tx', async () => {
+        const thisMock = xecxTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see a conventional tx-received icon for the XEC action
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Dec 27, 2024, 24:00:01')).toBeInTheDocument();
+
+        // We see the expected received amount
+        expect(screen.getByText('312.5k XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('$9.38')).toBeInTheDocument();
+
+        // We see XECX icon
+        expect(screen.getByAltText(`XECX reward`)).toBeInTheDocument();
+
+        // We see the parsed App Action
+        expect(
+            screen.getByText(
+                /XEC staking reward to all XECX holders with balance/,
+            ),
+        ).toBeInTheDocument();
+
+        // We see the parsed min eligible balance
+        expect(screen.getByText(/34,580.56 XECX/)).toBeInTheDocument();
+    });
+    it('Invalid XECX tx', async () => {
+        const thisMock = invalidXecxTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see a conventional tx-received icon for the XEC action
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Dec 27, 2024, 24:00:01')).toBeInTheDocument();
+
+        // We see the expected received amount
+        expect(screen.getByText('312.5k XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('$9.38')).toBeInTheDocument();
+
+        // We see XECX icon
+        expect(screen.getByAltText(`XECX reward`)).toBeInTheDocument();
+
+        // We see the invalid App Action
+        expect(screen.getByText('Invalid XECX EMPP')).toBeInTheDocument();
     });
 });

@@ -23046,3 +23046,298 @@ export const offSpecCashtabMsg = {
         xecTxType: 'Received',
     },
 };
+
+export const xecxTx = {
+    tx: {
+        txid: 'ca7057d9d878e17d105a732d723c84e10156c61627c9e4330e15a0dfe5ab37a5',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'c8922424162ce2b2b19a902ecc7d2de3e20b5f138dd9ddcca0c9b3d41f9f2a25',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41287a47a0238eb4e55b92061f3205e5c067f00e6a88df11e60ceb55aa6efa5da97d9418e2e52a0c1b69eba5983a8ad837b0cbe05aefe51d5237bdf3a11e72a2e0412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31250500,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: '38c1bcddb2037490d541286074820e8acd6563c743b659d09d123117c99d6ef4',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '415b4594a93e4ea80231f25da079f27f6928264a5c37f281a2b59f7850c0d3a0a7ba9c856791dadc6b0e73aa22430581821b69caace9661c54dd45d7687fad1ef3412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31250355,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: 'd8626173ca854bd56571632d8cb76667c7acad2594fec9d0015fe0866aca5c30',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41e4c223342bb6987464f4702aafff4dfd1421edddfbb9ab57a7a98339d93191dad2549db9f715260279786eebf48431fd120d18e1c8baa977de11efb7fe1f7b01412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31250022,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: 'd3c3b54460b1a45b75a3e506101ebfac20ed21722650dfe47473994b50dcce19',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41faf5ed17630b62563d8d4e1f342a51c1715deba8cd69bb755056b345e3448ae70fac12b8740c53d17e8e8e9211c6d406026a5512e658da30260ebc207fe7f976412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31250542,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: '747684142194ccf7ba1cd384e50324425051fee5ce516362fec85d1ab1af1f0d',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '412546d55291fd069a4c12249cb06c011e16b890844824f279159122cbf8657868e7aaf6dc2239c17874cd50bb50fdc306c4224e5e2651ebaa0a831ee3a86a1285412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31251452,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: '4c6b1092c4b1525dda296a0d18bc378489058ac775ddfcdeeb3eb107e1f57c2b',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41d8b94143ad17fae0cd9eb5b57c197fd62d750a8d83627bf9d021c800608bca6771844298cccfc4d94da7b592c44ff8a653f2ff238fc1ea17828eac56d05ce309412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31251576,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: '80575750ecf408a2960e78d1fc23d8e55ecd6af66296484800ed8ae7b28e6147',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '4148447f966b2000c31d5cfc31c6382cb116b891f643f03b8d9fd7eb25d8a827d01d0ca8129d3b7412255901214ec6fb6fbeca178aedc293797e8d03eabd4d6829412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31258084,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: 'e5e53ddc5225bb22c5a8c5c0c45b1f0ff3063c3b607bdef680b824eca433c99d',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '417f7cc74f9421db8a11196faadc29bdca794efd2bc016f9fb46ba5340877c74c46c4d46efa9cb7115256d16fc1e6af1a5265d0b064fb70ec7a74128bb68b7b630412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31250892,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: '6eb3fbee6778614a0993e61897b42c12bbbe36712b4cc8326ac31544c4441b31',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41f07a227801c780217f0bc3f68e9927c0f278182ffc754ca6b167b0413a1cf98cf4d1838a40668482e1dfb7761ccf0ddc7e5a05ac2f55002a075f79e7dc147914412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31256658,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+            {
+                prevOut: {
+                    txid: '2ce51ebf25366f99ee73c62d49e212894c697560a6ea483576a3d2629e551459',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '413ab633abeacde057b424a607fbbc477f29d8bea944d23d944889e808d8388cb43386c0b62edc8b278e6daa45f0446e90f8f9c750a975a934d911ec0a752b4fbe412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
+                value: 31252018,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a501f584543580008c43400000000000e21fdc39e01000000000000000000000000',
+            },
+            {
+                value: 31250371,
+                outputScript:
+                    '76a914bf9db3e9b4e447d04cc7dbad89cf50d0fa74388c88ac',
+            },
+            {
+                value: 279681010,
+                outputScript:
+                    '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+            },
+            {
+                value: 1578922,
+                outputScript:
+                    '76a914bf095d9afbda5245d5f1e27e7b360ec22357d6f088ac',
+            },
+            {
+                value: 2038,
+                outputScript:
+                    '76a914da3621d8d4a1c462b9f5cd2c9cb10850edbd3e4788ac',
+                spentBy: {
+                    txid: '084d313be0c552839dbac91b47ceb792fec42ec5c121946366e0f352df16644f',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 1585,
+                outputScript:
+                    '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
+            },
+            {
+                value: 1516,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                value: 1516,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                value: 1280,
+                outputScript:
+                    '76a91469535ed57a629cb83609de1e958a3c87a2d5e9db88ac',
+            },
+            {
+                value: 791,
+                outputScript:
+                    '76a91428ef733a0427f54c95cc5efea72d95f99db8e48d88ac',
+            },
+            {
+                value: 632,
+                outputScript:
+                    '76a9149f88249247eba350d3b5ea61187fa1693e15524e88ac',
+            },
+            {
+                value: 601,
+                outputScript:
+                    '76a91451691a770b8f2ab95590fbf89d22a290c57a4bd988ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1735257601,
+        size: 1837,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        isFinal: false,
+        block: {
+            height: 877018,
+            hash: '000000000000000032d206581206d957112345b362f84578f2e67c5f4730a1bb',
+            timestamp: 1735257732,
+        },
+    },
+    sendingHash: 'bf9db3e9b4e447d04cc7dbad89cf50d0fa74388c',
+    parsed: {
+        appActions: [
+            {
+                action: {
+                    eligibleTokenSatoshis: 1781404606734,
+                    excludedHoldersCount: 0,
+                    ineligibleTokenSatoshis: 0,
+                    minBalanceTokenSatoshisToReceivePaymentThisRound: 3458056,
+                },
+                app: 'XECX',
+                isValid: true,
+                lokadId: '58454358',
+            },
+        ],
+        parsedTokenEntries: [],
+        recipients: [
+            'ecash:qzd5s72xhgjvr4sjfzafjt3a2vcstn4pfvs4c84egx',
+            'ecash:qzlsjhv6l0d9y3w47838u7ekpmpzx47k7qne9uv3t5',
+            'ecash:qrdrvgwc6jsugc4e7hxje893ppgwm0f7gua8n7t3z9',
+            'ecash:qq4fd9zdqecq3q4mmxz8v8vunepptukh3czav3gjyt',
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            'ecash:qp54xhk40f3fewpkp80pa9v28jr6940fmv38nxlahf',
+            'ecash:qq5w7ue6qsnl2ny4e300afedjhuemw8y35j2e9mf0h',
+            'ecash:qz0csfyjgl46x5xnkh4xzxrl595nu92jfch930m9sw',
+            'ecash:qpgkjxnhpw8j4w24jral38fz52gv27jtmytxuxnkg3',
+        ],
+        replyAddress: 'ecash:qqfzls0nhjf7ukgpsmtlly2s2dueq54c5ulydy0h79',
+        satoshisSent: 31250371,
+        stackArray: [
+            '50',
+            '584543580008c43400000000000e21fdc39e01000000000000000000000000',
+        ],
+        xecTxType: 'Received',
+    },
+};
+
+export const invalidXecxTx = {
+    tx: {
+        ...xecxTx.tx,
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a501f584543580108c43400000000000e21fdc39e01000000000000000000000000',
+            },
+            ...xecxTx.tx.outputs.slice(1),
+        ],
+    },
+    sendingHash: xecxTx.sendingHash,
+    parsed: {
+        appActions: [
+            {
+                action: {
+                    decoded: Buffer.from(
+                        '0108c43400000000000e21fdc39e01000000000000000000000000',
+                        'hex',
+                    ).toString('utf8'),
+                    stack: '0108c43400000000000e21fdc39e01000000000000000000000000',
+                },
+                app: 'XECX',
+                isValid: false,
+                lokadId: '58454358',
+            },
+        ],
+        parsedTokenEntries: [],
+        recipients: [
+            'ecash:qzd5s72xhgjvr4sjfzafjt3a2vcstn4pfvs4c84egx',
+            'ecash:qzlsjhv6l0d9y3w47838u7ekpmpzx47k7qne9uv3t5',
+            'ecash:qrdrvgwc6jsugc4e7hxje893ppgwm0f7gua8n7t3z9',
+            'ecash:qq4fd9zdqecq3q4mmxz8v8vunepptukh3czav3gjyt',
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            'ecash:qp54xhk40f3fewpkp80pa9v28jr6940fmv38nxlahf',
+            'ecash:qq5w7ue6qsnl2ny4e300afedjhuemw8y35j2e9mf0h',
+            'ecash:qz0csfyjgl46x5xnkh4xzxrl595nu92jfch930m9sw',
+            'ecash:qpgkjxnhpw8j4w24jral38fz52gv27jtmytxuxnkg3',
+        ],
+        replyAddress: 'ecash:qqfzls0nhjf7ukgpsmtlly2s2dueq54c5ulydy0h79',
+        satoshisSent: 31250371,
+        stackArray: [
+            '50',
+            '584543580108c43400000000000e21fdc39e01000000000000000000000000',
+        ],
+        xecTxType: 'Received',
+    },
+};

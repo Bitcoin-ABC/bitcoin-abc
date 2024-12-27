@@ -36,6 +36,7 @@ import { opReturn } from 'config/opreturn';
 import { scriptOps } from 'ecash-agora';
 import { Script, fromHex, OP_0 } from 'ecash-lib';
 import { getRenderedTokenType, RenderedTokenType } from 'token-protocols';
+import { getEmppAppActions } from 'opreturn';
 
 const CHRONIK_MAX_PAGE_SIZE = 200;
 
@@ -289,11 +290,17 @@ interface EcashChatArticleReply {
 interface CashtabMsgAction {
     msg: string;
 }
-interface UnknownAction {
+export interface XecxAction {
+    minBalanceTokenSatoshisToReceivePaymentThisRound: number;
+    eligibleTokenSatoshis: number;
+    ineligibleTokenSatoshis: number;
+    excludedHoldersCount: number;
+}
+export interface UnknownAction {
     stack: string;
     decoded: string;
 }
-interface AppAction {
+export interface AppAction {
     lokadId: string;
     app: string;
     isValid?: boolean;
@@ -305,6 +312,7 @@ interface AppAction {
         | PaywallAction
         | EcashChatArticleReply
         | CashtabMsgAction
+        | XecxAction
         | UnknownAction;
 }
 
@@ -468,7 +476,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     }
 
     // Parse app action
-    const appActions = [];
+    const appActions: AppAction[] = [];
     if (stackArray.length !== 0) {
         const lokadId = stackArray[0];
         switch (lokadId) {
@@ -479,9 +487,12 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             }
             case opReturn.opReserved: {
                 // EMPP
-                // For now, do nothing
-                // ALP will be parsed by tokenEntries below
-                // TODO parse EMPP app actions
+                // spec: https://ecashbuilders.notion.site/eCash-Multi-Pushdata-Protocol-11e1b991071c4a77a3e948ba604859ac
+
+                const emppActions = getEmppAppActions(stackArray);
+                for (const emppAction of emppActions) {
+                    appActions.push(emppAction);
+                }
                 break;
             }
             case opReturn.appPrefixesHex.aliasRegistration: {
