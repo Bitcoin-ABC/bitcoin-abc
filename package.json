@@ -1,0 +1,6 @@
+{
+    "description": "Bitcoin ABC monorepo dependencies. Used to version pin binaries needed for arc lint and arc unit of JS repos.",
+    "devDependencies": {
+        "prettier": "^2.6.0"
+    }
+}

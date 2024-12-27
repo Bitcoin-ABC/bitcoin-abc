@@ -192,8 +192,8 @@ Then:
 cd bitcoin-abc
 [sudo] nvm install 20
 [sudo] npm install -g npm@latest
-[sudo] npm install -g prettier@2.6.0
 [sudo] npm install -g eslint@8.3.0
+npm ci
 ```
 
 Some repositories have a `.nvmrc` file which specifies the version of node expected.

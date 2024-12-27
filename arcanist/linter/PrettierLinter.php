@@ -30,7 +30,11 @@ final class PrettierLinter extends ArcanistExternalLinter {
   }
 
   public function getDefaultBinary() {
-    return 'prettier';
+    $root = $this->getProjectRoot();
+    return Filesystem::resolvePath(
+        'node_modules/prettier/bin-prettier.js',
+        $root
+    );
   }
 
   public function getVersion() {
