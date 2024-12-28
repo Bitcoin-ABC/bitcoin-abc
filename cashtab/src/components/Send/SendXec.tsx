@@ -42,7 +42,7 @@ import {
     ParsedOpReturnRaw,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
-import { formatFiatBalance, formatBalance } from 'utils/formatting';
+import { formatFiatBalance, formatBalance } from 'formatting';
 import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';

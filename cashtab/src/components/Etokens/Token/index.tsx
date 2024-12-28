@@ -25,7 +25,11 @@ import {
     isValidTokenId,
 } from 'validation';
 import BigNumber from 'bignumber.js';
-import { formatDate, getFormattedFiatPrice } from 'utils/formatting';
+import {
+    formatDate,
+    getFormattedFiatPrice,
+    decimalizedTokenQtyToLocaleFormat,
+} from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
 import { token as tokenConfig } from 'config/token';
@@ -81,7 +85,6 @@ import {
     Slider,
 } from 'components/Common/Inputs';
 import { QuestionIcon } from 'components/Common/CustomIcons';
-import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 import Switch from 'components/Common/Switch';
 import {
     DataAndQuestionButton,

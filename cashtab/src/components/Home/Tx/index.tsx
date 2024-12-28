@@ -74,10 +74,7 @@ import CashtabSettings, {
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
 import { ParsedTokenTxType, XecxAction } from 'chronik';
-import {
-    toFormattedXec,
-    decimalizedTokenQtyToLocaleFormat,
-} from 'utils/formatting';
+import { toFormattedXec, decimalizedTokenQtyToLocaleFormat } from 'formatting';
 import {
     toXec,
     decimalizeTokenAmount,

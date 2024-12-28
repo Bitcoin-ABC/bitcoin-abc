@@ -73,7 +73,7 @@ import {
 } from 'components/Etokens/CreateTokenForm/styles';
 import { sha256, Message } from 'js-sha256';
 import { getUserLocale } from 'helpers';
-import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
+import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 import { toHex } from 'ecash-lib';
 
 interface CreateTokenFormProps {

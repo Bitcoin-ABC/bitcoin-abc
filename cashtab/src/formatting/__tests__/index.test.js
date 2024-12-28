@@ -10,8 +10,8 @@ import {
     toFormattedXec,
     getMinimumFractionDigits,
     getFormattedFiatPrice,
-} from 'utils/formatting';
-import vectors from 'utils/fixtures/vectors';
+} from 'formatting';
+import vectors from 'formatting/fixtures/vectors';
 
 describe('Correctly executes formatting functions', () => {
     it(`test formatBalance with an input of 0`, () => {

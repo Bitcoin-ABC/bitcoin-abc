@@ -39,7 +39,7 @@ import {
 } from 'wallet';
 import { getUserLocale } from 'helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
-import { toFormattedXec } from 'utils/formatting';
+import { toFormattedXec } from 'formatting';
 import debounce from 'lodash.debounce';
 import { PageHeader } from 'components/Common/Atoms';
 

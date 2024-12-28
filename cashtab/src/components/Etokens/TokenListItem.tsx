@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import TokenIcon from './TokenIcon';
-import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
+import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
 const TokenIconWrapper = styled.div`

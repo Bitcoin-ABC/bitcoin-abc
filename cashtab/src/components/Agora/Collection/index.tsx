@@ -34,7 +34,7 @@ import { TokenSentLink } from 'components/Etokens/Token/styled';
 import Modal from 'components/Common/Modal';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation } from 'swiper/modules';
-import { getFormattedFiatPrice } from 'utils/formatting';
+import { getFormattedFiatPrice } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { toast } from 'react-toastify';

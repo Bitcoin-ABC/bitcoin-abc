@@ -43,7 +43,7 @@ import {
     toFormattedXec,
     getFormattedFiatPrice,
     decimalizedTokenQtyToLocaleFormat,
-} from 'utils/formatting';
+} from 'formatting';
 import { TokenSentLink } from 'components/Etokens/Token/styled';
 import {
     DepthBarCol,

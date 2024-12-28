@@ -46,7 +46,7 @@ import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
-import { toFormattedXec } from 'utils/formatting';
+import { toFormattedXec } from 'formatting';
 import {
     ChronikClient,
     WsEndpoint,
