@@ -78,3 +78,10 @@ export const ContentCtn = styled.div`
     margin-top: -80px;
     padding-top: 100px;
 `;
+
+export const FlexButtons = styled.div`
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+`;

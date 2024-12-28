@@ -18,6 +18,7 @@ import {
     RightDownArrow,
     Blob,
     ContentCtn,
+    FlexButtons,
 } from '/styles/common.js';
 
 import {
@@ -44,6 +45,7 @@ import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
 import ecashpoker from '/public/images/ecash-poker-logo.png';
 import pay2stay from '/public/images/Pay2Stay.png';
+import xecxLogo from '/public/images/xecx-logo-white.png';
 
 function TileSection({ title, items, children }) {
     return (
@@ -219,6 +221,37 @@ function UseEcash(props) {
                             color="accent"
                             openInNewTab
                         />
+                    </TextImageBlock>
+                    <TextImageBlock
+                        id="xecx"
+                        title="XECX"
+                        image={xecxLogo}
+                        alt="XECX logo"
+                    >
+                        <p>
+                            Earn crypto while you sleep with as little as $1 of
+                            XECX. Holders of XECX receive daily eCash staking
+                            reward payouts in XEC. Trade XECX for XEC 1:1 on the
+                            Agora marketplace.
+                        </p>
+
+                        <p>Built using eCash&apos;s ALP technology.</p>
+                        <FlexButtons>
+                            <Button
+                                text="Learn more"
+                                link="https://stakedxec.com/"
+                                corner="bottomRight"
+                                color="accent"
+                                openInNewTab
+                            />
+                            <Button
+                                text="Get XECX"
+                                link="https://cashtab.com/#/token/c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4"
+                                corner="bottomRight"
+                                color="white"
+                                openInNewTab
+                            />
+                        </FlexButtons>
                     </TextImageBlock>
                 </Container>
 
