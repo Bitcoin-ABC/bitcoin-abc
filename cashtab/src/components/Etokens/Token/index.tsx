@@ -2121,11 +2121,14 @@ const Token: React.FC = () => {
                                             Offered qty:{' '}
                                         </AgoraPreviewLabel>
                                         <AgoraPreviewCol>
-                                            {decimalizeTokenAmount(
-                                                previewedAgoraPartial
-                                                    .offeredTokens()
-                                                    .toString(),
-                                                decimals as SlpDecimals,
+                                            {decimalizedTokenQtyToLocaleFormat(
+                                                decimalizeTokenAmount(
+                                                    previewedAgoraPartial
+                                                        .offeredTokens()
+                                                        .toString(),
+                                                    decimals as SlpDecimals,
+                                                ),
+                                                userLocale,
                                             )}
                                         </AgoraPreviewCol>
                                     </AgoraPreviewRow>
@@ -2134,11 +2137,14 @@ const Token: React.FC = () => {
                                             Min buy:{' '}
                                         </AgoraPreviewLabel>
                                         <AgoraPreviewCol>
-                                            {decimalizeTokenAmount(
-                                                previewedAgoraPartial
-                                                    .minAcceptedTokens()
-                                                    .toString(),
-                                                decimals as SlpDecimals,
+                                            {decimalizedTokenQtyToLocaleFormat(
+                                                decimalizeTokenAmount(
+                                                    previewedAgoraPartial
+                                                        .minAcceptedTokens()
+                                                        .toString(),
+                                                    decimals as SlpDecimals,
+                                                ),
+                                                userLocale,
                                             )}
                                         </AgoraPreviewCol>
                                     </AgoraPreviewRow>
