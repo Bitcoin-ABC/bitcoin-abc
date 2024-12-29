@@ -677,24 +677,37 @@ builds:
       ./build-wasm.sh
 
   chronik-client:
+    depends:
+      - ecashaddrjs
     script: |
       pushd "${TOPLEVEL}/modules/chronik-client"
       npm ci
       npm run build
 
   mock-chronik-client:
+    depends:
+      - ecashaddrjs
+      - chronik-client
     script: |
       pushd "${TOPLEVEL}/modules/mock-chronik-client"
       npm ci
       npm run build
 
   ecash-lib:
+    depends:
+      - ecash-lib-wasm
+      - b58-ts
+      - ecashaddrjs
+      - chronik-client
     script: |
       pushd "${TOPLEVEL}/modules/ecash-lib"
       npm ci
       npm run build
 
   ecash-agora:
+    depends:
+      - chronik-client
+      - ecash-lib
     script: |
       pushd "${TOPLEVEL}/modules/ecash-agora"
       npm ci
@@ -728,52 +741,14 @@ builds:
       JEST_JUNIT_SUITE_NAME: "CashTab Unit Tests"
       JEST_JUNIT_OUTPUT_DIR: "test/junit"
       JEST_JUNIT_OUTPUT_NAME: "cashtab.xml"
+    depends:
+      - ecashaddrjs
+      - chronik-client
+      - mock-chronik-client
+      - ecash-script
+      - ecash-lib
+      - ecash-agora
     script: |
-      # Cashtab tests depend on libraries hosted in the monorepo
-      # Install their dependencies (and build them, if necessary) before tests
-      # ecashaddrjs
-      echo "Installing ecashaddrjs dependencies..."
-      pushd "${TOPLEVEL}/modules/ecashaddrjs"
-      npm ci
-      npm run build
-
-      # chronik-client
-      echo "Installing chronik-client dependencies..."
-      pushd "${TOPLEVEL}/modules/chronik-client"
-      npm ci
-      npm run build
-
-      # mock-chronik-client
-      echo "Installing mock-chronik-client dependencies..."
-      pushd "${TOPLEVEL}/modules/mock-chronik-client"
-      npm ci
-      npm run build
-
-      # ecash-script
-      echo "Installing ecash-script dependencies..."
-      pushd "${TOPLEVEL}/modules/ecash-script"
-      npm ci
-
-      # ecash-lib-wasm
-      pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
-      ./build-wasm.sh
-
-      # b58-ts
-      pushd "${TOPLEVEL}/modules/b58-ts"
-      npm ci
-      npm run build
-
-      # ecash-lib
-      pushd "${TOPLEVEL}/modules/ecash-lib"
-      npm ci
-      npm run build
-
-      # ecash-agora
-      echo "Installing ecash-agora dependencies..."
-      pushd "${TOPLEVEL}/modules/ecash-agora"
-      npm ci
-      npm run build
-
       pushd "${TOPLEVEL}/cashtab"
       npm ci
       npm run build
@@ -812,10 +787,8 @@ builds:
       JS_PROJECT_ROOT: apps/ecash-herald
     # Ordering matters
     depends:
-      - b58-ts
       - ecashaddrjs
       - chronik-client
-      - ecash-lib-wasm
       - ecash-lib
       - ecash-agora
       - ecash-script
@@ -833,11 +806,9 @@ builds:
       JS_PROJECT_ROOT: apps/token-server
       RUN_NPM_BUILD: "true"
     depends:
-      - b58-ts
       - ecashaddrjs
       - chronik-client
       - mock-chronik-client
-      - ecash-lib-wasm
       - ecash-lib
     templates:
       - js-mocha
@@ -899,10 +870,8 @@ builds:
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
     depends:
-      - b58-ts
       - ecashaddrjs
       - chronik-client
-      - ecash-lib-wasm
       - ecash-lib
     templates:
       - js-mocha
@@ -926,10 +895,8 @@ builds:
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
     depends:
-      - b58-ts
       - ecashaddrjs
       - chronik-client
-      - ecash-lib-wasm
       - ecash-lib
     templates:
       - js-mocha-integration-tests
