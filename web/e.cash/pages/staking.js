@@ -126,6 +126,11 @@ function Staking(props) {
                             rewards
                         </ExternalLink>
                     </li>
+                    <li>
+                        <ExternalLink href="https://stakedxec.com/">
+                            stakedXec.com - tokenized staking with XECX
+                        </ExternalLink>
+                    </li>
                 </ul>
             </Container>
         </Layout>
