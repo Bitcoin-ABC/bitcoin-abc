@@ -696,6 +696,12 @@ describe('SLP', () => {
                 },
                 {
                     ...newExpectedOffer,
+                    takenInfo: {
+                        satoshisPaid: 70000,
+                        takerScriptHex:
+                            '76a914531260aa2a199e228c537dfa42c82bea2c7c1f4d88ac',
+                        baseTokens: '1',
+                    },
                     status: 'TAKEN',
                 },
             ],

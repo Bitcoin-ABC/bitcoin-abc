@@ -162,3 +162,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 -   Update tsconfig to support use in nodejs [D17019](https://reviews.bitcoinabc.org/D17019)
 -   Monorepo linting [D17072](https://reviews.bitcoinabc.org/D17072)
 -   CI publishing [D17243](https://reviews.bitcoinabc.org/D17243)
+
+### 0.3.0
+
+-   Add `TakenInfo` in `historicOffers` method to support parsing historic Agora offers [D17422](https://reviews.bitcoinabc.org/D17422)

@@ -24,7 +24,7 @@ import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 
 import { AgoraPartial } from '../src/partial.js';
 import { makeAlpOffer, takeAlpOffer } from './partial-helper-alp.js';
-import { Agora } from '../src/agora.js';
+import { Agora, TakenInfo } from '../src/agora.js';
 
 use(chaiAsPromised);
 
@@ -466,7 +466,8 @@ describe('AgoraPartial ALP', () => {
             });
             const acceptTx = await chronik.tx(acceptTxid);
             const offeredTokens = agoraPartial.offeredTokens();
-            if (testCase.acceptedTokens == offeredTokens) {
+            const isFullAccept = testCase.acceptedTokens == offeredTokens;
+            if (isFullAccept) {
                 // FULL ACCEPT
                 // 0th output is OP_RETURN eMPP AGR0 ad + ALP SEND
                 expect(acceptTx.outputs[0].outputScript).to.equal(
@@ -578,11 +579,22 @@ describe('AgoraPartial ALP', () => {
             );
             expect(cancelTx.outputs[1].outputScript).to.equal(makerScriptHex);
 
+            // takerIndex is 2 for full accept, 3 for partial accept
+            const takerIndex = isFullAccept ? 2 : 3;
+
+            // Get takenInfo from offer creation params
+            const takenInfo: TakenInfo = {
+                satoshisPaid: testCase.askedSats,
+                takerScriptHex: acceptTx.outputs[takerIndex].outputScript,
+                baseTokens: testCase.acceptedTokens.toString(),
+            };
+
             // Tx history by token ID
             const offers = [
                 {
                     ...offer,
                     status: 'TAKEN',
+                    takenInfo,
                 },
                 {
                     ...newOffer,

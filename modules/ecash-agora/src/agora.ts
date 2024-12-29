@@ -76,6 +76,20 @@ export type AgoraOfferVariant =
 /** Status of the offer, i.e. if it open/taken/canceled */
 export type AgoraOfferStatus = 'OPEN' | 'TAKEN' | 'CANCELED';
 
+/** If an offer is TAKEN */
+export interface TakenInfo {
+    /** satoshis paid in taking an offer */
+    satoshisPaid: number;
+    /**
+     * amount of token purchased in base tokens
+     * (aka token satoshis, the token qty without
+     * decimals applied)
+     */
+    baseTokens: string;
+    /** taker outputScript as a hex string*/
+    takerScriptHex: string;
+}
+
 /**
  * Individual token offer on the Agora, i.e. one UTXO offering tokens.
  *
@@ -87,6 +101,7 @@ export class AgoraOffer {
     public txBuilderInput: TxInput;
     public token: Token;
     public status: AgoraOfferStatus;
+    public takenInfo?: TakenInfo;
 
     public constructor(params: {
         variant: AgoraOfferVariant;
@@ -94,12 +109,16 @@ export class AgoraOffer {
         txBuilderInput: TxInput;
         token: Token;
         status: AgoraOfferStatus;
+        takenInfo?: TakenInfo;
     }) {
         this.variant = params.variant;
         this.outpoint = params.outpoint;
         this.txBuilderInput = params.txBuilderInput;
         this.token = params.token;
         this.status = params.status;
+        if (typeof this.takenInfo !== 'undefined') {
+            this.takenInfo = params.takenInfo;
+        }
     }
 
     /**
@@ -619,6 +638,45 @@ export class Agora {
                 // isCanceled is always the last pushop (before redeemScript)
                 const opIsCanceled = ops[ops.length - 2];
                 const isCanceled = opIsCanceled === OP_0;
+                // If isCanceled, then offer.token.amount is the canceled amount
+                let takenInfo: undefined | TakenInfo;
+                if (!isCanceled) {
+                    // If this is TAKEN, provide useful parsed info from the tx
+                    // The taken qty is the token amount in the outputs that is not rolled into another agora offer
+                    // i.e. the token amount that goes to a p2pkh address
+                    // The price paid is the XEC that goes to the offer creator
+
+                    // In practice, we can get these amounts by following the rules below
+                    // Note we may see AgoraOffer change in the future and need to update this parsing
+
+                    // The purchase price is satoshis that go to the offer creator
+                    // Index 1 output
+                    const satoshisPaid = tx.outputs[1].value;
+
+                    // The taker receives the purchased tokens at a p2pkh address
+                    // This is at index 2 for a buy of the full offer and index 3 for a partial buy
+                    // If tx.outputs[2].outputScript is p2sh, that means partialbuy and takerBuyIndex is 3
+                    const takerBuyIndex = tx.outputs[2].outputScript.startsWith(
+                        '76a914',
+                    )
+                        ? 2
+                        : 3;
+
+                    const takerScriptHex =
+                        tx.outputs[takerBuyIndex].outputScript;
+
+                    const baseTokens = tx.outputs[takerBuyIndex].token?.amount;
+                    if (typeof baseTokens === 'string') {
+                        // Should always be true but we may have different kinds of agora
+                        // offers in the future
+                        // So, we only set if we have the info we expect
+                        takenInfo = {
+                            satoshisPaid,
+                            baseTokens,
+                            takerScriptHex,
+                        };
+                    }
+                }
                 delete input.token?.entryIdx; // UTXO token has no entryIdx
                 const offer = this._parseOfferUtxo(
                     {
@@ -635,6 +693,10 @@ export class Agora {
                 );
                 if (offer === undefined) {
                     return [];
+                }
+                if (typeof takenInfo !== 'undefined') {
+                    // Add takenInfo for taken offers
+                    offer.takenInfo = takenInfo;
                 }
                 return [offer];
             });
