@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Image from 'next/image';
 import Layout from '/components/layout';
+import ExternalLink from '../components/external-link';
 import VideoBackground from '/components/videobackground';
 import GlitchText from '/components/glitch-text';
 import { Container } from '/components/atoms';
@@ -26,6 +27,7 @@ import {
     BuildSection,
     BuildSectionCtn,
     ButtonFlagCtn,
+    TelegramLinkContainer,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
@@ -109,6 +111,16 @@ function Home(props) {
                                     corner="bottomRight"
                                     glow
                                 />
+                                <TelegramLinkContainer>
+                                    <ExternalLink href="https://t.me/ecash">
+                                        <Image
+                                            src={`/images/telegram.svg`}
+                                            alt="eCash Official Telegram Link"
+                                            fill
+                                            priority
+                                        />
+                                    </ExternalLink>
+                                </TelegramLinkContainer>
                             </ButtonCtn>
                         </HeroTextCtn>
                         <HeroImage>

@@ -110,6 +110,7 @@ export const Tagline = styled.span`
 
 export const ButtonCtn = styled.div`
     display: flex;
+    align-items: center;
     margin-top: 40px;
     ${props => props.theme.breakpoint.medium} {
         margin-top: 20px;
@@ -358,5 +359,39 @@ export const TilesSectionCtn = styled(motion.div).attrs(() =>
     text-align: center;
     ${props => props.theme.breakpoint.medium} {
         margin-top: 80px;
+    }
+`;
+
+export const TelegramLinkContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    ${props => props.theme.breakpoint.medium} {
+        width: 100%;
+        flex-wrap: wrap;
+        margin-left: 0px;
+    }
+    ${props => props.theme.breakpoint.small} {
+        a {
+            margin-top: 18px;
+        }
+    }
+
+    a {
+        width: 50px;
+        height: 50px;
+        margin-left: 18px;
+        position: relative;
+        transition: all ease-in-out 200ms;
+
+        :hover {
+            transform: scale(1.4);
+        }
+
+        :hover img {
+            filter: invert(32%) sepia(76%) saturate(5535%) hue-rotate(189deg)
+                brightness(93%) contrast(101%);
+        }
     }
 `;
