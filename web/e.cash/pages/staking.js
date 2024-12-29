@@ -127,6 +127,12 @@ function Staking(props) {
                         </ExternalLink>
                     </li>
                     <li>
+                        <ExternalLink href="https://ecashstaking.com/">
+                            eCashStaking - Earn eCash staking rewards without
+                            running your own node
+                        </ExternalLink>
+                    </li>
+                    <li>
                         <ExternalLink href="https://stakedxec.com/">
                             stakedXec.com - tokenized staking with XECX
                         </ExternalLink>
