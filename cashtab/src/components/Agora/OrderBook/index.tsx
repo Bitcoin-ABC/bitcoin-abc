@@ -577,11 +577,20 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 activeOffer.depthPercent = depthPercent;
             }
             // Sort activeOffers by spot price, lowest to highest
-            activeOffers.sort(
-                (a, b) =>
+            activeOffers.sort((a, b) => {
+                // Primary sort by spot price
+                const spotPriceDiff =
                     Number(a.spotPriceNanoSatsPerTokenSat) -
-                    Number(b.spotPriceNanoSatsPerTokenSat),
-            );
+                    Number(b.spotPriceNanoSatsPerTokenSat);
+                if (spotPriceDiff !== 0) {
+                    return spotPriceDiff;
+                }
+                // If spot prices are equal, sort by minAcceptedTokens
+                return (
+                    Number(a.variant.params.minAcceptedTokens()) -
+                    Number(b.variant.params.minAcceptedTokens())
+                );
+            });
 
             // Update info map if present
             if (typeof orderBookInfoMap !== 'undefined') {
