@@ -32,7 +32,6 @@ const TokenList: React.FC<TokenListProps> = ({ tokensKvArray, userLocale }) => {
                     />
                 </TokenLink>
             ))}
-            ;
         </>
     );
 };
