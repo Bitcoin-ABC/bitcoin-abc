@@ -22,6 +22,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import BigNumber from 'bignumber.js';
 import { Slider } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { InlineLoader } from 'components/Common/Spinner';
@@ -85,6 +86,11 @@ export interface PartialOffer extends AgoraOffer {
         type: 'PARTIAL';
         params: AgoraPartial;
     };
+    /**
+     * Calculated value
+     * Allows us to render depth at the price of this order, like most
+     * exchange orderbooks
+     */
     depthPercent?: number;
     spotPriceNanoSatsPerTokenSat?: bigint;
 }
@@ -529,7 +535,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
      * Get all activeOffers for this tokenId
      * Prepare by adding two params used in this component
      * spotPriceNanoSatsPerTokenSat - the price (in nanosatoshis) of accepting the full offer qty
-     * depthPercent - the relative size of the offer at this spot price compared to other active offers for this token
+     * depthPercent - the cumulative size of the offer at this spot price compared to other active offers for this token
      */
     const fetchAndPrepareActiveOffers = async () => {
         try {
@@ -569,13 +575,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // We do not use a bignumber library because accuracy is not critical here, only used
             // for rendering depth bars
 
-            for (const activeOffer of activeOffers) {
-                const thisOfferAmountTokenSatoshis = activeOffer.token.amount;
-                const depthPercent =
-                    (100 * Number(thisOfferAmountTokenSatoshis)) /
-                    Number(deepestActiveOfferedTokens);
-                activeOffer.depthPercent = depthPercent;
-            }
             // Sort activeOffers by spot price, lowest to highest
             activeOffers.sort((a, b) => {
                 // Primary sort by spot price
@@ -591,6 +590,23 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     Number(b.variant.params.minAcceptedTokens())
                 );
             });
+
+            // Now that we have sorted by spot price, we can properly calculate cumulative depth
+            // The most expensive offer will be at 1
+            let cumulativeOfferedTokenSatoshis = 0n;
+            for (const offer of activeOffers) {
+                const thisOfferAmountTokenSatoshis = offer.token.amount;
+                cumulativeOfferedTokenSatoshis += BigInt(
+                    thisOfferAmountTokenSatoshis,
+                );
+                const depthPercent = new BigNumber(
+                    cumulativeOfferedTokenSatoshis.toString(),
+                )
+                    .div(totalOfferedTokenSatoshis.toString())
+                    .times(100)
+                    .toNumber();
+                offer.depthPercent = depthPercent;
+            }
 
             // Update info map if present
             if (typeof orderBookInfoMap !== 'undefined') {
