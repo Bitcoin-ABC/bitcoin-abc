@@ -841,16 +841,19 @@ describe('<Agora />', () => {
         });
         expect(buyCachetButton).toBeInTheDocument();
 
-        // Note I was not able to adjust the slider value in react testing library
-        // We do the min buy
-
         await userEvent.click(buyCachetButton);
         // We see a confirmation modal
         expect(
-            screen.getByText(
-                `Buy ${UPDATED_CACHET_SPOT_MIN_QTY} Cachet (CACHET) for 3,601.92 XEC (${UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY})?`,
-            ),
+            await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
+        // We see target qty and the actual qty
+        expect(screen.getAllByText('.30')).toHaveLength(2);
+        // We DO NOT see the delta
+        expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
+        // We see the price in XEC
+        expect(screen.getByText('3,601.92 XEC')).toBeInTheDocument();
+        // We see the price in USD in the modal and on the form
+        expect(screen.getByText('$0.1081 USD')).toBeInTheDocument();
 
         // We buy
         await userEvent.click(screen.getByText('OK'));
@@ -1003,11 +1006,19 @@ describe('<Agora />', () => {
 
         await userEvent.click(buyCachetButton);
 
+        // We see a confirmation modal
+        screen.debug(null, Infinity);
         expect(
-            screen.getByText(
-                `Buy ${UPDATED_CACHET_SPOT_MIN_QTY} Cachet (CACHET) for 3,601.92 XEC (${UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY})?`,
-            ),
+            await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
+        // We see target qty and the actual qty
+        expect(screen.getAllByText('.30')).toHaveLength(2);
+        // We DO NOT see the delta
+        expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
+        // We see the price in XEC
+        expect(screen.getByText('3,601.92 XEC')).toBeInTheDocument();
+        // We see the price in USD in the modal and on the form
+        expect(screen.getByText('$0.1081 USD')).toBeInTheDocument();
 
         // We buy
         await userEvent.click(screen.getByText('OK'));

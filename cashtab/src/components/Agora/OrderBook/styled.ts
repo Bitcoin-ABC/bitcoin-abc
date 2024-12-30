@@ -194,3 +194,7 @@ export const MintIconSpotWrapper = styled.div`
         width: 24px;
     }
 `;
+
+export const DeltaSpan = styled.span`
+    color: ${props => props.theme.secondaryAccent};
+`;

@@ -7,7 +7,6 @@ import {
     toXec,
     toSatoshis,
     xecToNanoSatoshis,
-    decimalizeTokenAmount,
     LegacyCashtabWallet,
     SlpDecimals,
 } from 'wallet';
@@ -26,6 +25,7 @@ import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 import { getMaxDecimalizedQty } from 'token-protocols';
 import { CashtabContact } from 'config/CashtabState';
+import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 
 export const getContactAddressError = (
     address: string,
@@ -1219,11 +1219,46 @@ export const getAgoraPartialListPriceError = (
 };
 
 export const getAgoraPartialAcceptTokenQtyError = (
-    acceptTokenSatoshis: bigint,
-    offerMinAcceptTokenSatoshis: bigint,
-    offerMaxAcceptSatoshis: bigint,
+    takeTokenDecimalizedQty: string,
+    decimalizedTokenQtyMin: string,
+    decimalizedTokenQtyMax: string,
     decimals: SlpDecimals,
+    userLocale: string,
 ): false | string => {
+    // Since we are not relying on the slider to set discrete amounts, and the user can input anything
+    // We must validate user input
+    if (typeof takeTokenDecimalizedQty !== 'string') {
+        // Should never happen
+        return 'Amount must be a string';
+    }
+    if (takeTokenDecimalizedQty === '') {
+        return 'Select a buy amount';
+    }
+    if (new BigNumber(takeTokenDecimalizedQty).lt(decimalizedTokenQtyMin)) {
+        return `Must purchase at least ${decimalizedTokenQtyToLocaleFormat(
+            decimalizedTokenQtyMin,
+            userLocale,
+        )} to accept this offer`;
+    }
+    if (
+        !STRINGIFIED_DECIMALIZED_REGEX.test(takeTokenDecimalizedQty) ||
+        takeTokenDecimalizedQty.length === 0
+    ) {
+        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+    }
+    if (takeTokenDecimalizedQty.includes('.')) {
+        if (
+            takeTokenDecimalizedQty.toString().split('.')[1].length > decimals
+        ) {
+            if (decimals === 0) {
+                return `This token does not support decimal places`;
+            }
+            return `This token supports no more than ${decimals} decimal place${
+                decimals === 1 ? '' : 's'
+            }`;
+        }
+    }
+
     /**
      * 2 potential problems
      *
@@ -1246,14 +1281,16 @@ export const getAgoraPartialAcceptTokenQtyError = (
      * So, in Cashtab, we only test for case 2 here
      */
 
-    const threshold = offerMaxAcceptSatoshis - offerMinAcceptTokenSatoshis;
+    const threshold = new BigNumber(decimalizedTokenQtyMax).minus(
+        decimalizedTokenQtyMin,
+    );
     if (
-        acceptTokenSatoshis > threshold &&
-        acceptTokenSatoshis < offerMaxAcceptSatoshis
+        new BigNumber(takeTokenDecimalizedQty).gt(threshold) &&
+        new BigNumber(takeTokenDecimalizedQty).lt(decimalizedTokenQtyMax)
     ) {
-        return `Must accept <= ${decimalizeTokenAmount(
+        return `Must accept <= ${decimalizedTokenQtyToLocaleFormat(
             threshold.toString(),
-            decimals,
+            userLocale,
         )} or the full offer`;
     }
     return false;

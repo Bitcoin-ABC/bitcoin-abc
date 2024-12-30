@@ -38,6 +38,7 @@ import {
     toBigInt,
     CashtabWallet,
     SlpDecimals,
+    undecimalizeTokenAmount,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import {
@@ -62,7 +63,15 @@ import {
     OfferDetailsCtn,
     BuyOrderCtn,
     MintIconSpotWrapper,
+    DeltaSpan,
 } from './styled';
+import {
+    AgoraPreviewParagraph,
+    AgoraPreviewTable,
+    AgoraPreviewRow,
+    AgoraPreviewLabel,
+    AgoraPreviewCol,
+} from 'components/Etokens/Token/styled';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
 import {
@@ -259,6 +268,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
     };
 
     const acceptOffer = async (agoraPartial: PartialOffer) => {
+        if (preparedTokenSatoshis === null) {
+            // We cannot accept an offer if we do not have valid preparedTokenSatoshis
+            // Should never happen as we disable the buy button in this case
+            return;
+        }
         // Determine tx fee from settings
         const satsPerKb =
             settings.minFeeSends &&
@@ -287,7 +301,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             acceptFuelInputs = getAgoraPartialAcceptFuelInputs(
                 agoraPartial,
                 eligibleUtxos,
-                toBigInt(takeTokenSatoshis),
+                preparedTokenSatoshis,
                 satsPerKb,
             );
         } catch (err) {
@@ -295,6 +309,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 'Error determining fuel inputs for offer accept',
                 err,
             );
+            // Hide the confirmation modal
+            setShowConfirmBuyModal(false);
+            // Error notification
             return toast.error(`${err}`);
         }
 
@@ -343,8 +360,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // Accept at default path, 1899
                 recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
                 feePerKb: satsPerKb,
-                // Need to use Number() to deal with values in scientific notation
-                acceptedTokens: toBigInt(takeTokenSatoshis),
+                acceptedTokens: preparedTokenSatoshis,
             })
             .ser();
 
@@ -360,9 +376,12 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    {`Bought ${decimalizeTokenAmount(
-                        takeTokenSatoshis,
-                        decimals as SlpDecimals,
+                    {`Bought ${decimalizedTokenQtyToLocaleFormat(
+                        decimalizeTokenAmount(
+                            preparedTokenSatoshis.toString(),
+                            decimals as SlpDecimals,
+                        ),
+                        userLocale,
                     )} ${tokenName}${
                         tokenTicker !== '' ? ` (${tokenTicker})` : ''
                     } for
@@ -391,6 +410,34 @@ const OrderBook: React.FC<OrderBookProps> = ({
         }
     };
 
+    // Syntax shortcut for complex token qty calculation in confirm modal
+    const getDeltaTokenQtyRow = () => {
+        if (typeof decimals === 'undefined') {
+            // Should never happen, as we only call this when user is making a buy,
+            // and we need token decimals for this to be enabled
+            return;
+        }
+        const delta = new BigNumber(
+            decimalizeTokenAmount(
+                (preparedTokenSatoshis as bigint).toString(),
+                decimals as SlpDecimals,
+            ),
+        ).minus(takeTokenDecimalizedQty);
+        if (delta.eq(0)) {
+            return null;
+        }
+        return (
+            <AgoraPreviewRow>
+                <AgoraPreviewLabel>
+                    <DeltaSpan>Qty Delta:</DeltaSpan>{' '}
+                </AgoraPreviewLabel>
+                <AgoraPreviewCol>
+                    <DeltaSpan>{delta.toString()}</DeltaSpan>
+                </AgoraPreviewCol>
+            </AgoraPreviewRow>
+        );
+    };
+
     // Modal flags
     const [showLargeIconModal, setShowLargeIconModal] =
         useState<boolean>(false);
@@ -416,26 +463,30 @@ const OrderBook: React.FC<OrderBookProps> = ({
     // This component sorts offers by spot price; so this is the spot offer
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [askedSats, setAskedSats] = useState<number>(0);
-    // Note that takeTokenSatoshis is a string because slider values are strings
-    const [takeTokenSatoshis, setTakeTokenSatoshis] = useState<string>('0');
 
-    // Errorrs
-    const [takeTokenSatoshisError, setTakeTokenSatoshisError] = useState<
-        false | string
-    >(false);
+    // User input for token qty they want to buy. In token units (decimalized).
+    const [takeTokenDecimalizedQty, setTakeTokenDecimalizedQty] =
+        useState<string>('0');
+    // The nearest acceptable valid qty of token the user can purchase for any given
+    // takeTokenDecimalizedQty. This is in TOKEN SATOSHIS. We calculate it with
+    // prepareTokenSatoshis only if takeTokenDecimalizedQty has passed validation
+    // null if takeTokenDecimalizedQty is invalid
+    const [preparedTokenSatoshis, setPreparedTokenSatoshis] = useState<
+        null | bigint
+    >(null);
+
+    // Errors
+    const [takeTokenDecimalizedQtyError, setTakeTokenDecimalizedQtyError] =
+        useState<false | string>(false);
     const [agoraQueryError, setAgoraQueryError] = useState<boolean>(false);
 
-    const handleTakeTokenSatoshisSlide = (
+    const handleTakeTokenDecimalizedQtySlide = (
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
-        // JS slider components will only take string input, and only convert to number
-        // So, unless you build your own custom component, you cannot avoid precision loss
-        // TODO custom component
-        // Prepare value before setting
-        const preparedTokenSatoshis = (
-            selectedOffer as PartialOffer
-        ).variant.params.prepareAcceptedTokens(toBigInt(e.target.value));
-        setTakeTokenSatoshis(preparedTokenSatoshis.toString());
+        // Directly set the user's input even though it is unlikely to be exactly possible
+        // in the order
+        // We will render the prepared amount in the buy modal
+        setTakeTokenDecimalizedQty(e.target.value);
     };
 
     // We can only calculate params to render the orderbook depth chart and slider after
@@ -659,19 +710,49 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // If we are still loading token info, do nothing
             return;
         }
+        if (typeof decimals === 'undefined') {
+            // Should be caught by !canRenderOrderbook
+            // But if we do not have decimals defined here, will get an error
+            return;
+        }
 
-        setTakeTokenSatoshisError(
-            getAgoraPartialAcceptTokenQtyError(
-                toBigInt(takeTokenSatoshis),
-                tokenSatoshisMin as bigint,
-                tokenSatoshisMax as bigint,
+        const falseOrErrorMsg = getAgoraPartialAcceptTokenQtyError(
+            takeTokenDecimalizedQty,
+            decimalizedTokenQtyMin as string,
+            decimalizedTokenQtyMax as string,
+            decimals as SlpDecimals,
+            userLocale,
+        );
+
+        setTakeTokenDecimalizedQtyError(falseOrErrorMsg);
+
+        if (falseOrErrorMsg !== false) {
+            // We can only prepare token satoshis and set the price if we have valid user input
+            // If there is some input error, do not attempt to calculate the true price and take amount
+            // Set preparedTokenSatoshis to null so that we do not render any actual amount and cannot buy
+            return setPreparedTokenSatoshis(null);
+        }
+
+        // Convert validated user input to token satoshis
+        const tokenSatoshis = toBigInt(
+            undecimalizeTokenAmount(
+                takeTokenDecimalizedQty,
                 decimals as SlpDecimals,
             ),
         );
 
-        // takeTokenSatoshis is only set to state by agora methods that prepareAcceptedTokens
+        // Get token satoshis amount closest to user input that is acceptable for this AgoraPartial
+        const preparedTokenSatoshis = (
+            selectedOffer as PartialOffer
+        ).variant.params.prepareAcceptedTokens(tokenSatoshis);
+
+        // Set this separately to state. This is the value we must use for our accept calculations
+        // This is also the "actual" value we must present to the user for review
+        setPreparedTokenSatoshis(preparedTokenSatoshis);
+
+        // With preparedTokenSatoshis (the "actual" value), we can get the actual price
         const spotPriceSatsThisQty = (selectedOffer as PartialOffer).askedSats(
-            toBigInt(takeTokenSatoshis),
+            preparedTokenSatoshis,
         );
 
         // The state parameter "askedSats" is only used for rendering pricing information,
@@ -682,18 +763,25 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
         // Update when token qty changes
         // In practice, this means we also update when selectedOffer changes,
-        // as changing selectedOffer will reset takeTokenSatoshis to the min accept
+        // as changing selectedOffer will reset takeTokenDecimalizedQty to the min accept
         // qty of the new selected offer
-    }, [takeTokenSatoshis]);
+    }, [takeTokenDecimalizedQty]);
 
     // Update the slider when the user selects a different offer
     useEffect(() => {
-        if (Array.isArray(activeOffers) && activeOffers.length > 0) {
+        if (
+            Array.isArray(activeOffers) &&
+            activeOffers.length > 0 &&
+            typeof decimals !== 'undefined'
+        ) {
             // Select the minAcceptedTokens amount every time the order changes
-            setTakeTokenSatoshis(
-                activeOffers[selectedIndex].variant.params
-                    .minAcceptedTokens()
-                    .toString(),
+            setTakeTokenDecimalizedQty(
+                decimalizeTokenAmount(
+                    activeOffers[selectedIndex].variant.params
+                        .minAcceptedTokens()
+                        .toString(),
+                    decimals as SlpDecimals,
+                ),
             );
         }
     }, [activeOffers, selectedIndex]);
@@ -718,32 +806,80 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     handleCancel={() => setShowAcceptedQtyInfo(false)}
                 />
             )}
-            {showConfirmBuyModal && (
+            {showConfirmBuyModal && typeof decimals !== 'undefined' && (
                 <Modal
-                    title={`Buy ${decimalizedTokenQtyToLocaleFormat(
-                        decimalizeTokenAmount(
-                            takeTokenSatoshis,
-                            decimals as SlpDecimals,
-                        ),
-                        userLocale,
-                    )} ${tokenName}${
-                        tokenTicker !== '' ? ` (${tokenTicker})` : ''
-                    } for ${toXec(askedSats).toLocaleString(userLocale)} XEC${
-                        fiatPrice !== null
-                            ? ` (${getFormattedFiatPrice(
-                                  settings.fiatCurrency,
-                                  userLocale,
-                                  toXec(askedSats),
-                                  fiatPrice,
-                              )})?`
-                            : '?'
-                    }`}
-                    height={290}
+                    title={`Execute this trade?`}
+                    height={470}
                     showCancelButton
                     handleOk={() => acceptOffer(selectedOffer as PartialOffer)}
                     handleCancel={() => setShowConfirmBuyModal(false)}
                 >
-                    <TokenIcon size={128} tokenId={tokenId} />
+                    <>
+                        <TokenIcon size={128} tokenId={tokenId} />
+                        <AgoraPreviewParagraph>
+                            Agora offers must be accepted at specific
+                            quantities.
+                        </AgoraPreviewParagraph>
+                        <AgoraPreviewParagraph>
+                            Review and confirm.
+                        </AgoraPreviewParagraph>
+                        <AgoraPreviewTable>
+                            <AgoraPreviewRow>
+                                <AgoraPreviewLabel>
+                                    Target qty:{' '}
+                                </AgoraPreviewLabel>
+                                <AgoraPreviewCol>
+                                    {decimalizedTokenQtyToLocaleFormat(
+                                        takeTokenDecimalizedQty,
+                                        userLocale,
+                                    )}
+                                </AgoraPreviewCol>
+                            </AgoraPreviewRow>
+                            <AgoraPreviewRow>
+                                <AgoraPreviewLabel>
+                                    Actual qty:{' '}
+                                </AgoraPreviewLabel>
+                                <AgoraPreviewCol>
+                                    {decimalizedTokenQtyToLocaleFormat(
+                                        decimalizeTokenAmount(
+                                            (
+                                                preparedTokenSatoshis as bigint
+                                            ).toString(),
+                                            decimals as SlpDecimals,
+                                        ),
+                                        userLocale,
+                                    )}
+                                </AgoraPreviewCol>
+                            </AgoraPreviewRow>
+                            {getDeltaTokenQtyRow()}
+                            <AgoraPreviewRow>
+                                <AgoraPreviewLabel>
+                                    Price XEC:{' '}
+                                </AgoraPreviewLabel>
+                                <AgoraPreviewCol>
+                                    {`${toXec(askedSats).toLocaleString(
+                                        userLocale,
+                                    )} XEC`}
+                                </AgoraPreviewCol>
+                            </AgoraPreviewRow>
+                            {fiatPrice !== null && (
+                                <AgoraPreviewRow>
+                                    <AgoraPreviewLabel>
+                                        Price{' '}
+                                        {settings.fiatCurrency.toUpperCase()}:{' '}
+                                    </AgoraPreviewLabel>
+                                    <AgoraPreviewCol>
+                                        {getFormattedFiatPrice(
+                                            settings.fiatCurrency,
+                                            userLocale,
+                                            toXec(askedSats),
+                                            fiatPrice,
+                                        )}
+                                    </AgoraPreviewCol>
+                                </AgoraPreviewRow>
+                            )}
+                        </AgoraPreviewTable>
+                    </>
                 </Modal>
             )}
             {showConfirmCancelModal &&
@@ -840,8 +976,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     const { depthPercent } = activeOffer;
                                     const acceptPercent =
                                         ((depthPercent as number) *
-                                            Number(takeTokenSatoshis)) /
-                                        Number(tokenSatoshisMax);
+                                            Number(takeTokenDecimalizedQty)) /
+                                        Number(decimalizedTokenQtyMax);
+
                                     const { makerPk } =
                                         activeOffer.variant.params;
                                     const makerHash = shaRmd160(makerPk);
@@ -851,6 +988,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                         typeof mintOutputScript !==
                                             'undefined' &&
                                         mintOutputScript === makerOutputScript;
+
                                     return (
                                         <OrderBookRow
                                             key={index}
@@ -929,27 +1067,22 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 <span>Buy</span>
                                 <Slider
                                     name={`Select buy qty ${tokenId}`}
-                                    value={takeTokenSatoshis}
-                                    error={takeTokenSatoshisError}
-                                    handleSlide={handleTakeTokenSatoshisSlide}
-                                    min={(
-                                        tokenSatoshisMin as bigint
-                                    ).toString()}
-                                    max={(
-                                        tokenSatoshisMax as bigint
-                                    ).toString()}
-                                    step={(
-                                        tokenSatoshisStep as bigint
-                                    ).toString()}
+                                    value={takeTokenDecimalizedQty}
+                                    error={takeTokenDecimalizedQtyError}
+                                    handleSlide={
+                                        handleTakeTokenDecimalizedQtySlide
+                                    }
+                                    // Note that we can only be here if canRenderOrderbook
+                                    min={decimalizedTokenQtyMin as string}
+                                    max={decimalizedTokenQtyMax as string}
+                                    step={parseFloat(`1e-${decimals}`)}
+                                    allowTypedInput
                                 />
                             </SliderRow>
                             <BuyOrderCtn>
                                 <div>
                                     {decimalizedTokenQtyToLocaleFormat(
-                                        decimalizeTokenAmount(
-                                            takeTokenSatoshis,
-                                            decimals as SlpDecimals,
-                                        ),
+                                        takeTokenDecimalizedQty,
                                         userLocale,
                                     )}{' '}
                                     {tokenTicker !== ''
@@ -986,7 +1119,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                             setShowConfirmBuyModal(true)
                                         }
                                         disabled={
-                                            takeTokenSatoshisError !== false
+                                            takeTokenDecimalizedQtyError !==
+                                                false ||
+                                            preparedTokenSatoshis === null
                                         }
                                     >
                                         Buy {tokenName}

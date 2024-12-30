@@ -549,19 +549,21 @@ describe('Cashtab validation functions', () => {
         expectedReturns.forEach(expectedReturn => {
             const {
                 description,
-                acceptTokenQty,
-                offerMinAcceptTokenQty,
-                offerMaxAcceptTokenQty,
+                takeTokenDecimalizedQty,
+                decimalizedTokenQtyMin,
+                decimalizedTokenQtyMax,
                 decimals,
+                userLocale,
                 returned,
             } = expectedReturn;
             it(`getAgoraPartialAcceptTokenQtyError: ${description}`, () => {
                 expect(
                     getAgoraPartialAcceptTokenQtyError(
-                        acceptTokenQty,
-                        offerMinAcceptTokenQty,
-                        offerMaxAcceptTokenQty,
+                        takeTokenDecimalizedQty,
+                        decimalizedTokenQtyMin,
+                        decimalizedTokenQtyMax,
                         decimals,
+                        userLocale,
                     ),
                 ).toBe(returned);
             });

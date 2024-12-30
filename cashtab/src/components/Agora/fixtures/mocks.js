@@ -992,6 +992,56 @@ export const agoraOfferCachetBetaOne = new AgoraOffer({
     },
 });
 
+// XECX candle created by Agora Partial Alpha
+// Copied from real offer, min accept 96k XECX, lots of partial accepts already in
+const agoraPartialXecxAlphaOne = new AgoraPartial({
+    dustAmount: 546,
+    enforcedLockTime: 1385162239,
+    minAcceptedScaledTruncTokens: 1875000n,
+    numSatsTruncBytes: 1,
+    numTokenTruncBytes: 1,
+    scaledTruncTokensPerTruncSat: 5n,
+    scriptLen: 194,
+    tokenId: 'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+    tokenProtocol: 'ALP',
+    tokenScaleFactor: 5n,
+    tokenType: 0,
+    truncTokens: 175289017n,
+    makerPk: agoraPartialAlphaKeypair.pk,
+});
+export const agoraOfferXecxAlphaOne = new AgoraOffer({
+    outpoint: {
+        txid: '7d67527f2c6d0748a5ab94983110ec35d2f39c626dd592558e583a4544ac3913',
+        outIdx: 2,
+    },
+    status: 'OPEN',
+    token: {
+        amount: '44873988352',
+        isMintBaton: false,
+        tokenId:
+            'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+        tokenType: {
+            number: 0,
+            protocol: 'ALP',
+            type: 'ALP_TOKEN_TYPE_STANDARD',
+        },
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 2,
+            txid: '7d67527f2c6d0748a5ab94983110ec35d2f39c626dd592558e583a4544ac3913',
+        },
+        signData: {
+            redeemScript: agoraPartialXecxAlphaOne.script(),
+            value: 546,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: agoraPartialXecxAlphaOne,
+    },
+});
+
 export const scamAgoraPartial = new AgoraPartial({
     dustAmount: 546,
     enforcedLockTime: 1174486988,
@@ -1424,6 +1474,30 @@ export const CachedCachet = {
         height: 838192,
         hash: '0000000000000000132232769161d6211f7e6e20cf63b26e5148890aacd26962',
         timestamp: 1711779364,
+    },
+};
+
+export const CachedXecx = {
+    tokenType: { protocol: 'ALP', type: 'ALP_TOKEN_TYPE_STANDARD', number: 0 },
+    genesisInfo: {
+        tokenTicker: 'XECX',
+        tokenName: 'Staked XEC',
+        url: 'stakedXec.com',
+        decimals: 2,
+        data: '',
+        authPubkey:
+            '03e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f650',
+    },
+    timeFirstSeen: 1734135899,
+    genesisSupply: '17814046067.34',
+    genesisOutputScripts: [
+        '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+    ],
+    genesisMintBatons: 1,
+    block: {
+        height: 875217,
+        hash: '00000000000000000c8c86590db96c636fc46ccc2860b78606f7d91c28f578be',
+        timestamp: 1734136719,
     },
 };
 

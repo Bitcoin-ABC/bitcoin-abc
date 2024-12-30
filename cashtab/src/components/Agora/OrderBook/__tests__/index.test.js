@@ -5,18 +5,22 @@
 import React from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import 'fake-indexeddb/auto';
 import {
     agoraPartialAlphaWallet,
+    agoraPartialBetaWallet,
     agoraOfferCachetAlphaOne,
     agoraOfferCachetAlphaTwo,
     agoraOfferCachetBetaOne,
+    agoraOfferXecxAlphaOne,
     cachetCacheMocks,
     agoraPartialAlphaKeypair,
+    agoraPartialBetaKeypair,
     CachedCachet,
+    CachedXecx,
     SettingsUsd,
 } from 'components/Agora/fixtures/mocks';
 import { Ecc, initWasm, Address } from 'ecash-lib';
@@ -202,8 +206,14 @@ describe('<OrderBook />', () => {
         // We see a slider
         expect(slider).toBeInTheDocument();
 
-        // We can move the slider and see the price of different quantities
-        fireEvent.change(slider, { target: { value: 170 } });
+        // We have an input field for decimalized numbers
+        const buyAmountCachetInput = screen.getByPlaceholderText(
+            `Select buy qty ${CACHET_TOKEN_ID}`,
+        );
+
+        // We can type and see the price of different quantities
+        await userEvent.clear(buyAmountCachetInput);
+        await userEvent.type(buyAmountCachetInput, '1.70');
         expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
         expect(screen.getByText('$0.5611 USD')).toBeInTheDocument();
 
@@ -274,14 +284,20 @@ describe('<OrderBook />', () => {
         // We see a slider
         expect(slider).toBeInTheDocument();
 
-        // We can move the slider and see the price of different quantities
-        fireEvent.change(slider, { target: { value: 170 } });
+        // We have an input field for decimalized numbers
+        const buyAmountCachetInput = screen.getByPlaceholderText(
+            `Select buy qty ${CACHET_TOKEN_ID}`,
+        );
+
+        // We can type and see the price of different quantities
+        await userEvent.clear(buyAmountCachetInput);
+        await userEvent.type(buyAmountCachetInput, '1.70');
         expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
         // XEC amounts are only shown if toggle is selected
         expect(screen.queryByText('17k XEC')).not.toBeInTheDocument();
         expect(screen.getByText('$0.5611 USD')).toBeInTheDocument();
 
-        // Slider action is for informational purposes only here, though, because
+        // Slider/input action is for informational purposes only here, though, because
         // this wallet created this offer (determined by public key)
 
         // Because this offer was created by this wallet, we have the option to cancel it
@@ -555,18 +571,25 @@ describe('<OrderBook />', () => {
         // We see a slider
         expect(slider).toBeInTheDocument();
 
-        // Select an invalid quantity
+        const buyAmountCachetInput = screen.getByPlaceholderText(
+            `Select buy qty ${CACHET_TOKEN_ID}`,
+        );
+        // We expect this field to be populated with min buy amount by default
+        expect(buyAmountCachetInput).toHaveValue('.30');
+        // Erase this input
+        await userEvent.clear(buyAmountCachetInput);
+
+        // Type an invalid quantity, 1 token satoshi less than full offer
         // 299.99 Cachet, which would create an unacceptable remainder of 0.01 CACHET (offer min is 0.30)
-        fireEvent.change(slider, { target: { value: 29999 } });
+        await userEvent.type(buyAmountCachetInput, '299.99');
         // We see expected validation message
-        expect(
-            screen.getByText(/299.70 or the full offer/),
-        ).toBeInTheDocument();
+        expect(screen.getByText(/299.7 or the full offer/)).toBeInTheDocument();
         // Buy button is disabled for this qty
         expect(buyCachetButton).toBeDisabled();
 
         // OK let's buy some other amount
-        fireEvent.change(slider, { target: { value: 5555 } });
+        await userEvent.clear(buyAmountCachetInput);
+        await userEvent.type(buyAmountCachetInput, '55.55');
 
         // Buy button is no longer disabled
         expect(buyCachetButton).toBeEnabled();
@@ -575,10 +598,16 @@ describe('<OrderBook />', () => {
 
         // We see a confirmation modal
         expect(
-            await screen.findByText(
-                'Buy 55.55 Cachet (CACHET) for 666,636.8 XEC ($20.00 USD)?',
-            ),
+            await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
+        // We see target qty and the actual qty
+        expect(screen.getAllByText('55.55')).toHaveLength(2);
+        // We DO NOT see the delta
+        expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
+        // We see the price in XEC
+        expect(screen.getByText('666,636.8 XEC')).toBeInTheDocument();
+        // We see the price in USD in the modal and on the form
+        expect(screen.getAllByText('$20.00 USD')).toHaveLength(2);
 
         // We buy
         await userEvent.click(screen.getByText('OK'));
@@ -590,15 +619,28 @@ describe('<OrderBook />', () => {
             ),
         ).toBeInTheDocument();
 
-        // Guess we do buy the min then
-        fireEvent.change(slider, { target: { value: 30 } });
-
-        // We see a confirmation modal
+        // The error notification clears the confirmation modal
         expect(
-            await screen.findByText(
-                'Buy .30 Cachet (CACHET) for 3,601.92 XEC ($0.1081 USD)?',
-            ),
+            screen.queryByText('Execute this trade?'),
+        ).not.toBeInTheDocument();
+
+        // Guess we do buy the min then
+        await userEvent.clear(buyAmountCachetInput);
+        await userEvent.type(buyAmountCachetInput, '.30');
+        await userEvent.click(buyCachetButton);
+
+        // We see a confirmation modal with updated info
+        expect(
+            await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
+        // We see target qty and the actual qty
+        expect(screen.getAllByText('.30')).toHaveLength(2);
+        // We DO NOT see the delta
+        expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
+        // We see the price in XEC
+        expect(screen.getByText('3,601.92 XEC')).toBeInTheDocument();
+        // We see the price in USD in the modal and on the form
+        expect(screen.getAllByText('$0.1081 USD')).toHaveLength(2);
 
         // We buy
         await userEvent.click(screen.getByText('OK'));
@@ -673,6 +715,113 @@ describe('<OrderBook />', () => {
         // as only one of these listings was created by wallet alpha
         expect(
             screen.getByTitle('Listed by token creator'),
+        ).toBeInTheDocument();
+    });
+    it('We can type input and see a previewed offer of actual input with a delta from our typed input', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        const XECX_TOKEN_ID =
+            'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4';
+
+        // Mock XECX offer where we cannot exactly render at full resolution for every value
+        mockedAgora.setActiveOffersByTokenId(XECX_TOKEN_ID, [
+            agoraOfferXecxAlphaOne,
+        ]);
+
+        // Note we must include CashtabNotification to test toastify notification
+        render(
+            <ThemeProvider theme={theme}>
+                <CashtabNotification
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                    transition={Bounce}
+                />
+                <Orderbook
+                    tokenId={XECX_TOKEN_ID}
+                    cachedTokenInfo={CachedXecx}
+                    settings={SettingsUsd}
+                    userLocale={'en-US'}
+                    fiatPrice={0.00003}
+                    activePk={agoraPartialBetaKeypair.pk}
+                    wallet={agoraPartialBetaWallet}
+                    ecc={ecc}
+                    chronik={mockedChronik}
+                    agora={mockedAgora}
+                    chaintipBlockheight={800000}
+                />
+            </ThemeProvider>,
+        );
+
+        // We see a spinner while activeOffers load
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // After loading, we see the token name and ticker above its PartialOffer
+        expect(
+            await screen.findByText('Staked XEC (XECX)'),
+        ).toBeInTheDocument();
+
+        // We see the expected spot offer for XECX
+        const SPOT_MIN_QTY = '960,000.00 XECX';
+        const SPOT_PRICE_MIN_BUY = '960k XEC';
+
+        // Quantities are not displayed until they load, so we await
+        expect(await screen.findByText(SPOT_MIN_QTY)).toBeInTheDocument();
+
+        expect(screen.getByText(SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+
+        const buyXecxButton = screen.getByRole('button', {
+            name: 'Buy Staked XEC (XECX)',
+        });
+        expect(buyXecxButton).toBeInTheDocument();
+
+        const buyAmountXecxInput = screen.getByPlaceholderText(
+            `Select buy qty ${XECX_TOKEN_ID}`,
+        );
+        // We expect this field to be populated with min buy amount by default
+        expect(buyAmountXecxInput).toHaveValue('960000.00');
+
+        // Erase this input
+        await userEvent.clear(buyAmountXecxInput);
+
+        // Type a valid quantity that cannot exactly be accepted by this offer
+        // 299.99 Cachet, which would create an unacceptable remainder of 0.01 CACHET (offer min is 0.30)
+        await userEvent.type(buyAmountXecxInput, '178109597.15');
+
+        await userEvent.click(buyXecxButton);
+
+        // We see a confirmation modal
+        expect(
+            await screen.findByText('Execute this trade?'),
+        ).toBeInTheDocument();
+        // We see target qty
+        expect(screen.getByText('178,109,597.15')).toBeInTheDocument();
+        // We see actual qty
+        expect(screen.getByText('178,109,596.16')).toBeInTheDocument();
+        // We see the delta
+        expect(screen.getByText('Qty Delta:')).toBeInTheDocument();
+        expect(screen.getByText('-0.99')).toBeInTheDocument();
+        // We see the price in XEC
+        expect(screen.getByText('178,109,596.16 XEC')).toBeInTheDocument();
+        // We see the price in USD in the modal and on the form
+        expect(screen.getByText('$5,343.29 USD')).toBeInTheDocument();
+
+        // We buy
+        await userEvent.click(screen.getByText('OK'));
+
+        // Error notification for buy we can't afford
+        expect(
+            await screen.findByText(
+                `Error: Insufficient utxos to accept this offer`,
+            ),
         ).toBeInTheDocument();
     });
 });
