@@ -20,6 +20,7 @@ class MinerFundTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
+        self.noban_tx_relay
         self.extra_args = [
             [
                 "-enableminerfund",
@@ -111,7 +112,7 @@ class MinerFundTest(BitcoinTestFramework):
             n.invalidateblock(first_block_has_miner_fund)
 
         # node1 mines a block without a coinbase output to the miner fund.
-        with node.assert_debug_log(expected_msgs=["policy-bad-miner-fund"]):
+        with node.assert_debug_log(expected_msgs=["policy-bad-miner-fund"], timeout=10):
             first_block_no_miner_fund = self.generatetoaddress(
                 self.nodes[1], nblocks=1, address=address, sync_fun=self.no_op
             )[0]
