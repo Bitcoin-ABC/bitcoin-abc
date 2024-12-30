@@ -148,6 +148,5 @@ GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
 }
 
 bool isRTTEnabled(const Consensus::Params &params, const CBlockIndex *pprev) {
-    return IsAugustoEnabled(params, pprev) &&
-           gArgs.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT);
+    return gArgs.GetBoolArg("-enablertt", DEFAULT_ENABLE_RTT);
 }

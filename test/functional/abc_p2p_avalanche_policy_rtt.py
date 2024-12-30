@@ -2,6 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the real time targeting policy."""
+import time
+
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import AvalancheVote, AvalancheVoteError, ToHex
@@ -10,7 +12,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2000000000
 
 
 class AvalancheRTTTest(BitcoinTestFramework):
@@ -26,7 +27,6 @@ class AvalancheRTTTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                f"-augustoactivationtime={THE_FUTURE}",
             ],
             [],
         ]
@@ -37,7 +37,7 @@ class AvalancheRTTTest(BitcoinTestFramework):
         def set_mocktimes(t):
             [n.setmocktime(t) for n in self.nodes]
 
-        now = THE_FUTURE
+        now = int(time.time())
         set_mocktimes(now)
 
         node.add_p2p_connection(P2PInterface())

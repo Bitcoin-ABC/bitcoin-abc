@@ -114,17 +114,17 @@ bool IsCowperthwaiteEnabled(const Consensus::Params &params,
     return IsCowperthwaiteEnabled(params, pindexPrev->nHeight);
 }
 
-bool IsAugustoEnabled(const Consensus::Params &params,
-                      int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetIntArg("-augustoactivationtime",
-                                              params.augustoActivationTime);
+bool IsSchumpeterEnabled(const Consensus::Params &params,
+                         int64_t nMedianTimePast) {
+    return nMedianTimePast >= gArgs.GetIntArg("-schumpeteractivationtime",
+                                              params.schumpeterActivationTime);
 }
 
-bool IsAugustoEnabled(const Consensus::Params &params,
-                      const CBlockIndex *pindexPrev) {
+bool IsSchumpeterEnabled(const Consensus::Params &params,
+                         const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsAugustoEnabled(params, pindexPrev->GetMedianTimePast());
+    return IsSchumpeterEnabled(params, pindexPrev->GetMedianTimePast());
 }

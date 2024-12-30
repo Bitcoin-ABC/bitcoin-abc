@@ -56,32 +56,33 @@ BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
                        consensus, consensus.cowperthwaiteHeight);
 }
 
-BOOST_AUTO_TEST_CASE(isaugustoenabled) {
+BOOST_AUTO_TEST_CASE(isschumpeterenabled) {
     const Consensus::Params &params = Params().GetConsensus();
-    const auto activation =
-        gArgs.GetIntArg("-augustoactivationtime", params.augustoActivationTime);
+    const auto activation = gArgs.GetIntArg("-schumpeteractivationtime",
+                                            params.schumpeterActivationTime);
     SetMockTime(activation - 1000000);
 
-    BOOST_CHECK(!IsAugustoEnabled(params, nullptr));
+    BOOST_CHECK(!IsSchumpeterEnabled(params, nullptr));
 
     std::array<CBlockIndex, 12> blocks;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
     }
-    BOOST_CHECK(!IsAugustoEnabled(params, &blocks.back()));
-    BOOST_CHECK(!IsAugustoEnabled(params, blocks.back().GetMedianTimePast()));
+    BOOST_CHECK(!IsSchumpeterEnabled(params, &blocks.back()));
+    BOOST_CHECK(
+        !IsSchumpeterEnabled(params, blocks.back().GetMedianTimePast()));
 
     SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsAugustoEnabled(params, &blocks.back()));
-    BOOST_CHECK(!IsAugustoEnabled(params, activation - 1));
+    BOOST_CHECK(!IsSchumpeterEnabled(params, &blocks.back()));
+    BOOST_CHECK(!IsSchumpeterEnabled(params, activation - 1));
 
     SetMTP(blocks, activation);
-    BOOST_CHECK(IsAugustoEnabled(params, &blocks.back()));
-    BOOST_CHECK(IsAugustoEnabled(params, activation));
+    BOOST_CHECK(IsSchumpeterEnabled(params, &blocks.back()));
+    BOOST_CHECK(IsSchumpeterEnabled(params, activation));
 
     SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsAugustoEnabled(params, &blocks.back()));
-    BOOST_CHECK(IsAugustoEnabled(params, activation + 1));
+    BOOST_CHECK(IsSchumpeterEnabled(params, &blocks.back()));
+    BOOST_CHECK(IsSchumpeterEnabled(params, activation + 1));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

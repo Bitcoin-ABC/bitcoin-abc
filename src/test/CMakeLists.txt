@@ -303,8 +303,8 @@ function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
 			--
 			"-printtoconsole=1"
 			"-testsuitename=Bitcoin ABC unit tests with next upgrade activated"
-			# May. 16th, 2024 at 08:00:00
-			-augustoactivationtime=1715846400
+			# Nov. 16th, 2024 at 08:00:00
+			-schumpeteractivationtime=1731744000
 		)
 	endforeach()
 endfunction()

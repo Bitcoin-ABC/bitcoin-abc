@@ -146,9 +146,6 @@ public:
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
         consensus.cowperthwaiteHeight = 818669;
 
-        // Nov 15, 2024 12:00:00 UTC protocol upgrade
-        consensus.augustoActivationTime = 1731672000;
-
         // May 15, 2025 12:00:00 UTC protocol upgrade
         consensus.schumpeterActivationTime = 1747310400;
 
@@ -300,9 +297,6 @@ public:
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
         consensus.cowperthwaiteHeight = 1584485;
 
-        // Nov 15, 2024 12:00:00 UTC protocol upgrade
-        consensus.augustoActivationTime = 1731672000;
-
         // May 15, 2025 12:00:00 UTC protocol upgrade
         consensus.schumpeterActivationTime = 1747310400;
 
@@ -435,9 +429,6 @@ public:
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
         consensus.cowperthwaiteHeight = 0;
-
-        // Nov 15, 2024 12:00:00 UTC protocol upgrade
-        consensus.augustoActivationTime = 1731672000;
 
         // May 15, 2025 12:00:00 UTC protocol upgrade
         consensus.schumpeterActivationTime = 1747310400;

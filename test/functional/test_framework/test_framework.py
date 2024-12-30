@@ -288,11 +288,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             help="Run test using a descriptor wallet",
         )
         parser.add_argument(
-            "--with-augustoactivation",
-            dest="augustoactivation",
+            "--with-schumpeteractivation",
+            dest="schumpeteractivation",
             default=False,
             action="store_true",
-            help=f"Activate Augusto update on timestamp {TIMESTAMP_IN_THE_PAST}",
+            help=f"Activate Schumpeter update on timestamp {TIMESTAMP_IN_THE_PAST}",
         )
         parser.add_argument(
             "--timeout-factor",
@@ -606,9 +606,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.augustoactivation:
+            if self.options.schumpeteractivation:
                 self.nodes[i].extend_default_args(
-                    [f"-augustoactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-schumpeteractivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
     def start_node(self, i, *args, **kwargs):
@@ -936,9 +936,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.augustoactivation:
+            if self.options.schumpeteractivation:
                 self.nodes[CACHE_NODE_ID].extend_default_args(
-                    [f"-augustoactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-schumpeteractivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
             self.start_node(CACHE_NODE_ID)

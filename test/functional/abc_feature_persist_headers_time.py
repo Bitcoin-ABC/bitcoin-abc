@@ -2,12 +2,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test dumping/loading the headers receive time to/from file."""
+import time
+
 from test_framework.messages import uint256_from_compact
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than
-
-THE_FUTURE = 2000000000
 
 
 class PersistHeadersTimeTest(BitcoinTestFramework):
@@ -17,7 +17,6 @@ class PersistHeadersTimeTest(BitcoinTestFramework):
             [
                 "-enablertt=1",
                 "-persistrecentheaderstime=1",
-                f"-augustoactivationtime={THE_FUTURE}",
             ]
         ]
 
@@ -25,7 +24,7 @@ class PersistHeadersTimeTest(BitcoinTestFramework):
         node = self.nodes[0]
         node.add_p2p_connection(P2PInterface())
 
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
 
         # RTT should kick in after this block

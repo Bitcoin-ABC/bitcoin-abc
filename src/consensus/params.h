@@ -61,8 +61,6 @@ struct Params {
     int wellingtonHeight;
     /** Block height at which the Cowperthwaite activation becomes active */
     int cowperthwaiteHeight;
-    /** Unix time used for MTP activation of 15 Nov 2024 12:00:00 UTC upgrade */
-    int augustoActivationTime;
     /** Unix time used for MTP activation of 15 May 2025 12:00:00 UTC upgrade */
     int schumpeterActivationTime;
 
