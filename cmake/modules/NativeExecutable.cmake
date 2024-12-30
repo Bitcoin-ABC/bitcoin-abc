@@ -33,17 +33,27 @@ function(non_native_target_link_libraries TARGET LIB VERSION)
 	endforeach()
 endfunction()
 
-function(non_native_target_link_headers_only TARGET LIB VERSION)
+function(non_native_target_link_boost_headers_only TARGET VERSION)
 	# Drop dependency during native builds
 	if(__IS_NATIVE_BUILD)
 		return()
 	endif()
 
-	# Header only libraries have imported targets with no associated component
-	find_package(${LIB} ${VERSION} REQUIRED)
-	foreach(COMPONENT ${ARGN})
-		target_link_libraries(${TARGET} ${LIB}::${COMPONENT})
-	endforeach()
+	# Starting with cmake 3.30, FindBoost is no longer provided. Boost provides
+	# a configuration file since v1.70 so this fallback can be removed if we
+	# enforce this Boost version or greater.
+	# find_package(Boost ${VERSION} COMPONENTS headers CONFIG)
+	if(NOT Boost_FOUND)
+		if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
+			cmake_policy(SET CMP0167 OLD)
+		endif()
+		# Header only library have an imported target but no associated
+		# component
+		find_package(Boost ${VERSION} QUIET REQUIRED)
+	endif()
+
+	message(STATUS "Found Boost component headers: ${Boost_INCLUDE_DIRS} (found suitable version \"${Boost_VERSION}\", minimum required is \"${VERSION}\")")
+	target_link_libraries(${TARGET} Boost::headers)
 endfunction()
 
 # It is imperative that NATIVE_BUILD_DIR be in the cache.

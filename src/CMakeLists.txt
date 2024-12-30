@@ -508,10 +508,10 @@ endmacro()
 link_event(util event)
 
 macro(link_boost_headers_only TARGET)
-	non_native_target_link_headers_only(${TARGET} Boost 1.64 ${ARGN})
+	non_native_target_link_boost_headers_only(${TARGET} 1.64)
 endmacro()
 
-link_boost_headers_only(util headers)
+link_boost_headers_only(util)
 target_compile_definitions(util PUBLIC BOOST_NO_CXX98_FUNCTION_BASE)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
