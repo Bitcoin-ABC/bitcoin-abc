@@ -31,6 +31,9 @@ async-trait = "0.1"
 # HTTP webapps
 axum = { version = "0.7", features = ["ws"] }
 
+# Efficient byte strings
+bytes = "1.4"
+
 # Async toolkit
 futures = "0.3"
 

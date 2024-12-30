@@ -12,7 +12,17 @@ from test_framework.blocktools import (
     TIME_GENESIS_BLOCK,
 )
 from test_framework.merkle import merkle_root_and_branch
+from test_framework.messages import (
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    FromHex,
+    ToHex,
+)
+from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, hex_to_be_bytes
 from test_framework.wallet import MiniWallet
 
@@ -44,6 +54,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_invalid_params()
         self.test_transaction_get()
         self.test_transaction_get_height()
+        self.test_transaction_broadcast()
         self.test_transaction_get_merkle()
         self.test_block_header()
 
@@ -158,7 +169,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 },
             )
 
-        self.generate(self.nodes[0], 2)
+        self.generate(self.wallet, 2)
         assert_equal(
             self.client.blockchain.transaction.get(
                 txid=GENESIS_CB_TXID, verbose=True
@@ -171,7 +182,11 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(response.result, 0)
 
         self.wallet.rescan_utxos()
-        tx = self.wallet.send_self_transfer(from_node=self.node)
+        tx = self.wallet.create_self_transfer()
+
+        response = self.client.blockchain.transaction.broadcast(tx["hex"])
+        assert_equal(response.result, tx["txid"])
+        self.node.syncwithvalidationinterfacequeue()
 
         response = self.client.blockchain.transaction.get(tx["txid"])
         assert_equal(response.result, tx["hex"])
@@ -181,12 +196,199 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(response.result, 0)
 
         # Mine the tx
-        self.generate(self.node, 1)
+        self.generate(self.wallet, 1)
         response = self.client.blockchain.transaction.get_height(tx["txid"])
         assert_equal(response.result, 203)
 
         response = self.client.blockchain.transaction.get_height(32 * "ff")
         assert_equal(response.error, {"code": -32600, "message": "Unknown txid"})
+
+    def test_transaction_broadcast(self):
+        tx = self.wallet.create_self_transfer()
+
+        for _ in range(3):
+            response = self.client.blockchain.transaction.broadcast(tx["hex"])
+            assert_equal(response.result, tx["txid"])
+
+        self.generate(self.wallet, 1)
+        response = self.client.blockchain.transaction.broadcast(tx["hex"])
+        assert_equal(
+            response.error, {"code": 1, "message": "Transaction already in block chain"}
+        )
+
+        spent_utxo = tx["tx"].vin[0]
+
+        tx_obj = self.wallet.create_self_transfer()["tx"]
+        tx_obj.vin[0] = spent_utxo
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {"code": 1, "message": "Missing inputs: bad-txns-inputs-missingorspent"},
+        )
+
+        raw_tx_reference = self.wallet.create_self_transfer()["hex"]
+
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vin[0].scriptSig = b"aaaaaaaaaaaaaaa"
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: scriptsig-not-pushonly",
+            },
+        )
+
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vout[0].scriptPubKey = CScript([OP_RETURN, b"\xff"])
+        tx_obj.vout = [tx_obj.vout[0]] * 2
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {"code": 1, "message": "Transaction rejected by mempool: multi-op-return"},
+        )
+
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vin[0].nSequence = 0xFFFFFFFE
+        tx_obj.nLockTime = self.node.getblockcount() + 1
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-nonfinal, non-final transaction",
+            },
+        )
+
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vout = []
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-vout-empty",
+            },
+        )
+
+        # Non-standard script
+        tx_obj.vout.append(CTxOut(0, CScript([OP_TRUE])))
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {"code": 1, "message": "Transaction rejected by mempool: scriptpubkey"},
+        )
+
+        tx_obj.vout[0] = CTxOut(0, CScript([OP_RETURN, b"\xff"]))
+        assert len(ToHex(tx_obj)) // 2 < 100
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-undersize",
+            },
+        )
+
+        tx_obj = self.wallet.create_self_transfer()["tx"]
+        pad_tx(tx_obj, 100_001)
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {"code": 1, "message": "Transaction rejected by mempool: tx-size"},
+        )
+
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vin.append(tx_obj.vin[0])
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-inputs-duplicate",
+            },
+        )
+
+        tx_obj.vin = []
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-vin-empty",
+            },
+        )
+
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.nVersion = 1337
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {"code": 1, "message": "Transaction rejected by mempool: version"},
+        )
+
+        # Coinbase input in first position
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vin[0] = CTxIn(COutPoint(txid=0, n=0xFFFFFFFF))
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {"code": 1, "message": "Transaction rejected by mempool: bad-tx-coinbase"},
+        )
+
+        # Coinbase input in second position
+        tx_obj = FromHex(CTransaction(), raw_tx_reference)
+        tx_obj.vin.append(CTxIn(COutPoint(txid=0, n=0xFFFFFFFF)))
+        response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-prevout-null",
+            },
+        )
+
+        tx = self.wallet.create_self_transfer(fee_rate=0, fee=0)
+        response = self.client.blockchain.transaction.broadcast(tx["hex"])
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: min relay fee not met, 0 < 100",
+            },
+        )
+
+        tx = self.wallet.create_self_transfer(fee_rate=10_000_000, fee=0)
+        response = self.client.blockchain.transaction.broadcast(tx["hex"])
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)",
+            },
+        )
+
+        # Mine enough blocks to ensure that the following test does not try to spend
+        # a utxo already spent in a previous test.
+        # Invalidate two blocks, so that miniwallet has access to a coin that
+        # will mature in the next block.
+        self.generate(self.wallet, 100)
+        chain_height = self.node.getblockcount() - 3
+        block_to_invalidate = self.node.getblockhash(chain_height + 1)
+        self.node.invalidateblock(block_to_invalidate)
+        immature_txid = self.nodes[0].getblock(
+            self.nodes[0].getblockhash(chain_height - 100 + 2)
+        )["tx"][0]
+        immature_utxo = self.wallet.get_utxo(txid=immature_txid)
+        tx = self.wallet.create_self_transfer(utxo_to_spend=immature_utxo)
+        response = self.client.blockchain.transaction.broadcast(tx["hex"])
+        assert_equal(
+            response.error,
+            {
+                "code": 1,
+                "message": "Transaction rejected by mempool: bad-txns-premature-spend-of-coinbase, tried to spend coinbase at depth 99",
+            },
+        )
 
     def test_transaction_get_merkle(self):
         for _ in range(42):

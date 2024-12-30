@@ -716,6 +716,7 @@ dependencies = [
  "axum 0.7.9",
  "bitcoinsuite-core 0.1.0",
  "bitcoinsuite-slp",
+ "bytes",
  "chronik-bridge",
  "chronik-db",
  "chronik-indexer",

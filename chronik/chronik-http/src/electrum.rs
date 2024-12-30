@@ -11,6 +11,8 @@ use bitcoinsuite_core::{
     hash::{Hashed, Sha256, Sha256d},
     tx::TxId,
 };
+use bytes::Bytes;
+use chronik_bridge::ffi;
 use chronik_indexer::merkle::MerkleTree;
 use futures::future;
 use itertools::izip;
@@ -492,6 +494,38 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 "root": be_bytes_to_le_hex(&last_header.root),
             }))
         }
+    }
+
+    #[rpc_method(name = "transaction.broadcast")]
+    async fn transaction_broadcast(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+        let raw_tx = match get_param!(params, 0, "raw_tx")? {
+            Value::String(raw_tx) => Ok(raw_tx),
+            _ => Err(RPCError::CustomError(
+                1,
+                "Invalid raw_tx argument; expected hex string".to_string(),
+            )),
+        }?;
+        let raw_tx = Bytes::from(hex::decode(raw_tx).map_err(|_err| {
+            RPCError::CustomError(
+                1,
+                "Failed to decode raw_tx as a hex string".to_string(),
+            )
+        })?);
+
+        let max_fee = ffi::calc_fee(
+            raw_tx.len(),
+            ffi::default_max_raw_tx_fee_rate_per_kb(),
+        );
+        let txid = match self.node.bridge.broadcast_tx(&raw_tx, max_fee) {
+            Ok(txid) => Ok(TxId::from(txid)),
+            Err(err) => Err(RPCError::CustomError(1, err.what().to_string())),
+        }?;
+
+        Ok(Value::String(txid.to_string()))
     }
 
     #[rpc_method(name = "transaction.get")]
