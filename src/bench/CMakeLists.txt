@@ -26,7 +26,7 @@ foreach(_raw_file ${BENCH_DATA_RAW_FILES})
 			"${_test_name}"
 			"${_raw_file}" > "${_generated_header_output}"
 		COMMENT "Transforming raw file ${_raw_file} into header"
-		MAIN_DEPEDENCY "${_raw_file}"
+		MAIN_DEPENDENCY "${_raw_file}"
 		DEPENDS "data/convert-raw-to-header.py"
 		VERBATIM
 		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
