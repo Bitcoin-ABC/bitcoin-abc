@@ -42,14 +42,6 @@ export const wallets = [
         availableOn: ['iOS', 'Android'],
     },
     {
-        name: 'AbcPay',
-        text: "AbcPay is an advanced multi-currency crypto wallet for mobile devices, supporting eCash (XEC) and eTokens. AbcPay provides cutting edge features such as multi-signature wallet, 2FA and biometric authentication. It's available for both Android & iOS devices.",
-        image: '/images/abc-pay.png',
-        link: 'https://abcpay.cash/',
-        availableOn: ['iOS', 'Android'],
-        features: ['eTokens', 'Message Signing', 'Multi-sig wallets'],
-    },
-    {
         name: 'Arctic Wallet',
         text: 'Arctic Wallet is a non-custodial crypto wallet built on the principles of decentralization and privacy supporting eCash (XEC). With Arctic Wallet, you can send, receive and store XEC safely and securely. Arctic wallet is available for desktop and mobile platforms.',
         image: '/images/artic-wallet.png',
