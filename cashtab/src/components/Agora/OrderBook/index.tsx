@@ -405,7 +405,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
      * Note that spot prices are always rendered in XEC if
      * fiat info is unavailable
      */
-    const [spotPricesXec, setSpotPricesXec] = useState<boolean>(false);
+    const [displaySpotPricesInFiat, setDisplaySpotPricesInFiat] =
+        useState<boolean>(false);
     // On load, we select the offer at the 0-index
     // This component sorts offers by spot price; so this is the spot offer
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -799,14 +800,14 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     <Switch
                                         small
                                         name={`Toggle price for ${tokenId}`}
-                                        on="XEC"
+                                        on={settings.fiatCurrency}
                                         width={60}
                                         right={40}
-                                        off={settings.fiatCurrency}
-                                        checked={spotPricesXec}
+                                        off={appConfig.ticker}
+                                        checked={displaySpotPricesInFiat}
                                         handleToggle={() => {
-                                            setSpotPricesXec(
-                                                () => !spotPricesXec,
+                                            setDisplaySpotPricesInFiat(
+                                                () => !displaySpotPricesInFiat,
                                             );
                                         }}
                                     />
@@ -850,7 +851,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                 ></TentativeAcceptBar>
                                             )}
                                             <OrderbookPrice>
-                                                {spotPricesXec
+                                                {displaySpotPricesInFiat
                                                     ? getFormattedFiatPrice(
                                                           settings.fiatCurrency,
                                                           userLocale,
@@ -862,7 +863,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                                       `1e${decimals}`,
                                                                   ),
                                                           ),
-                                                          null,
+                                                          fiatPrice,
                                                       )
                                                     : getFormattedFiatPrice(
                                                           settings.fiatCurrency,
@@ -875,7 +876,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                                       `1e${decimals}`,
                                                                   ),
                                                           ),
-                                                          fiatPrice,
+                                                          null,
                                                       )}
                                             </OrderbookPrice>
                                         </OrderBookRow>
@@ -887,14 +888,14 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     <Switch
                                         small
                                         name={`Toggle price for ${tokenId}`}
-                                        on="XEC"
+                                        on={settings.fiatCurrency}
                                         width={60}
                                         right={40}
-                                        off={settings.fiatCurrency}
-                                        checked={spotPricesXec}
+                                        off={appConfig.ticker}
+                                        checked={displaySpotPricesInFiat}
                                         handleToggle={() => {
-                                            setSpotPricesXec(
-                                                () => !spotPricesXec,
+                                            setDisplaySpotPricesInFiat(
+                                                () => !displaySpotPricesInFiat,
                                             );
                                         }}
                                     />
@@ -931,7 +932,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                         ? `${tokenTicker}`
                                         : `${tokenName}`}
                                 </div>
-                                {spotPricesXec || fiatPrice === null ? (
+                                {!displaySpotPricesInFiat ||
+                                fiatPrice === null ? (
                                     <h3>
                                         {toFormattedXec(askedSats, userLocale)}{' '}
                                         XEC

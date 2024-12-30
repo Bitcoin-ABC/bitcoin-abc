@@ -165,6 +165,11 @@ describe('<OrderBook />', () => {
         // We see the token icon
         expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();
 
+        // Hit the fiat switch since this test uses those values
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
+
         // We see the spot price on the depth bar
         expect(screen.getByText('$0.33 USD')).toBeInTheDocument();
 
@@ -243,7 +248,12 @@ describe('<OrderBook />', () => {
         expect(screen.getByTitle('Loading')).toBeInTheDocument();
 
         // We see the spot price on the depth bar
-        expect(await screen.findByText('$0.33 USD')).toBeInTheDocument();
+        expect(await screen.findByText('10,000.97 XEC')).toBeInTheDocument();
+
+        // Hit the fiat switch since this test uses those values
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
 
         // After loading, we DO NOT see the token name and ticker above its PartialOffer
         expect(screen.queryByText('Cachet (CACHET)')).not.toBeInTheDocument();
@@ -338,27 +348,42 @@ describe('<OrderBook />', () => {
         // We see the token icon
         expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();
 
-        // We see a spot price for each active offer
-        expect(screen.getByText('$0.30 USD')).toBeInTheDocument();
-        expect(screen.getByText('$0.36 USD')).toBeInTheDocument();
-        expect(screen.getByText('$0.036 USD')).toBeInTheDocument();
-
         // For tokens with multiple partial offers available, the lowest-priced
         // offer is selected by default ("spot price")
         const CACHET_SPOT_MIN_QTY = '.20 CACHET';
         const CACHET_SPOT_PRICE_MIN_BUY = '240.64 XEC';
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
+
         // Quantities are not displayed until they load, so we await
         expect(
             await screen.findByText(CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
-        // Toggle is set to fiat, so we do not see xec
+
+        // We see a spot price for each active offer in XEC
+        expect(screen.getByText('1,200.01 XEC')).toBeInTheDocument();
+        expect(screen.getByText('10,000.97 XEC')).toBeInTheDocument();
+        expect(screen.getByText('12,000.66 XEC')).toBeInTheDocument();
+
+        // If we toggle to fiat, we see fiat prices
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
+
+        // We see a spot price for each active offer in fiat
+        expect(screen.getByText('$0.036 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.30 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.36 USD')).toBeInTheDocument();
+
+        // Toggle back to see XEC
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
+
+        // Toggle is set to XEC by default, so we do not see fiat
+        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
-            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+            screen.queryByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
-        ).toBeInTheDocument();
 
         // Because the spot offer was created by this pk, we see a cancel button
         expect(
@@ -366,7 +391,7 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.36 USD'));
+        await userEvent.click(screen.getByText('12,000.66 XEC'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
@@ -376,18 +401,18 @@ describe('<OrderBook />', () => {
             screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
         ).toBeInTheDocument();
+        expect(
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+        ).not.toBeInTheDocument();
 
         expect(
             screen.getByRole('button', { name: 'Buy Cachet (CACHET)' }),
         ).toBeInTheDocument();
 
         // Let's select our other offer
-        await userEvent.click(screen.getByText('$0.30 USD'));
+        await userEvent.click(screen.getByText('10,000.97 XEC'));
 
         const OTHER_CACHET_SPOT_MIN_QTY = '.10 CACHET';
         const OTHER_CACHET_SPOT_PRICE_MIN_BUY = '1k XEC';
@@ -397,11 +422,11 @@ describe('<OrderBook />', () => {
             await screen.findByText(OTHER_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText(OTHER_CACHET_SPOT_PRICE_MIN_BUY),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+            screen.getByText(OTHER_CACHET_SPOT_PRICE_MIN_BUY),
         ).toBeInTheDocument();
+        expect(
+            screen.queryByText(OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+        ).not.toBeInTheDocument();
 
         // Let's cancel it (a little high vs spot)
         await userEvent.click(
@@ -480,6 +505,11 @@ describe('<OrderBook />', () => {
 
         // After loading, we see the token name and ticker above its PartialOffer
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+
+        // Hit the fiat switch since this test uses those values
+        await userEvent.click(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        );
 
         // We see the expected spot offer for CACHET
         const CACHET_SPOT_MIN_QTY = '.20 CACHET';

@@ -520,12 +520,10 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${BULL_SPOT_MIN_QTY} BULL`),
         ).toBeInTheDocument();
+        expect(screen.getByText(BULL_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
-            screen.queryByText(BULL_SPOT_PRICE_MIN_BUY),
+            screen.queryByText(BULL_SPOT_PRICE_FIAT_MIN_BUY),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(BULL_SPOT_PRICE_FIAT_MIN_BUY),
-        ).toBeInTheDocument();
 
         // For tokens with multiple partial offers available, the lowest-priced
         // offer is selected by default ("spot price")
@@ -536,12 +534,10 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
+        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
-            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+            screen.queryByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
-        ).toBeInTheDocument();
 
         // Because both spot offers were created by the active Alpha wallet,
         // we see two cancel buttons
@@ -587,6 +583,7 @@ describe('<Agora />', () => {
             'Toggle Active Offers',
         );
         await userEvent.click(toggleAllVsMyOffersSwitch);
+
         // we see only the beta-created Cachet offer
         expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
         // We do not see any offers for Bull, this was created by alpha
@@ -606,7 +603,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // Select our offer
-        await userEvent.click(screen.getByText('$0.36 USD'));
+        await userEvent.click(screen.getByText('12,000.66 XEC'));
         // Now we can only cancel our offer
         expect(
             screen.getByRole('button', { name: 'Cancel your offer' }),
@@ -650,7 +647,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.36 USD'));
+        await userEvent.click(screen.getByText('12,000.66 XEC'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
@@ -660,11 +657,11 @@ describe('<Agora />', () => {
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
         ).toBeInTheDocument();
+        expect(
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+        ).not.toBeInTheDocument();
 
         expect(
             screen.getByRole('button', { name: 'Buy Cachet (CACHET)' }),
@@ -811,12 +808,10 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
+        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
-            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+            screen.queryByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
-        ).toBeInTheDocument();
 
         // Because both spot offers were created by the active Alpha wallet,
         // we see two cancel buttons
@@ -825,7 +820,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.36 USD'));
+        await userEvent.click(screen.getByText('12,000.66 XEC'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
@@ -835,11 +830,11 @@ describe('<Agora />', () => {
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
         ).toBeInTheDocument();
+        expect(
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+        ).not.toBeInTheDocument();
 
         const buyCachetButton = screen.getByRole('button', {
             name: 'Buy Cachet (CACHET)',
@@ -970,12 +965,10 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText(`${CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
+        expect(screen.getByText(CACHET_SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
         expect(
-            screen.queryByText(CACHET_SPOT_PRICE_MIN_BUY),
+            screen.queryByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
-        ).toBeInTheDocument();
 
         // Because both spot offers were created by the active Alpha wallet,
         // we see two cancel buttons
@@ -984,7 +977,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.36 USD'));
+        await userEvent.click(screen.getByText('12,000.66 XEC'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
@@ -994,11 +987,11 @@ describe('<Agora />', () => {
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+            screen.getByText(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
         ).toBeInTheDocument();
+        expect(
+            screen.queryByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
+        ).not.toBeInTheDocument();
 
         const buyCachetButton = screen.getByRole('button', {
             name: 'Buy Cachet (CACHET)',
