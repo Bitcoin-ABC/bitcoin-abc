@@ -161,11 +161,35 @@ export const SectionImg = styled.div`
     }
 `;
 
-export const SwapZoneCtn = styled.div`
+export const WidgetSection = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     margin: 30px 0 50px;
+`;
+
+export const WidgetCtn = styled.div`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-direction: column;
+
+    #swapspace {
+        width: 404px;
+        height: 536px;
+        border-radius: 20px;
+
+        @media screen and (max-width: 403px) {
+            width: 100%;
+            height: 617px;
+        }
+        @media screen and (max-width: 353px) {
+            width: 353px;
+            height: 617px;
+        }
+    }
 `;

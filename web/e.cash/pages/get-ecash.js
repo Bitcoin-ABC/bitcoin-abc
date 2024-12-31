@@ -22,7 +22,8 @@ import {
     BlankTile,
     ImageTextCtn,
     SectionImg,
-    SwapZoneCtn,
+    WidgetSection,
+    WidgetCtn,
 } from '/styles/pages/get-ecash.js';
 import AnimateImage from '/components/animate-image';
 import { getScoreCardData } from '/data/scores.js';
@@ -102,21 +103,30 @@ function GetEcash(props) {
                     title="Instant Exchanges"
                     items={props.instantExchanges}
                 >
-                    <SwapZoneCtn id="swapzone">
+                    <WidgetSection>
                         <p>
                             Swap your crypto into XEC quickly with the Swapzone
-                            aggregator or chose your preferred instant exchange
-                            from the list below.
+                            or Swapspace aggregator — or choose your preferred
+                            instant exchange from the list below.
                         </p>
-                        <div
-                            id="swapzoneExchangeWidget"
-                            data-logo="true"
-                            data-size="full"
-                            data-refid="68y-3PwW6z"
-                            data-from="eth"
-                            data-to="xec"
-                        />
-                    </SwapZoneCtn>
+                        <WidgetCtn id="swapzone">
+                            <div
+                                id="swapzoneExchangeWidget"
+                                data-logo="true"
+                                data-size="full"
+                                data-refid="68y-3PwW6z"
+                                data-from="eth"
+                                data-to="xec"
+                            />
+                            <div>
+                                <iframe
+                                    id="swapspace"
+                                    src="https://swapspace.co/widget/b3fdadc148b1b02f250975eb"
+                                    frameBorder="0"
+                                />
+                            </div>
+                        </WidgetCtn>
+                    </WidgetSection>
                 </TileSection>
                 <ImageTextCtn>
                     <div>
