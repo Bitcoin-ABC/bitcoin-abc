@@ -10,6 +10,7 @@ import {
     toFormattedXec,
     getMinimumFractionDigits,
     getFormattedFiatPrice,
+    getAgoraSpotPriceXec,
 } from 'formatting';
 import vectors from 'formatting/fixtures/vectors';
 
@@ -157,12 +158,25 @@ describe('Correctly executes formatting functions', () => {
             });
         });
     });
-    describe('We can determine how many decimal places we need to show at least 2 places of precision', () => {
+    describe('We can determine how many decimal places we need to show appropriate significant figures for fiat or XEC amounts', () => {
         const { expectedReturns } = vectors.getMinimumFractionDigits;
         expectedReturns.forEach(vector => {
-            const { description, number, returned } = vector;
+            const { description, number, maxDigitsToReturn, returned } = vector;
             it(`getMinimumFractionDigits: ${description}`, () => {
-                expect(getMinimumFractionDigits(number)).toBe(returned);
+                expect(
+                    getMinimumFractionDigits(number, maxDigitsToReturn),
+                ).toBe(returned);
+            });
+        });
+    });
+    describe('We can format the price of a listed token in XEC', () => {
+        const { expectedReturns } = vectors.getAgoraSpotPriceXec;
+        expectedReturns.forEach(vector => {
+            const { description, userLocale, priceXec, returned } = vector;
+            it(`getAgoraSpotPriceXec: ${description}`, () => {
+                expect(getAgoraSpotPriceXec(priceXec, userLocale)).toBe(
+                    returned,
+                );
             });
         });
     });

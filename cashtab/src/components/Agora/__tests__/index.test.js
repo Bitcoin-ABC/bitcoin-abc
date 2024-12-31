@@ -652,7 +652,7 @@ describe('<Agora />', () => {
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
-        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
+        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
@@ -825,7 +825,7 @@ describe('<Agora />', () => {
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
-        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
+        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();
@@ -982,7 +982,7 @@ describe('<Agora />', () => {
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
-        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
+        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
             screen.getByText(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
         ).toBeInTheDocument();

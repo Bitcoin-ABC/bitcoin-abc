@@ -44,6 +44,7 @@ import {
     toFormattedXec,
     getFormattedFiatPrice,
     decimalizedTokenQtyToLocaleFormat,
+    getAgoraSpotPriceXec,
 } from 'formatting';
 import { TokenSentLink } from 'components/Etokens/Token/styled';
 import {
@@ -753,9 +754,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                             userLocale,
                         )} ${tokenName}${
                             tokenTicker !== '' ? ` (${tokenTicker})` : ''
-                        } for ${toXec(askedSats).toLocaleString(
+                        } for ${getAgoraSpotPriceXec(
+                            toXec(askedSats),
                             userLocale,
-                        )} XEC${
+                        )} ${
                             fiatPrice !== null
                                 ? ` (${getFormattedFiatPrice(
                                       settings.fiatCurrency,
@@ -889,9 +891,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                           ),
                                                           fiatPrice,
                                                       )
-                                                    : getFormattedFiatPrice(
-                                                          settings.fiatCurrency,
-                                                          userLocale,
+                                                    : getAgoraSpotPriceXec(
                                                           nanoSatoshisToXec(
                                                               Number(
                                                                   activeOffer.spotPriceNanoSatsPerTokenSat,
@@ -900,7 +900,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                                       `1e${decimals}`,
                                                                   ),
                                                           ),
-                                                          null,
+                                                          userLocale,
                                                       )}
                                             </OrderbookPrice>
                                         </OrderBookRow>

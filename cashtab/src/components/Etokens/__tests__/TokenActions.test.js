@@ -305,7 +305,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The fiat price is previewed correctly
         expect(
-            screen.getByText('0.50 XEC ($0.000015 USD) per token'),
+            screen.getByText('0.5000 XEC ($0.00001500 USD) per token'),
         ).toBeInTheDocument();
 
         // We can also set the price in fiat currency
@@ -1768,7 +1768,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The fiat price is previewed correctly
         expect(
-            screen.getByText('33.00 XEC ($0.00099 USD) per token'),
+            screen.getByText('33.00 XEC ($0.0009900 USD) per token'),
         ).toBeInTheDocument();
 
         // We can also set the price in fiat currency

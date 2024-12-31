@@ -137,20 +137,47 @@ export const toFormattedXec = (
 
 /**
  * Determine how many decimal places to render to support
- * at least 2 places of precision *
+ * at least AGORA_SPOT_PRICE_XEC_RENDERED_DECIMALS places of precision
+ * for prices less than 1 (fiat unit) i.e. $1 or 1 XEC
+ *
+ * 20 is max decimals supported by Intl.NumberFormat. So this is our
+ * max for fiat representations, since fiat could in theory be less
+ * than XEC
+ *
+ * XEC max price resolution is 1 nanosatoshi, or 1e-11 XEC
+ * So, we render no more than 11 digits of precision for XEC prices
  */
-const MAX_DIGITS_TO_RENDER = 20; // max supported by Intl.NumberFormat
-const DESIRED_PRECISION = appConfig.cashDecimals;
-export const getMinimumFractionDigits = (number: number): number => {
-    if (number === 0 || number >= 1) {
-        return DESIRED_PRECISION;
+const MAX_DIGITS_TO_RENDER_XEC = 11;
+const MAX_DIGITS_TO_RENDER_FIAT = 20;
+/**
+ * Because agora offers are priced in nanosatoshis per token satoshi,
+ * we should provide higher resolution than 2 decimal places
+ * For now, we arbitrary choose 4. 2 is frequently losing info for low spot prices,
+ * and more than 4 is imo too much info to conveniently mentally parse
+ */
+const AGORA_SPOT_PRICE_XEC_RENDERED_DECIMALS = 4;
+export const getMinimumFractionDigits = (
+    number: number,
+    maxDigitsToReturn: number,
+): number => {
+    if (number === 0) {
+        // If we really have zero, then any decimal places are too many significant figures
+        return 0;
+    }
+    if (number >= 1) {
+        // We always use 2 decimals of precision for amounts >=1
+        // The intense precision stuff is for handling low spot prices with high resolution
+        // This is an important differentiating feature of agora, which can price offers in
+        // nanosatoshis per token satoshi
+        return appConfig.cashDecimals;
     }
     if (number < 0.00000000000000000001) {
-        return MAX_DIGITS_TO_RENDER;
+        return maxDigitsToReturn;
     }
     return Math.min(
-        MAX_DIGITS_TO_RENDER,
-        Math.floor(Math.log10(1 / number)) + 2,
+        maxDigitsToReturn,
+        Math.floor(Math.log10(1 / number)) +
+            AGORA_SPOT_PRICE_XEC_RENDERED_DECIMALS,
     );
 };
 
@@ -168,9 +195,10 @@ export interface CashtabSettings {
     minFeeSends: boolean;
     sendModal: boolean;
 }
+
 /**
  * Agora token prices may be much less than $1
- * Format so you have 2 decimals of price precision and account for crazy leading zeros *
+ * Format so you have 2 decimals of price precision and account for crazy leading zeros
  */
 export const getFormattedFiatPrice = (
     fiatTicker: string,
@@ -185,9 +213,12 @@ export const getFormattedFiatPrice = (
     if (renderFiat) {
         ticker = fiatTicker.toUpperCase();
     }
-    const renderedDecimalPlaces = getMinimumFractionDigits(renderedPrice);
 
     if (renderFiat) {
+        const renderedDecimalPlaces = getMinimumFractionDigits(
+            renderedPrice,
+            MAX_DIGITS_TO_RENDER_FIAT,
+        );
         // Note that while some locales will include the currency code
         // as well, we force it, since imo we need to make sure it's there
         return `${new Intl.NumberFormat(userLocale, {
@@ -198,8 +229,25 @@ export const getFormattedFiatPrice = (
         }).format(renderedPrice)} ${ticker}`;
     }
 
-    return `${renderedPrice.toLocaleString(userLocale, {
+    // Fall back to price in XEC if fiatPrice is unavailable
+    return getAgoraSpotPriceXec(renderedPrice, userLocale);
+};
+
+/**
+ * Render the spot price of an Agora Partial in XEC
+ */
+export const getAgoraSpotPriceXec = (
+    priceXec: number | string,
+    userLocale: string,
+): string => {
+    priceXec = typeof priceXec === 'number' ? priceXec : parseFloat(priceXec);
+    const renderedDecimalPlaces = getMinimumFractionDigits(
+        priceXec,
+        MAX_DIGITS_TO_RENDER_XEC,
+    );
+
+    return `${priceXec.toLocaleString(userLocale, {
         maximumFractionDigits: renderedDecimalPlaces,
         minimumFractionDigits: renderedDecimalPlaces,
-    })} ${ticker}`;
+    })} XEC`;
 };

@@ -28,6 +28,7 @@ import BigNumber from 'bignumber.js';
 import {
     formatDate,
     getFormattedFiatPrice,
+    getAgoraSpotPriceXec,
     decimalizedTokenQtyToLocaleFormat,
 } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -442,11 +443,9 @@ const Token: React.FC = () => {
             new BigNumber(minAcceptedTokens),
         );
         // Get formatted price in XEC
-        const renderedActualPrice = getFormattedFiatPrice(
-            settings.fiatCurrency,
-            userLocale,
+        const renderedActualPrice = getAgoraSpotPriceXec(
             actualPricePerToken.toNumber(),
-            null,
+            userLocale,
         );
 
         return renderedActualPrice;
@@ -459,19 +458,14 @@ const Token: React.FC = () => {
         // Get the price per token, in XEC, based on the user's input settings
         // Used for a visual comparison with the calculated actual price in XEC
         // from the created Agora Partial (which we get from getAgoraPartialActualPrice())
-        return selectedCurrency === appConfig.ticker
-            ? getFormattedFiatPrice(
-                  settings.fiatCurrency,
-                  userLocale,
-                  formData.tokenListPrice,
-                  null,
-              )
-            : getFormattedFiatPrice(
-                  settings.fiatCurrency,
-                  userLocale,
-                  parseFloat(formData.tokenListPrice) / (fiatPrice as number), // NB for selectedCurrency to be fiat fiatPrice is not null
-                  null,
-              );
+
+        const targetPriceXec =
+            selectedCurrency === appConfig.ticker
+                ? formData.tokenListPrice
+                : // NB for selectedCurrency to be fiat fiatPrice is not null
+                  parseFloat(formData.tokenListPrice) / (fiatPrice as number);
+
+        return getAgoraSpotPriceXec(targetPriceXec, userLocale);
     };
 
     /**
@@ -494,11 +488,9 @@ const Token: React.FC = () => {
             inputPrice = '0';
         }
         return selectedCurrency === appConfig.ticker
-            ? `${getFormattedFiatPrice(
-                  settings.fiatCurrency,
-                  userLocale,
+            ? `${getAgoraSpotPriceXec(
                   inputPrice,
-                  null,
+                  userLocale,
               )} (${getFormattedFiatPrice(
                   settings.fiatCurrency,
                   userLocale,
@@ -509,11 +501,9 @@ const Token: React.FC = () => {
                   parseFloat(inputPrice) > 1
                       ? parseFloat(inputPrice).toLocaleString(userLocale)
                       : inputPrice
-              } ${selectedCurrency.toUpperCase()} (${getFormattedFiatPrice(
-                  settings.fiatCurrency,
-                  userLocale,
+              } ${selectedCurrency.toUpperCase()} (${getAgoraSpotPriceXec(
                   parseFloat(inputPrice) / (fiatPrice as number),
-                  null,
+                  userLocale,
               )}) per token`;
     };
 

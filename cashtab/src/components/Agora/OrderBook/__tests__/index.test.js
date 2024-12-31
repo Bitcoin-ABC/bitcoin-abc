@@ -171,7 +171,7 @@ describe('<OrderBook />', () => {
         );
 
         // We see the spot price on the depth bar
-        expect(screen.getByText('$0.33 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.3300 USD')).toBeInTheDocument();
 
         // We can toggle to see the spot price in XEC
         await userEvent.click(
@@ -179,7 +179,7 @@ describe('<OrderBook />', () => {
         );
 
         // Spot price on depth bar is now in XEC
-        expect(screen.queryByText('$0.33 USD')).not.toBeInTheDocument();
+        expect(screen.queryByText('$0.3300 USD')).not.toBeInTheDocument();
         expect(screen.getByText('10,000.97 XEC')).toBeInTheDocument();
 
         // The price of the selected amount is also now in XEC
@@ -194,7 +194,7 @@ describe('<OrderBook />', () => {
         expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
 
         // We see the price of the min offer amount in fiat
-        expect(screen.getByText('$0.033 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.03303 USD')).toBeInTheDocument();
 
         // Query the slider by its role and aria-labelledby attribute
         const slider = screen.getByRole('slider');
@@ -205,7 +205,7 @@ describe('<OrderBook />', () => {
         // We can move the slider and see the price of different quantities
         fireEvent.change(slider, { target: { value: 170 } });
         expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
-        expect(screen.getByText('$0.56 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.5611 USD')).toBeInTheDocument();
 
         // Slider action is for informational purposes only here, though, because
         // this wallet created this offer (determined by public key)
@@ -266,7 +266,7 @@ describe('<OrderBook />', () => {
         // We DO NOT see the formatted price in XEC as fiat is toggled
         expect(screen.queryByText('1k XEC')).not.toBeInTheDocument();
         // We see the price in fiat
-        expect(screen.getByText('$0.033 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.03303 USD')).toBeInTheDocument();
 
         // Query the slider by its role and aria-labelledby attribute
         const slider = screen.getByRole('slider');
@@ -279,7 +279,7 @@ describe('<OrderBook />', () => {
         expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
         // XEC amounts are only shown if toggle is selected
         expect(screen.queryByText('17k XEC')).not.toBeInTheDocument();
-        expect(screen.getByText('$0.56 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.5611 USD')).toBeInTheDocument();
 
         // Slider action is for informational purposes only here, though, because
         // this wallet created this offer (determined by public key)
@@ -370,9 +370,9 @@ describe('<OrderBook />', () => {
         );
 
         // We see a spot price for each active offer in fiat
-        expect(screen.getByText('$0.036 USD')).toBeInTheDocument();
-        expect(screen.getByText('$0.30 USD')).toBeInTheDocument();
-        expect(screen.getByText('$0.36 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.03600 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.3000 USD')).toBeInTheDocument();
+        expect(screen.getByText('$0.3600 USD')).toBeInTheDocument();
 
         // Toggle back to see XEC
         await userEvent.click(
@@ -396,7 +396,7 @@ describe('<OrderBook />', () => {
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
-        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
+        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
@@ -416,7 +416,7 @@ describe('<OrderBook />', () => {
 
         const OTHER_CACHET_SPOT_MIN_QTY = '.10 CACHET';
         const OTHER_CACHET_SPOT_PRICE_MIN_BUY = '1k XEC';
-        const OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.030 USD';
+        const OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.03003 USD';
         // Quantities are not displayed until they load, so we await
         expect(
             await screen.findByText(OTHER_CACHET_SPOT_MIN_QTY),
@@ -436,7 +436,7 @@ describe('<OrderBook />', () => {
         // We see a confirmation modal
         expect(
             screen.getByText(
-                'Cancel your offer to sell 100.00 Cachet (CACHET) for 1,000.96 XEC ($0.030 USD)?',
+                'Cancel your offer to sell 100.00 Cachet (CACHET) for 1,000.96 XEC ($0.03003 USD)?',
             ),
         ).toBeInTheDocument();
 
@@ -514,7 +514,7 @@ describe('<OrderBook />', () => {
         // We see the expected spot offer for CACHET
         const CACHET_SPOT_MIN_QTY = '.20 CACHET';
         const CACHET_SPOT_PRICE_MIN_BUY = '240.64 XEC';
-        const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
+        const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.007219 USD';
 
         // Quantities are not displayed until they load, so we await
         expect(
@@ -528,12 +528,12 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('$0.36 USD'));
+        await userEvent.click(screen.getByText('$0.3600 USD'));
 
         // We also see updates to the rendered spot details
         const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
-        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.11 USD';
+        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
             screen.getByText(UPDATED_CACHET_SPOT_MIN_QTY),
         ).toBeInTheDocument();
@@ -596,7 +596,7 @@ describe('<OrderBook />', () => {
         // We see a confirmation modal
         expect(
             await screen.findByText(
-                'Buy .30 Cachet (CACHET) for 3,601.92 XEC ($0.11 USD)?',
+                'Buy .30 Cachet (CACHET) for 3,601.92 XEC ($0.1081 USD)?',
             ),
         ).toBeInTheDocument();
 
