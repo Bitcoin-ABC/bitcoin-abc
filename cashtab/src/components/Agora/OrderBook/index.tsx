@@ -60,6 +60,7 @@ import {
     OfferTitleCtn,
     OfferDetailsCtn,
     BuyOrderCtn,
+    MintIconSpotWrapper,
 } from './styled';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
@@ -70,6 +71,8 @@ import {
     toHex,
     fromHex,
     Ecc,
+    shaRmd160,
+    Address,
 } from 'ecash-lib';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
@@ -80,6 +83,7 @@ import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Agora, AgoraOffer, AgoraPartial } from 'ecash-agora';
 import { ChronikClient } from 'chronik-client';
+import { IsMintAddressIcon } from 'components/Common/CustomIcons';
 
 export interface PartialOffer extends AgoraOffer {
     variant: {
@@ -468,6 +472,12 @@ const OrderBook: React.FC<OrderBookProps> = ({
             <InlineLoader />
         );
 
+    // We assume the mint outputScript is at genesisOutputScripts[0]
+    const mintOutputScript =
+        typeof cachedTokenInfo !== 'undefined'
+            ? cachedTokenInfo.genesisOutputScripts[0]
+            : undefined;
+
     // Determine if the active wallet created this offer
     // Used to render Buy or Cancel option to the user
     // Validate activePk as it could be null from Agora/index.js (not yet calculated)
@@ -830,6 +840,15 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                         ((depthPercent as number) *
                                             Number(takeTokenSatoshis)) /
                                         Number(tokenSatoshisMax);
+                                    const { makerPk } =
+                                        activeOffer.variant.params;
+                                    const makerHash = shaRmd160(makerPk);
+                                    const makerOutputScript =
+                                        Address.p2pkh(makerHash).toScriptHex();
+                                    const sellerIsMintAddress =
+                                        typeof mintOutputScript !==
+                                            'undefined' &&
+                                        mintOutputScript === makerOutputScript;
                                     return (
                                         <OrderBookRow
                                             key={index}
@@ -851,6 +870,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                 ></TentativeAcceptBar>
                                             )}
                                             <OrderbookPrice>
+                                                {sellerIsMintAddress && (
+                                                    <MintIconSpotWrapper>
+                                                        <IsMintAddressIcon />
+                                                    </MintIconSpotWrapper>
+                                                )}
                                                 {displaySpotPricesInFiat
                                                     ? getFormattedFiatPrice(
                                                           settings.fiatCurrency,

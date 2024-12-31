@@ -19,7 +19,7 @@ import {
     CachedCachet,
     SettingsUsd,
 } from 'components/Agora/fixtures/mocks';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc, initWasm, Address } from 'ecash-lib';
 import {
     MockAgora,
     MockChronikClient,
@@ -612,5 +612,67 @@ describe('<OrderBook />', () => {
 
         // Note we can't test that offers are refreshed as we cannot dynamically adjust chronik mocks
         // Would need regtest integration to do this
+    });
+    it('Offers listed by the token creator are indicated as such', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
+            agoraOfferCachetAlphaOne,
+            agoraOfferCachetBetaOne,
+        ]);
+
+        const alphaWalletOutputScript = Address.p2pkh(
+            agoraPartialAlphaWallet.paths.get(1899).hash,
+        ).toScriptHex();
+
+        // Note we must include CashtabNotification to test toastify notification
+        render(
+            <ThemeProvider theme={theme}>
+                <CashtabNotification
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                    transition={Bounce}
+                />
+                <Orderbook
+                    tokenId={CACHET_TOKEN_ID}
+                    cachedTokenInfo={{
+                        ...CachedCachet,
+                        // Mock that the listing wallet created the alpha offer
+                        genesisOutputScripts: [alphaWalletOutputScript],
+                    }}
+                    settings={SettingsUsd}
+                    userLocale={'en-US'}
+                    fiatPrice={0.00003}
+                    activePk={agoraPartialAlphaKeypair.pk}
+                    wallet={agoraPartialAlphaWallet}
+                    ecc={ecc}
+                    chronik={mockedChronik}
+                    agora={mockedAgora}
+                    chaintipBlockheight={800000}
+                />
+            </ThemeProvider>,
+        );
+
+        // We see a spinner while activeOffers load
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // After loading, we see the token name and ticker above its PartialOffer
+        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+
+        // We see the "Listed by token creator" icon, only one time for two offers,
+        // as only one of these listings was created by wallet alpha
+        expect(
+            screen.getByTitle('Listed by token creator'),
+        ).toBeInTheDocument();
     });
 });

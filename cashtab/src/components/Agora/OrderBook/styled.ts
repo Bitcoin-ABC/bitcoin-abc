@@ -115,6 +115,9 @@ export const OrderBookRow = styled.button<{ selected: boolean }>`
 `;
 
 export const OrderbookPrice = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 3px;
     font-size: 16px;
     z-index: 1;
 `;
@@ -183,5 +186,11 @@ export const BuyOrderCtn = styled.div`
         margin-top: 30px;
         margin-bottom: 0;
         margin-top: auto;
+    }
+`;
+export const MintIconSpotWrapper = styled.div`
+    svg {
+        height: 24px;
+        width: 24px;
     }
 `;

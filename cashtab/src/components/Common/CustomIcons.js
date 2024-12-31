@@ -53,6 +53,7 @@ import { ReactComponent as AgoraCancel } from 'assets/agora-cancel.svg';
 import { ReactComponent as Doge } from 'assets/doge.svg';
 import { ReactComponent as CollapseDown } from 'assets/collapse-down.svg';
 import { ReactComponent as TokenSend } from 'assets/tokensend.svg';
+import { ReactComponent as IsMintAddress } from 'assets/is-mint-address.svg';
 
 import appConfig from 'config/app';
 
@@ -167,6 +168,9 @@ export const PaywallPaymentIcon = () => (
 );
 export const ChatIcon = () => <Chat title="tx-chat" />;
 export const MintIcon = () => <Mint title="tx-mint" />;
+export const IsMintAddressIcon = () => (
+    <IsMintAddress title="Listed by token creator" />
+);
 export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
 export const AddContactIcon = () => <AddContact title="add-contact" />;
 const TrashCanWrapper = styled.div`
