@@ -81,8 +81,14 @@ export const TokenStatsCol = styled.div`
 export const TokenUrlCol = styled(TokenStatsCol)`
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width: 120px;
     white-space: nowrap;
+    max-width: 300px;
+    @media (max-width: 768px) {
+        max-width: 200px;
+    }
+    @media (max-width: 400px) {
+        max-width: 124px;
+    }
 `;
 export const TokenStatsTableRow = styled.div`
     width: 100%;
