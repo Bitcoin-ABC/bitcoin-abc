@@ -234,8 +234,16 @@ function UseEcash(props) {
                             reward payouts in XEC. Trade XECX for XEC 1:1 on the
                             Agora marketplace.
                         </p>
-
                         <p>Built using eCash&apos;s ALP technology.</p>
+                        <p>
+                            <i>
+                                XECX is not XEC. It is a token project built on
+                                XEC by a third-party. The 1:1 peg of XECX to XEC
+                                is based on trust in XECX operators and their
+                                incentives. It is not risk-free.
+                            </i>
+                        </p>
+
                         <FlexButtons>
                             <Button
                                 text="Learn more"
