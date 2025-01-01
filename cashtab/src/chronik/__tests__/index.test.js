@@ -7,6 +7,7 @@ import {
     flattenChronikTxHistory,
     sortAndTrimChronikTxHistory,
     parseTx,
+    getTxNotificationMsg,
     getTokenGenesisInfo,
     getTokenBalances,
     getHistory,
@@ -48,6 +49,31 @@ describe('Cashtab chronik.js functions', () => {
             const { description, tx, hashes, parsed } = expectedReturn;
             it(`parseTx: ${description}`, () => {
                 expect(parseTx(tx, hashes)).toStrictEqual(parsed);
+            });
+        });
+    });
+    describe('Gets expected notification msg string', () => {
+        const { expectedReturns } = vectors.getTxNotificationMsg;
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                parsedTx,
+                fiatPrice,
+                userLocale,
+                selectedFiatTicker,
+                genesisInfo,
+                returned,
+            } = expectedReturn;
+            it(`getTxNotificationMsg: ${description}`, () => {
+                expect(
+                    getTxNotificationMsg(
+                        parsedTx,
+                        fiatPrice,
+                        userLocale,
+                        selectedFiatTicker,
+                        genesisInfo,
+                    ),
+                ).toEqual(returned);
             });
         });
     });

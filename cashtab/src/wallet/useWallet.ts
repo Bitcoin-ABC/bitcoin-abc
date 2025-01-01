@@ -18,6 +18,7 @@ import {
     parseTx,
     getTokenBalances,
     getTokenGenesisInfo,
+    getTxNotificationMsg,
 } from 'chronik';
 import appConfig from 'config/app';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
@@ -37,7 +38,6 @@ import {
     getLegacyPaths,
     getBalanceSats,
     getHashes,
-    toXec,
     hasUnfinalizedTxsInHistory,
     CashtabWallet,
     LegacyCashtabWallet,
@@ -46,7 +46,6 @@ import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
-import { toFormattedXec } from 'formatting';
 import {
     ChronikClient,
     WsEndpoint,
@@ -784,57 +783,35 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             getHashes(cashtabState.wallets[0]),
         );
 
-        if (parsedTx.xecTxType === 'Received') {
-            if (
-                incomingTxDetails.tokenEntries.length > 0 &&
-                typeof tokenId === 'string' &&
-                incomingTxDetails.tokenEntries[0].txType === 'SEND' &&
-                incomingTxDetails.tokenEntries[0].burnSummary === '' &&
-                incomingTxDetails.tokenEntries[0].actualBurnAmount === '0'
-            ) {
-                // For now, we only parse the first tokenEntry for an incoming tx notification
-                // Only parse incoming SEND txs
-                let eTokenReceivedString = '';
-                if (typeof thisTokenCachedInfo === 'undefined') {
-                    // If we do not have token name, ticker, or decimals, show a generic notification
-                    eTokenReceivedString = `Received ${tokenId.slice(
-                        0,
-                        3,
-                    )}...${tokenId.slice(-3)}`;
-                } else {
-                    const { tokenTicker, tokenName } =
-                        thisTokenCachedInfo.genesisInfo;
-                    eTokenReceivedString = `Received ${tokenName} (${tokenTicker})`;
-                    // TODO calculate and format decimalized quantity
-                    // TODO test this feature of parseChronikWsMsg, e.g. add a helper function
-                    // getNotification(Tx) that can be easily tested and called here
-                }
-                toast(eTokenReceivedString, {
-                    icon: React.createElement(TokenIcon, {
-                        size: 32,
-                        tokenId: tokenId,
-                    }) as unknown as ToastIcon,
-                });
-            } else {
-                const xecReceivedString = `Received ${toFormattedXec(
-                    parsedTx.satoshisSent,
-                    locale,
-                )} ${appConfig.ticker}${
-                    settings &&
-                    typeof settings.fiatCurrency !== 'undefined' &&
-                    fiatPrice !== null
-                        ? ` (${
-                              supportedFiatCurrencies[settings.fiatCurrency]
-                                  .symbol
-                          }${(toXec(parsedTx.satoshisSent) * fiatPrice).toFixed(
-                              appConfig.cashDecimals,
-                          )} ${settings.fiatCurrency.toUpperCase()})`
-                        : ''
-                }`;
-                toast(xecReceivedString, {
-                    icon: CashReceivedNotificationIcon,
-                });
-            }
+        // if token tx, get tokenId
+
+        // parse tx for notification msg
+        const notificationMsg = getTxNotificationMsg(
+            parsedTx,
+            fiatPrice,
+            locale,
+            settings.fiatCurrency.toUpperCase(),
+            thisTokenCachedInfo?.genesisInfo,
+        );
+
+        if (typeof notificationMsg === 'undefined') {
+            // We do not send a notification for some msgs
+            return;
+        }
+
+        // eToken txs should have token icon
+        if (parsedTx.parsedTokenEntries.length > 0) {
+            toast(notificationMsg, {
+                icon: React.createElement(TokenIcon, {
+                    size: 32,
+                    tokenId: tokenId,
+                }) as unknown as ToastIcon,
+            });
+        } else {
+            // Otherwise normal
+            toast(notificationMsg, {
+                icon: CashReceivedNotificationIcon,
+            });
         }
 
         // Return true if we get here
