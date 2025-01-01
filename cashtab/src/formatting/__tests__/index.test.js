@@ -161,11 +161,11 @@ describe('Correctly executes formatting functions', () => {
     describe('We can determine how many decimal places we need to show appropriate significant figures for fiat or XEC amounts', () => {
         const { expectedReturns } = vectors.getMinimumFractionDigits;
         expectedReturns.forEach(vector => {
-            const { description, number, maxDigitsToReturn, returned } = vector;
+            const { description, number, isFiatPrice, returned } = vector;
             it(`getMinimumFractionDigits: ${description}`, () => {
-                expect(
-                    getMinimumFractionDigits(number, maxDigitsToReturn),
-                ).toBe(returned);
+                expect(getMinimumFractionDigits(number, isFiatPrice)).toBe(
+                    returned,
+                );
             });
         });
     });

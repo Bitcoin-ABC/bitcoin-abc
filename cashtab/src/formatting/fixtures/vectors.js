@@ -326,67 +326,88 @@ export default {
                 userLocale: 'en-US',
                 priceXec: 100,
                 fiatPrice: null,
-                returned: '100.00 XEC',
+                returned: '100 XEC',
             },
         ],
     },
     getMinimumFractionDigits: {
         expectedReturns: [
             {
+                description:
+                    'XEC price of integer between 1 and 10 returns 0 decimals',
+                number: 1,
+                isFiatPrice: false,
+                returned: 0,
+            },
+            {
+                description:
+                    'XEC price of non-integer between 1 and 10 returns 4 decimals',
+                number: 1.0101,
+                isFiatPrice: false,
+                returned: 4,
+            },
+            {
+                description:
+                    'XEC price of non-integer >= 10 returns 2 decimals',
+                number: 10.01,
+                isFiatPrice: false,
+                returned: 2,
+            },
+            {
                 description: '0 has no decimal places',
                 number: 0,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 0,
             },
             {
                 description: '1 has 2 decimal places',
                 number: 1,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 2,
             },
             {
                 description: 'Smallest supported fiat price',
                 number: 0.00000000000000000001,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 20,
             },
             {
                 description: 'Smallest supported XEC price',
                 number: 0.00000000000000000001,
-                maxDigitsToReturn: 11,
+                isFiatPrice: false,
                 returned: 11,
             },
             {
                 description:
                     'Going smaller, which would need 24 decimals to cover 4 precision digits, we still get 20',
                 number: 0.000000000000000000001,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 20,
             },
             {
                 description: 'Small number',
                 number: 0.0000000000013,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 15,
             },
             {
                 description:
                     'Small number with too much precision returns enough decimal places for 4 digits of precision',
                 number: 0.0000000000013456789,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 15,
             },
             {
                 description:
                     'Normal decimal with too much precision returns enough decimal places to cover 4 digits of precision',
                 number: 0.123456789,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 4,
             },
             {
                 description: 'Greater than one gets 2 decimal places',
                 number: 123,
-                maxDigitsToReturn: 20,
+                isFiatPrice: true,
                 returned: 2,
             },
         ],
@@ -394,10 +415,31 @@ export default {
     getAgoraSpotPriceXec: {
         expectedReturns: [
             {
-                description: 'XEC price > 1',
+                description:
+                    'XEC price of integer between 1 and 10 returns 0 decimals',
                 userLocale: 'en-US',
-                priceXec: 100,
-                returned: '100.00 XEC',
+                priceXec: 1,
+                returned: '1 XEC',
+            },
+            {
+                description:
+                    'XEC price of non-integer between 1 and 10 returns 4 decimals',
+                userLocale: 'en-US',
+                priceXec: 1.0101,
+                returned: '1.0101 XEC',
+            },
+            {
+                description:
+                    'XEC price of non-integer >= 10 returns 2 decimals',
+                userLocale: 'en-US',
+                priceXec: 10.01,
+                returned: '10.01 XEC',
+            },
+            {
+                description: 'XEC price of integer >= 10 returns 0 decimals',
+                userLocale: 'en-US',
+                priceXec: 10,
+                returned: '10 XEC',
             },
             {
                 description: 'XEC price > 0.1 and < 1',

@@ -149,6 +149,16 @@ export const toFormattedXec = (
  */
 const MAX_DIGITS_TO_RENDER_XEC = 11;
 const MAX_DIGITS_TO_RENDER_FIAT = 20;
+
+/**
+ * We want to render certain precision levels no matter what at certain price thresholds
+ * For example, <= 10 XEC we should see 4 decimal places, as in Agora, this can have a
+ * substantial impact across large numbers of tokens
+ *
+ * For fiat, typically fiat units are > than 1 XEC, so we arbitarily say 2 decimals if > 1
+ */
+const EXTRA_PRECISION_CUTOFF_XEC = 10;
+const EXTRA_PRECISION_CUTOFF_FIAT = 1;
 /**
  * Because agora offers are priced in nanosatoshis per token satoshi,
  * we should provide higher resolution than 2 decimal places
@@ -158,22 +168,46 @@ const MAX_DIGITS_TO_RENDER_FIAT = 20;
 const AGORA_SPOT_PRICE_XEC_RENDERED_DECIMALS = 4;
 export const getMinimumFractionDigits = (
     number: number,
-    maxDigitsToReturn: number,
+    isFiatPrice: boolean,
 ): number => {
+    const maxDigitsToReturn = isFiatPrice
+        ? MAX_DIGITS_TO_RENDER_FIAT
+        : MAX_DIGITS_TO_RENDER_XEC;
     if (number === 0) {
         // If we really have zero, then any decimal places are too many significant figures
         return 0;
     }
-    if (number >= 1) {
-        // We always use 2 decimals of precision for amounts >=1
+    if (number >= EXTRA_PRECISION_CUTOFF_FIAT && isFiatPrice) {
+        // We always use 2 decimals of precision for amounts >=1 fiat unit
         // The intense precision stuff is for handling low spot prices with high resolution
         // This is an important differentiating feature of agora, which can price offers in
         // nanosatoshis per token satoshi
         return appConfig.cashDecimals;
     }
+    if (!isFiatPrice) {
+        if (Number.isInteger(number)) {
+            // Special handling for exact XEC prices
+            // e.g. we want a price of exactly 1 XEC to be instantly
+            // visually distinguishable from prices very close to 1 XEC
+            return 0;
+        }
+        if (number > 1 && number < EXTRA_PRECISION_CUTOFF_XEC) {
+            // For XEC spot between 1 and EXTRA_PRECISION_CUTOFF_XEC
+            // Always return 4 decimals
+            return AGORA_SPOT_PRICE_XEC_RENDERED_DECIMALS;
+        }
+        if (number >= EXTRA_PRECISION_CUTOFF_XEC) {
+            // 2 decimals for XEC prices >= EXTRA_PRECISION_CUTOFF_XEC
+            return appConfig.cashDecimals;
+        }
+    }
     if (number < 0.00000000000000000001) {
+        // If we are less than the lowest possible fiat price
+        // determined by MAX_DIGITS_TO_RENDER_FIAT
         return maxDigitsToReturn;
     }
+
+    // For values between 0 and 1 the resolution is 4 digits + the leading zeros after the decimal point
     return Math.min(
         maxDigitsToReturn,
         Math.floor(Math.log10(1 / number)) +
@@ -198,7 +232,7 @@ export interface CashtabSettings {
 
 /**
  * Agora token prices may be much less than $1
- * Format so you have 2 decimals of price precision and account for crazy leading zeros
+ * Format so you have appropriate significant figures and account for crazy leading zeros
  */
 export const getFormattedFiatPrice = (
     fiatTicker: string,
@@ -217,7 +251,7 @@ export const getFormattedFiatPrice = (
     if (renderFiat) {
         const renderedDecimalPlaces = getMinimumFractionDigits(
             renderedPrice,
-            MAX_DIGITS_TO_RENDER_FIAT,
+            true,
         );
         // Note that while some locales will include the currency code
         // as well, we force it, since imo we need to make sure it's there
@@ -241,10 +275,7 @@ export const getAgoraSpotPriceXec = (
     userLocale: string,
 ): string => {
     priceXec = typeof priceXec === 'number' ? priceXec : parseFloat(priceXec);
-    const renderedDecimalPlaces = getMinimumFractionDigits(
-        priceXec,
-        MAX_DIGITS_TO_RENDER_XEC,
-    );
+    const renderedDecimalPlaces = getMinimumFractionDigits(priceXec, false);
 
     return `${priceXec.toLocaleString(userLocale, {
         maximumFractionDigits: renderedDecimalPlaces,

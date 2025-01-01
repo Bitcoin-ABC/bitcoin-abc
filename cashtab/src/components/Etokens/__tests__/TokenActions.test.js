@@ -331,7 +331,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The fiat price is previewed correctly
         expect(
-            await screen.findByText('$0.00005 USD (1.67 XEC) per token'),
+            await screen.findByText('$0.00005 USD (1.6667 XEC) per token'),
         ).toBeInTheDocument();
 
         // Click the now-enabled list button
@@ -347,13 +347,12 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
         // Min by (actual, calculated from AgoraOffer)
         expect(screen.getByText('11.005853696')).toBeInTheDocument();
+        const userInputPricePerToken = '1.6667 XEC';
         // Actual price calculated from AgoraOffer
-        const actualPricePerTokenForMinBuy = '1.66 XEC';
-        expect(
-            screen.getByText(actualPricePerTokenForMinBuy),
-        ).toBeInTheDocument();
+        const actualPricePerToken = '1.6600 XEC';
+        expect(screen.getByText(userInputPricePerToken)).toBeInTheDocument();
         // User input price
-        expect(screen.getByText('1.67 XEC')).toBeInTheDocument();
+        expect(screen.getByText(actualPricePerToken)).toBeInTheDocument();
 
         // We can cancel and not create this listing
         await userEvent.click(screen.getByText('Cancel'));
@@ -371,14 +370,14 @@ describe('<Token /> available actions rendered', () => {
         // We see expected toast notification for the ad setup tx
         expect(
             await screen.findByText(
-                `Successful ad setup tx to offer ${actualOfferedQty} Vespene Gas for ${actualPricePerTokenForMinBuy} per token`,
+                `Successful ad setup tx to offer ${actualOfferedQty} Vespene Gas for ${actualPricePerToken} per token`,
             ),
         ).toBeInTheDocument();
 
         // We see the expected toast notification for the successful listing tx
         expect(
             await screen.findByText(
-                `${actualOfferedQty} Vespene Gas listed for ${actualPricePerTokenForMinBuy} per token`,
+                `${actualOfferedQty} Vespene Gas listed for ${actualPricePerToken} per token`,
             ),
         ).toBeInTheDocument();
     });
@@ -1768,7 +1767,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The fiat price is previewed correctly
         expect(
-            screen.getByText('33.00 XEC ($0.0009900 USD) per token'),
+            screen.getByText('33 XEC ($0.0009900 USD) per token'),
         ).toBeInTheDocument();
 
         // We can also set the price in fiat currency
