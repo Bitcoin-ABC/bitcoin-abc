@@ -935,8 +935,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     ) : (
                                         <a
                                             href={`#/token/${tokenId}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
                                         >
                                             {tokenName}
                                             {tokenTicker !== ''
