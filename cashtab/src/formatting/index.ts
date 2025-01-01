@@ -216,21 +216,6 @@ export const getMinimumFractionDigits = (
 };
 
 /**
- * Note
- * This should not live here
- * But, as part of gradually implementing ts
- * needs to live in a ts file until it finds its rightful home
- */
-export interface CashtabSettings {
-    autoCameraOn: boolean;
-    balanceVisible: boolean;
-    fiatCurrency: string;
-    hideMessagesFromUnknownSenders: boolean;
-    minFeeSends: boolean;
-    sendModal: boolean;
-}
-
-/**
  * Agora token prices may be much less than $1
  * Format so you have appropriate significant figures and account for crazy leading zeros
  */
