@@ -37,7 +37,10 @@ import {
     getNftParentGenesisTargetOutputs,
     getNftChildGenesisTargetOutputs,
 } from 'token-protocols/slpv1';
-import { getAlpGenesisTargetOutputs } from 'token-protocols/alp';
+import {
+    getAlpGenesisTargetOutputs,
+    getMaxDecimalizedAlpQty,
+} from 'token-protocols/alp';
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
@@ -216,6 +219,33 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
             }));
         }
     }, [createNftCollection]);
+
+    /**
+     * Update validation of genesisQty when user toggles between ALP and SLP token types
+     */
+    useEffect(() => {
+        if (formData.genesisQty === '') {
+            // genesisQty is required and will be validated when the user inputs
+            // Do not handle here
+            return;
+        }
+        // Update validation of genesis qty field when user toggles between ALP and SLP
+        const isValidOrStringErrorMsg = isValidTokenMintAmount(
+            formData.genesisQty,
+            // Note that, in this code block, value is formData.decimals
+            formData.decimals === ''
+                ? 0
+                : (parseInt(formData.decimals) as SlpDecimals),
+            tokenTypeSwitches.alp === true ? 'ALP' : 'SLP',
+        );
+        setFormDataErrors(previous => ({
+            ...previous,
+            genesisQty:
+                typeof isValidOrStringErrorMsg === 'string'
+                    ? isValidOrStringErrorMsg
+                    : false,
+        }));
+    }, [tokenTypeSwitches.alp]);
 
     const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -450,6 +480,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                         formData.genesisQty,
                         // Note that, in this code block, value is formData.decimals
                         parseInt(value) as SlpDecimals,
+                        tokenTypeSwitches.alp === true ? 'ALP' : 'SLP',
                     );
                     setFormDataErrors(previous => ({
                         ...previous,
@@ -468,6 +499,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     formData.decimals === ''
                         ? 0
                         : (parseInt(formData.decimals) as SlpDecimals),
+                    tokenTypeSwitches.alp === true ? 'ALP' : 'SLP',
                 );
                 setFormDataErrors(previous => ({
                     ...previous,
@@ -505,8 +537,10 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
             formData.decimals === ''
                 ? 0
                 : (parseInt(formData.decimals) as SlpDecimals);
-        const maxGenesisAmount = getMaxDecimalizedSlpQty(usedDecimals);
-
+        const maxGenesisAmount =
+            tokenTypeSwitches.slp === true
+                ? getMaxDecimalizedSlpQty(usedDecimals)
+                : getMaxDecimalizedAlpQty(usedDecimals);
         handleInput({
             target: {
                 name: 'genesisQty',
@@ -974,9 +1008,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                             }`}
                             name="genesisQty"
                             value={formData.genesisQty}
-                            decimals={
-                                parseInt(formData.decimals) as SlpDecimals
-                            }
                             handleInput={handleInput}
                             error={formDataErrors.genesisQty}
                             handleOnMax={onMaxGenesis}

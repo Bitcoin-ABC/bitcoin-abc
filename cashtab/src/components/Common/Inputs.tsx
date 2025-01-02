@@ -7,7 +7,6 @@ import styled from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import appConfig from 'config/app';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
-import { SlpDecimals } from 'wallet';
 
 const CashtabInputWrapper = styled.div`
     box-sizing: border-box;
@@ -410,7 +409,6 @@ interface SendTokenInputProps {
     placeholder: string;
     value: number | string;
     inputDisabled?: boolean;
-    decimals: SlpDecimals;
     error: false | string;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     handleOnMax: () => void;
@@ -420,7 +418,6 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     placeholder = '',
     value = 0,
     inputDisabled = false,
-    decimals = 0,
     error = false,
     handleInput,
     handleOnMax,
@@ -430,8 +427,6 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
             <InputRow invalid={typeof error === 'string'}>
                 <LeftInput
                     placeholder={placeholder}
-                    type="number"
-                    step={1 / 10 ** decimals}
                     name={name}
                     value={value}
                     onChange={e => handleInput(e)}

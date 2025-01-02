@@ -2927,9 +2927,6 @@ const Token: React.FC = () => {
                                                                     sendTokenAmountError
                                                                 }
                                                                 placeholder="Amount"
-                                                                decimals={
-                                                                    decimals as SlpDecimals
-                                                                }
                                                                 handleInput={
                                                                     handleTokenAmountChange
                                                                 }
@@ -3174,9 +3171,6 @@ const Token: React.FC = () => {
                                                                 burnTokenAmountError
                                                             }
                                                             placeholder="Burn Amount"
-                                                            decimals={
-                                                                decimals as SlpDecimals
-                                                            }
                                                             handleInput={
                                                                 handleEtokenBurnAmountChange
                                                             }
@@ -3230,9 +3224,6 @@ const Token: React.FC = () => {
                                                     value={formData.mintAmount}
                                                     error={mintAmountError}
                                                     placeholder="Mint Amount"
-                                                    decimals={
-                                                        decimals as SlpDecimals
-                                                    }
                                                     handleInput={
                                                         handleMintAmountChange
                                                     }

@@ -22,6 +22,8 @@ import { when } from 'jest-when';
 import appConfig from 'config/app';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { Ecc, initWasm } from 'ecash-lib';
+import { MAX_MINT_AMOUNT_TOKEN_SATOSHIS } from 'token-protocols/slpv1';
+import { MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS } from 'token-protocols/alp';
 
 describe('<CreateTokenForm />', () => {
     let ecc;
@@ -456,5 +458,100 @@ describe('<CreateTokenForm />', () => {
 
         // We are sent to its token-action page
         expect(await screen.findByTitle('Token Stats')).toBeInTheDocument();
+    });
+    it('Validation works as expected for ALP and SLP max supply', async () => {
+        const createdTokenId =
+            '75883c5ebc2c3b375ae6e25dcc845dfbc6b34ae6c1319fb840e7dcba1f8135e7';
+        // Mock a utxo of the not-yet-created token so we can test the redirect
+        const MOCK_UTXO_FOR_BALANCE = {
+            token: {
+                tokenId: createdTokenId,
+                isMintBaton: false,
+                amount: '10',
+            },
+        };
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...walletWithXecAndTokens,
+                state: {
+                    ...walletWithXecAndTokens.state,
+                    slpUtxos: [
+                        ...walletWithXecAndTokens.state.slpUtxos,
+                        MOCK_UTXO_FOR_BALANCE,
+                    ],
+                },
+            },
+            localforage,
+        );
+
+        // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
+        mockedChronik.setToken(createdTokenId, MOCK_CHRONIK_TOKEN_CALL);
+        mockedChronik.setTx(createdTokenId, MOCK_CHRONIK_GENESIS_TX_CALL);
+        mockedChronik.setUtxosByTokenId(createdTokenId, [
+            MOCK_UTXO_FOR_BALANCE,
+        ]);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/create-token"
+            />,
+        );
+
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // On load, the SLP switch is selected by default
+        expect(screen.getByTitle('Create SLP')).toBeChecked();
+
+        const tokenGenesisQtyInput = screen.getByPlaceholderText(
+            'Enter initial token supply',
+        );
+
+        // Max out SLP supply
+        await user.click(screen.getByText('max'));
+
+        // We see max SLP supply for 0 decimals
+        expect(tokenGenesisQtyInput).toHaveValue(
+            MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+        );
+
+        // Select ALP
+        await user.click(screen.getByTitle('Create ALP'));
+
+        // Expect validation error bc SLP max supply is > ALP max supply
+        expect(
+            screen.getByText(
+                `Amount ${MAX_MINT_AMOUNT_TOKEN_SATOSHIS} exceeds max mint amount for this token (${MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS})`,
+            ),
+        ).toBeInTheDocument();
+
+        // Max out ALP supply
+        await user.click(screen.getByText('max'));
+
+        // We see max ALP supply for 0 decimals
+        expect(tokenGenesisQtyInput).toHaveValue(
+            MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+        );
+
+        // Increase the decimals so that this supply is invalid
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter number of decimal places',
+            ),
+            '2',
+        );
+
+        // Expect validation error bc ALP max supply is lower if you have 2 decimals
+        expect(
+            screen.getByText(
+                `Amount ${MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS} exceeds max mint amount for this token (2814749767106.55)`,
+            ),
+        ).toBeInTheDocument();
     });
 });
