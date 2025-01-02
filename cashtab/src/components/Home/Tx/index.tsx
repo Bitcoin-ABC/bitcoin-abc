@@ -223,13 +223,8 @@ const Tx: React.FC<TxProps> = ({
                         const airdroppedTokenInfo =
                             cashtabCache.tokens.get(tokenId);
                         if (typeof airdroppedTokenInfo !== 'undefined') {
-                            const { genesisInfo, tokenType } =
-                                airdroppedTokenInfo;
+                            const { genesisInfo } = airdroppedTokenInfo;
                             const { tokenName, tokenTicker } = genesisInfo;
-                            const { protocol, number } = tokenType;
-                            const parsedTokenType = `${protocol}${
-                                protocol !== 'ALP' ? ` ${number}` : ''
-                            }`;
                             renderedAppActions.push(
                                 <>
                                     <IconAndLabel>
@@ -240,7 +235,6 @@ const Tx: React.FC<TxProps> = ({
                                     </IconAndLabel>
                                     <TokenIcon size={32} tokenId={tokenId} />
                                     <TokenInfoCol>
-                                        <TokenType>{parsedTokenType}</TokenType>
                                         <TokenName to={`/token/${tokenId}`}>
                                             {tokenName}
                                         </TokenName>
@@ -677,7 +671,6 @@ const Tx: React.FC<TxProps> = ({
                     {actionIcon}
                     {tokenIcon}
                     <TokenInfoCol>
-                        <TokenType>{renderedTokenType}</TokenType>
                         <TokenType>
                             {renderedTokenType === 'Collection' &&
                             renderedTxType === 'NONE'

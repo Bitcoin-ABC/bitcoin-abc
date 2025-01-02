@@ -407,9 +407,6 @@ describe('<Tx />', () => {
             ),
         ).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
-
         // We see the token name
         expect(
             screen.getByText('Covid19 Lifetime Immunity'),
@@ -464,9 +461,6 @@ describe('<Tx />', () => {
                 'icon for 4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
             ),
         ).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(
@@ -524,9 +518,6 @@ describe('<Tx />', () => {
             ),
         ).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
-
         // We see the token name
         expect(
             screen.getByText('Covid19 Lifetime Immunity'),
@@ -581,9 +572,6 @@ describe('<Tx />', () => {
                 'icon for 4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
             ),
         ).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(
@@ -641,9 +629,6 @@ describe('<Tx />', () => {
         // We see the genesis icon
         expect(screen.getByTitle('tx-genesis')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
-
         // We see the token name
         expect(screen.getByText('UpdateTest')).toBeInTheDocument();
 
@@ -696,9 +681,6 @@ describe('<Tx />', () => {
 
         // We see the genesis icon
         expect(screen.getByTitle('tx-genesis')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(screen.queryByText('UpdateTest')).not.toBeInTheDocument();
@@ -754,9 +736,6 @@ describe('<Tx />', () => {
             ),
         ).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
-
         // We see the token name
         expect(screen.getByText('CashTabBits')).toBeInTheDocument();
 
@@ -809,9 +788,6 @@ describe('<Tx />', () => {
                 'icon for acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
             ),
         ).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(screen.queryByText('CashTabBits')).not.toBeInTheDocument();
@@ -932,7 +908,6 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see token info in column
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
         expect(screen.getByText('GRUMPY')).toBeInTheDocument();
         expect(screen.getByText('(GRP)')).toBeInTheDocument();
 
@@ -1129,9 +1104,6 @@ describe('<Tx />', () => {
         // We see the token burn icon
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
-
         // We see the token name
         expect(screen.getByText('Lambda Variant Variants')).toBeInTheDocument();
 
@@ -1184,9 +1156,6 @@ describe('<Tx />', () => {
 
         // We see the token burn icon
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(
@@ -1246,9 +1215,6 @@ describe('<Tx />', () => {
 
         // We see the token burn icon
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -1720,9 +1686,6 @@ describe('<Tx />', () => {
         // We see the mint icon
         expect(screen.getByTitle('tx-mint')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
-
         // We see the token name
         expect(screen.getByText('Cachet')).toBeInTheDocument();
 
@@ -1775,9 +1738,6 @@ describe('<Tx />', () => {
 
         // We see the mint icon
         expect(screen.getByTitle('tx-mint')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(screen.queryByText('Cachet')).not.toBeInTheDocument();
@@ -1938,9 +1898,6 @@ describe('<Tx />', () => {
                 'icon for cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
             ),
         ).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('ALP')).toBeInTheDocument();
         // We see the token name
         expect(screen.getByText('Credo In Unum Deo')).toBeInTheDocument();
         // We see the token ticker
@@ -1992,9 +1949,6 @@ describe('<Tx />', () => {
                 'icon for cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
             ),
         ).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('ALP')).toBeInTheDocument();
 
         // We see the expected token action text for a received ALP fungible token tx
         expect(screen.getByText('Received')).toBeInTheDocument();
@@ -2141,9 +2095,6 @@ describe('<Tx />', () => {
             ),
         ).toBeInTheDocument();
 
-        // Rendered token type for SLP1 NFT Parent is Collection
-        expect(screen.getByText('Collection')).toBeInTheDocument();
-
         // We see the token name
         expect(
             screen.getByText('The Four Half-Coins of Jin-qua'),
@@ -2208,9 +2159,6 @@ describe('<Tx />', () => {
 
         // We see the NFT mint icon
         expect(screen.getByTitle('Mint NFT')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('Wu Fang Choi')).toBeInTheDocument();
@@ -2279,9 +2227,6 @@ describe('<Tx />', () => {
 
         // We see the genesis action
         expect(screen.getByText('GENESIS')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('Collection')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('The Heisman')).toBeInTheDocument();
@@ -2616,9 +2561,6 @@ describe('<Tx />', () => {
         // We see the Agora Offer icon
         expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
-
         // We see the token name
         expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
 
@@ -2676,9 +2618,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Offer icon
         expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
 
         // We see SEND but not the token name (uncached)
         expect(screen.getByText('Agora Offer')).toBeInTheDocument();
@@ -2739,9 +2678,6 @@ describe('<Tx />', () => {
         // We see the Agora Purchase icon
         expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
-
         // We see the token name
         expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
 
@@ -2795,9 +2731,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Purchase icon
         expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
     });
     it('Agora one-shot sell tx (token info available in cache)', async () => {
         render(
@@ -2851,9 +2784,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Purchase icon
         expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
@@ -2911,9 +2841,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Purchase icon
         expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
     });
     it('Agora one-shot cancel tx (token info available in cache)', async () => {
         render(
@@ -2964,9 +2891,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Cancel icon
         expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('Nile Kinnick')).toBeInTheDocument();
@@ -3021,9 +2945,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Cancel icon
         expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
     });
     it('Agora partial cancel tx (token info available in cache)', async () => {
         const thisMock = agoraPartialCancelTx;
@@ -3067,9 +2988,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Sale icon
         expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -3126,9 +3044,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Cancel icon
         expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
     });
     it('Agora partial bux buy tx renders correct bought amount (token info available in cache)', async () => {
         render(
@@ -3178,9 +3093,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Sale icon
         expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -3254,9 +3166,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Purchase icon
         expect(screen.getByTitle('Agora Purchase')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
     });
     it('Agora partial bux sell tx renders correct bought amount (token info available in cache)', async () => {
         // TODO if this is supposed to be a sell tx, we need to make the SELL version of it with the right SELL hash in mocks
@@ -3305,9 +3214,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Sale icon
         expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -3377,9 +3283,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Sale icon
         expect(screen.getByTitle('Agora Sale')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -3455,9 +3358,6 @@ describe('<Tx />', () => {
         // We see the Agora Sale icon
         expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
-
         // We see the token name
         expect(
             screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
@@ -3527,9 +3427,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Sale icon
         expect(screen.getByTitle('Agora Cancel')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
     });
     it('Parse a mint tx for SLP NFT parent distinct from fan-out tx (token info available in cache)', async () => {
         const thisMock = SlpNftParentMintTx;
@@ -3581,9 +3478,6 @@ describe('<Tx />', () => {
         expect(
             screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
         ).toBeInTheDocument();
-
-        // Rendered token type for SLP1 NFT Parent is Collection
-        expect(screen.getByText('Collection')).toBeInTheDocument();
 
         // We DO NOT see the Fan Out icon
         expect(screen.queryByTitle('Fan Out')).not.toBeInTheDocument();
@@ -3653,9 +3547,6 @@ describe('<Tx />', () => {
             screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
         ).toBeInTheDocument();
 
-        // Rendered token type for SLP1 NFT Parent is Collection
-        expect(screen.getByText('Collection')).toBeInTheDocument();
-
         // We DO NOT see the Fan Out icon
         expect(screen.queryByTitle('Fan Out')).not.toBeInTheDocument();
 
@@ -3706,9 +3597,6 @@ describe('<Tx />', () => {
 
         // We see the token burn icon
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getByText('ALP')).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -3775,9 +3663,6 @@ describe('<Tx />', () => {
         // We see the Agora Offer icon
         expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
 
-        // We see the token type
-        expect(screen.getAllByText('ALP')[0]).toBeInTheDocument();
-
         // We see the token name
         expect(
             screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
@@ -3842,9 +3727,6 @@ describe('<Tx />', () => {
 
         // We see the Agora Offer icon for the token action
         expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
-
-        // We see the token type
-        expect(screen.getAllByText('ALP')[0]).toBeInTheDocument();
 
         // We see 'Agora Offer' as the rendered tx type but not the token name (uncached)
         expect(screen.getByText('Agora Offer')).toBeInTheDocument();
