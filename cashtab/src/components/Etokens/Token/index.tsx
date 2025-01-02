@@ -617,6 +617,38 @@ const Token: React.FC = () => {
         }
     }, [tokenId, cashtabCache.tokens.get(tokenId)]);
 
+    useEffect(() => {
+        // when agoraPartialTokenQty changes, the min slider max changes
+        // but its value does not necessarily change and may remain above agoraPartialTokenQty
+
+        // If they are both zero, do nothing, we do not want to load the screen with validation errors
+        if (agoraPartialMin === '0' && agoraPartialTokenQty === '0') {
+            return;
+        }
+
+        // Check for this error condition on this event
+        if (new BigNumber(agoraPartialMin).gt(agoraPartialTokenQty)) {
+            // Set a validation error, this would create an unacceptable offer
+            setAgoraPartialMinError(
+                'The min buy must be less than or equal to the offered quantity',
+            );
+        } else {
+            // Normal validation, there may be some other reason agoraPartialMin is still invalid
+            const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+                agoraPartialMin,
+                tokenBalance as string, // we do not render the slide without tokenBalance
+                decimals as SlpDecimals,
+                // Component does not render until token info is defined
+                protocol as 'ALP' | 'SLP',
+            );
+            setAgoraPartialMinError(
+                isValidAmountOrErrorMsg === true
+                    ? false
+                    : isValidAmountOrErrorMsg,
+            );
+        }
+    }, [agoraPartialMin, agoraPartialTokenQty]);
+
     const getNftOffer = async () => {
         try {
             const thisNftOffer = await agora.activeOffersByTokenId(tokenId);
@@ -661,13 +693,6 @@ const Token: React.FC = () => {
             target: { value: 'XEC' },
         } as React.ChangeEvent<HTMLSelectElement>);
     }, [fiatPrice]);
-
-    useEffect(() => {
-        // We need to adjust agoraPartialMin if the user reduces agoraPartialTokenQty
-        if (Number(agoraPartialTokenQty) < Number(agoraPartialMin)) {
-            setAgoraPartialMin(agoraPartialTokenQty);
-        }
-    }, [agoraPartialTokenQty]);
 
     const getNfts = async (tokenId: string) => {
         const nftParentTxHistory = await getAllTxHistoryByTokenId(
@@ -2820,6 +2845,10 @@ const Token: React.FC = () => {
                                                                 }}
                                                                 disabled={
                                                                     apiError ||
+                                                                    agoraPartialTokenQtyError !==
+                                                                        false ||
+                                                                    agoraPartialMinError !==
+                                                                        false ||
                                                                     tokenListPriceError !==
                                                                         false ||
                                                                     formData.tokenListPrice ===

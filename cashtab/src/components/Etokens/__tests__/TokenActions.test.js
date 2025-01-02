@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { when } from 'jest-when';
@@ -302,6 +302,31 @@ describe('<Token /> available actions rendered', () => {
 
         // The list button is no longer disabled
         expect(listButton).toHaveProperty('disabled', false);
+
+        // Lets bump the offered qty below the min qty using the slider
+        // get the agoraPartialTokenQty slider
+        const sliders = screen.getAllByRole('slider');
+        const agoraPartialTotalOfferedSlider = sliders[0];
+
+        // We can move the slider and see the price of different quantities
+        fireEvent.change(agoraPartialTotalOfferedSlider, {
+            target: { value: 10 },
+        });
+
+        // We see expected validation error
+        expect(
+            screen.getByText(
+                'The min buy must be less than or equal to the offered quantity',
+            ),
+        ).toBeInTheDocument();
+
+        // The list button is disabled again
+        expect(listButton).toBeDisabled();
+
+        // Move it back
+        fireEvent.change(agoraPartialTotalOfferedSlider, {
+            target: { value: 111 },
+        });
 
         // The fiat price is previewed correctly
         expect(
