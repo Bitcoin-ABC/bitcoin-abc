@@ -116,6 +116,7 @@ export const toFormattedXec = (
     const million = 1e6;
     const thousand = 1e3;
     let units = 'T';
+    let minimumFractionDigits = 0;
     if (xecAmount >= trillion) {
         xecAmount = xecAmount / trillion;
     } else if (xecAmount >= billion) {
@@ -129,9 +130,12 @@ export const toFormattedXec = (
         units = 'k';
     } else {
         units = '';
+        // Always display with 2 decimals, e.g. 42 XEC is displayed as 42.00 XEC
+        minimumFractionDigits = 2;
     }
     return `${xecAmount.toLocaleString(userLocale, {
         maximumFractionDigits: 2,
+        minimumFractionDigits,
     })}${units}`;
 };
 

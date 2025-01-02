@@ -106,7 +106,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('May 17, 2022, 18:35:28')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('42 XEC')).toBeInTheDocument();
+        expect(screen.getByText('42.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -117,7 +117,8 @@ describe('<Tx />', () => {
         // If we expand the panel, we see the exact XEC amount
         // Expand the panel
         await userEvent.click(screen.getByTitle('tx-received'));
-        // Now we see the exact XEC received amount
+        // Now we see the exact XEC received amount, which is the same when the
+        // amount is below 1k XEC
         expect(screen.getByText('42.00 XEC')).toBeInTheDocument();
     });
     it('Incoming XEC-only, not yet finalized by Avalanche', async () => {
@@ -149,7 +150,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('May 17, 2022, 18:35:28')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('42 XEC')).toBeInTheDocument();
+        expect(screen.getByText('42.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -204,6 +205,12 @@ describe('<Tx />', () => {
 
         // We see the inline-loader elements
         expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // If we expand the panel, we see the exact XEC amount
+        // Expand the panel
+        await userEvent.click(screen.getByTitle('tx-received'));
+        // Now we see the exact XEC received amount
+        expect(screen.getByText('456,538,993.20 XEC')).toBeInTheDocument();
     });
     it('Outgoing XEC-only', async () => {
         render(
@@ -232,7 +239,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('May 17, 2022, 21:46:58')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('-222 XEC')).toBeInTheDocument();
+        expect(screen.getByText('-222.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('-$0.01')).toBeInTheDocument();
@@ -1017,7 +1024,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Oct 4, 2022, 19:08:19')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('-12 XEC')).toBeInTheDocument();
+        expect(screen.getByText('-12.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('-$0.00')).toBeInTheDocument();
@@ -1063,7 +1070,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Oct 4, 2022, 19:08:19')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('11 XEC')).toBeInTheDocument();
+        expect(screen.getByText('11.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -1329,7 +1336,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Jan 27, 2024, 02:42:14')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('18 XEC')).toBeInTheDocument();
+        expect(screen.getByText('18.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -1602,7 +1609,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Mar 30, 2024, 08:54:10')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('10 XEC')).toBeInTheDocument();
+        expect(screen.getByText('10.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -1654,7 +1661,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Mar 30, 2024, 08:54:10')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('10 XEC')).toBeInTheDocument();
+        expect(screen.getByText('10.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -1813,7 +1820,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Mar 2, 2024, 04:21:10')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('6 XEC')).toBeInTheDocument();
+        expect(screen.getByText('6.00 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -2021,7 +2028,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Apr 8, 2024, 22:48:33')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('5.5 XEC')).toBeInTheDocument();
+        expect(screen.getByText('5.50 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -2075,7 +2082,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Apr 8, 2024, 22:48:33')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('5.5 XEC')).toBeInTheDocument();
+        expect(screen.getByText('5.50 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
@@ -2549,7 +2556,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Aug 11, 2024, 10:36:00')).toBeInTheDocument();
 
         // We see the formatted XEC amount
-        expect(screen.getByText('-5.5 XEC')).toBeInTheDocument();
+        expect(screen.getByText('-5.50 XEC')).toBeInTheDocument();
 
         // We see the formatted fiat amount
         expect(screen.getByText('-$0.00')).toBeInTheDocument();
@@ -2594,7 +2601,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Oct 22, 2024, 21:24:27')).toBeInTheDocument();
 
         // We see the expected send amount
-        expect(screen.getByText('-8.6 XEC')).toBeInTheDocument();
+        expect(screen.getByText('-8.60 XEC')).toBeInTheDocument();
 
         // We see the a fiat amount
         expect(screen.getByText('-$0.00')).toBeInTheDocument();
@@ -2655,7 +2662,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Oct 22, 2024, 21:24:27')).toBeInTheDocument();
 
         // We see the expected send amount
-        expect(screen.getByText('-8.6 XEC')).toBeInTheDocument();
+        expect(screen.getByText('-8.60 XEC')).toBeInTheDocument();
 
         // We see the a fiat amount
         expect(screen.getByText('-$0.00')).toBeInTheDocument();
