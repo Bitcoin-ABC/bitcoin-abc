@@ -33,4 +33,6 @@ if (!process.env.CI && argv.indexOf('--watchAll=false') === -1) {
     argv.push('--updateSnapshot');
 }
 
+argv.push('--silent');
+
 jest.run(argv);
