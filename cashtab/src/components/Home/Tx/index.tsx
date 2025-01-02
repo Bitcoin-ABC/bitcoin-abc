@@ -590,10 +590,10 @@ const Tx: React.FC<TxProps> = ({
 
         // Every token entry has a token icon
         const tokenIcon = <TokenIcon size={32} tokenId={tokenId} />;
+
+        // Get action icon based on renderedTxType
         let actionIcon: React.ReactNode;
         switch (renderedTxType) {
-            // "NONE" | "UNKNOWN" | "SEND" |
-            // ParsedTokenTxType
             case 'GENESIS': {
                 if (renderedTokenType === 'NFT') {
                     actionIcon = <MintNftIcon />;
@@ -653,8 +653,6 @@ const Tx: React.FC<TxProps> = ({
                 break;
             }
         }
-
-        // Get action icon based on renderedTxType
 
         // Token name and ticker depends on availability of cache info
         const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
