@@ -219,7 +219,9 @@ export const UnknownMsgColumn = styled.div`
     text-align: left;
 `;
 export const TokenType = styled.div``;
-export const TokenName = styled.div``;
+export const TokenName = styled(PanelLink)`
+    text-decoration: none;
+`;
 export const TokenTicker = styled.div``;
 export const TokenDesc = styled.div``;
 export const ActionLink = styled.a``;

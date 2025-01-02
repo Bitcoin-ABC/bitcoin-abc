@@ -241,14 +241,8 @@ const Tx: React.FC<TxProps> = ({
                                     <TokenIcon size={32} tokenId={tokenId} />
                                     <TokenInfoCol>
                                         <TokenType>{parsedTokenType}</TokenType>
-                                        <TokenName>
-                                            <ActionLink
-                                                href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                {tokenName}
-                                            </ActionLink>
+                                        <TokenName to={`/token/${tokenId}`}>
+                                            {tokenName}
                                         </TokenName>
                                         <TokenTicker>
                                             ({tokenTicker})
@@ -693,7 +687,7 @@ const Tx: React.FC<TxProps> = ({
                     </TokenInfoCol>
                 </IconAndLabel>
                 <TokenInfoCol>
-                    <TokenName>{tokenName}</TokenName>
+                    <TokenName to={`/token/${tokenId}`}>{tokenName}</TokenName>
                     {tokenTicker !== '' && (
                         <TokenTicker>({tokenTicker})</TokenTicker>
                     )}
