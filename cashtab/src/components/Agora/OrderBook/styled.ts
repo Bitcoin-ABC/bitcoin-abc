@@ -122,13 +122,17 @@ export const OrderbookPrice = styled.div`
     z-index: 1;
 `;
 
-export const DepthBar = styled.div<{ depthPercent: number }>`
+export const DepthBar = styled.div<{ depthPercent: number; isMaker: boolean }>`
     display: flex;
     flex-direction: row;
     position: absolute;
     top: 0;
     right: 0;
-    background-color: ${props => props.theme.agoraDepthBar};
+    background-color: ${props =>
+        props.isMaker
+            ? props.theme.agoraDepthBarOwnOffer
+            : props.theme.agoraDepthBar};
+
     height: 100%;
     width: ${props => props.depthPercent}%;
 `;

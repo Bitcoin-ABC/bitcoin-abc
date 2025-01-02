@@ -13,6 +13,7 @@ export interface CashtabTheme extends DefaultTheme {
     secondaryText: string;
     border: string;
     agoraDepthBar: string;
+    agoraDepthBarOwnOffer: string;
     toastText: string;
     error: string;
     genesisGreen: string;
@@ -46,6 +47,7 @@ export const theme: CashtabTheme = {
     secondaryText: '#838d91',
     border: '#586161',
     agoraDepthBar: 'rgba(255, 255, 255, 0.2)',
+    agoraDepthBarOwnOffer: 'rgba(179, 33, 144, 0.2)',
     toastText: '#111313',
     error: '#DC143C',
     genesisGreen: '#00e781',

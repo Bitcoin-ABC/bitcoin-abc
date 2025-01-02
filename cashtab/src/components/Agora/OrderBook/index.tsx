@@ -933,9 +933,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     {typeof tokenName !== 'string' ? (
                                         <InlineLoader />
                                     ) : (
-                                        <a
-                                            href={`#/token/${tokenId}`}
-                                        >
+                                        <a href={`#/token/${tokenId}`}>
                                             {tokenName}
                                             {tokenTicker !== ''
                                                 ? ` (${tokenTicker})`
@@ -979,6 +977,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
                                     const { makerPk } =
                                         activeOffer.variant.params;
+                                    const isMakerThisOffer =
+                                        toHex(activePk as Uint8Array) ===
+                                        toHex(makerPk);
                                     const makerHash = shaRmd160(makerPk);
                                     const makerOutputScript =
                                         Address.p2pkh(makerHash).toScriptHex();
@@ -999,6 +1000,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                 depthPercent={
                                                     depthPercent as number
                                                 }
+                                                isMaker={isMakerThisOffer}
                                             ></DepthBar>
                                             {index === selectedIndex && (
                                                 <TentativeAcceptBar
