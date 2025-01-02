@@ -138,7 +138,7 @@ export const Expand = styled.div<{ showPanel: boolean }>`
     height: ${props => (props.showPanel ? '36px' : '0px')};
     visibility: ${props => (props.showPanel ? 'visible' : 'collapse')};
     transition: all 0.5s ease-out;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: 12px;
     svg {
@@ -152,15 +152,6 @@ export const Expand = styled.div<{ showPanel: boolean }>`
     g {
         fill: ${props => props.theme.primaryText};
     }
-`;
-export const ExpandAvalancheWrapper = styled.div`
-    display: flex;
-    gap: 6px;
-    align-items: center;
-`;
-export const ExpandAvalancheLabel = styled.div`
-    color: ${props => props.theme.accent};
-    font-style: italic;
 `;
 export const ExpandButtonPanel = styled.div`
     display: flex;

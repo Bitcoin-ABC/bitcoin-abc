@@ -111,10 +111,8 @@ describe('<Tx />', () => {
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
 
-        // We see the avalanche finalized check (twice, one is in the expand panel)
-        expect(
-            screen.getAllByTitle('Finalized by Avalanche')[1],
-        ).toBeInTheDocument();
+        // We see the avalanche finalized check
+        expect(screen.getByTitle('Finalized by Avalanche')).toBeInTheDocument();
 
         // If we expand the panel, we see the exact XEC amount
         // Expand the panel
@@ -162,10 +160,7 @@ describe('<Tx />', () => {
         ).not.toBeInTheDocument();
 
         // We see two inline-loader elements
-        expect(screen.getAllByTitle('Loading')[1]).toBeInTheDocument();
-
-        // We see the 'Confirming' text
-        expect(screen.getByText('Confirming')).toBeInTheDocument();
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
     });
     it('Incoming XEC no change', async () => {
         render(
@@ -207,11 +202,8 @@ describe('<Tx />', () => {
             screen.queryByTitle('Finalized by Avalanche'),
         ).not.toBeInTheDocument();
 
-        // We see two inline-loader elements
-        expect(screen.getAllByTitle('Loading')[1]).toBeInTheDocument();
-
-        // We see the 'Confirming' text
-        expect(screen.getByText('Confirming')).toBeInTheDocument();
+        // We see the inline-loader elements
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
     });
     it('Outgoing XEC-only', async () => {
         render(

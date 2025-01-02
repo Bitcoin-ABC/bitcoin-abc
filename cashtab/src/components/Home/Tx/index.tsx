@@ -33,8 +33,6 @@ import {
     IconAndLabel,
     AddressLink,
     ExpandButtonPanel,
-    ExpandAvalancheLabel,
-    ExpandAvalancheWrapper,
     TxDescSendRcvMsg,
 } from 'components/Home/Tx/styled';
 import {
@@ -1050,24 +1048,6 @@ const Tx: React.FC<TxProps> = ({
                     })}
                 </Collapse>
                 <Expand showPanel={showPanel}>
-                    <ExpandAvalancheWrapper>
-                        {typeof block !== 'undefined' &&
-                        block.height <= chaintipBlockheight ? (
-                            <>
-                                <ExpandAvalancheLabel>
-                                    Avalanche Finalized
-                                </ExpandAvalancheLabel>
-                                <AvalancheFinalized displayed={showPanel} />
-                            </>
-                        ) : (
-                            <>
-                                <ExpandAvalancheLabel>
-                                    Confirming
-                                </ExpandAvalancheLabel>
-                                <InlineLoader />
-                            </>
-                        )}
-                    </ExpandAvalancheWrapper>
                     <ExpandButtonPanel>
                         <CopyToClipboard
                             data={txid}
