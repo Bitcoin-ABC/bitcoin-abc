@@ -107,6 +107,17 @@ export interface PartialOffer extends AgoraOffer {
      */
     depthPercent?: number;
     spotPriceNanoSatsPerTokenSat?: bigint;
+    /**
+     * It is possible for an Agora offer to be "unacceptable" if
+     * the min accepted tokens is less than the total offered tokens
+     * Cashtab UI (should) prevent this from ever happening, i.e. we have
+     * validation checks for creation and accepting offers, though likely
+     * we have some missed edge cases that must be cleaned up
+     * But even if we prevent this in Cashtab, anyone could make this kind of offer
+     * We do not want buyers to see these offers. But we do want the makers to see them
+     * and know they need to be canceled
+     */
+    isUnacceptable: boolean;
 }
 
 export interface OrderBookInfo {
@@ -613,8 +624,28 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // a styled orderbook.
             let deepestActiveOfferedTokens = 0n;
             let totalOfferedTokenSatoshis = 0n;
+            const renderedActiveOffers: PartialOffer[] = [];
             for (const activeOffer of activeOffers) {
                 const maxOfferTokens = BigInt(activeOffer.token.amount);
+
+                const minOfferTokens =
+                    activeOffer.variant.params.minAcceptedTokens();
+
+                // If the active pk made this offer, flag is as unacceptable
+                // Otherwise exclude it entirely
+                const isMakerThisOffer =
+                    toHex(activePk as Uint8Array) ===
+                    toHex(activeOffer.variant.params.makerPk);
+                const isUnacceptable = minOfferTokens > maxOfferTokens;
+                if (isUnacceptable) {
+                    if (isMakerThisOffer) {
+                        activeOffer.isUnacceptable =
+                            minOfferTokens > maxOfferTokens;
+                    } else {
+                        continue;
+                    }
+                }
+
                 totalOfferedTokenSatoshis += maxOfferTokens;
                 if (maxOfferTokens > deepestActiveOfferedTokens) {
                     deepestActiveOfferedTokens = maxOfferTokens;
@@ -632,14 +663,16 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
                 activeOffer.spotPriceNanoSatsPerTokenSat =
                     spotPriceNanoSatsPerTokenSat;
+
+                renderedActiveOffers.push(activeOffer);
             }
             // Add relative depth to each offer. If you only have one offer, it's 1.
             // This helps us to style the orderbook
             // We do not use a bignumber library because accuracy is not critical here, only used
             // for rendering depth bars
 
-            // Sort activeOffers by spot price, lowest to highest
-            activeOffers.sort((a, b) => {
+            // Sort renderedActiveOffers by spot price, lowest to highest
+            renderedActiveOffers.sort((a, b) => {
                 // Primary sort by spot price
                 const spotPriceDiff =
                     Number(a.spotPriceNanoSatsPerTokenSat) -
@@ -657,7 +690,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // Now that we have sorted by spot price, we can properly calculate cumulative depth
             // The most expensive offer will be at 1
             let cumulativeOfferedTokenSatoshis = 0n;
-            for (const offer of activeOffers) {
+            for (const offer of renderedActiveOffers) {
                 const thisOfferAmountTokenSatoshis = offer.token.amount;
                 cumulativeOfferedTokenSatoshis += BigInt(
                     thisOfferAmountTokenSatoshis,
@@ -680,7 +713,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     offerCount: activeOffers.length,
                 });
             }
-            setActiveOffers(activeOffers);
+            setActiveOffers(renderedActiveOffers);
         } catch (err) {
             console.error(`Error loading activeOffers for ${tokenId}`, err);
             setAgoraQueryError(true);
@@ -969,7 +1002,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                         <OfferDetailsCtn>
                             <DepthBarCol>
                                 {activeOffers.map((activeOffer, index) => {
-                                    const { depthPercent } = activeOffer;
+                                    const { depthPercent, isUnacceptable } =
+                                        activeOffer;
                                     const acceptPercent =
                                         ((depthPercent as number) *
                                             Number(takeTokenDecimalizedQty)) /
@@ -980,6 +1014,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     const isMakerThisOffer =
                                         toHex(activePk as Uint8Array) ===
                                         toHex(makerPk);
+
                                     const makerHash = shaRmd160(makerPk);
                                     const makerOutputScript =
                                         Address.p2pkh(makerHash).toScriptHex();
@@ -1001,6 +1036,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                     depthPercent as number
                                                 }
                                                 isMaker={isMakerThisOffer}
+                                                isUnacceptable={isUnacceptable}
                                             ></DepthBar>
                                             {index === selectedIndex && (
                                                 <TentativeAcceptBar

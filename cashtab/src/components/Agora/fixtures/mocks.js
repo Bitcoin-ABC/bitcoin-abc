@@ -992,6 +992,57 @@ export const agoraOfferCachetBetaOne = new AgoraOffer({
     },
 });
 
+// Unacceptable CACHET offer
+// CACHET candle created by Agora Partial Alpha
+// Created by approx params offering 100, min 0.1, 10,000 XEC per CACHET
+const agoraPartialCachetAlphaUnacceptable = new AgoraPartial({
+    dustAmount: 546,
+    enforcedLockTime: 1022658985,
+    minAcceptedScaledTruncTokens: 2225600000n,
+    numSatsTruncBytes: 0,
+    numTokenTruncBytes: 0,
+    scaledTruncTokensPerTruncSat: 214n,
+    scriptLen: 212,
+    tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+    tokenProtocol: 'SLP',
+    tokenScaleFactor: 214n,
+    tokenType: 1,
+    truncTokens: 10000000n,
+    makerPk: agoraPartialAlphaKeypair.pk,
+});
+export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
+    outpoint: {
+        txid: 'b59e70f3ea5d582d09d977240cc7b7c984a13f35778d594b1b4e420b80f1936d',
+        outIdx: 1,
+    },
+    status: 'OPEN',
+    token: {
+        amount: '10000000',
+        isMintBaton: false,
+        tokenId:
+            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+        tokenType: {
+            number: 1,
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        },
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 1,
+            txid: 'b59e70f3ea5d582d09d977240cc7b7c984a13f35778d594b1b4e420b80f1936d',
+        },
+        signData: {
+            redeemScript: agoraPartialCachetAlphaUnacceptable.script(),
+            value: 546,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: agoraPartialCachetAlphaUnacceptable,
+    },
+});
+
 // XECX candle created by Agora Partial Alpha
 // Copied from real offer, min accept 96k XECX, lots of partial accepts already in
 const agoraPartialXecxAlphaOne = new AgoraPartial({

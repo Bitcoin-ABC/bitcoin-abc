@@ -22,6 +22,7 @@ import {
     CachedCachet,
     CachedXecx,
     SettingsUsd,
+    agoraOfferCachetAlphaUnacceptable,
 } from 'components/Agora/fixtures/mocks';
 import { Ecc, initWasm, Address } from 'ecash-lib';
 import {
@@ -822,6 +823,87 @@ describe('<OrderBook />', () => {
             await screen.findByText(
                 `Error: Insufficient utxos to accept this offer`,
             ),
+        ).toBeInTheDocument();
+    });
+    it('Unacceptable offers are rendered to their makers', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
+            agoraOfferCachetAlphaUnacceptable,
+        ]);
+
+        render(
+            <ThemeProvider theme={theme}>
+                <Orderbook
+                    tokenId={CACHET_TOKEN_ID}
+                    cachedTokenInfo={CachedCachet}
+                    settings={SettingsUsd}
+                    userLocale={'en-US'}
+                    fiatPrice={0.000033}
+                    activePk={agoraPartialAlphaKeypair.pk}
+                    wallet={agoraPartialAlphaWallet}
+                    ecc={ecc}
+                    chronik={mockedChronik}
+                    agora={mockedAgora}
+                    chaintipBlockheight={800000}
+                />
+                ,
+            </ThemeProvider>,
+        );
+
+        // We see a spinner while activeOffers load
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // After loading, we see the token name and ticker above its PartialOffer
+        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();
+
+        // We see the spot price on the depth bar for this order, i.e. this order is rended to the maker
+        expect(screen.getByText('1 XEC')).toBeInTheDocument();
+
+        // Because this offer was created by this wallet, we have the option to cancel it
+        expect(
+            await screen.findByRole('button', { name: 'Cancel your offer' }),
+        ).toBeInTheDocument();
+    });
+    it('Unacceptable offers are NOT rendered to buyers', async () => {
+        // Need to mock agora API endpoints
+        const mockedAgora = new MockAgora();
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
+            agoraOfferCachetAlphaUnacceptable,
+        ]);
+
+        render(
+            <ThemeProvider theme={theme}>
+                <Orderbook
+                    tokenId={CACHET_TOKEN_ID}
+                    cachedTokenInfo={CachedCachet}
+                    settings={SettingsUsd}
+                    userLocale={'en-US'}
+                    fiatPrice={0.000033}
+                    activePk={agoraPartialBetaKeypair.pk}
+                    wallet={agoraPartialBetaWallet}
+                    ecc={ecc}
+                    chronik={mockedChronik}
+                    agora={mockedAgora}
+                    chaintipBlockheight={800000}
+                />
+                ,
+            </ThemeProvider>,
+        );
+
+        // We see a spinner while activeOffers load
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // We see no offers because it's entirely excluded
+        expect(
+            await screen.findByText('No active offers for this token'),
         ).toBeInTheDocument();
     });
 });
