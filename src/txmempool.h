@@ -39,6 +39,7 @@
 
 class CChain;
 class Chainstate;
+class ChainstateManager;
 class Config;
 
 /**
@@ -220,6 +221,8 @@ private:
     uint64_t totalTxSize GUARDED_BY(cs);
     //! sum of all mempool finalized tx's sizes
     uint64_t totalFinalizedTxSize GUARDED_BY(cs){0};
+    //! sum of all mempool finalized tx's sigchecks
+    uint64_t totalFinalizedTxSigchecks GUARDED_BY(cs){0};
     //! sum of all mempool tx's fees (NOT modified fee)
     Amount m_total_fee GUARDED_BY(cs);
     //! sum of dynamic memory usage of all the map elements (NOT the maps
@@ -502,6 +505,11 @@ public:
         return totalFinalizedTxSize;
     }
 
+    uint64_t GetTotalFinalizedTxSigchecks() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
+        return totalFinalizedTxSigchecks;
+    }
+
     Amount GetTotalFee() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
         return m_total_fee;
@@ -517,6 +525,7 @@ public:
         const bool ret = finalizedTxs.insert(tx);
         if (ret) {
             totalFinalizedTxSize += tx->GetTxSize();
+            totalFinalizedTxSigchecks += tx->GetSigChecks();
         }
 
         return ret;

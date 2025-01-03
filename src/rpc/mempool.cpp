@@ -686,6 +686,8 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     ret.pushKV("size", (int64_t)pool.size());
     ret.pushKV("bytes", (int64_t)pool.GetTotalTxSize());
     ret.pushKV("finalized_txs_bytes", (int64_t)pool.GetTotalFinalizedTxSize());
+    ret.pushKV("finalized_txs_sigchecks",
+               (int64_t)pool.GetTotalFinalizedTxSigchecks());
     ret.pushKV("usage", (int64_t)pool.DynamicMemoryUsage());
     ret.pushKV("total_fee", pool.GetTotalFee());
     ret.pushKV("maxmempool", pool.m_max_size_bytes);
@@ -714,6 +716,8 @@ static RPCHelpMan getmempoolinfo() {
                 {RPCResult::Type::NUM, "bytes", "Sum of all transaction sizes"},
                 {RPCResult::Type::NUM, "finalized_txs_bytes",
                  "Sum of all finalized transaction sizes"},
+                {RPCResult::Type::NUM, "finalized_txs_sigchecks",
+                 "Sum of all finalized transaction sigchecks"},
                 {RPCResult::Type::NUM, "usage",
                  "Total memory usage for the mempool"},
                 {RPCResult::Type::NUM, "maxmempool",

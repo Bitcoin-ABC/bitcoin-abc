@@ -208,6 +208,7 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
 
         if (auto removed_tx = finalizedTxs.remove(txid)) {
             totalFinalizedTxSize -= removed_tx->GetTxSize();
+            totalFinalizedTxSigchecks -= removed_tx->GetSigChecks();
         }
     }
 
@@ -328,6 +329,7 @@ void CTxMemPool::removeForFinalizedBlock(
         // further check.
         if (auto removed_tx = finalizedTxs.remove(tx->GetId())) {
             totalFinalizedTxSize -= removed_tx->GetTxSize();
+            totalFinalizedTxSigchecks -= removed_tx->GetSigChecks();
         }
     }
 }
