@@ -169,6 +169,10 @@ public:
     void CheckIsEmpty(NodeId nodeid);
 
     std::vector<TxOrphanage::PoolTx> GetOrphanTransactions() const;
+
+protected:
+    /** Helper for getting deduplicated vector of Txids in vin. */
+    std::vector<TxId> GetUniqueParents(const CTransaction &tx);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H
