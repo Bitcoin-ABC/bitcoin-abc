@@ -99,7 +99,10 @@ export class TxBuilder {
         let outputs: TxOutput[] = new Array(this.outputs.length);
         for (let idx = 0; idx < this.outputs.length; ++idx) {
             const builderOutput = this.outputs[idx];
-            if (builderOutput instanceof Script) {
+            if ('bytecode' in builderOutput) {
+                // If builderOutput instanceof Script
+                // Note that the "builderOutput instanceof Script" check may fail due
+                // to discrepancies between nodejs and browser environments
                 if (leftoverIdx !== undefined) {
                     throw 'Multiple leftover outputs, can at most use one';
                 }
