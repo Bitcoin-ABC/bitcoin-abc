@@ -218,6 +218,8 @@ private:
 
     //! sum of all mempool tx's sizes.
     uint64_t totalTxSize GUARDED_BY(cs);
+    //! sum of all mempool finalized tx's sizes
+    uint64_t totalFinalizedTxSize GUARDED_BY(cs){0};
     //! sum of all mempool tx's fees (NOT modified fee)
     Amount m_total_fee GUARDED_BY(cs);
     //! sum of dynamic memory usage of all the map elements (NOT the maps
@@ -495,6 +497,11 @@ public:
         return totalTxSize;
     }
 
+    uint64_t GetTotalFinalizedTxSize() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
+        return totalFinalizedTxSize;
+    }
+
     Amount GetTotalFee() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
         return m_total_fee;
@@ -507,7 +514,12 @@ public:
 
     bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx)
         EXCLUSIVE_LOCKS_REQUIRED(cs) {
-        return finalizedTxs.insert(tx);
+        const bool ret = finalizedTxs.insert(tx);
+        if (ret) {
+            totalFinalizedTxSize += tx->GetTxSize();
+        }
+
+        return ret;
     }
 
     bool isAvalancheFinalized(const TxId &txid) const {

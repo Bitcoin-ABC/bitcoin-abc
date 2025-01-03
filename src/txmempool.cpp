@@ -206,7 +206,9 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
         GetMainSignals().TransactionRemovedFromMempool(
             (*it)->GetSharedTx(), reason, mempool_sequence);
 
-        finalizedTxs.remove(txid);
+        if (auto removed_tx = finalizedTxs.remove(txid)) {
+            totalFinalizedTxSize -= removed_tx->GetTxSize();
+        }
     }
 
     for (const CTxIn &txin : (*it)->GetTx().vin) {
@@ -324,7 +326,9 @@ void CTxMemPool::removeForFinalizedBlock(
         // is invalid. If the tx has a child, it can remain in the tree for the
         // next block. So we can simply remove the txs from the block with no
         // further check.
-        finalizedTxs.remove(tx->GetId());
+        if (auto removed_tx = finalizedTxs.remove(tx->GetId())) {
+            totalFinalizedTxSize -= removed_tx->GetTxSize();
+        }
     }
 }
 

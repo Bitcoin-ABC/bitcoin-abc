@@ -22,7 +22,12 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    assert_raises_rpc_error,
+    uint256_hex,
+)
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
@@ -174,13 +179,20 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_block(tip))
 
+        assert_equal(node.getmempoolinfo()["bytes"], 0)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 0)
+
         # Now we can focus on transactions
         self.log.info("Check the votes on conflicting transactions")
 
         utxo = wallet.get_utxo()
         mempool_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
         peer.send_txs_and_test([from_wallet_tx(mempool_tx)], node, success=True)
+
+        assert_equal(len(node.getrawmempool()), 1)
         assert mempool_tx["txid"] in node.getrawmempool()
+        mempool_tx_size = node.getmempoolinfo()["bytes"]
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 0)
 
         conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
         conflicting_txid = int(conflicting_tx["txid"], 16)
@@ -226,6 +238,8 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         self.wait_until(lambda: has_finalized_tx(mempool_tx["txid"]))
 
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], mempool_tx_size)
+
         self.log.info("Check the node rejects txs that conflict with a finalized tx")
 
         another_conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
@@ -254,12 +268,16 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tx(txid))
         assert txid in node.getrawmempool()
 
+        finalized_txs_size = node.getmempoolinfo()["finalized_txs_bytes"]
+        assert_greater_than(finalized_txs_size, mempool_tx_size)
+
         tip = self.generate(node, 1)[0]
 
         self.log.info("The transaction remains finalized after it's mined")
 
         assert node.isfinaltransaction(txid, tip)
         assert txid not in node.getrawmempool()
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], finalized_txs_size)
 
         self.log.info("The transaction remains finalized even when reorg'ed")
 
@@ -267,17 +285,22 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         assert node.getbestblockhash() != tip
         assert node.isfinaltransaction(txid)
         assert txid in node.getrawmempool()
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], finalized_txs_size)
 
         node.unparkblock(tip)
         assert_equal(node.getbestblockhash(), tip)
         assert node.isfinaltransaction(txid, tip)
         assert txid not in node.getrawmempool()
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], finalized_txs_size)
 
         self.log.info("The transaction remains finalized after the block is finalized")
 
         self.wait_until(lambda: has_finalized_block(tip))
         assert node.isfinaltransaction(txid, tip)
         assert txid not in node.getrawmempool()
+        # At this stage the final transactions live in the block and are removed
+        # from the mempool
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 0)
 
         self.log.info("Check the node drops transactions invalidated by avalanche")
 
