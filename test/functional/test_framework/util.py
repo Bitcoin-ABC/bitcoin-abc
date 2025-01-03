@@ -398,13 +398,16 @@ def unique_port(port_name: PortName, n: int) -> int:
     if port_name not in LAST_USED_PORT_MAP:
         initialize_port(port_name)
 
+    tried_ports = []
     for _ in range(MAX_PORT_RETRY):
         LAST_USED_PORT_MAP[port_name] += 1
-        if is_port_available(LAST_USED_PORT_MAP[port_name]):
-            return LAST_USED_PORT_MAP[port_name]
+        port = LAST_USED_PORT_MAP[port_name]
+        tried_ports.append(port)
+        if is_port_available(port):
+            return port
 
     raise RuntimeError(
-        f"Could not find available {port_name} port after {MAX_PORT_RETRY} attempts."
+        f"Could not find available {port_name} port after {MAX_PORT_RETRY} attempts (tried ports {tried_ports})."
     )
 
 
