@@ -554,7 +554,8 @@ export const agoraPartialBetaWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 4200,
+                // Enough sats for the min buy in orderbook buy test
+                value: 39016,
                 isFinal: false,
                 path: 1899,
             },

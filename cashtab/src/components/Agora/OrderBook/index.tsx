@@ -46,6 +46,7 @@ import {
     getFormattedFiatPrice,
     decimalizedTokenQtyToLocaleFormat,
     getAgoraSpotPriceXec,
+    getPercentDeltaOverSpot,
 } from 'formatting';
 import { TokenSentLink } from 'components/Etokens/Token/styled';
 import {
@@ -64,6 +65,7 @@ import {
     BuyOrderCtn,
     MintIconSpotWrapper,
     DeltaSpan,
+    AgoraWarningParagraph,
 } from './styled';
 import {
     AgoraPreviewParagraph,
@@ -846,6 +848,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     showCancelButton
                     handleOk={() => acceptOffer(selectedOffer as PartialOffer)}
                     handleCancel={() => setShowConfirmBuyModal(false)}
+                    disabled={
+                        activeOffers === null ||
+                        selectedOffer?.spotPriceNanoSatsPerTokenSat !==
+                            activeOffers[0].spotPriceNanoSatsPerTokenSat
+                    }
                 >
                     <>
                         <TokenIcon size={128} tokenId={tokenId} />
@@ -911,6 +918,34 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     </AgoraPreviewCol>
                                 </AgoraPreviewRow>
                             )}
+                            {activeOffers !== null &&
+                                typeof activeOffers[0]
+                                    .spotPriceNanoSatsPerTokenSat !==
+                                    'undefined' &&
+                                typeof selectedOffer?.spotPriceNanoSatsPerTokenSat !==
+                                    'undefined' &&
+                                selectedOffer?.spotPriceNanoSatsPerTokenSat !==
+                                    activeOffers[0]
+                                        .spotPriceNanoSatsPerTokenSat && (
+                                    <>
+                                        <AgoraPreviewRow>
+                                            <AgoraWarningParagraph>
+                                                This offer is{' '}
+                                                {getPercentDeltaOverSpot(
+                                                    selectedOffer.spotPriceNanoSatsPerTokenSat,
+                                                    activeOffers[0]
+                                                        .spotPriceNanoSatsPerTokenSat,
+                                                    userLocale,
+                                                )}{' '}
+                                                above spot
+                                            </AgoraWarningParagraph>
+                                        </AgoraPreviewRow>
+                                        <Alert noWordBreak>
+                                            Cashtab does not support buying
+                                            offers above spot.
+                                        </Alert>
+                                    </>
+                                )}
                         </AgoraPreviewTable>
                     </>
                 </Modal>

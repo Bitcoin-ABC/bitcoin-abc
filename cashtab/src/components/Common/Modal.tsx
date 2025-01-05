@@ -4,10 +4,9 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 import { CashtabScroll } from './Atoms';
 
-const ModalContainer = styled.div`
+const ModalContainer = styled.div<{ width: number; height: number }>`
     width: ${props => props.width}px;
     height: ${props => props.height}px;
     transition: height 1s ease-in-out;
@@ -39,7 +38,7 @@ const ModalTitle = styled.div`
 `;
 
 const MODAL_HEIGHT_DELTA = 68;
-const ModalBody = styled.div`
+const ModalBody = styled.div<{ showButtons: boolean; height: number }>`
     position: absolute;
     top: 0;
     left: 0;
@@ -132,7 +131,19 @@ const Overlay = styled.div`
     height: 100%;
 `;
 
-export const Modal = ({
+interface ModalProps {
+    title?: string;
+    description?: string;
+    handleOk?: () => void;
+    handleCancel: () => void;
+    showCancelButton?: boolean;
+    children?: React.ReactNode;
+    width?: number;
+    height?: number;
+    showButtons?: boolean;
+    disabled?: boolean;
+}
+export const Modal: React.FC<ModalProps> = ({
     title,
     description,
     handleOk,
@@ -173,19 +184,6 @@ export const Modal = ({
             <Overlay />
         </>
     );
-};
-
-Modal.propTypes = {
-    title: PropTypes.string,
-    description: PropTypes.string,
-    handleOk: PropTypes.func,
-    handleCancel: PropTypes.func.isRequired,
-    showCancelButton: PropTypes.bool,
-    width: PropTypes.number,
-    height: PropTypes.number,
-    showButtons: PropTypes.bool,
-    disabled: PropTypes.bool,
-    children: PropTypes.node,
 };
 
 export default Modal;

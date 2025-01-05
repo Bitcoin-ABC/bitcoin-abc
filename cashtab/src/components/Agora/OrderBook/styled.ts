@@ -207,3 +207,9 @@ export const MintIconSpotWrapper = styled.div`
 export const DeltaSpan = styled.span`
     color: ${props => props.theme.secondaryAccent};
 `;
+
+export const AgoraWarningParagraph = styled.div`
+    font-weight: bold;
+    text-align: center;
+    color: ${props => props.theme.secondaryAccent};
+`;

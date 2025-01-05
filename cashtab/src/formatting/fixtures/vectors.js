@@ -510,4 +510,43 @@ export default {
             },
         ],
     },
+    getPercentDeltaOverSpot: {
+        expectedReturns: [
+            {
+                description: 'Large price delta',
+                thisPrice: 360n,
+                spotPrice: 36n,
+                userLocale: 'en-US',
+                returned: '900%',
+            },
+            {
+                description: 'Highest XECX offer over spot',
+                thisPrice: 600005018n,
+                spotPrice: 100n,
+                userLocale: 'en-US',
+                returned: '600,004,918%', // 🤯 what a deal
+            },
+            {
+                description: 'Highest XECX offer over spot new locale',
+                thisPrice: 600005018n,
+                spotPrice: 100n,
+                userLocale: 'fr-FR',
+                returned: '600 004 918%', // 🤯 what a deal
+            },
+            {
+                description: 'Small price delta',
+                thisPrice: 1000001n,
+                spotPrice: 1000000n,
+                userLocale: 'en-US',
+                returned: '0.0001%',
+            },
+            {
+                description: 'Price below spot (not used this way in Cashtab)',
+                thisPrice: 50n,
+                spotPrice: 100n,
+                userLocale: 'en-US',
+                returned: '-50.0000%',
+            },
+        ],
+    },
 };

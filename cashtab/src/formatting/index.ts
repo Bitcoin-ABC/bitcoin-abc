@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import BigNumber from 'bignumber.js';
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
 
@@ -270,4 +271,30 @@ export const getAgoraSpotPriceXec = (
         maximumFractionDigits: renderedDecimalPlaces,
         minimumFractionDigits: renderedDecimalPlaces,
     })} XEC`;
+};
+
+/**
+ * Calculate % delta in offer price if it is greater than spot price
+ * Return with 4 decimals if delta is < 1%
+ * Otherwise no decimals
+ *
+ * Intended to be called on prices in nanosatoshis per token satoshi but any bigint would work
+ * as long as both prices are same units
+ */
+export const getPercentDeltaOverSpot = (
+    thisPrice: bigint,
+    spotPrice: bigint,
+    userLocale: string,
+): string => {
+    const deltaPct = Number(
+        new BigNumber(thisPrice.toString())
+            .div(spotPrice.toString())
+            .minus(1)
+            .times(100),
+    );
+    const renderedDeltaDecimals = deltaPct > 1 ? 0 : 4;
+    return `${deltaPct.toLocaleString(userLocale, {
+        minimumFractionDigits: renderedDeltaDecimals,
+        maximumFractionDigits: renderedDeltaDecimals,
+    })}%`;
 };

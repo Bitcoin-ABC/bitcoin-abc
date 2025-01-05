@@ -479,10 +479,9 @@ describe('<OrderBook />', () => {
 
         // Set mocks for tx that buys a listing
         const buyHex =
-            '02000000023f091a214fdf5ff45e1cae5f7830800a73740cbd3b752f3694090cc962b59c8101000000fd47030441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b14090e96508f39a758f637806b85a0a876c31291e4d3d7424138de28d669147a6c913a664f37444b7644ad57da91d725b3bbd731858de837d63484be6c834d391ce4422020000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac9de20000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac4d2f013f091a214fdf5ff45e1cae5f7830800a73740cbd3b752f3694090cc962b59c8101000000d67b63817b6ea269760384c420a26976039e17019700887d94527901377f75789263587e78039e1701965880bc007e7e68587e5279039e1701965880bc007e7e825980bc7c7e01007e7b02f6059302f7059657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504ce731f40886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffff10a8e6470b2c60bde9' +
-            '593640fef02460656cf16385493523091338366a7688e9ce731f40c10000000384c420514d58014c766a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000000000019e17010000000000f70500000000000084c4200000000000ce731f40021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f3908a0a3ff7f00000000ab7b63817b6ea269760384c420a26976039e17019700887d94527901377f75789263587e78039e1701965880bc007e7e68587e5279039e1701965880bc007e7e825980bc7c7e01007e7b02f6059302f7059657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504ce731f40886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087fffffffff7bb552354b6f5076eb2664a8bcbbedc87b42f2ebfcb1480ee0a9141bbae6359000000006441ed5b343334ab7603062faac5469e7b8b1513cec8e8730c972f4759e4fed0ef9cbd0a50b944d7e8094192ba99fd5eea6e61f568ba12a6b542deca6eea77761d1841210233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afdffffffff050000000000000000496a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000000008000000000000751208000000000000001e007f0500000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac220200000000000017a914211be508fb7608c0a3b3d7a36279894d0450e7378722020000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac9de20000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488acce731f40';
+            '0200000002cc3ca4ae9c981a5194dc9c28b14adb4ae21ccef8a81cfb8b2c7b37c97d90930c01000000fd25030441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1405cbf78f58a651d32dc922a39ec0c7628870dc9c42017035e2d966c282169763decfbce85539b1fb07b11df79edfd0e519caed6504c34468195212ae2d71c4b712222020000000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac4d2f01cc3ca4ae9c981a5194dc9c28b14adb4ae21ccef8a81cfb8b2c7b37c97d90930c01000000d67b63817b6ea269760384c420a26976036da3019700887d94527901377f75789263587e78036da301965880bc007e7e68587e5279036da301965880bc007e7e825980bc7c7e01007e7b02795993027a599657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504590d8762886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffff210d9c8dd95d89d9b5a3b8aeb897b9790c8120ec052780b955d99d68f2c738a8590d8762c100000003c62631514d58014c766a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000000000016da30100000000007a5900000000000084c4200000000000590d87620233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd08a0a3ff7f00000000ab7b63817b6ea269760384c420a26976036da3019700887d94527901377f75789263587e78036da301965880bc007e7e68587e5279036da301965880bc007e7e825980bc7c7e01007e7b02795993027a599657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504590d8762886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087fffffffff327f712cf7e629089daa7e76aa6a22d695f09a8019cd6fce640f5d044d211470000000064418c6d0ba2cf3d9210776733288068c87b5be930266072910ce9769918b37d90c031babf46c845c0418443e4357eecd229055511e5f00de1f88586562b412fe1134121021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39ffffffff040000000000000000496a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000000000080000000000004e0208000000000000001e008d0000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac220200000000000017a914aa18825dc0e70e8a9f016716fe4b16d1842d27ee8722020000000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac590d8762';
         const buyTxid =
-            'eb298e786a91676f5b88b45d31d3979d6a8f96771ed99a69f3fa1aa1306238b0';
+            'a529472fc058c52e0c54eccbf82fc63d24eb0a2389ee55723c29c3c8ec3146f8';
         mockedChronik.setBroadcastTx(buyHex, buyTxid);
 
         // Note we must include CashtabNotification to test toastify notification
@@ -507,8 +506,8 @@ describe('<OrderBook />', () => {
                     settings={SettingsUsd}
                     userLocale={'en-US'}
                     fiatPrice={0.00003}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
+                    activePk={agoraPartialBetaKeypair.pk}
+                    wallet={agoraPartialBetaWallet}
                     ecc={ecc}
                     chronik={mockedChronik}
                     agora={mockedAgora}
@@ -544,7 +543,7 @@ describe('<OrderBook />', () => {
             screen.getByText(CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
 
-        // If we select the offer created by the Beta wallet, we see a buy button
+        // If we select the offer created by the Beta wallet, we see a cancel button
         await userEvent.click(screen.getByText('$0.3600 USD'));
 
         // We also see updates to the rendered spot details
@@ -561,6 +560,16 @@ describe('<OrderBook />', () => {
             screen.getByText(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
         ).toBeInTheDocument();
 
+        expect(
+            screen.getByRole('button', {
+                name: 'Cancel your offer',
+            }),
+        ).toBeInTheDocument();
+
+        // Select an offer created by Alpha
+
+        await userEvent.click(screen.getByText('$0.3000 USD'));
+
         const buyCachetButton = screen.getByRole('button', {
             name: 'Buy Cachet (CACHET)',
         });
@@ -576,15 +585,16 @@ describe('<OrderBook />', () => {
             `Select buy qty ${CACHET_TOKEN_ID}`,
         );
         // We expect this field to be populated with min buy amount by default
-        expect(buyAmountCachetInput).toHaveValue('.30');
+        expect(buyAmountCachetInput).toHaveValue('.10');
         // Erase this input
         await userEvent.clear(buyAmountCachetInput);
 
         // Type an invalid quantity, 1 token satoshi less than full offer
-        // 299.99 Cachet, which would create an unacceptable remainder of 0.01 CACHET (offer min is 0.30)
-        await userEvent.type(buyAmountCachetInput, '299.99');
+        // 99.99 Cachet, which would create an unacceptable remainder of 0.01 CACHET (offer min is 0.10)
+        await userEvent.type(buyAmountCachetInput, '99.99');
+
         // We see expected validation message
-        expect(screen.getByText(/299.7 or the full offer/)).toBeInTheDocument();
+        expect(screen.getByText(/99.9 or the full offer/)).toBeInTheDocument();
         // Buy button is disabled for this qty
         expect(buyCachetButton).toBeDisabled();
 
@@ -606,9 +616,51 @@ describe('<OrderBook />', () => {
         // We DO NOT see the delta
         expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
         // We see the price in XEC
-        expect(screen.getByText('666,636.8 XEC')).toBeInTheDocument();
+        expect(screen.getByText('555,553.28 XEC')).toBeInTheDocument();
         // We see the price in USD in the modal and on the form
-        expect(screen.getAllByText('$20.00 USD')).toHaveLength(2);
+        expect(screen.getAllByText('$16.67 USD')).toHaveLength(2);
+
+        // But this is not the spot offer, so we can't buy it
+        // We see info to this effect
+        expect(
+            screen.getByText('This offer is 733% above spot'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                'Cashtab does not support buying offers above spot.',
+            ),
+        ).toBeInTheDocument();
+        expect(screen.getByText('OK')).toBeDisabled();
+
+        // We will have to choose the spot offer
+        // Cancel this buy
+        await userEvent.click(screen.getByText('Cancel'));
+
+        // The modal is gone
+        expect(
+            screen.queryByText(
+                'Cashtab does not support buying offers above spot.',
+            ),
+        ).not.toBeInTheDocument();
+
+        // Select the spot offer
+        await userEvent.click(screen.getByText('$0.03600 USD'));
+
+        // We expect this field to be populated with min buy amount by default
+        expect(buyAmountCachetInput).toHaveValue('.20');
+        // Erase this input
+        await userEvent.clear(buyAmountCachetInput);
+
+        // Type a valid quantity above min that we cannot afford
+        await userEvent.type(buyAmountCachetInput, '100');
+        expect(buyAmountCachetInput).toHaveValue('100');
+
+        // Buy with defaults
+        await userEvent.click(
+            screen.getByRole('button', {
+                name: 'Buy Cachet (CACHET)',
+            }),
+        );
 
         // We buy
         await userEvent.click(screen.getByText('OK'));
@@ -631,6 +683,7 @@ describe('<OrderBook />', () => {
         await userEvent.click(buyCachetButton);
 
         // We see a confirmation modal with updated info
+
         expect(
             await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
@@ -639,9 +692,9 @@ describe('<OrderBook />', () => {
         // We DO NOT see the delta
         expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
         // We see the price in XEC
-        expect(screen.getByText('3,601.92 XEC')).toBeInTheDocument();
+        expect(screen.getByText('360.96 XEC')).toBeInTheDocument();
         // We see the price in USD in the modal and on the form
-        expect(screen.getAllByText('$0.1081 USD')).toHaveLength(2);
+        expect(screen.getAllByText('$0.01083 USD')).toHaveLength(2);
 
         // We buy
         await userEvent.click(screen.getByText('OK'));
@@ -649,7 +702,7 @@ describe('<OrderBook />', () => {
         // Notification on successful buy
         expect(
             await screen.findByText(
-                `Bought .30 Cachet (CACHET) for 3,601.92 XEC (${UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY})`,
+                `Bought .30 Cachet (CACHET) for 360.96 XEC ($0.01083 USD)`,
             ),
         ).toBeInTheDocument();
 

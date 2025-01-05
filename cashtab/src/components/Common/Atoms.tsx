@@ -71,13 +71,14 @@ export const SwitchLabel = styled.div`
     word-break: break-all;
 `;
 
-export const Alert = styled.div`
+export const Alert = styled.div<{ noWordBreak?: boolean }>`
     background-color: #fff2f0;
     border-radius: 12px;
     color: red;
     padding: 12px;
     margin: 12px 0;
-    word-break: break-all;
+    ${props =>
+        typeof props.noWordBreak === 'undefined' && `word-break: break-all`};
 `;
 export const Info = styled.div`
     background-color: #fff2f0;

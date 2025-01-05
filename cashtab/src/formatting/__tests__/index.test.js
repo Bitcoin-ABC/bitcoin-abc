@@ -11,6 +11,7 @@ import {
     getMinimumFractionDigits,
     getFormattedFiatPrice,
     getAgoraSpotPriceXec,
+    getPercentDeltaOverSpot,
 } from 'formatting';
 import vectors from 'formatting/fixtures/vectors';
 
@@ -177,6 +178,18 @@ describe('Correctly executes formatting functions', () => {
                 expect(getAgoraSpotPriceXec(priceXec, userLocale)).toBe(
                     returned,
                 );
+            });
+        });
+    });
+    describe('We can format spot price deltas for agora offers', () => {
+        const { expectedReturns } = vectors.getPercentDeltaOverSpot;
+        expectedReturns.forEach(vector => {
+            const { description, spotPrice, thisPrice, userLocale, returned } =
+                vector;
+            it(`getPercentDeltaOverSpot: ${description}`, () => {
+                expect(
+                    getPercentDeltaOverSpot(thisPrice, spotPrice, userLocale),
+                ).toBe(returned);
             });
         });
     });
