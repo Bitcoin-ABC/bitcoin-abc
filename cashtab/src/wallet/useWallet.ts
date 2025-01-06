@@ -44,7 +44,7 @@ import {
 } from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
-import TokenIcon from 'components/Etokens/TokenIcon';
+import { TokenIconToast } from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
 import {
     ChronikClient,
@@ -55,7 +55,6 @@ import {
 import { Agora } from 'ecash-agora';
 import { Ecc } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
-import { ToastIcon } from 'react-toastify/dist/types';
 
 export interface UseWalletReturnType {
     chronik: ChronikClient;
@@ -802,10 +801,12 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // eToken txs should have token icon
         if (parsedTx.parsedTokenEntries.length > 0) {
             toast(notificationMsg, {
-                icon: React.createElement(TokenIcon, {
+                icon: React.createElement(TokenIconToast, {
+                    type: 'default',
+                    theme: 'default',
                     size: 32,
-                    tokenId: tokenId,
-                }) as unknown as ToastIcon,
+                    tokenId: tokenId as string,
+                }),
             });
         } else {
             // Otherwise normal

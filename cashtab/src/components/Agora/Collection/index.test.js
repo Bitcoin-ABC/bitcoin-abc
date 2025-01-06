@@ -28,8 +28,7 @@ import {
     MockChronikClient,
 } from '../../../../../modules/mock-chronik-client';
 import Collection from 'components/Agora/Collection/';
-import { Bounce } from 'react-toastify';
-import { CashtabNotification } from 'components/App/styles';
+import { Bounce, ToastContainer } from 'react-toastify';
 
 /**
  * Test expected behavior of the Collection component
@@ -162,10 +161,10 @@ describe('<Collection />', () => {
             );
         }
 
-        // Must include CashtabNotification to test notification
+        // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -249,10 +248,10 @@ describe('<Collection />', () => {
             );
         }
 
-        // Must include CashtabNotification to test notification
+        // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -328,10 +327,10 @@ describe('<Collection />', () => {
             'df0737a3f86e8761e1b00197935c49b8589e20320ced101d640b874f7cded2b2';
         mockedChronik.setBroadcastTx(mockCancelHex, mockCancelTxid);
 
-        // Must include CashtabNotification to test notification
+        // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -428,10 +427,10 @@ describe('<Collection />', () => {
             path: 1899,
         };
 
-        // Must include CashtabNotification to test notification
+        // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}

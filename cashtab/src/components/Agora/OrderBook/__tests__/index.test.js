@@ -30,8 +30,7 @@ import {
     MockChronikClient,
 } from '../../../../../../modules/mock-chronik-client';
 import Orderbook from 'components/Agora/OrderBook';
-import { Bounce } from 'react-toastify';
-import { CashtabNotification } from 'components/App/styles';
+import { Bounce, ToastContainer } from 'react-toastify';
 
 /**
  * Test expected behavior of the OrderBook component
@@ -324,10 +323,10 @@ describe('<OrderBook />', () => {
             '256ffa0a5e18f7c546673ff6c49fb4d483fe2cbae3b1269bc1000c4c6d950fa9';
         mockedChronik.setBroadcastTx(cancelHex, cancelTxid);
 
-        // Note we must include CashtabNotification to test toastify notification
+        // Note we must include ToastContainer to test toastify notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -484,10 +483,10 @@ describe('<OrderBook />', () => {
             'a529472fc058c52e0c54eccbf82fc63d24eb0a2389ee55723c29c3c8ec3146f8';
         mockedChronik.setBroadcastTx(buyHex, buyTxid);
 
-        // Note we must include CashtabNotification to test toastify notification
+        // Note we must include ToastContainer to test toastify notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -723,10 +722,10 @@ describe('<OrderBook />', () => {
             agoraPartialAlphaWallet.paths.get(1899).hash,
         ).toScriptHex();
 
-        // Note we must include CashtabNotification to test toastify notification
+        // Note we must include ToastContainer to test toastify notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -783,10 +782,10 @@ describe('<OrderBook />', () => {
             agoraOfferXecxAlphaOne,
         ]);
 
-        // Note we must include CashtabNotification to test toastify notification
+        // Note we must include ToastContainer to test toastify notification
         render(
             <ThemeProvider theme={theme}>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}

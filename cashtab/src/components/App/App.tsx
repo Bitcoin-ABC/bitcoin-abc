@@ -53,11 +53,10 @@ import ExtensionHeader from 'components/Common/ExtensionHeader';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import { isValidCashtabWallet } from 'validation';
-import { Bounce } from 'react-toastify';
+import { Bounce, ToastContainer } from 'react-toastify';
 import {
     ExtensionFrame,
     GlobalStyle,
-    CashtabNotification,
     CustomApp,
     Footer,
     NavWrapper,
@@ -75,7 +74,6 @@ import {
     DesktopLogo,
     HeaderInfoCtn,
 } from 'components/App/styles';
-import 'react-toastify/dist/ReactToastify.min.css';
 
 const App = () => {
     const ContextValue = useContext(WalletContext);
@@ -125,7 +123,7 @@ const App = () => {
 
             {loading || (wallet !== false && !validWallet && <Spinner />)}
             <CustomApp>
-                <CashtabNotification
+                <ToastContainer
                     position="top-right"
                     autoClose={5000}
                     hideProgressBar={false}
@@ -135,7 +133,7 @@ const App = () => {
                     pauseOnFocusLoss
                     draggable
                     pauseOnHover
-                    theme="light"
+                    theme="dark"
                     transition={Bounce}
                 />
                 <WalletBody>

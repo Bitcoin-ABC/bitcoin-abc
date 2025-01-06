@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import styled, { createGlobalStyle, css } from 'styled-components';
-import { ToastContainer } from 'react-toastify';
 import { CashtabScroll } from 'components/Common/Atoms';
 import { CashtabTheme } from 'assets/styles/theme';
 
@@ -14,6 +13,10 @@ export const ExtensionFrame = createGlobalStyle`
     }
 `;
 
+/**
+ * GlobalStyle component
+ * Modify Toastify variables and styles here
+ */
 export const GlobalStyle = createGlobalStyle`
     *::placeholder {
         color: ${(props: { theme: CashtabTheme }) =>
@@ -26,14 +29,17 @@ export const GlobalStyle = createGlobalStyle`
             text-decoration: none;
         }
     }
-`;
-
-export const CashtabNotification = styled(ToastContainer)`
-    .Toastify__progress-bar-theme--dark {
-        background: #00abe7;
+    
+    :root {
+        --toastify-icon-color-success: ${props => props.theme.genesisGreen};
+        --toastify-color-success: ${props => props.theme.genesisGreen};
+        --toastify-toast-padding: 20px;
+        --toastify-color-progress-dark: ${props => props.theme.accent}
     }
-    .Toastify__progress-bar-theme--light {
-        background: #00abe7;
+    .Toastify__toast {
+        margin-bottom: 0;
+        justify-content: center;
+        border: 1px solid ${props => props.theme.accent};
     }
 `;
 

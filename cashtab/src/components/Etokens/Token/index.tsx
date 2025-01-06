@@ -834,7 +834,7 @@ const Token: React.FC = () => {
                     {isNftChild ? 'NFT sent' : 'eToken sent'}
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
             clearInputForms();
@@ -887,7 +887,7 @@ const Token: React.FC = () => {
                     NFT Mint inputs created
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
             clearInputForms();
@@ -1170,7 +1170,7 @@ const Token: React.FC = () => {
                     🔥 Burn successful
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
             clearInputForms();
@@ -1247,7 +1247,7 @@ const Token: React.FC = () => {
                     ⚗️ Minted {formData.mintAmount} {tokenTicker}
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
             clearInputForms();
@@ -1457,7 +1457,7 @@ const Token: React.FC = () => {
                     Created NFT ad
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
         } catch (err) {
@@ -1514,7 +1514,7 @@ const Token: React.FC = () => {
                     XEC
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
 
@@ -1688,7 +1688,7 @@ const Token: React.FC = () => {
                     {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
 
@@ -1840,7 +1840,7 @@ const Token: React.FC = () => {
                     {`Successful ad setup tx to offer ${decimalizedOfferedTokens} ${tokenName} for ${getAgoraPartialActualPrice()} per token`}
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
         } catch (err) {
@@ -1893,7 +1893,7 @@ const Token: React.FC = () => {
                     {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
                 </TokenSentLink>,
                 {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
             );
 

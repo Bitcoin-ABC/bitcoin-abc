@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.10.1",
+    "version": "3.10.2",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -44,7 +44,7 @@
         "react-easy-crop": "^5.0.6",
         "react-ga": "^3.3.0",
         "react-router-dom": "^6.22.0",
-        "react-toastify": "^10.0.5",
+        "react-toastify": "^11.0.2",
         "recaptcha-v3": "^1.11.3",
         "swiper": "^11.1.14",
         "wif": "^4.0.0"
