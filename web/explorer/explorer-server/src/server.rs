@@ -327,7 +327,7 @@ impl Server {
                     .into(),
                     true,
                 ),
-                None => ("Unknown eToken Transaction".into(), false),
+                None => ("Unknown eToken Transaction".into(), true),
             },
             [..] => ("Multi eToken Transaction".into(), true),
         };

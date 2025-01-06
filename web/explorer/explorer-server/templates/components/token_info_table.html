@@ -9,115 +9,134 @@
     action_str,
     specification,
     token_icon_url) %}
+    {% let token_ticker %}
+    {% let token_name %}
+    {% let decimals %}
+    {% let token_url %}
+    {% let document_hash %}
     {% match genesis_info %}
         {% when Some with (genesis_info) %}
-        <h2>{{ entry.token_section_title }}</h2>
-        <div class="tx-details-ctn">
-            <div class="tx-details-half">
-                <div class="tx-details-row">
-                    <div>Token Icon</div>
-                    <img class="token-icon" src="{{ token_icon_url }}/32/{{ token_hex }}.png" />
-                </div>
-                <div class="tx-details-row">
-                    <div>Token Ticker</div>
-                    <div>{{ genesis_info.token_ticker|string_from_lossy_utf8 }}</div>
-                </div>
-                <div class="tx-details-row">
-                    <div>Token Name</div>
-                    <div>{{ genesis_info.token_name|string_from_lossy_utf8 }}</div>
-                </div>
-                <div class="tx-details-row">
-                    <div>Token Type</div>
-                    <div>
-                        <a href="{{ specification }}" target="_blank">{{ token_type }}</a>
-                    </div>
-                </div>
-                <div class="tx-details-row">
-                    <div>Transaction Type</div>
-                    <div>{{ action_str }}</div>
+        {% let token_ticker = genesis_info.token_ticker|string_from_lossy_utf8 %}
+        {% let token_name = genesis_info.token_name|string_from_lossy_utf8 %}
+        {% let decimals = genesis_info.decimals %}
+        {% let token_url = genesis_info.url|string_from_lossy_utf8 %}
+        {% let document_hash = genesis_info.hash|hexify_u8_vector %}
+        {% when None %}
+        {% let token_ticker = "Unknown".into() %}
+        {% let token_name = "Unknown".into() %}
+        {% let decimals = 0 %}
+        {% let token_url = "".into() %}
+        {% let document_hash = "".into() %}
+    {% endmatch %}
+    <h2>{{ entry.token_section_title }}</h2>
+    <div class="tx-details-ctn">
+        <div class="tx-details-half">
+            <div class="tx-details-row">
+                <div>Token Icon</div>
+                <img class="token-icon" src="{{ token_icon_url }}/32/{{ token_hex }}.png" />
+            </div>
+            <div class="tx-details-row">
+                <div>Token Ticker</div>
+                <div>{{ token_ticker }}</div>
+            </div>
+            <div class="tx-details-row">
+                <div>Token Name</div>
+                <div>{{ token_name }}</div>
+            </div>
+            <div class="tx-details-row">
+                <div>Token Type</div>
+                <div>
+                    <a href="{{ specification }}" target="_blank">{{ token_type }}</a>
                 </div>
             </div>
-            <div class="tx-details-half">
-                <div class="tx-details-row">
-                    <div>Token Output</div>
-                    <div>
-                        {{ token_output|render_token_amount(genesis_info.decimals) |safe }}
-                        {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
-                        {% if token_output < token_input %}
-                            <br />
-                            ({{ (token_input - token_output)|render_token_amount(genesis_info.decimals) |safe }}
-                            {{ genesis_info.token_ticker|string_from_lossy_utf8 }} burned)
-                        {% endif %}
-                    </div>
+            <div class="tx-details-row">
+                <div>Transaction Type</div>
+                <div>{{ action_str }}</div>
+            </div>
+        </div>
+        <div class="tx-details-half">
+            <div class="tx-details-row">
+                <div>Token Output</div>
+                <div>
+                    {{ token_output|render_token_amount(decimals) |safe }}
+                    {{ token_ticker }}
+                    {% if token_output < token_input %}
+                        <br />
+                        ({{ (token_input - token_output)|render_token_amount(decimals) |safe }}
+                        {{ token_ticker }} burned)
+                    {% endif %}
                 </div>
-                <div class="tx-details-row">
-                    <div style="white-space: nowrap">Document URI</div>
-                    <div style="word-break: break-all; padding-left: 20px">
-                        {% let token_url = genesis_info.url|string_from_lossy_utf8 %}
+            </div>
+            <div class="tx-details-row">
+                <div style="white-space: nowrap">Document URI</div>
+                <div style="word-break: break-all; padding-left: 20px">
+                    {% match token_url.len() %}
+                        {% when 0 %}
+                        Unknown
+                        {% when _ %}
                         <a href="#"
                            onclick="checkDocumentUri('{{ token_url }}');return false;"
                            target="_blank">{{ token_url }}</a>
-                    </div>
+                    {% endmatch %}
                 </div>
-                <div class="tx-details-row">
-                    <div>Document Hash</div>
-                    <div>
-                        {% match genesis_info.url.len() %}
-                            {% when 0 %}
-                            <div class="ui black horizontal label">Not set</div>
-                            {% when _ %}
-                            <div class="hex">{{ genesis_info.hash|hexify_u8_vector }}</div>
-                        {% endmatch %}
-                    </div>
+            </div>
+            <div class="tx-details-row">
+                <div>Document Hash</div>
+                <div>
+                    {% match document_hash.len() %}
+                        {% when 0 %}
+                        <div class="ui black horizontal label">Not set</div>
+                        {% when _ %}
+                        <div class="hex">{{ document_hash }}</div>
+                    {% endmatch %}
                 </div>
-                <div class="tx-details-row">
-                    <div>Decimals</div>
-                    <div>{{ genesis_info.decimals }}</div>
-                </div>
+            </div>
+            <div class="tx-details-row">
+                <div>Decimals</div>
+                <div>{{ decimals }}</div>
             </div>
         </div>
-        {% if entry.entry.is_invalid %}
-            <h4>Error details</h4>
-            <div class="tx-details-ctn">
-                <table class="ui very basic celled table">
-                    <tbody>
-                        <tr>
-                            <td>Total burnt</td>
-                            <td>
-                                {{ entry.entry.actual_burn_amount |
-                                string_to_i128 |
-                                render_token_amount(genesis_info.decimals) |
-                                safe }}
-                                {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Burns mint batons</td>
-                            <td>
-                                {% if entry.entry.burns_mint_batons %}
-                                    Yes
-                                {% else %}
-                                    No
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Error message</td>
-                            <td>{{ entry.entry.burn_summary }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
-        <script type="text/javascript">
-            const checkDocumentUri = address => {
-                if (!address.slice(0, 4).includes('http')) {
-                    window.open('http://' + address, '_blank');
-                } else {
-                    window.open(address, '_blank');
-                }
-            };
-        </script>
-        {% when None %}
-    {% endmatch %}
+    </div>
+    {% if entry.entry.is_invalid %}
+        <h4>Error details</h4>
+        <div class="tx-details-ctn">
+            <table class="ui very basic celled table">
+                <tbody>
+                    <tr>
+                        <td>Total burnt</td>
+                        <td>
+                            {{ entry.entry.actual_burn_amount |
+                            string_to_i128 |
+                            render_token_amount(decimals) |
+                            safe }}
+                            {{ token_ticker }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Burns mint batons</td>
+                        <td>
+                            {% if entry.entry.burns_mint_batons %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Error message</td>
+                        <td>{{ entry.entry.burn_summary }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+    <script type="text/javascript">
+        const checkDocumentUri = address => {
+            if (!address.slice(0, 4).includes('http')) {
+                window.open('http://' + address, '_blank');
+            } else {
+                window.open(address, '_blank');
+            }
+        };
+    </script>
 {% endmacro %}
