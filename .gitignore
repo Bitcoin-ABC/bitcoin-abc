@@ -98,3 +98,6 @@ secrets.js
 /var/
 /distsrc-*/
 web/e.cash/public/rss.xml
+
+# Cargo builds
+target/
