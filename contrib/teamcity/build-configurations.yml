@@ -340,7 +340,7 @@ builds:
     script: |
       # Build the main explorer project, will run on all sub dir
       pushd "${TOPLEVEL}/web/explorer"
-      cargo build
+      cargo build --locked
       cargo test
     timeout: 1200
 
