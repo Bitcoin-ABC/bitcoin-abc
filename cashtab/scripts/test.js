@@ -33,6 +33,9 @@ if (!process.env.CI && argv.indexOf('--watchAll=false') === -1) {
     argv.push('--updateSnapshot');
 }
 
-argv.push('--silent');
+// Silence logs unless env var DEBUG=true
+if (process.env.DEBUG !== 'true') {
+    argv.push('--silent');
+}
 
 jest.run(argv);

@@ -1,11 +1,12 @@
 {
     "name": "cashtab",
-    "version": "3.10.5",
+    "version": "3.10.6",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
         "build": "node scripts/build.js",
         "test": "node scripts/test.js",
+        "debug": "DEBUG=true node scripts/test.js",
         "test:coverage": "CI=true npm run test --coverage",
         "preextension": "npm  i -g browserify",
         "extension": "REACT_APP_BUILD_ENV=extension ./scripts/extension.sh"
