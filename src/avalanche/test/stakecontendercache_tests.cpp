@@ -569,4 +569,51 @@ BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
     CheckWinners(cache, blockhashes[0], {}, {});
 }
 
+BOOST_AUTO_TEST_CASE(pollable_contenders_tests) {
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
+    StakeContenderCache cache;
+
+    CBlockIndex *pindex = active_chainstate.m_chain.Tip();
+    const BlockHash &blockhash = pindex->GetBlockHash();
+
+    const size_t maxPollable = 12;
+    std::vector<StakeContenderId> contenders;
+    BOOST_CHECK_EQUAL(
+        cache.getPollableContenders(blockhash, maxPollable, contenders), 0);
+
+    for (size_t c = 0; c < maxPollable * 2; c++) {
+        // Add a new contender with random initial state
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(cache.add(pindex, proof, InsecureRandBits(2)));
+
+        // We should never get more contenders than we can poll for in a single
+        // message.
+        BOOST_CHECK(cache.getPollableContenders(blockhash, maxPollable,
+                                                contenders) <= maxPollable);
+        BOOST_CHECK(contenders.size() <= maxPollable);
+
+        bool acceptanceLatch = true;
+        double lastRank = 0;
+        for (const auto &contender : contenders) {
+            // Check if contender is accepted
+            BlockHash dummy;
+            int voteStatus = cache.getVoteStatus(contender, dummy);
+
+            // Accepted contenders should always rank first, so latch off once
+            // we hit our first rejected contender.
+            if (acceptanceLatch && voteStatus != 0) {
+                acceptanceLatch = false;
+                lastRank = 0;
+            }
+            BOOST_CHECK_EQUAL(voteStatus, acceptanceLatch ? 0 : 1);
+
+            // Check the contender rank is sorted as we expect
+            double rank =
+                contender.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
+            BOOST_CHECK(lastRank <= rank);
+            lastRank = rank;
+        }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -162,6 +162,56 @@ int StakeContenderCache::getVoteStatus(const StakeContenderId &contenderId,
     return 1;
 }
 
+size_t StakeContenderCache::getPollableContenders(
+    const BlockHash &prevblockhash, size_t maxPollable,
+    std::vector<StakeContenderId> &pollableContenders) const {
+    std::vector<const StakeContenderCacheEntry *> rankedContenders;
+    auto &view = contenders.get<by_prevblockhash>();
+    auto [begin, end] = view.equal_range(prevblockhash);
+    for (auto it = begin; it != end; it++) {
+        rankedContenders.push_back(&(*it));
+    }
+
+    std::sort(rankedContenders.begin(), rankedContenders.end(),
+              [](const StakeContenderCacheEntry *left,
+                 const StakeContenderCacheEntry *right) {
+                  if (left->isAccepted() != right->isAccepted()) {
+                      // Accepted contenders sort first
+                      return left->isAccepted();
+                  }
+
+                  double leftRank = left->computeRewardRank();
+                  double rightRank = right->computeRewardRank();
+                  if (leftRank != rightRank) {
+                      // Lowest rank is best
+                      return leftRank < rightRank;
+                  }
+
+                  // If there's a collision in rank, sort by contender id
+                  const StakeContenderId &leftContenderId =
+                      left->getStakeContenderId();
+                  const StakeContenderId &rightContenderId =
+                      right->getStakeContenderId();
+                  if (leftContenderId != rightContenderId) {
+                      return leftContenderId < rightContenderId;
+                  }
+
+                  // If there's a collision in contender id, sort by proof id
+                  return left->proofid < right->proofid;
+              });
+
+    // Only return up to some maximum number of contenders
+    pollableContenders.clear();
+    size_t numPollable = std::min(rankedContenders.size(), maxPollable);
+    pollableContenders.reserve(numPollable);
+    for (size_t i = 0; i < numPollable; i++) {
+        pollableContenders.push_back(
+            rankedContenders[i]->getStakeContenderId());
+    }
+
+    return pollableContenders.size();
+}
+
 bool StakeContenderCache::getWinners(const BlockHash &prevblockhash,
                                      std::vector<CScript> &payouts) const {
     // Winners determined by avalanche are sorted by reward rank

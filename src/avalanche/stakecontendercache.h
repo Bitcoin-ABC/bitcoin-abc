@@ -172,6 +172,15 @@ public:
                       BlockHash &prevblockhashout) const;
 
     /**
+     * Get the best ranking contenders, accepted contenders ranking first. The
+     * output of this function is only reliable to select contenders to
+     * reconcile and should not be called after contender polling begins.
+     */
+    size_t getPollableContenders(
+        const BlockHash &prevblockhash, size_t maxPollable,
+        std::vector<StakeContenderId> &pollableContenders) const;
+
+    /**
      * Get payout scripts of the winning proofs.
      */
     bool getWinners(const BlockHash &prevblockhash,
