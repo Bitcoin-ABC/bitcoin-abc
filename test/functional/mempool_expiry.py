@@ -22,6 +22,7 @@ CUSTOM_MEMPOOL_EXPIRY = 10  # hours
 class MempoolExpiryTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.extra_args = [[]]
 
     def test_transaction_expiry(self, timeout):
         """Tests that a transaction expires after the expiry timeout and its
@@ -103,6 +104,14 @@ class MempoolExpiryTest(BitcoinTestFramework):
         assert_equal(half_expiry_time, node.getmempoolentry(independent_txid)["time"])
 
     def run_test(self):
+        if self.is_chronik_compiled():
+            # Turn ON chronik if it's been built. This allow to test tx handling
+            # under various conditions without duplicating the complicated test.
+            self.extra_args[0].extend(["-chronik=1"])
+            self.log.info("Running the tests with Chronik enabled")
+
+        self.restart_node(0)
+
         self.wallet = MiniWallet(self.nodes[0])
 
         self.log.info(
