@@ -129,15 +129,15 @@ describe('<Token />', () => {
         );
 
         const totalQtyInput = screen.getByPlaceholderText('Offered qty');
-        const minQtyInput = screen.getByPlaceholderText('Min buy');
+        const minQtyInput = screen.getByPlaceholderText('Min qty');
 
         // Input fields are rendered
         expect(totalQtyInput).toBeInTheDocument();
         expect(minQtyInput).toBeInTheDocument();
 
-        // Qty inputs are not disabled
-        expect(totalQtyInput).toHaveProperty('disabled', false);
-        expect(minQtyInput).toHaveProperty('disabled', false);
+        // Only the total qty input is enabled
+        expect(totalQtyInput).toBeEnabled();
+        expect(minQtyInput).toBeDisabled();
 
         // Price input is disabled as qty inputs are at 0 value
         expect(
@@ -190,15 +190,15 @@ describe('<Token />', () => {
         );
 
         const totalQtyInput = screen.getByPlaceholderText('Offered qty');
-        const minQtyInput = screen.getByPlaceholderText('Min buy');
+        const minQtyInput = screen.getByPlaceholderText('Min qty');
 
         // Input fields are rendered
         expect(totalQtyInput).toBeInTheDocument();
         expect(minQtyInput).toBeInTheDocument();
 
-        // Qty inputs are not disabled
-        expect(totalQtyInput).toHaveProperty('disabled', false);
-        expect(minQtyInput).toHaveProperty('disabled', false);
+        // Only total qty input is enabled
+        expect(totalQtyInput).toBeEnabled();
+        expect(minQtyInput).toBeDisabled();
 
         // Price input is disabled as qty inputs are at 0 value
         expect(

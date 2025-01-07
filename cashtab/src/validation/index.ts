@@ -1164,7 +1164,6 @@ export const getAgoraPartialListPriceError = (
     xecListPrice: string,
     selectedCurrency: string,
     fiatPrice: null | number,
-    minBuyTokenQty: string,
     tokenDecimals: SlpDecimals,
 ): false | string => {
     if (xecListPrice === '') {
@@ -1188,7 +1187,73 @@ export const getAgoraPartialListPriceError = (
     }
 
     // Get the price in XEC
+    const priceXec =
+        selectedCurrency !== 'XEC'
+            ? new BigNumber(
+                  new BigNumber(xecListPrice)
+                      .div(fiatPrice as number)
+                      .toFixed(NANOSAT_DECIMALS),
+              )
+            : new BigNumber(xecListPrice);
 
+    // Get the price in nanosats per token satoshi
+    // this is the unit agora takes, 1 nanosat per 1 tokens at is the min
+    const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceXec);
+
+    if (priceNanoSatsPerDecimalizedToken < Math.pow(10, tokenDecimals)) {
+        return 'Price cannot be lower than 1 nanosatoshi per 1 token satoshi';
+    }
+
+    // If we get here, there is no error in the XEC list price for this NFT
+    return false;
+};
+
+/**
+ * Error handling for user input of agora min buy amount
+ * Note that Cashtab will auto-populate this amount with the actual
+ * minimum when the user inputs a list price, and that this field is
+ * disabled before the user inputs a list price
+ * The validation here depends on many things, as you see in the params
+ *
+ * - min accept amount must be less than total offered tokens
+ * - normal token output rules covered by isValidTokenSendOrBurnAmount
+ * - qty must be such that the total cost of a min buy is at least dust (546 sats)
+ *
+ */
+export const getAgoraMinBuyError = (
+    xecListPrice: string,
+    selectedCurrency: string,
+    fiatPrice: null | number,
+    minBuyTokenQty: string,
+    offeredTokenQty: string,
+    tokenDecimals: SlpDecimals,
+    tokenProtocol: 'ALP' | 'SLP',
+    tokenBalance: string,
+    userLocale: string,
+) => {
+    // First, make sure the min does not exceed total offerd tokens
+    if (new BigNumber(minBuyTokenQty).gt(offeredTokenQty)) {
+        return 'The min buy must be less than or equal to the offered quantity';
+    }
+
+    // Next, make sure the qty is valid for this token
+    const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+        minBuyTokenQty,
+        tokenBalance,
+        tokenDecimals,
+        tokenProtocol,
+    );
+
+    if (typeof isValidAmountOrErrorMsg === 'string') {
+        // If not, this is the validation error
+        return isValidAmountOrErrorMsg;
+    }
+    // If the qty is valid per the token specs, see if it is valid on price
+    // We cannot list tokens if the price of a min buy is less than dust
+    // Note that we "could" do this, but it would mean users are overpaying
+    // Maintain accurate prices
+
+    // Get the price in XEC
     const priceXec =
         selectedCurrency !== 'XEC'
             ? new BigNumber(
@@ -1202,19 +1267,19 @@ export const getAgoraPartialListPriceError = (
     const priceXecMinBuy = priceXec.times(new BigNumber(minBuyTokenQty));
 
     if (priceXecMinBuy.lt(toXec(appConfig.dustSats))) {
+        // Determine what the min buy must be
+        const requiredMinBuyTokenQty = new BigNumber(toXec(appConfig.dustSats))
+            .div(priceXec)
+            .decimalPlaces(tokenDecimals, BigNumber.ROUND_UP);
+
+        const renderedMinBuyTokenQty = decimalizedTokenQtyToLocaleFormat(
+            requiredMinBuyTokenQty.toString(),
+            userLocale,
+        );
+
         // We cannot enforce an output to have less than dust satoshis
-        return `Minimum buy costs ${priceXecMinBuy.toString()} XEC, must be at least 5.46 XEC`;
+        return `Total cost of minimum buy below dust. Min offered qty must be at least ${renderedMinBuyTokenQty}.`;
     }
-
-    // Get the price in nanosats per token satoshi
-    // this is the unit agora takes, 1 nanosat per 1 tokens at is the min
-    const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceXec);
-
-    if (priceNanoSatsPerDecimalizedToken < Math.pow(10, tokenDecimals)) {
-        return 'Price cannot be lower than 1 nanosatoshi per 1 token satoshi';
-    }
-
-    // If we get here, there is no error in the XEC list price for this NFT
     return false;
 };
 

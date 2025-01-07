@@ -585,7 +585,7 @@ const SliderInput = styled.input<{ invalid?: boolean }>`
 `;
 export const SliderLabel = styled.span`
     color: ${props => props.theme.primaryText};
-    width: 50%;
+    width: 25%;
     text-align: right;
     line-height: 14px;
 `;
@@ -608,6 +608,7 @@ interface SliderProps {
     fixedWidth?: boolean;
     allowTypedInput?: boolean;
     label?: string;
+    disabled?: boolean;
 }
 export const Slider: React.FC<SliderProps> = ({
     name,
@@ -620,6 +621,7 @@ export const Slider: React.FC<SliderProps> = ({
     fixedWidth,
     allowTypedInput,
     label,
+    disabled = false,
 }) => {
     return (
         <CashtabInputWrapper>
@@ -634,6 +636,7 @@ export const Slider: React.FC<SliderProps> = ({
                 onChange={handleSlide}
                 isInvalid={typeof error === 'string'}
                 fixedWidth={fixedWidth}
+                disabled={disabled}
             />
             {allowTypedInput && (
                 <LabelAndInputFlex>
@@ -649,6 +652,7 @@ export const Slider: React.FC<SliderProps> = ({
                         placeholder={typeof label === 'string' ? label : name}
                         invalid={typeof error === 'string'}
                         onChange={handleSlide}
+                        disabled={disabled}
                     ></SliderInput>
                 </LabelAndInputFlex>
             )}

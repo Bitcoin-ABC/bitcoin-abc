@@ -23,6 +23,7 @@ import {
     getAgoraPartialListPriceError,
     NANOSAT_DECIMALS,
     isValidTokenId,
+    getAgoraMinBuyError,
 } from 'validation';
 import BigNumber from 'bignumber.js';
 import {
@@ -84,6 +85,8 @@ import {
     InputFlex,
     ListPriceInput,
     Slider,
+    LabelAndInputFlex,
+    SliderLabel,
 } from 'components/Common/Inputs';
 import { QuestionIcon } from 'components/Common/CustomIcons';
 import Switch from 'components/Common/Switch';
@@ -617,36 +620,57 @@ const Token: React.FC = () => {
     }, [tokenId, cashtabCache.tokens.get(tokenId)]);
 
     useEffect(() => {
-        // when agoraPartialTokenQty changes, the min slider max changes
-        // but its value does not necessarily change and may remain above agoraPartialTokenQty
-
-        // If they are both zero, do nothing, we do not want to load the screen with validation errors
-        if (agoraPartialMin === '0' && agoraPartialTokenQty === '0') {
+        if (
+            formData.tokenListPrice === null ||
+            formData.tokenListPrice === '' ||
+            agoraPartialTokenQty === '0'
+        ) {
+            // If we have no price or no offered qty, do nothing
+            // Min buy is the last field entered
             return;
         }
 
-        // Check for this error condition on this event
-        if (new BigNumber(agoraPartialMin).gt(agoraPartialTokenQty)) {
-            // Set a validation error, this would create an unacceptable offer
-            setAgoraPartialMinError(
-                'The min buy must be less than or equal to the offered quantity',
-            );
-        } else {
-            // Normal validation, there may be some other reason agoraPartialMin is still invalid
-            const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
-                agoraPartialMin,
-                tokenBalance as string, // we do not render the slide without tokenBalance
-                decimals as SlpDecimals,
-                // Component does not render until token info is defined
-                protocol as 'ALP' | 'SLP',
-            );
-            setAgoraPartialMinError(
-                isValidAmountOrErrorMsg === true
-                    ? false
-                    : isValidAmountOrErrorMsg,
-            );
+        let agoraPartialMinToValidate = agoraPartialMin;
+        // If the user has not yet entered the min quantity, enter THE MINIMUM ALLOWED min qty as default
+        if (agoraPartialMin === '0') {
+            if (parseFloat(formData.tokenListPrice) === 0) {
+                // We can get here if the user is typing, e.g. 0.0001
+                // We do not want to setAgoraPartialMin(Infinity)
+                return;
+            }
+            // Calculate the min
+            const requiredMinBuyTokenQty = new BigNumber(
+                toXec(appConfig.dustSats),
+            )
+                .div(formData.tokenListPrice)
+                .decimalPlaces(decimals as SlpDecimals, BigNumber.ROUND_UP)
+                .toString();
+
+            // Set it as the min
+            // "return" as this change will trigger validation, we will re-enter this useEffect
+            // "should" always be valid tho
+            setAgoraPartialMin(requiredMinBuyTokenQty);
+
+            // We want to validate this here because the calculated min could be higher than the
+            // total offered qty
+            agoraPartialMinToValidate = requiredMinBuyTokenQty;
         }
-    }, [agoraPartialMin, agoraPartialTokenQty]);
+
+        // Normal validation, there may be some other reason agoraPartialMin is still invalid
+        const agoraMinBuyError = getAgoraMinBuyError(
+            formData.tokenListPrice as string,
+            selectedCurrency,
+            fiatPrice,
+            agoraPartialMinToValidate,
+            agoraPartialTokenQty,
+            decimals as SlpDecimals,
+            // Component does not render until token info is defined
+            protocol as 'ALP' | 'SLP',
+            tokenBalance as string, // we do not render the slide without tokenBalance
+            userLocale,
+        );
+        setAgoraPartialMinError(agoraMinBuyError);
+    }, [formData.tokenListPrice, agoraPartialTokenQty]);
 
     const getNftOffer = async () => {
         try {
@@ -919,31 +943,20 @@ const Token: React.FC = () => {
     const handleTokenMinSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = e.target.value;
 
-        const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+        const agoraMinBuyError = getAgoraMinBuyError(
+            formData.tokenListPrice as string,
+            selectedCurrency,
+            fiatPrice,
             amount,
-            tokenBalance as string, // we do not render the slide without tokenBalance
+            agoraPartialTokenQty,
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
+            tokenBalance as string, // we do not render the slide without tokenBalance
+            userLocale,
         );
 
-        setAgoraPartialMinError(
-            isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
-        );
-
-        // Also validate price input if it is non-zero
-        // If the user has reduced min qty, the price may now be below dust
-        if (formData.tokenListPrice !== null) {
-            setTokenListPriceError(
-                getAgoraPartialListPriceError(
-                    formData.tokenListPrice,
-                    selectedCurrency,
-                    fiatPrice,
-                    amount,
-                    decimals as SlpDecimals,
-                ),
-            );
-        }
+        setAgoraPartialMinError(agoraMinBuyError);
 
         setAgoraPartialMin(amount);
     };
@@ -1312,7 +1325,6 @@ const Token: React.FC = () => {
                 value,
                 selectedCurrency,
                 fiatPrice,
-                agoraPartialMin,
                 decimals as SlpDecimals,
             ),
         );
@@ -2148,7 +2160,7 @@ const Token: React.FC = () => {
                                     </AgoraPreviewRow>
                                     <AgoraPreviewRow>
                                         <AgoraPreviewLabel>
-                                            Min buy:{' '}
+                                            Min qty:{' '}
                                         </AgoraPreviewLabel>
                                         <AgoraPreviewCol>
                                             {decimalizedTokenQtyToLocaleFormat(
@@ -2766,11 +2778,58 @@ const Token: React.FC = () => {
                                                         </SendTokenFormRow>
                                                         <SendTokenFormRow>
                                                             <InputRow>
+                                                                <LabelAndInputFlex>
+                                                                    <SliderLabel>
+                                                                        Price:
+                                                                    </SliderLabel>
+                                                                    <ListPriceInput
+                                                                        name="tokenListPrice"
+                                                                        placeholder="Enter list price (per token)"
+                                                                        inputDisabled={
+                                                                            agoraPartialTokenQty ===
+                                                                            '0'
+                                                                        }
+                                                                        value={
+                                                                            formData.tokenListPrice
+                                                                        }
+                                                                        selectValue={
+                                                                            selectedCurrency
+                                                                        }
+                                                                        selectDisabled={
+                                                                            fiatPrice ===
+                                                                            null
+                                                                        }
+                                                                        fiatCode={settings.fiatCurrency.toUpperCase()}
+                                                                        error={
+                                                                            tokenListPriceError
+                                                                        }
+                                                                        handleInput={
+                                                                            handleTokenListPriceChange
+                                                                        }
+                                                                        handleSelect={
+                                                                            handleSelectedCurrencyChange
+                                                                        }
+                                                                    ></ListPriceInput>
+                                                                </LabelAndInputFlex>
+                                                            </InputRow>
+                                                        </SendTokenFormRow>
+                                                        <SendTokenFormRow>
+                                                            <InputRow>
                                                                 <Slider
                                                                     name={
                                                                         'agoraPartialMin'
                                                                     }
-                                                                    label={`Min buy`}
+                                                                    disabled={
+                                                                        formData.tokenListPrice ===
+                                                                            null ||
+                                                                        formData.tokenListPrice ===
+                                                                            '' ||
+                                                                        formData.tokenListPrice ===
+                                                                            '0' ||
+                                                                        tokenListPriceError !==
+                                                                            false
+                                                                    }
+                                                                    label={`Min qty`}
                                                                     value={
                                                                         agoraPartialMin
                                                                     }
@@ -2790,38 +2849,6 @@ const Token: React.FC = () => {
                                                                     )}
                                                                     allowTypedInput
                                                                 />
-                                                            </InputRow>
-                                                        </SendTokenFormRow>
-                                                        <SendTokenFormRow>
-                                                            <InputRow>
-                                                                <ListPriceInput
-                                                                    name="tokenListPrice"
-                                                                    placeholder="Enter list price (per token)"
-                                                                    inputDisabled={
-                                                                        agoraPartialMin ===
-                                                                        '0'
-                                                                    }
-                                                                    value={
-                                                                        formData.tokenListPrice
-                                                                    }
-                                                                    selectValue={
-                                                                        selectedCurrency
-                                                                    }
-                                                                    selectDisabled={
-                                                                        fiatPrice ===
-                                                                        null
-                                                                    }
-                                                                    fiatCode={settings.fiatCurrency.toUpperCase()}
-                                                                    error={
-                                                                        tokenListPriceError
-                                                                    }
-                                                                    handleInput={
-                                                                        handleTokenListPriceChange
-                                                                    }
-                                                                    handleSelect={
-                                                                        handleSelectedCurrencyChange
-                                                                    }
-                                                                ></ListPriceInput>
                                                             </InputRow>
                                                         </SendTokenFormRow>
 

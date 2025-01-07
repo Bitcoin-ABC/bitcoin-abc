@@ -32,6 +32,7 @@ import {
     getXecListPriceError,
     getAgoraPartialListPriceError,
     getAgoraPartialAcceptTokenQtyError,
+    getAgoraMinBuyError,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -527,7 +528,6 @@ describe('Cashtab validation functions', () => {
                 xecListPrice,
                 selectedCurrency,
                 fiatPrice,
-                minBuyTokenQty,
                 tokenDecimals,
                 returned,
             } = expectedReturn;
@@ -537,7 +537,6 @@ describe('Cashtab validation functions', () => {
                         xecListPrice,
                         selectedCurrency,
                         fiatPrice,
-                        minBuyTokenQty,
                         tokenDecimals,
                     ),
                 ).toBe(returned);
@@ -563,6 +562,39 @@ describe('Cashtab validation functions', () => {
                         decimalizedTokenQtyMin,
                         decimalizedTokenQtyMax,
                         decimals,
+                        userLocale,
+                    ),
+                ).toBe(returned);
+            });
+        });
+    });
+    describe('Gets error or false for min qty input', () => {
+        const { expectedReturns } = vectors.getAgoraMinBuyError;
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                xecListPrice,
+                selectedCurrency,
+                fiatPrice,
+                minBuyTokenQty,
+                offeredTokenQty,
+                tokenDecimals,
+                tokenProtocol,
+                tokenBalance,
+                userLocale,
+                returned,
+            } = expectedReturn;
+            it(`getAgoraMinBuyError: ${description}`, () => {
+                expect(
+                    getAgoraMinBuyError(
+                        xecListPrice,
+                        selectedCurrency,
+                        fiatPrice,
+                        minBuyTokenQty,
+                        offeredTokenQty,
+                        tokenDecimals,
+                        tokenProtocol,
+                        tokenBalance,
                         userLocale,
                     ),
                 ).toBe(returned);

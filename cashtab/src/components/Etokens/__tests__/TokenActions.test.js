@@ -275,11 +275,13 @@ describe('<Token /> available actions rendered', () => {
         );
         expect(priceInput).toHaveProperty('disabled', true);
 
+        const minQtyInput = screen.getByPlaceholderText('Min qty');
+
+        // Min qty input is disabled before we enter offered qty
+        expect(minQtyInput).toBeDisabled();
+
         // Enter token balance as offered qty
         await userEvent.type(screen.getByPlaceholderText('Offered qty'), '111');
-
-        // Enter a min qty
-        await userEvent.type(screen.getByPlaceholderText('Min buy'), '11');
 
         // The price input is no longer disabled
         expect(priceInput).toHaveProperty('disabled', false);
@@ -287,21 +289,34 @@ describe('<Token /> available actions rendered', () => {
         // We see expected error msg if we try to list the token at a price where the min buy would cost less than dust
         await userEvent.type(priceInput, '0.001');
 
+        // The min qty input updates automatically when price is set to reflect the actual min qty
+        // i.e. what qty would sell for dust
+        expect(minQtyInput).toHaveValue('5460');
+
+        // But this is higher than our balance, so we get an error
         expect(
             screen.getByText(
-                'Minimum buy costs 0.011 XEC, must be at least 5.46 XEC',
+                'The min buy must be less than or equal to the offered quantity',
             ),
         ).toBeInTheDocument();
 
-        // The buy button is disabled with invalid price
-        expect(listButton).toHaveProperty('disabled', true);
-
-        // Increase the price to a valid one
+        // Ok, let's change the price
         await userEvent.clear(priceInput);
         await userEvent.type(priceInput, '0.5');
 
+        // Note that the min qty does not auto-update when price changes after the initial change
+        expect(minQtyInput).toHaveValue('5460');
+
+        // The buy button is disabled with invalid qty
+        expect(listButton).toBeDisabled();
+
+        // Let's lower the qty
+        expect(minQtyInput).toBeEnabled();
+        await userEvent.clear(minQtyInput);
+        await userEvent.type(minQtyInput, '11');
+
         // The list button is no longer disabled
-        expect(listButton).toHaveProperty('disabled', false);
+        expect(listButton).toBeEnabled();
 
         // Lets bump the offered qty below the min qty using the slider
         // get the agoraPartialTokenQty slider
@@ -1765,30 +1780,67 @@ describe('<Token /> available actions rendered', () => {
         // Enter token balance as offered qty
         await userEvent.type(screen.getByPlaceholderText('Offered qty'), '100');
 
-        // Enter a min qty
-        await userEvent.type(screen.getByPlaceholderText('Min buy'), '1');
-
         // The price input is no longer disabled
         expect(priceInput).toBeEnabled();
 
-        // We see expected error msg if we try to list the token at a price where the min buy would cost less than dust
+        // Enter a price
         await userEvent.type(priceInput, '0.001');
 
+        const minQtyInput = screen.getByPlaceholderText('Min qty');
+
+        // The quantity updates automatically
+        expect(minQtyInput).toHaveValue('5460');
+
+        // But because this price is so low, now the min qty is actually higher than our token balance
+        // So we see an error
         expect(
             screen.getByText(
-                'Minimum buy costs 0.001 XEC, must be at least 5.46 XEC',
+                'The min buy must be less than or equal to the offered quantity',
             ),
         ).toBeInTheDocument();
 
-        // The buy button is disabled with invalid price
+        // Ok let's back off our min qty
+        await userEvent.clear(minQtyInput);
+        await userEvent.type(minQtyInput, '5');
+
+        // Now we have an error because the min qty is too low
+        expect(
+            screen.getByText(
+                'Total cost of minimum buy below dust. Min offered qty must be at least 5,460.',
+            ),
+        ).toBeInTheDocument();
+
+        // The buy button is disabled with invalid qty
         expect(listButton).toBeDisabled();
 
-        // Increase the price to a valid one
+        // We'll need to raise the price because we don't have that many tokens
         await userEvent.clear(priceInput);
-        await userEvent.type(priceInput, '33');
+        await userEvent.type(priceInput, '1');
+
+        // But now still below dust
+        expect(
+            screen.getByText(
+                'Total cost of minimum buy below dust. Min offered qty must be at least 5.46.',
+            ),
+        ).toBeInTheDocument();
+
+        // Ok well we can do that
+        await userEvent.clear(minQtyInput);
+        await userEvent.type(minQtyInput, '5.46');
+
+        // No more error
+        expect(
+            screen.queryByText(
+                'Total cost of minimum buy below dust. Min offered qty must be at least 5.46.',
+            ),
+        ).not.toBeInTheDocument();
 
         // The list button is no longer disabled
         expect(listButton).toBeEnabled();
+
+        // Let's use a higher price though because that's what the test has mocks for
+        await userEvent.clear(priceInput);
+        await userEvent.type(priceInput, '33');
 
         // The fiat price is previewed correctly
         expect(
@@ -1821,6 +1873,10 @@ describe('<Token /> available actions rendered', () => {
             await screen.findByText('$0.0005 USD (16.67 XEC) per token'),
         ).toBeInTheDocument();
 
+        // We can have a lower min qty now since the price is higher
+        await userEvent.clear(minQtyInput);
+        await userEvent.type(minQtyInput, '1');
+
         // Click the now-enabled list button
         expect(listButton).toBeEnabled();
         await userEvent.click(listButton);
@@ -1833,7 +1889,7 @@ describe('<Token /> available actions rendered', () => {
         // Offered qty (actual, calculated from AgoraOffer)
         const actualOfferedQty = '99.9936';
         expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
-        // Min by (actual, calculated from AgoraOffer)
+        // Min buy (actual, calculated from AgoraOffer)
         expect(screen.getByText('1.0240')).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
         const actualPricePerTokenForMinBuy = '16.67 XEC';
@@ -1851,7 +1907,6 @@ describe('<Token /> available actions rendered', () => {
 
         // We change our mind and list it
         await userEvent.click(listButton);
-        // We wait for the preview to be calculated again
 
         expect(await screen.findByText('List tCRD?')).toBeInTheDocument();
         await userEvent.click(screen.getByText('OK'));

@@ -2612,20 +2612,17 @@ export default {
                 xecListPrice: '5.46',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: false,
             },
             {
                 description:
-                    'Rejects price if minimum token accept costs 1 nanosatoshi less than dust, xec price',
+                    'Accepts price if minimum token accept costs 1 nanosatoshi less than dust, xec price, because price validation does not depend on min buy qty, instead this is handled by qty validation',
                 xecListPrice: '5.45999999999',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
-                returned:
-                    'Minimum buy costs 5.45999999999 XEC, must be at least 5.46 XEC',
+                returned: false,
             },
             {
                 description:
@@ -2633,7 +2630,6 @@ export default {
                 xecListPrice: '5.46',
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: false,
             },
@@ -2643,16 +2639,13 @@ export default {
                 xecListPrice: '5.45999999999',
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
-                returned:
-                    'Minimum buy costs 5.45999999999 XEC, must be at least 5.46 XEC',
+                returned: false,
             },
             {
                 description: 'Accepts the lowest possible price for XEC input',
                 xecListPrice: '0.00000000001', // 1 nanosatoshi
                 selectedCurrency: 'XEC',
-                minBuyTokenQty: 5.46 * 1e11,
                 fiatPrice: null,
                 tokenDecimals: 0,
                 returned: false,
@@ -2663,7 +2656,6 @@ export default {
                 xecListPrice: '0.00000000001', // 1 nanosatoshi
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 5.46 * 1e11,
                 tokenDecimals: 1,
                 returned:
                     'Price cannot be lower than 1 nanosatoshi per 1 token satoshi',
@@ -2673,7 +2665,6 @@ export default {
                 xecListPrice: '0.00000000001', // 1 nanosatoshi
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 5.46 * 1e11,
                 tokenDecimals: 0,
                 returned: false,
             },
@@ -2683,7 +2674,6 @@ export default {
                 xecListPrice: '0.00000000001', // 1 nanosatoshi
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 5.46 * 1e11,
                 tokenDecimals: 1,
                 returned:
                     'Price cannot be lower than 1 nanosatoshi per 1 token satoshi',
@@ -2694,7 +2684,6 @@ export default {
                 xecListPrice: '111.',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: false,
             },
@@ -2704,7 +2693,6 @@ export default {
                 xecListPrice: '111.',
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: false,
             },
@@ -2713,7 +2701,6 @@ export default {
                 xecListPrice: '111.123456789012',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: `List price supports up to 11 decimal places.`,
             },
@@ -2722,7 +2709,6 @@ export default {
                 xecListPrice: '111.123456789012',
                 selectedCurrency: 'USD',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: `List price supports up to 11 decimal places.`,
             },
@@ -2731,7 +2717,6 @@ export default {
                 xecListPrice: '-33',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: 'List price must be a number',
             },
@@ -2740,7 +2725,6 @@ export default {
                 xecListPrice: '-33',
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: 'List price must be a number',
             },
@@ -2749,7 +2733,6 @@ export default {
                 xecListPrice: 'abc',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: 'List price must be a number',
             },
@@ -2758,7 +2741,6 @@ export default {
                 xecListPrice: 'abc',
                 selectedCurrency: 'CAD',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: 'List price must be a number',
             },
@@ -2767,7 +2749,6 @@ export default {
                 xecListPrice: '',
                 selectedCurrency: 'XEC',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: 'List price is required.',
             },
@@ -2776,7 +2757,6 @@ export default {
                 xecListPrice: '',
                 selectedCurrency: 'GBP',
                 fiatPrice: 1,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned: 'List price is required.',
             },
@@ -2785,7 +2765,6 @@ export default {
                 xecListPrice: '100',
                 selectedCurrency: 'GBP',
                 fiatPrice: null,
-                minBuyTokenQty: 1,
                 tokenDecimals: 0,
                 returned:
                     'Cannot input price in GBP while fiat price is unavailable.',
@@ -2909,6 +2888,80 @@ export default {
                 decimals: 9,
                 userLocale: 'en-US',
                 returned: 'Must accept <= 94.876543211 or the full offer',
+            },
+        ],
+    },
+    getAgoraMinBuyError: {
+        expectedReturns: [
+            {
+                description:
+                    'We reject a min qty that is higher than the offered qty',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '2',
+                offeredTokenQty: '1',
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'en-US',
+                returned:
+                    'The min buy must be less than or equal to the offered quantity',
+            },
+            {
+                description:
+                    'We can pass on an error from isValidTokenSendOrBurnAmount',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '0', // 0 is invalid
+                offeredTokenQty: '1',
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'en-US',
+                returned: 'Amount must be greater than 0',
+            },
+            {
+                description: 'We give the required min qty if input is too low',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '1', // 0 is invalid
+                offeredTokenQty: '100',
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'en-US',
+                returned: `Total cost of minimum buy below dust. Min offered qty must be at least 6.`,
+            },
+            {
+                description:
+                    'We give the required min qty if input is too low with decimals',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '1', // 0 is invalid
+                offeredTokenQty: '100',
+                tokenDecimals: 9,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'en-US',
+                returned: `Total cost of minimum buy below dust. Min offered qty must be at least 5.46.`,
+            },
+            {
+                description:
+                    'We give the required min qty if input is too low for a locale that does not use a period for decimal places',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '1', // 0 is invalid
+                offeredTokenQty: '100',
+                tokenDecimals: 9,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'fr-FR',
+                returned: `Total cost of minimum buy below dust. Min offered qty must be at least 5,46.`,
             },
         ],
     },
