@@ -48,7 +48,6 @@ import {
     getAgoraSpotPriceXec,
     getPercentDeltaOverSpot,
 } from 'formatting';
-import { TokenSentLink } from 'components/Etokens/Token/styled';
 import {
     DepthBarCol,
     OfferIcon,
@@ -260,13 +259,13 @@ const OrderBook: React.FC<OrderBookProps> = ({
         try {
             resp = await chronik.broadcastTx(hex);
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     Canceled listing
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId} />,
                 },
@@ -384,7 +383,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
         try {
             resp = await chronik.broadcastTx(hex);
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -409,7 +408,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                               )})`
                             : ''
                     }`}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId} />,
                 },

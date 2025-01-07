@@ -100,7 +100,6 @@ import {
     TokenStatsTableRow,
     TokenStatsLabel,
     SwitchHolder,
-    TokenSentLink,
     InfoModalParagraph,
     ButtonDisabledMsg,
     ButtonDisabledSpan,
@@ -826,13 +825,13 @@ const Token: React.FC = () => {
             );
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     {isNftChild ? 'NFT sent' : 'eToken sent'}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -879,13 +878,13 @@ const Token: React.FC = () => {
             );
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     NFT Mint inputs created
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1162,13 +1161,13 @@ const Token: React.FC = () => {
                 true, // skip SLP burn checks
             );
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     🔥 Burn successful
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1239,13 +1238,13 @@ const Token: React.FC = () => {
                 [mintBaton],
             );
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     ⚗️ Minted {formData.mintAmount} {tokenTicker}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1449,13 +1448,13 @@ const Token: React.FC = () => {
             adSetupTxid = response.txid;
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     Created NFT ad
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1501,7 +1500,7 @@ const Token: React.FC = () => {
             offerTxid = response.txid;
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1512,7 +1511,7 @@ const Token: React.FC = () => {
                         maximumFractionDigits: 2,
                     })}{' '}
                     XEC
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1680,13 +1679,13 @@ const Token: React.FC = () => {
             );
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1832,13 +1831,13 @@ const Token: React.FC = () => {
             adSetupTxid = response.txid;
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     {`Successful ad setup tx to offer ${decimalizedOfferedTokens} ${tokenName} for ${getAgoraPartialActualPrice()} per token`}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },
@@ -1885,13 +1884,13 @@ const Token: React.FC = () => {
             offerTxid = response.txid;
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
                 },

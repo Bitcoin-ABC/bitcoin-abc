@@ -59,7 +59,6 @@ import {
     SwitchRow,
     SwitchLabel,
     EditIcon,
-    TokenCreatedLink,
     IconModalForm,
     IconModalRow,
     SliderLabel,
@@ -746,7 +745,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
             setCreatedTokenId(txid);
 
             toast(
-                <TokenCreatedLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -756,7 +755,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                         : isNftMint
                         ? 'NFT Minted!'
                         : 'Token created!'}
-                </TokenCreatedLink>,
+                </a>,
                 {
                     icon: TokenNotificationIcon,
                 },

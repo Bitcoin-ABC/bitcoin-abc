@@ -30,7 +30,6 @@ import {
     TitleAndIconAndCollapseArrow,
     ButtonRow,
 } from './styled';
-import { TokenSentLink } from 'components/Etokens/Token/styled';
 import Modal from 'components/Common/Modal';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation } from 'swiper/modules';
@@ -262,7 +261,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         try {
             resp = await chronik.broadcastTx(hex);
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -274,7 +273,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         toXec(agoraOneshot.askedSats()),
                         fiatPrice,
                     )}`}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: (
                         <TokenIcon
@@ -392,13 +391,13 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         try {
             resp = await chronik.broadcastTx(hex);
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     Canceled listing
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: (
                         <TokenIcon

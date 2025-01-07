@@ -28,10 +28,6 @@ export const EditIcon = styled.div`
     }
     word-wrap: break-word;
 `;
-export const TokenCreatedLink = styled.a`
-    color: ${props => props.theme.toastText};
-    text-decoration: none;
-`;
 export const IconModalForm = styled.div`
     display: flex;
     flex-direction: column;

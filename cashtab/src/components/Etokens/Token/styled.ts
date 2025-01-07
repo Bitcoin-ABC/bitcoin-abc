@@ -115,10 +115,6 @@ export const SwitchHolder = styled.div`
     align-items: center;
     margin: 12px;
 `;
-export const TokenSentLink = styled.a`
-    color: ${props => props.theme.toastText};
-    text-decoration: none;
-`;
 
 export const ButtonDisabledMsg = styled.div`
     font-size: 14px;

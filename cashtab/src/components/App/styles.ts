@@ -18,28 +18,33 @@ export const ExtensionFrame = createGlobalStyle`
  * Modify Toastify variables and styles here
  */
 export const GlobalStyle = createGlobalStyle`
+    :root {
+        --toastify-icon-color-success: ${props => props.theme.genesisGreen};
+        --toastify-color-success: ${props => props.theme.genesisGreen};
+        --toastify-toast-padding: 20px;
+        --toastify-color-progress-dark: ${props => props.theme.accent};
+    }    
+    
+    .Toastify__toast {
+        margin-bottom: 0;
+        justify-content: center;
+        border: 1px solid ${props => props.theme.accent};
+        a {
+            text-decoration: none;
+        }
+    }
+
     *::placeholder {
         color: ${(props: { theme: CashtabTheme }) =>
             props.theme.secondaryText} !important;
     }
+
     a {
         color: ${props => props.theme.accent};
         &:hover {
             color: ${props => props.theme.secondaryAccent};
             text-decoration: none;
         }
-    }
-    
-    :root {
-        --toastify-icon-color-success: ${props => props.theme.genesisGreen};
-        --toastify-color-success: ${props => props.theme.genesisGreen};
-        --toastify-toast-padding: 20px;
-        --toastify-color-progress-dark: ${props => props.theme.accent}
-    }
-    .Toastify__toast {
-        margin-bottom: 0;
-        justify-content: center;
-        border: 1px solid ${props => props.theme.accent};
     }
 `;
 

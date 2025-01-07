@@ -61,7 +61,6 @@ import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
 import { Script } from 'ecash-lib';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { TokenSentLink } from 'components/Etokens/Token/styled';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getTokenGenesisInfo } from 'chronik';
 import { InlineLoader } from 'components/Common/Spinner';
@@ -101,11 +100,6 @@ const SwitchContainer = styled.div`
     color: ${props => props.theme.primaryText};
     white-space: nowrap;
     margin: 12px 0;
-`;
-
-const SentLink = styled.a`
-    color: ${props => props.theme.toastText};
-    text-decoration: none;
 `;
 
 const AmountPreviewCtn = styled.div`
@@ -676,7 +670,7 @@ const SendXec: React.FC = () => {
             );
 
             toast(
-                <TokenSentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -684,7 +678,7 @@ const SendXec: React.FC = () => {
                     {type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
                         ? 'NFT sent'
                         : 'eToken sent'}
-                </TokenSentLink>,
+                </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId} />,
                 },
@@ -799,13 +793,13 @@ const SendXec: React.FC = () => {
             );
 
             toast(
-                <SentLink
+                <a
                     href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     eCash sent
-                </SentLink>,
+                </a>,
                 {
                     icon: CashReceivedNotificationIcon,
                 },
