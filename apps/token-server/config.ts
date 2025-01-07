@@ -50,6 +50,7 @@ const config: TokenServerConfig = {
     chronikUrls: [
         'https://chronik-native1.fabien.cash',
         'https://chronik-native2.fabien.cash',
+        'https://chronik-native3.fabien.cash',
         'https://chronik.pay2stay.com/xec',
     ],
     eligibilityResetSeconds: 86400, // 24 hours

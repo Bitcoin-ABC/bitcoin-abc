@@ -104,6 +104,7 @@ const config: HeraldConfig = {
     chronik: [
         'https://chronik-native1.fabien.cash',
         'https://chronik-native2.fabien.cash',
+        'https://chronik-native3.fabien.cash',
         'https://chronik.pay2stay.com/xec2',
     ],
     blockExplorer: 'https://explorer.e.cash',
