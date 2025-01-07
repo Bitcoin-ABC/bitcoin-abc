@@ -40,6 +40,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         self.test_invalid_params()
         self.test_transaction_get()
+        self.test_transaction_get_height()
         self.test_block_header()
 
     def test_invalid_params(self):
@@ -181,9 +182,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(response.result, 203)
 
         response = self.client.blockchain.transaction.get_height(32 * "ff")
-        assert_equal(
-            response.error, {"code": -32600, "message": "Unknown transaction id"}
-        )
+        assert_equal(response.error, {"code": -32600, "message": "Unknown txid"})
 
     def test_block_header(self):
         block_hashes = [
