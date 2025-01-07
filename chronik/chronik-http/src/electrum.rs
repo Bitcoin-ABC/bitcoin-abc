@@ -334,8 +334,81 @@ impl ChronikElectrumRPCServerEndpoint {
     }
 }
 
+fn json_to_block_height(height: Value) -> Result<i32, RPCError> {
+    let err_msg = "Invalid height".to_string();
+    let height = match height {
+        Value::Number(h) => Ok(h),
+        _ => Err(RPCError::CustomError(1, err_msg.clone())),
+    }?;
+    let height = height
+        .as_i64()
+        .ok_or(RPCError::CustomError(1, err_msg.clone()))?;
+    if height < 0 {
+        return Err(RPCError::CustomError(1, err_msg));
+    }
+    i32::try_from(height).map_err(|_| RPCError::CustomError(1, err_msg))
+}
+
+fn be_bytes_to_le_hex(hash: &[u8]) -> String {
+    hex::encode(Sha256::from_be_slice(hash).unwrap().as_le_bytes())
+}
+
 #[rpc_impl(name = "blockchain")]
 impl ChronikElectrumRPCBlockchainEndpoint {
+    #[rpc_method(name = "block.header")]
+    async fn block_header(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 2);
+        let height = json_to_block_height(get_param!(params, 0, "height")?)?;
+        let checkpoint_height = json_to_block_height(get_optional_param!(
+            params,
+            1,
+            "cp_height",
+            json!(0)
+        )?)?;
+
+        let indexer = self.indexer.read().await;
+        let blocks = indexer.blocks(&self.node);
+
+        if checkpoint_height > 0 && height > checkpoint_height {
+            let tip_height = blocks
+                .blockchain_info()
+                .map_err(|_| RPCError::InternalError)?
+                .tip_height;
+            return Err(RPCError::CustomError(
+                1,
+                format!(
+                    "header height {height} must be <= cp_height \
+                     {checkpoint_height} which must be <= chain height \
+                     {tip_height}"
+                ),
+            ));
+        }
+
+        let proto_header = blocks
+            .header(height.to_string(), checkpoint_height)
+            .await
+            .map_err(|_| {
+                RPCError::CustomError(
+                    1,
+                    format!("Height {height} is out of range"),
+                )
+            })?;
+        if checkpoint_height == 0 {
+            Ok(json!(hex::encode(proto_header.raw_header)))
+        } else {
+            let branch: Vec<String> = proto_header
+                .branch
+                .iter()
+                .map(|h| be_bytes_to_le_hex(h))
+                .collect();
+            Ok(json!({
+                "branch": branch,
+                "header": hex::encode(proto_header.raw_header) ,
+                "root": be_bytes_to_le_hex(&proto_header.root),
+            }))
+        }
+    }
+
     #[rpc_method(name = "transaction.get")]
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 2);

@@ -11,8 +11,9 @@ from test_framework.blocktools import (
     GENESIS_CB_TXID,
     TIME_GENESIS_BLOCK,
 )
+from test_framework.merkle import merkle_root_and_branch
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, hex_to_be_bytes
 from test_framework.wallet import MiniWallet
 
 COINBASE_TX_HEX = (
@@ -39,6 +40,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         self.test_invalid_params()
         self.test_transaction_get()
+        self.test_block_header()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -181,6 +183,63 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         response = self.client.blockchain.transaction.get_height(32 * "ff")
         assert_equal(
             response.error, {"code": -32600, "message": "Unknown transaction id"}
+        )
+
+    def test_block_header(self):
+        block_hashes = [
+            self.node.getblockhash(i) for i in range(self.node.getblockcount() + 1)
+        ]
+        block_hashes_bytes = [hex_to_be_bytes(bh) for bh in block_hashes]
+        headers = [self.node.getblockheader(bh, False) for bh in block_hashes]
+        tip_height = len(headers) - 1
+
+        response = self.client.blockchain.block.header(0)
+        assert_equal(response.result, headers[0])
+
+        response = self.client.blockchain.block.header(
+            len(block_hashes) // 2, tip_height
+        )
+        root, branch = merkle_root_and_branch(
+            block_hashes_bytes, len(block_hashes) // 2
+        )
+        assert_equal(
+            response.result,
+            {
+                "branch": [h[::-1].hex() for h in branch],
+                "header": headers[len(block_hashes) // 2],
+                "root": root[::-1].hex(),
+            },
+        )
+
+        for response in (
+            self.client.blockchain.block.header("toto"),
+            self.client.blockchain.block.header(-1),
+            self.client.blockchain.block.header(2**31),
+            self.client.blockchain.block.header(2**63),
+        ):
+            assert_equal(
+                response.error,
+                {
+                    "code": 1,
+                    "message": "Invalid height",
+                },
+            )
+
+        for bh in (2**31 - 1, tip_height + 1):
+            assert_equal(
+                self.client.blockchain.block.header(bh).error,
+                {
+                    "code": 1,
+                    "message": f"Height {bh} is out of range",
+                },
+            )
+
+        assert_equal(
+            self.client.blockchain.block.header(2, 1).error,
+            {
+                "code": 1,
+                "message": f"header height 2 must be <= cp_height 1 which must be <= chain height {tip_height}",
+            },
         )
 
 
