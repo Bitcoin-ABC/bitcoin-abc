@@ -5,6 +5,7 @@
 #include <avalanche/stakecontendercache.h>
 
 #include <avalanche/peermanager.h>
+#include <avalanche/rewardrankcomparator.h>
 
 #include <algorithm>
 
@@ -182,22 +183,13 @@ size_t StakeContenderCache::getPollableContenders(
 
                   double leftRank = left->computeRewardRank();
                   double rightRank = right->computeRewardRank();
-                  if (leftRank != rightRank) {
-                      // Lowest rank is best
-                      return leftRank < rightRank;
-                  }
-
-                  // If there's a collision in rank, sort by contender id
                   const StakeContenderId &leftContenderId =
                       left->getStakeContenderId();
                   const StakeContenderId &rightContenderId =
                       right->getStakeContenderId();
-                  if (leftContenderId != rightContenderId) {
-                      return leftContenderId < rightContenderId;
-                  }
-
-                  // If there's a collision in contender id, sort by proof id
-                  return left->proofid < right->proofid;
+                  return RewardRankComparator()(leftContenderId, leftRank,
+                                                left->proofid, rightContenderId,
+                                                rightRank, right->proofid);
               });
 
     // Only return up to some maximum number of contenders

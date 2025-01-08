@@ -6,6 +6,7 @@
 
 #include <avalanche/avalanche.h>
 #include <avalanche/delegation.h>
+#include <avalanche/rewardrankcomparator.h>
 #include <avalanche/stakecontender.h>
 #include <avalanche/validation.h>
 #include <cashaddrenc.h>
@@ -1028,7 +1029,7 @@ bool PeerManager::selectStakingRewardWinner(
         double bestRewardRank = std::numeric_limits<double>::max();
         ProofRef selectedProof = ProofRef();
         int64_t selectedProofRegistrationTime{0};
-        uint256 bestRewardHash;
+        StakeContenderId bestRewardHash;
 
         for (const Peer &peer : peers) {
             if (!peer.proof) {
@@ -1060,22 +1061,12 @@ bool PeerManager::selectStakingRewardWinner(
                 continue;
             }
 
-            // The best ranking is the lowest ranking value
             double proofRewardRank =
                 proofRewardHash.ComputeProofRewardRank(peer.getScore());
-            if (proofRewardRank < bestRewardRank) {
+            if (RewardRankComparator()(
+                    proofRewardHash, proofRewardRank, peer.getProofId(),
+                    bestRewardHash, bestRewardRank, selectedProof->getId())) {
                 bestRewardRank = proofRewardRank;
-                selectedProof = peer.proof;
-                selectedProofRegistrationTime = peer.registration_time.count();
-                bestRewardHash = proofRewardHash;
-            }
-
-            // Select the lowest reward hash then proofid in the unlikely case
-            // of a collision.
-            if (proofRewardRank == bestRewardRank &&
-                (proofRewardHash < bestRewardHash ||
-                 (proofRewardHash == bestRewardHash &&
-                  peer.getProofId() < selectedProof->getId()))) {
                 selectedProof = peer.proof;
                 selectedProofRegistrationTime = peer.registration_time.count();
                 bestRewardHash = proofRewardHash;
