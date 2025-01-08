@@ -2008,18 +2008,16 @@ dependencies = [
 
 [[package]]
 name = "karyon_async_rustls"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af72bec161d51d1b6e5c1bf8dcd40f8c54e68285e5a7dec1fd788c249b1d9a6c"
+version = "0.2.1"
+source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
 dependencies = [
  "tokio-rustls",
 ]
 
 [[package]]
 name = "karyon_core"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bd78516f5c7d5c6a11e4581eaa5d52cafb5325af9911657122aa06b737c3524"
+version = "0.2.1"
+source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
 dependencies = [
  "async-channel",
  "bincode 2.0.0-rc.3",
@@ -2037,9 +2035,8 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc2260c5f4a475d55ae26eedaea01b70512d09feb44e81b259ae6cbd574431d0"
+version = "0.2.1"
+source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -2056,9 +2053,8 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc_macro"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1a1e557d2d16efb7e03d0630e1b843e5e24d73600528b02590018b0361ed9a6"
+version = "0.2.1"
+source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2068,9 +2064,8 @@ dependencies = [
 
 [[package]]
 name = "karyon_net"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c3ba639591738b658070f0d1ec0099d125ee98837962176dc6b4585b0d25ee3"
+version = "0.2.1"
+source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
 dependencies = [
  "async-trait",
  "async-tungstenite",

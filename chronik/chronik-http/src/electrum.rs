@@ -242,32 +242,32 @@ impl ChronikElectrumServer {
 /// Enforce maximum number of parameters for a JSONRPC method
 macro_rules! check_max_number_of_params {
     ($params:expr, $max_num_params:expr) => {
-        let err_max = RPCError::InvalidParams(if $max_num_params == 1 {
-            "Expected at most 1 parameter"
-        } else {
-            concat!("Expected at most ", $max_num_params, " parameters")
-        });
+        let mut err_max =
+            format!("Expected at most {} parameter", $max_num_params);
+        if $max_num_params != 1 {
+            err_max.push_str("s");
+        }
         match $params {
             Value::Array(ref arr) => {
                 if arr.len() > $max_num_params {
-                    return Err(err_max);
+                    return Err(RPCError::InvalidParams(err_max));
                 }
             }
             Value::Object(ref obj) => {
                 if obj.len() > $max_num_params {
-                    return Err(err_max);
+                    return Err(RPCError::InvalidParams(err_max));
                 }
             }
             Value::Null => {
                 if $max_num_params != 0 {
                     return Err(RPCError::InvalidParams(
-                        "Missing required params",
+                        "Missing required params".to_string(),
                     ));
                 }
             }
             _ => {
                 return Err(RPCError::InvalidParams(
-                    "'params' must be an array or an object",
+                    "'params' must be an array or an object".to_string(),
                 ))
             }
         };
@@ -280,22 +280,20 @@ macro_rules! get_param {
         match $params {
             Value::Array(ref arr) => Ok(arr
                 .get($index)
-                .ok_or(RPCError::InvalidParams(concat!(
-                    "Missing mandatory '",
-                    $key,
-                    "' parameter"
+                .ok_or(RPCError::InvalidParams(format!(
+                    "Missing mandatory '{}' parameter",
+                    $key
                 )))?
                 .clone()),
             Value::Object(ref obj) => match obj.get($key) {
                 Some(value) => Ok(value.clone()),
-                None => Err(RPCError::InvalidParams(concat!(
-                    "Missing mandatory '",
-                    $key,
-                    "' parameter"
+                None => Err(RPCError::InvalidParams(format!(
+                    "Missing mandatory '{}' parameter",
+                    $key
                 ))),
             },
             _ => Err(RPCError::InvalidParams(
-                "'params' must be an array or an object",
+                "'params' must be an array or an object".to_string(),
             )),
         }
     }};
@@ -315,7 +313,7 @@ macro_rules! get_optional_param {
                 None => Ok($default),
             },
             _ => Err(RPCError::InvalidParams(
-                "'params' must be an array or an object",
+                "'params' must be an array or an object".to_string(),
             )),
         }
     }};
@@ -343,7 +341,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         check_max_number_of_params!(params, 2);
         let txid_hex = get_param!(params, 0, "txid")?;
         let txid = TxId::try_from(&txid_hex)
-            .map_err(|err| RPCError::CustomError(1, err))?;
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
         let verbose =
             get_optional_param!(params, 1, "verbose", Value::Bool(false))?;
@@ -351,18 +349,18 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             Value::Bool(v) => Ok(v),
             _ => Err(RPCError::CustomError(
                 1,
-                "Invalid verbose argument; expected boolean",
+                "Invalid verbose argument; expected boolean".to_string(),
             )),
         }?;
 
         let indexer = self.indexer.read().await;
         let query_tx = indexer.txs(&self.node);
         let unknown_txid_msg =
-            "No transaction matching the requested hash was found";
+            "No transaction matching the requested hash was found".to_string();
         let raw_tx = hex::encode(
             query_tx
                 .raw_tx_by_id(&txid)
-                .or(Err(RPCError::CustomError(1, unknown_txid_msg)))?
+                .or(Err(RPCError::CustomError(1, unknown_txid_msg.clone())))?
                 .raw_tx,
         );
         if !verbose {
@@ -411,13 +409,13 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         check_max_number_of_params!(params, 1);
         let txid_hex = get_param!(params, 0, "txid")?;
         let txid = TxId::try_from(&txid_hex)
-            .map_err(|err| RPCError::CustomError(1, err))?;
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
         let indexer = self.indexer.read().await;
         let query_tx = indexer.txs(&self.node);
         let tx = query_tx
             .tx_by_id(txid)
-            .or(Err(RPCError::InvalidRequest("Unknown txid")))?;
+            .or(Err(RPCError::InvalidRequest("Unknown txid".to_string())))?;
 
         match tx.block {
             Some(block) => Ok(json!(block.height)),
