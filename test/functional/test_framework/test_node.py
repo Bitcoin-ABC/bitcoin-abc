@@ -194,8 +194,6 @@ class TestNode:
         self.url = None
         self.relay_fee_cache = None
         self.log = logging.getLogger(f"TestFramework.node{i}")
-        # Whether to kill the node when this object goes away
-        self.cleanup_on_exit = True
         # Cache perf subprocesses here by their data output filename.
         self.perf_subprocesses = {}
         self.p2ps = []
@@ -276,11 +274,11 @@ class TestNode:
     def __del__(self):
         # Ensure that we don't leave any bitcoind processes lying around after
         # the test ends
-        if self.process and self.cleanup_on_exit:
+        if self.process:
             # Should only happen on test failure
             # Avoid using logger, as that may have already been shutdown when
             # this destructor is called.
-            print(self._node_msg("Cleaning up leftover process"))
+            print(self._node_msg("Cleaning up leftover process"), file=sys.stderr)
             self.process.kill()
 
     def __getattr__(self, name):
