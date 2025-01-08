@@ -2617,6 +2617,189 @@ export const dailyTxs: Tx[] = [
             timestamp: 1732772920,
         },
     },
+    // Another ALP agora buy for Tiberium so it leads in volume
+    {
+        txid: 'f5b819ea5d0d2fe86d866eff65a39945537c492dac7231be8b354d9881df8d40',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '1e060fe094513fb3da50ae827e3890736d9723cf747212a912d300d2de2ec52f',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1408b93bfc2f99716388ddc43a1f2def4070dbf3fcdf1e19b772f695d450d5b59404258de9a8fcc872004e4c439102a22d91fe80bb23f5c3eb1b942e664f4f01c2a4422020000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac10ffe508000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac4d2d012fc52eded200d312a9127274cf23976d7390387e82ae50dab33f5194e00f061e01000000d47b63817b6ea2697604ea78cc0ca2697604b1a547019700887d945279012a7f757892635357807e7804b1a54701965667525768807e527904b1a547019656807e827c7e5379012a7f777c7e825980bc7c7e007e7b03c546039303c646039658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702d4007f5c7f7701207f547f750496856f53886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac2202000000000000ffffffff4f6718f3826e94eccb06fc0fd1d29b0245141c9774089952b9229272545a709996856f53c10000000424b9fc7f514d58014c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000b1a5470100000000c646030000000000ea78cc0c0000000096856f5303771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60824b9fc7f00000000ab7b63817b6ea2697604ea78cc0ca2697604b1a547019700887d945279012a7f757892635357807e7804b1a54701965667525768807e527904b1a547019656807e827c7e5379012a7f777c7e825980bc7c7e007e7b03c546039303c646039658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702d4007f5c7f7701207f547f750496856f53886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '100',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                plugins: {
+                    agora: {
+                        groups: [
+                            '5003771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            '54116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                            '46116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                        ],
+                        data: [
+                            '5041525449414c',
+                            '00',
+                            '00',
+                            'b1a5470100000000',
+                            'c646030000000000',
+                            'ea78cc0c00000000',
+                            '96856f53',
+                        ],
+                    },
+                },
+                outputScript: 'a914fc4c52c5f83596e8c99b1ae4d6c95f8b2355f0f887',
+            },
+            {
+                prevOut: {
+                    txid: '2a1f750037253feb51003701a9febed12eb112569c9423ba9bcd768df27614c4',
+                    outIdx: 1987,
+                },
+                inputScript:
+                    '41972d1961aeb50fccfa74eef559db92947ad0a1e87649a653680534e35b77e4c1f3ce525d02cae387149d637597c1b16b0ce66481aff406eaac5bf52b42b2bfc1412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 642,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: 'ed37168c53ddd44db2f1cef05273f4849068d4203047d762189a8b3d8252bda7',
+                    outIdx: 177,
+                },
+                inputScript:
+                    '41b4a1fa9f2eb9aa1e1107a0daa0789140b5dd1f709bf05f5876eb113c367bc8b9965b3c28405a0899b5f6d3faf4c944a4de8c7e1e9aaccd77bfcc38d8241b8620412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 587,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: '836c7a50f4422deca015f038022f8602fc6c33e3d52d8b70ea729f3e2700300e',
+                    outIdx: 1506,
+                },
+                inputScript:
+                    '41655a797528798468a7c4ac17cb6a818daecce7b69104e89a488ebe8484e8846a8fdff5a405042245a6c43a240e3a1469ce64fc833c5d6cf6fae9048325a68c4d412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 583,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: 'f0dde5552272e20e5562d25226c487d2413dba8307106340f7c438e2a9809bbf',
+                    outIdx: 1604,
+                },
+                inputScript:
+                    '41e4f342e5d625580b576f244fc89957eb777a445a3709006b9f0dbee41b7426d7d0451b17f17286553c76b2b60d5e8032663fb59e2626f232064844554da90725412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 583,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+            {
+                prevOut: {
+                    txid: 'bdc44bae6091a18d8c8bd0d82f4984e2046821b890553d354e6e370d70e2c378',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '41b5cbfee5ebf18cf6ea9ac18975afd410d634984d03fb3f695df9239f4e8bd3337eef76a4fcc47575902232a97a48f720d51f821f7ec02f52ffd48560d782abb0412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+                value: 149302049,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a504b41475230075041525449414c0000b1a5470100000000c646030000000000ea78cc0c0000000096856f5303771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba637534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1102000000000000640000000000',
+            },
+            {
+                value: 10001,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                plugins: {
+                    agora: {
+                        groups: [],
+                        data: [
+                            '4552524f52',
+                            '4c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000b1a5470100000000c646030000000000ea78cc0c0000000096856f5303771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60824b9fc7f00000000ab7b63817b6ea2697604ea78cc0ca2697604b1a547019700887d945279012a7f757892635357807e7804b1a54701965667525768807e527904b1a547019656807e827c7e5379012a7f777c7e825980bc7c7e007e7b03c546039303c646039658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702d4007f5c7f7701207f547f750496856f53886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
+                        ],
+                    },
+                },
+                token: {
+                    tokenId:
+                        '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '100',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 149290768,
+                outputScript:
+                    '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            },
+        ],
+        lockTime: 1399817622,
+        timeFirstSeen: 1736295827,
+        size: 1828,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: false,
+
+        // use same height as preceding buy
+        block: {
+            height: 872992,
+            hash: '0000000000000000261323e832036ab8504e45794cf3a0cc9effbe56b5829458',
+            timestamp: 1732772920,
+        },
+    },
     // ALP agora cancel
     // 38c3b50ccc32d24a1d2a86437f465b9ec107da27d24f2cec3bc29ba4e797e38f
     {

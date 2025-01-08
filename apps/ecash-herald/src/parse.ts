@@ -2381,7 +2381,7 @@ export const summarizeTxHistory = (
 
     // Agora vars
     let agoraTxs = 0;
-    const agoraActions = new Map();
+    const agoraActions: Map<string, TokenActions> = new Map();
     let oneshotVolumeSatoshis = 0;
     let partialVolumeSatoshis = 0;
 
@@ -3384,22 +3384,27 @@ export const summarizeTxHistory = (
             const { buy, list, cancel } = agoraActionInfo;
 
             if (typeof buy === 'undefined') {
-                agoraActionInfo.buy = { count: 0 };
+                // Define buy count and volume as 0 for tokens without any buys
+                // In this way we can assert these values exist in the sort
+                agoraActionInfo.buy = { count: 0, volume: 0 };
             }
             if (typeof list === 'undefined') {
+                // Define list count as 0 for tokens without any listings
                 agoraActionInfo.list = { count: 0 };
             }
             if (typeof cancel === 'undefined') {
+                // Define cancel count as 0 for tokens without any cancellations
                 agoraActionInfo.cancel = { count: 0 };
             }
             agoraActions.set(tokenId, agoraActionInfo);
         });
 
-        // Sort agoraActions by buys
+        // Sort agoraActions by volume
         const sortedAgoraActions = new Map(
             [...agoraActions.entries()].sort(
                 (keyValueArrayA, keyValueArrayB) =>
-                    keyValueArrayB[1].buy.count - keyValueArrayA[1].buy.count,
+                    keyValueArrayB[1].buy!.volume -
+                    keyValueArrayA[1].buy!.volume,
             ),
         );
 
@@ -3442,7 +3447,9 @@ export const summarizeTxHistory = (
 
         for (let i = 0; i < newsworthyAgoraTokens.length; i += 1) {
             const tokenId = newsworthyAgoraTokens[i];
-            const tokenActionInfo = sortedAgoraActions.get(tokenId);
+            const tokenActionInfo = sortedAgoraActions.get(
+                tokenId,
+            ) as TokenActions;
             const genesisInfo =
                 tokenInfoMap === false ? undefined : tokenInfoMap.get(tokenId);
 
@@ -3464,28 +3471,28 @@ export const summarizeTxHistory = (
                         ? ` (${genesisInfo.tokenTicker})`
                         : ''
                 }: ${
-                    buy.count > 0
+                    buy!.count > 0
                         ? `${config.emojis.agoraBuy}${
-                              buy.count > 1 ? `x${buy.count}` : ''
+                              buy!.count > 1 ? `x${buy!.count}` : ''
                           }${
-                              typeof buy.volume !== 'undefined'
+                              typeof buy!.volume !== 'undefined'
                                   ? ` (${satsToFormattedValue(
-                                        buy.volume,
+                                        buy!.volume,
                                         xecPriceUsd,
                                     )})`
                                   : ''
                           }`
                         : ''
                 }${
-                    list.count > 0
+                    list!.count > 0
                         ? `${config.emojis.agoraList}${
-                              list.count > 1 ? `x${list.count}` : ''
+                              list!.count > 1 ? `x${list!.count}` : ''
                           }`
                         : ''
                 }${
-                    cancel.count > 0
+                    cancel!.count > 0
                         ? `${config.emojis.agoraCancel}${
-                              cancel.count > 1 ? `x${cancel.count}` : ''
+                              cancel!.count > 1 ? `x${cancel!.count}` : ''
                           }`
                         : ''
                 }`,
