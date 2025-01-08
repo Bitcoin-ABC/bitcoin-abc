@@ -278,6 +278,8 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
         for blocktx in newblocktxs:
             blocktx["block"] = (height, block.hash)
 
+        node.syncwithvalidationinterfacequeue()
+
         check_tx_history([], newblocktxs + blocktxs, page_size=25)
         check_tx_history([], newblocktxs + blocktxs, page_size=200)
 
