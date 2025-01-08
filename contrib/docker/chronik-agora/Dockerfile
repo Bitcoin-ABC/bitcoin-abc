@@ -1,15 +1,35 @@
 FROM bitcoinabc/bitcoin-abc-dev:0.30.8 AS builder
 
+WORKDIR /installed
 WORKDIR /bitcoin-abc/build
 
 RUN cmake -GNinja .. \
+  -DBUILD_LIBBITCOINCONSENSUS=OFF \
+  -DBUILD_BITCOIN_CHAINSTATE=OFF \
   -DBUILD_BITCOIN_QT=OFF \
   -DBUILD_BITCOIN_SEEDER=OFF \
   -DBUILD_BITCOIN_IGUANA=OFF \
   -DBUILD_BITCOIN_TX=OFF \
   -DBUILD_BITCOIN_CHRONIK=ON \
-  -DBUILD_BITCOIN_CHRONIK_PLUGINS=ON && \
+  -DBUILD_BITCOIN_CHRONIK_PLUGINS=ON \
+  -DCMAKE_INSTALL_PREFIX=/installed && \
   ninja install/strip
+
+# From now we use a lighter base image to save space.
+# WARNING this should be in sync with the base image from bitcoin-abc-dev !
+FROM debian:bookworm-slim
+
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  libdb5.3++ \
+  libevent-2.1-7 \
+  libevent-pthreads-2.1-7 \
+  libminiupnpc17 \
+  libnatpmp1 \
+  libprotobuf32 \
+  libpython3.11 \
+  libzmq5
+
+COPY --from=builder /installed/bin/* /usr/local/bin/
 
 RUN groupadd -g 1001 bitcoin
 RUN useradd -u 1001 -mg bitcoin bitcoin
