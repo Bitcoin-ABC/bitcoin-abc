@@ -581,10 +581,15 @@ BOOST_AUTO_TEST_CASE(pollable_contenders_tests) {
     BOOST_CHECK_EQUAL(
         cache.getPollableContenders(blockhash, maxPollable, contenders), 0);
 
+    size_t numAccepted = 0;
     for (size_t c = 0; c < maxPollable * 2; c++) {
         // Add a new contender with random initial state
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(cache.add(pindex, proof, InsecureRandBits(2)));
+
+        BlockHash dummy;
+        StakeContenderId contenderId(blockhash, proof->getId());
+        numAccepted += cache.getVoteStatus(contenderId, dummy) == 0 ? 1 : 0;
 
         // We should never get more contenders than we can poll for in a single
         // message.
@@ -592,27 +597,20 @@ BOOST_AUTO_TEST_CASE(pollable_contenders_tests) {
                                                 contenders) <= maxPollable);
         BOOST_CHECK(contenders.size() <= maxPollable);
 
-        bool acceptanceLatch = true;
         double lastRank = 0;
+        size_t countAccepted = 0;
         for (const auto &contender : contenders) {
-            // Check if contender is accepted
-            BlockHash dummy;
-            int voteStatus = cache.getVoteStatus(contender, dummy);
-
-            // Accepted contenders should always rank first, so latch off once
-            // we hit our first rejected contender.
-            if (acceptanceLatch && voteStatus != 0) {
-                acceptanceLatch = false;
-                lastRank = 0;
-            }
-            BOOST_CHECK_EQUAL(voteStatus, acceptanceLatch ? 0 : 1);
-
             // Check the contender rank is sorted as we expect
             double rank =
                 contender.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
             BOOST_CHECK(lastRank <= rank);
             lastRank = rank;
+
+            countAccepted += cache.getVoteStatus(contender, dummy) == 0 ? 1 : 0;
         }
+
+        // All accepted contenders should always be returned (up to the max)
+        BOOST_CHECK_EQUAL(countAccepted, std::min(numAccepted, maxPollable));
     }
 }
 

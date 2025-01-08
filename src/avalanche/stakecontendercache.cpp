@@ -173,6 +173,7 @@ size_t StakeContenderCache::getPollableContenders(
         rankedContenders.push_back(&(*it));
     }
 
+    // First sort all contenders with accepted contenders first
     std::sort(rankedContenders.begin(), rankedContenders.end(),
               [](const StakeContenderCacheEntry *left,
                  const StakeContenderCacheEntry *right) {
@@ -192,9 +193,25 @@ size_t StakeContenderCache::getPollableContenders(
                                                 rightRank, right->proofid);
               });
 
-    // Only return up to some maximum number of contenders
-    pollableContenders.clear();
+    // Sort again, only by reward rank, and only up to the max number of
+    // pollable contenders.
     size_t numPollable = std::min(rankedContenders.size(), maxPollable);
+    std::sort(rankedContenders.begin(), rankedContenders.begin() + numPollable,
+              [](const StakeContenderCacheEntry *left,
+                 const StakeContenderCacheEntry *right) {
+                  double leftRank = left->computeRewardRank();
+                  double rightRank = right->computeRewardRank();
+                  const StakeContenderId &leftContenderId =
+                      left->getStakeContenderId();
+                  const StakeContenderId &rightContenderId =
+                      right->getStakeContenderId();
+                  return RewardRankComparator()(leftContenderId, leftRank,
+                                                left->proofid, rightContenderId,
+                                                rightRank, right->proofid);
+              });
+
+    // Only return up to the maximum number of contenders
+    pollableContenders.clear();
     pollableContenders.reserve(numPollable);
     for (size_t i = 0; i < numPollable; i++) {
         pollableContenders.push_back(
