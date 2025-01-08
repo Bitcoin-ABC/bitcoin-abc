@@ -1063,9 +1063,14 @@ bool PeerManager::selectStakingRewardWinner(
 
             double proofRewardRank =
                 proofRewardHash.ComputeProofRewardRank(peer.getScore());
+            // If selectedProof is nullptr, this means that bestRewardRank is
+            // MAX_DOUBLE so the comparison will always select this proof as the
+            // preferred one. As a consequence it is safe to use 0 as a proofid.
             if (RewardRankComparator()(
                     proofRewardHash, proofRewardRank, peer.getProofId(),
-                    bestRewardHash, bestRewardRank, selectedProof->getId())) {
+                    bestRewardHash, bestRewardRank,
+                    selectedProof ? selectedProof->getId()
+                                  : ProofId(uint256::ZERO))) {
                 bestRewardRank = proofRewardRank;
                 selectedProof = peer.proof;
                 selectedProofRegistrationTime = peer.registration_time.count();
