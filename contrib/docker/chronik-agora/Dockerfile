@@ -1,4 +1,5 @@
-FROM bitcoinabc/bitcoin-abc-dev:0.30.8 AS builder
+ARG VERSION=latest
+FROM bitcoinabc/bitcoin-abc-dev:$VERSION AS builder
 
 WORKDIR /installed
 WORKDIR /bitcoin-abc/build
