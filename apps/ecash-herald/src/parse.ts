@@ -3378,33 +3378,14 @@ export const summarizeTxHistory = (
 
     // Agora partials
     if (agoraTxs > 0) {
-        // Zero out counters for sorting purposes
-        agoraActions.forEach((agoraActionInfo, tokenId) => {
-            // Note we do not check adPrep as any token with adPrep has listing
-            const { buy, list, cancel } = agoraActionInfo;
-
-            if (typeof buy === 'undefined') {
-                // Define buy count and volume as 0 for tokens without any buys
-                // In this way we can assert these values exist in the sort
-                agoraActionInfo.buy = { count: 0, volume: 0 };
-            }
-            if (typeof list === 'undefined') {
-                // Define list count as 0 for tokens without any listings
-                agoraActionInfo.list = { count: 0 };
-            }
-            if (typeof cancel === 'undefined') {
-                // Define cancel count as 0 for tokens without any cancellations
-                agoraActionInfo.cancel = { count: 0 };
-            }
-            agoraActions.set(tokenId, agoraActionInfo);
-        });
-
         // Sort agoraActions by volume
         const sortedAgoraActions = new Map(
             [...agoraActions.entries()].sort(
-                (keyValueArrayA, keyValueArrayB) =>
-                    keyValueArrayB[1].buy!.volume -
-                    keyValueArrayA[1].buy!.volume,
+                (keyValueArrayA, keyValueArrayB) => {
+                    const volA = keyValueArrayA[1].buy?.volume ?? 0;
+                    const volB = keyValueArrayB[1].buy?.volume ?? 0;
+                    return volB - volA;
+                },
             ),
         );
 
@@ -3471,28 +3452,28 @@ export const summarizeTxHistory = (
                         ? ` (${genesisInfo.tokenTicker})`
                         : ''
                 }: ${
-                    buy!.count > 0
+                    typeof buy !== 'undefined'
                         ? `${config.emojis.agoraBuy}${
-                              buy!.count > 1 ? `x${buy!.count}` : ''
+                              buy.count > 1 ? `x${buy.count}` : ''
                           }${
                               typeof buy!.volume !== 'undefined'
                                   ? ` (${satsToFormattedValue(
-                                        buy!.volume,
+                                        buy.volume,
                                         xecPriceUsd,
                                     )})`
                                   : ''
                           }`
                         : ''
                 }${
-                    list!.count > 0
+                    typeof list !== 'undefined'
                         ? `${config.emojis.agoraList}${
-                              list!.count > 1 ? `x${list!.count}` : ''
+                              list.count > 1 ? `x${list.count}` : ''
                           }`
                         : ''
                 }${
-                    cancel!.count > 0
+                    typeof cancel !== 'undefined'
                         ? `${config.emojis.agoraCancel}${
-                              cancel!.count > 1 ? `x${cancel!.count}` : ''
+                              cancel.count > 1 ? `x${cancel.count}` : ''
                           }`
                         : ''
                 }`,
@@ -3503,28 +3484,14 @@ export const summarizeTxHistory = (
     }
     // Agora ONESHOT (NFTs)
     if (agoraOneshotTxs > 0) {
-        // Zero out counters for sorting purposes
-        nftAgoraActions.forEach((agoraActionInfo, tokenId) => {
-            // Note we do not check adPrep as any token with adPrep has listing
-            const { buy, list, cancel } = agoraActionInfo;
-
-            if (typeof buy === 'undefined') {
-                agoraActionInfo.buy = { count: 0 };
-            }
-            if (typeof list === 'undefined') {
-                agoraActionInfo.list = { count: 0 };
-            }
-            if (typeof cancel === 'undefined') {
-                agoraActionInfo.cancel = { count: 0 };
-            }
-            nftAgoraActions.set(tokenId, agoraActionInfo);
-        });
-
         // Sort agoraActions by buys
         const sortedNftAgoraActions = new Map(
             [...nftAgoraActions.entries()].sort(
-                (keyValueArrayA, keyValueArrayB) =>
-                    keyValueArrayB[1].buy.count - keyValueArrayA[1].buy.count,
+                (keyValueArrayA, keyValueArrayB) => {
+                    const buyCountA = keyValueArrayA[1].buy?.count ?? 0;
+                    const buyCountB = keyValueArrayB[1].buy?.count ?? 0;
+                    return buyCountB - buyCountA;
+                },
             ),
         );
 
@@ -3586,7 +3553,7 @@ export const summarizeTxHistory = (
                         ? ` (${genesisInfo.tokenTicker})`
                         : ''
                 }: ${
-                    buy.count > 0
+                    typeof buy !== 'undefined'
                         ? `${config.emojis.agoraBuy}${
                               buy.count > 1 ? `x${buy.count}` : ''
                           }${
@@ -3599,13 +3566,13 @@ export const summarizeTxHistory = (
                           }`
                         : ''
                 }${
-                    list.count > 0
+                    typeof list !== 'undefined'
                         ? `${config.emojis.agoraList}${
                               list.count > 1 ? `x${list.count}` : ''
                           }`
                         : ''
                 }${
-                    cancel.count > 0
+                    typeof cancel !== 'undefined'
                         ? `${config.emojis.agoraCancel}${
                               cancel.count > 1 ? `x${cancel.count}` : ''
                           }`
