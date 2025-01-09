@@ -241,7 +241,9 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see the token name and ticker above its PartialOffer after OrderBooks load
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Cachet (CACHET)', {}, { timeout: 3000 }),
+        ).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(
@@ -771,7 +773,9 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see all token names and tickers above their PartialOffers
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Cachet (CACHET)', {}, { timeout: 3000 }),
+        ).toBeInTheDocument();
         expect(await screen.findByText('Bull (BULL)')).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button

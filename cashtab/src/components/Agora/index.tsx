@@ -30,6 +30,37 @@ interface ServerBlacklistResponse {
     tokenIds: string[];
 }
 
+const askPolitelyForTokenInfo = async (
+    promises: Promise<void>[],
+    requestLimit: number,
+    intervalMs: number,
+) => {
+    if (!Array.isArray(promises) || promises.length === 0) {
+        return;
+    }
+    const requests = promises.length;
+    const batchSize = Math.floor(requests / requestLimit);
+    const batchCount = Math.floor(requests / batchSize) + 1;
+    for (let i = 0; i < batchCount; i++) {
+        const batchStart = i * batchSize;
+        const thisBatch =
+            i === batchCount - 1
+                ? // The last batch is whatever is left in the array
+                  promises.slice(batchStart)
+                : // Other batches are batchsize entries starting from i
+                  promises.slice(batchStart, batchStart + batchSize);
+
+        await Promise.all(thisBatch);
+
+        // Wait intervalMs before asking again
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+};
+
+// Params for batching requests to chronik on the Agora screen
+const POLITE_REQUEST_LIMIT = 200;
+const POLITE_INTERVAL_MS = 2000;
+
 const Agora: React.FC = () => {
     const userLocale = getUserLocale(navigator);
     const ContextValue = useContext(WalletContext);
@@ -44,6 +75,9 @@ const Agora: React.FC = () => {
     const wallet = wallets[0];
     const pk = (wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo)
         .pk;
+
+    // Use a state param to keep track of how many orderbooks we load at once
+    const [loadedOrderBooksCount, setLoadedOrderBooksCount] = useState(0);
 
     // active agora partial offers organized for rendering this screen
     const [activeOffersCashtab, setActiveOffersCashtab] =
@@ -130,6 +164,35 @@ const Agora: React.FC = () => {
             }
         }
     }, [allOrderBooksLoaded, switches]);
+
+    useEffect(() => {
+        if (activeOffersCashtab === null || allOrderBooksLoaded) {
+            // Do nothing if we have no active offers or if everything is loaded
+            return;
+        }
+
+        const loadMoreOrderBooks = () => {
+            setLoadedOrderBooksCount(prevCount => {
+                const newCount = prevCount + POLITE_REQUEST_LIMIT;
+                // Only increase if there are more to load
+                if (
+                    newCount <=
+                    activeOffersCashtab.offeredFungibleTokenIds.length
+                ) {
+                    return newCount;
+                }
+                // Clear the interval when all are loaded
+                clearInterval(intervalId);
+                // Use the total when we get there
+                return activeOffersCashtab.offeredFungibleTokenIds.length;
+            });
+        };
+
+        const intervalId = setInterval(loadMoreOrderBooks, POLITE_INTERVAL_MS);
+
+        // Clean up the interval when component unmounts or when all order books are loaded
+        return () => clearInterval(intervalId);
+    }, [activeOffersCashtab, allOrderBooksLoaded]);
 
     /**
      * Specialized helper function to support use of Promise.all in adding new tokens to cache
@@ -261,7 +324,11 @@ const Agora: React.FC = () => {
             );
         }
         try {
-            await Promise.all(tokenInfoPromises);
+            await askPolitelyForTokenInfo(
+                tokenInfoPromises,
+                POLITE_REQUEST_LIMIT,
+                POLITE_INTERVAL_MS,
+            );
         } catch (err) {
             console.error(`Error in Promise.all(tokenInfoPromises)`, err);
             // Cache will not be updated, token names and IDs will show spinners
@@ -439,8 +506,12 @@ const Agora: React.FC = () => {
                                             .offeredFungibleTokenIds.length >
                                         0 ? (
                                             <OfferTable>
-                                                {activeOffersCashtab.offeredFungibleTokenIds.map(
-                                                    offeredTokenId => {
+                                                {activeOffersCashtab.offeredFungibleTokenIds
+                                                    .slice(
+                                                        0,
+                                                        loadedOrderBooksCount,
+                                                    )
+                                                    .map(offeredTokenId => {
                                                         return (
                                                             <OrderBook
                                                                 key={
@@ -457,8 +528,7 @@ const Agora: React.FC = () => {
                                                                 }
                                                             />
                                                         );
-                                                    },
-                                                )}
+                                                    })}
                                             </OfferTable>
                                         ) : (
                                             <p>
