@@ -4,7 +4,7 @@
 
 //! Module for [`ChronikElectrumServer`].
 
-use std::{net::SocketAddr, sync::Arc};
+use std::{cmp, net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
@@ -334,19 +334,19 @@ impl ChronikElectrumRPCServerEndpoint {
     }
 }
 
-fn json_to_block_height(height: Value) -> Result<i32, RPCError> {
-    let err_msg = "Invalid height".to_string();
-    let height = match height {
+fn json_to_u31(num: Value, err_msg: &str) -> Result<i32, RPCError> {
+    let err_msg = err_msg.to_string();
+    let num = match num {
         Value::Number(h) => Ok(h),
         _ => Err(RPCError::CustomError(1, err_msg.clone())),
     }?;
-    let height = height
+    let num = num
         .as_i64()
         .ok_or(RPCError::CustomError(1, err_msg.clone()))?;
-    if height < 0 {
+    if num < 0 {
         return Err(RPCError::CustomError(1, err_msg));
     }
-    i32::try_from(height).map_err(|_| RPCError::CustomError(1, err_msg))
+    i32::try_from(num).map_err(|_| RPCError::CustomError(1, err_msg))
 }
 
 fn be_bytes_to_le_hex(hash: &[u8]) -> String {
@@ -358,13 +358,12 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     #[rpc_method(name = "block.header")]
     async fn block_header(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 2);
-        let height = json_to_block_height(get_param!(params, 0, "height")?)?;
-        let checkpoint_height = json_to_block_height(get_optional_param!(
-            params,
-            1,
-            "cp_height",
-            json!(0)
-        )?)?;
+        let height =
+            json_to_u31(get_param!(params, 0, "height")?, "Invalid height")?;
+        let checkpoint_height = json_to_u31(
+            get_optional_param!(params, 1, "cp_height", json!(0))?,
+            "Invalid cp_height",
+        )?;
 
         let indexer = self.indexer.read().await;
         let blocks = indexer.blocks(&self.node);
@@ -405,6 +404,95 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 "branch": branch,
                 "header": hex::encode(proto_header.raw_header) ,
                 "root": be_bytes_to_le_hex(&proto_header.root),
+            }))
+        }
+    }
+
+    #[rpc_method(name = "block.headers")]
+    async fn block_headers(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 3);
+        let start_height = json_to_u31(
+            get_param!(params, 0, "start_height")?,
+            "Invalid height",
+        )?;
+        let max_count = 2016;
+        let mut count =
+            json_to_u31(get_param!(params, 1, "count")?, "Invalid count")?;
+        count = cmp::min(count, max_count);
+        let checkpoint_height = json_to_u31(
+            get_optional_param!(params, 2, "cp_height", json!(0))?,
+            "Invalid cp_height",
+        )?;
+
+        let indexer = self.indexer.read().await;
+        let blocks = indexer.blocks(&self.node);
+
+        let end_height = start_height + count - 1;
+        let tip_height = blocks
+            .blockchain_info()
+            .map_err(|_| RPCError::InternalError)?
+            .tip_height;
+        if checkpoint_height > 0
+            && (end_height > checkpoint_height
+                || checkpoint_height > tip_height)
+        {
+            return Err(RPCError::CustomError(
+                1,
+                format!(
+                    "header height + (count - 1) {end_height} must be <= \
+                     cp_height {checkpoint_height} which must be <= chain \
+                     height {tip_height}"
+                ),
+            ));
+        }
+
+        if count == 0 {
+            return Ok(json!({
+                "count": 0,
+                "hex": "",
+                "max": max_count,
+            }));
+        }
+
+        // The RPC may return less headers than requested when there aren't
+        // enough blocks in the chain.
+        count = cmp::min(count, tip_height - start_height + 1);
+        let proto_headers = blocks
+            .headers_by_range(
+                start_height,
+                start_height + count - 1,
+                checkpoint_height,
+            )
+            .await
+            .map_err(|_| RPCError::InternalError)?;
+        let headers_hex = proto_headers
+            .headers
+            .iter()
+            .map(|proto_header| hex::encode(&proto_header.raw_header))
+            .collect::<String>();
+
+        if checkpoint_height == 0 {
+            Ok(json!({
+                "count": count,
+                "hex": headers_hex,
+                "max": max_count,
+            }))
+        } else {
+            let last_header = proto_headers
+                .headers
+                .last()
+                .ok_or(RPCError::InternalError)?;
+            let branch: Vec<String> = last_header
+                .branch
+                .iter()
+                .map(|h| be_bytes_to_le_hex(h))
+                .collect();
+            Ok(json!({
+                "branch": branch,
+                "count": count,
+                "hex": headers_hex,
+                "max": max_count,
+                "root": be_bytes_to_le_hex(&last_header.root),
             }))
         }
     }

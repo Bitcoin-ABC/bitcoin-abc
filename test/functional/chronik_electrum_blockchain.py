@@ -192,6 +192,10 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         headers = [self.node.getblockheader(bh, False) for bh in block_hashes]
         tip_height = len(headers) - 1
 
+        max_int32 = 2**31 - 1
+        max_int64 = 2**63 - 1
+
+        self.log.info("Testing the blockchain.block.header RPC")
         response = self.client.blockchain.block.header(0)
         assert_equal(response.result, headers[0])
 
@@ -210,21 +214,33 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             },
         )
 
-        for response in (
-            self.client.blockchain.block.header("toto"),
-            self.client.blockchain.block.header(-1),
-            self.client.blockchain.block.header(2**31),
-            self.client.blockchain.block.header(2**63),
-        ):
-            assert_equal(
-                response.error,
-                {
-                    "code": 1,
-                    "message": "Invalid height",
-                },
-            )
+        for bh in ("toto", -1, max_int32 + 1, max_int64, max_int64 + 1):
+            for rpc_call in (
+                lambda h: self.client.blockchain.block.header(h),
+                lambda h: self.client.blockchain.block.headers(start_height=h, count=0),
+            ):
+                assert_equal(
+                    rpc_call(bh).error,
+                    {
+                        "code": 1,
+                        "message": "Invalid height",
+                    },
+                )
 
-        for bh in (2**31 - 1, tip_height + 1):
+        for cp_height in ("toto", -1, max_int32 + 1, max_int64, max_int64 + 1):
+            for rpc_call in (
+                lambda h: self.client.blockchain.block.header(0, h),
+                lambda h: self.client.blockchain.block.headers(0, 10, h),
+            ):
+                assert_equal(
+                    rpc_call(cp_height).error,
+                    {
+                        "code": 1,
+                        "message": "Invalid cp_height",
+                    },
+                )
+
+        for bh in (max_int32, tip_height + 1):
             assert_equal(
                 self.client.blockchain.block.header(bh).error,
                 {
@@ -240,6 +256,88 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 "message": f"header height 2 must be <= cp_height 1 which must be <= chain height {tip_height}",
             },
         )
+
+        self.log.info("Testing the blockchain.block.headers RPC")
+        # Fulcrum basically just ignores the other parameters when count = 0,
+        # unless they reach a much higher limit than tip_height.
+        for start_height in (0, 5, max_int32):
+            # Note that Fulcrum has a lower hard limit than max int32 start_height
+            # before returning a RPC error: Storage::MAX_HEADERS = 100'000'000.
+            # So it is a minor difference in behavior to not error in such a case for
+            # 100'000'000 < start_height <= 2**31
+            count = 0
+            assert_equal(
+                self.client.blockchain.block.headers(start_height, count).result,
+                {"count": 0, "hex": "", "max": 2016},
+            )
+
+        for bh in range(0, tip_height + 1):
+            assert_equal(
+                self.client.blockchain.block.headers(start_height=bh, count=1).result,
+                {"count": 1, "hex": headers[bh], "max": 2016},
+            )
+
+        start_height = 5
+        count = 6
+        assert_equal(
+            self.client.blockchain.block.headers(start_height, count).result,
+            {
+                "count": 6,
+                "hex": "".join(headers[start_height : start_height + count]),
+                "max": 2016,
+            },
+        )
+
+        cp_height = 21
+        root, branch = merkle_root_and_branch(
+            block_hashes_bytes[: cp_height + 1], start_height + count - 1
+        )
+        assert_equal(
+            self.client.blockchain.block.headers(start_height, count, cp_height).result,
+            {
+                "branch": [h[::-1].hex() for h in branch],
+                "count": 6,
+                "hex": "".join(headers[start_height : start_height + count]),
+                "max": 2016,
+                "root": root[::-1].hex(),
+            },
+        )
+
+        # The RPC may return less than {count} headers if the chain is not long enough
+        start_height = 4
+        for excessive_count in (tip_height - start_height + 2, max_int32):
+            response = self.client.blockchain.block.headers(
+                start_height, excessive_count
+            )
+            assert_equal(
+                response.result,
+                {
+                    "count": tip_height - start_height + 1,
+                    "hex": "".join(headers[start_height:]),
+                    "max": 2016,
+                },
+            )
+
+        for count in ("toto", -1, max_int32 + 1, max_int64, max_int64 + 1):
+            assert_equal(
+                self.client.blockchain.block.headers(0, count).error,
+                {
+                    "code": 1,
+                    "message": "Invalid count",
+                },
+            )
+
+        for cp_height in (1, 8, tip_height + 1, max_int32):
+            assert_equal(
+                self.client.blockchain.block.headers(0, 10, cp_height).error,
+                {
+                    "code": 1,
+                    "message": (
+                        f"header height + (count - 1) 9 must be <= cp_height {cp_height} "
+                        f"which must be <= chain height {tip_height}"
+                    ),
+                },
+            )
 
 
 if __name__ == "__main__":
