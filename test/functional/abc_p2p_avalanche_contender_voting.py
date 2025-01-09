@@ -158,7 +158,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Advance time past the staking rewards minimum registration delay and
         # mine a block.
-        now += 60 * 60 + 1
+        now += 90 * 60 + 1
         node.setmocktime(now)
         tip = self.generate(node, 1)[0]
 

@@ -2555,6 +2555,79 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         StakeContenderId(chaintip->GetBlockHash(), proofid2);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block3),
                       -1);
+
+    // Generate a bunch of flaky proofs
+    size_t numProofs = 8;
+    std::vector<ProofRef> proofs;
+    proofs.reserve(numProofs);
+    for (size_t i = 0; i < numProofs; i++) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        const ProofId proofid = proof->getId();
+        m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            pm.registerProof(proof);
+            // Make it a remote proof so that it will be promoted
+            pm.saveRemoteProof(proofid, i, true);
+            BOOST_CHECK(pm.forPeer(proofid, [&](const Peer peer) {
+                return pm.setFinalized(peer.peerid);
+            }));
+        });
+
+        {
+            LOCK(cs_main);
+            // Add it as a stake contender so it will be promoted
+            m_processor->addStakeContender(proof);
+        }
+
+        proofs.emplace_back(std::move(proof));
+    }
+
+    // Add nodes only for the first proof so we have a quorum
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        const ProofId proofid = proofs[0]->getId();
+        for (NodeId n = 0; n < 8; n++) {
+            pm.addNode(n, proofid);
+        }
+    });
+
+    // Make proofs old enough to be considered for staking rewards
+    now += 1h + 1s;
+    SetMockTime(now);
+
+    // Try a few times in case the non-flaky proof get selected as winner
+    std::vector<CScript> winners;
+    for (int attempt = 0; attempt < 10; attempt++) {
+        // Advance chaintip so the proofs are older than the last block time
+        block = CreateAndProcessBlock({}, CScript());
+        chaintip = WITH_LOCK(
+            cs_main, return Assert(m_node.chainman)
+                         ->m_blockman.LookupBlockIndex(block.GetHash()));
+        AvalancheTest::updatedBlockTip(*m_processor);
+
+        // Compute local stake winner
+        BOOST_CHECK(m_processor->isQuorumEstablished());
+        BOOST_CHECK(m_processor->computeStakingReward(chaintip));
+        BOOST_CHECK(m_processor->getStakingRewardWinners(
+            chaintip->GetBlockHash(), winners));
+        if (winners.size() == 8) {
+            break;
+        }
+    }
+
+    BOOST_CHECK(winners.size() == 8);
+
+    // Verify that all winners were accepted
+    size_t numAccepted = 0;
+    for (const auto &proof : proofs) {
+        const ProofId proofid = proof->getId();
+        const StakeContenderId contender =
+            StakeContenderId(chaintip->GetBlockHash(), proofid);
+        if (m_processor->getStakeContenderStatus(contender) == 0) {
+            numAccepted++;
+            BOOST_CHECK(std::find(winners.begin(), winners.end(),
+                                  proof->getPayoutScript()) != winners.end());
+        }
+    }
+    BOOST_CHECK_EQUAL(winners.size(), numAccepted);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

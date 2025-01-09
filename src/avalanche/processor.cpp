@@ -1059,9 +1059,11 @@ void Processor::setContenderStatusForLocalWinner(const CBlockIndex *pindex) {
         return;
     }
 
-    const StakeContenderId contenderId(prevblockhash, winners[0].first);
     LOCK(cs_stakeContenderCache);
-    stakeContenderCache.finalize(contenderId);
+    for (const auto &winner : winners) {
+        const StakeContenderId contenderId(prevblockhash, winner.first);
+        stakeContenderCache.finalize(contenderId);
+    }
 }
 
 void Processor::updatedBlockTip() {
