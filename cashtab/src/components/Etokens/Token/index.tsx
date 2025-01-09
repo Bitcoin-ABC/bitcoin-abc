@@ -2444,18 +2444,7 @@ const Token: React.FC = () => {
                             <OrderBook
                                 tokenId={tokenId as string}
                                 noIcon
-                                cachedTokenInfo={cashtabCache.tokens.get(
-                                    tokenId,
-                                )}
-                                settings={settings}
                                 userLocale={userLocale}
-                                fiatPrice={fiatPrice}
-                                activePk={pk}
-                                wallet={wallet}
-                                ecc={ecc}
-                                chronik={chronik}
-                                agora={agora}
-                                chaintipBlockheight={chaintipBlockheight}
                             />
                         )}
                     {isNftParent && nftTokenIds.length > 0 && (

@@ -21,8 +21,9 @@
  * This component is tested in the tests for its parent component, Agora/index.js
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import BigNumber from 'bignumber.js';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Slider } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { InlineLoader } from 'components/Common/Spinner';
@@ -36,9 +37,9 @@ import {
     hasEnoughToken,
     DUMMY_KEYPAIR,
     toBigInt,
-    CashtabWallet,
     SlpDecimals,
     undecimalizeTokenAmount,
+    CashtabPathInfo,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import {
@@ -81,7 +82,6 @@ import {
     ALL_BIP143,
     toHex,
     fromHex,
-    Ecc,
     shaRmd160,
     Address,
 } from 'ecash-lib';
@@ -90,10 +90,7 @@ import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
-import { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import CashtabSettings from 'config/CashtabSettings';
-import { Agora, AgoraOffer, AgoraPartial } from 'ecash-agora';
-import { ChronikClient } from 'chronik-client';
+import { AgoraOffer, AgoraPartial } from 'ecash-agora';
 import { IsMintAddressIcon } from 'components/Common/CustomIcons';
 
 export interface PartialOffer extends AgoraOffer {
@@ -127,36 +124,46 @@ export interface OrderBookInfo {
     spotPriceNanoSatsPerTokenSat: bigint;
 }
 
-interface OrderBookProps {
+export interface OrderBookProps {
     tokenId: string;
-    cachedTokenInfo: CashtabCachedTokenInfo | undefined;
-    settings: CashtabSettings;
     userLocale: string;
-    fiatPrice: null | number;
-    activePk: null | Uint8Array;
-    wallet: CashtabWallet;
-    ecc: Ecc;
-    chronik: ChronikClient;
-    agora: Agora;
-    chaintipBlockheight: number;
     noIcon?: boolean;
     orderBookInfoMap?: Map<string, OrderBookInfo>;
 }
 const OrderBook: React.FC<OrderBookProps> = ({
     tokenId,
-    cachedTokenInfo,
-    settings,
     userLocale,
-    fiatPrice,
-    activePk,
-    wallet,
-    ecc,
-    chronik,
-    agora,
-    chaintipBlockheight,
     noIcon,
     orderBookInfoMap,
 }) => {
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
+    const {
+        ecc,
+        fiatPrice,
+        chronik,
+        agora,
+        cashtabState,
+        chaintipBlockheight,
+    } = ContextValue;
+    const { wallets, settings, cashtabCache } = cashtabState;
+    if (wallets.length === 0 || typeof wallets[0].paths === 'undefined') {
+        // Note that, in the app, we will never render this component without wallets[0] as a loaded wallet
+        // Because the App component will only show OnBoarding in this case
+        // But because we directly test this component with context, we must handle this case
+        return null;
+    }
+
+    const wallet = wallets[0];
+    const activePk = (
+        wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo
+    ).pk;
+
+    const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
+
     const cancelOffer = async (agoraPartial: PartialOffer) => {
         // Get user fee from settings
         const satsPerKb =

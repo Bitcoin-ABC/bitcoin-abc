@@ -81,11 +81,12 @@ export interface CashtabWalletState {
 export interface CashtabTx extends Tx {
     parsed: ParsedTx;
 }
-export interface RequiredCashtabPathInfo {
-    1899: CashtabPathInfo; // This ensures 1899 is always defined
+export interface CashtabWalletPaths extends Map<number, CashtabPathInfo> {
+    // Assert that path 1899, the default path, is always defined
+    get(key: 1899): CashtabPathInfo;
+    // For all other keys, it might return undefined
+    get(key: number): CashtabPathInfo | undefined;
 }
-export type CashtabWalletPaths = Map<number, CashtabPathInfo> &
-    RequiredCashtabPathInfo;
 export interface CashtabWallet {
     name: string;
     mnemonic: string;

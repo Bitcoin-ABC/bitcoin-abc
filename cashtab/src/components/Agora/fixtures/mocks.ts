@@ -5,7 +5,11 @@
 import appConfig from 'config/app';
 import { fromHex, Script } from 'ecash-lib';
 import { AgoraPartial, AgoraOffer, AgoraOneshot } from 'ecash-agora';
-import CashtabCache from 'config/CashtabCache';
+import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { CashtabPathInfo, CashtabWallet, CashtabWalletPaths } from 'wallet';
+import { XecTxType } from 'chronik';
+import { RenderedTokenType } from 'token-protocols';
+import { TokenType } from 'chronik-client';
 
 /**
  * Mocks for the Agora screen
@@ -14,7 +18,7 @@ import CashtabCache from 'config/CashtabCache';
  */
 
 // Real wallet with a (trace) balance on 20241017 if anyone wants it 👀
-export const agoraPartialAlphaWallet = {
+export const agoraPartialAlphaWallet: CashtabWallet = {
     state: {
         balanceSats: 420000,
         slpUtxos: [
@@ -150,6 +154,10 @@ export const agoraPartialAlphaWallet = {
                             isMintBaton: false,
                             entryIdx: 0,
                         },
+                        spentBy: {
+                            txid: '9f685edca7c87da35d549588856e93b9facc9b22a629797bf179f5db5c6d6fdb',
+                            outIdx: 0,
+                        },
                     },
                     {
                         value: 546,
@@ -172,10 +180,14 @@ export const agoraPartialAlphaWallet = {
                         value: 10015,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        spentBy: {
+                            txid: '022638086f4dc137e3f7ac9742c57bea2ea84958f45a340c6cdfd0b42525cc01',
+                            outIdx: 0,
+                        },
                     },
                 ],
                 lockTime: 0,
-                timeFirstSeen: 1729116118,
+                timeFirstSeen: 0,
                 size: 467,
                 isCoinbase: false,
                 tokenEntries: [
@@ -198,8 +210,17 @@ export const agoraPartialAlphaWallet = {
                 ],
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NORMAL',
+                isFinal: true,
+                block: {
+                    height: 866879,
+                    hash: '000000000000000009a32a42dc38d4efc6cf71896210ac38427bf76538ce2970',
+                    timestamp: 1729116180,
+                },
                 parsed: {
-                    xecTxType: 'Received',
+                    recipients: [
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ],
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -209,10 +230,19 @@ export const agoraPartialAlphaWallet = {
                         '0000000000000bb8',
                         '0000000001403c77',
                     ],
-                    recipients: [
-                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
+                            renderedTxType: 'SEND',
+                            renderedTokenType: 'SLP' as RenderedTokenType,
+                            tokenSatoshis: '3000',
+                        },
                     ],
+                    replyAddress:
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 },
             },
             {
@@ -386,6 +416,10 @@ export const agoraPartialAlphaWallet = {
                             isMintBaton: false,
                             entryIdx: 0,
                         },
+                        spentBy: {
+                            txid: '4e7dbfb238723985eeb0b9fb8eeaa1556345e1ad7a6a18c6036938a9ef0e6f4b',
+                            outIdx: 0,
+                        },
                     },
                     {
                         value: 546,
@@ -403,15 +437,23 @@ export const agoraPartialAlphaWallet = {
                             isMintBaton: false,
                             entryIdx: 0,
                         },
+                        spentBy: {
+                            txid: '40c5a257a9797bf9cb44f0f1fe7ee08d732a151c70f1a038487bac4a431b7787',
+                            outIdx: 0,
+                        },
                     },
                     {
                         value: 1153,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                        spentBy: {
+                            txid: 'a57b6b00b328f0c6a916f6469dcc4e05ab202e7eca82f4cda5dbd736064910d9',
+                            outIdx: 1,
+                        },
                     },
                 ],
                 lockTime: 0,
-                timeFirstSeen: 1729116092,
+                timeFirstSeen: 0,
                 size: 1031,
                 isCoinbase: false,
                 tokenEntries: [
@@ -434,8 +476,16 @@ export const agoraPartialAlphaWallet = {
                 ],
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NORMAL',
+                isFinal: true,
+                block: {
+                    height: 866879,
+                    hash: '000000000000000009a32a42dc38d4efc6cf71896210ac38427bf76538ce2970',
+                    timestamp: 1729116180,
+                },
                 parsed: {
-                    xecTxType: 'Received',
+                    recipients: [
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    ],
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -445,9 +495,19 @@ export const agoraPartialAlphaWallet = {
                         '00000000000186a0',
                         '00000000000053e2',
                     ],
-                    recipients: [
-                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                            renderedTxType: 'SEND',
+                            renderedTokenType: 'SLP' as RenderedTokenType,
+                            tokenSatoshis: '100000',
+                        },
                     ],
+                    replyAddress:
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
                 },
             },
             {
@@ -472,27 +532,45 @@ export const agoraPartialAlphaWallet = {
                         value: 4200,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
+                        spentBy: {
+                            txid: '4e7dbfb238723985eeb0b9fb8eeaa1556345e1ad7a6a18c6036938a9ef0e6f4b',
+                            outIdx: 1,
+                        },
                     },
                     {
                         value: 274781657,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                        spentBy: {
+                            txid: '8880046b7b34da75f405abf8e76237082ed83f6a6293b378f83629320bf57097',
+                            outIdx: 7,
+                        },
                     },
                 ],
                 lockTime: 0,
-                timeFirstSeen: 1729116036,
+                timeFirstSeen: 0,
                 size: 219,
                 isCoinbase: false,
                 tokenEntries: [],
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                isFinal: true,
+                block: {
+                    height: 866879,
+                    hash: '000000000000000009a32a42dc38d4efc6cf71896210ac38427bf76538ce2970',
+                    timestamp: 1729116180,
+                },
                 parsed: {
-                    xecTxType: 'Received',
-                    satoshisSent: 4200,
-                    stackArray: [],
                     recipients: [
                         'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
                     ],
+                    satoshisSent: 4200,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
                 },
             },
         ],
@@ -502,7 +580,6 @@ export const agoraPartialAlphaWallet = {
     paths: new Map([
         [
             1899,
-
             {
                 hash: '03b830e4b9dce347f3495431e1f9d1005f4b4204',
                 address: 'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
@@ -515,11 +592,12 @@ export const agoraPartialAlphaWallet = {
                 ),
             },
         ],
-    ]),
+    ]) as CashtabWalletPaths,
     name: 'Agora Partial Alpha',
 };
+
 // Real wallet with a (trace) balance on 20241017 if anyone wants it 👀
-export const agoraPartialBetaWallet = {
+export const agoraPartialBetaWallet: CashtabWallet = {
     state: {
         balanceSats: 4200,
         slpUtxos: [
@@ -630,6 +708,10 @@ export const agoraPartialBetaWallet = {
                             isMintBaton: false,
                             entryIdx: 0,
                         },
+                        spentBy: {
+                            txid: 'fd270cb74f14716d081bbbe26bdfcc9c9fa69bffaaeca5112de4536a0321428f',
+                            outIdx: 0,
+                        },
                     },
                     {
                         value: 546,
@@ -652,10 +734,14 @@ export const agoraPartialBetaWallet = {
                         value: 6610,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
+                        spentBy: {
+                            txid: 'e7f979874d45486551c68af6f47ed5da1a54a1501f43d99d7c978bd742671813',
+                            outIdx: 0,
+                        },
                     },
                 ],
                 lockTime: 0,
-                timeFirstSeen: 1729122723,
+                timeFirstSeen: 0,
                 size: 467,
                 isCoinbase: false,
                 tokenEntries: [
@@ -678,8 +764,16 @@ export const agoraPartialBetaWallet = {
                 ],
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NORMAL',
+                isFinal: true,
+                block: {
+                    height: 866880,
+                    hash: '000000000000000001a9b420dcbe36dc1ecd1ba4e008b20af522c89d360befa4',
+                    timestamp: 1729123374,
+                },
                 parsed: {
-                    xecTxType: 'Received',
+                    recipients: [
+                        'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
+                    ],
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -689,9 +783,19 @@ export const agoraPartialBetaWallet = {
                         '0000000000007530',
                         '0000000000009c40',
                     ],
-                    recipients: [
-                        'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                            renderedTxType: 'SEND',
+                            renderedTokenType: 'SLP' as RenderedTokenType,
+                            tokenSatoshis: '30000',
+                        },
                     ],
+                    replyAddress:
+                        'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
                 },
             },
             {
@@ -728,27 +832,45 @@ export const agoraPartialBetaWallet = {
                         value: 4200,
                         outputScript:
                             '76a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac',
+                        spentBy: {
+                            txid: 'fd270cb74f14716d081bbbe26bdfcc9c9fa69bffaaeca5112de4536a0321428f',
+                            outIdx: 1,
+                        },
                     },
                     {
                         value: 2492,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        spentBy: {
+                            txid: '94726171bf522089663c3ee758d7934c5c691a6b3428971a483f33d2b9266cac',
+                            outIdx: 1,
+                        },
                     },
                 ],
                 lockTime: 0,
-                timeFirstSeen: 1729122695,
+                timeFirstSeen: 0,
                 size: 360,
                 isCoinbase: false,
                 tokenEntries: [],
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                isFinal: true,
+                block: {
+                    height: 866880,
+                    hash: '000000000000000001a9b420dcbe36dc1ecd1ba4e008b20af522c89d360befa4',
+                    timestamp: 1729123374,
+                },
                 parsed: {
-                    xecTxType: 'Received',
-                    satoshisSent: 4200,
-                    stackArray: [],
                     recipients: [
                         'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
                     ],
+                    satoshisSent: 4200,
+                    stackArray: [],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [],
+                    replyAddress:
+                        'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
                 },
             },
         ],
@@ -770,12 +892,16 @@ export const agoraPartialBetaWallet = {
                 ),
             },
         ],
-    ]),
+    ]) as CashtabWalletPaths,
     name: 'Agora Partial Beta',
 };
 
 export const agoraPartialAlphaKeypair = {
-    sk: agoraPartialAlphaWallet.paths.get(appConfig.derivationPath).sk,
+    sk: (
+        agoraPartialAlphaWallet.paths.get(
+            appConfig.derivationPath,
+        ) as CashtabPathInfo
+    ).sk,
 
     // Hardcoded for easier mock management
     // Got this by console.logging toHex(ecc.derivePubkey(agoraPartialAlphaKeypair))
@@ -785,7 +911,11 @@ export const agoraPartialAlphaKeypair = {
 };
 
 export const agoraPartialBetaKeypair = {
-    sk: agoraPartialBetaWallet.paths.get(appConfig.derivationPath).sk,
+    sk: (
+        agoraPartialBetaWallet.paths.get(
+            appConfig.derivationPath,
+        ) as CashtabPathInfo
+    ).sk,
 
     pk: fromHex(
         '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
@@ -1529,6 +1659,136 @@ export const CachedCachet = {
     },
 };
 
+export const tokenMockXecx = {
+    tokenId: 'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+    tx: {
+        txid: 'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '9ed5901319cad00e59099d09d8bbf51e2fdf99355652328a28958f2a39679866',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '417c385fcf803ce611628beaf13449e1781116dff0a822d7798fe63ead1c15076d9557e3ff45eee3861e0d7569430a5a12a0a1002ee41860572ade51e078139c4c412103e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f650',
+                value: 12544610190,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a504c57534c5032000747454e4553495304584543580a5374616b6564205845430d7374616b65645865632e636f6d002103e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f65002010e21fdc39e0101',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+                token: {
+                    tokenId:
+                        'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1781404606734',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '84164e7fa1b0372a0391dd3ac7651ce9f06e5e8dbf7aece2ba2cdddf8b72b239',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+                token: {
+                    tokenId:
+                        'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 12544608388,
+                outputScript:
+                    '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+                spentBy: {
+                    txid: 'fe482e5ca71a4bbabd2a1a38838a306fe18e24d4b68ac3e6ec1a8972c155f8c1',
+                    outIdx: 1,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 0,
+        size: 353,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+        block: {
+            height: 875217,
+            hash: '00000000000000000c8c86590db96c636fc46ccc2860b78606f7d91c28f578be',
+            timestamp: 1734136719,
+        },
+    },
+    tokenInfo: {
+        tokenId:
+            'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+        tokenType: {
+            protocol: 'ALP',
+            type: 'ALP_TOKEN_TYPE_STANDARD',
+            number: 0,
+        },
+        timeFirstSeen: 0,
+        genesisInfo: {
+            tokenTicker: 'XECX',
+            tokenName: 'Staked XEC',
+            url: 'stakedXec.com',
+            decimals: 2,
+            data: '',
+            authPubkey:
+                '03e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f650',
+        },
+        block: {
+            height: 875217,
+            hash: '00000000000000000c8c86590db96c636fc46ccc2860b78606f7d91c28f578be',
+            timestamp: 1734136719,
+        },
+    },
+};
+
 export const CachedXecx = {
     tokenType: { protocol: 'ALP', type: 'ALP_TOKEN_TYPE_STANDARD', number: 0 },
     genesisInfo: {
@@ -1568,7 +1828,7 @@ export const SettingsUsd = {
 /** Mocks for Collections */
 export const heismanCollectionGroupTokenId =
     'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a';
-export const cachedHeisman = {
+export const cachedHeisman: CashtabCachedTokenInfo = {
     tokenType: {
         protocol: 'SLP',
         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
@@ -1626,7 +1886,7 @@ const heismanNftOneUtxo = {
             protocol: 'SLP',
             type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
             number: 65,
-        },
+        } as TokenType,
         amount: '1',
         isMintBaton: false,
     },
@@ -1637,6 +1897,7 @@ export const heismanNftOneOffer = new AgoraOffer({
         type: 'ONESHOT',
         params: heismanNftOne,
     },
+    status: 'OPEN',
     outpoint: heismanNftOneUtxo.outpoint,
     txBuilderInput: {
         prevOut: heismanNftOneUtxo.outpoint,
@@ -1799,7 +2060,7 @@ export const heismanNftOneCache = {
     },
 };
 
-export const cachedHeismanNftOne = {
+export const cachedHeismanNftOne: CashtabCachedTokenInfo = {
     tokenType: {
         protocol: 'SLP',
         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
@@ -1827,10 +2088,12 @@ export const cachedHeismanNftOne = {
         'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
 };
 
-export const CollectionTestCache = new CashtabCache([
-    [heismanCollectionGroupTokenId, cachedHeisman],
-    [heismanNftOneUtxo.token.tokenId, cachedHeismanNftOne],
-]);
+export const CollectionTestCache = new CashtabCache(
+    new Map([
+        [heismanCollectionGroupTokenId, cachedHeisman],
+        [heismanNftOneUtxo.token.tokenId, cachedHeismanNftOne],
+    ]),
+);
 
 export const heismanCollectionCacheMocks = {
     tokenId: heismanCollectionGroupTokenId,

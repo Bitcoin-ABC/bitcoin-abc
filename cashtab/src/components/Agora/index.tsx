@@ -37,16 +37,8 @@ const Agora: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        ecc,
-        fiatPrice,
-        chronik,
-        agora,
-        cashtabState,
-        updateCashtabState,
-        chaintipBlockheight,
-    } = ContextValue;
-    const { wallets, settings, cashtabCache } = cashtabState;
+    const { chronik, agora, cashtabState, updateCashtabState } = ContextValue;
+    const { wallets, cashtabCache } = cashtabState;
     // Note that wallets must be a non-empty array of CashtabWallet[] here, because
     // context is loaded, and App component only renders Onboarding screen if user has no wallet
     const wallet = wallets[0];
@@ -276,8 +268,9 @@ const Agora: React.FC = () => {
         }
         if (tokenInfoPromises.length > 0) {
             // If we had new tokens to cache, update the cache
-            // This will replace the inline spinners with tokenIds
-            // and also update cashtabCache in local storage
+            // We handle this in the parent component (e.g. Agora) and not in OrderBook
+            // because updating the cache is a UI-locking write operation
+            // We would rather write one big change once than 100s of changes
             updateCashtabState('cashtabCache', {
                 ...cashtabState.cashtabCache,
                 tokens: cashtabCache.tokens,
@@ -328,7 +321,7 @@ const Agora: React.FC = () => {
                 clearInterval(intervalIdRef.current);
             }
         };
-    }, [activeOffersCashtab]); // Empty dependency array ensures this effect runs once on mount
+    }, [activeOffersCashtab]);
 
     return (
         <>
@@ -423,27 +416,8 @@ const Agora: React.FC = () => {
                                                                 tokenId={
                                                                     offeredTokenId
                                                                 }
-                                                                cachedTokenInfo={cashtabCache.tokens.get(
-                                                                    offeredTokenId,
-                                                                )}
-                                                                settings={
-                                                                    settings
-                                                                }
                                                                 userLocale={
                                                                     userLocale
-                                                                }
-                                                                fiatPrice={
-                                                                    fiatPrice
-                                                                }
-                                                                activePk={pk}
-                                                                wallet={wallet}
-                                                                ecc={ecc}
-                                                                chronik={
-                                                                    chronik
-                                                                }
-                                                                agora={agora}
-                                                                chaintipBlockheight={
-                                                                    chaintipBlockheight
                                                                 }
                                                             />
                                                         );
@@ -475,27 +449,8 @@ const Agora: React.FC = () => {
                                                                 tokenId={
                                                                     offeredTokenId
                                                                 }
-                                                                cachedTokenInfo={cashtabCache.tokens.get(
-                                                                    offeredTokenId,
-                                                                )}
-                                                                settings={
-                                                                    settings
-                                                                }
                                                                 userLocale={
                                                                     userLocale
-                                                                }
-                                                                fiatPrice={
-                                                                    fiatPrice
-                                                                }
-                                                                activePk={pk}
-                                                                wallet={wallet}
-                                                                ecc={ecc}
-                                                                chronik={
-                                                                    chronik
-                                                                }
-                                                                agora={agora}
-                                                                chaintipBlockheight={
-                                                                    chaintipBlockheight
                                                                 }
                                                                 orderBookInfoMap={
                                                                     orderBookInfoMapRef.current

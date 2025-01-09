@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
+import * as localForage from 'localforage';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import { render, screen } from '@testing-library/react';
@@ -17,20 +18,83 @@ import {
     agoraOfferCachetBetaOne,
     agoraOfferXecxAlphaOne,
     cachetCacheMocks,
-    agoraPartialAlphaKeypair,
-    agoraPartialBetaKeypair,
-    CachedCachet,
-    CachedXecx,
+    tokenMockXecx,
     SettingsUsd,
     agoraOfferCachetAlphaUnacceptable,
+    bullCacheMocks,
+    CachedXecx,
 } from 'components/Agora/fixtures/mocks';
+import { ChronikClient } from 'chronik-client';
 import { Ecc, initWasm, Address } from 'ecash-lib';
+import { Agora } from 'ecash-agora';
 import {
     MockAgora,
     MockChronikClient,
 } from '../../../../../../modules/mock-chronik-client';
-import Orderbook from 'components/Agora/OrderBook';
-import { Bounce, ToastContainer } from 'react-toastify';
+import Orderbook, { OrderBookProps } from 'components/Agora/OrderBook';
+import { ToastContainer } from 'react-toastify';
+import { CashtabTheme } from 'assets/styles/theme';
+import { WalletProvider } from 'wallet/context';
+import { mockPrice, SupportedCashtabStorageKeys, prepareContext } from 'test';
+import CashtabCache from 'config/CashtabCache';
+import { cashtabCacheToJSON } from 'helpers';
+
+/**
+ * OrderBook returns null when wallet is not loaded
+ * This is expected behavior as, in the app, OrderBook never appears
+ * unless the user has created a wallet
+ * In testing though this is not expected behavior and takes some time
+ */
+const waitForContext = async () => {
+    await screen.findByTitle('Loading', {}, { timeout: 3000 });
+};
+
+// We need to wrap OrderBook with context so we can useContext instead of prop drilling
+interface OrderBookTestWrapperProps extends OrderBookProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    theme: CashtabTheme;
+}
+const OrderBookTestWrapper: React.FC<OrderBookTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    theme,
+    tokenId,
+    userLocale,
+    noIcon,
+    orderBookInfoMap,
+}) => (
+    <WalletProvider
+        chronik={chronik as unknown as ChronikClient}
+        agora={agora as unknown as Agora}
+        ecc={ecc}
+    >
+        <ThemeProvider theme={theme}>
+            <ToastContainer />
+            <div>Test</div>
+            <Orderbook
+                tokenId={tokenId}
+                userLocale={userLocale}
+                noIcon={noIcon}
+                orderBookInfoMap={orderBookInfoMap}
+            />
+        </ThemeProvider>
+    </WalletProvider>
+);
+
+const tokenMocks = new Map();
+// CACHET
+tokenMocks.set(cachetCacheMocks.token.tokenId, {
+    tx: cachetCacheMocks.tx,
+    tokenInfo: cachetCacheMocks.token,
+});
+// BULL
+tokenMocks.set(bullCacheMocks.token.tokenId, {
+    tx: bullCacheMocks.tx,
+    tokenInfo: bullCacheMocks.token,
+});
 
 /**
  * Test expected behavior of the OrderBook component
@@ -46,47 +110,52 @@ import { Bounce, ToastContainer } from 'react-toastify';
  * on a token information page that already displays the icon
  */
 describe('<OrderBook />', () => {
-    let ecc;
+    let ecc: Ecc;
     const CACHET_TOKEN_ID = cachetCacheMocks.token.tokenId;
     beforeAll(async () => {
         await initWasm();
         ecc = new Ecc();
     });
 
-    let mockedChronik;
     beforeEach(async () => {
-        mockedChronik = new MockChronikClient();
+        // Mock the fetch call to Cashtab's price API
+        global.fetch = jest.fn();
     });
     afterEach(async () => {
         jest.clearAllMocks();
+        await localForage.clear();
     });
+
     it('We render expected msg if no agora partial listings are found for this token', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
+        );
+
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
 
         // No active offers
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, []);
 
         render(
-            <ThemeProvider theme={theme}>
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.000033}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-            </ThemeProvider>,
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        await waitForContext();
 
         // After offers load, we see a notice that there are no active offers
         expect(
@@ -94,36 +163,39 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('An error notice is rendered if there is some error in querying listings', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
 
-        // No active offers
+        // Error querying offers
         mockedAgora.setActiveOffersByTokenId(
             CACHET_TOKEN_ID,
             new Error('some error querying offers'),
         );
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.000033}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-                ,
-            </ThemeProvider>,
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
+        );
+
+        await waitForContext();
 
         // After offers load, we see a notice that there are no active offers
         expect(
@@ -133,35 +205,37 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('We can see a rendered offer', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaOne,
         ]);
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.000033}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-                ,
-            </ThemeProvider>,
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
+        );
+
+        await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
@@ -226,36 +300,38 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('We can see a rendered offer in an OrderBook with noIcon', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaOne,
         ]);
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.000033}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                    noIcon
-                />
-                ,
-            </ThemeProvider>,
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+                noIcon
+            />,
+        );
+
+        await waitForContext();
 
         // We see the spot price on the depth bar
         expect(await screen.findByText('10,000.97 XEC')).toBeInTheDocument();
@@ -306,57 +382,46 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('We can see multiple offers, some we made, others we did not, and we can cancel an offer', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.00003);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaOne,
             agoraOfferCachetAlphaTwo,
             agoraOfferCachetBetaOne,
         ]);
 
-        // Set mocks for tx that cancels a listing
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
+        );
+
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        // Prepare mockedChronik for a tx that cancels a listing
         const cancelHex =
             '0200000002f7bb552354b6f5076eb2664a8bcbbedc87b42f2ebfcb1480ee0a9141bbae63590000000064414e90dfcdd1508f599267d5b761db8268c164567032f6eb597677d010df4e67eb61e29721535f92070d3c77d7679d78a209122aabec6c7f8d536db072b7dda28241210233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afdffffffffbfd08cec4d74b7820cea750b36a0a69d88b6cec3c084caf29e9b866cd8999f6d01000000fdab010441475230075041525449414c4162790797e5a77ccb0326f5e85ad2ec334b17616a636bad4d21a9fa8ec73e6e249443ef7f598a513ee6023bf0f4090300e3f1f37e96c5ea39fe15db0f2f3a56b941004d58014c766a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10800000000000000000001db4603000000000079150000000000008ec420000000000008b7023e0233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd08b0caff7f00000000ab7b63817b6ea26976038ec420a2697603db46039700887d94527901377f75789263587e7803db4603965880bc007e7e68587e527903db4603965880bc007e7e825980bc7c7e01007e7b027815930279159657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f750408b7023e886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488acaf650600000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac00000000';
         const cancelTxid =
             '256ffa0a5e18f7c546673ff6c49fb4d483fe2cbae3b1269bc1000c4c6d950fa9';
         mockedChronik.setBroadcastTx(cancelHex, cancelTxid);
 
-        // Note we must include ToastContainer to test toastify notification
         render(
-            <ThemeProvider theme={theme}>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                    transition={Bounce}
-                />
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.00003}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-            </ThemeProvider>,
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
@@ -466,15 +531,26 @@ describe('<OrderBook />', () => {
         // Would need regtest integration to do this
     });
     it('We can buy an offer', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.00003);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaOne,
             agoraOfferCachetAlphaTwo,
             agoraOfferCachetBetaOne,
         ]);
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialBetaWallet],
+            tokenMocks,
+        );
+
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
 
         // Set mocks for tx that buys a listing
         const buyHex =
@@ -483,40 +559,18 @@ describe('<OrderBook />', () => {
             'a529472fc058c52e0c54eccbf82fc63d24eb0a2389ee55723c29c3c8ec3146f8';
         mockedChronik.setBroadcastTx(buyHex, buyTxid);
 
-        // Note we must include ToastContainer to test toastify notification
         render(
-            <ThemeProvider theme={theme}>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                    transition={Bounce}
-                />
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.00003}
-                    activePk={agoraPartialBetaKeypair.pk}
-                    wallet={agoraPartialBetaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-            </ThemeProvider>,
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
@@ -709,10 +763,9 @@ describe('<OrderBook />', () => {
         // Would need regtest integration to do this
     });
     it('Offers listed by the token creator are indicated as such', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaOne,
             agoraOfferCachetBetaOne,
@@ -722,44 +775,56 @@ describe('<OrderBook />', () => {
             agoraPartialAlphaWallet.paths.get(1899).hash,
         ).toScriptHex();
 
-        // Note we must include ToastContainer to test toastify notification
-        render(
-            <ThemeProvider theme={theme}>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                    transition={Bounce}
-                />
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={{
-                        ...CachedCachet,
-                        // Mock that the listing wallet created the alpha offer
-                        genesisOutputScripts: [alphaWalletOutputScript],
-                    }}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.00003}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-            </ThemeProvider>,
+        // Mod tokenmocks so that alphaWallet is the mint address
+        const alphaMintedCachetTokenMocks = new Map();
+        // CACHET
+        alphaMintedCachetTokenMocks.set(cachetCacheMocks.token.tokenId, {
+            tx: {
+                ...cachetCacheMocks.tx,
+                // Note that cashtab pegs the genesis address as the address
+                // that receives the genesis qty
+                // This is not necessarily the address that minted the token
+                outputs: [
+                    cachetCacheMocks.tx.outputs[0],
+                    {
+                        ...cachetCacheMocks.tx.outputs[1],
+                        outputScript: alphaWalletOutputScript,
+                    },
+                    ...cachetCacheMocks.tx.inputs.slice(2),
+                ],
+            },
+            tokenInfo: cachetCacheMocks.token,
+        });
+        // BULL
+        alphaMintedCachetTokenMocks.set(bullCacheMocks.token.tokenId, {
+            tx: bullCacheMocks.tx,
+            tokenInfo: bullCacheMocks.token,
+        });
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            alphaMintedCachetTokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
+        );
+
+        await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
@@ -771,7 +836,8 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('We can type input and see a previewed offer of actual input with a delta from our typed input', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.00003);
+
         const mockedAgora = new MockAgora();
 
         const XECX_TOKEN_ID =
@@ -782,42 +848,45 @@ describe('<OrderBook />', () => {
             agoraOfferXecxAlphaOne,
         ]);
 
-        // Note we must include ToastContainer to test toastify notification
-        render(
-            <ThemeProvider theme={theme}>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                    transition={Bounce}
-                />
-                <Orderbook
-                    tokenId={XECX_TOKEN_ID}
-                    cachedTokenInfo={CachedXecx}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.00003}
-                    activePk={agoraPartialBetaKeypair.pk}
-                    wallet={agoraPartialBetaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-            </ThemeProvider>,
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialBetaWallet],
+            tokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        // Make sure XECX is cached. Since we do not hold this token, it will not
+        // be added to cache by useWallet.ts
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.CashtabCache,
+            cashtabCacheToJSON(
+                new CashtabCache(
+                    new Map([[tokenMockXecx.tokenId, CachedXecx]]),
+                ),
+            ),
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={XECX_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
+        );
+
+        await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
+        // In this test, this also demonstrates that OrderBook will load its own token info
+        // If it is not available in wallet cache
         expect(
             await screen.findByText('Staked XEC (XECX)'),
         ).toBeInTheDocument();
@@ -878,35 +947,37 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('Unacceptable offers are rendered to their makers', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaUnacceptable,
         ]);
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.000033}
-                    activePk={agoraPartialAlphaKeypair.pk}
-                    wallet={agoraPartialAlphaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-                ,
-            </ThemeProvider>,
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
+        );
+
+        await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
         expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
@@ -923,35 +994,37 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
     });
     it('Unacceptable offers are NOT rendered to buyers', async () => {
-        // Need to mock agora API endpoints
+        mockPrice(0.000033);
         const mockedAgora = new MockAgora();
 
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
         mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
             agoraOfferCachetAlphaUnacceptable,
         ]);
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Orderbook
-                    tokenId={CACHET_TOKEN_ID}
-                    cachedTokenInfo={CachedCachet}
-                    settings={SettingsUsd}
-                    userLocale={'en-US'}
-                    fiatPrice={0.000033}
-                    activePk={agoraPartialBetaKeypair.pk}
-                    wallet={agoraPartialBetaWallet}
-                    ecc={ecc}
-                    chronik={mockedChronik}
-                    agora={mockedAgora}
-                    chaintipBlockheight={800000}
-                />
-                ,
-            </ThemeProvider>,
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialBetaWallet],
+            tokenMocks,
         );
 
-        // We see a spinner while activeOffers load
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+            />,
+        );
+
+        await waitForContext();
 
         // We see no offers because it's entirely excluded
         expect(
