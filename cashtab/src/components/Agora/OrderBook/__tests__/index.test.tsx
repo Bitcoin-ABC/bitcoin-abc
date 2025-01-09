@@ -238,7 +238,8 @@ describe('<OrderBook />', () => {
         await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
 
         // We see the token icon
         expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();
@@ -342,7 +343,8 @@ describe('<OrderBook />', () => {
         );
 
         // After loading, we DO NOT see the token name and ticker above its PartialOffer
-        expect(screen.queryByText('Cachet (CACHET)')).not.toBeInTheDocument();
+        expect(screen.queryByText('Cachet')).not.toBeInTheDocument();
+        expect(screen.queryByText('CACHET')).not.toBeInTheDocument();
 
         // We DO NOT see the token icon
         expect(screen.queryByTitle(CACHET_TOKEN_ID)).not.toBeInTheDocument();
@@ -424,7 +426,8 @@ describe('<OrderBook />', () => {
         await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
 
         // We see the token icon
         expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();
@@ -489,7 +492,7 @@ describe('<OrderBook />', () => {
         ).not.toBeInTheDocument();
 
         expect(
-            screen.getByRole('button', { name: 'Buy Cachet (CACHET)' }),
+            screen.getByRole('button', { name: 'Buy CACHET' }),
         ).toBeInTheDocument();
 
         // Let's select our other offer
@@ -573,7 +576,8 @@ describe('<OrderBook />', () => {
         await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
 
         // Hit the fiat switch since this test uses those values
         await userEvent.click(
@@ -624,7 +628,7 @@ describe('<OrderBook />', () => {
         await userEvent.click(screen.getByText('$0.3000 USD'));
 
         const buyCachetButton = screen.getByRole('button', {
-            name: 'Buy Cachet (CACHET)',
+            name: 'Buy CACHET',
         });
         expect(buyCachetButton).toBeInTheDocument();
 
@@ -711,7 +715,7 @@ describe('<OrderBook />', () => {
         // Buy with defaults
         await userEvent.click(
             screen.getByRole('button', {
-                name: 'Buy Cachet (CACHET)',
+                name: 'Buy CACHET',
             }),
         );
 
@@ -827,7 +831,8 @@ describe('<OrderBook />', () => {
         await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
 
         // We see the "Listed by token creator" icon, only one time for two offers,
         // as only one of these listings was created by wallet alpha
@@ -887,9 +892,7 @@ describe('<OrderBook />', () => {
         // After loading, we see the token name and ticker above its PartialOffer
         // In this test, this also demonstrates that OrderBook will load its own token info
         // If it is not available in wallet cache
-        expect(
-            await screen.findByText('Staked XEC (XECX)'),
-        ).toBeInTheDocument();
+        expect(await screen.findByText('Staked XEC')).toBeInTheDocument();
 
         // We see the expected spot offer for XECX
         const SPOT_MIN_QTY = '960,000.00 XECX';
@@ -901,7 +904,7 @@ describe('<OrderBook />', () => {
         expect(screen.getByText(SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
 
         const buyXecxButton = screen.getByRole('button', {
-            name: 'Buy Staked XEC (XECX)',
+            name: 'Buy XECX',
         });
         expect(buyXecxButton).toBeInTheDocument();
 
@@ -980,7 +983,8 @@ describe('<OrderBook />', () => {
         await waitForContext();
 
         // After loading, we see the token name and ticker above its PartialOffer
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
 
         // We see the token icon
         expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();

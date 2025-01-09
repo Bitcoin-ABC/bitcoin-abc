@@ -572,13 +572,15 @@ const CashtabSlider = styled.input<{
 const SliderInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.secondaryBackground};
-    font-size: 14px;
-    padding: 6px 3px;
-    border-radius: 9px;
+    font-size: 16px;
+    padding: 6px;
+    border-radius: 4px;
+    text-align: right;
     border: ${props =>
         props.invalid ? `1px solid ${props.theme.formError}` : `none`};
     width: 100%;
     color: ${props => props.theme.primaryText};
+    margin-top: 5px;
     :focus-visible {
         outline: none;
     }

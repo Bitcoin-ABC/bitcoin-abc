@@ -4,19 +4,23 @@
 
 import React, { useRef, useState, useEffect, useContext } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
+import { Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
 import { toHex } from 'ecash-lib';
-import { ActiveOffers, OfferTitle, OfferTable } from './styled';
-import { SwitchHolder } from 'components/Etokens/Token/styled';
+import {
+    ActiveOffers,
+    OfferTitle,
+    OfferTable,
+    AgoraHeader,
+    SortSwitch,
+    ManageSwitch,
+} from './styled';
 import { getUserLocale } from 'helpers';
 import appConfig from 'config/app';
-import Switch from 'components/Common/Switch';
 import OrderBook, { OrderBookInfo } from './OrderBook';
 import { token as tokenConfig } from 'config/token';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { DogeIcon } from 'components/Common/CustomIcons';
 import { CashtabPathInfo } from 'wallet';
 import { InlineLoader } from 'components/Common/Spinner';
 
@@ -404,65 +408,59 @@ const Agora: React.FC = () => {
                         <Spinner title="Loading active offers" />
                     ) : (
                         <>
-                            <PageHeader>
-                                Agora <DogeIcon />
-                            </PageHeader>
-                            <ActiveOffers title="Active Offers">
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Toggle Active Offers"
-                                        on=""
-                                        off=""
-                                        checked={manageMyOffers}
-                                        handleToggle={() => {
-                                            setManageMyOffers(
-                                                () => !manageMyOffers,
-                                            );
-                                        }}
-                                    />
-                                    <SwitchLabel>
-                                        Toggle Buy / Manage Listings
-                                    </SwitchLabel>
-                                </SwitchHolder>
-
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Sort by TokenId"
-                                        on=""
-                                        off=""
-                                        checked={switches.byTokenId}
-                                        handleToggle={() =>
+                            <AgoraHeader>
+                                <h2>Token Offers</h2>
+                                <div>
+                                    Sort by:
+                                    <SortSwitch
+                                        disabled={false}
+                                        active={switches.byTokenId}
+                                        title="Sort by TokenId"
+                                        onClick={() =>
                                             setSwitches({
                                                 ...sortSwitchesOff,
                                                 byTokenId: true,
                                             })
                                         }
-                                    />
-                                    <SwitchLabel>Sort by TokenID</SwitchLabel>
-                                </SwitchHolder>
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Sort by Offer Count"
-                                        on=""
-                                        off=""
+                                    >
+                                        TokenID
+                                    </SortSwitch>
+                                    <SortSwitch
                                         disabled={!allOrderBooksLoaded}
-                                        checked={switches.byOfferCount}
-                                        handleToggle={() =>
-                                            setSwitches({
-                                                ...sortSwitchesOff,
-                                                byOfferCount: true,
-                                            })
+                                        active={switches.byOfferCount}
+                                        title="Sort by Offer Count"
+                                        onClick={
+                                            allOrderBooksLoaded
+                                                ? () =>
+                                                      setSwitches({
+                                                          ...sortSwitchesOff,
+                                                          byOfferCount: true,
+                                                      })
+                                                : undefined
                                         }
-                                    />
-                                    <SwitchLabel>
-                                        Sort by Offer Count
-                                    </SwitchLabel>
-
-                                    {!allOrderBooksLoaded && (
-                                        <InlineLoader title="Loading OrderBook info..." />
-                                    )}
-                                </SwitchHolder>
-
+                                    >
+                                        Offers
+                                        {!allOrderBooksLoaded && (
+                                            <div>
+                                                <InlineLoader title="Loading OrderBook info..." />
+                                            </div>
+                                        )}
+                                    </SortSwitch>
+                                    <ManageSwitch
+                                        title="Toggle Active Offers"
+                                        onClick={() => {
+                                            setManageMyOffers(
+                                                () => !manageMyOffers,
+                                            );
+                                        }}
+                                    >
+                                        {!manageMyOffers
+                                            ? 'My Listings'
+                                            : 'All Offers'}
+                                    </ManageSwitch>
+                                </div>
+                            </AgoraHeader>
+                            <ActiveOffers title="Active Offers">
                                 {manageMyOffers ? (
                                     <>
                                         <OfferTitle>
@@ -500,8 +498,6 @@ const Agora: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <OfferTitle>Token Offers</OfferTitle>
-
                                         {activeOffersCashtab
                                             .offeredFungibleTokenIds.length >
                                         0 ? (

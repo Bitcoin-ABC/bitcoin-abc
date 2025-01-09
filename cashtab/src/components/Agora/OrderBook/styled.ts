@@ -14,13 +14,20 @@ export const OrderBookLoading = styled.div`
 `;
 
 export const OfferWrapper = styled.div<{ borderRadius: boolean }>`
-    background-color: ${props => props.theme.secondaryBackground};
     border-radius: ${props => (props.borderRadius ? '20px' : '0 0 20px 20px')};
     border: 1px solid ${props => props.theme.border};
     width: 100%;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    background: ${props =>
+        !props.borderRadius
+            ? props.theme.primaryBackground
+            : `linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.1) 100%
+    )`};
     @media (max-width: 768px) {
         margin-bottom: 20px;
         width: 100%;
@@ -29,29 +36,46 @@ export const OfferWrapper = styled.div<{ borderRadius: boolean }>`
 
 export const OfferHeader = styled.div`
     display: flex;
+    flex-direction: column;
     align-items: center;
     width: 100%;
-    padding: 30px 20px;
+    padding: 20px 20px 0;
     text-align: left;
     border-radius: 20px 20px 0 0;
-    background-color: ${props => props.theme.primaryBackground};
 `;
+
+export const OfferHeaderRow = styled.div`
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 20px;
+`;
+
 export const OfferTitleCtn = styled.div`
     display: flex;
     flex-direction: column;
     word-break: break-all;
-    margin-left: 14px;
-    align-items: flex-start;
+    align-items: center;
+    margin-top: 20px;
     a {
         margin: 0;
-        font-size: 24px;
+        font-size: 26px;
         line-height: 1.2em;
+        height: 1.2em;
+        overflow: hidden;
         color: ${props => props.theme.primaryText};
         font-weight: 600;
         text-decoration: none;
+        text-align: center;
         :hover {
             color: ${props => props.theme.accent};
         }
+    }
+
+    span {
+        color: ${props => props.theme.secondaryText};
     }
 `;
 
@@ -62,6 +86,7 @@ export const OfferIcon = styled.button<{ size: number; tokenId: string }>`
     width: 96px;
     height: 96px;
     flex-shrink: 0;
+    border-radius: 96px;
     background: url(${props =>
             `${tokenConfig.tokenIconsUrl}/${props.size}/${props.tokenId}.png`})
         center no-repeat;
@@ -158,8 +183,7 @@ export const SliderRow = styled.div`
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 30px 20px 0px;
-    background-color: ${props => props.theme.primaryBackground};
+    padding: 20px 20px 0px;
     & > span {
         margin-right: 10px;
         font-weight: 600;
@@ -177,21 +201,24 @@ export const BuyOrderCtn = styled.div`
     word-break: break-all;
     padding: 20px;
     color: ${props => props.theme.primaryText};
-    background-color: ${props => props.theme.primaryBackground};
     border-radius: 0 0 20px 20px;
     flex-grow: 1;
+    align-items: flex-end;
+    text-align: right;
     & > div {
         font-size: 18px;
         opacity: 0.7;
+        line-height: 1em;
     }
     h3 {
-        font-size: 20px;
+        font-size: 18px;
         margin: 0;
         margin-bottom: 20px;
     }
     button {
         font-size: 16px;
-        padding: 20px 10px;
+        padding: 14px 10px;
+        border-radius: 4px;
         margin-top: 30px;
         margin-bottom: 0;
         margin-top: auto;

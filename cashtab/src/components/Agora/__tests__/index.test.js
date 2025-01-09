@@ -241,8 +241,9 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see the token name and ticker above its PartialOffer after OrderBooks load
+
         expect(
-            await screen.findByText('Cachet (CACHET)', {}, { timeout: 3000 }),
+            await screen.findByText('Cachet', {}, { timeout: 3000 }),
         ).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
@@ -311,9 +312,8 @@ describe('<Agora />', () => {
         expect(screen.getByText('Manage your listings')).toBeInTheDocument();
 
         // We see the token name and ticker above its PartialOffer
-        expect(
-            screen.getByText('Badger Universal Token (BUX)'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Badger Universal Token')).toBeInTheDocument();
+        expect(screen.getByText('BUX')).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(
@@ -382,9 +382,8 @@ describe('<Agora />', () => {
         expect(screen.getByText('Manage your listings')).toBeInTheDocument();
 
         // We see the token name and ticker above its PartialOffer
-        expect(
-            screen.getByText('Badger Universal Token (BUX)'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Badger Universal Token')).toBeInTheDocument();
+        expect(screen.getByText('BUX')).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(
@@ -475,7 +474,10 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
 
         // On load, a switch indicates that the OrderBooks are sorted by tokenId
-        expect(screen.getByTitle('Sort by TokenId')).toBeChecked();
+        expect(
+            window.getComputedStyle(screen.getByTitle('Sort by TokenId'))
+                .backgroundColor,
+        ).toBe('rgb(42, 46, 46)');
 
         // On load, OrderBooks are sorted by token id
         // Bull tokenId starts with 01d...; Cachet with aed...; so we expect Bull to be first
@@ -509,8 +511,10 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // We see all token names and tickers above their PartialOffers
-        expect(await screen.findByText('Cachet (CACHET)')).toBeInTheDocument();
-        expect(await screen.findByText('Bull (BULL)')).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
+        expect(await screen.findByText('Bull')).toBeInTheDocument();
+        expect(await screen.findByText('BULL')).toBeInTheDocument();
 
         // For BULL, there is only one offer, so that offer is the spot price
         const BULL_SPOT_MIN_QTY = '8';
@@ -574,10 +578,10 @@ describe('<Agora />', () => {
         // Switching wallets triggers a refresh of the offers
         // Now that we are using the other wallet, we see two Buy buttons
         expect(
-            await screen.findByRole('button', { name: 'Buy Cachet (CACHET)' }),
+            await screen.findByRole('button', { name: 'Buy CACHET' }),
         ).toBeInTheDocument();
         expect(
-            await screen.findByRole('button', { name: 'Buy Bull (BULL)' }),
+            await screen.findByRole('button', { name: 'Buy BULL' }),
         ).toBeInTheDocument();
 
         // Hit the switch to show listings created by the active wallet (now Beta)
@@ -587,9 +591,12 @@ describe('<Agora />', () => {
         await userEvent.click(toggleAllVsMyOffersSwitch);
 
         // we see only the beta-created Cachet offer
-        expect(screen.getByText('Cachet (CACHET)')).toBeInTheDocument();
+        expect(screen.getByText('Cachet')).toBeInTheDocument();
+        expect(screen.getByText('CACHET')).toBeInTheDocument();
+
         // We do not see any offers for Bull, this was created by alpha
-        expect(screen.queryByText('Bull (BULL)')).not.toBeInTheDocument();
+        expect(screen.queryByText('Bull')).not.toBeInTheDocument();
+        expect(screen.queryByText('BULL')).not.toBeInTheDocument();
 
         // Note that we only see orderbooks that we have offers for
         // But we see all offers for these orderbooks
@@ -601,7 +608,7 @@ describe('<Agora />', () => {
         ).toBeInTheDocument();
         // We can buy this offer from the Manage screen
         expect(
-            screen.getByRole('button', { name: 'Buy Cachet (CACHET)' }),
+            screen.getByRole('button', { name: 'Buy CACHET' }),
         ).toBeInTheDocument();
 
         // Select our offer
@@ -611,7 +618,7 @@ describe('<Agora />', () => {
             screen.getByRole('button', { name: 'Cancel your offer' }),
         ).toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Buy Cachet (CACHET)' }),
+            screen.queryByRole('button', { name: 'Buy CACHET' }),
         ).not.toBeInTheDocument();
 
         // OK go back to all offers
@@ -666,7 +673,7 @@ describe('<Agora />', () => {
         ).not.toBeInTheDocument();
 
         expect(
-            screen.getByRole('button', { name: 'Buy Cachet (CACHET)' }),
+            screen.getByRole('button', { name: 'Buy CACHET' }),
         ).toBeInTheDocument();
 
         // Let's cancel the BULL offer
@@ -774,9 +781,9 @@ describe('<Agora />', () => {
 
         // We see all token names and tickers above their PartialOffers
         expect(
-            await screen.findByText('Cachet (CACHET)', {}, { timeout: 3000 }),
+            await screen.findByText('Cachet', {}, { timeout: 3000 }),
         ).toBeInTheDocument();
-        expect(await screen.findByText('Bull (BULL)')).toBeInTheDocument();
+        expect(await screen.findByText('Bull')).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button
         await userEvent.click(screen.getByText('12,000.66 XEC'));
@@ -796,7 +803,7 @@ describe('<Agora />', () => {
         ).not.toBeInTheDocument();
 
         const buyCachetButton = screen.getByRole('button', {
-            name: 'Buy Cachet (CACHET)',
+            name: 'Buy CACHET',
         });
         expect(buyCachetButton).toBeInTheDocument();
 

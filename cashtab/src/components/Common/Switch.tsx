@@ -115,7 +115,7 @@ export const CashtabSwitch: React.FC<CashtabSwitchProps> = ({
     bgImageOn = false,
     off = '',
     bgImageOff = false,
-    bgColorOff = '#ccc',
+    bgColorOff = '#908e8e',
     checked,
     disabled,
     handleToggle,

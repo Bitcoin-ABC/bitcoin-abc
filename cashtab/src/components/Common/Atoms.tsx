@@ -164,15 +164,24 @@ export const PageHeader = styled.h2`
 const CopyTokenIdWrapper = styled.div`
     display: flex;
     align-items: center;
+    color: ${props => props.theme.secondaryText};
     svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
+        g {
+            fill: ${props => props.theme.secondaryText};
+        }
+        fill: ${props => props.theme.secondaryText};
         :hover {
             g {
                 fill: ${props => props.theme.secondaryAccent};
             }
             fill: ${props => props.theme.secondaryAccent};
         }
+    }
+    button {
+        display: flex;
+        align-items: center;
     }
 `;
 interface CopyTokenIdProps {

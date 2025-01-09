@@ -66,6 +66,7 @@ import {
     MintIconSpotWrapper,
     DeltaSpan,
     AgoraWarningParagraph,
+    OfferHeaderRow,
 } from './styled';
 import {
     AgoraPreviewParagraph,
@@ -1003,34 +1004,42 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 onClick={() => setShowLargeIconModal(true)}
                             />
                             <OfferTitleCtn>
-                                <>
-                                    {typeof tokenName !== 'string' ? (
-                                        <InlineLoader />
-                                    ) : (
+                                {typeof tokenName !== 'string' ? (
+                                    <InlineLoader />
+                                ) : (
+                                    <>
                                         <a href={`#/token/${tokenId}`}>
                                             {tokenName}
-                                            {tokenTicker !== ''
-                                                ? ` (${tokenTicker})`
-                                                : ''}
                                         </a>
-                                    )}
-                                    <CopyTokenId tokenId={tokenId} />
-                                    <Switch
-                                        small
-                                        name={`Toggle price for ${tokenId}`}
-                                        on={settings.fiatCurrency}
-                                        width={60}
-                                        right={40}
-                                        off={appConfig.ticker}
-                                        checked={displaySpotPricesInFiat}
-                                        handleToggle={() => {
-                                            setDisplaySpotPricesInFiat(
-                                                () => !displaySpotPricesInFiat,
-                                            );
-                                        }}
-                                    />
-                                </>
+                                        <span>
+                                            {tokenTicker !== ''
+                                                ? tokenTicker
+                                                : ''}
+                                        </span>
+                                    </>
+                                )}
+                                <CopyTokenId tokenId={tokenId} />
                             </OfferTitleCtn>
+                            <OfferHeaderRow>
+                                <div>
+                                    {activeOffers.length} Offer
+                                    {activeOffers.length > 1 && 's'}
+                                </div>
+                                <Switch
+                                    small
+                                    name={`Toggle price for ${tokenId}`}
+                                    on={settings.fiatCurrency}
+                                    width={60}
+                                    right={40}
+                                    off={appConfig.ticker}
+                                    checked={displaySpotPricesInFiat}
+                                    handleToggle={() => {
+                                        setDisplaySpotPricesInFiat(
+                                            () => !displaySpotPricesInFiat,
+                                        );
+                                    }}
+                                />
+                            </OfferHeaderRow>
                         </OfferHeader>
                     )}
                     {agoraQueryError && (
@@ -1141,7 +1150,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 </SliderRow>
                             )}
                             <SliderRow>
-                                <span>Buy</span>
                                 <Slider
                                     name={`Select buy qty ${tokenId}`}
                                     value={takeTokenDecimalizedQty}
@@ -1201,10 +1209,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                             preparedTokenSatoshis === null
                                         }
                                     >
-                                        Buy {tokenName}
+                                        Buy{' '}
                                         {tokenTicker !== ''
-                                            ? ` (${tokenTicker})`
-                                            : ''}
+                                            ? tokenTicker
+                                            : tokenName}
                                     </PrimaryButton>
                                 )}
                             </BuyOrderCtn>

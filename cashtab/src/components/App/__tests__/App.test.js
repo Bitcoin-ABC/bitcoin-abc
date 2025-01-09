@@ -351,11 +351,16 @@ describe('<App />', () => {
             }),
         );
 
-        // Now we see the Agora screen
-        // We know because the Meme Agora icon now appears twice, in the menu and the header
-        // We haven't mocked active offers so we otherwise expect the Chronik Query error on this screen
-        expect(screen.getAllByTitle('Meme Agora')[1]).toBeInTheDocument();
+        // Now we see the "Token Offers" header
+        // We expect an h2 element that contains the text "Token Offers"
+        expect(
+            await screen.findByRole('heading', {
+                level: 2,
+                name: 'Token Offers',
+            }),
+        ).toBeInTheDocument();
     });
+
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
