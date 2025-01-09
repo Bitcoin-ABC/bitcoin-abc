@@ -19,24 +19,32 @@
 #include <memory>
 #include <vector>
 
-static FlatFilePos WriteBlockToDisk(ChainstateManager &chainman) {
+static CBlock CreateTestBlock() {
     DataStream stream{benchmark::data::block413567};
     CBlock block;
     stream >> block;
+    return block;
+}
 
-    return chainman.m_blockman.SaveBlockToDisk(block, 0);
+static void SaveBlockBench(benchmark::Bench &bench) {
+    const auto testing_setup{
+        MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
+    auto &blockman{testing_setup->m_node.chainman->m_blockman};
+    const CBlock block{CreateTestBlock()};
+    bench.run([&] {
+        const auto pos{blockman.SaveBlockToDisk(block, 413'567)};
+        assert(!pos.IsNull());
+    });
 }
 
 static void ReadBlockFromDiskBench(benchmark::Bench &bench) {
     const auto testing_setup{
         MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
-    ChainstateManager &chainman{*testing_setup->m_node.chainman};
-
+    auto &blockman{testing_setup->m_node.chainman->m_blockman};
+    const auto pos{blockman.SaveBlockToDisk(CreateTestBlock(), 413'567)};
     CBlock block;
-    const auto pos{WriteBlockToDisk(chainman)};
-
     bench.run([&] {
-        const auto success{chainman.m_blockman.ReadBlockFromDisk(block, pos)};
+        const auto success{blockman.ReadBlockFromDisk(block, pos)};
         assert(success);
     });
 }
@@ -44,17 +52,18 @@ static void ReadBlockFromDiskBench(benchmark::Bench &bench) {
 static void ReadRawBlockFromDiskBench(benchmark::Bench &bench) {
     const auto testing_setup{
         MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
-    ChainstateManager &chainman{*testing_setup->m_node.chainman};
 
+    auto &blockman{testing_setup->m_node.chainman->m_blockman};
+    const auto pos{blockman.SaveBlockToDisk(CreateTestBlock(), 413'567)};
     std::vector<uint8_t> block_data;
-    const auto pos{WriteBlockToDisk(chainman)};
-
+    // warmup
+    blockman.ReadRawBlockFromDisk(block_data, pos);
     bench.run([&] {
-        const auto success{
-            chainman.m_blockman.ReadRawBlockFromDisk(block_data, pos)};
+        const auto success{blockman.ReadRawBlockFromDisk(block_data, pos)};
         assert(success);
     });
 }
 
+BENCHMARK(SaveBlockBench);
 BENCHMARK(ReadBlockFromDiskBench);
 BENCHMARK(ReadRawBlockFromDiskBench);
