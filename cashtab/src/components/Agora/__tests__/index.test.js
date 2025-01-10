@@ -33,6 +33,12 @@ import { Ecc, initWasm, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { token as tokenConfig } from 'config/token';
 
+/**
+ * Test requires different timeout to deal with batched loading
+ * I do not observe this impact in prod, but tests need an adjustment
+ */
+const BATCH_TEST_TIMEOUT = 6000;
+
 describe('<Agora />', () => {
     let ecc;
     const CACHET_TOKEN_ID = cachetCacheMocks.token.tokenId;
@@ -253,7 +259,11 @@ describe('<Agora />', () => {
         // We see the token name and ticker above its PartialOffer after OrderBooks load
 
         expect(
-            await screen.findByText('Cachet', {}, { timeout: 3000 }),
+            await screen.findByText(
+                'Cachet',
+                {},
+                { timeout: BATCH_TEST_TIMEOUT },
+            ),
         ).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
@@ -473,9 +483,9 @@ describe('<Agora />', () => {
                     screen.queryByTitle('Loading OrderBook info...'),
                 ).not.toBeInTheDocument(),
             // This can take some time
-            // Fails with timeout 3000, sometimes fails with 5000
+            // Fails with timeout 5000, sometimes with 6000; needs longer than other tests
             // May need to adjust if experience flakiness
-            { timeout: 6000 },
+            { timeout: 2 * BATCH_TEST_TIMEOUT },
         );
 
         // When orderbook info has loaded, we see a switch to sort by offer count
@@ -791,7 +801,11 @@ describe('<Agora />', () => {
 
         // We see all token names and tickers above their PartialOffers
         expect(
-            await screen.findByText('Cachet', {}, { timeout: 3000 }),
+            await screen.findByText(
+                'Cachet',
+                {},
+                { timeout: BATCH_TEST_TIMEOUT },
+            ),
         ).toBeInTheDocument();
         expect(await screen.findByText('Bull')).toBeInTheDocument();
 

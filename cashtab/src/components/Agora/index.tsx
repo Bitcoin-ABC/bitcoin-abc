@@ -62,8 +62,8 @@ const askPolitelyForTokenInfo = async (
 };
 
 // Params for batching requests to chronik on the Agora screen
-const POLITE_REQUEST_LIMIT = 200;
-const POLITE_INTERVAL_MS = 2000;
+const POLITE_REQUEST_LIMIT = 25;
+const POLITE_INTERVAL_MS = 5000;
 
 const Agora: React.FC = () => {
     const userLocale = getUserLocale(navigator);
