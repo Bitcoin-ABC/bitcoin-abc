@@ -9,9 +9,10 @@ import CashtabSettings, {
 } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
-import { CashtabLoader } from 'components/Common/Spinner';
 
 export const BalanceXec = styled.div<{ balanceVisible: boolean }>`
+    display: flex;
+    flex-direction: column;
     font-size: 28px;
     margin-bottom: 0px;
     font-weight: bold;
@@ -21,7 +22,17 @@ export const BalanceXec = styled.div<{ balanceVisible: boolean }>`
     }
     color: ${props =>
         props.balanceVisible ? 'transparent' : props.theme.primaryText};
-    text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
+    div {
+        text-shadow: ${props =>
+            props.balanceVisible ? '0 0 15px #fff' : 'none'};
+    }
+`;
+export const BalanceRow = styled.div<{ isXecx?: boolean }>`
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 3px;
+    ${props => props.isXecx && `color: ${props.theme.accent}`}
 `;
 export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
     font-size: 16px;
@@ -30,6 +41,7 @@ export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
     }
     color: ${props =>
         props.balanceVisible ? 'transparent' : props.theme.secondaryText};
+
     text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
 `;
 
@@ -43,64 +55,71 @@ const EcashPrice = styled.p`
 `;
 
 interface BalanceHeaderProps {
-    balanceSats: null | number;
+    balanceSats: number;
+    /** In decimalized XECX */
+    balanceXecx: number;
     settings: CashtabSettings;
     fiatPrice: null | number;
-    userLocale: string;
+    userLocale?: string;
 }
 const BalanceHeader: React.FC<BalanceHeaderProps> = ({
-    balanceSats = null,
+    balanceSats,
+    balanceXecx,
     settings = new CashtabSettings(),
     fiatPrice = null,
     userLocale = 'en-US',
 }) => {
     // If navigator.language is undefined, default to en-US
     userLocale = typeof userLocale === 'undefined' ? 'en-US' : userLocale;
-
-    const renderBalanceHeader = Number.isInteger(balanceSats);
     const renderFiatValues = typeof fiatPrice === 'number';
 
-    let balanceXec,
-        formattedBalanceXec,
-        formattedBalanceFiat,
-        formattedExchangeRate;
-    if (renderBalanceHeader) {
-        // Display XEC balance formatted for user's browser locale
-        balanceXec = toXec(balanceSats as number);
+    // Display XEC balance formatted for user's browser locale
+    const balanceXec = toXec(balanceSats);
 
-        formattedBalanceXec = balanceXec.toLocaleString(userLocale, {
-            minimumFractionDigits: appConfig.cashDecimals,
-            maximumFractionDigits: appConfig.cashDecimals,
-        });
+    const formattedBalanceXec = balanceXec.toLocaleString(userLocale, {
+        minimumFractionDigits: appConfig.cashDecimals,
+        maximumFractionDigits: appConfig.cashDecimals,
+    });
 
-        if (renderFiatValues) {
-            // Display fiat balance formatted for user's browser locale
-            formattedBalanceFiat = (balanceXec * fiatPrice).toLocaleString(
-                userLocale,
-                {
-                    minimumFractionDigits: appConfig.fiatDecimals,
-                    maximumFractionDigits: appConfig.fiatDecimals,
-                },
-            );
+    const formattedBalanceXecx = balanceXecx.toLocaleString(userLocale, {
+        minimumFractionDigits: appConfig.cashDecimals,
+        maximumFractionDigits: appConfig.cashDecimals,
+    });
 
-            // Display exchange rate formatted for user's browser locale
-            formattedExchangeRate = fiatPrice.toLocaleString(userLocale, {
-                minimumFractionDigits: appConfig.pricePrecisionDecimals,
-                maximumFractionDigits: appConfig.pricePrecisionDecimals,
-            });
-        }
-    }
+    const balanceXecEquivalents = balanceXec + balanceXecx;
 
-    // Render a spinner if the balance is not loaded
-    return !renderBalanceHeader ? (
-        <CashtabLoader />
-    ) : (
+    // Display fiat balance formatted for user's browser locale
+    const formattedBalanceFiat = renderFiatValues
+        ? (balanceXecEquivalents * fiatPrice).toLocaleString(userLocale, {
+              minimumFractionDigits: appConfig.fiatDecimals,
+              maximumFractionDigits: appConfig.fiatDecimals,
+          })
+        : undefined;
+
+    // Display exchange rate formatted for user's browser locale
+    const formattedExchangeRate = renderFiatValues
+        ? fiatPrice.toLocaleString(userLocale, {
+              minimumFractionDigits: appConfig.pricePrecisionDecimals,
+              maximumFractionDigits: appConfig.pricePrecisionDecimals,
+          })
+        : undefined;
+
+    return (
         <>
-            <BalanceXec
-                title="Balance in XEC"
-                balanceVisible={settings.balanceVisible === false}
-            >
-                {formattedBalanceXec} {appConfig.ticker}{' '}
+            <BalanceXec balanceVisible={settings.balanceVisible === false}>
+                <BalanceRow title="Balance XEC">
+                    {formattedBalanceXec} {appConfig.ticker}
+                </BalanceRow>
+                {balanceXecx !== 0 && (
+                    <BalanceRow isXecx title="Balance XECX">
+                        {formattedBalanceXecx}{' '}
+                        <a
+                            href={`/#/token/${appConfig.vipTokens.xecx.tokenId}`}
+                        >
+                            XECX
+                        </a>
+                    </BalanceRow>
+                )}
             </BalanceXec>
             {renderFiatValues && (
                 <>

@@ -35,6 +35,10 @@ interface AppConfig {
             // decimalized string, i.e. one thousand CACHET tokens
             vipBalance: string;
         };
+        xecx: {
+            tokenId: string;
+            vipBalance: string;
+        };
     };
     defaultLocale: string;
 }
@@ -70,6 +74,12 @@ const appConfig: AppConfig = {
                 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
             // decimalized string, i.e. one thousand CACHET tokens
             vipBalance: '1000',
+        },
+        xecx: {
+            tokenId:
+                'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
+            // 50,000 XECX (vipBalance is NOT token satoshis)
+            vipBalance: '50000',
         },
     },
     defaultLocale: 'en-US',

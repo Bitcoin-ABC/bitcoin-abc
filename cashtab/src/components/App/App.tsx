@@ -74,6 +74,7 @@ import {
     DesktopLogo,
     HeaderInfoCtn,
 } from 'components/App/styles';
+import appConfig from 'config/app';
 
 const App = () => {
     const ContextValue = useContext(WalletContext);
@@ -97,6 +98,18 @@ const App = () => {
     const validWallet = isValidCashtabWallet(wallet);
     const location = useLocation();
     const navigate = useNavigate();
+
+    /**
+     * Note the use Number here is acceptable for XECX because
+     * the supply is less than XEC supply, and hence less than
+     * Number.MAX_SAFE_INTEGER
+     */
+    const balanceXecx =
+        wallet !== false
+            ? Number(
+                  wallet.state.tokens.get(appConfig.vipTokens.xecx.tokenId),
+              ) || 0
+            : 0;
 
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
@@ -175,6 +188,7 @@ const App = () => {
                                                             wallet as CashtabWallet
                                                         ).state.balanceSats
                                                     }
+                                                    balanceXecx={balanceXecx}
                                                     settings={settings}
                                                     fiatPrice={fiatPrice}
                                                     userLocale={

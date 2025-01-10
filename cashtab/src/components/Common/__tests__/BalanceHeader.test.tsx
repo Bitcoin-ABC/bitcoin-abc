@@ -9,25 +9,11 @@ import BalanceHeader from 'components/Common/BalanceHeader';
 import CashtabSettings from 'config/CashtabSettings';
 
 describe('<BalanceHeader />', () => {
-    it('Renders the loader if balanceSats is not an integer', async () => {
-        render(
-            <BalanceHeader
-                balanceSats={1000000000.23}
-                settings={new CashtabSettings()}
-                fiatPrice={0.00003}
-            />,
-        );
-
-        // Loader is rendered
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
-
-        // XEC balance is not rendered
-        expect(screen.queryByTitle('Balance in XEC')).not.toBeInTheDocument();
-    });
     it('Renders the BalanceHeader component correctly with default locale en-US', async () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
+                balanceXecx={0}
                 settings={new CashtabSettings()}
                 fiatPrice={0.00003}
             />,
@@ -37,8 +23,11 @@ describe('<BalanceHeader />', () => {
         expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
 
         // XEC balance is calculated correctly
-        const BalanceXec = screen.getByTitle('Balance in XEC');
+        const BalanceXec = screen.getByTitle('Balance XEC');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
+
+        // We do not display the BalanceXecx row if the XECX balance is 0
+        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
 
         // XEC balance is not hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: none`);
@@ -55,12 +44,54 @@ describe('<BalanceHeader />', () => {
             `1 XEC = 0.00003000 USD`,
         );
     });
+    it('We render XECX balance if it is non-zero, and include it in the fiat total', async () => {
+        render(
+            <BalanceHeader
+                balanceSats={1000000000}
+                // Note that balanceXecx is not in satoshis, as tokens in wallet are not stored
+                // in token satoshis
+                balanceXecx={10000000}
+                settings={new CashtabSettings()}
+                fiatPrice={0.00003}
+            />,
+        );
+
+        // Loader is not rendered
+        expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
+
+        // XEC balance is calculated correctly
+        const BalanceXec = screen.getByTitle('Balance XEC');
+        expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
+
+        // XECX balance is calculated correctly
+        const BalanceXecx = screen.getByTitle('Balance XECX');
+        expect(BalanceXecx).toHaveTextContent(`10,000,000.00 XECX`);
+
+        // XEC balance is not hidden
+        expect(BalanceXec).toHaveStyle(`text-shadow: none`);
+        // XECX balance is not hidden
+        expect(BalanceXecx).toHaveStyle(`text-shadow: none`);
+
+        // Fiat balance is calculated correctly and includes XECX
+        const BalanceFiat = screen.getByTitle('Balance in Local Currency');
+        // See that $300 was fiat amount of previous test with 0 XECX balance
+        expect(BalanceFiat).toHaveTextContent(`$${2 * 300}.00 USD`);
+
+        // Fiat balance is not hidden
+        expect(BalanceFiat).toHaveStyle(`text-shadow: none`);
+
+        // eCash price is rendered
+        expect(screen.getByTitle('Price in Local Currency')).toHaveTextContent(
+            `1 XEC = 0.00003000 USD`,
+        );
+    });
     it('Renders the BalanceHeader component correctly with fr-FR locale', async () => {
         const frenchSettings = new CashtabSettings();
         frenchSettings.fiatCurrency = 'eur';
         render(
             <BalanceHeader
                 balanceSats={1000000000}
+                balanceXecx={0}
                 settings={frenchSettings}
                 fiatPrice={0.00003}
                 userLocale={'fr-FR'}
@@ -71,7 +102,7 @@ describe('<BalanceHeader />', () => {
         expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
 
         // XEC balance is displayed
-        const BalanceXec = screen.getByTitle('Balance in XEC');
+        const BalanceXec = screen.getByTitle('Balance XEC');
         expect(BalanceXec).toHaveTextContent(`10 000 000,00 XEC`);
 
         // XEC balance is not hidden
@@ -89,12 +120,13 @@ describe('<BalanceHeader />', () => {
             `1 XEC = 0,00003000 EUR`,
         );
     });
-    it('Balance is hidden if cashtabSettings.balanceVisible is false', async () => {
+    it('XEC and XECX and fiat balances are hidden if cashtabSettings.balanceVisible is false', async () => {
         const hiddenSettings = new CashtabSettings();
         hiddenSettings.balanceVisible = false;
         render(
             <BalanceHeader
                 balanceSats={1000000000}
+                balanceXecx={10000000}
                 settings={hiddenSettings}
                 fiatPrice={0.00003}
             />,
@@ -104,15 +136,22 @@ describe('<BalanceHeader />', () => {
         expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
 
         // XEC balance is calculated correctly
-        const BalanceXec = screen.getByTitle('Balance in XEC');
+        const BalanceXec = screen.getByTitle('Balance XEC');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: 0 0 15px #fff`);
 
-        // Fiat balance is calculated correctly
+        // XECX balance is calculated correctly
+        const BalanceXecx = screen.getByTitle('Balance XECX');
+        expect(BalanceXecx).toHaveTextContent(`10,000,000.00 XECX`);
+
+        // XECX balance is hidden
+        expect(BalanceXecx).toHaveStyle(`text-shadow: 0 0 15px #fff`);
+
+        // Fiat balance is calculated correctly (includes XECX)
         const BalanceFiat = screen.getByTitle('Balance in Local Currency');
-        expect(BalanceFiat).toHaveTextContent(`$300.00 USD`);
+        expect(BalanceFiat).toHaveTextContent(`$600.00 USD`);
 
         // Fiat balance is not hidden
         expect(BalanceFiat).toHaveStyle(`text-shadow: 0 0 15px #fff`);
@@ -128,6 +167,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
+                balanceXecx={0}
                 settings={nonUsdSettings}
                 fiatPrice={0.00003}
             />,
@@ -137,7 +177,7 @@ describe('<BalanceHeader />', () => {
         expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
 
         // XEC balance is calculated correctly
-        const BalanceXec = screen.getByTitle('Balance in XEC');
+        const BalanceXec = screen.getByTitle('Balance XEC');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is not hidden
@@ -159,6 +199,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
+                balanceXecx={0}
                 settings={new CashtabSettings()}
                 fiatPrice={null}
             />,
@@ -168,7 +209,7 @@ describe('<BalanceHeader />', () => {
         expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
 
         // XEC balance is calculated correctly
-        const BalanceXec = screen.getByTitle('Balance in XEC');
+        const BalanceXec = screen.getByTitle('Balance XEC');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is not hidden
