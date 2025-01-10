@@ -64,6 +64,12 @@ COPY modules/chronik-client/ .
 RUN npm ci
 RUN npm run build
 
+# mock-chronik-client
+WORKDIR /app/modules/mock-chronik-client
+COPY modules/mock-chronik-client/ .
+RUN npm ci
+RUN npm run build
+
 # b58-ts (required for ecash-lib)
 WORKDIR /app/modules/b58-ts
 COPY modules/b58-ts .
