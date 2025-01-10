@@ -23,6 +23,8 @@ import { token as tokenConfig } from 'config/token';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import { CashtabPathInfo } from 'wallet';
 import { InlineLoader } from 'components/Common/Spinner';
+import PrimaryButton from 'components/Common/Buttons';
+import Modal from 'components/Common/Modal';
 
 interface CashtabActiveOffers {
     offeredFungibleTokenIds: string[];
@@ -81,7 +83,8 @@ const Agora: React.FC = () => {
         .pk;
 
     // Use a state param to keep track of how many orderbooks we load at once
-    const [loadedOrderBooksCount, setLoadedOrderBooksCount] = useState(0);
+    const [loadedOrderBooksCount, setLoadedOrderBooksCount] =
+        useState(POLITE_REQUEST_LIMIT);
 
     // active agora partial offers organized for rendering this screen
     const [activeOffersCashtab, setActiveOffersCashtab] =
@@ -92,6 +95,24 @@ const Agora: React.FC = () => {
 
     const [allOrderBooksLoaded, setAllOrderBooksLoaded] =
         useState<boolean>(false);
+
+    // Agora by default loads a limited whitelist
+    // But it is possible to load all available offers, if the user is determined
+    // and patient
+    const [loadAllZeOffers, setLoadAllZeOffers] = useState<boolean>(false);
+
+    // On load, immediately show whitelisted tokens
+    const [renderedTokenIds, setRenderedTokenIds] = useState<null | string[]>(
+        null,
+    );
+
+    // Boolean to show a confirmation modal for alarming decision to loadAllZeOffers
+    const [showConfirmLoadAllModal, setShowConfirmLoadAllModal] =
+        useState<boolean>(false);
+
+    // On load, assume all whitelisted tokens have active offers
+    const [whitelistedTokensWithOffers, setWhitelistedTokensWithOffers] =
+        useState<string[]>(tokenConfig.whitelist);
 
     interface SortSwitches {
         byOfferCount: boolean;
@@ -110,13 +131,11 @@ const Agora: React.FC = () => {
     });
 
     const sortOrderBooksByOfferCount = () => {
-        if (!orderBookInfoMapRef.current || activeOffersCashtab === null) {
+        if (!orderBookInfoMapRef.current || renderedTokenIds === null) {
             return;
         }
 
-        const sortedTokenIds = [
-            ...activeOffersCashtab.offeredFungibleTokenIds,
-        ].sort((a, b) => {
+        const sortedTokenIds = [...renderedTokenIds].sort((a, b) => {
             const offerCountA =
                 orderBookInfoMapRef.current.get(a)?.offerCount || 0;
             const offerCountB =
@@ -125,38 +144,18 @@ const Agora: React.FC = () => {
         });
 
         // Update the state with sorted token IDs
-        setActiveOffersCashtab(
-            (prev: CashtabActiveOffers | null): CashtabActiveOffers | null => {
-                if (prev === null) return null; // If prev is null, return null
-
-                return {
-                    ...prev,
-                    offeredFungibleTokenIds: sortedTokenIds,
-                };
-            },
-        );
+        setRenderedTokenIds(sortedTokenIds);
     };
 
     const sortOrderBooksByTokenId = () => {
-        if (!orderBookInfoMapRef.current || activeOffersCashtab === null) {
+        if (!orderBookInfoMapRef.current || renderedTokenIds === null) {
             return;
         }
 
-        const sortedTokenIds = [
-            ...activeOffersCashtab.offeredFungibleTokenIds,
-        ].sort();
+        const sortedTokenIds = [...renderedTokenIds].sort();
 
         // Update the state with sorted token IDs
-        setActiveOffersCashtab(
-            (prev: CashtabActiveOffers | null): CashtabActiveOffers | null => {
-                if (prev === null) return null; // If prev is null, return null
-
-                return {
-                    ...prev,
-                    offeredFungibleTokenIds: sortedTokenIds,
-                };
-            },
-        );
+        setRenderedTokenIds(sortedTokenIds);
     };
 
     useEffect(() => {
@@ -170,8 +169,16 @@ const Agora: React.FC = () => {
     }, [allOrderBooksLoaded, switches]);
 
     useEffect(() => {
-        if (activeOffersCashtab === null || allOrderBooksLoaded) {
-            // Do nothing if we have no active offers or if everything is loaded
+        if (
+            activeOffersCashtab === null ||
+            allOrderBooksLoaded ||
+            !loadAllZeOffers
+        ) {
+            // If we have not yet loaded any offers
+            // Or if we have loaded all the offers
+            // Or if the user is not trying to loadAllZeOffers
+
+            // Then we do not enter this useEffect
             return;
         }
 
@@ -196,7 +203,29 @@ const Agora: React.FC = () => {
 
         // Clean up the interval when component unmounts or when all order books are loaded
         return () => clearInterval(intervalId);
-    }, [activeOffersCashtab, allOrderBooksLoaded]);
+    }, [activeOffersCashtab, allOrderBooksLoaded, loadAllZeOffers]);
+
+    useEffect(() => {
+        if (activeOffersCashtab === null) {
+            return;
+        }
+
+        // If the user wants to loadAllZeOffers, we do polite loading of activeOffersCashtab.offeredFungibleTokenIds
+        // If the user has not manually agreed to loadAllZeOffers, we only show whitelisted tokenIds that have active offers
+        const tokenIdsToRender = loadAllZeOffers
+            ? activeOffersCashtab.offeredFungibleTokenIds.slice(
+                  0,
+                  loadedOrderBooksCount,
+              )
+            : whitelistedTokensWithOffers;
+
+        setRenderedTokenIds(tokenIdsToRender);
+    }, [
+        loadAllZeOffers,
+        activeOffersCashtab,
+        loadedOrderBooksCount,
+        whitelistedTokensWithOffers,
+    ]);
 
     /**
      * Specialized helper function to support use of Promise.all in adding new tokens to cache
@@ -229,7 +258,11 @@ const Agora: React.FC = () => {
     };
 
     const getListedTokens = async () => {
-        // 1. Get all offered tokens
+        // Render the whitelist before anything so the screen loads fast
+        const { whitelist } = tokenConfig;
+        setRenderedTokenIds(whitelist);
+
+        // Get all offered tokens
         let offeredFungibleTokenIds: string[];
         try {
             offeredFungibleTokenIds = await agora.offeredFungibleTokenIds();
@@ -249,7 +282,19 @@ const Agora: React.FC = () => {
             }
         }
 
-        // Fetch server-maintained blacklist
+        // Remove unwhitelisted tokens from init whitelist
+        const initRenderedTokens = [];
+
+        for (const whitelistedTokenId of whitelist) {
+            if (offeredFungibleTokenIds.includes(whitelistedTokenId)) {
+                initRenderedTokens.push(whitelistedTokenId);
+            }
+        }
+
+        // Set this now and do the rest of our calcs below in the background, as we only need them
+        // if the user wants to see all
+        setWhitelistedTokensWithOffers(initRenderedTokens);
+
         let blacklist: string[];
         try {
             const serverBlacklistResponse: ServerBlacklistResponse = await (
@@ -320,6 +365,8 @@ const Agora: React.FC = () => {
             `${noBlacklistedOfferedFungibleTokenIds.length} non-blacklisted tokens with active listings.`,
         );
 
+        // Even though we load with a limitied whitelist, we still cache all tokens in the background
+
         // Build an array of promises to get token info for all unknown tokens
         const tokenInfoPromises = [];
         for (const tokenId of Array.from(tokenIdsWeNeedToCache)) {
@@ -364,10 +411,47 @@ const Agora: React.FC = () => {
     const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (activeOffersCashtab === null) {
-            // We don't do anything here until we know how many active offers we need to load
+        if (activeOffersCashtab === null || renderedTokenIds === null) {
+            // Do nothing until we have loaded tokens to render
             return;
         }
+
+        if (!loadAllZeOffers) {
+            // If we are not loading all of the offers, create the timeout based on renderedTokenIds
+            intervalIdRef.current = setInterval(() => {
+                const currentSize = orderBookInfoMapRef.current.size;
+                if (currentSize === renderedTokenIds.length) {
+                    // We have loaded all offer info, can enable search using this info
+                    setAllOrderBooksLoaded(true);
+
+                    // Clear the interval when orderBookInfoMap is loaded
+                    if (intervalIdRef.current !== null) {
+                        clearInterval(intervalIdRef.current);
+                        intervalIdRef.current = null; // Reset the ref to null
+                    }
+                }
+                // Check every 5 seconds. For whitelisted tokenIds, we do not expect to do this more than once
+                // But the whitelist is expected to grow, so mb we will get there
+            }, 5000);
+
+            // Cleanup the interval when the component unmounts
+            return () => {
+                if (intervalIdRef.current) {
+                    clearInterval(intervalIdRef.current);
+                }
+            };
+        }
+
+        if (
+            allOrderBooksLoaded == true &&
+            orderBookInfoMapRef.current.size <
+                activeOffersCashtab.offeredFungibleTokenIds.length
+        ) {
+            // Reset allOrderBooksLoaded if all order books are in fact not loaded
+            // Expected behavior if the user elects to loadAllZeOffers
+            setAllOrderBooksLoaded(false);
+        }
+
         // Start the interval when the component mounts
         intervalIdRef.current = setInterval(() => {
             const currentSize = orderBookInfoMapRef.current.size;
@@ -392,7 +476,7 @@ const Agora: React.FC = () => {
                 clearInterval(intervalIdRef.current);
             }
         };
-    }, [activeOffersCashtab]);
+    }, [activeOffersCashtab, loadAllZeOffers, renderedTokenIds]);
 
     return (
         <>
@@ -404,10 +488,39 @@ const Agora: React.FC = () => {
                 </ActiveOffers>
             ) : (
                 <>
-                    {activeOffersCashtab === null ? (
+                    {renderedTokenIds === null ? (
                         <Spinner title="Loading active offers" />
                     ) : (
                         <>
+                            {showConfirmLoadAllModal &&
+                                activeOffersCashtab !== null && (
+                                    <Modal
+                                        title={`Load all agora offers?`}
+                                        description={`We have ${activeOffersCashtab.offeredFungibleTokenIds.length.toLocaleString(
+                                            userLocale,
+                                            {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            },
+                                        )} listings. This will take a long time and the screen will be slow.`}
+                                        handleOk={() => {
+                                            // Manually update the sort switch to sort by tokenId
+                                            // We need to update orderbookMap with all of the offers
+                                            // before we can offer sort by other params
+                                            setSwitches({
+                                                ...sortSwitchesOff,
+                                                byTokenId: true,
+                                            });
+                                            // Start loading all the offers
+                                            setLoadAllZeOffers(true);
+                                            // Hide this modal
+                                            setShowConfirmLoadAllModal(false);
+                                        }}
+                                        handleCancel={() =>
+                                            setShowConfirmLoadAllModal(false)
+                                        }
+                                    />
+                                )}
                             <AgoraHeader>
                                 <h2>Token Offers</h2>
                                 <div>
@@ -472,9 +585,11 @@ const Agora: React.FC = () => {
                                             Manage your listings
                                         </OfferTitle>
 
-                                        {activeOffersCashtab
-                                            .offeredFungibleTokenIdsThisWallet
-                                            .length > 0 ? (
+                                        {activeOffersCashtab === null ? (
+                                            <InlineLoader />
+                                        ) : activeOffersCashtab
+                                              .offeredFungibleTokenIdsThisWallet
+                                              .length > 0 ? (
                                             <OfferTable>
                                                 {activeOffersCashtab.offeredFungibleTokenIdsThisWallet.map(
                                                     offeredTokenId => {
@@ -503,16 +618,11 @@ const Agora: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        {activeOffersCashtab
-                                            .offeredFungibleTokenIds.length >
-                                        0 ? (
+                                        {renderedTokenIds !== null &&
+                                        renderedTokenIds.length > 0 ? (
                                             <OfferTable>
-                                                {activeOffersCashtab.offeredFungibleTokenIds
-                                                    .slice(
-                                                        0,
-                                                        loadedOrderBooksCount,
-                                                    )
-                                                    .map(offeredTokenId => {
+                                                {renderedTokenIds.map(
+                                                    offeredTokenId => {
                                                         return (
                                                             <OrderBook
                                                                 key={
@@ -529,17 +639,46 @@ const Agora: React.FC = () => {
                                                                 }
                                                             />
                                                         );
-                                                    })}
+                                                    },
+                                                )}
                                             </OfferTable>
                                         ) : (
-                                            <p>
-                                                No tokens are currently listed
-                                                for sale
-                                            </p>
+                                            <>
+                                                {!loadAllZeOffers ? (
+                                                    <p>
+                                                        No whitelisted tokens
+                                                        are currently listed for
+                                                        sale. Try loading all
+                                                        offers.
+                                                    </p>
+                                                ) : (
+                                                    <p>
+                                                        No tokens are currently
+                                                        listed for sale.
+                                                    </p>
+                                                )}
+                                            </>
                                         )}
                                     </>
                                 )}
                             </ActiveOffers>
+                            {!loadAllZeOffers && !manageMyOffers && (
+                                <PrimaryButton
+                                    style={{
+                                        marginTop: '12px',
+                                    }}
+                                    disabled={activeOffersCashtab === null}
+                                    onClick={() =>
+                                        setShowConfirmLoadAllModal(true)
+                                    }
+                                >
+                                    {activeOffersCashtab === null ? (
+                                        <InlineLoader />
+                                    ) : (
+                                        'Load all offers'
+                                    )}
+                                </PrimaryButton>
+                            )}
                         </>
                     )}
                 </>

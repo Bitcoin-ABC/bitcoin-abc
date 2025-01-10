@@ -28,16 +28,12 @@ import {
     agoraPartialBetaWallet,
     agoraPartialAlphaKeypair,
     agoraPartialBetaKeypair,
+    tokenMockXecx,
+    agoraOfferXecxAlphaOne,
 } from 'components/Agora/fixtures/mocks';
 import { Ecc, initWasm, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { token as tokenConfig } from 'config/token';
-
-/**
- * Test requires different timeout to deal with batched loading
- * I do not observe this impact in prod, but tests need an adjustment
- */
-const BATCH_TEST_TIMEOUT = 6000;
 
 describe('<Agora />', () => {
     let ecc;
@@ -138,16 +134,36 @@ describe('<Agora />', () => {
         // Wait for element to get token info and load
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
-        // We see the Token Offers section
-        expect(screen.getByText('Token Offers')).toBeInTheDocument();
-
         // We see sort switches from "Manage my offers"
         expect(screen.getByTitle('Sort by TokenId')).toBeInTheDocument();
         expect(screen.getByTitle('Sort by Offer Count')).toBeInTheDocument();
 
         // But we have no offers
         expect(
-            screen.getByText('No tokens are currently listed for sale'),
+            screen.getByText(
+                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
+            ),
+        ).toBeInTheDocument();
+
+        // We try to load all the offers
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Load all offers' }),
+        );
+
+        // We see a confirmation modal
+        // Note this is a silly msg, but we do not expect to ever have 0 offers in prod, so we do not handle it in the app
+        expect(
+            screen.getByText(
+                'We have 0 listings. This will take a long time and the screen will be slow.',
+            ),
+        ).toBeInTheDocument();
+
+        // Loading 0 offers does not sound scary to us. Let's do it.
+        await userEvent.click(screen.getByText('OK'));
+
+        // No offers. We were warned.
+        expect(
+            await screen.findByText('No tokens are currently listed for sale.'),
         ).toBeInTheDocument();
 
         // We switch to see our created offers
@@ -210,8 +226,66 @@ describe('<Agora />', () => {
             ),
         ).toBeInTheDocument();
     });
-    it('We can see a rendered offer', async () => {
-        // Need to mock agora API endpoints
+    it('A whitelisted offer is rendered immediately', async () => {
+        const mockedAgora = new MockAgora();
+
+        // mock await agora.offeredFungibleTokenIds();
+        mockedAgora.setOfferedFungibleTokenIds([tokenMockXecx.tokenId]);
+
+        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
+        mockedAgora.setActiveOffersByTokenId(tokenMockXecx.tokenId, [
+            agoraOfferXecxAlphaOne,
+        ]);
+
+        // also mock await agora.activeOffersByPubKey(toHex(activePk))
+        mockedAgora.setActiveOffersByPubKey(
+            toHex(agoraPartialAlphaKeypair.pk),
+            [agoraOfferXecxAlphaOne],
+        );
+
+        // Prep token mocks for xecx cache
+        mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
+        mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                route={`/agora`}
+            />,
+        );
+
+        // Wait for the screen to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for agora offers to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading active offers'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for element to get token info and load
+        expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
+
+        // We have an offer
+        expect(screen.getByText('Token Offers')).toBeInTheDocument();
+
+        // We see the token name and ticker above its PartialOffer after OrderBooks load
+        expect(await screen.findByText('Staked XEC')).toBeInTheDocument();
+        expect(screen.getByText('XECX')).toBeInTheDocument();
+
+        // Because this offer was created by this wallet, we have the option to cancel it
+        expect(
+            await screen.findByRole('button', { name: 'Cancel your offer' }),
+        ).toBeInTheDocument();
+    });
+    it('We need to load all to see a non-whitelisted offer', async () => {
         const mockedAgora = new MockAgora();
 
         // mock await agora.offeredFungibleTokenIds();
@@ -253,18 +327,34 @@ describe('<Agora />', () => {
         // Wait for element to get token info and load
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
-        // We have an offer
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
+
+        // No whitelisted offers
+        expect(
+            screen.getByText(
+                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
+            ),
+        ).toBeInTheDocument();
+
+        // We try to load all the offers
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Load all offers' }),
+        );
+
+        // We see a confirmation modal
+        // Note that "1 listings" should be "1 listing", but we never expect to have just 1 so we do not handle it
+        expect(
+            screen.getByText(
+                'We have 1 listings. This will take a long time and the screen will be slow.',
+            ),
+        ).toBeInTheDocument();
+
+        // Loading 1 offer sounds reasonable
+        await userEvent.click(screen.getByText('OK'));
 
         // We see the token name and ticker above its PartialOffer after OrderBooks load
 
-        expect(
-            await screen.findByText(
-                'Cachet',
-                {},
-                { timeout: BATCH_TEST_TIMEOUT },
-            ),
-        ).toBeInTheDocument();
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(
@@ -321,10 +411,28 @@ describe('<Agora />', () => {
         // We see the Token Offers section
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
-        // But we have no offers
+        // No whitelisted offers
         expect(
-            screen.getByText('No tokens are currently listed for sale'),
+            screen.getByText(
+                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
+            ),
         ).toBeInTheDocument();
+
+        // We try to load all the offers
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Load all offers' }),
+        );
+
+        // We see a confirmation modal warning about 0 offers, as the only offer is blacklisted
+        // Note this is a silly msg, but we do not expect to ever have 0 offers in prod, so we do not handle it in the app
+        expect(
+            screen.getByText(
+                'We have 0 listings. This will take a long time and the screen will be slow.',
+            ),
+        ).toBeInTheDocument();
+
+        // No point in loading zero offers, close the modal
+        await userEvent.click(screen.getByText('X'));
 
         // We switch to see our created offers
         await userEvent.click(screen.getByTitle('Toggle Active Offers'));
@@ -391,10 +499,27 @@ describe('<Agora />', () => {
         // We see the Token Offers section
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
-        // But we have no offers
+        // No whitelisted offers
         expect(
-            screen.getByText('No tokens are currently listed for sale'),
+            await screen.findByText(
+                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
+            ),
         ).toBeInTheDocument();
+
+        // We try to load all the offers
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Load all offers' }),
+        );
+
+        // We see a confirmation modal showing 0 offers, as expected
+        expect(
+            screen.getByText(
+                'We have 0 listings. This will take a long time and the screen will be slow.',
+            ),
+        ).toBeInTheDocument();
+
+        // Close the modal
+        await userEvent.click(screen.getByText('X'));
 
         // We switch to see our created offers
         await userEvent.click(screen.getByTitle('Toggle Active Offers'));
@@ -476,6 +601,28 @@ describe('<Agora />', () => {
             ).not.toBeInTheDocument(),
         );
 
+        // We have no whitelisted tokens, so we see expected msg
+        expect(
+            await screen.findByText(
+                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
+            ),
+        ).toBeInTheDocument();
+
+        // We try to load all the offers
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Load all offers' }),
+        );
+
+        // We see a confirmation modal
+        expect(
+            screen.getByText(
+                'We have 2 listings. This will take a long time and the screen will be slow.',
+            ),
+        ).toBeInTheDocument();
+
+        // Load them
+        await userEvent.click(screen.getByText('OK'));
+
         // Wait for Agora to load all orderBookInfo
         await waitFor(
             () =>
@@ -483,9 +630,8 @@ describe('<Agora />', () => {
                     screen.queryByTitle('Loading OrderBook info...'),
                 ).not.toBeInTheDocument(),
             // This can take some time
-            // Fails with timeout 5000, sometimes with 6000; needs longer than other tests
             // May need to adjust if experience flakiness
-            { timeout: 2 * BATCH_TEST_TIMEOUT },
+            { timeout: 5000 },
         );
 
         // When orderbook info has loaded, we see a switch to sort by offer count
@@ -796,17 +942,33 @@ describe('<Agora />', () => {
         // Wait for element to get token info and load
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
-        // We have an offer
-        expect(screen.getByText('Token Offers')).toBeInTheDocument();
-
-        // We see all token names and tickers above their PartialOffers
+        // We have no whitelisted tokens, so we see expected msg
         expect(
             await screen.findByText(
-                'Cachet',
-                {},
-                { timeout: BATCH_TEST_TIMEOUT },
+                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
             ),
         ).toBeInTheDocument();
+
+        // We try to load all the offers
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Load all offers' }),
+        );
+
+        // We see a confirmation modal
+        expect(
+            screen.getByText(
+                'We have 2 listings. This will take a long time and the screen will be slow.',
+            ),
+        ).toBeInTheDocument();
+
+        // Load them
+        await userEvent.click(screen.getByText('OK'));
+
+        // We have an offer
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
+
+        // We see all token names and tickers above their PartialOffers
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
         expect(await screen.findByText('Bull')).toBeInTheDocument();
 
         // If we select the offer created by the Beta wallet, we see a buy button

@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
-
 export const token = {
     tokenIconSubmitApi: 'https://api.etokens.cash/new',
     tokenIconsUrl: 'https://icons.etokens.cash',
@@ -36,5 +34,17 @@ export const token = {
         '4a8bf0102dba2092ed1047ce355d8848d83324d4c2c45f4e4cd3712c5715c25d',
         // fake picoin
         '8bf3dd3afdc802583eb8f2aeb6705a16d3f6fdfe39a1579d8b550ac0c7aebe2f',
+    ],
+    /**
+     * Now that we have some "known" vol tokens, load only these
+     * unless the user manually elects to "load all offers". We will
+     * improve how this list is built and maintained going forward
+     * (establish inclusion metrics)
+     */
+    whitelist: [
+        // Star crystals
+        'ac31bb0bccf33de1683efce4da64f1cb6d8e8d6e098bc01c51d5864deb0e783f',
+        // XECX
+        'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
     ],
 };
