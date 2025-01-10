@@ -335,18 +335,14 @@ impl ChronikElectrumRPCServerEndpoint {
 }
 
 fn json_to_u31(num: Value, err_msg: &str) -> Result<i32, RPCError> {
-    let err_msg = err_msg.to_string();
-    let num = match num {
-        Value::Number(h) => Ok(h),
-        _ => Err(RPCError::CustomError(1, err_msg.clone())),
-    }?;
-    let num = num
-        .as_i64()
-        .ok_or(RPCError::CustomError(1, err_msg.clone()))?;
-    if num < 0 {
-        return Err(RPCError::CustomError(1, err_msg));
+    match num {
+        Value::Number(n) => match n.as_i64() {
+            Some(n) if n >= 0 => i32::try_from(n)
+                .map_err(|_| RPCError::CustomError(1, err_msg.to_string())),
+            _ => Err(RPCError::CustomError(1, err_msg.to_string())),
+        },
+        _ => Err(RPCError::CustomError(1, err_msg.to_string())),
     }
-    i32::try_from(num).map_err(|_| RPCError::CustomError(1, err_msg))
 }
 
 fn be_bytes_to_le_hex(hash: &[u8]) -> String {
