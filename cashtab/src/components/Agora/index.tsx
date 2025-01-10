@@ -411,41 +411,46 @@ const Agora: React.FC = () => {
                             <AgoraHeader>
                                 <h2>Token Offers</h2>
                                 <div>
-                                    Sort by:
-                                    <SortSwitch
-                                        disabled={false}
-                                        active={switches.byTokenId}
-                                        title="Sort by TokenId"
-                                        onClick={() =>
-                                            setSwitches({
-                                                ...sortSwitchesOff,
-                                                byTokenId: true,
-                                            })
-                                        }
-                                    >
-                                        TokenID
-                                    </SortSwitch>
-                                    <SortSwitch
-                                        disabled={!allOrderBooksLoaded}
-                                        active={switches.byOfferCount}
-                                        title="Sort by Offer Count"
-                                        onClick={
-                                            allOrderBooksLoaded
-                                                ? () =>
-                                                      setSwitches({
-                                                          ...sortSwitchesOff,
-                                                          byOfferCount: true,
-                                                      })
-                                                : undefined
-                                        }
-                                    >
-                                        Offers
-                                        {!allOrderBooksLoaded && (
-                                            <div>
-                                                <InlineLoader title="Loading OrderBook info..." />
-                                            </div>
-                                        )}
-                                    </SortSwitch>
+                                    {!manageMyOffers && (
+                                        <>
+                                            Sort by:
+                                            <SortSwitch
+                                                disabled={false}
+                                                active={switches.byTokenId}
+                                                title="Sort by TokenId"
+                                                onClick={() =>
+                                                    setSwitches({
+                                                        ...sortSwitchesOff,
+                                                        byTokenId: true,
+                                                    })
+                                                }
+                                            >
+                                                TokenID
+                                            </SortSwitch>
+                                            <SortSwitch
+                                                disabled={!allOrderBooksLoaded}
+                                                active={switches.byOfferCount}
+                                                title="Sort by Offer Count"
+                                                onClick={
+                                                    allOrderBooksLoaded
+                                                        ? () =>
+                                                              setSwitches({
+                                                                  ...sortSwitchesOff,
+                                                                  byOfferCount:
+                                                                      true,
+                                                              })
+                                                        : undefined
+                                                }
+                                            >
+                                                Offers
+                                                {!allOrderBooksLoaded && (
+                                                    <div>
+                                                        <InlineLoader title="Loading OrderBook info..." />
+                                                    </div>
+                                                )}
+                                            </SortSwitch>
+                                        </>
+                                    )}
                                     <ManageSwitch
                                         title="Toggle Active Offers"
                                         onClick={() => {

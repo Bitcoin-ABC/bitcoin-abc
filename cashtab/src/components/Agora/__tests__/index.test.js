@@ -135,6 +135,10 @@ describe('<Agora />', () => {
         // We see the Token Offers section
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
+        // We see sort switches from "Manage my offers"
+        expect(screen.getByTitle('Sort by TokenId')).toBeInTheDocument();
+        expect(screen.getByTitle('Sort by Offer Count')).toBeInTheDocument();
+
         // But we have no offers
         expect(
             screen.getByText('No tokens are currently listed for sale'),
@@ -150,6 +154,12 @@ describe('<Agora />', () => {
         expect(
             screen.getByText('You do not have any listed tokens'),
         ).toBeInTheDocument();
+
+        // We do not see sort switches from "Manage my offers"
+        expect(screen.queryByTitle('Sort by TokenId')).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Sort by Offer Count'),
+        ).not.toBeInTheDocument();
     });
     it('A chronik error notice is rendered if there is some error in querying listings', async () => {
         // Need to mock agora API endpoints
