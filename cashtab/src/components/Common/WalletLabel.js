@@ -2,14 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useRef } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { getWalletsForNewActiveWallet } from 'wallet';
-import { Event } from 'components/Common/GoogleAnalytics';
 import { getTextWidth } from 'helpers';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
-import debounce from 'lodash.debounce';
 
 const LabelCtn = styled.div`
     z-index: 2;
@@ -36,19 +34,9 @@ const LabelCtn = styled.div`
 
 const EXTRA_WIDTH_FOR_SELECT = 32;
 const WalletDropdown = styled.select`
-    font-family:
-        'Poppins',
-        'Ubuntu',
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        'Roboto',
-        'Oxygen',
-        'Cantarell',
-        'Fira Sans',
-        'Droid Sans',
-        'Helvetica Neue',
-        sans-serif;
+    font-family: 'Poppins', 'Ubuntu', -apple-system, BlinkMacSystemFont,
+        'Segoe UI', 'Roboto', 'Oxygen', 'Cantarell', 'Fira Sans', 'Droid Sans',
+        'Helvetica Neue', sans-serif;
     width: ${props =>
         `${
             getTextWidth(document, props.value, '18px Poppins') +
@@ -80,17 +68,6 @@ const WalletOption = styled.option`
 const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
     const address = wallets[0].paths.get(1899).address;
 
-    const debouncedActivateNewWallet = useRef(
-        debounce(walletsAfterActivation => {
-            // Event("Category", "Action", "Label
-            // Track number of times a different wallet is activated
-            Event('App.js', 'Activate', '');
-
-            // Update wallets to activate this wallet
-            updateCashtabState('wallets', walletsAfterActivation);
-        }, 500),
-    ).current;
-
     const handleSelectWallet = e => {
         const walletName = e.target.value;
 
@@ -109,7 +86,7 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
             wallets,
         );
 
-        debouncedActivateNewWallet(walletsAfterActivation);
+        updateCashtabState('wallets', walletsAfterActivation);
     };
 
     return (

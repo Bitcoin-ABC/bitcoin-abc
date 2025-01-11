@@ -724,7 +724,7 @@ describe('<Agora />', () => {
             screen.getByText('Agora Partial Beta'),
         );
 
-        expect(await screen.findByText('42.00 XEC')).toBeInTheDocument();
+        expect(await screen.findByText('390.16 XEC')).toBeInTheDocument();
 
         // Wait for tokens to re-load (triggered by wallet change)
         await waitFor(() =>
