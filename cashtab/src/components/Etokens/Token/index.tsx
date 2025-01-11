@@ -337,6 +337,11 @@ const Token: React.FC = () => {
     // to confirm the actual offer is reasonable vs their inputs, which are approximations
     const [previewedAgoraPartial, setPreviewedAgoraPartial] =
         useState<null | AgoraPartial>(null);
+
+    const [
+        previewedAgoraPartialUnacceptable,
+        setPreviewedAgoraPartialUnacceptable,
+    ] = useState<boolean>(false);
     const [nftActiveOffer, setNftActiveOffer] = useState<null | OneshotOffer[]>(
         null,
     );
@@ -781,6 +786,14 @@ const Token: React.FC = () => {
             // 2 - on user canceling an SLP listing at confirmation modal
             return setShowConfirmListPartialSlp(false);
         }
+
+        // Is this an unacceptable offer?
+        // Note: we need to catch these in library validation, but it's
+        // important to make sure they stop getting created rightnow
+        const isUnacceptableOffer =
+            previewedAgoraPartial.minAcceptedTokens() >
+            previewedAgoraPartial.offeredTokens();
+        setPreviewedAgoraPartialUnacceptable(isUnacceptableOffer);
 
         // Show the Agora Partial summary and confirm modal when we have a non-null previewedAgoraPartial
         setShowConfirmListPartialSlp(true);
@@ -2124,6 +2137,7 @@ const Token: React.FC = () => {
                         previewedAgoraPartial !== null && (
                             <Modal
                                 title={`List ${tokenTicker}?`}
+                                disabled={previewedAgoraPartialUnacceptable}
                                 handleOk={
                                     isAlp ? listAlpPartial : listSlpPartial
                                 }
@@ -2174,6 +2188,16 @@ const Token: React.FC = () => {
                                             )}
                                         </AgoraPreviewCol>
                                     </AgoraPreviewRow>
+                                    {previewedAgoraPartialUnacceptable && (
+                                        <Alert noWordBreak>
+                                            This offer cannot be accepted
+                                            because the min buy is higher than
+                                            the total offered tokens. Cashtab
+                                            does not support creating this type
+                                            of offer. Please update your params
+                                            and try again.
+                                        </Alert>
+                                    )}
 
                                     <AgoraPreviewRow>
                                         <AgoraPreviewLabel>
