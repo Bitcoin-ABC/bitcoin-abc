@@ -341,6 +341,12 @@ export class AgoraPartial {
             );
         }
 
+        if (params.offeredTokens < params.minAcceptedTokens) {
+            throw new Error(
+                'offeredTokens must be greater than minAcceptedTokens',
+            );
+        }
+
         // Script uses 1 bit as sign bit, which we can't use in our calculation
         const scriptIntegerWithoutSignBits = scriptIntegerBits - 1n;
         // Max integer that can be represented in Script on the network

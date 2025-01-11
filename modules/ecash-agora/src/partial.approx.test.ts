@@ -26,51 +26,51 @@ describe('Agora Partial Param Approximation', () => {
         dustAmount: DEFAULT_DUST_LIMIT,
     };
 
-    it('AgoraPartial.approximateParams 1 for 1sat/token', () => {
+    it('AgoraPartial.approximateParams 546 for 1sat/token', () => {
         const params = AgoraPartial.approximateParams({
-            offeredTokens: 1n,
+            offeredTokens: 546n,
             priceNanoSatsPerToken: 1000000000n,
             minAcceptedTokens: 546n,
             ...BASE_PARAMS_SLP,
         });
         expect(params).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 1n,
+                truncTokens: 546n,
                 numTokenTruncBytes: 0,
-                tokenScaleFactor: 0x40000001n,
-                scaledTruncTokensPerTruncSat: 0x40000001n,
+                tokenScaleFactor: 3925916n,
+                scaledTruncTokensPerTruncSat: 3925916n,
                 numSatsTruncBytes: 0,
-                minAcceptedScaledTruncTokens: 586263036450n,
+                minAcceptedScaledTruncTokens: 2143550136n,
                 ...BASE_PARAMS_SLP,
                 scriptLen: params.scriptLen,
             }),
         );
-        expect(params.offeredTokens()).to.equal(1n);
+        expect(params.offeredTokens()).to.equal(546n);
         expect(params.minAcceptedTokens()).to.equal(546n);
         expect(params.askedSats(1n)).to.equal(1n);
         expect(params.priceNanoSatsPerToken(1n)).to.equal(1000000000n);
     });
 
-    it('AgoraPartial.approximateParams 2 for 1sat/token', () => {
+    it('AgoraPartial.approximateParams 1092 for 1sat/token', () => {
         const params = AgoraPartial.approximateParams({
-            offeredTokens: 2n,
+            offeredTokens: 1092n,
             priceNanoSatsPerToken: 1000000000n,
             minAcceptedTokens: 546n,
             ...BASE_PARAMS_SLP,
         });
         expect(params).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 2n,
+                truncTokens: 1092n,
                 numTokenTruncBytes: 0,
-                tokenScaleFactor: 0x20000000n,
-                scaledTruncTokensPerTruncSat: 0x20000000n,
+                tokenScaleFactor: 1964759n,
+                scaledTruncTokensPerTruncSat: 1964759n,
                 numSatsTruncBytes: 0,
-                minAcceptedScaledTruncTokens: 293131517952n,
+                minAcceptedScaledTruncTokens: 1072758414n,
                 ...BASE_PARAMS_SLP,
                 scriptLen: params.scriptLen,
             }),
         );
-        expect(params.offeredTokens()).to.equal(2n);
+        expect(params.offeredTokens()).to.equal(1092n);
         expect(params.minAcceptedTokens()).to.equal(546n);
         expect(params.askedSats(1n)).to.equal(1n);
         expect(params.askedSats(2n)).to.equal(2n);
@@ -1124,6 +1124,15 @@ describe('Agora Partial Param Approximation', () => {
         ).to.throw('For ALP, offeredTokens can be at most 0xffffffffffff');
         expect(() =>
             AgoraPartial.approximateParams({
+                offeredTokens: 100n,
+                priceNanoSatsPerToken: 10000000000n,
+                minAcceptedTokens: 101n,
+                ...BASE_PARAMS_SLP,
+                tokenProtocol: 'ALP',
+            }),
+        ).to.throw('offeredTokens must be greater than minAcceptedTokens');
+        expect(() =>
+            AgoraPartial.approximateParams({
                 offeredTokens: 1n,
                 priceNanoSatsPerToken: 1n,
                 minAcceptedTokens: 1n,
@@ -1140,7 +1149,7 @@ describe('Agora Partial Param Approximation', () => {
         ).to.throw('minAcceptedTokens too small, got truncated to 0');
         expect(() =>
             AgoraPartial.approximateParams({
-                offeredTokens: 1n,
+                offeredTokens: 545n,
                 priceNanoSatsPerToken: 1000000000n,
                 minAcceptedTokens: 545n,
                 ...BASE_PARAMS_SLP,

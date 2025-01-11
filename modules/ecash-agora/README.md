@@ -166,3 +166,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 0.3.0
 
 -   Add `TakenInfo` in `historicOffers` method to support parsing historic Agora offers [D17422](https://reviews.bitcoinabc.org/D17422)
+
+### 0.3.1
+
+-   Do not allow creation of unacceptable agora partials [D17517](https://reviews.bitcoinabc.org/D17517)
