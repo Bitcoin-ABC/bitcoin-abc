@@ -733,8 +733,15 @@ const OrderBook: React.FC<OrderBookProps> = ({
      * On component load, query agora to get activeOffers for this tokenId orderbook
      */
     useEffect(() => {
+        // Clear active offers if we have them
+        // This can happen if the user has navigated from one token page to another token page
+        if (activeOffers !== null) {
+            setActiveOffers(null);
+        }
+
+        // Load active offers on tokenId change or app load
         fetchAndPrepareActiveOffers();
-    }, []);
+    }, [tokenId]);
 
     // When activeOffers loads, select the spot price and make necessary calcs
     useEffect(() => {
