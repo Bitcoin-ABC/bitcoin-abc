@@ -8,9 +8,10 @@ use std::{cmp, net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
-    hash::{Hashed, Sha256},
+    hash::{Hashed, Sha256, Sha256d},
     tx::TxId,
 };
+use chronik_indexer::merkle::MerkleTree;
 use futures::future;
 use itertools::izip;
 use karyon_jsonrpc::{
@@ -578,5 +579,86 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             Some(block) => Ok(json!(block.height)),
             None => Ok(json!(0)), // mempool transaction
         }
+    }
+
+    #[rpc_method(name = "transaction.get_merkle")]
+    async fn transaction_get_merkle(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 2);
+        let txid = TxId::try_from(&get_param!(params, 0, "txid")?)
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+        let mut block_height = json_to_u31(
+            get_optional_param!(params, 1, "height", json!(0))?,
+            "Invalid height argument; expected non-negative numeric value",
+        )?;
+
+        let indexer = self.indexer.read().await;
+
+        let query_tx = indexer.txs(&self.node);
+        let conf_tx_not_found_err =
+            "No confirmed transaction matching the requested hash was found";
+        let tx = query_tx.tx_by_id(txid).or(Err(RPCError::CustomError(
+            1,
+            conf_tx_not_found_err.to_string(),
+        )))?;
+
+        let block_hash = match tx.block {
+            Some(b) => {
+                // We don't actually need the block height param. In Fulcrum
+                // it is optional and saves a database access when provided.
+                // Let's just make sure we get the same error message when an
+                // incorrect value is provided.
+                if block_height != 0 && block_height != b.height {
+                    return Err(RPCError::CustomError(
+                        1,
+                        format!(
+                            "No transaction matching the requested hash found \
+                             at height {block_height}"
+                        ),
+                    ));
+                }
+                block_height = b.height;
+                Ok(b.hash)
+            }
+            None => {
+                Err(RPCError::CustomError(1, conf_tx_not_found_err.to_string()))
+            }
+        }?;
+
+        let bridge = &self.node.bridge;
+        let bindex = bridge
+            .lookup_block_index(
+                block_hash.try_into().map_err(|_| RPCError::InternalError)?,
+            )
+            .map_err(|_| RPCError::InternalError)?;
+        let block = indexer
+            .load_chronik_block(bridge, bindex)
+            .map_err(|_| RPCError::InternalError)?;
+
+        let txids: Vec<Sha256d> = block
+            .block_txs
+            .txs
+            .iter()
+            .map(|txentry| Sha256d(txentry.txid.to_bytes()))
+            .collect();
+        let index_in_block = txids
+            .iter()
+            .position(|&id| id == Sha256d(txid.to_bytes()))
+            .ok_or(RPCError::InternalError)?;
+
+        let mut merkle_tree = MerkleTree::new();
+        let (_root, branch) =
+            merkle_tree.merkle_root_and_branch(&txids, index_in_block);
+        let branch: Vec<String> = branch
+            .iter()
+            .map(|h| hex::encode(h.to_be_bytes()))
+            .collect();
+        Ok(json!({
+            "merkle": branch,
+            "block_height": block_height,
+            "pos": index_in_block,
+        }))
     }
 }

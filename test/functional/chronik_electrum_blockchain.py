@@ -24,6 +24,9 @@ COINBASE_TX_HEX = (
     + "00000000"
 )
 
+max_int32 = 2**31 - 1
+max_int64 = 2**63 - 1
+
 
 class ChronikElectrumBlockchain(BitcoinTestFramework):
     def set_test_params(self):
@@ -41,6 +44,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_invalid_params()
         self.test_transaction_get()
         self.test_transaction_get_height()
+        self.test_transaction_get_merkle()
         self.test_block_header()
 
     def test_invalid_params(self):
@@ -184,6 +188,69 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         response = self.client.blockchain.transaction.get_height(32 * "ff")
         assert_equal(response.error, {"code": -32600, "message": "Unknown txid"})
 
+    def test_transaction_get_merkle(self):
+        for _ in range(42):
+            self.wallet.send_self_transfer(from_node=self.node)
+        block_hash = self.generate(self.node, 1)[0]
+        block_info = self.node.getblock(block_hash)
+        height = block_info["height"]
+        txids_hex = block_info["tx"]
+        txids = [hex_to_be_bytes(txid) for txid in txids_hex]
+
+        for i in range(len(txids)):
+            _root, branch = merkle_root_and_branch(txids, i)
+            print(self.client.blockchain.transaction.get_merkle(txids_hex[i]).result)
+            assert_equal(
+                self.client.blockchain.transaction.get_merkle(txids_hex[i]).result,
+                {
+                    "block_height": height,
+                    "merkle": [h[::-1].hex() for h in branch],
+                    "pos": i,
+                },
+            )
+
+        # We can optionally specify the correct block height as 2nd argument
+        assert_equal(
+            self.client.blockchain.transaction.get_merkle(
+                txid=txids_hex[-1], height=height
+            ).result,
+            {
+                "block_height": height,
+                "merkle": [h[::-1].hex() for h in branch],
+                "pos": len(txids) - 1,
+            },
+        )
+
+        assert_equal(
+            self.client.blockchain.transaction.get_merkle(32 * "ff").error,
+            {
+                "code": 1,
+                "message": "No confirmed transaction matching the requested hash was found",
+            },
+        )
+
+        for wrong_height in (1, height - 1, height + 1, max_int32):
+            assert_equal(
+                self.client.blockchain.transaction.get_merkle(
+                    txids_hex[-1], wrong_height
+                ).error,
+                {
+                    "code": 1,
+                    "message": f"No transaction matching the requested hash found at height {wrong_height}",
+                },
+            )
+
+        for invalid_height in (-1, max_int32 + 1, max_int64, max_int64 + 1):
+            assert_equal(
+                self.client.blockchain.transaction.get_merkle(
+                    txids_hex[-1], invalid_height
+                ).error,
+                {
+                    "code": 1,
+                    "message": "Invalid height argument; expected non-negative numeric value",
+                },
+            )
+
     def test_block_header(self):
         block_hashes = [
             self.node.getblockhash(i) for i in range(self.node.getblockcount() + 1)
@@ -191,9 +258,6 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         block_hashes_bytes = [hex_to_be_bytes(bh) for bh in block_hashes]
         headers = [self.node.getblockheader(bh, False) for bh in block_hashes]
         tip_height = len(headers) - 1
-
-        max_int32 = 2**31 - 1
-        max_int64 = 2**63 - 1
 
         self.log.info("Testing the blockchain.block.header RPC")
         response = self.client.blockchain.block.header(0)
