@@ -2332,6 +2332,15 @@ export const summarizeTxHistory = (
     const blockCount =
         txs[txCount - 1].block!.height - txs[0].block!.height + 1;
 
+    // Get theoretical max capacity of the network for this block count
+    const BLOCK_SIZE_SOFT_LIMIT_MB = 32;
+    const BYTES_PER_KB = 1024;
+    const KB_PER_MB = 1024;
+    const MAX_BLOCK_SIZE_BYTES =
+        BLOCK_SIZE_SOFT_LIMIT_MB * KB_PER_MB * BYTES_PER_KB;
+
+    const availableCapacityBytes = blockCount * MAX_BLOCK_SIZE_BYTES;
+
     // Initialize objects useful for summarizing data
 
     // miner => blocks found
@@ -2390,8 +2399,10 @@ export const summarizeTxHistory = (
     const tokenTypeMap: Map<string, SlpTokenType_Type | AlpTokenType_Type> =
         new Map();
 
+    let utilizedCapacityBytes = 0;
     for (const tx of txs) {
-        const { inputs, outputs, block, tokenEntries, isCoinbase } = tx;
+        const { inputs, outputs, block, tokenEntries, isCoinbase, size } = tx;
+        utilizedCapacityBytes += size;
 
         if (isCoinbase) {
             // Coinbase tx - get miner and staker info
@@ -3178,6 +3189,36 @@ export const summarizeTxHistory = (
         }
     }
 
+    const avgTxSize = utilizedCapacityBytes / txCount;
+    const theoreticalMaxTxs = availableCapacityBytes / avgTxSize;
+
+    // Print this to console so dev can check logs
+    // For now, too technical to keep this in the msg
+    console.info(
+        `Avg tx size bytes: ${avgTxSize.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        })}`,
+    );
+    console.info(
+        `Max tx count: ${theoreticalMaxTxs.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        })}`,
+    );
+
+    // Determine % capacity for ecash ops over this interval
+    const operatingCapacity =
+        (100 * utilizedCapacityBytes) / availableCapacityBytes;
+
+    // Choose between 3 available capacity emojis
+    const capacityEmoji =
+        operatingCapacity < 10
+            ? config.emojis.capacityLow
+            : operatingCapacity < 50
+            ? config.emojis.capacityMed
+            : config.emojis.capacityHigh;
+
     // Add ViaBTC as a single entity to minerMap
     minerMap.set(`ViaBTC`, viaBtcBlocks);
     // Sort miner map by blocks found
@@ -3210,6 +3251,9 @@ export const summarizeTxHistory = (
     );
     tgMsg.push(
         `${config.emojis.arrowRight}${txs.length.toLocaleString('en-US')} txs`,
+    );
+    tgMsg.push(
+        `${capacityEmoji}<i>${operatingCapacity.toFixed(2)}% capacity</i>`,
     );
     tgMsg.push('');
 

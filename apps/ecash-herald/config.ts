@@ -46,6 +46,9 @@ export interface HeraldConfig {
         shrimp: number;
     };
     emojis: {
+        capacityLow: string;
+        capacityMed: string;
+        capacityHigh: string;
         agora: string;
         volume: string;
         agoraBuy: string;
@@ -147,6 +150,9 @@ const config: HeraldConfig = {
         shrimp: 0,
     },
     emojis: {
+        capacityLow: '💧',
+        capacityMed: '🚰',
+        capacityHigh: '🌊',
         agora: '🏛',
         volume: '🔊',
         agoraBuy: '💰',

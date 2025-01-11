@@ -383,6 +383,7 @@ describe('parse.js functions', function () {
                 '<b>15 Oct 2024</b>\n' +
                     '📦61,585 blocks\n' +
                     '➡️37 txs\n' +
+                    `💧<i>0.00% capacity</i>\n` +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
                     'Trading volume: $5,957,333\n' +
@@ -468,6 +469,7 @@ describe('parse.js functions', function () {
                 '<b>15 Oct 2024</b>\n' +
                     '📦61,585 blocks\n' +
                     '➡️37 txs\n' +
+                    `💧<i>0.00% capacity</i>\n` +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
                     'Trading volume: $5,957,333\n' +
@@ -545,6 +547,7 @@ describe('parse.js functions', function () {
                 '<b>15 Oct 2024</b>\n' +
                     '📦61,585 blocks\n' +
                     '➡️37 txs\n' +
+                    `💧<i>0.00% capacity</i>\n` +
                     '\n' +
                     '<b><i>⛏️3 miners found blocks</i></b>\n' +
                     '<u>Top 3</u>\n' +
