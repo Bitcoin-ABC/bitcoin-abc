@@ -423,6 +423,13 @@ export default {
             },
             {
                 description:
+                    'We return a large number with locale thousands separators',
+                userLocale: 'en-US',
+                priceXec: 1000000,
+                returned: '1,000,000 XEC',
+            },
+            {
+                description:
                     'XEC price of non-integer between 1 and 10 returns 4 decimals',
                 userLocale: 'en-US',
                 priceXec: 1.0101,

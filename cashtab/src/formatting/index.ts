@@ -267,10 +267,13 @@ export const getAgoraSpotPriceXec = (
     priceXec = typeof priceXec === 'number' ? priceXec : parseFloat(priceXec);
     const renderedDecimalPlaces = getMinimumFractionDigits(priceXec, false);
 
-    return `${priceXec.toLocaleString(userLocale, {
-        maximumFractionDigits: renderedDecimalPlaces,
-        minimumFractionDigits: renderedDecimalPlaces,
-    })} XEC`;
+    return `${decimalizedTokenQtyToLocaleFormat(
+        priceXec.toLocaleString(userLocale, {
+            maximumFractionDigits: renderedDecimalPlaces,
+            minimumFractionDigits: renderedDecimalPlaces,
+        }),
+        userLocale,
+    )} XEC`;
 };
 
 /**
