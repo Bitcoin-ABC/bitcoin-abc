@@ -637,6 +637,20 @@ const Agora: React.FC = () => {
                                                                 orderBookInfoMap={
                                                                     orderBookInfoMapRef.current
                                                                 }
+                                                                /**
+                                                                 * We want to use Websockets
+                                                                 * - When we manage our own offers (see above)
+                                                                 * - When we only show whitelisted offers
+                                                                 *
+                                                                 * We DO NOT want to use websockets
+                                                                 * - When we display all offers
+                                                                 *
+                                                                 * We may be able to use websockets for all
+                                                                 * rendered OrderBooks after we get lazy loading right
+                                                                 */
+                                                                noWebsocket={
+                                                                    loadAllZeOffers
+                                                                }
                                                             />
                                                         );
                                                     },

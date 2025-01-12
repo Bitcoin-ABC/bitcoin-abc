@@ -49,13 +49,15 @@ const SEND_AMOUNT_VALIDATION_ERRORS_TOKEN = [
 
 describe('<Token />', () => {
     let ecc;
+
     beforeAll(async () => {
         await initWasm();
         ecc = new Ecc();
     });
-    let user, mockedChronik;
+    let user, mockedChronik, mockAgora;
     beforeEach(async () => {
         // Mock the app with context at the Send screen
+        mockAgora = new MockAgora();
         mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
             localforage,
@@ -222,6 +224,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -261,6 +264,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -301,6 +305,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -334,6 +339,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -377,6 +383,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -426,6 +433,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -492,6 +500,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
@@ -591,6 +600,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mintMockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${mockTokenId}`}
             />,
@@ -706,7 +716,13 @@ describe('<Token />', () => {
 
         mintMockedChronik.setBroadcastTx(hex, txid);
 
-        render(<CashtabTestWrapper chronik={mintMockedChronik} ecc={ecc} />);
+        render(
+            <CashtabTestWrapper
+                chronik={mintMockedChronik}
+                ecc={ecc}
+                agora={mockAgora}
+            />,
+        );
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -788,6 +804,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${CACHET_TOKENID}`}
             />,
@@ -833,6 +850,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${CACHET_TOKENID}`}
             />,
@@ -868,6 +886,7 @@ describe('<Token />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${invalidTokenId}`}
             />,

@@ -25,6 +25,7 @@ import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
 import { undecimalizeTokenAmount } from 'wallet';
 import { Ecc, initWasm } from 'ecash-lib';
+import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
 
 describe('<Configure />', () => {
     let ecc;
@@ -32,8 +33,9 @@ describe('<Configure />', () => {
         await initWasm();
         ecc = new Ecc();
     });
-    let user;
+    let user, mockAgora;
     beforeEach(() => {
+        mockAgora = new MockAgora();
         // Set up userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
@@ -83,6 +85,7 @@ describe('<Configure />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/configure"
             />,
@@ -113,6 +116,7 @@ describe('<Configure />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/configure"
             />,
@@ -146,7 +150,13 @@ describe('<Configure />', () => {
             '5f334f32bec07b1029ae579460c704e33ba05b91e3bc2bba9ee215bc585cd6ab';
         mockedChronik.setBroadcastTx(hex, txid);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+            />,
+        );
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -318,7 +328,13 @@ describe('<Configure />', () => {
             'c16de907537369994417459369faad6595842d569b7b4a9544288ac8a4c81dbb';
         mockedChronik.setBroadcastTx(hex, txid);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+            />,
+        );
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -421,7 +437,13 @@ describe('<Configure />', () => {
 
         mockedChronik.setBroadcastTx(tokenSendHex, tokenSendTxid);
 
-        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+            />,
+        );
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -528,6 +550,7 @@ describe('<Configure />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/configure"
             />,

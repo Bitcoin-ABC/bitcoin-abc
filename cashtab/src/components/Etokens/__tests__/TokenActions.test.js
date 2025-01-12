@@ -41,14 +41,20 @@ import { explorer } from 'config/explorer';
 
 describe('<Token /> available actions rendered', () => {
     let ecc;
+
     beforeAll(async () => {
         await initWasm();
         ecc = new Ecc();
     });
     let mockedChronik;
+    // We need mockAgora now that we are using agora to subscribe to websockets
+    let mockAgora;
     beforeEach(async () => {
         const mockedDate = new Date('2022-01-01T12:00:00.000Z');
         jest.spyOn(global, 'Date').mockImplementation(() => mockedDate);
+
+        mockAgora = new MockAgora();
+
         // Mock the app with context at the Token Action screen
         mockedChronik = await initializeCashtabStateForTests(
             tokenTestWallet,
@@ -91,6 +97,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/send-token/${slp1FixedMocks.tokenId}`}
             />,
@@ -149,6 +156,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/send-token/${slp1VarMocks.tokenId}`}
             />,
@@ -430,6 +438,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${slp1NftParentMocks.tokenId}`}
             />,
@@ -569,6 +578,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mintNftMockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${slp1NftParentMocks.tokenId}`}
             />,
@@ -732,6 +742,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={renderChildNftsMockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${slp1NftParentWithChildrenMocks.tokenId}`}
             />,
@@ -1129,9 +1140,13 @@ describe('<Token /> available actions rendered', () => {
             [slp1NftChildMocks.tx],
         );
 
+        // Set agora to show no active offers for this nft
+        mockAgora.setActiveOffersByTokenId(slp1NftChildMocks.tokenId, []);
+
         render(
             <CashtabTestWrapper
                 chronik={renderChildNftsMockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/token/${slp1NftChildMocks.tokenId}`}
             />,
@@ -1155,6 +1170,8 @@ describe('<Token /> available actions rendered', () => {
                 name: 'Click for more info about this token type',
             }),
         );
+
+        screen.debug(null, Infinity);
 
         expect(
             screen.getByText(
@@ -1278,6 +1295,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route={`/send-token/${alpMocks.tokenId}`}
             />,

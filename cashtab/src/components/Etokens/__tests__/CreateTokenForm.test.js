@@ -24,15 +24,19 @@ import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { Ecc, initWasm } from 'ecash-lib';
 import { MAX_MINT_AMOUNT_TOKEN_SATOSHIS } from 'token-protocols/slpv1';
 import { MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS } from 'token-protocols/alp';
+import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
 
 describe('<CreateTokenForm />', () => {
     let ecc;
+
     beforeAll(async () => {
         await initWasm();
         ecc = new Ecc();
     });
-    let user;
+    // We need mockAgora now that we are using agora to subscribe to websockets
+    let user, mockAgora;
     beforeEach(() => {
+        mockAgora = new MockAgora();
         // Configure userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
@@ -63,6 +67,7 @@ describe('<CreateTokenForm />', () => {
             walletWithXecAndTokens,
             localforage,
         );
+
         // Add tx mock to mockedChronik
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a2102000000644199e5a5dcfea45a68137f07bfe749195897767030687bd3f4b4dbcf2b2ddf2711af47b13f376523031b3c3c975a00e12b46d46f057fd5e144b79a95eee71479e84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c0001024c0008000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac977f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -72,6 +77,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/create-token"
             />,
@@ -173,6 +179,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/create-token"
             />,
@@ -266,6 +273,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/create-nft-collection"
             />,
@@ -372,6 +380,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/create-token"
             />,
@@ -494,6 +503,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockAgora}
                 ecc={ecc}
                 route="/create-token"
             />,

@@ -22,6 +22,7 @@
  */
 
 import React, { useState, useEffect, useContext } from 'react';
+import { WsEndpoint, WsMsgClient } from 'chronik-client';
 import BigNumber from 'bignumber.js';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Slider } from 'components/Common/Inputs';
@@ -130,12 +131,22 @@ export interface OrderBookProps {
     userLocale: string;
     noIcon?: boolean;
     orderBookInfoMap?: Map<string, OrderBookInfo>;
+    /**
+     * It's important to use a websocket to keep OrderBook activity up to date
+     * with the current utxo set
+     *
+     * However we cannot connect to 100s of websockets at a time. So, if we render
+     * multiple OrderBook components on the same screen, we offer a setting to
+     * disable the websockets (before we DDOS ourselves to disable them anyway)
+     */
+    noWebsocket?: boolean;
 }
 const OrderBook: React.FC<OrderBookProps> = ({
     tokenId,
     userLocale,
     noIcon,
     orderBookInfoMap,
+    noWebsocket = false,
 }) => {
     const ContextValue = useContext(WalletContext);
     if (!isWalletContextLoaded(ContextValue)) {
@@ -164,6 +175,24 @@ const OrderBook: React.FC<OrderBookProps> = ({
     ).pk;
 
     const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
+
+    /**
+     * Agora websocket
+     * We create an individual ws for each OrderBook component
+     * We do not take the existing wallet ws from context, because
+     * each websocket needs to have its own onMessage handlers, so that
+     * we know each handler is only handling msgs related to agora actions
+     * on that token
+     *
+     * In this way, the websocket in useWallet.ts may get "the same" tx as the
+     * ws in OrderBook -- but will complete a distinct action, which is the
+     * behavior we want
+     *
+     * e.g. user buys an agora offer
+     * - useWallet websocket shows tx notification summarizing action
+     * - OrderBook websocket updates its active offers
+     */
+    const [ws, setWs] = useState<null | WsEndpoint>(null);
 
     const cancelOffer = async (agoraPartial: PartialOffer) => {
         // Get user fee from settings
@@ -278,9 +307,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     icon: <TokenIcon size={32} tokenId={tokenId} />,
                 },
             );
+            if (ws === null) {
+                // Update offers only if we are not already updating them from the ws
+                fetchAndPrepareActiveOffers();
+            }
             setShowConfirmCancelModal(false);
-            // Update offers
-            fetchAndPrepareActiveOffers();
         } catch (err) {
             console.error('Error canceling offer', err);
             toast.error(`${err}`);
@@ -421,9 +452,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     icon: <TokenIcon size={32} tokenId={tokenId} />,
                 },
             );
+            if (ws === null) {
+                // Update offers only if we are not already updating them from the ws
+                fetchAndPrepareActiveOffers();
+            }
             setShowConfirmBuyModal(false);
-            // Update offers
-            fetchAndPrepareActiveOffers();
         } catch (err) {
             console.error('Error accepting offer', err);
             toast.error(`${err}`);
@@ -730,18 +763,75 @@ const OrderBook: React.FC<OrderBookProps> = ({
     };
 
     /**
+     * Create a websocket that listens to agora actions for this tokenId
+     */
+    const prepareOrderbookWs = async () => {
+        // We want orderbooks to update in real time when any agora action takes place
+        const ws = chronik.ws({
+            onMessage: (wsMsg: WsMsgClient) => {
+                if (wsMsg.type === 'Error') {
+                    // Do nothing on ws error msgs
+                    // Have never seen one of these
+                    // We mostly have this because of typescript, as an error msg
+                    // will not have a msgType key
+                    console.error('chronik ws error received', wsMsg);
+                    return;
+                }
+                if (wsMsg.msgType === 'TX_ADDED_TO_MEMPOOL') {
+                    // Only respond on mempool additions (we do not want to "double refresh" when orders finalize)
+
+                    // Websocket msgs are either buy, sell, cancel or list
+                    // For all of these messages, we need to refresh the orderbook
+                    // We could optimize, i.e. determine which activeOffer has changed and update only that offer
+                    // However for this, we need better tx-parsing methods to parse individual txs
+                    // For first implementation, simply refresh the orderbook on every agora action
+                    fetchAndPrepareActiveOffers();
+                }
+            },
+        });
+        await ws.waitForOpen();
+
+        // Subscribe to agora actions for this tokenId
+        agora.subscribeWs(ws, {
+            type: 'TOKEN_ID',
+            tokenId,
+        });
+
+        // Set it in state
+        setWs(ws);
+    };
+
+    /**
      * On component load, query agora to get activeOffers for this tokenId orderbook
      */
     useEffect(() => {
-        // Clear active offers if we have them
-        // This can happen if the user has navigated from one token page to another token page
-        if (activeOffers !== null) {
-            setActiveOffers(null);
+        if (!noWebsocket && ws === null) {
+            // Init an orderbook websocket if it is not initialized
+            // and props have not disabled it
+            prepareOrderbookWs();
         }
 
         // Load active offers on tokenId change or app load
-        fetchAndPrepareActiveOffers();
-    }, [tokenId]);
+        if (activeOffers === null) {
+            // Only fetch activeOffers if we do not already have them
+            // Now that ws is in this useEffect, we get back into it after ws has been set
+            // But we do not want to fetchAndPrepareActiveOffers just bc the ws is set
+            fetchAndPrepareActiveOffers();
+        }
+
+        // Cleanup function to unsubscribe and close ws when component unmounts or tokenId changes
+        return () => {
+            if (activeOffers !== null) {
+                // Clear active offers if we have them
+                // This can happen if the user has navigated from one token page to another token page
+                setActiveOffers(null);
+            }
+            if (ws !== null) {
+                ws.close();
+                setWs(null);
+            }
+        };
+    }, [tokenId, ws]);
 
     /**
      * Update validation and asking price if the selected offer or qty
