@@ -743,13 +743,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
         fetchAndPrepareActiveOffers();
     }, [tokenId]);
 
-    // When activeOffers loads, select the spot price and make necessary calcs
-    useEffect(() => {
-        if (Array.isArray(activeOffers) && activeOffers.length > 0) {
-            // Set selected offer to spot price when activeOffers changes from [] to active offers
-        }
-    }, [activeOffers]);
-
     /**
      * Update validation and asking price if the selected offer or qty
      * changes
