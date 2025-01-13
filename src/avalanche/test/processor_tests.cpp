@@ -2572,11 +2572,8 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
             }));
         });
 
-        {
-            LOCK(cs_main);
-            // Add it as a stake contender so it will be promoted
-            m_processor->addStakeContender(proof);
-        }
+        // Add it as a stake contender so it will be promoted
+        WITH_LOCK(cs_main, m_processor->addStakeContender(proof));
 
         proofs.emplace_back(std::move(proof));
     }
