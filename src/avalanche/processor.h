@@ -53,6 +53,12 @@ struct bilingual_str;
 static constexpr size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
 
 /**
+ * Maximum number of stake contenders to poll for, leaving room for polling
+ * blocks and proofs in the same poll message.
+ */
+static constexpr size_t AVALANCHE_CONTENDER_MAX_POLLABLE = 12;
+
+/**
  * How long before we consider that a query timed out.
  */
 static constexpr std::chrono::milliseconds AVALANCHE_DEFAULT_QUERY_TIMEOUT{
@@ -402,8 +408,10 @@ private:
     AnyVoteItem getVoteItemFromInv(const CInv &inv) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
 
-    /** Helper to set the local winner in the contender cache */
-    void setContenderStatusForLocalWinner(const CBlockIndex *pindex)
+    /**
+     * Helper to set the vote status for local winners in the contender cache.
+     */
+    void setContenderStatusForLocalWinners(const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
 
     /**

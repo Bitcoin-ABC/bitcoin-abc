@@ -912,7 +912,7 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     if (m_stakingPreConsensus) {
         // If pindex has not been promoted in the contender cache yet, this will
         // be a no-op.
-        setContenderStatusForLocalWinner(pindex);
+        setContenderStatusForLocalWinners(pindex);
     }
 
     return rewardsInserted;
@@ -1045,12 +1045,12 @@ void Processor::promoteStakeContendersToTip() {
 
     // If staking rewards have not been computed yet, we will try again when
     // they have been.
-    setContenderStatusForLocalWinner(activeTip);
+    setContenderStatusForLocalWinners(activeTip);
 
     // TODO reconcile remoteProofs contenders
 }
 
-void Processor::setContenderStatusForLocalWinner(const CBlockIndex *pindex) {
+void Processor::setContenderStatusForLocalWinners(const CBlockIndex *pindex) {
     const BlockHash prevblockhash = pindex->GetBlockHash();
     std::vector<std::pair<ProofId, CScript>> winners;
     getStakingRewardWinners(prevblockhash, winners);
@@ -1059,10 +1059,23 @@ void Processor::setContenderStatusForLocalWinner(const CBlockIndex *pindex) {
         return;
     }
 
+    // Set status for local winners
     LOCK(cs_stakeContenderCache);
     for (const auto &winner : winners) {
         const StakeContenderId contenderId(prevblockhash, winner.first);
         stakeContenderCache.finalize(contenderId);
+    }
+
+    // Treat the highest ranking contender similarly to local winners except
+    // that it is not automatically included in the winner set (unless it
+    // happens to be selected as a local winner).
+    std::vector<StakeContenderId> pollableContenders;
+    if (stakeContenderCache.getPollableContenders(
+            prevblockhash, AVALANCHE_CONTENDER_MAX_POLLABLE,
+            pollableContenders) > 0) {
+        // Accept the highest ranking contender. This is a no-op if the highest
+        // ranking contender is already the local winner.
+        stakeContenderCache.accept(pollableContenders[0]);
     }
 }
 

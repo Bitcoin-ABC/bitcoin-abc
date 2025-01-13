@@ -2625,6 +2625,32 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         }
     }
     BOOST_CHECK_EQUAL(winners.size(), numAccepted);
+
+    // Check that a highest ranking contender that was not selected as local
+    // winner is still accepted.
+    block = CreateAndProcessBlock({}, CScript());
+    chaintip =
+        WITH_LOCK(cs_main, return Assert(m_node.chainman)
+                               ->m_blockman.LookupBlockIndex(block.GetHash()));
+    auto bestproof = buildRandomProof(active_chainstate,
+                                      std::numeric_limits<uint32_t>::max());
+    WITH_LOCK(cs_main, m_processor->addStakeContender(bestproof));
+    AvalancheTest::updatedBlockTip(*m_processor);
+
+    // Compute local stake winners
+    BOOST_CHECK(m_processor->isQuorumEstablished());
+    BOOST_CHECK(m_processor->computeStakingReward(chaintip));
+    BOOST_CHECK(m_processor->getStakingRewardWinners(chaintip->GetBlockHash(),
+                                                     winners));
+
+    // Sanity check bestproof was not selected as a winner
+    BOOST_CHECK(std::find(winners.begin(), winners.end(),
+                          bestproof->getPayoutScript()) == winners.end());
+
+    // Best contender is accepted
+    const StakeContenderId bestcontender =
+        StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());
+    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(bestcontender), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
