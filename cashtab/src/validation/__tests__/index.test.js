@@ -226,6 +226,12 @@ describe('Cashtab validation functions', () => {
     it(`isValidAirdropExclusionArray rejects a null airdrop exclusion list`, () => {
         expect(isValidAirdropExclusionArray(null)).toBe(false);
     });
+    it(`isProbablyNotAScam prevents new genesis tx of "XECX" as token ticker`, () => {
+        expect(isProbablyNotAScam('XECX')).toBe(false);
+    });
+    it(`isProbablyNotAScam prevents new genesis tx of "Staked XEC" as token name`, () => {
+        expect(isProbablyNotAScam('Staked XEC')).toBe(false);
+    });
     it(`isProbablyNotAScam recognizes "bitcoin" is probably a scam token name`, () => {
         expect(isProbablyNotAScam('bitcoin')).toBe(false);
     });
