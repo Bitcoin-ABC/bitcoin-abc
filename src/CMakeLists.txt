@@ -652,6 +652,7 @@ add_library(server
 	minerfund.cpp
 	net.cpp
 	net_processing.cpp
+	node/blockfitter.cpp
 	node/blockmanager_args.cpp
 	node/blockstorage.cpp
 	node/caches.cpp

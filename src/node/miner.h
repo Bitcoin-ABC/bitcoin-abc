@@ -8,6 +8,7 @@
 
 #include <consensus/amount.h>
 #include <kernel/mempool_entry.h>
+#include <node/blockfitter.h>
 #include <primitives/block.h>
 #include <txmempool.h>
 
@@ -55,16 +56,7 @@ private:
     // The constructed block template
     std::unique_ptr<CBlockTemplate> pblocktemplate;
 
-    // Configuration parameters for the block size
-    uint64_t nMaxGeneratedBlockSize;
-    uint64_t nMaxGeneratedBlockSigChecks;
-    CFeeRate blockMinFeeRate;
-
-    // Information on the current status of the block
-    uint64_t nBlockSize;
-    uint64_t nBlockTx;
-    uint64_t nBlockSigChecks;
-    Amount nFees;
+    BlockFitter blockFitter;
 
     // Chain context for the block
     int nHeight;
@@ -78,28 +70,20 @@ private:
     const bool fPrintPriority;
 
 public:
-    static constexpr uint64_t COINBASE_RESERVED_SIZE{1000};
-    static constexpr uint64_t COINBASE_RESERVED_SIGCHECKS{100};
-
-    struct Options {
-        Options();
-        uint64_t nExcessiveBlockSize;
-        uint64_t nMaxGeneratedBlockSize;
-        CFeeRate blockMinFeeRate;
-    };
-
     BlockAssembler(const Config &config, Chainstate &chainstate,
                    const CTxMemPool *mempool,
                    const avalanche::Processor *avalanche = nullptr);
-    BlockAssembler(Chainstate &chainstate, const CTxMemPool *mempool,
-                   const Options &options,
+    BlockAssembler(const node::BlockFitter &fitter, Chainstate &chainstate,
+                   const CTxMemPool *mempool,
                    const avalanche::Processor *avalanche = nullptr);
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);
 
-    uint64_t GetMaxGeneratedBlockSize() const { return nMaxGeneratedBlockSize; }
+    uint64_t GetMaxGeneratedBlockSize() const {
+        return blockFitter.getMaxGeneratedBlockSize();
+    }
 
     static std::optional<int64_t> m_last_block_num_txs;
     static std::optional<int64_t> m_last_block_size;
@@ -116,10 +100,6 @@ private:
      * Add transactions from the mempool based on individual tx feerate.
      */
     void addTxs(const CTxMemPool &mempool) EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
-
-    // helper functions for addTxs()
-    /** Test if a new Tx would "fit" in the block */
-    bool TestTxFits(uint64_t txSize, int64_t txSigChecks) const;
 
     /// Check the transaction for finality, etc before adding to block
     bool CheckTx(const CTransaction &tx) const;
