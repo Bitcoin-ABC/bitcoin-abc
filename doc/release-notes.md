@@ -1,7 +1,8 @@
-# Bitcoin ABC 0.30.8 Release Notes
+# Bitcoin ABC 0.30.9 Release Notes
 
-Bitcoin ABC version 0.30.8 is now available from:
+Bitcoin ABC version 0.30.9 is now available from:
 
-  <https://download.bitcoinabc.org/0.30.8/>
+  <https://download.bitcoinabc.org/0.30.9/>
 
-This is a maintenance release with no user-visible change.
+This version contains a bugfix for a potential crash of the Chronik indexer.
+Chronik operators are advised to update.
