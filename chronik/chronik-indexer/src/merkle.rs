@@ -2,9 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//! Module for [`BlockMerkleTree`], a class that computes the merkle tree
-//! for block hashes and caches intermediate hashes to avoid computing the
-//! same values again and again for different blocks.
+//! Module for [`MerkleTree`], a class that computes the merkle tree
+//! for a series of hashes. Intermediate hashes are cached to avoid computing
+//! the same values again and again when computing the merkle tree for
+//! the block hashes in the blockchain.
 
 use bitcoinsuite_core::hash::{Hashed, Sha256d};
 
@@ -12,11 +13,11 @@ fn is_odd(n: usize) -> bool {
     n % 2 == 1
 }
 
-fn calc_branch_len(num_blocks: usize) -> usize {
-    assert!(num_blocks > 0);
+fn calc_branch_len(num_hashes: usize) -> usize {
+    assert!(num_hashes > 0);
     // Ceil of log2(num_blocks) without floating-point arithmetic.
     // This is the number of levels in the merkle tree minus 1.
-    (u64::BITS - ((num_blocks - 1) as u64).leading_zeros()) as usize
+    (u64::BITS - ((num_hashes - 1) as u64).leading_zeros()) as usize
 }
 
 fn hash_concatenated_bytes(h1: &Sha256d, h2: &Sha256d) -> Sha256d {
@@ -26,18 +27,19 @@ fn hash_concatenated_bytes(h1: &Sha256d, h2: &Sha256d) -> Sha256d {
     Sha256d::digest(concatenated)
 }
 
-/// A struct that computes a merkle root and merkle branch for block hashes,
+/// A struct that computes a merkle root and merkle branch for hashes,
 /// while caching intermediate hashes that can be reused to compute the merkle
-/// tree for later blocks.
+/// tree for an extended series of hashes (e.g. the same block chain after new
+/// blocks are added).
 #[derive(Debug, Default)]
-pub struct BlockMerkleTree {
+pub struct MerkleTree {
     levels: Vec<Vec<Sha256d>>,
 }
 
-impl BlockMerkleTree {
+impl MerkleTree {
     /// Initialize a merkle tree cache.
     pub fn new() -> Self {
-        BlockMerkleTree { levels: Vec::new() }
+        MerkleTree { levels: Vec::new() }
     }
 
     fn hash_one_level(
@@ -69,8 +71,8 @@ impl BlockMerkleTree {
         out
     }
 
-    /// Return the merkle root for a sequence of block hashes as well as the
-    /// branch of hashes verifying that the block at the specified index
+    /// Return the merkle root for a sequence of hashes as well as the
+    /// branch of hashes verifying that the hash at the specified index
     /// is part of that tree (deepest pairing first).
     pub fn merkle_root_and_branch(
         &mut self,
@@ -130,7 +132,7 @@ impl BlockMerkleTree {
 mod tests {
     use bitcoinsuite_core::hash::{Hashed, Sha256d};
 
-    use crate::merkle::{calc_branch_len, BlockMerkleTree};
+    use crate::merkle::{calc_branch_len, MerkleTree};
 
     fn hex_to_sha256d(hex: &str) -> Sha256d {
         Sha256d::from_be_hex(hex).unwrap()
@@ -199,7 +201,7 @@ mod tests {
         let blockhashes = get_blockchain_hashes();
         let roots = get_merkle_roots();
         assert_eq!(blockhashes.len(), roots.len());
-        let mut merkle_tree_cached = BlockMerkleTree::new();
+        let mut merkle_tree_cached = MerkleTree::new();
         for i in 0..blockhashes.len() {
             let (root_with_cache, _branch_with_cache) = merkle_tree_cached
                 .merkle_root_and_branch(&blockhashes[..=i], 0);
@@ -207,7 +209,7 @@ mod tests {
 
             // Same computation with a fresh merkle tree (without cached hashes
             // from previous iterations)
-            let mut fresh_merkle_tree = BlockMerkleTree::new();
+            let mut fresh_merkle_tree = MerkleTree::new();
             let (root_without_cache, _) =
                 fresh_merkle_tree.merkle_root_and_branch(&blockhashes[..=i], 0);
             assert_eq!(root_without_cache, roots[i]);
@@ -217,7 +219,7 @@ mod tests {
     #[test]
     fn test_branches() {
         let blockhashes = get_blockchain_hashes();
-        let mut merkle_tree_cached = BlockMerkleTree::new();
+        let mut merkle_tree_cached = MerkleTree::new();
 
         let (_, branch) =
             merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=0], 0);
@@ -304,7 +306,7 @@ mod tests {
     #[test]
     fn test_cache_levels() {
         let blockhashes = get_blockchain_hashes();
-        let mut merkle_tree = BlockMerkleTree::new();
+        let mut merkle_tree = MerkleTree::new();
         for i in 1..blockhashes.len() {
             let (_, _) =
                 merkle_tree.merkle_root_and_branch(&blockhashes[..=i], 0);

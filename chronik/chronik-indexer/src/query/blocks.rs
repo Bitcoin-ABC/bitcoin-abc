@@ -27,7 +27,7 @@ use tokio::sync::Mutex;
 use crate::{
     avalanche::Avalanche,
     indexer::Node,
-    merkle::BlockMerkleTree,
+    merkle::MerkleTree,
     query::{
         make_tx_proto, read_plugin_outputs, HashOrHeight, MakeTxProtoParams,
         OutputsSpent, TxTokenData,
@@ -57,7 +57,7 @@ pub struct QueryBlocks<'a> {
     /// Map plugin name <-> plugin idx of all loaded plugins
     pub plugin_name_map: &'a PluginNameMap,
     /// Cached block merkle tree
-    pub block_merkle_tree: &'a Mutex<BlockMerkleTree>,
+    pub block_merkle_tree: &'a Mutex<MerkleTree>,
 }
 
 /// Errors indicating something went wrong with querying blocks.

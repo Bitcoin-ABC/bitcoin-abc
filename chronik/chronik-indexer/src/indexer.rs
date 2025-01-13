@@ -44,7 +44,7 @@ use tokio::sync::{Mutex, RwLock};
 use crate::{
     avalanche::Avalanche,
     indexer::ChronikIndexerError::*,
-    merkle::BlockMerkleTree,
+    merkle::MerkleTree,
     query::{
         QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
         QueryPlugins, QueryTxs, UtxoProtobufOutput, UtxoProtobufValue,
@@ -103,7 +103,7 @@ pub struct ChronikIndexer {
     needs_scripthash_reindex: bool,
     plugin_ctx: Arc<PluginContext>,
     plugin_name_map: PluginNameMap,
-    block_merkle_tree: Mutex<BlockMerkleTree>,
+    block_merkle_tree: Mutex<MerkleTree>,
     /// Function that can decompress the compressed scripts used as keys in
     /// the script db. We inject it via the indexer struct to avoid
     /// introducing a dependency on chronik_bridge in other crates.
@@ -327,7 +327,7 @@ impl ChronikIndexer {
             needs_scripthash_reindex,
             plugin_ctx: params.plugin_ctx,
             plugin_name_map,
-            block_merkle_tree: Mutex::new(BlockMerkleTree::new()),
+            block_merkle_tree: Mutex::new(MerkleTree::new()),
             decompress_script_fn: params.decompress_script_fn,
         })
     }
