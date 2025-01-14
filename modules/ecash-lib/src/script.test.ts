@@ -238,6 +238,14 @@ describe('Script', () => {
         );
     });
 
+    it('Script.toHex', () => {
+        expect(new Script(new Uint8Array([0x42])).toHex()).to.equal('42');
+        expect(new Script(fromHex('deadbeef')).toHex()).to.equal('deadbeef');
+        expect(new Script(fromHex('deadbeef0badcafe')).toHex()).to.equal(
+            'deadbeef0badcafe',
+        );
+    });
+
     it('Script.p2pkhSpend', () => {
         expect(
             toHex(

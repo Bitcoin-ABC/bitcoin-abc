@@ -6,7 +6,7 @@ import { readVarSize, writeVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
 import { WriterLength } from './io/writerlength.js';
 import { WriterBytes } from './io/writerbytes.js';
-import { fromHex } from './io/hex.js';
+import { toHex, fromHex } from './io/hex.js';
 import { Op, pushBytesOp, readOp, writeOp } from './op.js';
 import {
     OP_CHECKSIG,
@@ -135,6 +135,13 @@ export class Script {
             this.bytecode[1] == 20 &&
             this.bytecode[22] == OP_EQUAL
         );
+    }
+
+    /**
+     * Return hex string of this Script's bytecode
+     */
+    public toHex(): string {
+        return toHex(this.bytecode);
     }
 
     /** Build a P2SH script for the given script hash */

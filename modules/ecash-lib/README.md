@@ -107,3 +107,4 @@ console.log(toHex(rawTx));
 -   1.1.0 - Add support for the original pre-UAHF Bitcoin signatures, so we can sign transactions for other blockchains like BTC/DOGE/... [D17255](https://reviews.bitcoinabc.org/D17255)
 -   1.2.0 - Add `Address` class for cashaddr and legacy addresses. [D17269](https://reviews.bitcoinabc.org/D17269)
 -   1.2.1 - Patch type check causing txBuilder txs using change to fail in NodeJS environments [D17461](https://reviews.bitcoinabc.org/D17461)
+-   1.3.0 - Add `toHex()` method to `Script` to allow simple conversion to hex string [D17527](https://reviews.bitcoinabc.org/D17527)
