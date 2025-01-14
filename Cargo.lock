@@ -477,6 +477,7 @@ dependencies = [
  "pretty_assertions",
  "prost",
  "prost-build",
+ "regex",
  "reqwest",
  "thiserror 1.0.69",
  "tokio",

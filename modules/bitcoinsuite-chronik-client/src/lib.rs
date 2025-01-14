@@ -135,6 +135,10 @@ impl ChronikClient {
         Ok(blocks.blocks)
     }
 
+    pub async fn chronik_info(&self) -> Result<proto::ChronikInfo> {
+        self._get("/chronik-info").await
+    }
+
     pub async fn tx(&self, txid: &Sha256d) -> Result<proto::Tx> {
         self._get(&format!("/tx/{}", txid.hex_be())).await
     }

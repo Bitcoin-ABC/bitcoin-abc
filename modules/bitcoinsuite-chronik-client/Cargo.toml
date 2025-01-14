@@ -27,6 +27,8 @@ prost = "0.11"
 # Hex en-/decoding
 hex = "0.4"
 
+regex = "1"
+
 bytes = { version = "1.4", features = ["serde"] }
 
 [build-dependencies]

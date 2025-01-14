@@ -10,6 +10,7 @@ use bitcoinsuite_chronik_client::{
 };
 use bitcoinsuite_core::hash::{Hashed, Sha256d};
 use pretty_assertions::assert_eq;
+use regex::Regex;
 use reqwest::StatusCode;
 
 const CHRONIK_URL: &str = "https://chronik.e.cash";
@@ -325,6 +326,15 @@ pub async fn test_block_txs() -> Result<()> {
     assert_eq!(block_txs_by_hash_with_max_page_size.num_txs, 64);
     assert_eq!(block_txs_by_hash_with_max_page_size.txs.len(), 64);
 
+    Ok(())
+}
+
+#[tokio::test]
+pub async fn test_chronik_info() -> Result<()> {
+    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let version_string = client.chronik_info().await?.version;
+    let re = Regex::new(r"^v\d+\.\d+\.\d+(-[a-f0-9]+)?$").unwrap();
+    assert_eq!(re.is_match(version_string.as_str()), true);
     Ok(())
 }
 
