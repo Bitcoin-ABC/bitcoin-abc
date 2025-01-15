@@ -88,7 +88,6 @@ class NetTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 1000000)
         tip = self.generate(self.nodes[1], 1)[0]
-        self.sync_all()
 
         stake = create_coinbase_stakes(
             self.nodes[1], [tip], self.nodes[1].get_deterministic_priv_key().key
