@@ -118,6 +118,21 @@ export interface PartialOffer extends AgoraOffer {
      * and know they need to be canceled
      */
     isUnacceptable: boolean;
+    /**
+     * Cumulative quantity of token available on the market
+     * In units of base tokens (aka "token satoshis") so we
+     * can decide to render when decimals are available
+     * Used to render tooltip for exchange-like UX
+     *
+     * e.g. if you have 3 offers
+     * - Cheapest sells 10
+     * - Next cheapest sells 20
+     * - Most expensive sells 30
+     *
+     * cumulativeBaseTokens will be 10 for the cheapest, (10+20=30) for the next cheapest,
+     * and (10+20+30) 60 for the most expensive
+     */
+    cumulativeBaseTokens?: bigint;
 }
 
 export interface OrderBookInfo {
@@ -737,6 +752,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 cumulativeOfferedTokenSatoshis += BigInt(
                     thisOfferAmountTokenSatoshis,
                 );
+
+                offer.cumulativeBaseTokens = cumulativeOfferedTokenSatoshis;
+
                 const depthPercent = new BigNumber(
                     cumulativeOfferedTokenSatoshis.toString(),
                 )
@@ -1142,12 +1160,36 @@ const OrderBook: React.FC<OrderBookProps> = ({
                         <OfferDetailsCtn>
                             <DepthBarCol>
                                 {activeOffers.map((activeOffer, index) => {
-                                    const { depthPercent, isUnacceptable } =
-                                        activeOffer;
+                                    const {
+                                        depthPercent,
+                                        cumulativeBaseTokens,
+                                        isUnacceptable,
+                                    } = activeOffer;
                                     const acceptPercent =
                                         ((depthPercent as number) *
                                             Number(takeTokenDecimalizedQty)) /
                                         Number(decimalizedTokenQtyMax);
+
+                                    const tooltipCumulativeTokensThisOffer =
+                                        typeof cumulativeBaseTokens !==
+                                        'undefined'
+                                            ? decimalizedTokenQtyToLocaleFormat(
+                                                  decimalizeTokenAmount(
+                                                      cumulativeBaseTokens.toString(),
+                                                      decimals as SlpDecimals,
+                                                  ),
+                                                  userLocale,
+                                              )
+                                            : '';
+
+                                    const tooltipAvailableTokensThisOffer =
+                                        decimalizedTokenQtyToLocaleFormat(
+                                            decimalizeTokenAmount(
+                                                activeOffer.token.amount,
+                                                decimals as SlpDecimals,
+                                            ),
+                                            userLocale,
+                                        );
 
                                     const { makerPk } =
                                         activeOffer.variant.params;
@@ -1166,6 +1208,13 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     return (
                                         <OrderBookRow
                                             key={index}
+                                            data-tooltip-id="cashtab-tooltip"
+                                            data-tooltip-content={`${tooltipAvailableTokensThisOffer} ${tokenTicker}${
+                                                tooltipCumulativeTokensThisOffer !==
+                                                ''
+                                                    ? ` (${tooltipCumulativeTokensThisOffer} total)`
+                                                    : ''
+                                            }`}
                                             onClick={() =>
                                                 setSelectedIndex(index)
                                             }

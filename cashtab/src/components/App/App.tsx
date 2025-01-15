@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useContext } from 'react';
+import { Tooltip } from 'react-tooltip';
 import {
     HomeIcon,
     SendIcon,
@@ -465,6 +466,12 @@ const App = () => {
                         </Footer>
                     )}
                 </WalletBody>
+                <Tooltip
+                    id="cashtab-tooltip"
+                    place="bottom-end"
+                    opacity={1}
+                    style={{ zIndex: 1000 }}
+                />
             </CustomApp>
         </ThemeProvider>
     );

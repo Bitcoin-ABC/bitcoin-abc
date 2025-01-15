@@ -28,3 +28,15 @@ jest.mock('bip39', () => ({
             'grant grass sock faculty behave guitar pepper tiger sustain task occur soon',
     ),
 }));
+
+/**
+ * Mock ResizeObserver class as this is not available in JSDOM
+ * Need to mock so that react-tooltip does not break tests
+ */
+const mockResizeObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+}));
+
+global.ResizeObserver = mockResizeObserver;
