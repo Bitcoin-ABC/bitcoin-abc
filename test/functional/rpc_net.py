@@ -17,7 +17,6 @@ from test_framework.messages import NODE_NETWORK
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
-    assert_approx,
     assert_equal,
     assert_greater_than,
     assert_raises_rpc_error,
@@ -57,6 +56,7 @@ class NetTest(BitcoinTestFramework):
             ],
         ]
         self.supports_cli = False
+        self.noban_tx_relay = True
 
     def run_test(self):
         # By default, the test framework sets up an addnode connection from
@@ -83,6 +83,11 @@ class NetTest(BitcoinTestFramework):
 
     def test_getpeerinfo(self):
         self.log.info("Test getpeerinfo")
+
+        time_now = int(time.time())
+        for node in self.nodes:
+            node.setmocktime(time_now)
+
         # Create a few getpeerinfo last_block/last_transaction/last_proof
         # values.
         if self.is_wallet_compiled():
@@ -100,7 +105,6 @@ class NetTest(BitcoinTestFramework):
         self.nodes[1].sendavalancheproof(proof)
         self.sync_proofs()
 
-        time_now = int(time.time())
         peer_info = [x.getpeerinfo() for x in self.nodes]
         # Verify last_block, last_transaction and last_proof keys/values.
         for node, peer, field in product(
@@ -110,7 +114,7 @@ class NetTest(BitcoinTestFramework):
         ):
             assert field in peer_info[node][peer].keys()
             if peer_info[node][peer][field] != 0:
-                assert_approx(peer_info[node][peer][field], time_now, vspan=60)
+                assert_equal(peer_info[node][peer][field], time_now)
         # check both sides of bidirectional connection between nodes
         # the address bound to on one side will be the source address for the
         # other node
