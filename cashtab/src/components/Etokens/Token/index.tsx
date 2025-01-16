@@ -154,6 +154,7 @@ import Collection, {
     OneshotOffer,
 } from 'components/Agora/Collection';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { confirmRawTx } from 'components/Send/helpers';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -861,7 +862,7 @@ const Token: React.FC = () => {
                     : (tokenInputInfo as TokenInputInfo).tokenInputs,
             );
 
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
@@ -869,9 +870,6 @@ const Token: React.FC = () => {
                 >
                     {isNftChild ? 'NFT sent' : 'eToken sent'}
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
             );
             clearInputForms();
         } catch (e) {
@@ -914,7 +912,7 @@ const Token: React.FC = () => {
                 nftFanInputs,
             );
 
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
@@ -922,9 +920,6 @@ const Token: React.FC = () => {
                 >
                     NFT Mint inputs created
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
             );
             clearInputForms();
         } catch (e) {
@@ -1186,7 +1181,7 @@ const Token: React.FC = () => {
                 tokenInputInfo.tokenInputs,
                 true, // skip SLP burn checks
             );
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
@@ -1194,9 +1189,6 @@ const Token: React.FC = () => {
                 >
                     🔥 Burn successful
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
             );
             clearInputForms();
             setShowConfirmBurnEtoken(false);
@@ -1263,7 +1255,7 @@ const Token: React.FC = () => {
                 chaintipBlockheight,
                 [mintBaton],
             );
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
@@ -1271,9 +1263,6 @@ const Token: React.FC = () => {
                 >
                     ⚗️ Minted {formData.mintAmount} {tokenTicker}
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
             );
             clearInputForms();
         } catch (e) {
@@ -1472,7 +1461,7 @@ const Token: React.FC = () => {
             );
             adSetupTxid = response.txid;
 
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
                     target="_blank"
@@ -1480,9 +1469,6 @@ const Token: React.FC = () => {
                 >
                     Created NFT ad
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
             );
         } catch (err) {
             console.error(`Error creating NFT listing ad`, err);
@@ -1524,6 +1510,7 @@ const Token: React.FC = () => {
             );
             offerTxid = response.txid;
 
+            // Maintain this notification as we do not parse listing prices in websocket
             toast(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
@@ -1703,6 +1690,7 @@ const Token: React.FC = () => {
                 decimals as SlpDecimals,
             );
 
+            // Maintain this notification as we do not parse listing prices in websocket
             toast(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
@@ -1855,6 +1843,7 @@ const Token: React.FC = () => {
             );
             adSetupTxid = response.txid;
 
+            // Maintain this notification as we do not parse listing prices in websocket
             toast(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
@@ -1908,6 +1897,7 @@ const Token: React.FC = () => {
             );
             offerTxid = response.txid;
 
+            // Maintain this notification as we do not parse listing prices in websocket
             toast(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}

@@ -5,7 +5,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import PrimaryButton from 'components/Common/Buttons';
 import { toSatoshis, toXec, SlpDecimals } from 'wallet';
@@ -16,7 +15,7 @@ import {
     getSlpSendTargetOutputs,
 } from 'token-protocols/slpv1';
 import { getAlpSendTargetOutputs } from 'token-protocols/alp';
-import { sumOneToManyXec } from './helpers';
+import { sumOneToManyXec, confirmRawTx } from './helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
     isValidMultiSendUserInput,
@@ -669,7 +668,7 @@ const SendXec: React.FC = () => {
                     : (tokenInputInfo as TokenInputInfo).tokenInputs,
             );
 
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                     target="_blank"
@@ -679,9 +678,6 @@ const SendXec: React.FC = () => {
                         ? 'NFT sent'
                         : 'eToken sent'}
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId} />,
-                },
             );
             clearInputForms();
             // Hide the confirmation modal if it was showing
@@ -792,7 +788,7 @@ const SendXec: React.FC = () => {
                 chaintipBlockheight,
             );
 
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
                     target="_blank"
@@ -800,9 +796,6 @@ const SendXec: React.FC = () => {
                 >
                     eCash sent
                 </a>,
-                {
-                    icon: CashReceivedNotificationIcon,
-                },
             );
 
             clearInputForms();
