@@ -58,10 +58,14 @@ export const sendXec = async (
         }
         if (isTokenDustChangeOutput(targetOutput)) {
             // Add script for the address of the sending wallet to token dust change outputs
-            targetOutput.script = Script.p2pkh(
-                fromHex(wallet.paths.get(1899).hash),
-            );
-            outputs.push(targetOutput);
+            // Note we do not modify this targetOutput in place as this would modify
+            // TOKEN_DUST_CHANGE_OUTPUT, meaning future txs could get change to the wrong
+            // wallet
+            const tokenChangeTargetOutput = {
+                value: appConfig.dustSats,
+                script: Script.p2pkh(fromHex(wallet.paths.get(1899).hash)),
+            };
+            outputs.push(tokenChangeTargetOutput);
             continue;
         }
     }
