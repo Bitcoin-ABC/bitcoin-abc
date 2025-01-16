@@ -129,7 +129,9 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
         self.done.wait()
 
     def finished(self):
+        self.done.clear()
         self.clear_signal.emit()
+        self.done.wait()
 
     def get_word(self, msg):
         self.done.clear()
@@ -207,6 +209,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
             except RuntimeError:
                 pass  # closes #1437. Yes, this is a band-aid but it's clean-up code anyway and so it doesn't matter. I also was unable to track down how it could ever happen.
             self.dialog = None
+        self.done.set()
 
     def win_query_choice(self, msg, labels):
         self.choice = self.win.query_choice(msg, labels)
