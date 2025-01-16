@@ -116,3 +116,7 @@ If you have any implementation questions regarding this mock tool please check t
 2.1.2
 
 -   Update README [D17506](https://reviews.bitcoinabc.org/D17506)
+
+2.1.3
+
+-   Update `package.json` paths for correct typescript `dist` [D17542](https://reviews.bitcoinabc.org/D17542)
