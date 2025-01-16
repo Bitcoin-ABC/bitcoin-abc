@@ -48,7 +48,7 @@ def cleanup(func):
             self.nodes[0].disconnect_p2ps()
             self.nodes[0].bumpmocktime(LONG_TIME_SKIP)
             # Check that mempool and orphanage have been cleared
-            assert_equal(0, len(self.nodes[0].getorphantxs()))
+            self.wait_until(lambda: len(self.nodes[0].getorphantxs()) == 0)
             assert_equal(0, len(self.nodes[0].getrawmempool()))
             self.wallet.rescan_utxos(include_mempool=True)
 
@@ -562,8 +562,11 @@ class OrphanHandlingTest(BitcoinTestFramework):
         # Disconnect peer1. peer2 should become the new candidate for orphan
         # resolution.
         peer1.peer_disconnect()
-        node.bumpmocktime(TXREQUEST_TIME_SKIP)
+        # Wait for peer1's orphan and in-flight request cleanup.
         self.wait_until(lambda: len(node.getorphantxs(verbosity=2)[0]["from"]) == 1)
+        # Sync with the 'net' thread which completes the disconnection fully
+        peer2.sync_with_ping()
+        node.bumpmocktime(TXREQUEST_TIME_SKIP)
         # Both parents should be requested, now that they are both missing.
         peer2.wait_for_parent_requests(
             [int(parent_peekaboo["txid"], 16), int(parent_missing["txid"], 16)]

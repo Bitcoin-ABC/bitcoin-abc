@@ -1014,7 +1014,9 @@ class TestNode:
         )
 
     def disconnect_p2ps(self):
-        """Close all p2p connections to the node."""
+        """Close all p2p connections to the node.
+        The state of the peers (such as txrequests) may not be fully cleared
+        yet, even after this method returns."""
         for p in self.p2ps:
             p.peer_disconnect()
         del self.p2ps[:]
