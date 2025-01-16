@@ -2,7 +2,15 @@ import os
 from functools import partial
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QEventLoop, QStandardPaths, Qt, pyqtSignal
+from PyQt5.QtCore import (
+    QBuffer,
+    QByteArray,
+    QEventLoop,
+    QIODevice,
+    QStandardPaths,
+    Qt,
+    pyqtSignal,
+)
 from PyQt5.QtGui import QBitmap, QImage, qBlue, qGreen, qRed
 
 from electrumabc.constants import PROJECT_NAME
@@ -381,14 +389,6 @@ class SettingsDialog(WindowModalDialog):
         config = devmgr.config
         handler = keystore.handler
         thread = keystore.thread
-        is_model_T = (
-            devmgr.client_by_id(device_id)
-            and devmgr.client_by_id(device_id).features.model == "T"
-        )
-        if is_model_T:
-            hs_cols, hs_rows, hs_mono = 144, 144, False
-        else:
-            hs_cols, hs_rows, hs_mono = 128, 64, True
 
         def invoke_client(method, *args, **kw_args):
             unpair_after = kw_args.pop("unpair_after", False)
@@ -407,6 +407,13 @@ class SettingsDialog(WindowModalDialog):
 
         def update(features):
             self.features = features
+
+            if self.features.model == "1":
+                # The model 1 doesn't set the homescreen fields
+                self.features.homescreen_width = 128
+                self.features.homescreen_height = 64
+                self.features.homescreen_format = 1  # TOIF
+
             set_label_enabled()
             if features.bootloader_hash:
                 bl_hash = bh2u(features.bootloader_hash)
@@ -488,6 +495,9 @@ class SettingsDialog(WindowModalDialog):
                 filename
             )  # remember previous location
 
+            hs_cols = self.features.homescreen_width
+            hs_rows = self.features.homescreen_height
+
             if filename.lower().endswith(".toif") or filename.lower().endswith(".toig"):
                 which = filename.lower()[-1].encode(
                     "ascii"
@@ -501,7 +511,7 @@ class SettingsDialog(WindowModalDialog):
                         )
                     )
                     return
-                if not is_model_T:
+                if self.features.model != "T":
                     handler.show_error(
                         _(
                             "At this time, only the Trezor Model T supports the direct"
@@ -525,9 +535,7 @@ class SettingsDialog(WindowModalDialog):
                     return
             else:
 
-                def read_and_convert_using_qt_to_raw_mono(
-                    handler, filename, hs_cols, hs_rows, invert=True
-                ):
+                def read_and_convert_using_qt(handler, filename, hs_cols, hs_rows):
                     img = QImage(filename)
                     if img.isNull():
                         handler.show_error(
@@ -541,8 +549,8 @@ class SettingsDialog(WindowModalDialog):
                         hs_cols,
                         hs_rows,
                     ):
-                        # force to our dest size. Note that IgnoreAspectRatio guarantess
-                        # the right size. Ther other modes don't
+                        # force to our dest size. Note that IgnoreAspectRatio
+                        # guarantees the right size. The other modes don't
                         img = img.scaled(
                             hs_cols,
                             hs_rows,
@@ -559,6 +567,19 @@ class SettingsDialog(WindowModalDialog):
                                 )
                             )
                             return
+                    target_fmt = QImage.Format_RGB888
+                    # dither it down to 256 colors to reduce image complexity then back
+                    # up to 24 bit for easy reading
+                    img = img.convertToFormat(QImage.Format_Indexed8).convertToFormat(
+                        target_fmt
+                    )
+                    if img.isNull():
+                        handler.show_error(_("Could not dither or re-render image"))
+                        return
+
+                    return img
+
+                def qimg_to_raw_mono(img, handler, hs_cols, hs_rows, invert=True):
                     bm = QBitmap.fromImage(
                         img, Qt.MonoOnly
                     )  # ensures 1bpp, dithers any colors
@@ -592,95 +613,72 @@ class SettingsDialog(WindowModalDialog):
                                 bimg[i] = ~bimg[i] & 0xFF  # invert b/w
                     return bytes(bimg)
 
-                def read_and_convert_using_qt_to_toif(
-                    handler, filename, hs_cols, hs_rows
-                ):
-                    img = QImage(filename)
-                    if img.isNull():
+                def qimg_to_toif(img, handler):
+                    try:
+                        import struct
+                        import zlib
+                    except ImportError as e:
                         handler.show_error(
                             _(
-                                "Could not load the image {} -- unknown format or other"
-                                " error"
-                            ).format(os.path.basename(filename))
+                                "Could not convert image, a required library is"
+                                " missing: {}"
+                            ).format(e)
                         )
                         return
-                    if (img.width(), img.height()) != (
-                        hs_cols,
-                        hs_rows,
-                    ):
-                        # force to our dest size. Note that IgnoreAspectRatio
-                        # guarantess the right size. Ther other modes don't
-                        img = img.scaled(
-                            hs_cols,
-                            hs_rows,
-                            Qt.IgnoreAspectRatio,
-                            Qt.SmoothTransformation,
-                        )
-                        if img.isNull() or (img.width(), img.height()) != (
-                            hs_cols,
-                            hs_rows,
-                        ):
-                            handler.show_error(
-                                _("Could not scale image to {} x {} pixels").format(
-                                    hs_cols, hs_rows
-                                )
+                    data, pixeldata = bytearray(), bytearray()
+                    data += b"TOIf"
+                    for y in range(img.width()):
+                        for x in range(img.height()):
+                            rgb = img.pixel(x, y)
+                            r, g, b = qRed(rgb), qGreen(rgb), qBlue(rgb)
+                            c = (
+                                ((r & 0xF8) << 8)
+                                | ((g & 0xFC) << 3)
+                                | ((b & 0xF8) >> 3)
                             )
-                            return
-                    target_fmt = QImage.Format_RGB888
-                    # dither it down to 256 colors to reduce image complexity then back
-                    # up to 24 bit for easy reading
-                    img = img.convertToFormat(QImage.Format_Indexed8).convertToFormat(
-                        target_fmt
-                    )
-                    if img.isNull():
-                        handler.show_error(_("Could not dither or re-render image"))
-                        return
+                            pixeldata += struct.pack(">H", c)
+                    z = zlib.compressobj(level=9, wbits=10)
+                    zdata = z.compress(bytes(pixeldata)) + z.flush()
+                    zdata = zdata[2:-4]  # strip header and checksum
+                    data += struct.pack("<HH", img.width(), img.height())
+                    data += struct.pack("<I", len(zdata))
+                    data += zdata
+                    return bytes(data)
 
-                    def qimg_to_toif(img, handler):
-                        try:
-                            import struct
-                            import zlib
-                        except ImportError as e:
-                            handler.show_error(
-                                _(
-                                    "Could not convert image, a required library is"
-                                    " missing: {}"
-                                ).format(e)
-                            )
-                            return
-                        data, pixeldata = bytearray(), bytearray()
-                        data += b"TOIf"
-                        for y in range(img.width()):
-                            for x in range(img.height()):
-                                rgb = img.pixel(x, y)
-                                r, g, b = qRed(rgb), qGreen(rgb), qBlue(rgb)
-                                c = (
-                                    ((r & 0xF8) << 8)
-                                    | ((g & 0xFC) << 3)
-                                    | ((b & 0xF8) >> 3)
-                                )
-                                pixeldata += struct.pack(">H", c)
-                        z = zlib.compressobj(level=9, wbits=10)
-                        zdata = z.compress(bytes(pixeldata)) + z.flush()
-                        zdata = zdata[2:-4]  # strip header and checksum
-                        data += struct.pack("<HH", img.width(), img.height())
-                        data += struct.pack("<I", len(zdata))
-                        data += zdata
-                        return bytes(data)
-
-                    return qimg_to_toif(img, handler)
+                def qimg_to_jpeg(img, handler):
+                    ba = QByteArray()
+                    buffer = QBuffer(ba)
+                    buffer.open(QIODevice.WriteOnly)
+                    img.save(buffer, "JPG")
+                    return bytes(buffer.data())
 
                 # /read_and_convert_using_qt
-                if hs_mono and not is_model_T:
-                    img = read_and_convert_using_qt_to_raw_mono(
-                        handler, filename, hs_cols, hs_rows
-                    )
+                img = read_and_convert_using_qt(handler, filename, hs_cols, hs_rows)
+
+                # Special case the model 1
+                if self.features.model == "1":
+                    img = qimg_to_raw_mono(img, handler, hs_cols, hs_rows)
                 else:
-                    img = read_and_convert_using_qt_to_toif(
-                        handler, filename, hs_cols, hs_rows
-                    )
+                    # TODO import the enum from trezorlib
+                    # Toif = 1
+                    # Jpeg = 2
+                    # ToiG = 3
+                    if self.features.homescreen_format == 1:
+                        img = qimg_to_toif(img, handler)
+                    elif self.features.homescreen_format == 2:
+                        img = qimg_to_jpeg(img, handler)
+                    else:
+                        handler.show_error(
+                            _(
+                                "This device expects a TOIG image format which "
+                                "is currently not supported by Electrum ABC"
+                            )
+                        )
+                        return
+
                 if not img:
                     return
+
             invoke_client("change_homescreen", img)
 
         def clear_homescreen():
@@ -784,6 +782,17 @@ class SettingsDialog(WindowModalDialog):
         pin_msg.setWordWrap(True)
         pin_msg.setStyleSheet("color: red")
         settings_glayout.addWidget(pin_msg, 3, 1, 1, -1)
+
+        # We need the screen resolution for the homescreen change message.
+        # If we can't connect for any reason we fall back to model 1 / Safe 3.
+        hs_cols, hs_rows, hs_mono = (128, 64, True)
+        if devmgr.client_by_id(device_id):
+            features = devmgr.client_by_id(device_id).features
+            # The model 1 doesn't populate the homescreen fields
+            if features.model != "1":
+                hs_cols = features.homescreen_width
+                hs_rows = features.homescreen_height
+                hs_mono = features.model in ("1", "Safe 3")
 
         # Settings tab - Homescreen
         homescreen_label = QtWidgets.QLabel(_("Homescreen"))
