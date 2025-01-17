@@ -76,6 +76,7 @@ export interface UseWalletReturnType {
     fiatPrice: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     apiError: boolean;
     updateCashtabState: UpdateCashtabState;
     processChronikWsMsg: (
@@ -1021,6 +1022,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         fiatPrice,
         cashtabLoaded,
         loading,
+        setLoading,
         apiError,
         updateCashtabState,
         processChronikWsMsg,

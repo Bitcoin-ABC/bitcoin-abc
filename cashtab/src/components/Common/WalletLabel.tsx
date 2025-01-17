@@ -73,12 +73,16 @@ interface WalletLabelProps {
     settings: CashtabSettings;
     updateCashtabState: UpdateCashtabState;
     setCashtabState: React.Dispatch<React.SetStateAction<CashtabState>>;
+    loading: boolean;
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const WalletLabel: React.FC<WalletLabelProps> = ({
     wallets,
     settings,
     updateCashtabState,
     setCashtabState,
+    loading,
+    setLoading,
 }) => {
     const address = wallets[0].paths.get(1899).address;
 
@@ -103,7 +107,13 @@ const WalletLabel: React.FC<WalletLabelProps> = ({
          * Update state
          * useWallet.ts has a useEffect that will then sync this new
          * active wallet with the network and update it in storage
+         *
+         * We also setLoading(true) on a wallet change, because we want
+         * to prevent rapid wallet cycling
+         *
+         * setLoading(false) is called after the wallet is updated in useWallet.ts
          */
+        setLoading(true);
         setCashtabState(prevState => ({
             ...prevState,
             wallets: walletsAfterActivation,
@@ -118,6 +128,7 @@ const WalletLabel: React.FC<WalletLabelProps> = ({
                 data-testid="wallet-select"
                 onChange={e => handleSelectWallet(e)}
                 value={wallets[0].name}
+                disabled={loading}
             >
                 {wallets.map((wallet, index) => (
                     <WalletOption key={index} value={wallet.name}>

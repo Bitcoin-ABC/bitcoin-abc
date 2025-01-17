@@ -89,6 +89,7 @@ const App = () => {
         updateCashtabState,
         fiatPrice,
         loading,
+        setLoading,
         cashtabLoaded,
     } = ContextValue;
     const { settings, wallets } = cashtabState;
@@ -189,6 +190,8 @@ const App = () => {
                                                 setCashtabState={
                                                     setCashtabState
                                                 }
+                                                loading={loading}
+                                                setLoading={setLoading}
                                             />
                                             <BalanceHeaderContainer title="Wallet Info">
                                                 <BalanceHeader
