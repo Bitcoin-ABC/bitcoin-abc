@@ -51,7 +51,7 @@ import ServiceWorkerWrapper from 'components/Common/ServiceWorkerWrapper';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
 import ExtensionHeader from 'components/Common/ExtensionHeader';
-import WalletLabel from 'components/Common/WalletLabel.js';
+import WalletLabel from 'components/Common/WalletLabel';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import { isValidCashtabWallet } from 'validation';
 import { Bounce, ToastContainer } from 'react-toastify';
@@ -180,7 +180,6 @@ const App = () => {
                                                 updateCashtabState={
                                                     updateCashtabState
                                                 }
-                                                userLocale={navigator.language}
                                             ></WalletLabel>
                                             <BalanceHeaderContainer title="Wallet Info">
                                                 <BalanceHeader

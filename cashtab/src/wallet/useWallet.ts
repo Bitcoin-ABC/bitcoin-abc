@@ -56,6 +56,18 @@ import { Agora } from 'ecash-agora';
 import { Ecc } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
 
+export type UpdateCashtabState = (
+    key: string,
+    value:
+        | CashtabWallet[]
+        | CashtabCache
+        | CashtabContact[]
+        | CashtabSettings
+        | CashtabCacheJson
+        | StoredCashtabWallet[]
+        | (LegacyCashtabWallet | StoredCashtabWallet)[],
+) => Promise<boolean>;
+
 export interface UseWalletReturnType {
     chronik: ChronikClient;
     agora: Agora;
@@ -65,17 +77,7 @@ export interface UseWalletReturnType {
     cashtabLoaded: boolean;
     loading: boolean;
     apiError: boolean;
-    updateCashtabState: (
-        key: string,
-        value:
-            | CashtabWallet[]
-            | CashtabCache
-            | CashtabContact[]
-            | CashtabSettings
-            | CashtabCacheJson
-            | StoredCashtabWallet[]
-            | (LegacyCashtabWallet | StoredCashtabWallet)[],
-    ) => Promise<boolean>;
+    updateCashtabState: UpdateCashtabState;
     processChronikWsMsg: (
         msg: WsMsgClient,
         cashtabState: CashtabState,

@@ -3,11 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { getWalletsForNewActiveWallet } from 'wallet';
 import { getTextWidth } from 'helpers';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
+import CashtabSettings from 'config/CashtabSettings';
+import { CashtabWallet } from 'wallet';
+import { UpdateCashtabState } from 'wallet/useWallet';
 
 const LabelCtn = styled.div`
     z-index: 2;
@@ -33,7 +35,7 @@ const LabelCtn = styled.div`
 `;
 
 const EXTRA_WIDTH_FOR_SELECT = 32;
-const WalletDropdown = styled.select`
+const WalletDropdown = styled.select<{ value: string }>`
     font-family: 'Poppins', 'Ubuntu', -apple-system, BlinkMacSystemFont,
         'Segoe UI', 'Roboto', 'Oxygen', 'Cantarell', 'Fira Sans', 'Droid Sans',
         'Helvetica Neue', sans-serif;
@@ -65,10 +67,19 @@ const WalletOption = styled.option`
     }
 `;
 
-const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
+interface WalletLabelProps {
+    wallets: CashtabWallet[];
+    settings: CashtabSettings;
+    updateCashtabState: UpdateCashtabState;
+}
+const WalletLabel: React.FC<WalletLabelProps> = ({
+    wallets,
+    settings,
+    updateCashtabState,
+}) => {
     const address = wallets[0].paths.get(1899).address;
 
-    const handleSelectWallet = e => {
+    const handleSelectWallet = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const walletName = e.target.value;
 
         // Get the active wallet by name
@@ -111,35 +122,6 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
             />
         </LabelCtn>
     );
-};
-
-WalletLabel.propTypes = {
-    wallets: PropTypes.arrayOf(
-        PropTypes.shape({
-            mnemonic: PropTypes.string,
-            name: PropTypes.string,
-            paths: PropTypes.instanceOf(Map),
-            state: PropTypes.shape({
-                balanceSats: PropTypes.number,
-                nonSlpUtxos: PropTypes.array, // Tx[]
-                slpUtxos: PropTypes.array, // Tx[]
-                tokens: PropTypes.instanceOf(Map),
-                parsedTxHistory: PropTypes.array,
-            }),
-        }),
-    ),
-    settings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSender: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
-        }),
-        PropTypes.bool,
-    ]),
-    updateCashtabState: PropTypes.func,
-    userLocale: PropTypes.string,
 };
 
 export default WalletLabel;
