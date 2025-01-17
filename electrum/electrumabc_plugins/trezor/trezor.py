@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import traceback
 from binascii import unhexlify
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
 from electrumabc.bip32 import deserialize_xpub
@@ -119,6 +119,15 @@ class TrezorKeyStore(HardwareKeyStore):
 class LibraryFoundButUnusable(Exception):
     def __init__(self, library_version="unknown"):
         self.library_version = library_version
+
+
+class TrezorInitSettings(NamedTuple):
+    word_count: int
+    label: str
+    pin_enabled: bool
+    passphrase_enabled: bool
+    recovery_type: Any = None
+    no_backup: bool = False
 
 
 class TrezorPlugin(HWPluginBase):
@@ -256,11 +265,12 @@ class TrezorPlugin(HWPluginBase):
             return "Ecash Testnet" if NetworkConstants.TESTNET else "Ecash"
         return "Bcash Testnet" if NetworkConstants.TESTNET else "Bcash"
 
-    def _chk_settings_do_popup_maybe(self, handler, method, model, settings):
-        recovery_type = settings and settings[-1]
+    def _chk_settings_do_popup_maybe(
+        self, handler, method, model, settings: TrezorInitSettings
+    ):
         if (
             method == TIM_RECOVER
-            and recovery_type == RECOVERY_TYPE_SCRAMBLED_WORDS
+            and settings.recovery_type == RECOVERY_TYPE_SCRAMBLED_WORDS
             and model == "1"  # This only applies to the model '1'
         ):
             handler.show_error(
@@ -297,7 +307,7 @@ class TrezorPlugin(HWPluginBase):
             try:
                 import threading
 
-                settings = self.request_trezor_init_settings(wizard, method, model)
+                settings = self.request_trezor_init_settings(wizard, method, device_id)
                 # We do this popup business here because doing it in the
                 # thread interferes with whatever other popups may happen
                 # from trezorlib.  So we do this all-stop popup first if needed.
@@ -348,25 +358,27 @@ class TrezorPlugin(HWPluginBase):
                 lc[0].exit(exit_code)
 
     def _initialize_device(self, settings, method, device_id):
-        item, label, pin_protection, passphrase_protection, recovery_type = settings
-
         devmgr = self.device_manager()
         client = devmgr.client_by_id(device_id)
+        if not client:
+            raise Exception(_("The device was disconnected."))
 
         if method == TIM_NEW:
+            strength_from_word_count = {12: 128, 18: 192, 24: 256}
             client.reset_device(
-                strength=64 * (item + 2),  # 128, 192 or 256
-                passphrase_protection=passphrase_protection,
-                pin_protection=pin_protection,
-                label=label,
+                strength=strength_from_word_count[settings.word_count],
+                passphrase_protection=settings.passphrase_enabled,
+                pin_protection=settings.pin_enabled,
+                label=settings.label,
+                no_backup=settings.no_backup,
             )
         elif method == TIM_RECOVER:
             client.recover_device(
-                recovery_type=recovery_type,
-                word_count=6 * (item + 2),  # 12, 18 or 24
-                passphrase_protection=passphrase_protection,
-                pin_protection=pin_protection,
-                label=label,
+                recovery_type=settings.recovery_type,
+                word_count=settings.word_count,
+                passphrase_protection=settings.passphrase_enabled,
+                pin_protection=settings.pin_enabled,
+                label=settings.label,
             )
         else:
             raise RuntimeError("Unsupported recovery method")
