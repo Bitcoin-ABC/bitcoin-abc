@@ -85,6 +85,7 @@ const App = () => {
     }
     const {
         cashtabState,
+        setCashtabState,
         updateCashtabState,
         fiatPrice,
         loading,
@@ -185,7 +186,10 @@ const App = () => {
                                                 updateCashtabState={
                                                     updateCashtabState
                                                 }
-                                            ></WalletLabel>
+                                                setCashtabState={
+                                                    setCashtabState
+                                                }
+                                            />
                                             <BalanceHeaderContainer title="Wallet Info">
                                                 <BalanceHeader
                                                     balanceSats={

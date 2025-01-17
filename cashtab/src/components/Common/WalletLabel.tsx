@@ -10,6 +10,7 @@ import WalletHeaderActions from 'components/Common/WalletHeaderActions';
 import CashtabSettings from 'config/CashtabSettings';
 import { CashtabWallet } from 'wallet';
 import { UpdateCashtabState } from 'wallet/useWallet';
+import CashtabState from 'config/CashtabState';
 
 const LabelCtn = styled.div`
     z-index: 2;
@@ -71,11 +72,13 @@ interface WalletLabelProps {
     wallets: CashtabWallet[];
     settings: CashtabSettings;
     updateCashtabState: UpdateCashtabState;
+    setCashtabState: React.Dispatch<React.SetStateAction<CashtabState>>;
 }
 const WalletLabel: React.FC<WalletLabelProps> = ({
     wallets,
     settings,
     updateCashtabState,
+    setCashtabState,
 }) => {
     const address = wallets[0].paths.get(1899).address;
 
@@ -96,8 +99,15 @@ const WalletLabel: React.FC<WalletLabelProps> = ({
             walletToActivate,
             wallets,
         );
-
-        updateCashtabState('wallets', walletsAfterActivation);
+        /**
+         * Update state
+         * useWallet.ts has a useEffect that will then sync this new
+         * active wallet with the network and update it in storage
+         */
+        setCashtabState(prevState => ({
+            ...prevState,
+            wallets: walletsAfterActivation,
+        }));
     };
 
     return (

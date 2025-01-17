@@ -84,6 +84,11 @@ export interface UseWalletReturnType {
         fiatPrice: null | number,
     ) => Promise<boolean>;
     cashtabState: CashtabState;
+    /**
+     * In some cases, we only want to set CashtabState as setting the state
+     * will trigger storage writing, and we want to minimize this
+     */
+    setCashtabState: React.Dispatch<React.SetStateAction<CashtabState>>;
 }
 
 const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
@@ -1020,6 +1025,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         updateCashtabState,
         processChronikWsMsg,
         cashtabState,
+        setCashtabState,
     } as UseWalletReturnType;
 };
 
