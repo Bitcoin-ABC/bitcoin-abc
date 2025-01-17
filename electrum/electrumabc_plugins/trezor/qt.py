@@ -11,7 +11,7 @@ from PyQt5.QtCore import (
     Qt,
     pyqtSignal,
 )
-from PyQt5.QtGui import QBitmap, QImage, qBlue, qGreen, qRed
+from PyQt5.QtGui import QBitmap, QImage, qBlue, qGray, qGreen, qRed
 
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
@@ -567,14 +567,9 @@ class SettingsDialog(WindowModalDialog):
                                 )
                             )
                             return
-                    target_fmt = QImage.Format_RGB888
-                    # dither it down to 256 colors to reduce image complexity then back
-                    # up to 24 bit for easy reading
-                    img = img.convertToFormat(QImage.Format_Indexed8).convertToFormat(
-                        target_fmt
-                    )
+
                     if img.isNull():
-                        handler.show_error(_("Could not dither or re-render image"))
+                        handler.show_error(_("Could not re-render image"))
                         return
 
                     return img
@@ -613,6 +608,7 @@ class SettingsDialog(WindowModalDialog):
                                 bimg[i] = ~bimg[i] & 0xFF  # invert b/w
                     return bytes(bimg)
 
+                # See https://github.com/trezor/trezor-firmware/blob/main/docs/misc/toif.md
                 def qimg_to_toif(img, handler):
                     try:
                         import struct
@@ -627,8 +623,8 @@ class SettingsDialog(WindowModalDialog):
                         return
                     data, pixeldata = bytearray(), bytearray()
                     data += b"TOIf"
-                    for y in range(img.width()):
-                        for x in range(img.height()):
+                    for y in range(img.height()):
+                        for x in range(img.width()):
                             rgb = img.pixel(x, y)
                             r, g, b = qRed(rgb), qGreen(rgb), qBlue(rgb)
                             c = (
@@ -637,6 +633,65 @@ class SettingsDialog(WindowModalDialog):
                                 | ((b & 0xF8) >> 3)
                             )
                             pixeldata += struct.pack(">H", c)
+                    z = zlib.compressobj(level=9, wbits=10)
+                    zdata = z.compress(bytes(pixeldata)) + z.flush()
+                    zdata = zdata[2:-4]  # strip header and checksum
+                    data += struct.pack("<HH", img.width(), img.height())
+                    data += struct.pack("<I", len(zdata))
+                    data += zdata
+                    return bytes(data)
+
+                # See https://github.com/trezor/trezor-firmware/blob/main/docs/misc/toif.md
+                def qimg_to_toig(img, handler):
+                    try:
+                        import struct
+                        import zlib
+                    except ImportError as e:
+                        handler.show_error(
+                            _(
+                                "Could not convert image, a required library is"
+                                " missing: {}"
+                            ).format(e)
+                        )
+                        return
+
+                    # Convert the image to monochrome. TOIg uses an 4 bits
+                    # grayscale but the rendering on a Safe 3 device is not good
+                    # (not supported yet ?). We use monochrome for now so it is
+                    # displayed nicely on the device.
+                    # If this ever get fixed we can use QImage.Format_Grayscale8
+                    # instead.
+                    img = img.convertToFormat(QImage.Format_Mono)
+
+                    data, pixeldata = bytearray(), bytearray()
+                    data += b"TOIG"
+                    for y in range(img.height()):
+                        # On even high mode, the odd pixel indexes are in the 4
+                        # LSB and the even pixel indexes in the 4 MSB.
+                        # WARNING: The specification counts the pixels indexes
+                        # starting from 1 !
+                        for x in range(0, img.width(), 2):
+                            # Even (no error here, pixel indexes are counted
+                            # starting from 1)
+                            gray_8bits = qGray(img.pixel(x, y))
+                            two_pixels = (gray_8bits >> 4) & 0x0F
+
+                            # Odd
+                            gray_8bits = qGray(img.pixel(x + 1, y))
+                            two_pixels |= gray_8bits & 0xF0
+
+                            pixeldata += struct.pack(">B", two_pixels)
+
+                        # There is no such device at the time of writing and I
+                        # don't even know if such a screen exists, but it is
+                        # correct.
+                        if img.width() % 2:
+                            # Even only, Odd is 0
+                            gray_8bits = qGray(img.pixel(x, y))
+                            two_pixels = (gray_8bits >> 4) & 0x0F
+
+                            pixeldata += struct.pack(">B", two_pixels)
+
                     z = zlib.compressobj(level=9, wbits=10)
                     zdata = z.compress(bytes(pixeldata)) + z.flush()
                     zdata = zdata[2:-4]  # strip header and checksum
@@ -667,10 +722,12 @@ class SettingsDialog(WindowModalDialog):
                         img = qimg_to_toif(img, handler)
                     elif self.features.homescreen_format == 2:
                         img = qimg_to_jpeg(img, handler)
+                    elif self.features.homescreen_format == 3:
+                        img = qimg_to_toig(img, handler)
                     else:
                         handler.show_error(
                             _(
-                                "This device expects a TOIG image format which "
+                                "This device expects an image format which "
                                 "is currently not supported by Electrum ABC"
                             )
                         )
