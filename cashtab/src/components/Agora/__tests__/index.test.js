@@ -119,9 +119,7 @@ describe('<Agora />', () => {
 
         // Wait for the screen to load
         await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // Wait for agora offers to load

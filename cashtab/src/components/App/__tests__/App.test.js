@@ -112,6 +112,9 @@ describe('<App />', () => {
             <CashtabTestWrapper ecc={ecc} chronik={mockedChronik} route="/" />,
         );
 
+        // We show a spinner while Cashtab is loading
+        expect(screen.getByTitle('Loading...')).toBeInTheDocument();
+
         // Wait for the app to load
         await waitFor(() =>
             expect(

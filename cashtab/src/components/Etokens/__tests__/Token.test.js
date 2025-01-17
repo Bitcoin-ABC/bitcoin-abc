@@ -439,6 +439,11 @@ describe('<Token />', () => {
             />,
         );
 
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
+        );
+
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
@@ -812,9 +817,7 @@ describe('<Token />', () => {
 
         // Wait for Cashtab wallet info to load
         await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // We see a spinner while token info is loading
@@ -856,15 +859,13 @@ describe('<Token />', () => {
             />,
         );
 
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
-        );
-
         // We see a spinner while token info is loading
         expect(screen.getByTitle('Loading')).toBeInTheDocument();
+
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
+        );
 
         // We see expected chronik query error
         expect(
@@ -894,9 +895,7 @@ describe('<Token />', () => {
 
         // Wait for Cashtab wallet info to load
         await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // We never see a spinner as we never make a chronik token info call

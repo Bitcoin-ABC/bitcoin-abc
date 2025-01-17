@@ -135,7 +135,12 @@ const App = () => {
                 </>
             )}
 
-            {loading || (wallet !== false && !validWallet && <Spinner />)}
+            {loading ? (
+                <Spinner />
+            ) : (
+                wallet !== false && !validWallet && <Spinner />
+            )}
+
             <CustomApp>
                 <ToastContainer
                     position="top-right"
