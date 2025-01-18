@@ -326,18 +326,32 @@ const datatable = () => {
         ],
         columns: [
             {
+                name: 'timestamp',
+                data: 'timestamp',
+                title: 'Timestamp',
+                visible: false,
+            },
+            {
                 name: 'age',
                 data: 'timestamp',
                 title: 'Age',
                 render: renderAge,
                 orderSequence: ['desc', 'asc'],
+                // Use timestamp to sort first, then this column. Since the data
+                // will be the same there is no change in the sort whatsoever,
+                // but this causes the sorting icons to be highlighted correctly
+                // in the sorted column (and not only the hidden one). See
+                // https://datatables.net/forums/discussion/comment/236616
+                orderData: [0, 1],
             },
             {
-                name: 'timestamp',
+                name: 'datetime',
                 data: 'timestamp',
                 title: 'Date (UTC' + tzOffset + ')',
                 render: renderTimestamp,
                 orderSequence: ['desc', 'asc'],
+                // See the above comment about the column sorting
+                orderData: [0, 2],
             },
             {
                 name: 'txHash',
