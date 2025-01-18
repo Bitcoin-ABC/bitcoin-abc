@@ -176,8 +176,6 @@ class QtHandler(QtHandlerBase):
         self.close_matrix_dialog_signal.emit()
 
     def pin_dialog(self, msg):
-        # Needed e.g. when resetting a device
-        self.clear_dialog()
         dialog = WindowModalDialog(self.top_level_window(), _("Enter PIN"))
         matrix = self.pin_matrix_widget_class()
         vbox = QtWidgets.QVBoxLayout()
@@ -434,7 +432,7 @@ class QtPlugin(QtPluginBase):
 
         # ask for recovery type (random word order OR matrix)*
         bg_rectype = None
-        if method == TIM_RECOVER and model == 1:
+        if method == TIM_RECOVER and model == "1":
             gb_rectype = QtWidgets.QGroupBox()
             hbox_rectype = QtWidgets.QHBoxLayout()
             gb_rectype.setLayout(hbox_rectype)
