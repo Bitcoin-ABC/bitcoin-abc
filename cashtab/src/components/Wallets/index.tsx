@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from 'react';
-import { WalletContext } from 'wallet/context';
+import React, { useState, useContext } from 'react';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import {
     TrashcanIcon,
     EditIcon,
@@ -36,6 +36,7 @@ import {
     createCashtabWallet,
     generateMnemonic,
     getWalletsForNewActiveWallet,
+    CashtabWallet,
 } from 'wallet';
 import { getUserLocale } from 'helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
@@ -43,20 +44,38 @@ import { toFormattedXec } from 'formatting';
 import debounce from 'lodash.debounce';
 import { PageHeader } from 'components/Common/Atoms';
 
+interface WalletsFormData {
+    renamedWalletName: string;
+    walletToBeDeletedName: string;
+    newWalletName: string;
+    mnemonic: string;
+}
+
+interface WalletsFormDataErrors {
+    renamedWalletName: false | string;
+    walletToBeDeletedName: false | string;
+    newWalletName: false | string;
+    mnemonic: false | string;
+}
+
 const Wallets = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const userLocale = getUserLocale(navigator);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { cashtabState, updateCashtabState, ecc } = ContextValue;
     const { wallets, contactList } = cashtabState;
 
-    const userLocale = getUserLocale(navigator);
-
-    const emptyFormData = {
+    const emptyFormData: WalletsFormData = {
         renamedWalletName: '',
         walletToBeDeletedName: '',
         newWalletName: '',
         mnemonic: '',
     };
-    const emptyFormDataErrors = {
+
+    const emptyFormDataErrors: WalletsFormDataErrors = {
         renamedWalletName: false,
         walletToBeDeletedName: false,
         newWalletName: false,
@@ -64,19 +83,22 @@ const Wallets = () => {
     };
 
     // State variables
-    const [formData, setFormData] = useState(emptyFormData);
-    const [formDataErrors, setFormDataErrors] = useState(emptyFormDataErrors);
-    const [walletToBeRenamed, setWalletToBeRenamed] = useState(null);
-    const [walletToBeDeleted, setWalletToBeDeleted] = useState(null);
-    const [showImportWalletModal, setShowImportWalletModal] = useState(false);
+    const [formData, setFormData] = useState<WalletsFormData>(emptyFormData);
+    const [formDataErrors, setFormDataErrors] =
+        useState<WalletsFormDataErrors>(emptyFormDataErrors);
+    const [walletToBeRenamed, setWalletToBeRenamed] =
+        useState<null | CashtabWallet>(null);
+    const [walletToBeDeleted, setWalletToBeDeleted] =
+        useState<null | CashtabWallet>(null);
+    const [showImportWalletModal, setShowImportWalletModal] =
+        useState<boolean>(false);
 
     /**
      * Update formData with user input
-     * @param {Event} e js input event
      * e.target.value will be input value
      * e.target.name will be name of originating input field
      */
-    const handleInput = e => {
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
         if (name === 'renamedWalletName') {
@@ -86,6 +108,11 @@ const Wallets = () => {
             }));
         }
         if (name === 'walletToBeDeletedName') {
+            // We are handling input for user confirmation of walletToBeDeleted
+            // We only expect this if walletToBeDeleted has been set
+            if (walletToBeDeleted === null) {
+                return;
+            }
             const walletToBeDeletedNameError =
                 value === 'delete ' + walletToBeDeleted.name
                     ? false
@@ -110,11 +137,26 @@ const Wallets = () => {
         }));
     };
 
+    /**
+     * Get user input to rename a wallet
+     * We only expect to be in this function if walletToBeRenamed is not null
+     */
     const renameWallet = async () => {
+        if (walletToBeRenamed === null) {
+            // We can only rename a walletToBeRenamed
+            return;
+        }
+
         // Find the wallet you want to rename
-        let walletToUpdate = wallets.find(
+        const walletToUpdate = wallets.find(
             wallet => wallet.mnemonic === walletToBeRenamed.mnemonic,
         );
+
+        if (typeof walletToUpdate === 'undefined') {
+            // We always expect to find it, since only wallets that exist are rendered to the user
+            return;
+        }
+
         const oldName = walletToUpdate.name;
 
         // if a match was found
@@ -140,7 +182,15 @@ const Wallets = () => {
         }));
     };
 
+    /**
+     * Delete wallet on successful user confirmation
+     */
     const deleteWallet = async () => {
+        // We only call this function if we have a walletToBeDeleted
+        if (walletToBeDeleted === null) {
+            return;
+        }
+
         // filter wallet from wallets
         const updatedWallets = wallets.filter(
             wallet => wallet.mnemonic !== walletToBeDeleted.mnemonic,
@@ -160,6 +210,9 @@ const Wallets = () => {
         }));
     };
 
+    /**
+     * Generate a new wallet and add it to the users wallets array
+     */
     const addNewWallet = async () => {
         // Generate a new wallet with a new mnemonic
         const mnemonic = generateMnemonic();
@@ -194,7 +247,6 @@ const Wallets = () => {
 
     /**
      * Add a new imported wallet to cashtabState wallets object
-     * @param {mnemonic} string
      */
     async function importNewWallet() {
         // Make sure no existing wallets have this mnemonic
@@ -222,8 +274,9 @@ const Wallets = () => {
 
         // Handle edge case of another wallet having the same name
         const existingWalletHasSameName = wallets.find(
-            wallet => wallet.name === newImportedWallet,
+            wallet => wallet.name === newImportedWallet.name,
         );
+
         if (typeof existingWalletHasSameName !== 'undefined') {
             // Import error modal for wallet existing with the same name
             console.error(
@@ -257,9 +310,8 @@ const Wallets = () => {
 
     /**
      * Add a wallet to contacts
-     * @param {{name: string; paths: new Map([[1899, string;]])}} wallet
      */
-    const addWalletToContacts = async wallet => {
+    const addWalletToContacts = async (wallet: CashtabWallet) => {
         const addressToAdd = wallet.paths.get(1899).address;
 
         // Check to see if the contact exists
@@ -285,7 +337,10 @@ const Wallets = () => {
         }
     };
 
-    const activateWallet = (walletToActivate, wallets) => {
+    const activateWallet = (
+        walletToActivate: CashtabWallet,
+        wallets: CashtabWallet[],
+    ) => {
         // Get desired wallets array after activating walletToActivate
         const walletsAfterActivation = getWalletsForNewActiveWallet(
             walletToActivate,
