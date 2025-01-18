@@ -30,6 +30,8 @@ const Rewards = () => {
     const [timeRemainingMs, setTimeRemainingMs] = useState<null | number>(null);
     const [countdownInterval, setCountdownInterval] =
         useState<null | NodeJS.Timeout>(null);
+    // Set to true while we wait on a server response to prevent multiple claims
+    const [claimPending, setClaimPending] = useState<boolean>(false);
 
     const getIsEligible = async (address: string) => {
         let serverResponse;
@@ -58,6 +60,7 @@ const Rewards = () => {
             // We do not support claims if we do not have a defined key
             return;
         }
+        setClaimPending(true);
         // Get a recaptcha score
         const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
         const token = await recaptcha.execute('claimcachet');
@@ -76,6 +79,7 @@ const Rewards = () => {
                     },
                 )
             ).json();
+            setClaimPending(false);
             // Could help in debugging from user reports
             console.info(claimResponse);
             if ('error' in claimResponse) {
@@ -104,6 +108,7 @@ const Rewards = () => {
         } catch (err) {
             console.error(err);
             toast.error(`${err}`);
+            setClaimPending(false);
         }
     };
 
@@ -187,8 +192,11 @@ const Rewards = () => {
                 Rewards <RewardIcon />
             </PageHeader>
             {process.env.REACT_APP_TESTNET !== 'true' ? (
-                <PrimaryButton disabled={!isEligible} onClick={handleClaim}>
-                    {isEligible === null ? (
+                <PrimaryButton
+                    disabled={!isEligible || claimPending}
+                    onClick={handleClaim}
+                >
+                    {isEligible === null || claimPending ? (
                         <center>
                             <InlineLoader />
                         </center>
