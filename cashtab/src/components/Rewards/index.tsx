@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
-import { Wrapper } from 'components/Rewards/styles';
-import { WalletContext } from 'wallet/context';
+import React, { useState, useEffect, useContext } from 'react';
+import { Wrapper } from 'components/Rewards/styled';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
@@ -14,17 +14,24 @@ import { PageHeader } from 'components/Common/Atoms';
 import { RewardIcon } from 'components/Common/CustomIcons';
 
 const Rewards = () => {
-    const ContextValue = React.useContext(WalletContext);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
     const { cashtabState } = ContextValue;
     const { wallets } = cashtabState;
     const address = wallets[0].paths.get(1899).address;
     const ELAPSED_TIMER = { hours: '00', minutes: '00', seconds: '00' };
-    const [isEligible, setIsEligible] = useState(null);
-    const [eligibleAgainTimestamp, setEligibleAgainTimestamp] = useState(null);
-    const [timeRemainingMs, setTimeRemainingMs] = useState(null);
-    const [countdownInterval, setCountdownInterval] = useState(null);
+    const [isEligible, setIsEligible] = useState<null | boolean>(null);
+    const [eligibleAgainTimestamp, setEligibleAgainTimestamp] = useState<
+        null | number
+    >(null);
+    const [timeRemainingMs, setTimeRemainingMs] = useState<null | number>(null);
+    const [countdownInterval, setCountdownInterval] =
+        useState<null | NodeJS.Timeout>(null);
 
-    const getIsEligible = async address => {
+    const getIsEligible = async (address: string) => {
         let serverResponse;
         try {
             serverResponse = await (
@@ -47,6 +54,10 @@ const Rewards = () => {
         }
     };
     const handleClaim = async () => {
+        if (typeof process.env.REACT_APP_RECAPTCHA_SITE_KEY === 'undefined') {
+            // We do not support claims if we do not have a defined key
+            return;
+        }
         // Get a recaptcha score
         const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
         const token = await recaptcha.execute('claimcachet');
@@ -96,7 +107,7 @@ const Rewards = () => {
         }
     };
 
-    const getParsedTimeRemaining = timeRemainingMs => {
+    const getParsedTimeRemaining = (timeRemainingMs: number) => {
         if (timeRemainingMs === null) {
             return ELAPSED_TIMER;
         }
@@ -105,18 +116,18 @@ const Rewards = () => {
             return ELAPSED_TIMER;
         }
         // Note: Token rewards are available every 24 hrs, so we do not need days
-        let hours = Math.floor(
+        const hours = Math.floor(
             (timeRemainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
         )
             .toString()
             .padStart(2, '0');
-        let minutes = Math.floor(
+        const minutes = Math.floor(
             (timeRemainingMs % (1000 * 60 * 60)) / (1000 * 60),
         )
             .toString()
             .padStart(2, '0');
 
-        let seconds = Math.floor((timeRemainingMs % (1000 * 60)) / 1000)
+        const seconds = Math.floor((timeRemainingMs % (1000 * 60)) / 1000)
             .toString()
             .padStart(2, '0');
 
