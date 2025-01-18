@@ -65,7 +65,13 @@ const Wallets = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState, updateCashtabState, ecc } = ContextValue;
+    const {
+        cashtabState,
+        setCashtabState,
+        setLoading,
+        updateCashtabState,
+        ecc,
+    } = ContextValue;
     const { wallets, contactList } = cashtabState;
 
     const emptyFormData: WalletsFormData = {
@@ -351,8 +357,21 @@ const Wallets = () => {
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Activate', '');
 
-        // Update wallets to activate this wallet
-        updateCashtabState('wallets', walletsAfterActivation);
+        /**
+         * Update state
+         * useWallet.ts has a useEffect that will then sync this new
+         * active wallet with the network and update it in storage
+         *
+         * We also setLoading(true) on a wallet change, because we want
+         * to prevent rapid wallet cycling
+         *
+         * setLoading(false) is called after the wallet is updated in useWallet.ts
+         */
+        setLoading(true);
+        setCashtabState(prevState => ({
+            ...prevState,
+            wallets: walletsAfterActivation,
+        }));
     };
 
     return (
