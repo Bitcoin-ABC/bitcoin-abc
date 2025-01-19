@@ -2,12 +2,13 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-IPC communication with NodeJs
+IPC communication with NodeJs and Rust
 """
 
 import json
 import os
 import select
+import socket
 import time
 
 
@@ -67,3 +68,12 @@ def ready():
 if os.environ.get("CHRONIK_CLIENT_RUST_IPC_SOCKET"):
     # This check be replaced in future diffs, when program will fail if SOCKET is not set
     print(os.environ.get("CHRONIK_CLIENT_RUST_IPC_SOCKET"), "\n", "SOCKET IS FOUND")
+    socket_path = os.environ["CHRONIK_CLIENT_RUST_IPC_SOCKET"]
+
+    try:
+        ipc_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        ipc_socket.connect(socket_path)
+        print("SOCKET CONNECTION ACCEPTED")
+
+    except socket.error:
+        exit(1)

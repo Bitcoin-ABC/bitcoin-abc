@@ -4,6 +4,7 @@
 
 use std::env;
 
+use tokio::net::UnixListener;
 use tokio::process::{Child, Command};
 
 pub async fn spin_child_process(
@@ -41,6 +42,14 @@ pub async fn spin_child_process(
         .spawn() // Start the child process
         .expect("Failed to start Python process");
 
+    let socket_listener = UnixListener::bind(socket_path)
+        .expect(&format!("Failed to remove file {}", socket_path));
+    println!("Rust IPC server is listening on {:?}", socket_path);
+
+    tokio::spawn(async move {
+        let (_socket, _) = socket_listener.accept().await.unwrap();
+    });
+
     child
 }
 
@@ -55,8 +64,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-
-    async fn test_env_vars() {
+    async fn test_socket() {
         let socket_path = "/tmp/test_env_vars.socket";
         let python_script = "chronik_info";
         let mut child = spin_child_process(python_script, socket_path).await;
@@ -65,12 +73,19 @@ mod tests {
             let reader = BufReader::new(stdout);
             let mut lines = reader.lines();
             let timeout_duration = Duration::from_secs(60);
+            let mut socket_found = false;
+            let mut socket_connection_found = false;
 
             // Use timeout to wrap the whole loop for 3 seconds
             let result = timeout(timeout_duration, async {
                 while let Some(line) = lines.next_line().await.unwrap() {
                     println!("{}", line);
                     if line.trim() == "SOCKET IS FOUND" {
+                        socket_found = true;
+                    } else if line.trim() == "SOCKET CONNECTION ACCEPTED" {
+                        socket_connection_found = true;
+                    }
+                    if socket_connection_found && socket_found {
                         child
                             .kill()
                             .await
