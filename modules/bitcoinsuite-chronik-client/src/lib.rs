@@ -12,6 +12,8 @@ use thiserror::Error;
 
 use crate::ChronikClientError::*;
 
+pub mod test_runner;
+
 #[derive(Debug, Clone)]
 pub struct ChronikClient {
     http_url: String,

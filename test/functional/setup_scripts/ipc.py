@@ -62,3 +62,8 @@ def send_ipc_message(message):
 
 def ready():
     send_ipc_message({"status": "ready"})
+
+
+if os.environ.get("CHRONIK_CLIENT_RUST_IPC_SOCKET"):
+    # This check be replaced in future diffs, when program will fail if SOCKET is not set
+    print(os.environ.get("CHRONIK_CLIENT_RUST_IPC_SOCKET"), "\n", "SOCKET IS FOUND")
