@@ -43,7 +43,6 @@ import Button from '/components/button';
 
 import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
-import ecashpoker from '/public/images/ecash-poker-logo.png';
 import pay2stay from '/public/images/Pay2Stay.png';
 import xecxLogo from '/public/images/xecx-logo-white.png';
 
@@ -152,25 +151,6 @@ function UseEcash(props) {
                         <Button
                             text="Get Started"
                             link="https://pay2stay.com/"
-                            corner="bottomRight"
-                            color="accent"
-                            openInNewTab
-                        />
-                    </TextImageBlock>
-                    <TextImageBlock
-                        id="ecashpoker"
-                        title="eCash Poker"
-                        image={ecashpoker}
-                        alt="eCashPoker logo"
-                    >
-                        <p>
-                            The slickest blockchain poker platform is back.
-                            Hourly free rolls, no signup, no KYC. Play online
-                            poker powered by eCash.
-                        </p>
-                        <Button
-                            text="Play Now"
-                            link="https://ecash.poker/"
                             corner="bottomRight"
                             color="accent"
                             openInNewTab
