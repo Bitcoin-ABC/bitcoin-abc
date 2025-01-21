@@ -27,13 +27,8 @@
 # SOFTWARE.
 import hashlib
 import math
-import os
-import pkgutil
-import string
-import unicodedata
-import weakref
 from enum import IntEnum, auto, unique
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import List, Optional, Set, Tuple, Union
 
 import mnemonic
 
@@ -41,99 +36,7 @@ from . import old_mnemonic, version
 from .bitcoin import hmac_sha_512
 from .printerror import PrintError
 from .util import randrange
-
-# http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/e_asia.html
-CJK_INTERVALS = [
-    (0x4E00, 0x9FFF, "CJK Unified Ideographs"),
-    (0x3400, 0x4DBF, "CJK Unified Ideographs Extension A"),
-    (0x20000, 0x2A6DF, "CJK Unified Ideographs Extension B"),
-    (0x2A700, 0x2B73F, "CJK Unified Ideographs Extension C"),
-    (0x2B740, 0x2B81F, "CJK Unified Ideographs Extension D"),
-    (0xF900, 0xFAFF, "CJK Compatibility Ideographs"),
-    (0x2F800, 0x2FA1D, "CJK Compatibility Ideographs Supplement"),
-    (0x3190, 0x319F, "Kanbun"),
-    (0x2E80, 0x2EFF, "CJK Radicals Supplement"),
-    (0x2F00, 0x2FDF, "CJK Radicals"),
-    (0x31C0, 0x31EF, "CJK Strokes"),
-    (0x2FF0, 0x2FFF, "Ideographic Description Characters"),
-    (0xE0100, 0xE01EF, "Variation Selectors Supplement"),
-    (0x3100, 0x312F, "Bopomofo"),
-    (0x31A0, 0x31BF, "Bopomofo Extended"),
-    (0xFF00, 0xFFEF, "Halfwidth and Fullwidth Forms"),
-    (0x3040, 0x309F, "Hiragana"),
-    (0x30A0, 0x30FF, "Katakana"),
-    (0x31F0, 0x31FF, "Katakana Phonetic Extensions"),
-    (0x1B000, 0x1B0FF, "Kana Supplement"),
-    (0xAC00, 0xD7AF, "Hangul Syllables"),
-    (0x1100, 0x11FF, "Hangul Jamo"),
-    (0xA960, 0xA97F, "Hangul Jamo Extended A"),
-    (0xD7B0, 0xD7FF, "Hangul Jamo Extended B"),
-    (0x3130, 0x318F, "Hangul Compatibility Jamo"),
-    (0xA4D0, 0xA4FF, "Lisu"),
-    (0x16F00, 0x16F9F, "Miao"),
-    (0xA000, 0xA48F, "Yi Syllables"),
-    (0xA490, 0xA4CF, "Yi Radicals"),
-]
-
-_cjk_min_max = None
-
-
-def is_CJK(c) -> bool:
-    global _cjk_min_max
-    if not _cjk_min_max:
-        # cache some values for fast path
-        _cjk_min_max = (
-            min(x[0] for x in CJK_INTERVALS),
-            max(x[1] for x in CJK_INTERVALS),
-        )
-    n = ord(c)
-    if n < _cjk_min_max[0] or n > _cjk_min_max[1]:
-        # Fast path -- n is clearly out of range.
-        return False
-    # Slow path: n may be in range of one of the intervals so scan them all using a slow linear search
-    for imin, imax, name in CJK_INTERVALS:
-        if n >= imin and n <= imax:
-            return True
-    return False
-
-
-def normalize_text(seed: str, is_passphrase=False) -> str:
-    # normalize
-    seed = unicodedata.normalize("NFKD", seed)
-    # lower
-    if not is_passphrase:
-        seed = seed.lower()
-        # normalize whitespaces
-        seed = " ".join(seed.split())
-        # remove whitespaces between CJK
-        seed = "".join(
-            [
-                seed[i]
-                for i in range(len(seed))
-                if not (
-                    seed[i] in string.whitespace
-                    and is_CJK(seed[i - 1])
-                    and is_CJK(seed[i + 1])
-                )
-            ]
-        )
-    return seed
-
-
-def load_wordlist(filename: str) -> List[str]:
-    data = pkgutil.get_data(__name__, os.path.join("wordlist", filename))
-    s = data.decode("utf-8").strip()
-    s = unicodedata.normalize("NFKD", s)
-    lines = s.split("\n")
-    wordlist = []
-    for line in lines:
-        line = line.split("#")[0]
-        line = line.strip(" \r")
-        assert " " not in line
-        if line:
-            wordlist.append(normalize_text(line))
-    return wordlist
-
+from .wordlist import Wordlist, normalize_text
 
 filenames = {
     "en": "english.txt",
@@ -266,43 +169,15 @@ class MnemonicBase(PrintError):
     They both use the same word list, so the commonality between them is
     captured in this class."""
 
-    class Data:
-        """Each instance of Mnemonic* shares common Data, per language."""
-
-        words: Tuple[str] = None
-        word_indices: Dict[str, int] = None
-
-    shared_datas = weakref.WeakValueDictionary()  # key: 2-char lang -> weakvalue: Data
-
     def __init__(self, lang=None):
         if isinstance(lang, str):
             lang = lang[:2].lower()
         if lang not in filenames:
             lang = "en"
         self.lang = lang
-        self.data = self.shared_datas.get(lang)
-        if not self.data:
-            self.data = self.Data()
-            self.print_error("loading wordlist for:", lang)
-            filename = filenames[lang]
-            self.data.words = tuple(load_wordlist(filename))
-            self.data.word_indices = {}
-            for i, word in enumerate(self.data.words):
-                # saves on O(N) lookups for words. The alternative is to call
-                # wordlist.index(w) for each word which is slow.
-                self.data.word_indices[word] = i
-            self.print_error("wordlist has %d words" % len(self.data.words))
-            # Paranoia to ensure word list is composed of unique words.
-            assert len(self.data.words) == len(self.data.word_indices)
-            self.shared_datas[self.lang] = self.data
-
-    @property
-    def wordlist(self) -> Tuple[str]:
-        return self.data.words
-
-    @property
-    def wordlist_indices(self) -> Dict[str, int]:
-        return self.data.word_indices
+        self.print_error("loading wordlist for:", lang)
+        filename = filenames[lang]
+        self.wordlist = Wordlist.from_file(filename)
 
     def get_suggestions(self, prefix):
         for w in self.wordlist:
@@ -373,7 +248,7 @@ class MnemonicBase(PrintError):
         in the wordlist."""
         mnemonic = self.normalize_text(mnemonic)
         for w in mnemonic.split():
-            if w not in self.wordlist_indices:
+            if w not in self.wordlist:
                 return False
         return True
 
@@ -421,7 +296,7 @@ class MnemonicElectrum(MnemonicBase):
         n = len(self.wordlist)
         i = 0
         for w in reversed(seed.split()):
-            k = self.wordlist_indices[w]
+            k = self.wordlist.index(w)
             i = i * n + k
         return i
 

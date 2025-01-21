@@ -203,7 +203,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
     def initialize_completer(self):
         # Note that the wordlist for Electrum seeds is identical to the BIP39 wordlist
         bip39_list = mnemonic.Mnemonic("english").wordlist
-        old_list = old_mnemonic.words
+        old_list = old_mnemonic.wordlist
         only_old_list = set(old_list) - set(bip39_list)
         self.wordlist = bip39_list + list(only_old_list)
         self.wordlist.sort()
