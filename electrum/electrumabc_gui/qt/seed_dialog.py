@@ -36,6 +36,7 @@ from .qrtextedit import ScanQRTextEdit
 from .util import (
     Buttons,
     CloseButton,
+    ColorScheme,
     EnterButton,
     OkButton,
     WindowModalDialog,
@@ -203,9 +204,26 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         # Note that the wordlist for Electrum seeds is identical to the BIP39 wordlist
         bip39_list = mnemonic.Mnemonic("english").wordlist
         old_list = old_mnemonic.words
-        self.wordlist = list(set(bip39_list + old_list))
+        only_old_list = set(old_list) - set(bip39_list)
+        self.wordlist = bip39_list + list(only_old_list)
         self.wordlist.sort()
+
+        class CompleterDelegate(QtWidgets.QStyledItemDelegate):
+            def initStyleOption(self, option, index):
+                super().initStyleOption(option, index)
+                # Some people complained that due to merging the two word lists,
+                # it is difficult to restore from a metal backup, as they planned
+                # to rely on the "4 letter prefixes are unique in bip39 word list" property.
+                # So we color words that are only in old list.
+                if option.text in only_old_list:
+                    # yellow bg looks ~ok on both light/dark theme, regardless if (un)selected
+                    option.backgroundBrush = ColorScheme.YELLOW.as_color(
+                        background=True
+                    )
+
         self.completer = QtWidgets.QCompleter(self.wordlist)
+        delegate = CompleterDelegate(self.seed_e)
+        self.completer.popup().setItemDelegate(delegate)
         self.seed_e.set_completer(self.completer)
 
     def get_seed(self):
