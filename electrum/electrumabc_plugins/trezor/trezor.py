@@ -3,8 +3,10 @@ from __future__ import annotations
 import sys
 import traceback
 from binascii import unhexlify
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple, Optional, Tuple
 
+from electrumabc.avalanche.primitives import PublicKey
+from electrumabc.avalanche.proof import Stake
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
 from electrumabc.bip32 import deserialize_xpub
 from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
@@ -127,9 +129,33 @@ class TrezorKeyStore(HardwareKeyStore):
 
         self.plugin.sign_transaction(self, tx, prev_tx, xpub_path)
 
+    def sign_stake(
+        self,
+        stake: Stake,
+        index: Tuple[int],
+        expiration_time: int,
+        master_pubkey: PublicKey,
+        password: Optional[str],
+    ):
+        client = self.get_client()
+        if not self.supports_stake_signature():
+            raise NotImplementedError(
+                f"Stake signing is not available for {self.device}. Please make sure your firmware is up-to-date"
+            )
+
+        address_path = self.get_derivation() + "/%d/%d" % index
+        stake_sig = client.sign_stake(
+            address_path, stake, expiration_time, master_pubkey
+        )
+        stake.pubkey = PublicKey.from_hex(stake_sig.pubkey.hex())
+        return stake_sig.signature
+
     def needs_prevtx(self):
         # Trezor does need previous transactions for eCash
         return True
+
+    def supports_stake_signature(self):
+        return self.plugin.has_stake_signature_support
 
 
 class LibraryFoundButUnusable(Exception):
@@ -172,6 +198,7 @@ class TrezorPlugin(HWPluginBase):
         if not self.libraries_available:
             return
         self.has_native_ecash_support = False
+        self.has_stake_signature_support = False
         self.device_manager().register_enumerate_func(self.enumerate)
 
     def check_libraries_available(self) -> bool:
@@ -254,6 +281,12 @@ class TrezorPlugin(HWPluginBase):
         # Override the class attribute if this trezor supports the 899'
         # derivation path
         TrezorPlugin.SUPPORTS_XEC_BIP44_DERIVATION = self.has_native_ecash_support
+
+        # Stake signature support is set once for all
+        self.has_stake_signature_support = (
+            "Ecash" in Capability.__members__
+            and Capability.Ecash in client.features.capabilities
+        )
 
         return client
 

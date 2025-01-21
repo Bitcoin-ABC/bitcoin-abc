@@ -26,12 +26,13 @@
 from __future__ import annotations
 
 import hashlib
+import struct
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 from mnemonic import Mnemonic
 
-from . import bitcoin, mnemo, networks, slip39
+from . import avalanche, bitcoin, mnemo, networks, slip39
 from .address import Address, PublicKey
 from .bip32 import (
     CKD_pub,
@@ -63,6 +64,7 @@ if TYPE_CHECKING:
     from electrumabc_gui.qt.util import TaskThread
     from electrumabc_plugins.hw_wallet import HardwareHandlerBase, HWPluginBase
 
+    from .avalanche.proof import Stake
     from .transaction import Transaction
 
 
@@ -122,6 +124,9 @@ class KeyStore(PrintError):
     def set_wallet_advice(self, addr, advice):
         pass
 
+    def supports_stake_signature(self):
+        return not self.is_watching_only()
+
 
 class SoftwareKeyStore(KeyStore):
     def __init__(self):
@@ -153,6 +158,24 @@ class SoftwareKeyStore(KeyStore):
         # Sign
         if keypairs:
             tx.sign(keypairs, use_cache=use_cache)
+
+    def sign_stake(
+        self,
+        stake: Stake,
+        index: Tuple[int],
+        expiration_time: int,
+        master_pubkey: avalanche.primitives.PublicKey,
+        password: Optional[str],
+    ):
+        privkey, compressed = self.get_private_key(index, password)
+        key = avalanche.primitives.Key(privkey, compressed)
+        stake.pubkey = key.get_pubkey()
+
+        stake_commitment = Hash(
+            struct.pack("<q", expiration_time) + master_pubkey.serialize()
+        )
+
+        return key.sign_schnorr(stake.get_hash(stake_commitment))
 
 
 class ImportedKeyStore(SoftwareKeyStore):
@@ -671,6 +694,21 @@ class HardwareKeyStore(KeyStore, Xpub):
         xpub = client.get_xpub(derivation, "standard")
         password = self.get_pubkey_from_xpub(xpub, ())
         return password.hex()
+
+    def supports_stake_signature(self):
+        # Override if the HW supports stake signature
+        return False
+
+    @abstractmethod
+    def sign_stake(
+        self,
+        stake: Stake,
+        index: Tuple[int],
+        expiration_time: int,
+        master_pubkey: avalanche.primitives.PublicKey,
+        password: Optional[str],
+    ):
+        raise NotImplementedError("This wallet does not support stake signing")
 
 
 # extended pubkeys

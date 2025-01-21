@@ -31,6 +31,8 @@ the hash of the stakes to prove ownership of the UTXO.
 from __future__ import annotations
 
 import struct
+from dataclasses import dataclass
+from functools import partial
 from io import BytesIO
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -50,9 +52,18 @@ from .primitives import Key, PublicKey
 if TYPE_CHECKING:
     from .. import address
     from ..address import Address, ScriptOutput
+    from ..wallet import AbstractWallet
 
 
 NO_SIGNATURE = b"\0" * 64
+
+
+@dataclass
+class StakeAndSigningData:
+    """Class storing a stake waiting to be signed (waiting for the stake commitment)"""
+
+    stake: Stake
+    address: Address
 
 
 class Stake(SerializableObject):
@@ -61,8 +72,8 @@ class Stake(SerializableObject):
         utxo: OutPoint,
         amount: int,
         height: int,
-        pubkey: PublicKey,
         is_coinbase: bool,
+        pubkey: Optional[PublicKey] = None,
     ):
         self.utxo = utxo
         self.amount = amount
@@ -75,10 +86,14 @@ class Stake(SerializableObject):
         """Public key"""
         self.is_coinbase = is_coinbase
 
-        self.stake_id = UInt256(sha256d(self.serialize()))
+        self.stake_id = None
         """Stake id used for sorting stakes in a proof"""
 
+    def compute_stake_id(self):
+        self.stake_id = UInt256(sha256d(self.serialize()))
+
     def serialize(self) -> bytes:
+        assert self.pubkey
         is_coinbase = int(self.is_coinbase)
         height_ser = self.height << 1 | is_coinbase
 
@@ -99,7 +114,7 @@ class Stake(SerializableObject):
         amount = struct.unpack("q", stream.read(8))[0]
         height_ser = struct.unpack("I", stream.read(4))[0]
         pubkey = PublicKey.deserialize(stream)
-        return Stake(utxo, amount, height_ser >> 1, pubkey, height_ser & 1)
+        return Stake(utxo, amount, height_ser >> 1, height_ser & 1, pubkey)
 
 
 class ProofId(UInt256):
@@ -231,8 +246,10 @@ class ProofBuilder:
         sequence: int,
         expiration_time: int,
         payout_address: Union[Address, ScriptOutput, address.PublicKey],
+        wallet: AbstractWallet,
         master: Optional[Key] = None,
         master_pub: Optional[PublicKey] = None,
+        pwd: Optional[str] = None,
     ):
         self.sequence = sequence
         """uint64"""
@@ -251,17 +268,21 @@ class ProofBuilder:
         self.payout_address = payout_address
         self.payout_script_pubkey = payout_address.to_script()
 
-        self.stake_commitment = sha256d(
-            struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
-        )
-
         self.signed_stakes: List[SignedStake] = []
         """List of signed stakes sorted by stake ID.
         Adding stakes through :meth:`add_signed_stake` takes care of the sorting.
         """
 
+        self.pwd = pwd
+        """Password if any"""
+
+        self.wallet = wallet
+        """The signing wallet"""
+
     @classmethod
-    def from_proof(cls, proof: Proof, master: Optional[Key] = None) -> ProofBuilder:
+    def from_proof(
+        cls, proof: Proof, wallet: AbstractWallet, master: Optional[Key] = None
+    ) -> ProofBuilder:
         """Create a proof builder using the data from an existing proof.
         This is useful for adding more stakes to it.
 
@@ -277,60 +298,69 @@ class ProofBuilder:
             proof.sequence,
             proof.expiration_time,
             proof.get_payout_address(),
+            wallet,
             master,
             proof.master_pub,
         )
         builder.signed_stakes = proof.signed_stakes
         return builder
 
-    def add_utxo(self, txid: UInt256, vout, amount, height, wif_privkey, is_coinbase):
-        """This method builds the :class:`Stake`, signs the stake using the private key,
-        and then forwards the data to meth:`add_signed_stake`.
-
-        :param str txid: Transaction hash (hex str)
-        :param int vout: Output index for this utxo in the transaction.
-        :param int amount: Amount in satoshis
-        :param int height: Block height containing this transaction
-        :param str wif_privkey: Private key unlocking this UTXO (in WIF format)
-        :param bool is_coinbase: Is the coin UTXO a coinbase UTXO
-        :return:
-        """
-        key = Key.from_wif(wif_privkey)
-        utxo = OutPoint(txid, vout)
-        self.sign_and_add_stake(
-            Stake(utxo, amount, height, key.get_pubkey(), is_coinbase), key
+    def sign_and_add_stake(self, stake: StakeAndSigningData):
+        task = partial(
+            self.wallet.sign_stake,
+            stake,
+            self.expiration_time,
+            self.master_pub,
+            self.pwd,
         )
 
-    def sign_and_add_stake(self, stake: Stake, key: Key):
-        self.add_signed_stake(
-            SignedStake(stake, key.sign_schnorr(stake.get_hash(self.stake_commitment)))
-        )
+        def add_signed_stake(signature):
+            if not signature:
+                return
+
+            self.add_signed_stake(SignedStake(stake.stake, signature))
+
+        self.wallet.thread.add(task, on_success=add_signed_stake)
 
     def add_signed_stake(self, ss: SignedStake):
+        # At this stage the stake pubkey should be set, so we can compute the
+        # stake id. This has to be delayed because the pubkey is returned by the
+        # hardware wallet so we can't determine it in advance in this case.
+        ss.stake.compute_stake_id()
+
         self.signed_stakes.append(ss)
         # Enforce a unique sorting for stakes in a proof. The sorting key is a UInt256.
         # See UInt256.compare for the specifics about sorting these objects.
         self.signed_stakes.sort(key=lambda ss: ss.stake.stake_id)
 
-    def build(self) -> Proof:
-        ltd_id = LimitedProofId.build(
-            self.sequence,
-            self.expiration_time,
-            [ss.stake for ss in self.signed_stakes],
-            self.payout_script_pubkey,
-        )
+    def build(self, on_completion):
+        # Make sure all the stakes are signed by the time we compute the proof.
+        # We achieve this by queuing a dummy task in the wallet thread and only
+        # build the proof when it completed so we end up serializing the calls.
+        def build_proof(_):
+            ltd_id = LimitedProofId.build(
+                self.sequence,
+                self.expiration_time,
+                [ss.stake for ss in self.signed_stakes],
+                self.payout_script_pubkey,
+            )
 
-        signature = (
-            self.master.sign_schnorr(ltd_id.serialize())
-            if self.master is not None
-            else NO_SIGNATURE
-        )
+            signature = (
+                self.master.sign_schnorr(ltd_id.serialize())
+                if self.master is not None
+                else NO_SIGNATURE
+            )
 
-        return Proof(
-            self.sequence,
-            self.expiration_time,
-            self.master_pub,
-            self.signed_stakes,
-            self.payout_script_pubkey,
-            signature,
-        )
+            on_completion(
+                Proof(
+                    self.sequence,
+                    self.expiration_time,
+                    self.master_pub,
+                    self.signed_stakes,
+                    self.payout_script_pubkey,
+                    signature,
+                )
+            )
+
+        task = partial(lambda: None)
+        self.wallet.thread.add(task, on_success=build_proof)

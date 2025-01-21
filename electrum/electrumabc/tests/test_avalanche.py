@@ -1,7 +1,8 @@
 import base64
 import unittest
+from unittest import mock
 
-from .. import address
+from .. import address, storage
 from ..address import Address, ScriptOutput
 from ..avalanche.delegation import (
     Delegation,
@@ -11,12 +12,22 @@ from ..avalanche.delegation import (
     WrongDelegatorKeyError,
 )
 from ..avalanche.primitives import Key, PublicKey
-from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId, Stake
+from ..avalanche.proof import (
+    LimitedProofId,
+    Proof,
+    ProofBuilder,
+    ProofId,
+    Stake,
+    StakeAndSigningData,
+)
+from ..keystore import from_private_key_list
 from ..serialize import DeserializationError
 from ..transaction import OutPoint, get_address_from_output_script
 from ..uint256 import UInt256
+from ..wallet import ImportedPrivkeyWallet
 
-master = Key.from_wif("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw")
+master_wif = "Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw"
+master = Key.from_wif(master_wif)
 # prove that this is the same key as before
 pubkey_hex = "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744"
 assert master.get_pubkey().keydata.hex() == pubkey_hex
@@ -30,6 +41,9 @@ utxos = [
         "height": 672828,
         "privatekey": "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ",
         "iscoinbase": False,
+        "address": Address.from_string(
+            "ecash:qzn96x3rn48vveny856sc7acl3zd9zq39q34hl80wj"
+        ),
     },
 ]
 
@@ -67,6 +81,9 @@ utxos2 = [
         "height": 426611719,
         "iscoinbase": True,
         "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+        "address": Address.from_string(
+            "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
+        ),
     },
     {
         "txid": UInt256.from_hex(
@@ -77,6 +94,9 @@ utxos2 = [
         "height": 1298955966,
         "iscoinbase": True,
         "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+        "address": Address.from_string(
+            "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
+        ),
     },
     {
         "txid": UInt256.from_hex(
@@ -87,6 +107,9 @@ utxos2 = [
         "height": 484677071,
         "iscoinbase": True,
         "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+        "address": Address.from_string(
+            "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
+        ),
     },
 ]
 expected_proof2 = (
@@ -116,6 +139,30 @@ expected_proofid2 = UInt256.from_hex(
 )
 
 
+class WalletDummyThread:
+    """Mimic the TaskThread for testing"""
+
+    def __init__(self):
+        self.tasks = []
+
+    def add(self, task, on_success=None, on_done=None, on_error=None):
+        result = task()
+        if on_done:
+            on_done()
+        if on_success:
+            on_success(result)
+
+
+@mock.patch.object(storage.WalletStorage, "_write")
+def wallet_from_wif_keys(keys_wif, _mock_write):
+    ks = from_private_key_list(keys_wif)
+    store = storage.WalletStorage("if_this_exists_mocking_failed_648151893")
+    store.put("keystore", ks.dump())
+    wallet = ImportedPrivkeyWallet(store)
+    wallet.thread = WalletDummyThread()
+    return wallet
+
+
 class TestAvalancheProofBuilder(unittest.TestCase):
     def setUp(self) -> None:
         # Print the entire serialized proofs on assertEqual failure
@@ -132,47 +179,50 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         expected_limited_proofid,
         expected_proofid,
     ):
+        wallet = wallet_from_wif_keys("\n".join([utxo["privatekey"] for utxo in utxos]))
+
         proofbuilder = ProofBuilder(
             sequence=sequence,
             expiration_time=expiration,
             payout_address=payout_address,
+            wallet=wallet,
             master=master_key,
         )
         for utxo in utxos:
-            key = Key.from_wif(utxo["privatekey"])
-
             proofbuilder.sign_and_add_stake(
-                Stake(
-                    OutPoint(utxo["txid"], utxo["vout"]),
-                    utxo["amount"],
-                    utxo["height"],
-                    key.get_pubkey(),
-                    utxo["iscoinbase"],
-                ),
-                key,
+                StakeAndSigningData(
+                    Stake(
+                        OutPoint(utxo["txid"], utxo["vout"]),
+                        utxo["amount"],
+                        utxo["height"],
+                        utxo["iscoinbase"],
+                    ),
+                    utxo["address"],
+                )
             )
-        proof = proofbuilder.build()
-        self.assertEqual(proof.to_hex(), expected_proof_hex)
 
-        self.assertEqual(proofbuilder.stake_commitment, proof.stake_commitment)
+        def check_proof(proof):
+            self.assertEqual(proof.to_hex(), expected_proof_hex)
 
-        self.assertEqual(proof.limitedid, expected_limited_proofid)
-        self.assertEqual(proof.proofid, expected_proofid)
+            self.assertEqual(proof.limitedid, expected_limited_proofid)
+            self.assertEqual(proof.proofid, expected_proofid)
 
-        self.assertTrue(proof.verify_master_signature())
-        for ss in proof.signed_stakes:
-            self.assertTrue(ss.verify_signature(proof.stake_commitment))
+            self.assertTrue(proof.verify_master_signature())
+            for ss in proof.signed_stakes:
+                self.assertTrue(ss.verify_signature(proof.stake_commitment))
 
-        proof.signature = 64 * b"\0"
-        self.assertFalse(proof.verify_master_signature())
-        for ss in proof.signed_stakes:
-            self.assertTrue(ss.verify_signature(proof.stake_commitment))
+            proof.signature = 64 * b"\0"
+            self.assertFalse(proof.verify_master_signature())
+            for ss in proof.signed_stakes:
+                self.assertTrue(ss.verify_signature(proof.stake_commitment))
 
-        ss = proof.signed_stakes[0]
-        ss.sig = 64 * b"\0"
-        self.assertFalse(ss.verify_signature(proof.stake_commitment))
-        for ss in proof.signed_stakes[1:]:
-            self.assertTrue(ss.verify_signature(proof.stake_commitment))
+            ss = proof.signed_stakes[0]
+            ss.sig = 64 * b"\0"
+            self.assertFalse(ss.verify_signature(proof.stake_commitment))
+            for ss in proof.signed_stakes[1:]:
+                self.assertTrue(ss.verify_signature(proof.stake_commitment))
+
+        proofbuilder.build(on_completion=check_proof)
 
     def test_1_stake(self):
         self._test(
@@ -210,6 +260,9 @@ class TestAvalancheProofBuilder(unittest.TestCase):
                     "iscoinbase": False,
                     "privatekey": (
                         "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"
+                    ),
+                    "address": Address.from_string(
+                        "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
                     ),
                 },
             ],
@@ -256,6 +309,10 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         )
 
     def test_adding_stakes_to_proof(self):
+        key_wif = "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"
+
+        wallet = wallet_from_wif_keys(key_wif)
+
         masterkey = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
         proofbuilder = ProofBuilder(
             sequence=0,
@@ -263,54 +320,67 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             payout_address=Address.from_string(
                 "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4"
             ),
+            wallet=wallet,
             master=masterkey,
         )
         txid = UInt256.from_hex(
             "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
         )
-        key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
         proofbuilder.sign_and_add_stake(
-            Stake(
-                OutPoint(txid, 0),
-                amount=3291110545,
-                height=700000,
-                pubkey=key.get_pubkey(),
-                is_coinbase=False,
-            ),
-            key,
+            StakeAndSigningData(
+                Stake(
+                    OutPoint(txid, 0),
+                    amount=3291110545,
+                    height=700000,
+                    is_coinbase=False,
+                ),
+                Address.from_string("ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"),
+            )
         )
-        proof = proofbuilder.build()
 
-        self.assertEqual(
-            proof.to_hex(),
-            "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3010b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acc768803afa6a4662bab4199535122b4a8c7fb9889f1fe77043d8ecd43ad04c5cf07e602e47b68deaac1bbdc7c170ad57c38aa47e5a5d23cac011c15ed31bbc54",
-        )
-        self.assertTrue(proof.verify_master_signature())
+        proof = None
+
+        def test_initial_proof(_proof):
+            nonlocal proof
+            proof = _proof
+
+            self.assertEqual(
+                proof.to_hex(),
+                "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3010b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acc768803afa6a4662bab4199535122b4a8c7fb9889f1fe77043d8ecd43ad04c5cf07e602e47b68deaac1bbdc7c170ad57c38aa47e5a5d23cac011c15ed31bbc54",
+            )
+            self.assertTrue(proof.verify_master_signature())
+
+        proofbuilder.build(on_completion=test_initial_proof)
 
         # create a new builder from this proof, add more stakes
-        proofbuilder_add_stakes = ProofBuilder.from_proof(proof, masterkey)
+        proofbuilder_add_stakes = ProofBuilder.from_proof(proof, wallet, masterkey)
         txid = UInt256.from_hex(
             "300cbba81ef40a6d269be1e931ccb58c074ace4a9b06cc0f2a2c9bf1e176ede4"
         )
-        key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
         proofbuilder_add_stakes.sign_and_add_stake(
-            Stake(
-                OutPoint(txid, 1),
-                amount=2866370216,
-                height=700001,
-                pubkey=key.get_pubkey(),
-                is_coinbase=False,
-            ),
-            key,
+            StakeAndSigningData(
+                Stake(
+                    OutPoint(txid, 1),
+                    amount=2866370216,
+                    height=700001,
+                    is_coinbase=False,
+                ),
+                Address.from_string("ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"),
+            )
         )
-        proof = proofbuilder_add_stakes.build()
 
-        self.assertEqual(
-            proof.to_hex(),
-            "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde302e4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc31e9e19b266d0af41ea8bb0c3001000000a856d9aa00000000c25c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68089bf7f0f956b084160d505dcd8b375499ffad816d1c76c8b13ac92d1ef3c5c3ecb6ee6c094ef790fb93f6711955c48f2cf098750427808c9e2aab77ee1b8de110b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acec2623216b901037fb780e3d2a06f982bbe36d87be7adc82e83ebfc1f3c4eff6262577cfa9f72d18570dc5cdf9bf96676700abdb3d8f4bc989c975870ab8cbb7",
-        )
+        def test_proof_with_added_stake(_proof):
+            self.assertEqual(
+                _proof.to_hex(),
+                "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde302e4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc31e9e19b266d0af41ea8bb0c3001000000a856d9aa00000000c25c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68089bf7f0f956b084160d505dcd8b375499ffad816d1c76c8b13ac92d1ef3c5c3ecb6ee6c094ef790fb93f6711955c48f2cf098750427808c9e2aab77ee1b8de110b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acec2623216b901037fb780e3d2a06f982bbe36d87be7adc82e83ebfc1f3c4eff6262577cfa9f72d18570dc5cdf9bf96676700abdb3d8f4bc989c975870ab8cbb7",
+            )
+
+        proofbuilder_add_stakes.build(on_completion=test_proof_with_added_stake)
 
     def test_without_master_private_key(self):
+        key_wif = "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"
+        wallet = wallet_from_wif_keys(key_wif)
+
         masterkey = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
         master_pub = masterkey.get_pubkey()
         proofbuilder = ProofBuilder(
@@ -319,39 +389,57 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             payout_address=Address.from_string(
                 "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4"
             ),
+            wallet=wallet,
             master_pub=master_pub,
         )
         txid = UInt256.from_hex(
             "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
         )
-        key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
         proofbuilder.sign_and_add_stake(
-            Stake(
-                OutPoint(txid, 0),
-                amount=3291110545,
-                height=700000,
-                pubkey=key.get_pubkey(),
-                is_coinbase=False,
-            ),
-            key,
+            StakeAndSigningData(
+                Stake(
+                    OutPoint(txid, 0),
+                    amount=3291110545,
+                    height=700000,
+                    is_coinbase=False,
+                ),
+                Address.from_string("ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"),
+            )
         )
-        proof = proofbuilder.build()
 
         # Same proof as the first one in test_adding_stakes_to_proof
         expected_hex = "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3010b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acc768803afa6a4662bab4199535122b4a8c7fb9889f1fe77043d8ecd43ad04c5cf07e602e47b68deaac1bbdc7c170ad57c38aa47e5a5d23cac011c15ed31bbc54"
         expected_hex_no_sig = expected_hex[:-128] + 64 * "00"
-        self.assertEqual(proof.to_hex(), expected_hex_no_sig)
-        self.assertFalse(proof.verify_master_signature())
 
-        proofbuilder = ProofBuilder.from_proof(proof)
-        proof_from_proof_no_master = proofbuilder.build()
-        self.assertEqual(proof_from_proof_no_master.to_hex(), expected_hex_no_sig)
-        self.assertFalse(proof_from_proof_no_master.verify_master_signature())
+        proof = None
 
-        proofbuilder = ProofBuilder.from_proof(proof, masterkey)
-        proof_from_proof_with_master = proofbuilder.build()
-        self.assertEqual(proof_from_proof_with_master.to_hex(), expected_hex)
-        self.assertTrue(proof_from_proof_with_master.verify_master_signature())
+        def check_proof_stage1(_proof):
+            nonlocal proof
+            proof = _proof
+
+            self.assertEqual(proof.to_hex(), expected_hex_no_sig)
+            self.assertFalse(proof.verify_master_signature())
+
+        proofbuilder.build(on_completion=check_proof_stage1)
+
+        proofbuilder = ProofBuilder.from_proof(proof, wallet)
+
+        def check_proof_stage2(_proof):
+            nonlocal proof
+            proof = _proof
+
+            self.assertEqual(proof.to_hex(), expected_hex_no_sig)
+            self.assertFalse(proof.verify_master_signature())
+
+        proofbuilder.build(on_completion=check_proof_stage2)
+
+        proofbuilder = ProofBuilder.from_proof(proof, wallet, masterkey)
+
+        def check_proof_stage3(_proof):
+            self.assertEqual(_proof.to_hex(), expected_hex)
+            self.assertTrue(_proof.verify_master_signature())
+
+        proofbuilder.build(on_completion=check_proof_stage3)
 
     def test_payout_address_script(self):
         """Test that the proof builder generates the expected script for an address"""
@@ -368,17 +456,26 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             addr.to_ui_string(), "ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx"
         )
 
-        pb = ProofBuilder(
-            sequence=0, expiration_time=1670827913, payout_address=addr, master=master2
+        wallet = wallet_from_wif_keys(
+            "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"
         )
-        proof = pb.build()
+        pb = ProofBuilder(
+            sequence=0,
+            expiration_time=1670827913,
+            payout_address=addr,
+            wallet=wallet,
+            master=master2,
+        )
 
-        script = Address.from_string(
-            "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",
-            support_arbitrary_prefix=True,
-        ).to_script()
-        self.assertEqual(script, proof.payout_script_pubkey)
-        self.assertEqual(addr, proof.get_payout_address())
+        def check_proof(proof):
+            script = Address.from_string(
+                "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",
+                support_arbitrary_prefix=True,
+            ).to_script()
+            self.assertEqual(script, proof.payout_script_pubkey)
+            self.assertEqual(addr, proof.get_payout_address())
+
+        pb.build(on_completion=check_proof)
 
 
 class TestAvalancheProofFromHex(unittest.TestCase):

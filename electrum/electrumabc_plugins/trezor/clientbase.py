@@ -12,6 +12,8 @@ from trezorlib.exceptions import (
 )
 from trezorlib.messages import ButtonRequestType, WordRequestType
 
+from electrumabc.avalanche.primitives import PublicKey
+from electrumabc.avalanche.proof import Stake
 from electrumabc.bip32 import serialize_xpub
 from electrumabc.i18n import _
 from electrumabc.keystore import bip39_normalize_passphrase
@@ -257,6 +259,38 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         with self.run_flow():
             return trezorlib.btc.sign_message(
                 self.client, coin_name, address_n, message
+            )
+
+    def sign_stake(
+        self,
+        address_str: str,
+        stake: Stake,
+        expiration_time: int,
+        master_pubkey: PublicKey,
+    ):
+        try:
+            import trezorlib.ecash
+        except ImportError:
+            raise NotImplementedError(
+                _(
+                    "Signing stakes with a Trezor device requires a compatible "
+                    "version of trezorlib. Please install the correct version "
+                    "and restart ElectrumABC."
+                ).format(self.device)
+            )
+
+        address_n = parse_path(address_str)
+        with self.run_flow():
+            return trezorlib.ecash.sign_stake(
+                self.client,
+                address_n,
+                bytes.fromhex(stake.utxo.txid.get_hex()),
+                stake.utxo.n,
+                stake.amount,
+                stake.height,
+                stake.is_coinbase,
+                expiration_time,
+                master_pubkey.keydata,
             )
 
     def recover_device(self, recovery_type, *args, **kwargs):

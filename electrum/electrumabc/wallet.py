@@ -57,8 +57,9 @@ from typing import (
 )
 from weakref import ref
 
-from . import bitcoin, coinchooser, keystore, mnemo, paymentrequest, slp
+from . import avalanche, bitcoin, coinchooser, keystore, mnemo, paymentrequest, slp
 from .address import Address, PublicKey, Script
+from .avalanche.proof import StakeAndSigningData
 from .bip32 import xpub_type
 from .bitcoin import ScriptType
 from .constants import XEC
@@ -2579,6 +2580,27 @@ class AbstractWallet(PrintError, SPVDelegate):
             except UserCancelled:
                 continue
 
+    def sign_stake(
+        self,
+        stake: StakeAndSigningData,
+        expiration_time: int,
+        master_pubkey: avalanche.primitives.PublicKey,
+        password: Optional[str],
+    ):
+        """Sign an avalanche stake. Might not be supported by all wallets."""
+        index = self.get_address_index(stake.address)
+        signature = None
+        for k in self.get_keystores():
+            try:
+                if k.supports_stake_signature():
+                    signature = k.sign_stake(
+                        stake.stake, index, expiration_time, master_pubkey, password
+                    )
+            except UserCancelled:
+                continue
+
+        return signature
+
     def get_unused_addresses(self, *, for_change=False, frozen_ok=True):
         # fixme: use slots from expired requests
         with self.lock:
@@ -3009,6 +3031,20 @@ class AbstractWallet(PrintError, SPVDelegate):
         if not ok and reason is not None:
             reason.insert(0, _("Schnorr signatures are disabled for this wallet type."))
         return ok
+
+    def is_stake_signature_possible(self) -> bool:
+        if self.is_watching_only():
+            return False
+
+        if not self.is_hardware() and not self.is_schnorr_possible():
+            return False
+
+        if self.is_hardware() and not any(
+            k.supports_stake_signature() for k in self.get_keystores()
+        ):
+            return False
+
+        return True
 
     def is_schnorr_enabled(self) -> bool:
         """Returns whether schnorr is enabled AND possible for this wallet.

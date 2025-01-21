@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import json
 import struct
-from dataclasses import dataclass
 from typing import List, Optional, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from electrumabc.address import Address, AddressError
 from electrumabc.avalanche.primitives import Key, PublicKey
-from electrumabc.avalanche.proof import Proof, ProofBuilder, SignedStake, Stake
+from electrumabc.avalanche.proof import (
+    Proof,
+    ProofBuilder,
+    SignedStake,
+    Stake,
+    StakeAndSigningData,
+)
 from electrumabc.bitcoin import is_private_key
 from electrumabc.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electrumabc.i18n import _
@@ -18,19 +23,11 @@ from electrumabc.serialize import DeserializationError, compact_size, serialize_
 from electrumabc.storage import StorageKeys
 from electrumabc.transaction import OutPoint, get_address_from_output_script
 from electrumabc.uint256 import UInt256
-from electrumabc.util import format_satoshis
+from electrumabc.util import UserCancelled, format_satoshis
 from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
 
 from .delegation_editor import AvaDelegationDialog
 from .util import ButtonsLineEdit, CachedWalletPasswordWidget, get_auxiliary_privkey
-
-
-@dataclass
-class StakeAndKey:
-    """Class storing a stake waiting to be signed (waiting for the stake commitment)"""
-
-    stake: Stake
-    key: Key
 
 
 class TextColor:
@@ -99,7 +96,7 @@ class StakesWidget(QtWidgets.QTableWidget):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.create_menu)
 
-        self.stakes: List[Union[SignedStake, StakeAndKey]] = []
+        self.stakes: List[Union[SignedStake, StakeAndSigningData]] = []
 
         # We assume that the tip height is not going to change much during the lifetime
         # of this widget, so we don't have to watch for new blocks and update the
@@ -158,7 +155,7 @@ class StakesWidget(QtWidgets.QTableWidget):
         self.stakes.clear()
         self.clearContents()
 
-    def add_stakes(self, stakes: List[Union[SignedStake, StakeAndKey]]):
+    def add_stakes(self, stakes: List[Union[SignedStake, StakeAndSigningData]]):
         previous_utxo_count = len(self.stakes)
         self.stakes += stakes
         self.setRowCount(len(self.stakes))
@@ -418,7 +415,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         """
         unconfirmed_count = 0
         stakes = []
-        if self.wallet.has_password() and self.pwd is None:
+        if self.wallet.has_keystore_encryption() and self.pwd is None:
             # We are here if the user cancelled the password dialog.
             QtWidgets.QMessageBox.critical(
                 self,
@@ -453,28 +450,15 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 for _i in range(num_addresses, addr_index[1] + 1):
                     self.wallet.create_new_address(for_change)
 
-            try:
-                wif_key = self.wallet.export_private_key(address, self.pwd)
-                key = Key.from_wif(wif_key)
-            except AddressNotFoundError:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    _("Missing key or signature"),
-                    f'UTXO {utxo["prevout_hash"]}:{utxo["prevout_n"]} with address '
-                    f"{address.to_ui_string()} does not belong to this wallet.",
-                )
-                return
-
             stakes.append(
-                StakeAndKey(
+                StakeAndSigningData(
                     Stake(
                         OutPoint(txid, utxo["prevout_n"]),
                         amount=utxo["value"],
                         height=utxo["height"],
-                        pubkey=key.get_pubkey(),
                         is_coinbase=utxo["coinbase"],
                     ),
-                    key,
+                    address,
                 )
             )
 
@@ -675,7 +659,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 "Missing private key",
                 "Unable to guess private key associated with this proof's public"
                 " key. You can fill it manually if you know it, or leave it blank"
-                " if you just want to sign your stakes, ",
+                " if you just want to sign your stakes.",
             )
         else:
             self.master_key_edit.setText(known_privkey)
@@ -719,15 +703,14 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             self.master_pubkey_view.setText(pubkey_str)
 
     def _on_generate_clicked(self):
-        proof = self._build()
-        if proof is not None:
-            self.displayProof(proof)
-            if proof.is_signed():
-                self.maybe_increment_auxkey_index()
-        self.generate_dg_button.setEnabled(proof is not None)
-        self.save_proof_button.setEnabled(proof is not None)
+        def on_completion(proof):
+            if proof is not None:
+                self.displayProof(proof)
+                if proof.is_signed():
+                    self.maybe_increment_auxkey_index()
+            self.generate_dg_button.setEnabled(proof is not None)
+            self.save_proof_button.setEnabled(proof is not None)
 
-    def _build(self) -> Optional[Proof]:
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
             try:
@@ -758,7 +741,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             QtWidgets.QMessageBox.critical(self, "Invalid payout address", str(e))
             return
 
-        if self.wallet.has_password() and self.pwd is None:
+        if self.wallet.has_keystore_encryption() and self.pwd is None:
             self.proof_display.setText(
                 '<p style="color:red;">Password dialog cancelled!</p>'
             )
@@ -772,17 +755,36 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             sequence=self.sequence_sb.value(),
             expiration_time=expiration_time,
             payout_address=payout_address,
+            wallet=self.wallet,
             master=master,
             master_pub=master_pub,
+            pwd=self.pwd,
         )
 
         for ss in self.utxos_wigdet.stakes:
-            if isinstance(ss, StakeAndKey):
-                proofbuilder.sign_and_add_stake(ss.stake, ss.key)
+            if isinstance(ss, StakeAndSigningData):
+                try:
+                    proofbuilder.sign_and_add_stake(ss)
+                except UserCancelled:
+                    return
+                except AddressNotFoundError:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        _("Missing key or signature"),
+                        f"UTXO with address {ss.address.to_ui_string()} does not belong to this wallet.",
+                    )
+                    return
+                except Exception as e:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        _("Unable to sign stake"),
+                        f"{e}",
+                    )
+                    return
             else:
                 proofbuilder.add_signed_stake(ss)
 
-        return proofbuilder.build()
+        proofbuilder.build(on_completion=on_completion)
 
     def open_dg_dialog(self):
         if self.dg_dialog is None:

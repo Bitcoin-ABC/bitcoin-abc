@@ -952,12 +952,17 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         tools_menu.addAction(
             "Build Avalanche Delegation", self.build_avalanche_delegation
         )
-        if self.wallet.is_watching_only() or not self.wallet.is_schnorr_possible():
-            avaproof_action.setEnabled(False)
-            avaproof_action.setToolTip(
-                "Cannot build avalanche proof or delegation for hardware, multisig "
-                "or watch-only wallet (Schnorr signature is required)."
-            )
+
+        def enable_disable_avatools():
+            if not self.wallet.is_stake_signature_possible():
+                avaproof_action.setEnabled(False)
+                avaproof_action.setToolTip(
+                    "Cannot build avalanche proof or delegation for some hardware, "
+                    "multisig or watch-only wallet (Schnorr signature is required)."
+                )
+
+        tools_menu.aboutToShow.connect(enable_disable_avatools)
+
         run_hook("init_menubar_tools", self, tools_menu)
 
         help_menu = menubar.addMenu(_("&Help"))
