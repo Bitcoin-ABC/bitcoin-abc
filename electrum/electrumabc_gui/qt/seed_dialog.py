@@ -27,14 +27,14 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-from electrumabc import mnemo
+from electrumabc import mnemo, old_mnemonic
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 
+from .completion_text_edit import CompletionTextEdit
 from .qrtextedit import ScanQRTextEdit
 from .util import (
     Buttons,
-    ButtonsTextEdit,
     CloseButton,
     EnterButton,
     OkButton,
@@ -128,7 +128,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         self.options = options or ()
         if title:
             self.addWidget(WWLabel(title))
-        self.seed_e = ButtonsTextEdit()
+        self.seed_e = CompletionTextEdit()
         self.editable = bool(editable)
         self.seed_e.setReadOnly(not self.editable)
         if seed:
@@ -138,6 +138,8 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             self.is_seed = is_seed
             self.saved_is_seed = self.is_seed
             self.seed_e.textChanged.connect(self.on_edit)
+            self.initialize_completer()
+
         self.seed_e.setMaximumHeight(75)
         hbox = QtWidgets.QHBoxLayout()
         if icon:
@@ -197,6 +199,15 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             )
         self.addWidget(self.seed_warning)
 
+    def initialize_completer(self):
+        # Note that the wordlist for Electrum seeds is identical to the BIP39 wordlist
+        bip39_list = mnemonic.Mnemonic("english").wordlist
+        old_list = old_mnemonic.words
+        self.wordlist = list(set(bip39_list + old_list))
+        self.wordlist.sort()
+        self.completer = QtWidgets.QCompleter(self.wordlist)
+        self.seed_e.set_completer(self.completer)
+
     def get_seed(self):
         text = self.seed_e.text()
         return " ".join(text.split())
@@ -238,6 +249,14 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         self.parent.next_button.setEnabled(b)
         if may_clear_warning:
             self.seed_warning.setText("")
+
+        # Stop autocompletion if a previous word is not in the known list.
+        # The seed phrase must be a different language than english.
+        for word in self.get_seed().split(" ")[:-1]:
+            if word not in self.wordlist:
+                self.seed_e.disable_suggestions()
+                return
+        self.seed_e.enable_suggestions()
 
 
 class KeysLayout(QtWidgets.QVBoxLayout):
