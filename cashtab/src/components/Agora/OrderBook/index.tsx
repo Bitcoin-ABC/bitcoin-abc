@@ -669,6 +669,9 @@ const OrderBook: React.FC<OrderBookProps> = ({
      * depthPercent - the cumulative size of the offer at this spot price compared to other active offers for this token
      */
     const fetchAndPrepareActiveOffers = async () => {
+        // We set selected index to 0 every time we update the offers
+        // This ensures the selected offer is always the spot offer and exists
+        setSelectedIndex(0);
         try {
             const activeOffers = (await agora.activeOffersByTokenId(
                 tokenId,
