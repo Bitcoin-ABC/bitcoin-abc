@@ -1843,8 +1843,7 @@ const Token: React.FC = () => {
             );
             adSetupTxid = response.txid;
 
-            // Maintain this notification as we do not parse listing prices in websocket
-            toast(
+            confirmRawTx(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
                     target="_blank"
@@ -1852,9 +1851,6 @@ const Token: React.FC = () => {
                 >
                     {`Successful ad setup tx to offer ${decimalizedOfferedTokens} ${tokenName} for ${getAgoraPartialActualPrice()} per token`}
                 </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
             );
         } catch (err) {
             console.error(`Error creating SLP Partial listing ad`, err);
