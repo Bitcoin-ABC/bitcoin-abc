@@ -859,7 +859,7 @@ class SettingsDialog(WindowModalDialog):
             invoke_client("change_homescreen", img)
 
         def clear_homescreen():
-            invoke_client("change_homescreen", b"\x00")
+            invoke_client("change_homescreen", b"")
 
         def set_pin():
             invoke_client("set_pin", remove=False)
