@@ -596,7 +596,7 @@ class SettingsDialog(WindowModalDialog):
                 return
             invoke_client("toggle_passphrase", unpair_after=currently_enabled)
 
-        def change_homescreen():
+        def custom_homescreen():
             le_dir = (
                 (__class__.last_hs_dir and [__class__.last_hs_dir])
                 or QStandardPaths.standardLocations(QStandardPaths.DesktopLocation)
@@ -615,6 +615,32 @@ class SettingsDialog(WindowModalDialog):
                 filename
             )  # remember previous location
 
+            prepare_image_and_update_homescreen(filename)
+
+        def ecash_homescreen():
+            trusted_source = True
+            if self.features.model == "1":
+                filename = "1.jpg"
+            elif self.features.model == "T":
+                filename = "T.jpg"
+            elif self.features.model == "Safe 3":
+                filename = "safe3.jpg"
+            elif self.features.model == "Safe 5":
+                filename = "safe5.jpg"
+            else:
+                # Default to the Safe 5 format and cross your fingers that it
+                # works well. The image conversion will try to adapt it anyway
+                # so it's likely going to work if we treat it as a user custom
+                # image.
+                trusted_source = False
+                filename = "safe5.jpg"
+
+            prepare_image_and_update_homescreen(
+                os.path.join(os.path.dirname(__file__), "homescreen", filename),
+                trusted_source=trusted_source,
+            )
+
+        def prepare_image_and_update_homescreen(filename, trusted_source=False):
             hs_cols = self.features.homescreen_width
             hs_rows = self.features.homescreen_height
 
@@ -841,7 +867,12 @@ class SettingsDialog(WindowModalDialog):
                     if self.features.homescreen_format == 1:
                         img = qimg_to_toif(img, handler)
                     elif self.features.homescreen_format == 2:
-                        img = qimg_to_jpeg(img, handler)
+                        if trusted_source:
+                            # Avoid quality loss due to decompression/compression
+                            with open(filename, "rb") as f:
+                                img = f.read()
+                        else:
+                            img = qimg_to_jpeg(img, handler)
                     elif self.features.homescreen_format == 3:
                         img = qimg_to_toig(img, handler)
                     else:
@@ -973,9 +1004,11 @@ class SettingsDialog(WindowModalDialog):
 
         # Settings tab - Homescreen
         homescreen_label = QtWidgets.QLabel(_("Homescreen"))
-        homescreen_change_button = QtWidgets.QPushButton(_("Change..."))
+        homescreen_ecash_button = QtWidgets.QPushButton(_("eCash logo"))
+        homescreen_custom_button = QtWidgets.QPushButton(_("Custom..."))
         homescreen_clear_button = QtWidgets.QPushButton(_("Reset"))
-        homescreen_change_button.clicked.connect(change_homescreen)
+        homescreen_ecash_button.clicked.connect(ecash_homescreen)
+        homescreen_custom_button.clicked.connect(custom_homescreen)
         homescreen_clear_button.clicked.connect(clear_homescreen)
         homescreen_msg = QtWidgets.QLabel(
             _(
@@ -988,8 +1021,9 @@ class SettingsDialog(WindowModalDialog):
         )
         homescreen_msg.setWordWrap(True)
         settings_glayout.addWidget(homescreen_label, 4, 0)
-        settings_glayout.addWidget(homescreen_change_button, 4, 1)
-        settings_glayout.addWidget(homescreen_clear_button, 4, 2)
+        settings_glayout.addWidget(homescreen_ecash_button, 4, 1)
+        settings_glayout.addWidget(homescreen_custom_button, 4, 2)
+        settings_glayout.addWidget(homescreen_clear_button, 4, 3)
         settings_glayout.addWidget(homescreen_msg, 5, 1, 1, -1)
 
         # Settings tab - Session Timeout

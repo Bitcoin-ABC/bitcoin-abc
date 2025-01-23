@@ -212,6 +212,7 @@ setup(
             "locale/*/LC_MESSAGES/electron-cash.mo",
         ],
         "electrumabc_plugins.fusion": ["*.svg", "*.png"],
+        "electrumabc_plugins.trezor": ["homescreen/*.jpg"],
         # On Linux and Windows this means adding electrumabc_gui/qt/data/*.ttf
         # On Darwin we don't use that font, so we don't add it to save space.
         **platform_package_data,
