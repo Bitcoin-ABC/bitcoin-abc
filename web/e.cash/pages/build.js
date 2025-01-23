@@ -43,6 +43,12 @@ const devLinks = [
                     'Ready-to-run Binaries for the Bitcoin ABC Full Node',
                 link: 'https://www.bitcoinabc.org/releases/',
             },
+            {
+                title: 'Chronik indexer',
+                description:
+                    'Chronik is a fast and reliable indexer built into the Bitcoin ABC node software',
+                link: 'https://chronik.e.cash/',
+            },
         ],
     },
     {
