@@ -1,5 +1,37 @@
 # Release notes
 
+## Release 5.4.0
+
+- Remove explorer.bitcoinabc.org from the list of available block
+  explorers (D16875).
+- Improve compliance with the JSONRPC 2.0 spec (D17185).
+- Implement autocompletion when recovering wallets from mnemonic seed
+  phrases. This makes wallet restoration faster and less error-prone.
+  (D17569).
+- Make the derivation path scanner support passphrase protected BIP-39
+  and SLI-P39 mnemonics (D17576).
+- Trezor related features and bugfixes:
+  - Support Trezor Safe 5 hardware wallets (D17294).
+  - Add native support for Trezor devices. New wallets created with the
+    latest firmware installed on the device will now use the 899'
+    derivation path, show amounts in XEC units and display `ecash:`
+    addresses (D17129).
+  - Support initializing or recovering a Trezor device with a SLIP-39
+    seed phrase (D17555).
+  - Support software recovery of SLIP-39 (Shamir Backup) wallets (D17577).
+  - Support Trezor's seedless mode for redundant multisig setups when
+    initializing a device (D17553).
+  - Support Trezor One devices that are locked with a PIN longer than 9
+    digits (D17561).
+  - Fix a race that prevented the "Check your Trezor" popup to be properly
+    closed after validating a passphrase on the device (D17547, D17563).
+  - Fix the home screen image customization for all Trezor devices
+    (D17546, D17554).
+  - Fix resetting of the home screen image (D17578).
+  - Provide 1-click way to set the eCash logo as the home screen image
+    (D17579).
+
+
 ## Release 5.3.0
 
 - Fix the fiat price cache file not being created when a fiat currency
