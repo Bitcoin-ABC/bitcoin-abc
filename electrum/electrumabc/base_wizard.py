@@ -474,7 +474,7 @@ class BaseWizard(PrintError):
         run_next: Callable,
         default_derivation: str,
         is_hw_wallet: bool = False,
-        seed: str = "",
+        bip32_seed: bytes = b"",
     ):
         bip44_btc = keystore.bip44_derivation_btc(0)
         bip44_bch = keystore.bip44_derivation_bch(0)
@@ -496,14 +496,14 @@ class BaseWizard(PrintError):
                 "device's firmware already supports the eCash derivation path."
             )
         message = "\n".join(lines)
-        scannable = self.wallet_type == "standard" and bool(seed)
+        scannable = self.wallet_type == "standard" and bool(bip32_seed)
         self.derivation_path_dialog(
             run_next=run_next,
             title=_(f"Derivation for {self.wallet_type} wallet"),
             message=message,
             default=default_derivation,
             test=is_bip32_derivation,
-            seed=seed,
+            bip32_seed=bip32_seed,
             scannable=scannable,
         )
 
@@ -584,10 +584,11 @@ class BaseWizard(PrintError):
             raise RuntimeError("Unknown seed type", self.seed_type)
 
     def on_restore_bip39(self, seed, passphrase):
+        bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
         self.derivation_dialog(
             lambda x: self.run("on_bip44", seed, passphrase, str(x)),
             keystore.bip44_derivation_xec(0),
-            seed=seed,
+            bip32_seed=bip32_seed,
         )
 
     def create_keystore(self, seed, passphrase):

@@ -833,6 +833,13 @@ def bip39_normalize_passphrase(passphrase):
     return mnemo.normalize_text(passphrase or "", is_passphrase=True)
 
 
+def from_bip32_seed_and_derivation(bip32_seed: bytes, derivation: str) -> BIP32KeyStore:
+    xtype = "standard"
+    keystore = BIP32KeyStore({})
+    keystore.add_xprv_from_seed(bip32_seed, xtype, derivation)
+    return keystore
+
+
 def from_seed(seed, passphrase, *, seed_type="", derivation=None) -> KeyStore:
     if not seed_type:
         seed_type = mnemo.seed_type_name(seed)  # auto-detect
@@ -840,21 +847,17 @@ def from_seed(seed, passphrase, *, seed_type="", derivation=None) -> KeyStore:
         keystore = OldKeyStore({})
         keystore.add_seed(seed, seed_type=seed_type)
     elif seed_type in ["standard", "electrum"]:
-        keystore = BIP32KeyStore({})
+        derivation = "m/"
+        bip32_seed = mnemo.MnemonicElectrum.mnemonic_to_seed(seed, passphrase)
+        keystore = from_bip32_seed_and_derivation(bip32_seed, derivation)
         keystore.add_seed(seed, seed_type="electrum")  # force it to be "electrum"
         keystore.passphrase = passphrase
-        bip32_seed = mnemo.MnemonicElectrum.mnemonic_to_seed(seed, passphrase)
-        derivation = "m/"
-        xtype = "standard"
-        keystore.add_xprv_from_seed(bip32_seed, xtype, derivation)
     elif seed_type == "bip39":
-        keystore = BIP32KeyStore({})
+        derivation = derivation or bip44_derivation_xec(0)
+        bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
+        keystore = from_bip32_seed_and_derivation(bip32_seed, derivation)
         keystore.add_seed(seed, seed_type=seed_type)
         keystore.passphrase = passphrase
-        bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
-        xtype = "standard"  # bip43
-        derivation = derivation or bip44_derivation_xec(0)
-        keystore.add_xprv_from_seed(bip32_seed, xtype, derivation)
     else:
         raise InvalidSeed()
     return keystore

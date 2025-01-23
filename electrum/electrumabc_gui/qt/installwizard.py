@@ -698,12 +698,12 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         default,
         test,
         warning="",
-        seed="",
+        bip32_seed: bytes = b"",
         scannable=False,
     ):
-        def on_derivation_scan(derivation_line, seed):
+        def on_derivation_scan(derivation_line):
             derivation_scan_dialog = DerivationDialog(
-                self, seed, DerivationPathScanner.DERIVATION_PATHS
+                self, bip32_seed, DerivationPathScanner.DERIVATION_PATHS
             )
             destroyed_print_error(derivation_scan_dialog)
             selected_path = derivation_scan_dialog.get_selected_path()
@@ -730,7 +730,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
             hbox.addStretch(1)
             hbox.addWidget(but)
             vbox.addLayout(hbox)
-            but.clicked.connect(lambda: on_derivation_scan(line, seed))
+            but.clicked.connect(lambda: on_derivation_scan(line))
 
         self.exec_layout(vbox, title, next_enabled=test(default))
         return " ".join(line.text().split())
@@ -864,11 +864,10 @@ class DerivationPathScanner(QThread):
         "m/84'/0'/0'",
     ]
 
-    def __init__(self, parent, seed, seed_type, config, update_table_cb):
+    def __init__(self, parent, bip32_seed: bytes, config, update_table_cb):
         QThread.__init__(self, parent)
         self.update_table_cb = update_table_cb
-        self.seed = seed
-        self.seed_type = seed_type
+        self.bip32_seed = bip32_seed
         self.config = config
         self.aborting = False
 
@@ -885,9 +884,7 @@ class DerivationPathScanner(QThread):
         for i, p in enumerate(self.DERIVATION_PATHS):
             if self.aborting:
                 return
-            k = keystore.from_seed(
-                self.seed, "", derivation=p, seed_type=self.seed_type
-            )
+            k = keystore.from_bip32_seed_and_derivation(self.bip32_seed, derivation=p)
             p_safe = p.replace("/", "_").replace("'", "h")
             storage_path = os.path.join(
                 tempfile.gettempdir(),
@@ -897,7 +894,6 @@ class DerivationPathScanner(QThread):
                 + "_not_saved_",
             )
             tmp_storage = WalletStorage(storage_path, in_memory_only=True)
-            tmp_storage.put("seed_type", self.seed_type)
             tmp_storage.put("keystore", k.dump())
             wallet = StandardWallet(tmp_storage)
             try:
@@ -931,11 +927,10 @@ class DerivationPathScanner(QThread):
 class DerivationDialog(QtWidgets.QDialog):
     scan_result_signal = pyqtSignal(object, object)
 
-    def __init__(self, parent, seed, paths):
+    def __init__(self, parent, bip32_seed: bytes, paths):
         QtWidgets.QDialog.__init__(self, parent)
 
-        self.seed = seed
-        self.seed_type = parent.seed_type
+        self.bip32_seed = bip32_seed
         self.config = parent.config
         self.max_seen = 0
 
@@ -1003,7 +998,7 @@ class DerivationDialog(QtWidgets.QDialog):
         if e.isAccepted():
             self.kill_t()
             self.t = DerivationPathScanner(
-                self, self.seed, self.seed_type, self.config, self.update_table_cb
+                self, self.bip32_seed, self.config, self.update_table_cb
             )
             self.max_seen = 0
             self.set_scan_progress(0)
