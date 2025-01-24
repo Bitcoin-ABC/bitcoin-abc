@@ -966,6 +966,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
     auto itemB = provider.buildVoteItem();
 
     auto avanodes = ConnectNodes();
+    int nextNodeIndex = 0;
 
     // Build votes to get proper ordering
     std::vector<Vote> votes = provider.buildVotesForItems(0, {itemA, itemB});
@@ -987,15 +988,53 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
     Response goodResp{getRound(), 0, {Vote(0, provider.getVoteItemId(itemA))}};
     std::vector<avalanche::VoteItemUpdate> updates;
     runEventLoop();
-    BOOST_CHECK(registerVotes(avanodes[0]->GetId(), goodResp, updates));
+    BOOST_CHECK(
+        registerVotes(avanodes[nextNodeIndex++ % avanodes.size()]->GetId(),
+                      goodResp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
+
+    // Verify itemB is no longer being polled for
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == goodResp.GetVotes()[0].GetHash());
 
     // Votes including itemB are rejected
     Response badResp{getRound(), 0, votes};
     runEventLoop();
     std::string error;
-    BOOST_CHECK(!registerVotes(avanodes[1]->GetId(), badResp, updates, error));
+    BOOST_CHECK(
+        !registerVotes(avanodes[nextNodeIndex++ % avanodes.size()]->GetId(),
+                       badResp, updates, error));
     BOOST_CHECK_EQUAL(error, "invalid-ava-response-size");
+
+    // Vote until itemA is invalidated by avalanche
+    votes = provider.buildVotesForItems(1, {itemA});
+    auto registerNewVote = [&]() {
+        Response resp = {getRound(), 0, votes};
+        runEventLoop();
+        auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
+        BOOST_CHECK(registerVotes(nodeid, resp, updates));
+    };
+    for (size_t i = 0; i < 4000; i++) {
+        registerNewVote();
+        if (updates.size() > 0 &&
+            updates[0].getStatus() == VoteStatus::Invalid) {
+            break;
+        }
+    }
+
+    // Verify itemA is no longer being polled for
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 0);
+
+    // Votes including itemA are rejected
+    badResp = Response(getRound(), 0, votes);
+    runEventLoop();
+    BOOST_CHECK(
+        !registerVotes(avanodes[nextNodeIndex++ % avanodes.size()]->GetId(),
+                       badResp, updates, error));
+    BOOST_CHECK_EQUAL(error, "unexpected-ava-response");
 }
 
 BOOST_TEST_DECORATOR(*boost::unit_test::timeout(60))
