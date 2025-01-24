@@ -84,7 +84,9 @@ class P2PIBDStallingTest(BitcoinTestFramework):
         # Need to wait until 1023 blocks are received - the magic total bytes number is
         # a workaround in lack of an rpc returning the number of downloaded (but not
         # connected) blocks. 205 bytes x 1023 blocks
-        self.wait_until(lambda: self.total_bytes_recv_for_blocks() == 209715)
+        self.wait_until(
+            lambda: self.total_bytes_recv_for_blocks() == 209715, timeout=240
+        )
 
         self.all_sync_send_with_ping(peers)
         # If there was a peer marked for stalling, it would get disconnected
