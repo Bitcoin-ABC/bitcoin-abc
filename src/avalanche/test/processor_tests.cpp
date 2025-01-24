@@ -506,7 +506,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
         }
         BOOST_CHECK_EQUAL(updates.size(), 1);
         BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-        updates.clear();
     };
     finalize(itemid);
 
@@ -658,7 +657,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-    updates.clear();
 
     // Once the decision is finalized, there is no poll for it.
     invs = getInvsForNextPoll();
@@ -688,7 +686,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Rejected);
-    updates.clear();
 
     // Now it is rejected, but we can vote for it numerous times.
     for (int i = 1; i < AVALANCHE_FINALIZATION_SCORE; i++) {
@@ -709,7 +706,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Invalid);
-    updates.clear();
 
     // Once the decision is finalized, there is no poll for it.
     invs = getInvsForNextPoll();
@@ -790,7 +786,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == itemA);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-    updates.clear();
 
     // We do not vote on A anymore.
     invs = getInvsForNextPoll();
@@ -803,7 +798,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == itemB);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-    updates.clear();
 
     // There is nothing left to vote on.
     invs = getInvsForNextPoll();
@@ -1797,7 +1791,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         BOOST_CHECK_EQUAL(updates.size(), 1);
         BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
         BOOST_CHECK(updates[0].getStatus() == VoteStatus::Stale);
-        updates.clear();
 
         // Once stale, there is no poll for it.
         invs = getInvsForNextPoll();

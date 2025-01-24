@@ -527,6 +527,7 @@ void Processor::sendResponse(CNode *pfrom, Response response) const {
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
                               std::vector<VoteItemUpdate> &updates,
                               int &banscore, std::string &error) {
+    updates.clear();
     {
         // Save the time at which we can query again.
         LOCK(cs_peerManager);
