@@ -827,7 +827,7 @@ describe('<Token />', () => {
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
 
         // We see the token supply
-        expect(screen.getByText('Supply:')).toBeInTheDocument();
+        expect(screen.getByText('Supply')).toBeInTheDocument();
         expect(
             await screen.findByText('29,999,987,980,000,000.00 (fixed)'),
         ).toBeInTheDocument();

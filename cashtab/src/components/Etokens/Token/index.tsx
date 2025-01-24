@@ -12,7 +12,6 @@ import PrimaryButton, {
 } from 'components/Common/Buttons';
 import { SwitchLabel, Info, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
-import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Event } from 'components/Common/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import {
@@ -101,7 +100,6 @@ import {
     TokenStatsCol,
     TokenUrlCol,
     TokenStatsTableRow,
-    TokenStatsLabel,
     SwitchHolder,
     InfoModalParagraph,
     ButtonDisabledMsg,
@@ -122,6 +120,7 @@ import {
     TokenScreenWrapper,
     NftOfferWrapper,
     OuterCtn,
+    TokenStatsRowCtn,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import {
@@ -2211,7 +2210,7 @@ const Token: React.FC = () => {
                                 </AgoraPreviewParagraph>
                             </Modal>
                         )}
-                    {renderedTokenType === 'NFT' ? (
+                    {renderedTokenType === 'NFT' && (
                         <>
                             <NftNameTitle>{tokenName}</NftNameTitle>
                             {typeof cachedInfo?.groupTokenId !== 'undefined' &&
@@ -2235,20 +2234,8 @@ const Token: React.FC = () => {
                                     </NftCollectionTitle>
                                 )}
                         </>
-                    ) : (
-                        <BalanceHeaderToken
-                            formattedDecimalizedTokenBalance={
-                                typeof tokenBalance === 'string'
-                                    ? decimalizedTokenQtyToLocaleFormat(
-                                          tokenBalance,
-                                          userLocale,
-                                      )
-                                    : null
-                            }
-                            ticker={tokenTicker}
-                            name={tokenName}
-                        />
                     )}
+
                     <TokenStatsTable title="Token Stats">
                         <TokenStatsCol>
                             <TokenIconExpandButton
@@ -2256,11 +2243,35 @@ const Token: React.FC = () => {
                             >
                                 <TokenIcon size={128} tokenId={tokenId} />
                             </TokenIconExpandButton>
+                            {renderedTokenType !== 'NFT' && (
+                                <>
+                                    {tokenName !== undefined && (
+                                        <h2>{tokenName}</h2>
+                                    )}
+                                    {tokenTicker !== undefined && (
+                                        <span>{tokenTicker}</span>
+                                    )}
+                                </>
+                            )}
                         </TokenStatsCol>
-                        <TokenStatsCol>
+                        <TokenStatsRowCtn>
+                            {typeof tokenBalance === 'string' && (
+                                <TokenStatsTableRow balance>
+                                    <label>Your Balance</label>
+                                    <div>
+                                        {decimalizedTokenQtyToLocaleFormat(
+                                            tokenBalance,
+                                            userLocale,
+                                        )}
+                                        {tokenTicker !== undefined &&
+                                            tokenTicker !== '' &&
+                                            ` ${tokenTicker}`}
+                                    </div>
+                                </TokenStatsTableRow>
+                            )}
                             <TokenStatsTableRow>
-                                <TokenStatsLabel>Type:</TokenStatsLabel>
-                                <TokenStatsCol>
+                                <label>Type</label>
+                                <div>
                                     <DataAndQuestionButton>
                                         {renderedTokenType}{' '}
                                         <IconButton
@@ -2271,11 +2282,11 @@ const Token: React.FC = () => {
                                             }
                                         />
                                     </DataAndQuestionButton>
-                                </TokenStatsCol>
+                                </div>
                             </TokenStatsTableRow>
                             <TokenStatsTableRow>
-                                <TokenStatsLabel>Token Id:</TokenStatsLabel>
-                                <TokenStatsCol>
+                                <label>Token Id</label>
+                                <div>
                                     <a
                                         href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
                                         target="_blank"
@@ -2284,30 +2295,24 @@ const Token: React.FC = () => {
                                         {(tokenId as string).slice(0, 3)}...
                                         {(tokenId as string).slice(-3)}
                                     </a>
-                                </TokenStatsCol>
-                                <TokenStatsCol>
                                     <CopyIconButton
                                         name={`Copy Token ID`}
                                         data={tokenId as string}
                                         showToast
                                         customMsg={`Token ID "${tokenId}" copied to clipboard`}
                                     />
-                                </TokenStatsCol>
+                                </div>
                             </TokenStatsTableRow>
                             {renderedTokenType !== 'NFT' &&
                                 renderedTokenType !== 'NFT Collection' && (
                                     <TokenStatsTableRow>
-                                        <TokenStatsLabel>
-                                            decimals:
-                                        </TokenStatsLabel>
-                                        <TokenStatsCol>
-                                            {decimals}
-                                        </TokenStatsCol>
+                                        <label>Decimals</label>
+                                        <div>{decimals}</div>
                                     </TokenStatsTableRow>
                                 )}
                             {url !== '' && (
                                 <TokenStatsTableRow>
-                                    <TokenStatsLabel>url:</TokenStatsLabel>
+                                    <label>URL</label>
                                     <TokenUrlCol>
                                         <a
                                             href={
@@ -2328,8 +2333,8 @@ const Token: React.FC = () => {
                                 </TokenStatsTableRow>
                             )}
                             <TokenStatsTableRow>
-                                <TokenStatsLabel>created:</TokenStatsLabel>
-                                <TokenStatsCol>
+                                <label>Created</label>
+                                <div>
                                     {typeof cachedInfo?.block !== 'undefined'
                                         ? formatDate(
                                               cachedInfo.block.timestamp.toString(),
@@ -2341,14 +2346,12 @@ const Token: React.FC = () => {
                                               ).toString(),
                                               navigator.language,
                                           )}
-                                </TokenStatsCol>
+                                </div>
                             </TokenStatsTableRow>
                             {renderedTokenType !== 'NFT' && (
                                 <TokenStatsTableRow>
-                                    <TokenStatsLabel>
-                                        Genesis Qty:
-                                    </TokenStatsLabel>
-                                    <TokenStatsCol>
+                                    <label>Genesis Qty</label>
+                                    <div>
                                         {typeof genesisSupply === 'string' ? (
                                             decimalizedTokenQtyToLocaleFormat(
                                                 genesisSupply,
@@ -2357,13 +2360,13 @@ const Token: React.FC = () => {
                                         ) : (
                                             <InlineLoader />
                                         )}
-                                    </TokenStatsCol>
+                                    </div>
                                 </TokenStatsTableRow>
                             )}
                             {renderedTokenType !== 'NFT' && (
                                 <TokenStatsTableRow>
-                                    <TokenStatsLabel>Supply:</TokenStatsLabel>
-                                    <TokenStatsCol>
+                                    <label>Supply</label>
+                                    <div>
                                         {typeof uncachedTokenInfo.circulatingSupply ===
                                         'string' ? (
                                             `${decimalizedTokenQtyToLocaleFormat(
@@ -2380,27 +2383,25 @@ const Token: React.FC = () => {
                                         ) : (
                                             <InlineLoader />
                                         )}
-                                    </TokenStatsCol>
+                                    </div>
                                 </TokenStatsTableRow>
                             )}
                             {typeof hash !== 'undefined' && hash !== '' && (
                                 <TokenStatsTableRow>
-                                    <TokenStatsLabel>hash:</TokenStatsLabel>
-                                    <TokenStatsCol>
+                                    <label>Hash</label>
+                                    <div>
                                         {hash.slice(0, 3)}...
                                         {hash.slice(-3)}
-                                    </TokenStatsCol>
-                                    <TokenStatsCol>
                                         <CopyIconButton
                                             name={`Copy Token ID`}
                                             data={hash}
                                             showToast
                                             customMsg={`Token document hash "${hash}" copied to clipboard`}
                                         />
-                                    </TokenStatsCol>
+                                    </div>
                                 </TokenStatsTableRow>
                             )}
-                        </TokenStatsCol>
+                        </TokenStatsRowCtn>
                     </TokenStatsTable>
                     {isBlacklisted && (
                         <Alert>

@@ -8,6 +8,8 @@ export const OuterCtn = styled.div`
     background-color: ${props => props.theme.primaryBackground};
     padding: 20px;
     border-radius: 10px;
+    max-width: 700px;
+    margin: auto;
 `;
 
 export const TokenScreenWrapper = styled.div`
@@ -53,17 +55,29 @@ export const InputRow = styled.div`
 
 export const TokenStatsTable = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
     width: 100%;
     color: ${props => props.theme.primaryText};
-    gap: 12px;
-    background-color: ${props => props.theme.primaryBackground};
     border-radius: 20px 20px 0 0;
     padding: 20px;
     border: 1px solid ${props => props.theme.border};
     border-bottom: none;
+    background: linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+`;
+
+export const TokenStatsRowCtn = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid ${props => props.theme.border};
+    border-bottom: 1px solid ${props => props.theme.border};
+    padding: 20px 0;
+    margin-top: 20px;
 `;
 export const TokenStatsRow = styled.div`
     width: 100%;
@@ -76,7 +90,19 @@ export const TokenStatsRow = styled.div`
 `;
 export const TokenStatsCol = styled.div`
     align-items: center;
-    flex-wrap: wrap;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    h2 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.2em;
+        font-weight: 600;
+        text-align: center;
+    }
+    span {
+        color: ${props => props.theme.secondaryText};
+    }
 `;
 export const TokenUrlCol = styled(TokenStatsCol)`
     text-overflow: ellipsis;
@@ -90,13 +116,56 @@ export const TokenUrlCol = styled(TokenStatsCol)`
         max-width: 124px;
     }
 `;
-export const TokenStatsTableRow = styled.div`
+export const TokenStatsTableRow = styled.div<{ balance?: boolean }>`
     width: 100%;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 3px;
+    align-items: flex-start;
+    gap: 20px;
+    justify-content: space-between;
+    color: ${props =>
+        props.balance ? props.theme.primaryText : props.theme.secondaryText};
+    font-size: ${props => (props.balance ? '18px' : '16px')};
+    @media (max-width: 768px) {
+        font-size: ${props => (props.balance ? '16px' : '14px')};
+    }
+    margin-bottom: ${props => (props.balance ? '15px' : '0')};
+    label {
+        flex-shrink: 0;
+    }
+    > div {
+        display: flex;
+        align-items: center;
+        word-break: break-all;
+        text-align: right;
+        button {
+            display: flex;
+            align-items: center;
+            padding: 0;
+            padding-left: 5px;
+        }
+        a {
+            color: ${props => props.theme.secondaryText};
+            :hover {
+                color: ${props => props.theme.accent};
+                text-decoration: underline;
+            }
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
+            g {
+                fill: ${props => props.theme.secondaryText};
+            }
+            fill: ${props => props.theme.secondaryText};
+            :hover {
+                g {
+                    fill: ${props => props.theme.secondaryAccent};
+                }
+                fill: ${props => props.theme.secondaryAccent};
+            }
+        }
+    }
 `;
 
 export const TokenStatsLabel = styled.div`

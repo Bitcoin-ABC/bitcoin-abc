@@ -28,29 +28,31 @@ export const OfferWrapper = styled.div<{ borderRadius: boolean }>`
         rgba(255, 255, 255, 0) 0%,
         rgba(255, 255, 255, 0.1) 100%
     )`};
+    border-top: ${props => (!props.borderRadius ? 'none' : '')};
     @media (max-width: 768px) {
         margin-bottom: 20px;
         width: 100%;
     }
 `;
 
-export const OfferHeader = styled.div`
+export const OfferHeader = styled.div<{ noIcon?: boolean }>`
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    padding: 20px 20px 0;
+    padding: ${props => (props.noIcon ? '0 20px 0 20px' : '20px 20px 0')};
     text-align: left;
     border-radius: 20px 20px 0 0;
 `;
 
-export const OfferHeaderRow = styled.div`
+export const OfferHeaderRow = styled.div<{ noIcon?: boolean }>`
     display: flex;
     align-items: center;
     width: 100%;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: ${props => (props.noIcon ? '0' : '20px')};
     margin-bottom: 20px;
+    color: ${props => props.theme.primaryText};
 `;
 
 export const OfferTitleCtn = styled.div`
@@ -104,13 +106,14 @@ export const OfferDetailsCtn = styled.div`
     flex-grow: 1;
 `;
 
-export const DepthBarCol = styled.div`
+export const DepthBarCol = styled.div<{ noIcon?: boolean }>`
     width: 100%;
     max-height: 110px;
     overflow-y: auto;
     ${CashtabScroll}
     display: flex;
     flex-direction: column-reverse;
+    max-height: ${props => (props.noIcon ? '150px' : '110px')};
 `;
 
 export const OrderBookRow = styled.button<{ selected: boolean }>`

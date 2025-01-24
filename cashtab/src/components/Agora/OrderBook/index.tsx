@@ -1101,58 +1101,61 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
             {Array.isArray(activeOffers) && activeOffers.length > 0 ? (
                 <OfferWrapper borderRadius={!noIcon}>
-                    {!noIcon && (
-                        <OfferHeader>
-                            <OfferIcon
-                                title={tokenId}
-                                size={64}
-                                tokenId={tokenId}
-                                aria-label={`View larger icon for ${
-                                    typeof tokenName === 'string'
-                                        ? tokenName
-                                        : tokenId
-                                }`}
-                                onClick={() => setShowLargeIconModal(true)}
-                            />
-                            <OfferTitleCtn>
-                                {typeof tokenName !== 'string' ? (
-                                    <InlineLoader />
-                                ) : (
-                                    <>
-                                        <a href={`#/token/${tokenId}`}>
-                                            {tokenName}
-                                        </a>
-                                        <span>
-                                            {tokenTicker !== ''
-                                                ? tokenTicker
-                                                : ''}
-                                        </span>
-                                    </>
-                                )}
-                                <CopyTokenId tokenId={tokenId} />
-                            </OfferTitleCtn>
-                            <OfferHeaderRow>
-                                <div>
-                                    {activeOffers.length} Offer
-                                    {activeOffers.length > 1 && 's'}
-                                </div>
-                                <Switch
-                                    small
-                                    name={`Toggle price for ${tokenId}`}
-                                    on={settings.fiatCurrency}
-                                    width={60}
-                                    right={40}
-                                    off={appConfig.ticker}
-                                    checked={displaySpotPricesInFiat}
-                                    handleToggle={() => {
-                                        setDisplaySpotPricesInFiat(
-                                            () => !displaySpotPricesInFiat,
-                                        );
-                                    }}
+                    <OfferHeader noIcon={noIcon}>
+                        {!noIcon && (
+                            <>
+                                <OfferIcon
+                                    title={tokenId}
+                                    size={64}
+                                    tokenId={tokenId}
+                                    aria-label={`View larger icon for ${
+                                        typeof tokenName === 'string'
+                                            ? tokenName
+                                            : tokenId
+                                    }`}
+                                    onClick={() => setShowLargeIconModal(true)}
                                 />
-                            </OfferHeaderRow>
-                        </OfferHeader>
-                    )}
+                                <OfferTitleCtn>
+                                    {typeof tokenName !== 'string' ? (
+                                        <InlineLoader />
+                                    ) : (
+                                        <>
+                                            <a href={`#/token/${tokenId}`}>
+                                                {tokenName}
+                                            </a>
+                                            <span>
+                                                {tokenTicker !== ''
+                                                    ? tokenTicker
+                                                    : ''}
+                                            </span>
+                                        </>
+                                    )}
+                                    <CopyTokenId tokenId={tokenId} />
+                                </OfferTitleCtn>
+                            </>
+                        )}
+                        <OfferHeaderRow noIcon={noIcon}>
+                            <div>
+                                {activeOffers.length} Offer
+                                {activeOffers.length > 1 && 's'}
+                            </div>
+                            <Switch
+                                small
+                                name={`Toggle price for ${tokenId}`}
+                                on={settings.fiatCurrency}
+                                width={60}
+                                right={40}
+                                off={appConfig.ticker}
+                                checked={displaySpotPricesInFiat}
+                                handleToggle={() => {
+                                    setDisplaySpotPricesInFiat(
+                                        () => !displaySpotPricesInFiat,
+                                    );
+                                }}
+                            />
+                        </OfferHeaderRow>
+                    </OfferHeader>
+
                     {agoraQueryError && (
                         <Alert>
                             Error querying agora for active offers. Try again
@@ -1161,7 +1164,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     )}
                     {canRenderOrderbook && (
                         <OfferDetailsCtn>
-                            <DepthBarCol>
+                            <DepthBarCol noIcon={noIcon}>
                                 {activeOffers.map((activeOffer, index) => {
                                     const {
                                         depthPercent,
@@ -1273,24 +1276,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     );
                                 })}
                             </DepthBarCol>
-                            {noIcon && (
-                                <SliderRow>
-                                    <Switch
-                                        small
-                                        name={`Toggle price for ${tokenId}`}
-                                        on={settings.fiatCurrency}
-                                        width={60}
-                                        right={40}
-                                        off={appConfig.ticker}
-                                        checked={displaySpotPricesInFiat}
-                                        handleToggle={() => {
-                                            setDisplaySpotPricesInFiat(
-                                                () => !displaySpotPricesInFiat,
-                                            );
-                                        }}
-                                    />
-                                </SliderRow>
-                            )}
                             <SliderRow>
                                 <Slider
                                     name={`Select buy qty ${tokenId}`}
