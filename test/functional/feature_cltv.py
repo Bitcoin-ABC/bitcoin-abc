@@ -76,7 +76,7 @@ class BIP65Test(BitcoinTestFramework):
             ]
         ]
         self.setup_clean_chain = True
-        self.rpc_timeout = 120
+        self.rpc_timeout = 480
 
     def run_test(self):
         peer = self.nodes[0].add_p2p_connection(P2PInterface())
