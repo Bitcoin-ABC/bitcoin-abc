@@ -1696,7 +1696,10 @@ const Token: React.FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
+                    {`${decimalizedTokenQtyToLocaleFormat(
+                        decimalizedOfferedTokens,
+                        userLocale,
+                    )} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
                 </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
@@ -1899,7 +1902,10 @@ const Token: React.FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    {`${decimalizedOfferedTokens} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
+                    {`${decimalizedTokenQtyToLocaleFormat(
+                        decimalizedOfferedTokens,
+                        userLocale,
+                    )} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
                 </a>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId as string} />,
