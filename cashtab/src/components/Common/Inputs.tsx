@@ -303,7 +303,6 @@ interface InputWithScannerProps {
     disabled?: boolean;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     error: false | string;
-    loadWithScannerOpen: boolean;
 }
 export const InputWithScanner: React.FC<InputWithScannerProps> = ({
     placeholder = '',
@@ -312,7 +311,6 @@ export const InputWithScanner: React.FC<InputWithScannerProps> = ({
     disabled = false,
     handleInput,
     error = false,
-    loadWithScannerOpen,
 }) => {
     return (
         <CashtabInputWrapper>
@@ -326,7 +324,6 @@ export const InputWithScanner: React.FC<InputWithScannerProps> = ({
                     onChange={handleInput}
                 />
                 <ScanQRCode
-                    loadWithScannerOpen={loadWithScannerOpen}
                     onScan={result =>
                         handleInput({
                             target: {

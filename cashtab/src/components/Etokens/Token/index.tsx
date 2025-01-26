@@ -36,7 +36,7 @@ import { explorer } from 'config/explorer';
 import { token as tokenConfig } from 'config/token';
 import { isValidCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
-import { isMobile, getUserLocale } from 'helpers';
+import { getUserLocale } from 'helpers';
 import {
     getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
@@ -392,9 +392,6 @@ const Token: React.FC = () => {
     // If they don't, disable the mint switch and label why
     const mintBatons = getMintBatons(wallet.state.slpUtxos, tokenId as string);
 
-    // Load with QR code open if device is mobile
-    const openWithScanner =
-        settings && settings.autoCameraOn === true && isMobile(navigator);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [confirmMintModalVisible, setConfirmMintModalVisible] =
         useState<boolean>(false);
@@ -2941,9 +2938,6 @@ const Token: React.FC = () => {
                                                                 }
                                                                 error={
                                                                     sendTokenAddressError
-                                                                }
-                                                                loadWithScannerOpen={
-                                                                    openWithScanner
                                                                 }
                                                             />
                                                         </InputRow>

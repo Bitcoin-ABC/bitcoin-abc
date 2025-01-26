@@ -76,68 +76,6 @@ describe('<Configure />', () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
     });
-    it('We do not see the camera auto-open setting in the config screen on a desktop device', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            freshWalletWithOneIncomingCashtabMsg,
-            localforage,
-        );
-
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                agora={mockAgora}
-                ecc={ecc}
-                route="/configure"
-            />,
-        );
-
-        // We are on the settings screen
-        await screen.findByTitle('Settings');
-
-        // We do not see the auto open option
-        expect(
-            screen.queryByText('Auto-open camera on send'),
-        ).not.toBeInTheDocument();
-    });
-    it('We do see the camera auto-open setting in the config screen on a mobile device', async () => {
-        Object.defineProperty(navigator, 'userAgentData', {
-            value: {
-                mobile: true,
-            },
-            writable: true,
-        });
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = await initializeCashtabStateForTests(
-            freshWalletWithOneIncomingCashtabMsg,
-            localforage,
-        );
-
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                agora={mockAgora}
-                ecc={ecc}
-                route="/configure"
-            />,
-        );
-
-        // We are on the settings screen
-        await screen.findByTitle('Settings');
-
-        // Now we do see the auto open option
-        expect(
-            await screen.findByText('Auto-open camera on send'),
-        ).toBeInTheDocument();
-
-        // Unset mock
-        Object.defineProperty(navigator, 'userAgentData', {
-            value: {
-                mobile: false,
-            },
-            writable: true,
-        });
-    });
     it('Setting "Send Confirmations" settings will show send confirmations', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,

@@ -47,7 +47,7 @@ import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
-import { isMobile, getUserLocale } from 'helpers';
+import { getUserLocale } from 'helpers';
 import { hasEnoughToken, fiatToSatoshis } from 'wallet';
 import { toast } from 'react-toastify';
 import {
@@ -241,10 +241,6 @@ const SendXec: React.FC = () => {
             protocol: '',
             data: '',
         });
-
-    // Load with QR code open if device is mobile
-    const openWithScanner =
-        settings && settings.autoCameraOn === true && isMobile(navigator);
 
     interface SendXecFormData {
         amount: string;
@@ -1282,9 +1278,6 @@ const SendXec: React.FC = () => {
                             disabled={txInfoFromUrl !== false}
                             handleInput={handleAddressChange}
                             error={sendAddressError}
-                            loadWithScannerOpen={
-                                openWithScanner && txInfoFromUrl === false
-                            }
                         />
                         {isBip21MultipleOutputsSafe(parsedAddressInput) ? (
                             <Info>

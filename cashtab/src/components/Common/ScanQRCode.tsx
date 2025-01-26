@@ -56,17 +56,15 @@ class ZxingResult {
 }
 
 interface ScanQRCodeProps {
-    loadWithScannerOpen: boolean;
     onScan: React.ChangeEventHandler<HTMLInputElement>;
 }
 const ScanQRCode: React.FC<ScanQRCodeProps> = ({
-    loadWithScannerOpen,
     onScan = () => null,
     ...otherProps
 }) => {
     const [codeReaderControls, setCodeReaderControls] =
         useState<null | IScannerControls>(null);
-    const [visible, setVisible] = useState(loadWithScannerOpen);
+    const [visible, setVisible] = useState(false);
     const [error, setError] = useState<false | Error>(false);
 
     const codeReader = new BrowserQRCodeReader();

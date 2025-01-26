@@ -16,7 +16,6 @@ import {
 } from 'components/Common/CustomIcons';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import appConfig from 'config/app';
-import { isMobile } from 'helpers';
 import { hasEnoughToken } from 'wallet';
 import { CurrencySelect } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
@@ -113,13 +112,6 @@ const Configure: React.FC = () => {
         });
     };
 
-    const handleCameraOverride = (e: React.ChangeEvent<HTMLInputElement>) => {
-        updateCashtabState('settings', {
-            ...settings,
-            autoCameraOn: e.target.checked,
-        });
-    };
-
     return (
         <StyledConfigure title="Settings">
             <PageHeader>
@@ -157,16 +149,6 @@ const Configure: React.FC = () => {
                     />
                     <SettingsLabel>Send Confirmations</SettingsLabel>
                 </GeneralSettingsItem>
-                {isMobile(navigator) && (
-                    <GeneralSettingsItem>
-                        <Switch
-                            name="Toggle QR Code Scanner Auto-open"
-                            checked={settings.autoCameraOn}
-                            handleToggle={handleCameraOverride}
-                        />
-                        <SettingsLabel>Auto-open camera on send</SettingsLabel>
-                    </GeneralSettingsItem>
-                )}
             </Switches>
 
             {(hasEnoughToken(
