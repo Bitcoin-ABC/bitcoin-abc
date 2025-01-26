@@ -12,6 +12,7 @@ use thiserror::Error;
 
 use crate::ChronikClientError::*;
 
+pub mod handler;
 pub mod test_runner;
 
 #[derive(Debug, Clone)]

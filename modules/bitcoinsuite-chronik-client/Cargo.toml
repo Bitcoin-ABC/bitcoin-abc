@@ -12,6 +12,9 @@ abc-rust-error = { path = "../../chronik/abc-rust-error"}
 bitcoinsuite-core = { path = "../../chronik/bitcoinsuite-core" }
 chronik-proto = { path = "../../chronik/chronik-proto/"}
 
+# Async trait facility
+async-trait = "0.1.86"
+
 # Error structs/enums
 thiserror = "1.0"
 
@@ -30,6 +33,12 @@ hex = "0.4"
 regex = "1"
 
 bytes = { version = "1.4", features = ["serde"] }
+
+# JSON serialization/deserialization
+serde_json = "1.0" 
+
+# Serializes and deserializes Rust data
+serde = "1.0.217"
 
 [build-dependencies]
 # Build Protobuf structs

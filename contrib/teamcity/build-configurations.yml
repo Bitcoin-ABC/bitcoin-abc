@@ -227,7 +227,12 @@ builds:
   build-bitcoinsuite-chronik-client:
     runOnDiffRegex:
       - modules/bitcoinsuite-chronik-client/
-    script: |
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+    targets:
+      - - all
+    post_build: |
       # Navigate to the bitcoinsuite-chronik-client directory
       pushd "${TOPLEVEL}/modules/bitcoinsuite-chronik-client"
       cargo build
