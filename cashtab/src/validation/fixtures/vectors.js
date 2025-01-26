@@ -1163,7 +1163,7 @@ export default {
                 migratedSettings: {
                     fiatCurrency: 'gbp',
                     sendModal: false,
-                    autoCameraOn: true,
+                    autoCameraOn: false,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
                     minFeeSends: false,

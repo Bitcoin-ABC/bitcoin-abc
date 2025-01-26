@@ -15,7 +15,7 @@ class CashtabSettings {
     constructor(
         fiatCurrency = 'usd',
         sendModal = false,
-        autoCameraOn = true,
+        autoCameraOn = false,
         hideMessagesFromUnknownSenders = false,
         balanceVisible = true,
         minFeeSends = false,

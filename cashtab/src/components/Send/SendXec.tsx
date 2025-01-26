@@ -1282,7 +1282,9 @@ const SendXec: React.FC = () => {
                             disabled={txInfoFromUrl !== false}
                             handleInput={handleAddressChange}
                             error={sendAddressError}
-                            loadWithScannerOpen={openWithScanner}
+                            loadWithScannerOpen={
+                                openWithScanner && txInfoFromUrl === false
+                            }
                         />
                         {isBip21MultipleOutputsSafe(parsedAddressInput) ? (
                             <Info>
