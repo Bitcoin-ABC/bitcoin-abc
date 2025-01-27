@@ -14,8 +14,9 @@ pub async fn spin_child_process(
     let script_name = format!("chronik-client_{}", python_script);
 
     if std::path::Path::new(&socket_path).exists() {
-        std::fs::remove_file(socket_path)
-            .expect(&format!("Failed to remove file {}", socket_path));
+        std::fs::remove_file(socket_path).unwrap_or_else(|_| {
+            panic!("Failed to remove file {}", socket_path)
+        });
     }
 
     let build_dir = env::var("BUILD_DIR").unwrap_or_else(|_| ".".to_string());
@@ -43,7 +44,7 @@ pub async fn spin_child_process(
         .expect("Failed to start Python process");
 
     let socket_listener = UnixListener::bind(socket_path)
-        .expect(&format!("Failed to remove file {}", socket_path));
+        .unwrap_or_else(|_| panic!("Failed to bind to socket {}", socket_path));
     println!("Rust IPC server is listening on {:?}", socket_path);
 
     tokio::spawn(async move {
