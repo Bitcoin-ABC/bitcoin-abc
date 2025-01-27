@@ -231,7 +231,7 @@ builds:
       # Navigate to the bitcoinsuite-chronik-client directory
       pushd "${TOPLEVEL}/modules/bitcoinsuite-chronik-client"
       cargo build
-      cargo test
+      cargo test -p bitcoinsuite-chronik-client
       popd
     timeout: 1200
 
@@ -341,7 +341,7 @@ builds:
       # Build the main explorer project, will run on all sub dir
       pushd "${TOPLEVEL}/web/explorer"
       cargo build --locked
-      cargo test
+      cargo test -p explorer-server -p explorer-exe
     timeout: 1200
 
   build-fuzzer:
