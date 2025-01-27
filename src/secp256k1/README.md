@@ -11,7 +11,7 @@ This library is intended to be the highest quality publicly available library fo
 
 Features:
 * secp256k1 ECDSA signing/verification and key generation.
-* secp256k1 Schnorr signing/verification ([Bitcoin Cash Schnorr variant](https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/2019-05-15-schnorr.md)).
+* secp256k1 Schnorr signing/verification ([Bitcoin Cash Schnorr variant](https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/doc/standards/schnorr.md)).
 * Additive and multiplicative tweaking of secret/public keys.
 * Serialization/parsing of secret keys, public keys, signatures.
 * Constant time, constant memory access signing and pubkey generation.

@@ -32,7 +32,7 @@ The SigChecks count for a given script is discovered during execution of the scr
   - +1, if signature is non-NULL.
 - Executing an M-of-N OP_CHECKMULTISIG / OP_CHECKMULTISIGVERIFY increments SigChecks by:
   - +0, if all M signatures are NULL.
-  - +M, if at least one signature is non-NULL and the verification is in [New/Schnorr mode](2019-11-15-schnorrmultisig.md) (dummy element is non-NULL).
+  - +M, if at least one signature is non-NULL and the verification is in [New/Schnorr mode](schnorrmultisig.md) (dummy element is non-NULL).
   - +N, if at least one signature is non-NULL and the verification is in Old/ECDSA mode (dummy element is NULL).
 
 Here NULL means a script stack element that has length 0; passing NULL in place of an expected signature is the canonical way of cancelling the signature check, i.e., making the signature checking opcode fail / return false (and the only way permitted way to cause this result ever since NULLFAIL rule activated).
@@ -147,7 +147,7 @@ The proposed per-input rule is a line interpolating between those two cases, wit
 
 Typical use cases are much much lower density than these. P2PK and P2PKH have 1 SigCheck in ~70 bytes and ~105 bytes respectively, and most P2SH multisignatures are 2-of-3 spent with ECDSA which have 3 SigChecks in a ~250 byte scriptSig. I've plotted the common standard use cases below. As can be seen
 
-![Input sigchecks plotted for various standard scripts](2020-05-15-sigchecks-plotinputs.png)
+![Input sigchecks plotted for various standard scripts](sigchecks-plotinputs.png)
 
 The block limit is based on an examination of normal usage patterns and observations on historical blocks. Historically, the bulk (75%) of blocks have had a density of between 150 and 250 bytes/SigCheck, and the average density of the whole chain is 176 bytes/SigCheck. Only 2% of blocks have been more dense than 141 bytes/SigCheck. This matches the fact that the vast majority of inputs/outputs are P2PKH, which on the whole (considering funding and spending) have a density of around 182 bytes/SigCheck. Rarely, one sees a block that is packed full of an unusually high fraction of P2SH 2-of-3 multisignature consolidations, which pushes down to the 100 bytes/SigCheck level. Blocks more dense than 98 bytes/SigCheck have been extremely rare, making up 0.01% of blocks.
 
@@ -156,7 +156,7 @@ The exact number of 141 bytes/SigCheck comes from considering a fairly common us
 The choice of 141 bytes/SigCheck for a block is ~4x times more aggressive than the ~36.67 bytes/SigCheck standardness rule. It's worth emphasizing however that this block limit is based on the maximum block size. Thus, it may happen that a normally mined block has an actual density of ~36.67 bytes/SigCheck, however, such a block could not be more than ~1/4th of the maximum block byte size.
 
 A histogram of historical block densities is plotted below:
-![Block sigchecks density historically (up to mid-2019)](2020-05-15-sigchecks-plotblocks.png)
+![Block sigchecks density historically (up to mid-2019)](sigchecks-plotblocks.png)
 
 # Implementation
 

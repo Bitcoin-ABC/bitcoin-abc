@@ -152,7 +152,7 @@ References
 
 [10] BIP16: https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki
 
-[11] May 2018, reenabled opcodes: https://github.com/EyeOfPython/bitcoincash.org/blob/master/spec/may-2018-reenabled-opcodes.md
+[11] May 2018, reenabled opcodes: reenabled-opcodes.md
 
 [12] AMQP specification, page 14: http://www.amqp.org/sites/amqp.org/files/amqp.pdf
 

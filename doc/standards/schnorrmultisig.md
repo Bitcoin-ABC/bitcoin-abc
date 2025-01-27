@@ -12,7 +12,7 @@ author: Mark B. Lundeberg
 
 OP_CHECKMULTISIG and OP_CHECKMULTISIGVERIFY will be upgraded to accept Schnorr signatures in a way that increases verification efficiency and is compatible with batch verification.
 
-*note: this document assumes knowledge of [the prior Schnorr signature upgrade](2019-05-15-schnorr.md).*
+*note: this document assumes knowledge of [the prior Schnorr signature upgrade](schnorr.md).*
 
 # Motivation
 
