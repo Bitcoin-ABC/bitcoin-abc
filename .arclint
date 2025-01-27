@@ -97,7 +97,8 @@
                 "(^test/lint/dictionary/)",
                 "(^web/e.cash/public/animations/)",
                 "(package-lock.json)",
-                "(^electrum/electrumabc/wordlist/)"
+                "(^electrum/electrumabc/wordlist/)",
+                "(^doc/standards/)"
             ],
             "spelling.dictionaries": [
                 "test/lint/dictionary/english.json"
@@ -217,7 +218,8 @@
             "include": "(\\.(ac|am|cmake|conf|in|include|json|m4|md|openrc|php|pl|rs|sh|txt|yml)$)",
             "exclude": [
                 "(^src/(secp256k1|leveldb)/)",
-                "(^src/bench/nanobench.h$)"
+                "(^src/bench/nanobench.h$)",
+                "(^doc/standards/)"
             ]
         },
         "yamllint": {
@@ -239,7 +241,8 @@
                 "(\\.md$)"
             ],
             "exclude": [
-                "(^web/chronik.e.cash/)"
+                "(^web/chronik.e.cash/)",
+                "(^doc/standards/)"
             ]
         },
         "lint-python-mypy": {
@@ -269,7 +272,7 @@
             "version": ">=2.6.0",
             "include": [
                 "(^apps/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
-                "(^doc/standards/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
+                "(^doc/standards/.*\\.(css|html|js|json|jsx|scss|ts|tsx)$)",
                 "(^cashtab/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
                 "(^modules/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
                 "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)"
