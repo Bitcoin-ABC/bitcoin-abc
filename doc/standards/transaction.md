@@ -44,12 +44,12 @@ An input is a reference to an output from a previous transaction. Multiple input
 Outputs from a transaction include the BCH amount and redeem script which is used to spend the output and sets up parameters for the signature script. Redeem scripts should not use OP_CODES.
 
 ## OpCodes
-The opcodes used in the pubkey scripts of standard transactions are as follows. 
+The opcodes used in the pubkey scripts of standard transactions are as follows.
 
 See also the source code: https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/src/script/script.h.
 
 ### 0x00 to 0x4e
-There are arious data pushing opcodes from 0x00 to 0x4e (1--78) that must be used must be used to push signatures and public keys onto the stack. 
+There are arious data pushing opcodes from 0x00 to 0x4e (1--78) that must be used must be used to push signatures and public keys onto the stack.
 
 ### OP_TRUE/OP_1, OP_2 through OP_16
 `OP_TRUE`/`OP_1` (0x51) and `OP_2` through `OP_16` (0x52--0x60) push the values 1 through 16 to the stack.
@@ -63,7 +63,7 @@ There are arious data pushing opcodes from 0x00 to 0x4e (1--78) that must be use
 ### OP_HASH160
 `OP_HASH160` consumes the topmost item on the stack, computes the RIPEMD160(SHA256()) hash of that item, and pushes that hash onto the stack.
 
-### OP_EQUAL 
+### OP_EQUAL
 `OP_EQUAL` consumes the top two items on the stack, compares them, and pushes true onto the stack if they are the same, false if not.
 
 ### OP_VERIFY
@@ -79,9 +79,9 @@ The "one extra value" it consumes is the result of an off-by-one error in the or
 
 `OP_CHECKMULTISIG` compares the first signature against each public key until it finds an ECDSA match. Starting with the subsequent public key, it compares the second signature against each remaining public key until it finds an ECDSA match. The process is repeated until all signatures have been checked or not enough public keys remain to produce a successful result.
 
-Because public keys are not checked again if they fail any signature comparison, signatures must be placed in the signature script using the same order as their corresponding public keys were placed in the pubkey script or redeem script. 
+Because public keys are not checked again if they fail any signature comparison, signatures must be placed in the signature script using the same order as their corresponding public keys were placed in the pubkey script or redeem script.
 
-The `OP_CHECKMULTISIG` verification process requires that signatures in the signature script be provided in the same order as their corresponding public keys in the pubkey script or redeem script. 
+The `OP_CHECKMULTISIG` verification process requires that signatures in the signature script be provided in the same order as their corresponding public keys in the pubkey script or redeem script.
 
 ### OP_RETURN
 `OP_RETURN` terminates the script in failure when executed.
@@ -109,7 +109,7 @@ Taking the resulting hash:
    correctly.
 
 4. Append the checksum to the version and hash, and encode it as a base58 string: <!--[-->`BASE58(version . hash . checksum)`<!--]-->
- 
+
 The code can be traced using the [base58 header file][core base58.h].
 
 To convert addresses back into hashes, reverse the base58 encoding, extract the checksum, repeat the steps to create the checksum and compare it against the extracted checksum, and then remove the version byte.
@@ -128,7 +128,7 @@ A raw transaction has the following top-level format:
 | *Varies* | tx_in        | `txIn`                | Transaction inputs.  See description of txIn below.
 | *Varies* | tx_out count | `compactSize uint`    | Number of outputs in this transaction.
 | *Varies* | tx_out       | `txOut`               | Transaction outputs.  See description of txOut below.
-| 4        | lock_time    | `uint32_t`            | A time (Unix epoch time) or block number. 
+| 4        | lock_time    | `uint32_t`            | A time (Unix epoch time) or block number.
 
 A transaction may have multiple inputs and outputs, so the txIn and txOut structures may recur within a transaction. CompactSize unsigned
 integers are a form of variable-length integers; they are described in CompactSize unsigned integer.
@@ -151,7 +151,7 @@ The outpoint is a reference to an output from a previous transaction. Because a 
 | 32    | hash  | char[32]  | The TXID of the transaction holding the output to spend. The TXID is a hash provided here in internal byte order.
 | 4     | index | uint32_t  | The output index number of the specific output to spend from the transaction. The first output is 0x00000000.
 
-## TxOut: Transaction Output 
+## TxOut: Transaction Output
 Each output spends a certain number of Satoshis, placing them under control of anyone who can satisfy the provided pubkey script.
 
 | Bytes    | Name            | Data Type        | Description
@@ -180,7 +180,7 @@ The purpose of the signature script (scriptSig) is to ensure that the spender is
 The scriptSig contains two components: a signature and a public key. The public key must match the hash given in the script of the redeemed output. The public key is used to verify the redeemers signature, which is the second component. More precisely, the second component is an ECDSA signature over a hash of a simplified version of the transaction. It, combined with the public key, proves the transaction was created by the real owner of the address in question.
 
 Signature scripts are not signed, so anyone can modify them. This means signature scripts should only contain data and data-pushing opcodes which can't be modified without causing the pubkey script to fail. Placing non-data-pushing opcodes in the signature script currently makes a transaction non-standard, and future consensus rules may forbid such transactions altogether. (Non-data-pushing opcodes are already forbidden in signature scripts when spending a P2SH pubkey script.)
- 
+
 ## Sequence
 
 Check lock time verify (s4)
@@ -205,7 +205,7 @@ Check sequence verify (s4)
 	<public key hash>
 	OP_EQUALVERIFY
 	OP_CHECKSIG
-	Use address version=0 and hash=<public key hash> 
+	Use address version=0 and hash=<public key hash>
 
 ### P2PK
 

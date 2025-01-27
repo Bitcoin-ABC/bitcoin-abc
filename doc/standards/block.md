@@ -16,13 +16,13 @@ Developer resources:
 - [Bitcoin ABC developer documentation](https://www.bitcoinabc.org/doc/dev/)
 
 # Block
-A **block** is one of the two base primitives in the BCH system, the other being a **transaction**. Primitive in this context means it is one of the data structures for which the BCH software provides built-in support. 
+A **block** is one of the two base primitives in the BCH system, the other being a **transaction**. Primitive in this context means it is one of the data structures for which the BCH software provides built-in support.
 
 Nodes collect new transactions into a **block**, hash them into a hash tree (**merkle root hash**), and scan through **nonce** values to make the block's hash satisfy proof-of-work requirements.
 
 When a miner solves the proof-of-work, it broadcasts the block to network nodes and if the block is valid it is added to the block chain. The first transaction in the block is the **coinbase transaction** that creates a new coin owned by the creator of the block. An algorithm ensures that a new block is generated every 10 minutes (600 seconds) on average.
 
-The block validation rules described here ensure that BCH nodes stay in consensus with other nodes. There are several rules that must be respected for a block to be valid. A node is responsible for processing, validating, and relaying the block and its transactions. 
+The block validation rules described here ensure that BCH nodes stay in consensus with other nodes. There are several rules that must be respected for a block to be valid. A node is responsible for processing, validating, and relaying the block and its transactions.
 
 A node is distinct on the network from miners and wallets. A BCH node is a piece of software that connects to other nodes in a network and communicates via peer-to-peer messages. Nodes use the `verack` protocol to communicate and perform full validation checks, including:
 
@@ -53,7 +53,7 @@ Field 			| Size (bytes) 	| Data type | Description
 The block version number is a signed 4 byte integer (`int32_t`) that indicates which set of block validation rules to follow. BCH version >= 4 is valid.
 
 ### Previous Block Hash
-The SHA256(SHA256(Block_Header)) message digest (hash) of the previous block’s header in internal byte order. This ensures no previous block can be changed without also changing this block’s header. 
+The SHA256(SHA256(Block_Header)) message digest (hash) of the previous block’s header in internal byte order. This ensures no previous block can be changed without also changing this block’s header.
 
 ### Merkle Root Hash
 The Merkle tree is data structure that provides a record of all transactions in the block. Each transaction in the block is a leaf in the Merkle tree and includes a hash of the previous transaction hash. The Merkle root is derived from the hashes of all transactions included in this block. The hash of the Merkle root ensures that no transaction can be modified without modifying the block header.
@@ -82,7 +82,7 @@ The block timestamp is Unix epoch time when the miner started hashing the header
 ### Difficulty Target
 The difficulty target is a 256-bit unsigned integer which a header hash must be less than or equal to for that header to be a valid part of the block chain. The header field *nBits* provides only 32 bits of space, so the target number uses a less precise format called "compact" which works like a base-256 version of scientific notation. As a base-256 number, nBits can be parsed as bytes the same way you might parse a decimal number in base-10 scientific notation.
 
-Although the target threshold should be an unsigned integer, the class from which the original nBits implementation inherits properties from a signed data class, allowing the target threshold to be negative if the high bit of the significand is set. 
+Although the target threshold should be an unsigned integer, the class from which the original nBits implementation inherits properties from a signed data class, allowing the target threshold to be negative if the high bit of the significand is set.
 
 * When parsing nBits, the system converts a negative target threshold into a target of zero, which the header hash can equal (in
   theory, at least).
@@ -98,7 +98,7 @@ To be valid, a block include a **nonce** value that is the solution to the minin
 
 The `nonce` is a 32-bit (4-byte) field whose value is arbitrarily set by miners to modify the header hash and produce a hash that is less than the difficulty target with the required number of leading zeros (currently 32) satisfies the proof-of-work.
 
-An arbitrary number miners change to modify the header hash in order to produce a hash less than or equal to the target threshold.  If all 32-bit values are tested, the time can be updated or the coinbase transaction can be changed and the Merkle root updated. 
+An arbitrary number miners change to modify the header hash in order to produce a hash less than or equal to the target threshold.  If all 32-bit values are tested, the time can be updated or the coinbase transaction can be changed and the Merkle root updated.
 
 The nonce is an arbitrarily changed by miners to modify the header hash and produce a hash less than the difficulty target. If all 32-bit values are tested, the time can be updated or the coinbase transaction can be changed and the Merkle root updated.
 
@@ -107,7 +107,7 @@ Any change to the nonce will make the block header hash completely different. Si
 It is important to note that the proof-of-work can be verified by computing one hash with the proper content, and is therefore very cheap. The fact that the proof is cheap to verify is as important as the fact that it is expensive to compute.
 
 ## Coinbase Transaction
-The first transaction in the body of each block is a special transaction called the **coinbase transaction** which is used to pay miners of the block. The coinbase transaction is required, and must collect and spend any transaction fees paid by transactions included in the block. 
+The first transaction in the body of each block is a special transaction called the **coinbase transaction** which is used to pay miners of the block. The coinbase transaction is required, and must collect and spend any transaction fees paid by transactions included in the block.
 
 A valid block is entitled to receive a block subsidy of newly created bitcoincash value, and it must also be spent in the coinbase transaction. Together, the transaction fees and block subsidy are called the **block reward**. A coinbase transaction is invalid if it tries to spend more value than is available from the block reward. The subsidy plus fees is the maximum coinbase payout, but note that it is valid for the coinbase to pay less.
 

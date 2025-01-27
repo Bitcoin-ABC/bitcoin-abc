@@ -64,7 +64,7 @@ OP_NUM2BIN       // <SLP value 4-byte little endian>
 OP_REVERSEBYTES  // <SLP value 4-byte big endian>
 ```
 
-That's 11 bytes (9 operations and 3 pushdata) saved. 
+That's 11 bytes (9 operations and 3 pushdata) saved.
 
 There are multiple reasons why the second version would be preferable:
 
@@ -103,7 +103,7 @@ Examples:
 
 ### Opcode Number
 
-OP_REVERSEBYTES proposes to use the previously unused opcode with number 188 (0xbc in hex encoding), which comes after the most recently added opcode, `OP_CHECKDATASIGVERIFY`. 
+OP_REVERSEBYTES proposes to use the previously unused opcode with number 188 (0xbc in hex encoding), which comes after the most recently added opcode, `OP_CHECKDATASIGVERIFY`.
 
 ### Name
 
