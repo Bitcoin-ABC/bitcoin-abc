@@ -57,11 +57,17 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
     }
 
     const auto electrum_hosts = args.GetArgs("-chronikelectrumbind");
+    const bool is_scripthashindex_enabled =
+        args.GetBoolArg("-chronikscripthashindex", false);
     if (!electrum_hosts.empty()) {
         if (args.IsArgSet("-chronikelectrumcert") ^
             args.IsArgSet("-chronikelectrumprivkey")) {
             return {{_("The -chronikelectrumcert and -chronikelectrumprivkey "
                        "options should both be set or unset.")}};
+        }
+        if (!is_scripthashindex_enabled) {
+            return {{_("The -chronikelectrumbind option requires "
+                       "-chronikscripthashindex to be true.")}};
         }
     }
 
@@ -76,8 +82,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .wipe_db = fWipe,
         .enable_token_index = args.GetBoolArg("-chroniktokenindex", true),
         .enable_lokad_id_index = args.GetBoolArg("-chroniklokadidindex", true),
-        .enable_scripthash_index =
-            args.GetBoolArg("-chronikscripthashindex", false),
+        .enable_scripthash_index = is_scripthashindex_enabled,
         .is_pause_allowed = is_pause_allowed,
         .enable_perf_stats = args.GetBoolArg("-chronikperfstats", false),
         .ws_ping_interval_secs =

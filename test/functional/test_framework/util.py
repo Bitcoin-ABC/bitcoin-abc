@@ -469,7 +469,6 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
         f.write(f"port={p2p_port(n)}\n")
         f.write(f"rpcport={rpc_port(n)}\n")
         f.write(f"chronikbind=127.0.0.1:{chronik_port(n)}\n")
-        f.write(f"chronikelectrumbind=127.0.0.1:{chronikelectrum_port(n)}\n")
         # Disable server-side timeouts to avoid intermittent issues
         f.write("rpcservertimeout=99000\n")
         # Chronik by default is tuned for initial sync, tune it down for regtest

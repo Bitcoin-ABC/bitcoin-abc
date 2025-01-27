@@ -23,7 +23,7 @@ from test_framework.messages import (
 from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, hex_to_be_bytes
+from test_framework.util import assert_equal, chronikelectrum_port, hex_to_be_bytes
 from test_framework.wallet import MiniWallet
 
 COINBASE_TX_HEX = (
@@ -41,7 +41,13 @@ max_int64 = 2**63 - 1
 class ChronikElectrumBlockchain(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [["-chronik"]]
+        self.extra_args = [
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+                "-chronikscripthashindex=1",
+            ]
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
