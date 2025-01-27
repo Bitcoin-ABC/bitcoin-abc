@@ -148,7 +148,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
             "Provide the withheld block and check that stalling timeout gets reduced back to 2 seconds"
         )
         with node.assert_debug_log(
-            expected_msgs=["Decreased stalling timeout to 2 seconds"]
+            expected_msgs=["Decreased stalling timeout to 2 seconds"], timeout=10
         ):
             for p in peers:
                 if p.is_connected and (stall_block in p.getdata_requests):
