@@ -56,21 +56,21 @@ function(add_cargo_custom_target TARGET)
     )
 endfunction()
 
-function(add_crate_test_targets CRATE)
+function(_add_crate_test_pattern CRATE PATTERN)
     set(CRATE_TEST_TARGET "check-crate-${CRATE}")
     add_custom_target("${CRATE_TEST_TARGET}")
 
     set(CLIPPY_TARGET "${CRATE_TEST_TARGET}-clippy")
     add_cargo_custom_target("${CLIPPY_TARGET}"
         clippy
-        --package '${CRATE}-*'
+        --package '${PATTERN}'
         -- -D warnings
     )
 
     set(TEST_TARGET "${CRATE_TEST_TARGET}-test")
     add_cargo_custom_target("${TEST_TARGET}"
         test
-        --package '${CRATE}-*'
+        --package '${PATTERN}'
     )
 
     add_dependencies("${CRATE_TEST_TARGET}"
@@ -83,9 +83,18 @@ function(add_crate_test_targets CRATE)
     )
 endfunction()
 
+macro(add_crate_test_targets CRATE)
+    _add_crate_test_pattern("${CRATE}" "${CRATE}-*")
+endmacro()
+
+macro(add_crate_test_single_target CRATE)
+    _add_crate_test_pattern("${CRATE}" "${CRATE}")
+endmacro()
+
 add_custom_target("check-crates")
 add_crate_test_targets(abc-rust)
-add_crate_test_targets(bitcoinsuite)
+add_crate_test_single_target(bitcoinsuite-core)
+add_crate_test_single_target(bitcoinsuite-slp)
 add_crate_test_targets(chronik)
 
 if(BUILD_BITCOIN_CHRONIK_PLUGINS)
