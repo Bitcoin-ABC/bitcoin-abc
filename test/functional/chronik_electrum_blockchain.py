@@ -4,6 +4,7 @@
 """
 Test Chronik's electrum interface: blockchain.* methods
 """
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import (
     GENESIS_BLOCK_HASH,
     GENESIS_CB_SCRIPT_PUBKEY,
@@ -11,8 +12,10 @@ from test_framework.blocktools import (
     GENESIS_CB_TXID,
     TIME_GENESIS_BLOCK,
 )
+from test_framework.hash import hex_be_sha256
 from test_framework.merkle import merkle_root_and_branch
 from test_framework.messages import (
+    XEC,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -63,6 +66,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_transaction_broadcast()
         self.test_transaction_get_merkle()
         self.test_block_header()
+        self.test_scripthash_get_balance()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -407,7 +411,6 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         for i in range(len(txids)):
             _root, branch = merkle_root_and_branch(txids, i)
-            print(self.client.blockchain.transaction.get_merkle(txids_hex[i]).result)
             assert_equal(
                 self.client.blockchain.transaction.get_merkle(txids_hex[i]).result,
                 {
@@ -610,6 +613,87 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     ),
                 },
             )
+
+    def test_scripthash_get_balance(self):
+        for invalid_scripthash in (31 * "ff", 31 * "ff" + "f", 42, False, "spam"):
+            assert_equal(
+                self.client.blockchain.scripthash.get_balance(invalid_scripthash).error,
+                {
+                    "code": 1,
+                    "message": "Invalid scripthash",
+                },
+            )
+
+        # valid hash, but not associated with any known script
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(32 * "ff").result,
+            {
+                "confirmed": 0,
+                "unconfirmed": 0,
+            },
+        )
+
+        # Mine a block just to be sure all the utxos are confirmed
+        self.generate(self.wallet, 1)
+        value = sum(
+            [
+                utxo["value"]
+                for utxo in self.wallet.get_utxos(
+                    include_immature_coinbase=True, mark_as_spent=False
+                )
+            ]
+        )
+        scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            {
+                "confirmed": value * XEC,
+                "unconfirmed": 0,
+            },
+        )
+
+        tx = self.wallet.send_self_transfer(from_node=self.node)
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            {"confirmed": value * XEC, "unconfirmed": -tx["fee"] * XEC},
+        )
+
+        self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            {
+                "confirmed": (value - tx["fee"]) * XEC,
+                "unconfirmed": 0,
+            },
+        )
+
+        script = CScript(
+            bytes.fromhex("76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac")
+        )
+        scripthash = hex_be_sha256(script)
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            {
+                "confirmed": 0,
+                "unconfirmed": 0,
+            },
+        )
+        self.wallet.send_to(from_node=self.node, scriptPubKey=script, amount=1337)
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            {
+                "confirmed": 0,
+                "unconfirmed": 1337,
+            },
+        )
+        self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            {
+                "confirmed": 1337,
+                "unconfirmed": 0,
+            },
+        )
 
 
 if __name__ == "__main__":

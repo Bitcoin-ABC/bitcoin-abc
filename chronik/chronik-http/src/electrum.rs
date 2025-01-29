@@ -13,7 +13,9 @@ use bitcoinsuite_core::{
 };
 use bytes::Bytes;
 use chronik_bridge::ffi;
-use chronik_indexer::merkle::MerkleTree;
+use chronik_db::group::GroupMember;
+use chronik_indexer::{merkle::MerkleTree, query::MAX_HISTORY_PAGE_SIZE};
+use chronik_proto::proto::TxHistoryPage;
 use futures::future;
 use itertools::izip;
 use karyon_jsonrpc::{
@@ -33,6 +35,12 @@ use crate::{
     server::{ChronikIndexerRef, NodeRef},
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
+
+/// Largest tx history we a willing to serve.
+/// Electrum responses are not paginated, so the protocol is limited  when
+/// it comes to scripts with an unreasonable number of transactions.
+/// TODO: make this an init param
+pub const MAX_HISTORY: usize = 200_000;
 
 /// Chronik Electrum protocol
 #[derive(Clone, Copy, Debug)]
@@ -350,6 +358,39 @@ fn json_to_u31(num: Value, err_msg: &str) -> Result<i32, RPCError> {
 
 fn be_bytes_to_le_hex(hash: &[u8]) -> String {
     hex::encode(Sha256::from_be_slice(hash).unwrap().as_le_bytes())
+}
+
+fn get_scripthash_balance(
+    history: TxHistoryPage,
+    scripthash: Sha256,
+) -> (i64, i64) {
+    let mut confirmed: i64 = 0;
+    let mut unconfirmed: i64 = 0;
+
+    for tx in history.txs.iter() {
+        let is_mempool = tx.block.is_none();
+        for outp in tx.outputs.iter() {
+            if Sha256::digest(&outp.output_script) != scripthash {
+                continue;
+            }
+            if is_mempool {
+                unconfirmed += outp.value;
+            } else {
+                confirmed += outp.value;
+            }
+        }
+        for inp in tx.inputs.iter() {
+            if Sha256::digest(&inp.output_script) != scripthash {
+                continue;
+            }
+            if is_mempool {
+                unconfirmed -= inp.value;
+            } else {
+                confirmed -= inp.value;
+            }
+        }
+    }
+    (confirmed, unconfirmed)
 }
 
 #[rpc_impl(name = "blockchain")]
@@ -693,6 +734,73 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             "merkle": branch,
             "block_height": block_height,
             "pos": index_in_block,
+        }))
+    }
+
+    #[rpc_method(name = "scripthash.get_balance")]
+    async fn scripthash_get_balance(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        let indexer = self.indexer.read().await;
+        let script_history = indexer
+            .script_history(&self.node)
+            .map_err(|_| RPCError::InternalError)?;
+        let history = script_history
+            .rev_history(
+                GroupMember::MemberHash(script_hash).as_ref(),
+                0,
+                MAX_HISTORY_PAGE_SIZE,
+            )
+            .map_err(|_| RPCError::InternalError)?;
+        if history.num_txs == 0 {
+            return Ok(json!({
+              "confirmed": 0,
+              "unconfirmed": 0
+            }));
+        }
+        if history.num_txs > MAX_HISTORY as u32 {
+            return Err(RPCError::CustomError(
+                1,
+                format!(
+                    "transaction history for scripthash {script_hash_hex} \
+                     exceeds limit ({MAX_HISTORY})"
+                ),
+            ));
+        }
+        let num_pages = history.num_pages;
+        let (mut confirmed, mut unconfirmed) =
+            get_scripthash_balance(history, script_hash);
+        for page in 1..num_pages {
+            let history = script_history
+                .rev_history(
+                    GroupMember::MemberHash(script_hash).as_ref(),
+                    page as usize,
+                    MAX_HISTORY_PAGE_SIZE,
+                )
+                .map_err(|_| RPCError::InternalError)?;
+            let (page_conf, page_unconf) =
+                get_scripthash_balance(history, script_hash);
+            confirmed += page_conf;
+            unconfirmed += page_unconf;
+        }
+        Ok(json!({
+          "confirmed": confirmed,
+          "unconfirmed": unconfirmed,
         }))
     }
 }
