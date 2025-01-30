@@ -14,5 +14,8 @@ export async function initWasm() {
         sha256: ffi.sha256,
         sha256d: ffi.sha256d,
         shaRmd160: ffi.shaRmd160,
+        sha512: ffi.sha512,
+        Sha256H: ffi.Sha256H,
+        Sha512H: ffi.Sha512H,
     });
 }
