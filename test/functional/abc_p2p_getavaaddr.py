@@ -139,11 +139,19 @@ class AvaAddrTest(BitcoinTestFramework):
             node.add_p2p_connection(p)
 
         # Build some statistics to ensure some addresses will be returned
-        def all_peers_received_poll(avapeers):
-            with p2p_lock:
-                return all(avapeer.poll_received > 0 for avapeer in avapeers)
+        def all_peers_addr_are_relayable(avapeers):
+            proofids = [uint256_hex(p.proof.proofid) for p in avapeers]
+            valid_proofids = node.getavalancheproofs()["valid"]
 
-        self.wait_until(lambda: all_peers_received_poll(peers[:8]))
+            node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
+
+            return all(
+                proofid in valid_proofids
+                and node.getavalanchepeerinfo(proofid)[0]["availability_score"] > 0
+                for proofid in proofids
+            )
+
+        self.wait_until(lambda: all_peers_addr_are_relayable(peers[:8]))
         node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         requester = node.add_p2p_connection(AddrReceiver())
@@ -168,7 +176,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Add some more address so the node has something to respond
         for p in peers[8:]:
             node.add_p2p_connection(p)
-        self.wait_until(lambda: all_peers_received_poll(peers))
+        self.wait_until(lambda: all_peers_addr_are_relayable(peers))
         node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         # Check our message is now accepted again now that the getavaaddr
