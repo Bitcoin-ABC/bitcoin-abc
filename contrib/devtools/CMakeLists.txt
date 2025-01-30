@@ -38,6 +38,5 @@ exclude_from_source_package(
 	"extract_strings_qt.py"
 	"optimize-pngs.py"
 	"README.md"
-	"test-security-check.py"
 	"update-translations.py"
 )
