@@ -11,6 +11,7 @@
         /* Interop Constraints */
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
         /* Type Checking */
         "strict": true
     },
