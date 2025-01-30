@@ -67,6 +67,10 @@ namespace {
                 std::make_pair(item, voteRecord));
         }
 
+        static void removeVoteRecord(Processor &p, AnyVoteItem &item) {
+            p.voteRecords.getWriteView()->erase(item);
+        }
+
         static void setFinalizationTip(Processor &p,
                                        const CBlockIndex *pindex) {
             LOCK(p.cs_finalizationTip);
@@ -368,6 +372,92 @@ struct ProofProvider {
     }
 };
 
+struct StakeContenderProvider {
+    AvalancheTestingSetup *fixture;
+
+    std::vector<avalanche::VoteItemUpdate> updates;
+    uint32_t invType;
+
+    StakeContenderProvider(AvalancheTestingSetup *_fixture)
+        : fixture(_fixture), invType(MSG_AVA_STAKE_CONTENDER) {}
+
+    StakeContenderId buildVoteItem() const {
+        ChainstateManager &chainman = *Assert(fixture->m_node.chainman);
+        const CBlockIndex *chaintip =
+            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
+
+        std::vector<CScript> winners;
+        if (!fixture->m_processor->getStakingRewardWinners(
+                chaintip->GetBlockHash(), winners)) {
+            // If staking rewards are not ready, just set it to some winner.
+            // This ensures getStakeContenderStatus will not return pending.
+            const ProofRef proofWinner = fixture->GetProof();
+            std::vector<CScript> payouts{proofWinner->getPayoutScript()};
+            fixture->m_processor->setStakingRewardWinners(chaintip, payouts);
+        }
+
+        // Create a new contender
+        const ProofRef proof = fixture->GetProof();
+        const StakeContenderId contenderId(chaintip->GetBlockHash(),
+                                           proof->getId());
+
+        {
+            LOCK(cs_main);
+            fixture->m_processor->addStakeContender(proof);
+
+            // Many of these tests assume that building a new item means it is
+            // accepted by default. Contenders are different in that they are
+            // only accepted if they are a stake winner. We stick the the
+            // convention for these tests and accept the contender.
+            fixture->m_processor->acceptStakeContender(contenderId);
+        }
+
+        BOOST_CHECK(
+            fixture->m_processor->getStakeContenderStatus(contenderId) == 0);
+        return contenderId;
+    }
+
+    uint256 getVoteItemId(const StakeContenderId &contenderId) const {
+        return contenderId;
+    }
+
+    std::vector<Vote>
+    buildVotesForItems(uint32_t error, std::vector<StakeContenderId> &&items) {
+        size_t numItems = items.size();
+
+        std::vector<Vote> votes;
+        votes.reserve(numItems);
+
+        // Contenders are sorted by id
+        std::sort(items.begin(), items.end(),
+                  [](const StakeContenderId &lhs, const StakeContenderId &rhs) {
+                      return lhs < rhs;
+                  });
+        for (auto &item : items) {
+            votes.emplace_back(error, item);
+        }
+
+        return votes;
+    }
+
+    void invalidateItem(const StakeContenderId &contenderId) {
+        fixture->m_processor->invalidateStakeContender(contenderId);
+
+        // Warning: This is a special case for stake contenders because
+        // invalidation does not cause isWorthPolling to return false. This is
+        // because invalidation of contenders is only intended to halt polling.
+        // They will continue to be tracked in the cache, being promoted and
+        // polled again (respective to the proof) for each block.
+        AnyVoteItem contenderVoteItem(contenderId);
+        AvalancheTest::removeVoteRecord(*(fixture->m_processor),
+                                        contenderVoteItem);
+    }
+
+    const StakeContenderId fromAnyVoteItem(const AnyVoteItem &item) {
+        return std::get<const StakeContenderId>(item);
+    }
+};
+
 struct TxProvider {
     AvalancheTestingSetup *fixture;
 
@@ -440,8 +530,14 @@ struct TxProvider {
 BOOST_FIXTURE_TEST_SUITE(processor_tests, AvalancheTestingSetup)
 
 // FIXME A std::tuple can be used instead of boost::mpl::list after boost 1.67
-using VoteItemProviders =
+using VoteItemProviders = boost::mpl::list<BlockProvider, ProofProvider,
+                                           StakeContenderProvider, TxProvider>;
+using NullableVoteItemProviders =
     boost::mpl::list<BlockProvider, ProofProvider, TxProvider>;
+using Uint256VoteItemProviders = boost::mpl::list<StakeContenderProvider>;
+static_assert(boost::mpl::size<VoteItemProviders>::value ==
+              boost::mpl::size<NullableVoteItemProviders>::value +
+                  boost::mpl::size<Uint256VoteItemProviders>::value);
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(voteitemupdate, P, VoteItemProviders) {
     P provider(this);
@@ -544,7 +640,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
     BOOST_CHECK(addToReconcile(item));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, VoteItemProviders) {
+BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, NullableVoteItemProviders) {
     P provider(this);
 
     // Check that null case is handled on the public interface
@@ -563,6 +659,28 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, VoteItemProviders) {
 
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(item_zero, P, Uint256VoteItemProviders) {
+    P provider(this);
+
+    auto itemZero = decltype(provider.buildVoteItem())();
+
+    // Check that zero case is handled on the public interface
+    BOOST_CHECK(!m_processor->isAccepted(itemZero));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(itemZero), -1);
+
+    BOOST_CHECK(itemZero == uint256::ZERO);
+    BOOST_CHECK(!addToReconcile(itemZero));
+
+    // Check that adding item to vote on doesn't change the outcome. A
+    // comparator is used under the hood, and this is skipped if there are no
+    // vote records.
+    auto item = provider.buildVoteItem();
+    BOOST_CHECK(addToReconcile(item));
+
+    BOOST_CHECK(!m_processor->isAccepted(itemZero));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(itemZero), -1);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {

@@ -10,6 +10,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
+#include <avalanche/stakecontender.h>
 #include <avalanche/stakecontendercache.h>
 #include <avalanche/voterecord.h> // For AVALANCHE_MAX_INFLIGHT_POLL
 #include <blockindex.h>
@@ -90,8 +91,8 @@ enum struct VoteStatus : uint8_t {
     Stale,
 };
 
-using AnyVoteItem =
-    std::variant<const ProofRef, const CBlockIndex *, const CTransactionRef>;
+using AnyVoteItem = std::variant<const ProofRef, const CBlockIndex *,
+                                 const StakeContenderId, const CTransactionRef>;
 
 class VoteItemUpdate {
     AnyVoteItem item;
@@ -120,6 +121,9 @@ struct VoteMapComparator {
                 [](const CBlockIndex *lhs, const CBlockIndex *rhs) {
                     // Reverse ordering so we get the highest work first
                     return CBlockIndexWorkComparator()(rhs, lhs);
+                },
+                [](const StakeContenderId &lhs, const StakeContenderId &rhs) {
+                    return lhs < rhs;
                 },
                 [](const CTransactionRef &lhs, const CTransactionRef &rhs) {
                     return lhs->GetId() < rhs->GetId();
@@ -384,6 +388,10 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_stakeContenderCache);
     int getStakeContenderStatus(const StakeContenderId &contenderId) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
+    void acceptStakeContender(const StakeContenderId &contenderId)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
+    void invalidateStakeContender(const StakeContenderId &contenderId)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
 
     /** Promote stake contender cache entries to the latest chain tip */
     void promoteStakeContendersToTip()
@@ -446,6 +454,8 @@ private:
             LOCKS_EXCLUDED(cs_main);
         bool operator()(const ProofRef &proof) const
             LOCKS_EXCLUDED(cs_peerManager);
+        bool operator()(const StakeContenderId &contenderId) const
+            LOCKS_EXCLUDED(cs_stakeContenderCache, cs_stakingRewards);
         bool operator()(const CTransactionRef &tx) const;
     };
     bool isWorthPolling(const AnyVoteItem &item) const
@@ -461,6 +471,7 @@ private:
             LOCKS_EXCLUDED(cs_main);
         bool operator()(const ProofRef &proof) const
             LOCKS_EXCLUDED(cs_peerManager);
+        bool operator()(const StakeContenderId &contenderId) const;
         bool operator()(const CTransactionRef &tx) const;
     };
     bool getLocalAcceptance(const AnyVoteItem &item) const {

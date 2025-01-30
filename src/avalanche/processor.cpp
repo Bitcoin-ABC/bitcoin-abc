@@ -46,6 +46,9 @@ static const uint256 GetVoteItemId(const AnyVoteItem &item) {
                               uint256 hash = pindex->GetBlockHash();
                               return hash;
                           },
+                          [](const StakeContenderId &contenderId) {
+                              return uint256(contenderId);
+                          },
                           [](const CTransactionRef &tx) {
                               uint256 id = tx->GetId();
                               return id;
@@ -411,7 +414,13 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
 
 static bool isNull(const AnyVoteItem &item) {
     return item.valueless_by_exception() ||
-           std::visit([](const auto &item) { return item == nullptr; }, item);
+           std::visit(variant::overloaded{
+                          [](const StakeContenderId &contenderId) {
+                              return contenderId == uint256::ZERO;
+                          },
+                          [](const auto &item) { return item == nullptr; },
+                      },
+                      item);
 };
 
 bool Processor::addToReconcile(const AnyVoteItem &item) {
@@ -1011,6 +1020,9 @@ void Processor::addStakeContender(const ProofRef &proof) {
 
 int Processor::getStakeContenderStatus(
     const StakeContenderId &contenderId) const {
+    AssertLockNotHeld(cs_stakeContenderCache);
+    AssertLockNotHeld(cs_stakingRewards);
+
     BlockHash prevblockhash;
     int status = WITH_LOCK(
         cs_stakeContenderCache,
@@ -1027,6 +1039,16 @@ int Processor::getStakeContenderStatus(
     }
 
     return status;
+}
+
+void Processor::acceptStakeContender(const StakeContenderId &contenderId) {
+    LOCK(cs_stakeContenderCache);
+    stakeContenderCache.accept(contenderId);
+}
+
+void Processor::invalidateStakeContender(const StakeContenderId &contenderId) {
+    LOCK(cs_stakeContenderCache);
+    stakeContenderCache.invalidate(contenderId);
 }
 
 void Processor::promoteStakeContendersToTip() {
@@ -1268,6 +1290,9 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         [](const CBlockIndex *pindex) {
             return CInv(MSG_BLOCK, pindex->GetBlockHash());
         },
+        [](const StakeContenderId &contenderId) {
+            return CInv(MSG_AVA_STAKE_CONTENDER, contenderId);
+        },
         [](const CTransactionRef &tx) { return CInv(MSG_TX, tx->GetHash()); },
     };
 
@@ -1301,6 +1326,10 @@ AnyVoteItem Processor::getVoteItemFromInv(const CInv &inv) const {
     if (inv.IsMsgProof()) {
         return WITH_LOCK(cs_peerManager,
                          return peerManager->getProof(ProofId(inv.hash)));
+    }
+
+    if (inv.IsMsgStakeContender()) {
+        return StakeContenderId(inv.hash);
     }
 
     if (mempool && inv.IsMsgTx()) {
@@ -1362,6 +1391,15 @@ bool Processor::IsWorthPolling::operator()(const ProofRef &proof) const {
            processor.peerManager->isInConflictingPool(proofid);
 }
 
+bool Processor::IsWorthPolling::operator()(
+    const StakeContenderId &contenderId) const {
+    AssertLockNotHeld(processor.cs_stakeContenderCache);
+    AssertLockNotHeld(processor.cs_stakingRewards);
+
+    // Only worth polling for contenders that we know about
+    return processor.getStakeContenderStatus(contenderId) != -1;
+}
+
 bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
     if (!processor.mempool) {
         return false;
@@ -1396,6 +1434,14 @@ bool Processor::GetLocalAcceptance::operator()(const ProofRef &proof) const {
     return WITH_LOCK(
         processor.cs_peerManager,
         return processor.peerManager->isBoundToPeer(proof->getId()));
+}
+
+bool Processor::GetLocalAcceptance::operator()(
+    const StakeContenderId &contenderId) const {
+    AssertLockNotHeld(processor.cs_stakeContenderCache);
+    AssertLockNotHeld(processor.cs_stakingRewards);
+
+    return processor.getStakeContenderStatus(contenderId) == 0;
 }
 
 bool Processor::GetLocalAcceptance::operator()(
