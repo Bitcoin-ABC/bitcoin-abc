@@ -684,7 +684,7 @@ describe('<OrderBook />', () => {
         ).toBeInTheDocument();
         expect(
             screen.getByText(
-                'Cashtab does not support buying offers above spot.',
+                'Cashtab does not support buying offers more than 25% above spot.',
             ),
         ).toBeInTheDocument();
         expect(screen.getByText('OK')).toBeDisabled();

@@ -95,6 +95,25 @@ import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
 import { AgoraOffer, AgoraPartial } from 'ecash-agora';
 import { IsMintAddressIcon } from 'components/Common/CustomIcons';
 
+/**
+ * Allow users to buy above spot (within reason)
+ * There are legitimate use cases for buying above spot
+ * - Perhaps someone has created an offer with a "low" price but a VERYHIGH min accept, so
+ *   the actual buy cost is very high, blocking off other offers
+ * - Perhaps there is an offer that has a higher price, but allows the user to purchase
+ *   lower amounts. It makes sense a user might pay a little extra for the ability to buy
+ *   a smaller quantity
+ *
+ * We want to prevent users from accidentally buying the seemingly endless scam offers, i.e.
+ * those offers where a user sells a (usually very small) quantity of token for a (usually very large)
+ * price...sometimes at prices exceeding the XEC supply
+ *
+ * But we also want to allow users some freedom of choice.
+ *
+ * 1.25 = users can buy offers up to 25% above spot
+ */
+const ALLOW_BUYS_ABOVE_SPOT_RATIO = 1.25;
+
 export interface PartialOffer extends AgoraOffer {
     variant: {
         type: 'PARTIAL';
@@ -968,8 +987,20 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     handleCancel={() => setShowConfirmBuyModal(false)}
                     disabled={
                         activeOffers === null ||
-                        selectedOffer?.spotPriceNanoSatsPerTokenSat !==
-                            activeOffers[0].spotPriceNanoSatsPerTokenSat
+                        (typeof selectedOffer?.spotPriceNanoSatsPerTokenSat !==
+                            'undefined' &&
+                            typeof activeOffers[0]
+                                ?.spotPriceNanoSatsPerTokenSat !==
+                                'undefined' &&
+                            selectedOffer?.spotPriceNanoSatsPerTokenSat >
+                                BigInt(
+                                    new BigNumber(
+                                        activeOffers[0].spotPriceNanoSatsPerTokenSat.toString(),
+                                    )
+                                        .times(ALLOW_BUYS_ABOVE_SPOT_RATIO)
+                                        .integerValue()
+                                        .toString(),
+                                ))
                     }
                 >
                     <>
@@ -1041,27 +1072,46 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     .spotPriceNanoSatsPerTokenSat !==
                                     'undefined' &&
                                 typeof selectedOffer?.spotPriceNanoSatsPerTokenSat !==
-                                    'undefined' &&
-                                selectedOffer?.spotPriceNanoSatsPerTokenSat !==
-                                    activeOffers[0]
-                                        .spotPriceNanoSatsPerTokenSat && (
+                                    'undefined' && (
                                     <>
-                                        <AgoraPreviewRow>
-                                            <AgoraWarningParagraph>
-                                                This offer is{' '}
-                                                {getPercentDeltaOverSpot(
-                                                    selectedOffer.spotPriceNanoSatsPerTokenSat,
-                                                    activeOffers[0]
-                                                        .spotPriceNanoSatsPerTokenSat,
-                                                    userLocale,
-                                                )}{' '}
-                                                above spot
-                                            </AgoraWarningParagraph>
-                                        </AgoraPreviewRow>
-                                        <Alert noWordBreak>
-                                            Cashtab does not support buying
-                                            offers above spot.
-                                        </Alert>
+                                        {selectedOffer?.spotPriceNanoSatsPerTokenSat !==
+                                            activeOffers[0]
+                                                .spotPriceNanoSatsPerTokenSat && (
+                                            <AgoraPreviewRow>
+                                                <AgoraWarningParagraph>
+                                                    This offer is{' '}
+                                                    {getPercentDeltaOverSpot(
+                                                        selectedOffer.spotPriceNanoSatsPerTokenSat,
+                                                        activeOffers[0]
+                                                            .spotPriceNanoSatsPerTokenSat,
+                                                        userLocale,
+                                                    )}{' '}
+                                                    above spot
+                                                </AgoraWarningParagraph>
+                                            </AgoraPreviewRow>
+                                        )}
+                                        {selectedOffer?.spotPriceNanoSatsPerTokenSat >
+                                            BigInt(
+                                                new BigNumber(
+                                                    activeOffers[0].spotPriceNanoSatsPerTokenSat.toString(),
+                                                )
+                                                    .times(
+                                                        ALLOW_BUYS_ABOVE_SPOT_RATIO,
+                                                    )
+                                                    .integerValue()
+                                                    .toString(),
+                                            ) && (
+                                            <Alert noWordBreak>
+                                                Cashtab does not support buying
+                                                offers more than{' '}
+                                                {(
+                                                    100 *
+                                                    (ALLOW_BUYS_ABOVE_SPOT_RATIO -
+                                                        1)
+                                                ).toFixed(0)}
+                                                % above spot.
+                                            </Alert>
+                                        )}
                                     </>
                                 )}
                         </AgoraPreviewTable>
