@@ -42,6 +42,17 @@ describe('WriterBytes', () => {
             fromHex('440102030405060708090a0b0c0d0e0f10'),
         );
     });
+    it('WriterBytes.put* multiple big-endian', () => {
+        const writer = new WriterBytes(17);
+        writer.putU8(0x44);
+        writer.putU16(0x0201, 'BE');
+        writer.putU32(0x06050403, 'BE');
+        writer.putU64(0x0e0d0c0b0a090807n, 'BE');
+        writer.putBytes(fromHex('0f10'));
+        expect(writer.data).to.deep.equal(
+            fromHex('440201060504030e0d0c0b0a0908070f10'),
+        );
+    });
     it('WriterBytes.put* failure', () => {
         expect(() => wrote(0, writer => writer.putU8(0))).to.throw(
             'Not enough bytes: Tried writing 1 byte(s), but only 0 byte(s) have been pre-allocated',

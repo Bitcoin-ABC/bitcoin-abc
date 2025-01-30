@@ -2,6 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+export type Endian = 'LE' | 'BE';
+
+export function endianToBool(endian?: Endian): boolean {
+    if (!endian) {
+        // By default, little endian
+        return true;
+    }
+    return endian === 'LE';
+}
+
 /** Reads ints/bytes from a Uint8Array. All integers are little-endian. */
 export class Bytes {
     public data: Uint8Array;
@@ -28,25 +38,25 @@ export class Bytes {
     }
 
     /** Read 2-byte little-endian integer (uint16_t) */
-    public readU16(): number {
+    public readU16(endian?: Endian): number {
         this.ensureSize(2);
-        const result = this.view.getUint16(this.idx, true);
+        const result = this.view.getUint16(this.idx, endianToBool(endian));
         this.idx += 2;
         return result;
     }
 
     /** Read 4-byte little-endian integer (uint32_t) */
-    public readU32(): number {
+    public readU32(endian?: Endian): number {
         this.ensureSize(4);
-        const result = this.view.getUint32(this.idx, true);
+        const result = this.view.getUint32(this.idx, endianToBool(endian));
         this.idx += 4;
         return result;
     }
 
     /** Read 8-byte little-endian integer (uint64_t) */
-    public readU64(): bigint {
+    public readU64(endian?: Endian): bigint {
         this.ensureSize(8);
-        const result = this.view.getBigUint64(this.idx, true);
+        const result = this.view.getBigUint64(this.idx, endianToBool(endian));
         this.idx += 8;
         return result;
     }

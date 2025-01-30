@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { Endian } from './bytes.js';
 import { Int } from './int.js';
 import { Writer } from './writer.js';
 
@@ -22,17 +23,17 @@ export class WriterLength implements Writer {
     }
 
     /** Write a 2-byte little-endian integer (uint16_t) */
-    public putU16(_value: Int): void {
+    public putU16(_value: Int, _endian?: Endian): void {
         this.length += 2;
     }
 
     /** Write a 4-byte little-endian integer (uint32_t) */
-    public putU32(_value: Int): void {
+    public putU32(_value: Int, _endian?: Endian): void {
         this.length += 4;
     }
 
     /** Write an 8-byte little-endian integer (uint64_t) */
-    public putU64(_value: Int): void {
+    public putU64(_value: Int, _endian?: Endian): void {
         this.length += 8;
     }
 

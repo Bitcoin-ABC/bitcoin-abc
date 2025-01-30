@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { Endian, endianToBool } from './bytes.js';
 import { Int } from './int.js';
 import { Writer } from './writer.js';
 
@@ -38,32 +39,32 @@ export class WriterBytes implements Writer {
     }
 
     /** Write a 2-byte little-endian integer (uint16_t) */
-    public putU16(value: Int): void {
+    public putU16(value: Int, endian?: Endian): void {
         if (value < 0 || value > 0xffff) {
             throw new Error(`Cannot fit ${value} into a u16`);
         }
         this.ensureSize(2);
-        this.view.setUint16(this.idx, Number(value), true);
+        this.view.setUint16(this.idx, Number(value), endianToBool(endian));
         this.idx += 2;
     }
 
     /** Write a 4-byte little-endian integer (uint32_t) */
-    public putU32(value: Int): void {
+    public putU32(value: Int, endian?: Endian): void {
         if (value < 0 || value > 0xffffffff) {
             throw new Error(`Cannot fit ${value} into a u32`);
         }
         this.ensureSize(4);
-        this.view.setUint32(this.idx, Number(value), true);
+        this.view.setUint32(this.idx, Number(value), endianToBool(endian));
         this.idx += 4;
     }
 
     /** Write an 8-byte little-endian integer (uint64_t) */
-    public putU64(value: Int): void {
+    public putU64(value: Int, endian?: Endian): void {
         if (value < 0 || value > 0xffffffffffffffffn) {
             throw new Error(`Cannot fit ${value} into a u64`);
         }
         this.ensureSize(8);
-        this.view.setBigUint64(this.idx, BigInt(value), true);
+        this.view.setBigUint64(this.idx, BigInt(value), endianToBool(endian));
         this.idx += 8;
     }
 

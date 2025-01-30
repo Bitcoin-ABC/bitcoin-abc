@@ -4,7 +4,7 @@
 
 //! Module for [`Ecc`] for signing secp256k1 signatures.
 
-use ecash_secp256k1::{All, Message, PublicKey, Secp256k1, SecretKey};
+use ecash_secp256k1::{All, Message, PublicKey, Scalar, Secp256k1, SecretKey};
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
 
@@ -28,6 +28,22 @@ pub enum EccError {
     #[error("Secret key not valid for secp256k1")]
     InvalidSeckey,
 
+    /// Invalid public key size
+    #[error("Invalid public key size, expected 33 bytes but got {0}")]
+    InvalidPubkeySize(usize),
+
+    /// Invalid pubkey key for signing
+    #[error("Pubkey key not valid for secp256k1")]
+    InvalidPubkey,
+
+    /// Invalid scalar size
+    #[error("Invalid scalar size, expected 32 bytes but got {0}")]
+    InvalidScalarSize(usize),
+
+    /// Invalid scalar in range
+    #[error("Scalar not valid for secp256k1")]
+    InvalidScalar,
+
     /// Invalid message size
     #[error("Invalid message size, expected 32 bytes but got {0}")]
     InvalidMessageSize(usize),
@@ -46,6 +62,24 @@ fn parse_secret_key(seckey: &[u8]) -> Result<SecretKey, String> {
             .map_err(|_| InvalidSeckeySize(seckey.len()))?,
     )
     .map_err(|_| InvalidSeckey)?)
+}
+
+fn parse_public_key(pubkey: &[u8]) -> Result<PublicKey, String> {
+    Ok(PublicKey::from_byte_array_compressed(
+        pubkey
+            .try_into()
+            .map_err(|_| InvalidPubkeySize(pubkey.len()))?,
+    )
+    .map_err(|_| InvalidPubkey)?)
+}
+
+fn parse_scalar(scalar: &[u8]) -> Result<Scalar, String> {
+    Ok(Scalar::from_be_bytes(
+        scalar
+            .try_into()
+            .map_err(|_| InvalidScalarSize(scalar.len()))?,
+    )
+    .map_err(|_| InvalidScalar)?)
 }
 
 fn parse_msg(msg: &[u8]) -> Result<Message, String> {
@@ -97,5 +131,34 @@ impl Ecc {
         let msg = parse_msg(msg)?;
         let sig = self.curve.sign_schnorrabc_no_aux_rand(&msg, &seckey);
         Ok(sig.as_ref().to_vec())
+    }
+
+    /// Return whether the given secret key is valid, i.e. whether is of correct
+    /// length (32 bytes) and is on the curve.
+    #[wasm_bindgen(js_name = isValidSeckey)]
+    pub fn is_valid_seckey(&self, seckey: &[u8]) -> bool {
+        parse_secret_key(seckey).is_ok()
+    }
+
+    /// Add a scalar to a secret key.
+    #[wasm_bindgen(js_name = seckeyAdd)]
+    pub fn seckey_add(&self, a: &[u8], b: &[u8]) -> Result<Vec<u8>, String> {
+        let a = parse_secret_key(a)?;
+        let b = parse_scalar(b)?;
+        Ok(a.add_tweak(&b)
+            .map_err(|_| InvalidSeckey)?
+            .secret_bytes()
+            .to_vec())
+    }
+
+    /// Add a scalar to a public key (adding G*b).
+    #[wasm_bindgen(js_name = pubkeyAdd)]
+    pub fn pubkey_add(&self, a: &[u8], b: &[u8]) -> Result<Vec<u8>, String> {
+        let a = parse_public_key(a)?;
+        let b = parse_scalar(b)?;
+        Ok(a.add_exp_tweak(&self.curve, &b)
+            .map_err(|_| InvalidPubkey)?
+            .serialize()
+            .to_vec())
     }
 }
