@@ -78,29 +78,25 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         # Potentially valid sha256 hash, but unlikely to collide with any existing
         # scripthash
         valid_payload = 32 * "ff"
-        err_msg = f'404: Script hash "{valid_payload}" not found'
-        assert_equal(
-            self.chronik.script("scripthash", valid_payload)
-            .confirmed_txs()
-            .err(404)
-            .msg,
-            err_msg,
-        )
-        assert_equal(
-            self.chronik.script("scripthash", valid_payload)
-            .unconfirmed_txs()
-            .err(404)
-            .msg,
-            err_msg,
-        )
         assert_equal(
             self.chronik.script("scripthash", valid_payload).utxos().err(404).msg,
-            err_msg,
+            f'404: Script hash "{valid_payload}" not found',
         )
 
     def test_valid_requests(self):
         from test_framework.chronik.client import pb
         from test_framework.chronik.test_data import genesis_cb_tx
+
+        # Unknown scripthash yields an empty history
+        valid_payload = 32 * "ff"
+        for resp in (
+            self.chronik.script("scripthash", valid_payload).confirmed_txs(),
+            self.chronik.script("scripthash", valid_payload).unconfirmed_txs(),
+        ):
+            assert_equal(
+                resp.ok(),
+                pb.TxHistoryPage(),
+            )
 
         expected_cb_history = pb.TxHistoryPage(
             txs=[genesis_cb_tx()], num_pages=1, num_txs=1
@@ -239,11 +235,8 @@ class ChronikScriptHashTest(BitcoinTestFramework):
 
         # Ensure that this script was never seen before.
         assert_equal(
-            self.chronik.script("scripthash", scripthash_hex)
-            .unconfirmed_txs()
-            .err(404)
-            .msg,
-            f'404: Script hash "{scripthash_hex}" not found',
+            self.chronik.script("scripthash", scripthash_hex).unconfirmed_txs().ok(),
+            pb.TxHistoryPage(),
         )
         assert_equal(
             self.chronik.script("scripthash", scripthash_hex).utxos().err(404).msg,
@@ -278,20 +271,20 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         script_pubkey = wallet.get_scriptPubKey()
         scripthash_hex1 = hex_be_sha256(script_pubkey)
 
-        def assert_404(scripthash_hex):
+        def assert_blank_history(scripthash_hex):
             assert_equal(
                 self.chronik.script("scripthash", scripthash_hex)
                 .confirmed_txs()
-                .err(404)
-                .msg,
-                f'404: Script hash "{scripthash_hex}" not found',
+                .ok()
+                .num_txs,
+                0,
             )
             assert_equal(
                 self.chronik.script("scripthash", scripthash_hex).utxos().err(404).msg,
                 f'404: Script hash "{scripthash_hex}" not found',
             )
 
-        assert_404(scripthash_hex1)
+        assert_blank_history(scripthash_hex1)
 
         # Create two spendable utxos with this script and confirm them. Fund them with
         # the OP_TRUE wallet used in the previous test which should have plenty of
@@ -431,7 +424,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         self.node.submitblock(ToHex(block))
 
         # There is no transaction left for this script.
-        assert_404(scripthash_hex2)
+        assert_blank_history(scripthash_hex2)
 
     def test_wipe_index(self):
         self.log.info("Restarting with chronikscripthashindex=0 wipes the index")
