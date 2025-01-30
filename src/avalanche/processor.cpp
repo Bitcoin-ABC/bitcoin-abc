@@ -1016,13 +1016,14 @@ int Processor::getStakeContenderStatus(
         cs_stakeContenderCache,
         return stakeContenderCache.getVoteStatus(contenderId, prevblockhash));
 
-    std::vector<std::pair<ProofId, CScript>> winners;
-    getStakingRewardWinners(prevblockhash, winners);
-
-    if (status != -1 && winners.size() == 0) {
-        // If we have not selected a local staking rewards winner yet, indicate
-        // this contender is pending to avoid convergence issues.
-        return -2;
+    if (status != -1) {
+        std::vector<std::pair<ProofId, CScript>> winners;
+        getStakingRewardWinners(prevblockhash, winners);
+        if (winners.size() == 0) {
+            // If we have not selected a local staking rewards winner yet,
+            // indicate this contender is pending to avoid convergence issues.
+            return -2;
+        }
     }
 
     return status;
