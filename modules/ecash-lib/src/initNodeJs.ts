@@ -7,7 +7,7 @@ import * as ffi from './ffi/ecash_lib_wasm_nodejs.js';
 import { __setHashes } from './hash.js';
 
 /** Load and initialize the WASM module for NodeJS */
-export async function initWasm() {
+export async function initWasm(_dummy?: any) {
     __setEcc(ffi.Ecc);
     __setHashes({
         sha256: ffi.sha256,

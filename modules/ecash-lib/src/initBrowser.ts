@@ -6,9 +6,19 @@ import { __setEcc } from './ecc.js';
 import __wbg_init, * as ffi from './ffi/ecash_lib_wasm_browser.js';
 import { __setHashes } from './hash.js';
 
-/** Load and initialize the WASM module for Web */
-export async function initWasm() {
-    await __wbg_init();
+/**
+ * Load and initialize the WASM module for Web.
+ *
+ * Some bundlers can't handle WebAssembly yet (at the time of writing, vite).
+ * If you run into "CompileError: expected magic word 00 61 73 6d", you can
+ * provide a custom WASM URL or module:
+ * import ecashLibWasmUrl from 'ecash-lib/dist/ffi/ecash_lib_wasm_bg_browser.wasm?url';
+ * await initWasm(ecashLibWasmUrl);
+ **/
+export async function initWasm(
+    module_or_path?: ffi.InitInput | Promise<ffi.InitInput>,
+) {
+    await __wbg_init(module_or_path);
     __setEcc(ffi.Ecc);
     __setHashes({
         sha256: ffi.sha256,

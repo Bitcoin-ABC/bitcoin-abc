@@ -95,6 +95,19 @@ const rawTx = tx.ser();
 console.log(toHex(rawTx));
 ```
 
+### Troubleshooting
+
+#### Can't load WebAssembly
+
+Some bundlers can't handle WebAssembly yet (at the time of writing, vite).
+If you run into "CompileError: expected magic word 00 61 73 6d", you can
+provide a custom WASM URL or module:
+
+```ts
+import ecashLibWasmUrl from 'ecash-lib/dist/ffi/ecash_lib_wasm_bg_browser.wasm?url';
+await initWasm(ecashLibWasmUrl);
+```
+
 ## Changelog
 
 -   0.1.1 - Validation that feePerKb is an integer
@@ -110,3 +123,4 @@ console.log(toHex(rawTx));
 -   1.3.0 - Add `toHex()` method to `Script` to allow simple conversion to hex string [D17527](https://reviews.bitcoinabc.org/D17527)
 -   1.4.0 - Add `HdNode`, `entropyToMnemonic`, `mnemonicToEntropy` and `mnemonicToSeed` to complete wallet functionality [D17619](https://reviews.bitcoinabc.org/D17619)
 -   1.4.1 - Patch import in `mnemonic.ts` [D17621](https://reviews.bitcoinabc.org/D17621)
+-   1.5.0 - Support custom WASM URL and module [D17622](https://reviews.bitcoinabc.org/D17622)
