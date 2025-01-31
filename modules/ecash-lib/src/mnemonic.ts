@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { sha256, sha512Hasher } from './hash';
-import { strToBytes } from './indexNodeJs';
+import { strToBytes } from './io/str.js';
 import { pbkdf2 } from './pbkdf2';
 
 const BITS_PER_BYTE = 8;
