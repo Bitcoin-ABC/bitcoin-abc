@@ -108,3 +108,4 @@ console.log(toHex(rawTx));
 -   1.2.0 - Add `Address` class for cashaddr and legacy addresses. [D17269](https://reviews.bitcoinabc.org/D17269)
 -   1.2.1 - Patch type check causing txBuilder txs using change to fail in NodeJS environments [D17461](https://reviews.bitcoinabc.org/D17461)
 -   1.3.0 - Add `toHex()` method to `Script` to allow simple conversion to hex string [D17527](https://reviews.bitcoinabc.org/D17527)
+-   1.4.0 - Add `HdNode`, `entropyToMnemonic`, `mnemonicToEntropy` and `mnemonicToSeed` to complete wallet functionality [D17619](https://reviews.bitcoinabc.org/D17619)

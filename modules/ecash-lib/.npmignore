@@ -1,8 +1,8 @@
-# Included in sourcemaps already
-/src
-/tests
+# Note: Keep source files as some bundlers expect them
 
 # Don't publish tests
+/tests
+*.test.ts
 *.test.d.ts
 *.test.d.ts.map
 *.test.js
