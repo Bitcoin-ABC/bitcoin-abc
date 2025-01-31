@@ -323,7 +323,7 @@ export class Address implements AddressInterface {
         }
         if (this.prefix === prefix) {
             // Take no action if prefix is not changing
-            throw new Error(`prefix is already "${this.prefix}"`);
+            return this;
         }
         return new Address({
             type: this.type,

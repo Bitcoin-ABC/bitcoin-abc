@@ -124,3 +124,4 @@ await initWasm(ecashLibWasmUrl);
 -   1.4.0 - Add `HdNode`, `entropyToMnemonic`, `mnemonicToEntropy` and `mnemonicToSeed` to complete wallet functionality [D17619](https://reviews.bitcoinabc.org/D17619)
 -   1.4.1 - Patch import in `mnemonic.ts` [D17621](https://reviews.bitcoinabc.org/D17621)
 -   1.5.0 - Support custom WASM URL and module [D17622](https://reviews.bitcoinabc.org/D17622)
+-   1.5.1 - `Address.withPrefix()` returns same prefix if unchanged (instead of throwing an error) [D17623](https://reviews.bitcoinabc.org/D17623)

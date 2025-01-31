@@ -589,10 +589,12 @@ describe('Address', () => {
                 ),
             ).to.throw(`withPrefix does not support legacy address types`);
         });
-        it('We throw an error if user attempts to withPrefix() a legacy address', () => {
-            expect(() =>
-                Address.fromCashAddress(validCashaddrP2pkh).withPrefix('ecash'),
-            ).to.throw(`prefix is already "ecash"`);
+        it('We return the address unchanged if user requests the existing prefix', () => {
+            expect(
+                Address.fromCashAddress(validCashaddrP2pkh)
+                    .withPrefix('ecash')
+                    .toString(),
+            ).to.equal(validCashaddrP2pkh);
         });
     });
     context('toScript() public method', () => {
