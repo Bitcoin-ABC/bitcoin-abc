@@ -69,6 +69,7 @@ import {
     TokenType,
     GenesisInfo,
 } from 'chronik-client';
+import { SendButtonContainer } from './styled';
 
 const OuterCtn = styled.div`
     background: ${props => props.theme.primaryBackground};
@@ -241,6 +242,7 @@ const SendXec: React.FC = () => {
             protocol: '',
             data: '',
         });
+    const [isSending, setIsSending] = useState<boolean>(false);
 
     interface SendXecFormData {
         amount: string;
@@ -698,6 +700,7 @@ const SendXec: React.FC = () => {
     };
 
     async function send() {
+        setIsSending(true);
         setFormData({
             ...formData,
         });
@@ -796,12 +799,14 @@ const SendXec: React.FC = () => {
 
             clearInputForms();
             setAirdropFlag(false);
+            setIsSending(false);
             if (txInfoFromUrl) {
                 // Close window after successful tx
                 window.close();
             }
         } catch (err) {
             handleSendXecError(err as XecSendError);
+            setIsSending(false);
         }
     }
 
@@ -1587,23 +1592,24 @@ const SendXec: React.FC = () => {
                     </>
                 )}
             </AmountPreviewCtn>
-            <PrimaryButton
-                style={{ marginTop: '12px' }}
-                disabled={
-                    (!isBip21TokenSend(parsedAddressInput) &&
-                        disableSendButton) ||
-                    (isBip21TokenSend(parsedAddressInput) &&
-                        tokenError !== false) ||
-                    tokenIdQueryError
-                }
-                onClick={
-                    isBip21TokenSend(parsedAddressInput)
-                        ? checkForConfirmationBeforeBip21TokenSend
-                        : checkForConfirmationBeforeSendXec
-                }
-            >
-                Send
-            </PrimaryButton>
+            <SendButtonContainer>
+                <PrimaryButton
+                    disabled={
+                        (!isBip21TokenSend(parsedAddressInput) &&
+                            disableSendButton) ||
+                        (isBip21TokenSend(parsedAddressInput) &&
+                            tokenError !== false) ||
+                        tokenIdQueryError
+                    }
+                    onClick={
+                        isBip21TokenSend(parsedAddressInput)
+                            ? checkForConfirmationBeforeBip21TokenSend
+                            : checkForConfirmationBeforeSendXec
+                    }
+                >
+                    {isSending ? <InlineLoader /> : 'Send'}
+                </PrimaryButton>
+            </SendButtonContainer>
             {apiError && <ApiError />}
         </OuterCtn>
     );
