@@ -42,7 +42,8 @@ const PrimaryButtonOrLinkCss = css<{ disabled?: boolean }>`
         props.disabled
             ? props.theme.buttons.disabled.color
             : props.theme.buttons.primary.color};
-    border: 1px solid ${props => (props.disabled ? 'none' : props.theme.accent)};
+    border: ${props =>
+        props.disabled ? 'none' : `1px solid ${props.theme.accent}`};
     ${props =>
         props.disabled
             ? `background: ${props.theme.buttons.disabled.background};`
@@ -73,8 +74,8 @@ const SecondaryButtonOrLinkCss = css<{ disabled?: boolean }>`
         props.disabled
             ? props.theme.buttons.disabled.color
             : props.theme.buttons.primary.color};
-    border: 1px solid
-        ${props => (props.disabled ? 'none' : props.theme.secondaryAccent)};
+    border: ${props =>
+        props.disabled ? 'none' : `1px solid ${props.theme.secondaryAccent}`};
     ${props =>
         props.disabled
             ? `background: ${props.theme.buttons.disabled.background};`
