@@ -487,7 +487,7 @@ const Tx: React.FC<TxProps> = ({
                     renderedAppActions.push(
                         <IconAndLabel>
                             <XecxIcon />
-                            <AppDescLabel>
+                            <AppDescLabel noWordBreak>
                                 XEC staking reward to all XECX holders with
                                 balance{' '}
                                 {`>= ${minBalanceXec.toLocaleString(

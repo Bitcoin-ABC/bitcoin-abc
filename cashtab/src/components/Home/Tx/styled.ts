@@ -185,8 +185,9 @@ export const AppAction = styled.div<{ type?: string }>`
     flex-wrap: wrap;
     word-break: break-all;
 `;
-export const AppDescLabel = styled.div`
+export const AppDescLabel = styled.div<{ noWordBreak?: boolean }>`
     font-weight: bold;
+    word-break: ${props => (props.noWordBreak ? 'normal' : 'break-all')};
 `;
 export const IconAndLabel = styled.div`
     display: flex;
