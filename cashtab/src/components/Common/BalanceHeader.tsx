@@ -10,7 +10,7 @@ import CashtabSettings, {
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
 
-export const BalanceXec = styled.div<{ balanceVisible: boolean }>`
+export const BalanceXec = styled.div`
     display: flex;
     flex-direction: column;
     font-size: 28px;
@@ -20,19 +20,35 @@ export const BalanceXec = styled.div<{ balanceVisible: boolean }>`
     @media (max-width: 768px) {
         font-size: 24px;
     }
-    color: ${props =>
-        props.balanceVisible ? 'transparent' : props.theme.primaryText};
-    div {
-        text-shadow: ${props =>
-            props.balanceVisible ? '0 0 15px #fff' : 'none'};
-    }
 `;
-export const BalanceRow = styled.div<{ isXecx?: boolean }>`
+export const BalanceRow = styled.div<{
+    isXecx?: boolean;
+    hideBalance: boolean;
+}>`
     display: flex;
     justify-content: flex-start;
     width: 100%;
     gap: 3px;
-    ${props => props.isXecx && `color: ${props.theme.accent}`}
+    color: ${props =>
+        props.hideBalance
+            ? 'transparent'
+            : props.isXecx
+            ? props.theme.accent
+            : '#fff'};
+
+    text-shadow: ${props =>
+        props.hideBalance
+            ? props.isXecx
+                ? `0 0 15px ${props.theme.accent}`
+                : '0 0 15px #fff'
+            : 'none'};
+
+    ${props =>
+        props.hideBalance &&
+        props.isXecx &&
+        `a {
+        color: transparent;
+    }`}
 `;
 export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
     font-size: 16px;
@@ -106,12 +122,19 @@ const BalanceHeader: React.FC<BalanceHeaderProps> = ({
 
     return (
         <>
-            <BalanceXec balanceVisible={settings.balanceVisible === false}>
-                <BalanceRow title="Balance XEC">
+            <BalanceXec>
+                <BalanceRow
+                    title="Balance XEC"
+                    hideBalance={settings.balanceVisible === false}
+                >
                     {formattedBalanceXec} {appConfig.ticker}
                 </BalanceRow>
                 {balanceXecx !== 0 && (
-                    <BalanceRow isXecx title="Balance XECX">
+                    <BalanceRow
+                        isXecx
+                        title="Balance XECX"
+                        hideBalance={settings.balanceVisible === false}
+                    >
                         {formattedBalanceXecx}{' '}
                         <a
                             href={`/#/token/${appConfig.vipTokens.xecx.tokenId}`}

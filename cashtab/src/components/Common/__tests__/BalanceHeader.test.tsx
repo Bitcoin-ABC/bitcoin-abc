@@ -4,9 +4,12 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { ThemeProvider } from 'styled-components';
+import { theme } from 'assets/styles/theme';
 import '@testing-library/jest-dom';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import CashtabSettings from 'config/CashtabSettings';
+// TODO you need to wrap the test component with ThemeProvider
 
 describe('<BalanceHeader />', () => {
     it('Renders the BalanceHeader component correctly with default locale en-US', async () => {
@@ -124,12 +127,14 @@ describe('<BalanceHeader />', () => {
         const hiddenSettings = new CashtabSettings();
         hiddenSettings.balanceVisible = false;
         render(
-            <BalanceHeader
-                balanceSats={1000000000}
-                balanceXecx={10000000}
-                settings={hiddenSettings}
-                fiatPrice={0.00003}
-            />,
+            <ThemeProvider theme={theme}>
+                <BalanceHeader
+                    balanceSats={1000000000}
+                    balanceXecx={10000000}
+                    settings={hiddenSettings}
+                    fiatPrice={0.00003}
+                />
+            </ThemeProvider>,
         );
 
         // Loader is not rendered
@@ -147,7 +152,8 @@ describe('<BalanceHeader />', () => {
         expect(BalanceXecx).toHaveTextContent(`10,000,000.00 XECX`);
 
         // XECX balance is hidden
-        expect(BalanceXecx).toHaveStyle(`text-shadow: 0 0 15px #fff`);
+        // Note we actually expect a value from props.theme
+        expect(BalanceXecx).toHaveStyle(`text-shadow: 0 0 15px #00ABE7`);
 
         // Fiat balance is calculated correctly (includes XECX)
         const BalanceFiat = screen.getByTitle('Balance in Local Currency');
