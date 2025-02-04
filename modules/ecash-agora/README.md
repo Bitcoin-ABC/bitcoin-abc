@@ -170,3 +170,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 0.3.1
 
 -   Do not allow creation of unacceptable agora partials [D17517](https://reviews.bitcoinabc.org/D17517)
+
+### 0.3.2
+
+-   Improve offer checks in `historicOffers` [D17630](https://reviews.bitcoinabc.org/D17630)

@@ -641,6 +641,33 @@ export class Agora {
                 // If isCanceled, then offer.token.amount is the canceled amount
                 let takenInfo: undefined | TakenInfo;
                 if (!isCanceled) {
+                    // If this tx is not canceling an agora offer
+                    if (
+                        typeof tx.outputs[1].plugins !== 'undefined' &&
+                        'agora' in tx.outputs[1].plugins
+                    ) {
+                        // If this tx creates a new agora offer at index 1 of outputs
+                        // then it is NOT creating the "change" offer from a partial accept
+                        // It is creating a new offer and just happens to have a spent agora utxo
+                        // from a full accept in its inputs
+
+                        // So, we do not parse in historicOffers; we parse this offer in the tx that
+                        // accepts or cancels it
+
+                        // If this is an offer tx with a TAKEN inputScript
+                        // but it was not created by a buy or cancel
+                        //
+                        // We can get an offer with a buy or cancel as an input even tho
+                        // that particular input does not mean this tx is the buy or cancel
+                        // just the way utxos have worked out
+                        // Examples
+                        // a156d668965294aee6d8ebbe2b7b6e2c574bdf006b19842b3836b4e580825aca
+                        // ec73d56ba0b5acf9f3023124a227a19e0794c2da6e4860fb76181b2737e62c61
+                        // fbd288aad796753c672c9bbce9badbf02ff62f12f023163bbc034608b249d21a
+
+                        // Do not include this in historicOffers, we will pick it up by its buy or cancel
+                        return [];
+                    }
                     // If this is TAKEN, provide useful parsed info from the tx
                     // The taken qty is the token amount in the outputs that is not rolled into another agora offer
                     // i.e. the token amount that goes to a p2pkh address
