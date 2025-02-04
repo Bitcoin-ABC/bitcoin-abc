@@ -1401,7 +1401,7 @@ private:
      * Update pindexLastCommonBlock and add not-in-flight missing successors to
      * vBlocks, until it has at most count entries.
      */
-    void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
+    void FindNextBlocksToDownload(const Peer &peer, unsigned int count,
                                   std::vector<const CBlockIndex *> &vBlocks,
                                   NodeId &nodeStaller)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1959,18 +1959,18 @@ void PeerManagerImpl::UpdateBlockAvailability(NodeId nodeid,
 }
 
 void PeerManagerImpl::FindNextBlocksToDownload(
-    NodeId nodeid, unsigned int count,
+    const Peer &peer, unsigned int count,
     std::vector<const CBlockIndex *> &vBlocks, NodeId &nodeStaller) {
     if (count == 0) {
         return;
     }
 
     vBlocks.reserve(vBlocks.size() + count);
-    CNodeState *state = State(nodeid);
+    CNodeState *state = State(peer.m_id);
     assert(state != nullptr);
 
     // Make sure pindexBestKnownBlock is up to date, we'll need it.
-    ProcessBlockAvailability(nodeid);
+    ProcessBlockAvailability(peer.m_id);
 
     if (state->pindexBestKnownBlock == nullptr ||
         state->pindexBestKnownBlock->nChainWork <
@@ -2043,7 +2043,7 @@ void PeerManagerImpl::FindNextBlocksToDownload(
                 // The block is not already downloaded, and not yet in flight.
                 if (pindex->nHeight > nWindowEnd) {
                     // We reached the end of the window.
-                    if (vBlocks.size() == 0 && waitingfor != nodeid) {
+                    if (vBlocks.size() == 0 && waitingfor != peer.m_id) {
                         // We aren't able to fetch anything, but we would be if
                         // the download window was one larger.
                         nodeStaller = waitingfor;
@@ -8915,7 +8915,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             state.vBlocksInFlight.size() < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             std::vector<const CBlockIndex *> vToDownload;
             NodeId staller = -1;
-            FindNextBlocksToDownload(pto->GetId(),
+            FindNextBlocksToDownload(*peer,
                                      MAX_BLOCKS_IN_TRANSIT_PER_PEER -
                                          state.vBlocksInFlight.size(),
                                      vToDownload, staller);
