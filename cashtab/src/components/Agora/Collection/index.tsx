@@ -3,7 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import { Agora, AgoraOffer, AgoraOneshot } from 'ecash-agora';
+import {
+    Agora,
+    AgoraOffer,
+    AgoraOneshot,
+    getAgoraOneshotAcceptFuelInputs,
+    getAgoraCancelFuelInputs,
+} from 'ecash-agora';
 import wif from 'wif';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
@@ -49,9 +55,8 @@ import {
     CashtabWallet,
     toXec,
     hasEnoughToken,
-    getAgoraOneshotAcceptFuelInputs,
-    getAgoraCancelFuelInputs,
     DUMMY_KEYPAIR,
+    CashtabUtxo,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import appConfig from 'config/app';
@@ -202,7 +207,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                 agoraOneshot,
                 eligibleUtxos,
                 satsPerKb,
-            );
+            ) as CashtabUtxo[];
         } catch (err) {
             console.error(
                 'Error determining fuel inputs for offer accept',
@@ -321,7 +326,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                 agoraOneshot,
                 eligibleUtxos,
                 satsPerKb,
-            );
+            ) as CashtabUtxo[];
         } catch (err) {
             console.error(
                 'Error determining fuel inputs for offer cancel',

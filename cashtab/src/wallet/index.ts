@@ -8,9 +8,8 @@ import randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
-import { fromHex, Script, P2PKHSignatory, ALL_BIP143, Ecc } from 'ecash-lib';
+import { fromHex, Ecc } from 'ecash-lib';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
-import { AgoraOffer } from 'ecash-agora';
 import { ParsedTx } from 'chronik';
 import {
     LegacyCashtabWallet_Pre_2_1_0,
@@ -102,32 +101,12 @@ const STRINGIFIED_INTEGER_REGEX = /^[0-9]+$/;
 const SCI_REGEX_POSTIIVE = /^(\d*\.?\d+)e([+-]?\d+)$/i;
 export const STRINGIFIED_DECIMALIZED_REGEX = /^\d*\.?\d*$/;
 
-const DUMMY_TXID =
-    '1111111111111111111111111111111111111111111111111111111111111111';
-const DUMMY_WALLET_HASH = fromHex('12'.repeat(20));
-const DUMMY_SUFFICIENT_CANCEL_VALUE = 10000;
-const DUMMY_SCRIPT = Script.p2pkh(DUMMY_WALLET_HASH);
 export const DUMMY_KEYPAIR = {
     sk: fromHex('33'.repeat(32)),
     pk: fromHex(
         '023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1',
     ),
 };
-// Used for accept and cancel fee estimation of agora partial offers
-const DUMMY_INPUT = {
-    input: {
-        prevOut: {
-            txid: DUMMY_TXID,
-            outIdx: 1,
-        },
-        signData: {
-            value: DUMMY_SUFFICIENT_CANCEL_VALUE,
-            outputScript: DUMMY_SCRIPT,
-        },
-    },
-    signatory: P2PKHSignatory(DUMMY_KEYPAIR.sk, DUMMY_KEYPAIR.pk, ALL_BIP143),
-};
-
 /**
  * Get total value of satoshis associated with an array of chronik utxos
  * @param nonSlpUtxos array of chronik utxos
@@ -674,135 +653,4 @@ export const hasUnfinalizedTxsInHistory = (wallet: CashtabWallet): boolean => {
         tx => typeof tx.block === 'undefined',
     );
     return unfinalizedTxs.length > 0;
-};
-
-/**
- * Determine input utxos to cover an Agora Partial accept offer
- * @param agoraOffer
- * @param utxos array of utxos as stored in Cashtab wallet object
- * @param acceptedTokens
- * @param feePerKb in satoshis
- * @returns fuelInputs
- * @throws if we cannot afford this tx
- */
-export const getAgoraPartialAcceptFuelInputs = (
-    agoraOffer: AgoraOffer,
-    utxos: NonTokenUtxo[],
-    acceptedTokens: bigint,
-    feePerKb: number,
-): NonTokenUtxo[] => {
-    const fuelInputs = [];
-    const dummyInputs = [];
-    let inputSatoshis = 0n;
-    for (const utxo of utxos) {
-        // Accumulative utxo selection
-        fuelInputs.push(utxo);
-        // Match our fuelInput count with dummyInputs
-        dummyInputs.push(DUMMY_INPUT);
-        inputSatoshis += BigInt(utxo.value);
-
-        const askedSats = agoraOffer.askedSats(BigInt(acceptedTokens));
-
-        // Get the tx fee for this tx
-        const acceptFeeSats = agoraOffer.acceptFeeSats({
-            recipientScript: DUMMY_SCRIPT,
-            extraInputs: dummyInputs,
-            acceptedTokens,
-            feePerKb,
-        });
-
-        // We need to cover the tx fee and the asking price
-        const requiredSats = acceptFeeSats + askedSats;
-
-        if (inputSatoshis >= requiredSats) {
-            return fuelInputs;
-        }
-    }
-    throw new Error('Insufficient utxos to accept this offer');
-};
-
-/**
- * Determine input utxos to cancel an Agora offer (Partial or ONESHOT)
- * @param agoraOffer
- * @param utxos array of utxos as stored in Cashtab wallet object
- * @param feePerKb in satoshis
- * @returns fuelInputs
- * @throws if we cannot afford this tx
- */
-export const getAgoraCancelFuelInputs = (
-    agoraOffer: AgoraOffer,
-    utxos: NonTokenUtxo[],
-    feePerKb: number,
-): NonTokenUtxo[] => {
-    const fuelInputs = [];
-    const dummyInputs = [];
-    let inputSatoshis = 0n;
-    for (const utxo of utxos) {
-        // Accumulative utxo selection
-        fuelInputs.push(utxo);
-        // Match our fuelInput count with dummyInputs
-        dummyInputs.push(DUMMY_INPUT);
-        inputSatoshis += BigInt(utxo.value);
-
-        // Get the tx fee for this tx
-        // In practice, this is always bigger than dust
-        // So we do not check to make sure the output we cover is at least dust
-        const cancelFeeSats = agoraOffer.cancelFeeSats({
-            recipientScript: DUMMY_SCRIPT,
-            extraInputs: dummyInputs,
-            feePerKb,
-        });
-
-        // There is no asking price for cancellation
-        // cancelFeeSats is the size of the output we need
-        if (inputSatoshis >= cancelFeeSats) {
-            return fuelInputs;
-        }
-    }
-    throw new Error('Insufficient utxos to cancel this offer');
-};
-
-/**
- * Determine input utxos to cover an Agora ONESHOT accept offer
- * Note: we could refactor getAgoraPartialAcceptFuelInputs to work with ONESHOT offers
- * However there is some ambiguity involved with the acceptedTokens param
- * I think it's cleaner to just have a separate function for Accept
- * @param agoraOffer
- * @param utxos array of utxos as stored in Cashtab wallet object
- * @param feePerKb in satoshis
- * @returns fuelInputs
- * @throws {error} if we cannot afford this tx
- */
-export const getAgoraOneshotAcceptFuelInputs = (
-    agoraOffer: AgoraOffer,
-    utxos: NonTokenUtxo[],
-    feePerKb: number,
-): NonTokenUtxo[] => {
-    const fuelInputs = [];
-    const dummyInputs = [];
-    let inputSatoshis = 0n;
-    for (const utxo of utxos) {
-        // Accumulative utxo selection
-        fuelInputs.push(utxo);
-        // Match our fuelInput count with dummyInputs
-        dummyInputs.push(DUMMY_INPUT);
-        inputSatoshis += BigInt(utxo.value);
-
-        const askedSats = agoraOffer.askedSats();
-
-        // Get the tx fee for this tx
-        const acceptFeeSats = agoraOffer.acceptFeeSats({
-            recipientScript: DUMMY_SCRIPT,
-            extraInputs: dummyInputs,
-            feePerKb,
-        });
-
-        // We need to cover the tx fee and the asking price
-        const requiredSats = acceptFeeSats + askedSats;
-
-        if (inputSatoshis >= requiredSats) {
-            return fuelInputs;
-        }
-    }
-    throw new Error('Insufficient utxos to accept this offer');
 };

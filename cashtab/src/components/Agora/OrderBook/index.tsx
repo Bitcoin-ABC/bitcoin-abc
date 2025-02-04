@@ -33,14 +33,13 @@ import {
     nanoSatoshisToXec,
     decimalizeTokenAmount,
     toXec,
-    getAgoraPartialAcceptFuelInputs,
-    getAgoraCancelFuelInputs,
     hasEnoughToken,
     DUMMY_KEYPAIR,
     toBigInt,
     SlpDecimals,
     undecimalizeTokenAmount,
     CashtabPathInfo,
+    CashtabUtxo,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import {
@@ -92,7 +91,12 @@ import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
-import { AgoraOffer, AgoraPartial } from 'ecash-agora';
+import {
+    AgoraOffer,
+    AgoraPartial,
+    getAgoraPartialAcceptFuelInputs,
+    getAgoraCancelFuelInputs,
+} from 'ecash-agora';
 import { IsMintAddressIcon } from 'components/Common/CustomIcons';
 
 /**
@@ -259,7 +263,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 agoraPartial,
                 eligibleUtxos,
                 satsPerKb,
-            );
+            ) as CashtabUtxo[];
         } catch (err) {
             console.error(
                 'Error determining fuel inputs for offer cancel',
@@ -388,7 +392,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 eligibleUtxos,
                 preparedTokenSatoshis,
                 satsPerKb,
-            );
+            ) as CashtabUtxo[];
         } catch (err) {
             console.error(
                 'Error determining fuel inputs for offer accept',

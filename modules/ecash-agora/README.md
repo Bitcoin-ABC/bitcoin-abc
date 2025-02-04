@@ -174,3 +174,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 0.3.2
 
 -   Improve offer checks in `historicOffers` [D17630](https://reviews.bitcoinabc.org/D17630)
+
+### 0.4.0
+
+-   Add `getAgoraPartialAcceptFuelInputs` and `getAgoraCancelFuelInputs` [D17637](https://reviews.bitcoinabc.org/D17637)
