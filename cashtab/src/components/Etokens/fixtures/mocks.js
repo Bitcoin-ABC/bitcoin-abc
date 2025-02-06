@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { fromHex } from 'ecash-lib';
+import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
 
 /**
  * Etokens/fixtures/mocks.js
@@ -45,6 +46,28 @@ export const tokenTestWallet = {
                 token: {
                     tokenId:
                         '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1000000',
+                    isMintBaton: false,
+                },
+                path: 1899,
+            },
+            // XECX
+            {
+                outpoint: {
+                    txid: '250c93fd6bc2f1853a41d2fd1f5754a92f79f952f10ab038401be1600d5cbb88',
+                    outIdx: 1,
+                },
+                blockHeight: 836452,
+                isCoinbase: false,
+                value: 546,
+                isFinal: true,
+                token: {
+                    tokenId: tokenMockXecx.tokenId,
                     tokenType: {
                         protocol: 'ALP',
                         type: 'ALP_TOKEN_TYPE_STANDARD',
@@ -2248,6 +2271,32 @@ export const alpMocks = {
     ],
 };
 
+// XECX
+export const xecxMocks = {
+    ...tokenMockXecx,
+    token: tokenMockXecx.tokenInfo,
+    utxos: [
+        {
+            ...MOCK_TOKEN_UTXO,
+            token: {
+                ...MOCK_TOKEN_UTXO.token,
+                tokenId: tokenMockXecx.tokenId,
+                amount: '1781404606734',
+            },
+        },
+        // Include a mint baton as it is variable supply
+        {
+            ...MOCK_TOKEN_UTXO,
+            token: {
+                ...MOCK_TOKEN_UTXO.token,
+                tokenId: tokenMockXecx.tokenId,
+                amount: '0',
+                isMintBaton: true,
+            },
+        },
+    ],
+};
+
 export const supportedTokens = [
     slp1FixedMocks,
     slp1VarMocks,
@@ -2255,6 +2304,7 @@ export const supportedTokens = [
     slp1NftParentWithChildrenMocks,
     slp1NftChildMocks,
     alpMocks,
+    xecxMocks,
 ];
 
 /**

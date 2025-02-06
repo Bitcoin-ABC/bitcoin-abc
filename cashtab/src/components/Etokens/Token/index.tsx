@@ -352,6 +352,7 @@ const Token: React.FC = () => {
     // For SLP v1 tokens, we want showSend to be enabled by default
     // But we may not want this to be default for other token types in the future
     interface TokenScreenSwitches {
+        showRedeemXecx: boolean;
         showSend: boolean;
         showAirdrop: boolean;
         showBurn: boolean;
@@ -362,6 +363,7 @@ const Token: React.FC = () => {
         showSellSlp: boolean;
     }
     const switchesOff: TokenScreenSwitches = {
+        showRedeemXecx: false,
         showSend: false,
         showAirdrop: false,
         showBurn: false,
@@ -632,21 +634,32 @@ const Token: React.FC = () => {
             return;
         }
 
+        const isRedeemingXecx =
+            tokenId === appConfig.vipTokens.xecx.tokenId &&
+            switches.showRedeemXecx;
+
         let agoraPartialMinToValidate = agoraPartialMin;
         // If the user has not yet entered the min quantity, enter THE MINIMUM ALLOWED min qty as default
-        if (agoraPartialMin === '0') {
+        if (agoraPartialMin === '0' || isRedeemingXecx) {
+            // If agoraPartialMin is unset OR if we are redeeming XECX
+            // Then we must update agoraPartialMin when agoraPartialTokenQty changes
             if (parseFloat(formData.tokenListPrice) === 0) {
                 // We can get here if the user is typing, e.g. 0.0001
                 // We do not want to setAgoraPartialMin(Infinity)
                 return;
             }
-            // Calculate the min
-            const requiredMinBuyTokenQty = new BigNumber(
-                toXec(appConfig.dustSats),
-            )
-                .div(formData.tokenListPrice)
-                .decimalPlaces(decimals as SlpDecimals, BigNumber.ROUND_UP)
-                .toString();
+
+            const requiredMinBuyTokenQty = isRedeemingXecx
+                ? // If this is XECX and the user is trying to redeem, the min is the total offered
+                  agoraPartialTokenQty
+                : // Otherwise it is the value that would be worth dust if sold
+                  new BigNumber(toXec(appConfig.dustSats))
+                      .div(formData.tokenListPrice)
+                      .decimalPlaces(
+                          decimals as SlpDecimals,
+                          BigNumber.ROUND_UP,
+                      )
+                      .toString();
 
             // Set it as the min
             // "return" as this change will trigger validation, we will re-enter this useEffect
@@ -697,8 +710,11 @@ const Token: React.FC = () => {
         // This useEffect block works as a de-facto "on load" block,
         // for after we have the tokenId from the url params of this page
         if (!isNftParent) {
-            // Supported token that is not an NFT parent
-            if (isNftChild) {
+            if (tokenId === appConfig.vipTokens.xecx.tokenId) {
+                // If this is the XECX token page, default option is redeeming XECX
+                // i.e. selling XECX for XEC, 1:1
+                setSwitches({ ...switchesOff, showRedeemXecx: true });
+            } else if (isNftChild) {
                 // Default action is list
                 setSwitches({ ...switchesOff, showSellNft: true });
                 // Check if it is listed
@@ -711,6 +727,21 @@ const Token: React.FC = () => {
             }
         }
     }, [isSupportedToken, isNftParent, isNftChild]);
+
+    useEffect(() => {
+        if (switches.showRedeemXecx) {
+            // If the user is redeeming XECX
+
+            // Set selected currency to XEC
+            setSelectedCurrency(appConfig.ticker);
+
+            // Set the listing price to 1 XEC
+            setFormData({
+                ...formData,
+                tokenListPrice: '1',
+            });
+        }
+    }, [switches]);
 
     useEffect(() => {
         // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable
@@ -937,8 +968,19 @@ const Token: React.FC = () => {
             protocol as 'ALP' | 'SLP',
         );
 
+        // For XECX redemptions, we have the price, so validate for this
+        const isRedeemingXecx =
+            tokenId === appConfig.vipTokens.xecx.tokenId &&
+            switches.showRedeemXecx;
+        const xecxRedeemError =
+            isRedeemingXecx && Number(amount) < toXec(appConfig.dustSats);
+
         setAgoraPartialTokenQtyError(
-            isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
+            isValidAmountOrErrorMsg === true
+                ? xecxRedeemError
+                    ? `Cannot redeem less than 5.46 XECX`
+                    : false
+                : isValidAmountOrErrorMsg,
         );
 
         setAgoraPartialTokenQty(amount);
@@ -2553,6 +2595,105 @@ const Token: React.FC = () => {
                         <>
                             {isSupportedToken && (
                                 <SendTokenForm title="Token Actions">
+                                    {tokenId ===
+                                        appConfig.vipTokens.xecx.tokenId && (
+                                        <>
+                                            <SwitchHolder>
+                                                <Switch
+                                                    name="Toggle Redeem XECX"
+                                                    on="🤳"
+                                                    off="🤳"
+                                                    checked={
+                                                        switches.showRedeemXecx
+                                                    }
+                                                    handleToggle={() => {
+                                                        // We turn everything else off, whether we are turning this one on or off
+                                                        setSwitches({
+                                                            ...switchesOff,
+                                                            showRedeemXecx:
+                                                                !switches.showRedeemXecx,
+                                                        });
+                                                    }}
+                                                />
+                                                <SwitchLabel>
+                                                    Redeem {tokenName} (
+                                                    {tokenTicker}) 1:1 for XEC
+                                                </SwitchLabel>
+                                            </SwitchHolder>
+                                            {switches.showRedeemXecx && (
+                                                <>
+                                                    <SendTokenFormRow>
+                                                        <InputRow>
+                                                            <Slider
+                                                                name={
+                                                                    'agoraPartialTokenQty'
+                                                                }
+                                                                label={`Offered qty`}
+                                                                value={
+                                                                    agoraPartialTokenQty
+                                                                }
+                                                                handleSlide={
+                                                                    handleTokenOfferedSlide
+                                                                }
+                                                                error={
+                                                                    agoraPartialTokenQtyError
+                                                                }
+                                                                min={0}
+                                                                max={
+                                                                    tokenBalance
+                                                                }
+                                                                step={parseFloat(
+                                                                    `1e-${decimals}`,
+                                                                )}
+                                                                allowTypedInput
+                                                            />
+                                                        </InputRow>
+                                                    </SendTokenFormRow>
+
+                                                    {!tokenListPriceError &&
+                                                        formData.tokenListPrice !==
+                                                            '' &&
+                                                        formData.tokenListPrice !==
+                                                            null &&
+                                                        fiatPrice !== null && (
+                                                            <ListPricePreview title="Token List Price">
+                                                                {getAgoraPartialPricePreview()}
+                                                            </ListPricePreview>
+                                                        )}
+                                                    <SendTokenFormRow>
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                apiError ||
+                                                                agoraPartialTokenQtyError !==
+                                                                    false ||
+                                                                agoraPartialMinError !==
+                                                                    false ||
+                                                                tokenListPriceError !==
+                                                                    false ||
+                                                                formData.tokenListPrice ===
+                                                                    '' ||
+                                                                formData.tokenListPrice ===
+                                                                    null ||
+                                                                agoraPartialTokenQty ===
+                                                                    '0' ||
+                                                                agoraPartialMin ===
+                                                                    '0'
+                                                            }
+                                                            onClick={
+                                                                previewAgoraPartial
+                                                            }
+                                                        >
+                                                            Redeem XECX for XEC
+                                                        </PrimaryButton>
+                                                    </SendTokenFormRow>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
                                     {isNftChild ? (
                                         <>
                                             <SwitchHolder>

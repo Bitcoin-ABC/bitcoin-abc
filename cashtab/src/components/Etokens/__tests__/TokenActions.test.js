@@ -30,6 +30,7 @@ import {
     heismanNftOneOffer,
     heismanNftOneCache,
     heismanCollectionCacheMocks,
+    tokenMockXecx,
 } from 'components/Agora/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
@@ -1166,8 +1167,6 @@ describe('<Token /> available actions rendered', () => {
             }),
         );
 
-        screen.debug(null, Infinity);
-
         expect(
             screen.getByText(
                 `eCash NFT. NFT supply is always 1. This NFT may belong to an NFT collection.`,
@@ -1928,6 +1927,144 @@ describe('<Token /> available actions rendered', () => {
         expect(
             await screen.findByText(
                 `${actualOfferedQty} Test CRD listed for ${actualPricePerTokenForMinBuy} per token`,
+            ),
+        ).toBeInTheDocument();
+    });
+    it('We can redeem XECX for XEC 1:1 using a workflow unique to XECX', async () => {
+        // Mock Math.random()
+        jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
+
+        // XECX offer tx
+        const offerHex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441c664c7bc3a13726a17771588813eb43276b297b91f5475435c70d08f5653646d979911c752445ebbd8f973ac218978d3bbf814952b9aae5c6d0630dbd2b74dd04121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441dfaa9df0a82c895fe97837d7622d16cf9cfda9f3f21fae7294556b235effd2fc01b33d3b59c0d813bf586bc100a661d45ef2f13de50560f1d8240c3c4390eaff4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000806a504b41475230075041525449414c000063080000000000006308000000000000c09ef87f000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d31534c5032000453454e44d44ecf795494b063aa10be876868880df8ef822577c1a546fb1cd9b6c2f57bc60140420f000000220200000000000017a9149c3889f324767ca4462614f85835776ab68990a987f6320f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const offerTxid =
+            'b32c2b51155cc4ffe9260d81aa7ce2d9c370f5a5b555ca44bfda578e3604aa85';
+        mockedChronik.setBroadcastTx(offerHex, offerTxid);
+
+        // Mock response for agora select params check
+        // Note
+        // We obtain EXPECTED_OFFER_P2SH by adding
+        // console.log(toHex(shaRmd160(agoraScript.bytecode)));
+        // to ecash-agora lib and running this test
+        // Note that Date() and Math.random() must be mocked to keep this deterministic
+        const EXPECTED_OFFER_P2SH = '9c3889f324767ca4462614f85835776ab68990a9';
+
+        // We mock no existing utxos
+        mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
+
+        // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
+        // agora object to build the partial
+        const agora = new Agora(mockedChronik);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={agora}
+                route={`/send-token/${tokenMockXecx.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = tokenMockXecx.tokenInfo.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // XECX token icon is rendered
+        expect(
+            screen.getByAltText(`icon for ${tokenMockXecx.tokenId}`),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // On load, default action for XECX is to redeem it
+        expect(screen.getByTitle('Toggle Redeem XECX')).toBeEnabled();
+
+        // The redeem button is disabled on load
+        const redeemButton = screen.getByRole('button', {
+            name: /Redeem XECX for XEC/,
+        });
+        expect(redeemButton).toBeDisabled();
+
+        // We do not see a price input
+        expect(
+            screen.queryByPlaceholderText('Enter list price (per token)'),
+        ).not.toBeInTheDocument();
+
+        // We do not see a min qty input
+        expect(
+            screen.queryByPlaceholderText('Min qty'),
+        ).not.toBeInTheDocument();
+
+        // Enter amount to redeem
+        await userEvent.type(
+            screen.getByPlaceholderText('Offered qty'),
+            '5.45',
+        );
+
+        // This is below dust so we get an error
+        expect(
+            screen.getByText('Cannot redeem less than 5.46 XECX'),
+        ).toBeInTheDocument();
+        // The redeem button is still disabled
+        expect(redeemButton).toBeDisabled();
+
+        // OK we redeem more than dust
+        await userEvent.clear(screen.getByPlaceholderText('Offered qty'));
+
+        await userEvent.type(
+            screen.getByPlaceholderText('Offered qty'),
+            '10000',
+        );
+
+        expect(screen.getByPlaceholderText('Offered qty')).toHaveValue('10000');
+
+        // The redeem button is now enabled
+        expect(redeemButton).toBeEnabled();
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('1 XEC ($0.00003000 USD) per token'),
+        ).toBeInTheDocument();
+
+        // Redeem
+        await userEvent.click(redeemButton);
+
+        // We see expected confirmation modal to list the Token
+        expect(screen.getByText('List XECX?')).toBeInTheDocument();
+        expect(
+            screen.getByText('Create the following sell offer?'),
+        ).toBeInTheDocument();
+        // Offered qty (actual, calculated from AgoraOffer)
+        const actualOfferedQty = '10,000.00';
+        // We see this three times bc it is also the min buy for XECX redemptions and behind the modal
+        expect(screen.getAllByText(actualOfferedQty)).toHaveLength(3);
+        // Actual price calculated from AgoraOffer
+        const actualPricePerTokenForMinBuy = '1 XEC';
+        // We see the price two times (modal and preview behind it)
+        expect(screen.getAllByText(actualPricePerTokenForMinBuy)).toHaveLength(
+            2,
+        );
+
+        // We can cancel and not create this listing
+        await userEvent.click(screen.getByText('Cancel'));
+
+        // The confirmation modal is gone
+        expect(screen.queryByText('List XECX?')).not.toBeInTheDocument();
+
+        // We change our mind and list it
+        await userEvent.click(redeemButton);
+
+        expect(await screen.findByText('List XECX?')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('OK'));
+
+        // We see the expected toast notification for the successful listing tx
+        expect(
+            await screen.findByText(
+                `${actualOfferedQty} Staked XEC listed for ${actualPricePerTokenForMinBuy} per token`,
             ),
         ).toBeInTheDocument();
     });
