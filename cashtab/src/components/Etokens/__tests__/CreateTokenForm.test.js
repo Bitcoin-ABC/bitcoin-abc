@@ -21,18 +21,13 @@ import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { MAX_MINT_AMOUNT_TOKEN_SATOSHIS } from 'token-protocols/slpv1';
 import { MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS } from 'token-protocols/alp';
 import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
 
 describe('<CreateTokenForm />', () => {
-    let ecc;
-
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     // We need mockAgora now that we are using agora to subscribe to websockets
     let user, mockAgora;
     beforeEach(() => {

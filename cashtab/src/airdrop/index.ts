@@ -44,7 +44,6 @@ export const getAgoraHolders = async (
             offerInfo instanceof AgoraPartial
                 ? offerInfo.makerPk
                 : offerInfo.cancelPk;
-        // Note the use of shaRmd160 requires initWasm()
         const hash = shaRmd160(pk);
         const addr = encodeCashAddress('ecash', 'p2pkh', hash);
         const outputScript = getOutputScriptFromAddress(addr);

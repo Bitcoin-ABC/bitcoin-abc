@@ -17,7 +17,6 @@ import {
     TxInput,
     TxOutput,
     fromHex,
-    initWasm,
     shaRmd160,
     slpGenesis,
     slpSend,
@@ -57,7 +56,6 @@ describe('SLP', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;

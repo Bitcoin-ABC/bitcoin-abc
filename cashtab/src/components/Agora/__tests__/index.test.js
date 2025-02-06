@@ -31,19 +31,15 @@ import {
     tokenMockXecx,
     agoraOfferXecxAlphaOne,
 } from 'components/Agora/fixtures/mocks';
-import { Ecc, initWasm, toHex } from 'ecash-lib';
+import { Ecc, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { token as tokenConfig } from 'config/token';
 
 describe('<Agora />', () => {
-    let ecc;
+    const ecc = new Ecc();
     const CACHET_TOKEN_ID = cachetCacheMocks.token.tokenId;
     const BULL_TOKEN_ID = bullCacheMocks.token.tokenId;
     const SCAM_TOKEN_ID = scamCacheMocks.token.tokenId;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
 
     let mockedChronik;
     beforeEach(async () => {

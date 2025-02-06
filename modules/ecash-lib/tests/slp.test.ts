@@ -8,7 +8,6 @@ import { EventEmitter, once } from 'node:events';
 
 import { Ecc } from '../src/ecc.js';
 import { shaRmd160 } from '../src/hash.js';
-import { initWasm } from '../src/initNodeJs.js';
 import { fromHex, toHex } from '../src/io/hex.js';
 import { pushBytesOp } from '../src/op.js';
 import { OP_10 } from '../src/opcode.js';
@@ -27,6 +26,7 @@ import {
     slpSend,
 } from '../src/token/slp.js';
 import { P2PKHSignatory, TxBuilder } from '../src/txBuilder.js';
+import '../src/initNodeJs.js';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000;
@@ -61,7 +61,6 @@ describe('SLP Integration Test', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup();
         chronik = runner.chronik;
         ecc = runner.ecc;

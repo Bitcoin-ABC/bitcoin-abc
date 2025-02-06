@@ -14,7 +14,6 @@ import {
     Script,
     TxBuilderInput,
     fromHex,
-    initWasm,
     shaRmd160,
     slpSend,
     toHex,
@@ -86,7 +85,6 @@ describe('Agora Partial 7450M XEC vs 2p64-1 full accept', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;
@@ -187,7 +185,6 @@ describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;
@@ -296,7 +293,6 @@ describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;
@@ -399,7 +395,6 @@ describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;
@@ -508,7 +503,6 @@ describe('Agora Partial 7450M XEC vs 100 full accept', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;
@@ -601,7 +595,6 @@ describe('Agora Partial 7450M XEC vs 100 small accept', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;

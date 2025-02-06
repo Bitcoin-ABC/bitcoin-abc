@@ -14,7 +14,6 @@ import {
     Script,
     TxBuilderInput,
     fromHex,
-    initWasm,
     shaRmd160,
     slpSend,
     toHex,
@@ -74,7 +73,6 @@ describe('AgoraPartial SLP', () => {
     }
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;

@@ -12,35 +12,40 @@ export interface Hasher {
 type HasherClass = { new (): Hasher };
 
 interface EcashLibHashes {
-    sha256: (data: Uint8Array) => Uint8Array;
-    sha256d: (data: Uint8Array) => Uint8Array;
-    shaRmd160: (data: Uint8Array) => Uint8Array;
-    sha512: (data: Uint8Array) => Uint8Array;
-    Sha256H: HasherClass;
-    Sha512H: HasherClass;
+    sha256?: (data: Uint8Array) => Uint8Array;
+    sha256d?: (data: Uint8Array) => Uint8Array;
+    shaRmd160?: (data: Uint8Array) => Uint8Array;
+    sha512?: (data: Uint8Array) => Uint8Array;
+    Sha256H?: HasherClass;
+    Sha512H?: HasherClass;
 }
 
-let HASHES: EcashLibHashes;
+const HASHES: EcashLibHashes = {};
 
 export function sha256(data: Uint8Array): Uint8Array {
-    return HASHES.sha256(data);
+    return HASHES.sha256!(data);
 }
 export function sha256d(data: Uint8Array): Uint8Array {
-    return HASHES.sha256d(data);
+    return HASHES.sha256d!(data);
 }
 export function shaRmd160(data: Uint8Array): Uint8Array {
-    return HASHES.shaRmd160(data);
+    return HASHES.shaRmd160!(data);
 }
 export function sha512(data: Uint8Array): Uint8Array {
-    return HASHES.sha512(data);
+    return HASHES.sha512!(data);
 }
 export function sha256Hasher(): Hasher {
-    return new HASHES.Sha256H();
+    return new HASHES.Sha256H!();
 }
 export function sha512Hasher(): Hasher {
-    return new HASHES.Sha512H();
+    return new HASHES.Sha512H!();
 }
 
 export function __setHashes(hashes: EcashLibHashes) {
-    HASHES = hashes;
+    HASHES.sha256 = hashes.sha256;
+    HASHES.sha256d = hashes.sha256d;
+    HASHES.shaRmd160 = hashes.shaRmd160;
+    HASHES.sha512 = hashes.sha512;
+    HASHES.Sha256H = hashes.Sha256H;
+    HASHES.Sha512H = hashes.Sha512H;
 }

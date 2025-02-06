@@ -11,12 +11,8 @@ import {
     getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
 import vectors from '../fixtures/vectors';
-import { initWasm } from 'ecash-lib';
 
 describe('ALP token methods', () => {
-    beforeAll(async () => {
-        await initWasm();
-    });
     describe('Gets max mint/send/burn SLP amount, decimalized', () => {
         const { expectedReturns } = vectors.getMaxDecimalizedAlpQty;
         expectedReturns.forEach(vector => {

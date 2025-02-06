@@ -34,6 +34,14 @@ mv $FFI_OUTDIR/ecash_lib_wasm.d.ts $FFI_OUTDIR/ecash_lib_wasm_browser.d.ts
 mv $FFI_OUTDIR/ecash_lib_wasm.js $FFI_OUTDIR/ecash_lib_wasm_browser.js
 sed -i'' -e 's/ecash_lib_wasm_bg/ecash_lib_wasm_bg_browser/g' $FFI_OUTDIR/ecash_lib_wasm_browser.js
 
+# Create JS file with a variable of the wasm binary encoded as base64
+ECASH_LIB_WASM_JS=$FFI_OUTDIR/ecash_lib_wasm_bg_browser.js
+echo "export const ECASH_LIB_WASM_BASE64 = \`" > $ECASH_LIB_WASM_JS
+base64 < $FFI_OUTDIR/ecash_lib_wasm_bg_browser.wasm >> $ECASH_LIB_WASM_JS
+echo "\`;" >> $ECASH_LIB_WASM_JS
+
+echo "export const ECASH_LIB_WASM_BASE64: string;" > $FFI_OUTDIR/ecash_lib_wasm_bg_browser.d.ts
+
 # Generate nodejs bindings, and suffix files with "_nodejs"
 # We build this separately from NodeJS as it's incompatible with the browser:
 # - It uses `path` and `fs` modules, which we don't want downstream to polyfill

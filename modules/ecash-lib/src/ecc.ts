@@ -26,9 +26,6 @@ export interface Ecc {
     pubkeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array;
 }
 
-/** Ecc implementation using WebAssembly */
-export let Ecc: { new (): Ecc };
-
 /** Dummy Ecc impl that always returns 0, useful for measuring tx size */
 export class EccDummy implements Ecc {
     derivePubkey(_seckey: Uint8Array): Uint8Array {
@@ -56,6 +53,43 @@ export class EccDummy implements Ecc {
     }
 }
 
-export function __setEcc(ecc: { new (): Ecc }) {
-    Ecc = ecc;
+const ECC: { ecc?: Ecc } = {};
+
+export function __setEcc(ecc: Ecc) {
+    ECC.ecc = ecc;
+}
+
+export class Ecc implements Ecc {
+    /** Derive a public key from secret key. */
+    derivePubkey(seckey: Uint8Array): Uint8Array {
+        return ECC.ecc!.derivePubkey(seckey);
+    }
+
+    /** Sign an ECDSA signature. msg needs to be a 32-byte hash */
+    ecdsaSign(seckey: Uint8Array, msg: Uint8Array): Uint8Array {
+        return ECC.ecc!.ecdsaSign(seckey, msg);
+    }
+
+    /** Sign a Schnorr signature. msg needs to be a 32-byte hash */
+    schnorrSign(seckey: Uint8Array, msg: Uint8Array): Uint8Array {
+        return ECC.ecc!.schnorrSign(seckey, msg);
+    }
+
+    /**
+     * Return whether the given secret key is valid, i.e. whether is of correct
+     * length (32 bytes) and is on the curve.
+     */
+    isValidSeckey(seckey: Uint8Array): boolean {
+        return ECC.ecc!.isValidSeckey(seckey);
+    }
+
+    /** Add a scalar to a secret key */
+    seckeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array {
+        return ECC.ecc!.seckeyAdd(a, b);
+    }
+
+    /** Add a scalar to a public key (adding G*b) */
+    pubkeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array {
+        return ECC.ecc!.pubkeyAdd(a, b);
+    }
 }

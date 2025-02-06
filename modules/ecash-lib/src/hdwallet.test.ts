@@ -5,14 +5,13 @@
 import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
-import { initWasm } from './initNodeJs.js';
 import { HdNode } from './hdwallet.js';
 import { Ecc } from './ecc.js';
+import './initNodeJs.js';
 
 // Tests are based on https://github.com/bitcoinjs/bip32/blob/master/test/fixtures/index.json
 
 describe('hdwallet', async () => {
-    await initWasm();
     const ecc = new Ecc();
 
     it('hdwallet 000102030405060708090a0b0c0d0e0f', () => {

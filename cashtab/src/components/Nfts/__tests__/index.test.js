@@ -25,17 +25,13 @@ import {
     argentinaAgoraOffer,
 } from 'components/Nfts/fixtures/mocks';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
-import { Ecc, initWasm, toHex } from 'ecash-lib';
+import { Ecc, toHex } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 
 describe('<Nfts />', () => {
-    let ecc;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();

@@ -20,14 +20,7 @@ This library works for both browser and NodeJS.
 
 ### Setup
 
-To use this library, you first have to initialize the WebAssembly module:
-
-```ts
-import { initWasm } from 'ecash-lib';
-await initWasm();
-```
-
-After that, to sign signatures, you need an "Ecc" instance:
+To sign signatures, you need an "Ecc" instance:
 
 ```ts
 import { Ecc } from 'ecash-lib';
@@ -47,14 +40,11 @@ import {
     Script,
     TxBuilder,
     fromHex,
-    initWasm,
     shaRmd160,
     toHex,
     ALL_BIP143,
 } from 'ecash-lib';
 
-// Download and compile WebAssembly
-await initWasm();
 // Build a signature context for elliptic curve cryptography (ECC)
 const ecc = new Ecc();
 const walletSk = fromHex(
@@ -93,19 +83,6 @@ const txBuild = new TxBuilder({
 const tx = txBuild.sign(ecc, 1000, 546);
 const rawTx = tx.ser();
 console.log(toHex(rawTx));
-```
-
-### Troubleshooting
-
-#### Can't load WebAssembly
-
-Some bundlers can't handle WebAssembly yet (at the time of writing, vite).
-If you run into "CompileError: expected magic word 00 61 73 6d", you can
-provide a custom WASM URL or module:
-
-```ts
-import ecashLibWasmUrl from 'ecash-lib/dist/ffi/ecash_lib_wasm_bg_browser.wasm?url';
-await initWasm(ecashLibWasmUrl);
 ```
 
 ## Changelog

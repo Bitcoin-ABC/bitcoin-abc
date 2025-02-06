@@ -23,16 +23,10 @@ import vectors, {
 } from '../fixtures/vectors';
 import slpv1Vectors from 'token-protocols/slpv1/fixtures/vectors';
 import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
-import { Ecc, initWasm, Script, fromHex } from 'ecash-lib';
+import { Ecc, Script, fromHex } from 'ecash-lib';
 
 describe('Cashtab functions that build and broadcast rawtxs', () => {
-    let ecc;
-    beforeAll(async () => {
-        // Initialize web assembly
-        await initWasm();
-        // Initialize Ecc
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
 
     describe('We can broadcast XEC transactions', () => {
         // Unit test for each vector in fixtures for the sendingXecToSingleAddress case

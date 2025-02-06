@@ -33,19 +33,14 @@ import {
 } from 'components/Agora/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { Agora } from 'ecash-agora';
 import { token as tokenConfig } from 'config/token';
 import { explorer } from 'config/explorer';
 
 describe('<Token /> available actions rendered', () => {
-    let ecc;
-
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     let mockedChronik;
     // We need mockAgora now that we are using agora to subscribe to websockets
     let mockAgora;

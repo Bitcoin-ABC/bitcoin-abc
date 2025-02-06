@@ -23,14 +23,10 @@ import { validSavedWallets } from 'components/App/fixtures/mocks';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import * as bip39 from 'bip39';
 import { cashtabWalletsFromJSON } from 'helpers';
-import { initWasm, Ecc } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 
 describe('<Wallets />', () => {
-    let ecc;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     let user;
     beforeEach(() => {
         // Set up userEvent

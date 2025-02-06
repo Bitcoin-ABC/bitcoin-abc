@@ -24,15 +24,11 @@ import {
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
 import { undecimalizeTokenAmount } from 'wallet';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
 
 describe('<Configure />', () => {
-    let ecc;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     let user, mockAgora;
     beforeEach(() => {
         mockAgora = new MockAgora();

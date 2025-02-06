@@ -6,11 +6,9 @@ import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
 import { Ecc, EccDummy } from './ecc.js';
-import { initWasm } from './initNodeJs.js';
+import './initNodeJs.js';
 
 describe('Ecc', async () => {
-    await initWasm();
-
     it('EccWasm', () => {
         const ecc = new Ecc();
         const sk = fromHex(

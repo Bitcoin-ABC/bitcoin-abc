@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import { initWasm, Script, fromHex } from 'ecash-lib';
+import { Script, fromHex } from 'ecash-lib';
 import { TokenType, ScriptUtxo } from 'chronik-client';
 
 import { AgoraOneshot } from './oneshot';
@@ -455,9 +455,6 @@ const vectors: {
 };
 
 describe('Functions used to get inputs required for accept or cancel txs', () => {
-    before(async () => {
-        await initWasm();
-    });
     context('getAgoraPartialAcceptFuelInputs', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getAgoraPartialAcceptFuelInputs;

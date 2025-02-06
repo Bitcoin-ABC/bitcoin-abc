@@ -24,15 +24,10 @@ import {
 import { isValidCashtabWallet } from 'validation';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import vectors from '../fixtures/vectors';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 
 describe('Cashtab wallet methods', () => {
-    let ecc;
-    beforeAll(async () => {
-        // Need this to use AgoraOffer methods
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     describe('Calculates total balance in satoshis from a valid set of chronik utxos', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getBalanceSatsVectors;

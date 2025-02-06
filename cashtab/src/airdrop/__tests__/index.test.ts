@@ -10,7 +10,6 @@ import {
 } from 'airdrop';
 import { tokenUtxos, p2pkhHoldersTokenUtxos } from 'airdrop/fixtures/mocks';
 import vectors from 'airdrop/fixtures/vectors';
-import { initWasm } from 'ecash-lib';
 import {
     MockAgora,
     MockChronikClient,
@@ -80,9 +79,6 @@ const mockedTokenUtxos: TokenIdUtxos = {
     ],
 };
 describe('Cashtab airdrop methods', () => {
-    beforeAll(async () => {
-        await initWasm();
-    });
     describe('getAgoraHolders()', () => {
         it('We can get a p2pkh hash and the qty of token this hash listed from a single agora offer', async () => {
             const mockAgora = new MockAgora();

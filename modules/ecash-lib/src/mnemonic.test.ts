@@ -5,13 +5,13 @@
 import { expect } from 'chai';
 
 import * as wordlist from '../wordlists/english.json';
-import { initWasm } from './initNodeJs.js';
 import { fromHex, toHex } from './io/hex.js';
 import {
     entropyToMnemonic,
     mnemonicToEntropy,
     mnemonicToSeed,
 } from './mnemonic.js';
+import './initNodeJs.js';
 
 // Tests are based on https://github.com/bitcoinjs/bip39/blob/master/test/vectors.json
 
@@ -139,7 +139,6 @@ const englishVectors: [string, string, string][] = [
 ];
 
 describe('mnemonic', async () => {
-    await initWasm();
     for (const [entropy, phrase, seed] of englishVectors) {
         it('mnemonic ' + entropy, () => {
             expect(entropyToMnemonic(fromHex(entropy), wordlist)).to.equal(

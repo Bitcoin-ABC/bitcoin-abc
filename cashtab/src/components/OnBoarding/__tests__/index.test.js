@@ -15,14 +15,10 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 
 describe('<OnBoarding />', () => {
-    let ecc;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();

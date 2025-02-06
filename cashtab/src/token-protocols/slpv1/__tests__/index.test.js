@@ -31,7 +31,6 @@ import {
     AgoraPartialAdSignatory,
 } from 'ecash-agora';
 import {
-    initWasm,
     slpSend,
     SLP_NFT1_CHILD,
     shaRmd160,
@@ -56,8 +55,6 @@ const BASE_PARAMS_SLP_PARTIAL = {
 describe('slpv1 methods', () => {
     let MOCK_AGORA_P2SH, MOCK_ONESHOT, MOCK_PARTIAL, MOCK_PARTIAL_P2SH;
     beforeAll(async () => {
-        // Initialize web assembly
-        await initWasm();
 
         MOCK_ONESHOT = new AgoraOneshot({
             enforcedOutputs: [

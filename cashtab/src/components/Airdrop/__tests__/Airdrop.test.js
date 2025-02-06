@@ -31,13 +31,9 @@ import {
     agoraOfferCachetAlphaOne,
     cachetCacheMocks,
 } from 'components/Agora/fixtures/mocks';
-import { initWasm } from 'ecash-lib';
 
 describe('<Airdrop />', () => {
     let user;
-    beforeAll(async () => {
-        await initWasm();
-    });
     beforeEach(() => {
         // Set up userEvent
         user = userEvent.setup();

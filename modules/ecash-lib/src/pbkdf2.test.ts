@@ -4,17 +4,15 @@
 
 import { expect } from 'chai';
 
-import { initWasm } from './initNodeJs.js';
 import { toHex } from './io/hex.js';
 import { strToBytes } from './io/str.js';
 import { sha256Hasher } from './hash.js';
 import { pbkdf2 } from './pbkdf2.js';
+import './initNodeJs.js';
 
 // Tests are based on https://github.com/paulmillr/noble-hashes/blob/main/test/kdf.test.js
 
 describe('pbkdf2', async () => {
-    await initWasm();
-
     it('pbkdf2 passwd', async () => {
         expect(
             toHex(

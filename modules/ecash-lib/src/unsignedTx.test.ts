@@ -25,9 +25,9 @@ import {
     SINGLE_BIP143,
     SINGLE_LEGACY,
 } from './sigHashType.js';
-import { initWasm } from './initNodeJs.js';
 import { Ecc } from './ecc.js';
 import { signWithSigHash } from './txBuilder.js';
+import './initNodeJs.js';
 
 const TX = new Tx({
     version: 0xfacefeed,
@@ -95,7 +95,6 @@ const OUTPUTS_HEX = OUTPUT0_HEX + OUTPUT1_HEX + OUTPUT2_HEX;
 const LOCKTIME_HEX = 'beba0df0';
 
 describe('UnsignedTx', async () => {
-    await initWasm();
     const ecc = new Ecc();
 
     it('UnsignedTx.dummyFromTx', () => {

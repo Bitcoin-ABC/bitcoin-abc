@@ -11,7 +11,6 @@ import {
     Script,
     TxBuilder,
     fromHex,
-    initWasm,
     shaRmd160,
 } from 'ecash-lib';
 import { decodeCashAddress, encodeCashAddress } from 'ecashaddrjs';
@@ -49,8 +48,7 @@ console.log(`*** Bitcoin ABC faucet ***`);
 console.log('Loading configuration...');
 import { config } from './config';
 
-console.log('Initialize WASM...');
-initWasm().then(async () => {
+(async () => {
     console.log('Initialize ECC...');
     const ecc = new Ecc();
 
@@ -295,4 +293,4 @@ initWasm().then(async () => {
 
     // Kill with CTRL+C or use a process manager like systemd
     faucet.listen(config.port);
-});
+})();

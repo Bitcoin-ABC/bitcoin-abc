@@ -21,7 +21,7 @@ import {
     slp1FixedBear,
     slp1FixedCachet,
 } from 'components/Etokens/fixtures/mocks';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { token as tokenConfig } from 'config/token';
 
@@ -48,12 +48,7 @@ const SEND_AMOUNT_VALIDATION_ERRORS_TOKEN = [
 ];
 
 describe('<Token />', () => {
-    let ecc;
-
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     let user, mockedChronik, mockAgora;
     beforeEach(async () => {
         // Mock the app with context at the Send screen

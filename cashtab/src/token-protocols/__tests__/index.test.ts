@@ -9,13 +9,8 @@ import {
     getRenderedTokenType,
 } from 'token-protocols';
 import vectors from '../fixtures/vectors';
-import { initWasm } from 'ecash-lib';
 
 describe('Cashtab supported token protocol methods', () => {
-    beforeAll(async () => {
-        // Initialize web assembly
-        await initWasm();
-    });
     describe('Get all non-mintbaton token utxos from a mixed utxo set from ChronikClient', () => {
         const { expectedReturns } = vectors.getAllSendUtxos;
         expectedReturns.forEach(expectedReturn => {

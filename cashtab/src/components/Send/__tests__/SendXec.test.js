@@ -22,7 +22,7 @@ import {
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import CashtabSettings from 'config/CashtabSettings';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import {
     slp1FixedBear,
     alpMocks,
@@ -31,11 +31,7 @@ import {
 } from 'components/Etokens/fixtures/mocks';
 
 describe('<SendXec />', () => {
-    let ecc;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     let user;
     beforeEach(() => {
         // Set up userEvent

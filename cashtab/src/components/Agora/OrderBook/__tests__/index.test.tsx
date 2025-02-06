@@ -25,7 +25,7 @@ import {
     CachedXecx,
 } from 'components/Agora/fixtures/mocks';
 import { ChronikClient } from 'chronik-client';
-import { Ecc, initWasm, Address } from 'ecash-lib';
+import { Ecc, Address } from 'ecash-lib';
 import { Agora } from 'ecash-agora';
 import {
     MockAgora,
@@ -110,12 +110,8 @@ tokenMocks.set(bullCacheMocks.token.tokenId, {
  * on a token information page that already displays the icon
  */
 describe('<OrderBook />', () => {
-    let ecc: Ecc;
+    const ecc = new Ecc();
     const CACHET_TOKEN_ID = cachetCacheMocks.token.tokenId;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
 
     beforeEach(async () => {
         // Mock the fetch call to Cashtab's price API

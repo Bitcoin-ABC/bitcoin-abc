@@ -22,7 +22,7 @@ import {
     heismanCollectionCacheMocks,
     lkCacheMocks,
 } from 'components/Agora/fixtures/mocks';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import {
     MockAgora,
     MockChronikClient,
@@ -34,11 +34,7 @@ import { Bounce, ToastContainer } from 'react-toastify';
  * Test expected behavior of the Collection component
  */
 describe('<Collection />', () => {
-    let ecc;
-    beforeAll(async () => {
-        await initWasm();
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
 
     let mockedChronik;
     const FIAT_PRICE = 0.00003;

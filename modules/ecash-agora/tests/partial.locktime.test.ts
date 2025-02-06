@@ -17,7 +17,6 @@ import {
     alpSend,
     emppScript,
     fromHex,
-    initWasm,
     shaRmd160,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
@@ -73,7 +72,6 @@ describe('AgoraPartial enforcedLockTime', () => {
     }
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;

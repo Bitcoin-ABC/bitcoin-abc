@@ -10,17 +10,11 @@ import {
 } from '../src/transactions';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import vectors from '../test/vectors';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 
 describe('transactions.ts', function () {
-    let ecc: Ecc;
-    before(async () => {
-        // Initialize web assembly
-        await initWasm();
-        // Initialize Ecc
-        ecc = new Ecc();
-    });
+    const ecc = new Ecc();
     describe('We can get slpInputs and slpOutputs for a token rewards tx to one destinationAddress', function () {
         const { returns, errors } = vectors.getSlpInputsAndOutputs;
         returns.forEach(vector => {

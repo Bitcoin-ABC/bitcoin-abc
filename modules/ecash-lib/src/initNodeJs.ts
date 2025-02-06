@@ -6,15 +6,12 @@ import { __setEcc } from './ecc.js';
 import * as ffi from './ffi/ecash_lib_wasm_nodejs.js';
 import { __setHashes } from './hash.js';
 
-/** Load and initialize the WASM module for NodeJS */
-export async function initWasm(_dummy?: any) {
-    __setEcc(ffi.Ecc);
-    __setHashes({
-        sha256: ffi.sha256,
-        sha256d: ffi.sha256d,
-        shaRmd160: ffi.shaRmd160,
-        sha512: ffi.sha512,
-        Sha256H: ffi.Sha256H,
-        Sha512H: ffi.Sha512H,
-    });
-}
+__setEcc(new ffi.Ecc());
+__setHashes({
+    sha256: ffi.sha256,
+    sha256d: ffi.sha256d,
+    shaRmd160: ffi.shaRmd160,
+    sha512: ffi.sha512,
+    Sha256H: ffi.Sha256H,
+    Sha512H: ffi.Sha512H,
+});

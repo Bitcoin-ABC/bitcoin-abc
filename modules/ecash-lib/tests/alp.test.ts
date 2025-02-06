@@ -8,7 +8,6 @@ import { ChronikClient } from 'chronik-client';
 
 import { Ecc } from '../src/ecc.js';
 import { shaRmd160 } from '../src/hash.js';
-import { initWasm } from '../src/initNodeJs.js';
 import { fromHex, toHex } from '../src/io/hex.js';
 import { Script } from '../src/script.js';
 import { ALL_BIP143 } from '../src/sigHashType.js';
@@ -21,6 +20,7 @@ import {
 } from '../src/token/alp.js';
 import { emppScript } from '../src/token/empp.js';
 import { P2PKHSignatory, TxBuilder } from '../src/txBuilder.js';
+import '../src/initNodeJs.js';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000;
@@ -37,7 +37,6 @@ describe('ALP', () => {
     let ecc: Ecc;
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup();
         chronik = runner.chronik;
         ecc = runner.ecc;

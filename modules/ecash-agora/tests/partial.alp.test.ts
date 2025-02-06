@@ -16,7 +16,6 @@ import {
     alpSend,
     emppScript,
     fromHex,
-    initWasm,
     shaRmd160,
     toHex,
 } from 'ecash-lib';
@@ -75,7 +74,6 @@ describe('AgoraPartial ALP', () => {
     }
 
     before(async () => {
-        await initWasm();
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;

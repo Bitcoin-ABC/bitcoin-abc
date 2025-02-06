@@ -18,7 +18,7 @@ import {
     MOCK_OUTPOINT,
     MOCK_UTXO_TOKEN,
 } from '../test/vectors';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
 import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
@@ -32,13 +32,10 @@ import { ChronikClient, ScriptUtxo, Tx } from 'chronik-client';
 const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
 
 describe('routes.js', async function () {
-    let ecc: Ecc;
+    // Initialize Ecc
+    const ecc = new Ecc();
     let mongoServer: MongoMemoryServer, testMongoClient: MongoClient;
     before(async () => {
-        // Initialize web assembly
-        await initWasm();
-        // Initialize Ecc
-        ecc = new Ecc();
         // Start mongo memory server before running this suite of unit tests
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();

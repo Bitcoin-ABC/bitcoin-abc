@@ -5,8 +5,8 @@
 import { expect } from 'chai';
 
 import { fromHex, toHex, toHexRev } from './io/hex.js';
-import { initWasm } from './initNodeJs.js';
 import { sha256, sha256d, sha512, shaRmd160 } from './hash.js';
+import './initNodeJs.js';
 
 const GENESIS_HEADER_HEX =
     '01000000' +
@@ -15,9 +15,6 @@ const GENESIS_HEADER_HEX =
     '29ab5f49ffff001d1dac2b7c';
 
 describe('Ecc', async () => {
-    // Can't use `fetch` for local file so we have to read it using `fs`
-    await initWasm();
-
     it('sha256', () => {
         expect(toHex(sha256(new Uint8Array()))).to.equal(
             'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
