@@ -191,13 +191,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        fiatPrice,
-        chronik,
-        agora,
-        cashtabState,
-        chaintipBlockheight,
-    } = ContextValue;
+    const { fiatPrice, chronik, agora, cashtabState, chaintipBlockheight } =
+        ContextValue;
     const { wallets, settings, cashtabCache } = cashtabState;
     if (wallets.length === 0 || typeof wallets[0].paths === 'undefined') {
         // Note that, in the app, we will never render this component without wallets[0] as a loaded wallet
@@ -1120,26 +1115,35 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 </Modal>
             )}
             {showConfirmCancelModal &&
-                typeof decimalizedTokenQtyMax === 'string' && (
+                typeof decimalizedTokenQtyMax === 'string' &&
+                typeof selectedOffer !== 'undefined' && (
                     <Modal
                         title={`Cancel your offer to sell ${decimalizedTokenQtyToLocaleFormat(
                             decimalizedTokenQtyMax,
                             userLocale,
                         )} ${tokenName}${
                             tokenTicker !== '' ? ` (${tokenTicker})` : ''
-                        } for ${getAgoraSpotPriceXec(
-                            toXec(askedSats),
-                            userLocale,
-                        )} ${
-                            fiatPrice !== null
-                                ? ` (${getFormattedFiatPrice(
+                        } for ${
+                            displaySpotPricesInFiat
+                                ? getFormattedFiatPrice(
                                       settings.fiatCurrency,
                                       userLocale,
-                                      toXec(askedSats),
+                                      nanoSatoshisToXec(
+                                          Number(
+                                              selectedOffer.spotPriceNanoSatsPerTokenSat,
+                                          ) * parseFloat(`1e${decimals}`),
+                                      ),
                                       fiatPrice,
-                                  )})?`
-                                : '?'
-                        }`}
+                                  )
+                                : getAgoraSpotPriceXec(
+                                      nanoSatoshisToXec(
+                                          Number(
+                                              selectedOffer.spotPriceNanoSatsPerTokenSat,
+                                          ) * parseFloat(`1e${decimals}`),
+                                      ),
+                                      userLocale,
+                                  )
+                        } each?`}
                         description={`Note that canceling an offer will cancel the entire offer`}
                         height={250}
                         showCancelButton

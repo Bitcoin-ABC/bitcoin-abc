@@ -516,7 +516,7 @@ describe('<OrderBook />', () => {
         // We see a confirmation modal
         expect(
             screen.getByText(
-                'Cancel your offer to sell 100.00 Cachet (CACHET) for 1,000.96 XEC ($0.03003 USD)?',
+                'Cancel your offer to sell 100.00 Cachet (CACHET) for 10,000.97 XEC each?',
             ),
         ).toBeInTheDocument();
 

@@ -849,7 +849,7 @@ describe('<Agora />', () => {
         // We see a confirmation modal
         expect(
             screen.getByText(
-                'Cancel your offer to sell 888 Bull (BULL) for 400,424.96 XEC ($12.01 USD)?',
+                'Cancel your offer to sell 888 Bull (BULL) for 50,000.72 XEC each?',
             ),
         ).toBeInTheDocument();
 
