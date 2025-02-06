@@ -35,29 +35,17 @@ const BASE_PARAMS_SLP = {
 
 const BIGSATS = 149 * 5000000000 - 20000;
 
-let makerSk: Uint8Array;
-let makerPk: Uint8Array;
-let makerPkh: Uint8Array;
-let makerScript: Script;
-let makerScriptHex: string;
-let takerSk: Uint8Array;
-let takerPk: Uint8Array;
-let takerPkh: Uint8Array;
-let takerScript: Script;
-let takerScriptHex: string;
-
-function initKeys(ecc: Ecc) {
-    makerSk = fromHex('33'.repeat(32));
-    makerPk = ecc.derivePubkey(makerSk);
-    makerPkh = shaRmd160(makerPk);
-    makerScript = Script.p2pkh(makerPkh);
-    makerScriptHex = toHex(makerScript.bytecode);
-    takerSk = fromHex('44'.repeat(32));
-    takerPk = ecc.derivePubkey(takerSk);
-    takerPkh = shaRmd160(takerPk);
-    takerScript = Script.p2pkh(takerPkh);
-    takerScriptHex = toHex(takerScript.bytecode);
-}
+const ecc = new Ecc();
+const makerSk = fromHex('33'.repeat(32));
+const makerPk = ecc.derivePubkey(makerSk);
+const makerPkh = shaRmd160(makerPk);
+const makerScript = Script.p2pkh(makerPkh);
+const makerScriptHex = toHex(makerScript.bytecode);
+const takerSk = fromHex('44'.repeat(32));
+const takerPk = ecc.derivePubkey(takerSk);
+const takerPkh = shaRmd160(takerPk);
+const takerScript = Script.p2pkh(takerPkh);
+const takerScriptHex = toHex(takerScript.bytecode);
 
 async function makeBuilderInputs(
     runner: TestRunner,
@@ -82,13 +70,10 @@ async function makeBuilderInputs(
 describe('Agora Partial 7450M XEC vs 2p64-1 full accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
-        initKeys(ecc);
         await runner.setupCoins(1, BIGSATS + 11000);
     });
 
@@ -140,14 +125,12 @@ describe('Agora Partial 7450M XEC vs 2p64-1 full accept', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
         });
         const acceptTxid = await takeSlpOffer({
             chronik,
-            ecc,
             offer,
             takerSk,
             takerInput,
@@ -182,13 +165,10 @@ describe('Agora Partial 7450M XEC vs 2p64-1 full accept', () => {
 describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
-        initKeys(ecc);
         await runner.setupCoins(1, BIGSATS + 11000);
     });
 
@@ -239,7 +219,6 @@ describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
@@ -247,7 +226,6 @@ describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
         const acceptedTokens = 0x10000000000n;
         const acceptTxid = await takeSlpOffer({
             chronik,
-            ecc,
             offer,
             takerSk,
             takerInput,
@@ -290,13 +268,10 @@ describe('Agora Partial 7450M XEC vs 2p64-1 small accept', () => {
 describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
-        initKeys(ecc);
         await runner.setupCoins(1, BIGSATS + 11000);
     });
 
@@ -348,7 +323,6 @@ describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
@@ -356,7 +330,6 @@ describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
         const acceptedTokens = agoraPartial.offeredTokens();
         const acceptTxid = await takeSlpOffer({
             chronik,
-            ecc,
             offer,
             takerSk,
             takerInput,
@@ -392,13 +365,10 @@ describe('Agora Partial 7450M XEC vs 2p63-1 full accept', () => {
 describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
-        initKeys(ecc);
         await runner.setupCoins(1, BIGSATS + 11000);
     });
 
@@ -449,7 +419,6 @@ describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
@@ -457,7 +426,6 @@ describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
         const acceptedTokens = 0x100000000n;
         const acceptTxid = await takeSlpOffer({
             chronik,
-            ecc,
             offer,
             takerSk,
             takerInput,
@@ -500,13 +468,10 @@ describe('Agora Partial 7450M XEC vs 2p63-1 small accept', () => {
 describe('Agora Partial 7450M XEC vs 100 full accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
-        initKeys(ecc);
         await runner.setupCoins(1, BIGSATS + 11000);
     });
 
@@ -554,14 +519,12 @@ describe('Agora Partial 7450M XEC vs 100 full accept', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
         });
         const acceptTxid = await takeSlpOffer({
             chronik,
-            ecc,
             offer,
             takerSk,
             takerInput,
@@ -592,13 +555,10 @@ describe('Agora Partial 7450M XEC vs 100 full accept', () => {
 describe('Agora Partial 7450M XEC vs 100 small accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
-        initKeys(ecc);
         await runner.setupCoins(1, BIGSATS + 11000);
     });
 
@@ -642,14 +602,12 @@ describe('Agora Partial 7450M XEC vs 100 small accept', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
         });
         const acceptTxid = await takeSlpOffer({
             chronik,
-            ecc,
             offer,
             takerSk,
             takerInput,

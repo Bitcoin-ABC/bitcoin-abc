@@ -18,20 +18,9 @@ This library works for both browser and NodeJS.
 
 `npm install --save ecash-lib`
 
-### Setup
-
-To sign signatures, you need an "Ecc" instance:
-
-```ts
-import { Ecc } from 'ecash-lib';
-const ecc = new Ecc();
-```
-
-**Note: You should only call this function once, as it's fairly expensive to setup, it internally precomputes some elliptic curve field elements, which takes some time**
-
 ### Usage
 
-Now you're ready to sign your first transactions:
+Here's how to sign your first transaction:
 
 ```ts
 import {
@@ -45,12 +34,10 @@ import {
     ALL_BIP143,
 } from 'ecash-lib';
 
-// Build a signature context for elliptic curve cryptography (ECC)
-const ecc = new Ecc();
 const walletSk = fromHex(
     'e6ae1669c47d092eff3eb652bea535331c338e29f34be709bc4055655cd0e950',
 );
-const walletPk = ecc.derivePubkey(walletSk);
+const walletPk = new Ecc().derivePubkey(walletSk);
 const walletPkh = shaRmd160(walletPk);
 const walletP2pkh = Script.p2pkh(walletPkh);
 // TxId with unspent funds for the above wallet
@@ -80,7 +67,7 @@ const txBuild = new TxBuilder({
         walletP2pkh,
     ],
 });
-const tx = txBuild.sign(ecc, 1000, 546);
+const tx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
 const rawTx = tx.ser();
 console.log(toHex(rawTx));
 ```
@@ -102,3 +89,4 @@ console.log(toHex(rawTx));
 -   1.4.1 - Patch import in `mnemonic.ts` [D17621](https://reviews.bitcoinabc.org/D17621)
 -   1.5.0 - Support custom WASM URL and module [D17622](https://reviews.bitcoinabc.org/D17622)
 -   1.5.1 - `Address.withPrefix()` returns same prefix if unchanged (instead of throwing an error) [D17623](https://reviews.bitcoinabc.org/D17623)
+-   2.0.0 - Remove `initWasm`, auto-load the WebAssembly instead. Remove unneeded `ecc` parameters, esp. in `TxBuilder.sign` and `HdNode.fromSeed` [D17639](https://reviews.bitcoinabc.org/D17639) [D17640](https://reviews.bitcoinabc.org/D17640)

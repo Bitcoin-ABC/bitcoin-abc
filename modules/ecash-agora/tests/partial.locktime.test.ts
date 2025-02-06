@@ -38,19 +38,19 @@ const BASE_PARAMS_ALP = {
     dustAmount: DEFAULT_DUST_LIMIT,
 };
 
+const ecc = new Ecc();
+const makerSk = fromHex('33'.repeat(32));
+const makerPk = ecc.derivePubkey(makerSk);
+const makerPkh = shaRmd160(makerPk);
+const makerScript = Script.p2pkh(makerPkh);
+const takerSk = fromHex('44'.repeat(32));
+const takerPk = ecc.derivePubkey(takerSk);
+const takerPkh = shaRmd160(takerPk);
+const takerScript = Script.p2pkh(takerPkh);
+
 describe('AgoraPartial enforcedLockTime', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
-
-    let makerSk: Uint8Array;
-    let makerPk: Uint8Array;
-    let makerPkh: Uint8Array;
-    let makerScript: Script;
-    let takerSk: Uint8Array;
-    let takerPk: Uint8Array;
-    let takerPkh: Uint8Array;
-    let takerScript: Script;
 
     async function makeBuilderInputs(
         values: number[],
@@ -74,17 +74,7 @@ describe('AgoraPartial enforcedLockTime', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
-
-        makerSk = fromHex('33'.repeat(32));
-        makerPk = ecc.derivePubkey(makerSk);
-        makerPkh = shaRmd160(makerPk);
-        makerScript = Script.p2pkh(makerPkh);
-        takerSk = fromHex('44'.repeat(32));
-        takerPk = ecc.derivePubkey(takerSk);
-        takerPkh = shaRmd160(takerPk);
-        takerScript = Script.p2pkh(takerPkh);
     });
 
     after(() => {
@@ -111,7 +101,6 @@ describe('AgoraPartial enforcedLockTime', () => {
 
         const genesisOutputSats = 2000;
         const genesisTx = makeAlpGenesis({
-            ecc,
             tokenType: agoraPartial.tokenType,
             fuelInput,
             tokenAmounts: [
@@ -165,7 +154,7 @@ describe('AgoraPartial enforcedLockTime', () => {
                     { value: 546, script: agoraP2sh },
                 ],
             });
-            const offerTx = txBuildOffer.sign(ecc);
+            const offerTx = txBuildOffer.sign();
             await chronik.broadcastTx(offerTx.ser());
         }
 
@@ -185,7 +174,6 @@ describe('AgoraPartial enforcedLockTime', () => {
 
         // Cannot co-spend other identical offer (due to different locktime)
         const failedAcceptTx = offersLocktime1[0].acceptTx({
-            ecc,
             covenantSk: takerSk,
             covenantPk: takerPk,
             fuelInputs: [
@@ -212,7 +200,6 @@ describe('AgoraPartial enforcedLockTime', () => {
         // for identical other offers, otherwise someone can spend them in a
         // single transaction, burning one of the offers.
         const successAcceptTx = offersLocktime1[0].acceptTx({
-            ecc,
             covenantSk: takerSk,
             covenantPk: takerPk,
             fuelInputs: [

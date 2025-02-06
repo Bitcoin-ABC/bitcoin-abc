@@ -120,7 +120,12 @@ export class TxBuilder {
     }
 
     /** Sign the tx built by this builder and return a Tx */
-    public sign(ecc: Ecc, feePerKb?: number, dustLimit?: number): Tx {
+    public sign(params?: {
+        ecc?: Ecc;
+        feePerKb?: number;
+        dustLimit?: number;
+    }): Tx {
+        const ecc = params?.ecc ?? new Ecc();
         const { fixedOutputSum, leftoverIdx, outputs } = this.prepareOutputs();
         const inputs = this.inputs.map(input => copyTxInput(input.input));
         const updateSignatories = (ecc: Ecc, unsignedTx: UnsignedTx) => {
@@ -145,15 +150,15 @@ export class TxBuilder {
                     'Using a leftover output requires setting SignData.value for all inputs',
                 );
             }
-            if (feePerKb === undefined) {
+            if (params?.feePerKb === undefined) {
                 throw new Error(
                     'Using a leftover output requires setting feePerKb',
                 );
             }
-            if (!Number.isInteger(feePerKb)) {
+            if (!Number.isInteger(params.feePerKb)) {
                 throw new Error('feePerKb must be an integer');
             }
-            if (dustLimit === undefined) {
+            if (params?.dustLimit === undefined) {
                 throw new Error(
                     'Using a leftover output requires setting dustLimit',
                 );
@@ -169,16 +174,16 @@ export class TxBuilder {
             // Must use dummy here because ECDSA sigs could be too small for fee calc
             updateSignatories(new EccDummy(), dummyUnsignedTx);
             let txSize = dummyUnsignedTx.tx.serSize();
-            let txFee = calcTxFee(txSize, feePerKb);
+            let txFee = calcTxFee(txSize, params.feePerKb);
             const leftoverValue = inputSum - (fixedOutputSum + txFee);
-            if (leftoverValue < dustLimit) {
+            if (leftoverValue < params.dustLimit) {
                 // inputs cannot pay for a dust leftover -> remove & recalc
                 outputs.splice(leftoverIdx, 1);
                 dummyUnsignedTx.tx.outputs = outputs;
                 // Must update signatories again as they might depend on outputs
                 updateSignatories(new EccDummy(), dummyUnsignedTx);
                 txSize = dummyUnsignedTx.tx.serSize();
-                txFee = calcTxFee(txSize, feePerKb);
+                txFee = calcTxFee(txSize, params.feePerKb);
             } else {
                 outputs[leftoverIdx].value = leftoverValue;
             }

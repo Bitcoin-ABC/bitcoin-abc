@@ -21,13 +21,12 @@ import { Agora, AgoraOffer } from '../src/agora.js';
 
 export async function makeSlpOffer(params: {
     chronik: ChronikClient;
-    ecc: Ecc;
     agoraPartial: AgoraPartial;
     makerSk: Uint8Array;
     fuelInput: TxBuilderInput;
 }): Promise<AgoraOffer> {
-    const { chronik, ecc, agoraPartial, makerSk, fuelInput } = params;
-    const makerPk = ecc.derivePubkey(makerSk);
+    const { chronik, agoraPartial, makerSk, fuelInput } = params;
+    const makerPk = new Ecc().derivePubkey(makerSk);
     const makerPkh = shaRmd160(makerPk);
     const makerP2pkh = Script.p2pkh(makerPkh);
 
@@ -49,7 +48,7 @@ export async function makeSlpOffer(params: {
             { value: genesisOutputSats, script: makerP2pkh },
         ],
     });
-    const genesisTx = txBuildGenesisGroup.sign(ecc);
+    const genesisTx = txBuildGenesisGroup.sign();
     const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
     const tokenId = genesisTxid;
     agoraPartial.tokenId = tokenId;
@@ -87,7 +86,7 @@ export async function makeSlpOffer(params: {
             { value: adSetupSats, script: agoraAdP2sh },
         ],
     });
-    const adSetupTx = txBuildAdSetup.sign(ecc);
+    const adSetupTx = txBuildAdSetup.sign();
     const adSetupTxid = (await chronik.broadcastTx(adSetupTx.ser())).txid;
 
     const agoraScript = agoraPartial.script();
@@ -118,7 +117,7 @@ export async function makeSlpOffer(params: {
             { value: 546, script: agoraP2sh },
         ],
     });
-    const offerTx = txBuildOffer.sign(ecc);
+    const offerTx = txBuildOffer.sign();
     await chronik.broadcastTx(offerTx.ser());
 
     const agora = new Agora(chronik);
@@ -131,7 +130,6 @@ export async function makeSlpOffer(params: {
 
 export async function takeSlpOffer(params: {
     chronik: ChronikClient;
-    ecc: Ecc;
     offer: AgoraOffer;
     takerSk: Uint8Array;
     takerInput: TxBuilderInput;
@@ -139,11 +137,10 @@ export async function takeSlpOffer(params: {
     allowUnspendable?: boolean;
 }) {
     const takerSk = params.takerSk;
-    const takerPk = params.ecc.derivePubkey(takerSk);
+    const takerPk = new Ecc().derivePubkey(takerSk);
     const takerPkh = shaRmd160(takerPk);
     const takerP2pkh = Script.p2pkh(takerPkh);
     const acceptTx = params.offer.acceptTx({
-        ecc: params.ecc,
         covenantSk: params.takerSk,
         covenantPk: takerPk,
         fuelInputs: [params.takerInput],

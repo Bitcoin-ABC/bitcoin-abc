@@ -58,12 +58,11 @@ const SLP_TOKEN_TYPE_NFT1_CHILD = {
 describe('SLP Integration Test', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
+    const ecc = new Ecc();
 
     before(async () => {
         runner = await TestRunner.setup();
         chronik = runner.chronik;
-        ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
@@ -131,7 +130,7 @@ describe('SLP Integration Test', () => {
                 { value: 10000, script: p2pkh1 },
             ],
         });
-        const genesisTx = txBuildGenesis.sign(ecc);
+        const genesisTx = txBuildGenesis.sign();
         const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
         const tokenId = genesisTxid;
 
@@ -193,7 +192,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh3 },
             ],
         });
-        const mintTx = txBuildMint.sign(ecc);
+        const mintTx = txBuildMint.sign();
         const mintTxid = (await chronik.broadcastTx(mintTx.ser())).txid;
 
         const utxos3 = await chronik.script('p2pkh', toHex(pkh3)).utxos();
@@ -254,7 +253,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh4 },
             ],
         });
-        const sendTx = txBuildSend.sign(ecc);
+        const sendTx = txBuildSend.sign();
         const sendTxid = (await chronik.broadcastTx(sendTx.ser())).txid;
 
         const sendProtoTx = await chronik.tx(sendTxid);
@@ -364,7 +363,7 @@ describe('SLP Integration Test', () => {
                 },
             ],
         });
-        const burnTx = txBuildBurn.sign(ecc);
+        const burnTx = txBuildBurn.sign();
         const burnTxid = (await chronik.broadcastTx(burnTx.ser())).txid;
         const burnProtoTx = await chronik.tx(burnTxid);
         expect(burnProtoTx).to.deep.equal({
@@ -489,7 +488,7 @@ describe('SLP Integration Test', () => {
                 { value: 10000, script: p2pkh2 },
             ],
         });
-        const genesisTx = txBuildGenesis.sign(ecc);
+        const genesisTx = txBuildGenesis.sign();
         const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
         const tokenId = genesisTxid;
 
@@ -556,7 +555,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh3 },
             ],
         });
-        const mintTx = txBuildMint.sign(ecc);
+        const mintTx = txBuildMint.sign();
         const mintTxid = (await chronik.broadcastTx(mintTx.ser())).txid;
 
         const utxos3 = await chronik.script('p2pkh', toHex(pkh3)).utxos();
@@ -617,7 +616,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh4 },
             ],
         });
-        const sendTx = txBuildSend.sign(ecc);
+        const sendTx = txBuildSend.sign();
         const sendTxid = (await chronik.broadcastTx(sendTx.ser())).txid;
 
         const sendProtoTx = await chronik.tx(sendTxid);
@@ -765,7 +764,7 @@ describe('SLP Integration Test', () => {
                 { value: 10000, script: p2pkh1 },
             ],
         });
-        const genesisTx = txBuildGenesisGroup.sign(ecc);
+        const genesisTx = txBuildGenesisGroup.sign();
         const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
         const tokenId = genesisTxid;
 
@@ -827,7 +826,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh3 },
             ],
         });
-        const mintTx = txBuildMint.sign(ecc);
+        const mintTx = txBuildMint.sign();
         const mintTxid = (await chronik.broadcastTx(mintTx.ser())).txid;
 
         const utxos3 = await chronik.script('p2pkh', toHex(pkh3)).utxos();
@@ -888,7 +887,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh4 },
             ],
         });
-        const sendTx = txBuildSend.sign(ecc);
+        const sendTx = txBuildSend.sign();
         const sendTxid = (await chronik.broadcastTx(sendTx.ser())).txid;
 
         const sendProtoTx = await chronik.tx(sendTxid);
@@ -1009,7 +1008,7 @@ describe('SLP Integration Test', () => {
                 { value: 6000, script: p2pkh1 },
             ],
         });
-        const genesisChildTx = txBuildGenesisChild.sign(ecc);
+        const genesisChildTx = txBuildGenesisChild.sign();
         const genesisChildTxid = (
             await chronik.broadcastTx(genesisChildTx.ser())
         ).txid;
@@ -1053,7 +1052,7 @@ describe('SLP Integration Test', () => {
                 { value: 546, script: p2pkh4 },
             ],
         });
-        const childSendTx = txBuildChildSend.sign(ecc);
+        const childSendTx = txBuildChildSend.sign();
         const childSendTxid = (await chronik.broadcastTx(childSendTx.ser()))
             .txid;
 

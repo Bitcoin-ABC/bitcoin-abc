@@ -68,7 +68,6 @@ describe('<Collection />', () => {
                     wallet={agoraPartialAlphaWallet}
                     activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
-                    ecc={ecc}
                 />
             </ThemeProvider>,
         );
@@ -112,7 +111,6 @@ describe('<Collection />', () => {
                     wallet={agoraPartialAlphaWallet}
                     activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
-                    ecc={ecc}
                 />
             </ThemeProvider>,
         );
@@ -184,7 +182,6 @@ describe('<Collection />', () => {
                     wallet={agoraPartialAlphaWallet}
                     activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
-                    ecc={ecc}
                 />
             </ThemeProvider>,
         );
@@ -271,7 +268,6 @@ describe('<Collection />', () => {
                     wallet={agoraPartialAlphaWallet}
                     activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
-                    ecc={ecc}
                     loadOnClick
                 />
             </ThemeProvider>,
@@ -350,7 +346,6 @@ describe('<Collection />', () => {
                     wallet={agoraPartialAlphaWallet}
                     activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
-                    ecc={ecc}
                 />
             </ThemeProvider>,
         );
@@ -456,7 +451,6 @@ describe('<Collection />', () => {
                     }}
                     activePk={agoraPartialBetaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
-                    ecc={ecc}
                 />
             </ThemeProvider>,
         );

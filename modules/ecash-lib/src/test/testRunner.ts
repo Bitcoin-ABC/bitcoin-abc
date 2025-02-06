@@ -23,19 +23,13 @@ const ANYONE_SCRIPT = Script.fromOps([pushBytesOp(fromHex('01'.repeat(100)))]);
 const ANYONE_SCRIPT_SIG = Script.fromOps([pushBytesOp(ANYONE_SCRIPT.bytecode)]);
 
 export class TestRunner {
-    public ecc: Ecc;
     public runner: ChildProcess;
     public chronik: ChronikClient;
     private coinsTxid: string | undefined;
     private coinValue: number | undefined;
     private lastUsedOutIdx: number;
 
-    private constructor(
-        ecc: Ecc,
-        runner: ChildProcess,
-        chronik: ChronikClient,
-    ) {
-        this.ecc = ecc;
+    private constructor(runner: ChildProcess, chronik: ChronikClient) {
         this.runner = runner;
         this.chronik = chronik;
         this.coinsTxid = undefined;
@@ -114,8 +108,6 @@ export class TestRunner {
             }
         });
 
-        const ecc = new Ecc();
-
         // We got the coins, can fan out now
         await (events as any).once(statusEvent, 'ready');
 
@@ -123,7 +115,7 @@ export class TestRunner {
             throw new Event('Chronik is undefined');
         }
 
-        return new TestRunner(ecc, runner, chronik);
+        return new TestRunner(runner, chronik);
     }
 
     public async setupCoins(
@@ -195,7 +187,7 @@ export class TestRunner {
                 Script.fromOps([OP_RETURN]), // burn leftover
             ],
         });
-        const setupTx = setupTxBuilder.sign(this.ecc, 1000, 546);
+        const setupTx = setupTxBuilder.sign({ feePerKb: 1000, dustLimit: 546 });
         return (await this.chronik.broadcastTx(setupTx.ser())).txid;
     }
 

@@ -37,21 +37,21 @@ const BASE_PARAMS_SLP = {
     dustAmount: DEFAULT_DUST_LIMIT,
 };
 
+const ecc = new Ecc();
+const makerSk = fromHex('33'.repeat(32));
+const makerPk = ecc.derivePubkey(makerSk);
+const makerPkh = shaRmd160(makerPk);
+const makerScript = Script.p2pkh(makerPkh);
+const makerScriptHex = toHex(makerScript.bytecode);
+const takerSk = fromHex('44'.repeat(32));
+const takerPk = ecc.derivePubkey(takerSk);
+const takerPkh = shaRmd160(takerPk);
+const takerScript = Script.p2pkh(takerPkh);
+const takerScriptHex = toHex(takerScript.bytecode);
+
 describe('AgoraPartial SLP', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
-
-    let makerSk: Uint8Array;
-    let makerPk: Uint8Array;
-    let makerPkh: Uint8Array;
-    let makerScript: Script;
-    let makerScriptHex: string;
-    let takerSk: Uint8Array;
-    let takerPk: Uint8Array;
-    let takerPkh: Uint8Array;
-    let takerScript: Script;
-    let takerScriptHex: string;
 
     async function makeBuilderInputs(
         values: number[],
@@ -75,19 +75,7 @@ describe('AgoraPartial SLP', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
-
-        makerSk = fromHex('33'.repeat(32));
-        makerPk = ecc.derivePubkey(makerSk);
-        makerPkh = shaRmd160(makerPk);
-        makerScript = Script.p2pkh(makerPkh);
-        makerScriptHex = toHex(makerScript.bytecode);
-        takerSk = fromHex('44'.repeat(32));
-        takerPk = ecc.derivePubkey(takerSk);
-        takerPkh = shaRmd160(takerPk);
-        takerScript = Script.p2pkh(takerPkh);
-        takerScriptHex = toHex(takerScript.bytecode);
     });
 
     after(() => {
@@ -503,14 +491,12 @@ describe('AgoraPartial SLP', () => {
 
             const offer = await makeSlpOffer({
                 chronik,
-                ecc,
                 agoraPartial,
                 makerSk,
                 fuelInput,
             });
             const acceptTxid = await takeSlpOffer({
                 chronik,
-                ecc,
                 takerSk,
                 offer,
                 takerInput,
@@ -606,7 +592,6 @@ describe('AgoraPartial SLP', () => {
             });
             const cancelTxSer = newOffer
                 .cancelTx({
-                    ecc,
                     cancelSk: makerSk,
                     fuelInputs: await makeBuilderInputs([
                         Number(cancelFeeSats),
@@ -685,7 +670,6 @@ describe('AgoraPartial SLP', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
@@ -705,7 +689,6 @@ describe('AgoraPartial SLP', () => {
         await assert.isRejected(
             takeSlpOffer({
                 chronik,
-                ecc,
                 takerSk,
                 offer,
                 takerInput,
@@ -745,7 +728,6 @@ describe('AgoraPartial SLP', () => {
 
         const offer = await makeSlpOffer({
             chronik,
-            ecc,
             agoraPartial,
             makerSk,
             fuelInput,
@@ -763,7 +745,6 @@ describe('AgoraPartial SLP', () => {
         await assert.isRejected(
             takeSlpOffer({
                 chronik,
-                ecc,
                 takerSk,
                 offer,
                 takerInput,
@@ -777,7 +758,6 @@ describe('AgoraPartial SLP', () => {
         await assert.isRejected(
             takeSlpOffer({
                 chronik,
-                ecc,
                 takerSk,
                 offer,
                 takerInput,
@@ -791,7 +771,6 @@ describe('AgoraPartial SLP', () => {
         await assert.isRejected(
             takeSlpOffer({
                 chronik,
-                ecc,
                 takerSk,
                 offer,
                 takerInput,

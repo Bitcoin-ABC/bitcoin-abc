@@ -611,7 +611,7 @@ export const getAgoraAdFuelSats = (
         ],
         outputs: offerOutputs,
     });
-    const measureTx = dummyOfferTx.sign(new EccDummy());
+    const measureTx = dummyOfferTx.sign({ ecc: new EccDummy() });
 
     const dummyOfferTxSats = Math.ceil(
         (measureTx.serSize() * satsPerKb) / 1000,

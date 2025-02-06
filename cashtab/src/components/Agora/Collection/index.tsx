@@ -49,7 +49,6 @@ import {
     fromHex,
     P2PKHSignatory,
     ALL_BIP143,
-    Ecc,
 } from 'ecash-lib';
 import {
     CashtabWallet,
@@ -100,7 +99,6 @@ interface CollectionProps {
     // TODO Cashtab should calc pk on wallet creation
     activePk: Uint8Array;
     chaintipBlockheight: number;
-    ecc: Ecc;
     /**
      * Do not render token icon or name for the Collection.
      * Useful for rendering on page that already shows this info,
@@ -134,7 +132,6 @@ interface OneshotSwiperProps {
     userLocale: string;
     fiatPrice: null | number;
     chronik: ChronikClient;
-    ecc: Ecc;
     wallet: CashtabWallet;
     chaintipBlockheight: number;
     /**
@@ -155,7 +152,6 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
     fiatPrice,
     wallet,
     chronik,
-    ecc,
     chaintipBlockheight,
     setOffers,
 }) => {
@@ -249,7 +245,6 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         // Use an arbitrary sk, pk for the convenant
         const acceptTxSer = agoraOneshot
             .acceptTx({
-                ecc,
                 covenantSk: DUMMY_KEYPAIR.sk,
                 covenantPk: DUMMY_KEYPAIR.pk,
                 fuelInputs: signedFuelInputs,
@@ -374,7 +369,6 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         // Build the cancel tx
         const cancelTxSer = agoraOneshot
             .cancelTx({
-                ecc,
                 // Cashtab default path
                 // This works here because we lookup cancelable offers by the same path
                 // Would need a different approach if Cashtab starts supporting HD wallets
@@ -576,7 +570,6 @@ const Collection: React.FC<CollectionProps> = ({
     wallet,
     activePk,
     chaintipBlockheight,
-    ecc,
     noCollectionInfo = false,
     loadOnClick = false,
 }) => {
@@ -726,7 +719,6 @@ const Collection: React.FC<CollectionProps> = ({
                                     activePk={activePk}
                                     chronik={chronik}
                                     chaintipBlockheight={chaintipBlockheight}
-                                    ecc={ecc}
                                     wallet={wallet}
                                     cashtabCache={cashtabCache}
                                     userLocale={userLocale}

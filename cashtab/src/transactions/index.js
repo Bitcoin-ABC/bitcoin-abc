@@ -41,6 +41,7 @@ const DUMMY_P2PKH = Script.p2pkh(
  */
 export const sendXec = async (
     chronik,
+    // TODO: remove
     ecc,
     wallet,
     targetOutputs,
@@ -163,7 +164,10 @@ export const sendXec = async (
         });
         let tx;
         try {
-            tx = txBuilder.sign(ecc, satsPerKb, appConfig.dustSats);
+            tx = txBuilder.sign({
+                feePerKb: satsPerKb,
+                dustLimit: appConfig.dustSats,
+            });
         } catch (err) {
             if (
                 typeof err.message !== 'undefined' &&
@@ -248,7 +252,11 @@ export const getMaxSendAmountSatoshis = (
         outputs,
     });
 
-    const tx = txBuilder.sign(eccDummy, satsPerKb, appConfig.dustSats);
+    const tx = txBuilder.sign({
+        feePerKb: satsPerKb,
+        dustLimit: appConfig.dustSats,
+        ecc: eccDummy,
+    });
     // Calculate the tx fee
     const txFeeInSatoshis = calcTxFee(tx.serSize(), satsPerKb);
     // The max send amount is totalSatsInWallet less txFeeInSatoshis

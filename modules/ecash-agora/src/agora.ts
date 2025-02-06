@@ -130,8 +130,6 @@ export class AgoraOffer {
      * `fuelInputs` has to provide enough sats for this offer to cover ask + tx fee.
      * */
     public acceptTx(params: {
-        /** ECC object to sign signatures. */
-        ecc: Ecc;
         /**
          * Arbitrary secret key to sign the accept tx with. Recommended to set
          * this to a random key. Must be paired with covenantSk.
@@ -179,7 +177,7 @@ export class AgoraOffer {
             acceptedTokens: params.acceptedTokens,
             allowUnspendable,
         });
-        return txBuild.sign(params.ecc, feePerKb, dustAmount);
+        return txBuild.sign({ feePerKb, dustLimit: dustAmount });
     }
 
     /**
@@ -210,7 +208,7 @@ export class AgoraOffer {
             ],
             acceptedTokens: params.acceptedTokens,
         });
-        const measureTx = txBuild.sign(new EccDummy());
+        const measureTx = txBuild.sign({ ecc: new EccDummy() });
         return BigInt(Math.ceil((measureTx.serSize() * feePerKb) / 1000));
     }
 
@@ -342,8 +340,6 @@ export class AgoraOffer {
      * `fuelInputs` must cover the tx fee, you can calculate it with cancelFeeSats.
      **/
     public cancelTx(params: {
-        /** ECC object to sign signatures. */
-        ecc: Ecc;
         /**
          * Cancel secret key of the offer, must be paired with the cancelPk of
          * the offer.
@@ -377,7 +373,7 @@ export class AgoraOffer {
                 params.recipientScript,
             ],
         });
-        return txBuild.sign(params.ecc, feePerKb, dustAmount);
+        return txBuild.sign({ feePerKb, dustLimit: dustAmount });
     }
 
     /**
@@ -410,7 +406,7 @@ export class AgoraOffer {
                 },
             ],
         });
-        const measureTx = txBuild.sign(new EccDummy());
+        const measureTx = txBuild.sign({ ecc: new EccDummy() });
         return BigInt(Math.ceil((measureTx.serSize() * feePerKb) / 1000));
     }
 

@@ -225,7 +225,10 @@ import { config } from './config';
                     ],
                 });
 
-                const tx = txBuilder.sign(ecc, config.feeSatPerKB, config.dust);
+                const tx = txBuilder.sign({
+                    feePerKb: config.feeSatPerKB,
+                    dustLimit: config.dust,
+                });
                 const resp = await chronik.broadcastTx(
                     tx.ser(),
                     /*skipTokenChecks=*/ true,

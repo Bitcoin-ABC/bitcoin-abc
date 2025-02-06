@@ -6,17 +6,14 @@ import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
 import { HdNode } from './hdwallet.js';
-import { Ecc } from './ecc.js';
 import './initNodeJs.js';
 
 // Tests are based on https://github.com/bitcoinjs/bip32/blob/master/test/fixtures/index.json
 
 describe('hdwallet', async () => {
-    const ecc = new Ecc();
-
     it('hdwallet 000102030405060708090a0b0c0d0e0f', () => {
         const seed = fromHex('000102030405060708090a0b0c0d0e0f');
-        const master = HdNode.fromSeed(ecc, seed);
+        const master = HdNode.fromSeed(seed);
         expect(toHex(master.seckey()!)).to.equal(
             'e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35',
         );
@@ -130,7 +127,7 @@ describe('hdwallet', async () => {
         const seed = fromHex(
             'fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542',
         );
-        const master = HdNode.fromSeed(ecc, seed);
+        const master = HdNode.fromSeed(seed);
         expect(toHex(master.seckey()!)).to.equal(
             '4b03d6fc340455b363f51020ad3ecca4f0850280cf436c70c727923f6db46c3e',
         );

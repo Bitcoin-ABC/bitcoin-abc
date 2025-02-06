@@ -23,13 +23,12 @@ import { AgoraPartial } from '../src/partial.js';
 import { Agora, AgoraOffer } from '../src/agora.js';
 
 export function makeAlpGenesis(params: {
-    ecc: Ecc;
     tokenType: number;
     fuelInput: TxBuilderInput;
     tokenAmounts: Amount[];
     extraOutputs: TxBuilderOutput[];
 }) {
-    const { ecc, tokenType, fuelInput } = params;
+    const { tokenType, fuelInput } = params;
     const txBuildGenesisGroup = new TxBuilder({
         inputs: [fuelInput],
         outputs: [
@@ -52,24 +51,22 @@ export function makeAlpGenesis(params: {
             ...params.extraOutputs,
         ],
     });
-    return txBuildGenesisGroup.sign(ecc);
+    return txBuildGenesisGroup.sign();
 }
 
 export async function makeAlpOffer(params: {
     chronik: ChronikClient;
-    ecc: Ecc;
     agoraPartial: AgoraPartial;
     makerSk: Uint8Array;
     fuelInput: TxBuilderInput;
 }): Promise<AgoraOffer> {
-    const { chronik, ecc, agoraPartial, makerSk, fuelInput } = params;
-    const makerPk = ecc.derivePubkey(makerSk);
+    const { chronik, agoraPartial, makerSk, fuelInput } = params;
+    const makerPk = new Ecc().derivePubkey(makerSk);
     const makerPkh = shaRmd160(makerPk);
     const makerP2pkh = Script.p2pkh(makerPkh);
 
     const genesisOutputSats = 2000;
     const genesisTx = makeAlpGenesis({
-        ecc,
         tokenType: agoraPartial.tokenType,
         fuelInput,
         tokenAmounts: [agoraPartial.offeredTokens()],
@@ -114,7 +111,7 @@ export async function makeAlpOffer(params: {
             { value: 546, script: agoraP2sh },
         ],
     });
-    const offerTx = txBuildOffer.sign(ecc);
+    const offerTx = txBuildOffer.sign();
     await chronik.broadcastTx(offerTx.ser());
 
     const agora = new Agora(chronik);
@@ -127,7 +124,6 @@ export async function makeAlpOffer(params: {
 
 export async function takeAlpOffer(params: {
     chronik: ChronikClient;
-    ecc: Ecc;
     offer: AgoraOffer;
     takerSk: Uint8Array;
     takerInput: TxBuilderInput;
@@ -135,11 +131,10 @@ export async function takeAlpOffer(params: {
     allowUnspendable?: boolean;
 }) {
     const takerSk = params.takerSk;
-    const takerPk = params.ecc.derivePubkey(takerSk);
+    const takerPk = new Ecc().derivePubkey(takerSk);
     const takerPkh = shaRmd160(takerPk);
     const takerP2pkh = Script.p2pkh(takerPkh);
     const acceptTx = params.offer.acceptTx({
-        ecc: params.ecc,
         covenantSk: params.takerSk,
         covenantPk: takerPk,
         fuelInputs: [params.takerInput],

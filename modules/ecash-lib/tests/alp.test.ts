@@ -34,12 +34,11 @@ const ALP_TOKEN_TYPE_STANDARD = {
 describe('ALP', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
+    const ecc = new Ecc();
 
     before(async () => {
         runner = await TestRunner.setup();
         chronik = runner.chronik;
-        ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
@@ -113,7 +112,7 @@ describe('ALP', () => {
                 { value: 10000, script: p2pkh1 },
             ],
         });
-        const genesisTx = txBuildGenesis.sign(ecc);
+        const genesisTx = txBuildGenesis.sign();
         const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
         const tokenId = genesisTxid;
 
@@ -181,7 +180,7 @@ describe('ALP', () => {
                 { value: 546, script: p2pkh3 },
             ],
         });
-        const mintTx = txBuildMint.sign(ecc);
+        const mintTx = txBuildMint.sign();
         const mintTxid = (await chronik.broadcastTx(mintTx.ser())).txid;
 
         const utxos3 = await chronik.script('p2pkh', toHex(pkh3)).utxos();
@@ -256,7 +255,7 @@ describe('ALP', () => {
                 { value: 546, script: p2pkh4 },
             ],
         });
-        const multiTx = txBuildMulti.sign(ecc);
+        const multiTx = txBuildMulti.sign();
         const multiTxid = (await chronik.broadcastTx(multiTx.ser())).txid;
 
         const multiProtoTx = await chronik.tx(multiTxid);

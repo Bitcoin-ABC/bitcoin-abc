@@ -27,7 +27,6 @@ const Nfts: React.FC = () => {
         return null;
     }
     const {
-        ecc,
         fiatPrice,
         chronik,
         agora,
@@ -135,7 +134,6 @@ const Nfts: React.FC = () => {
                                             offers={offeredNftsThisWallet}
                                             activePk={pk}
                                             chronik={chronik}
-                                            ecc={ecc}
                                             chaintipBlockheight={
                                                 chaintipBlockheight
                                             }
@@ -174,7 +172,6 @@ const Nfts: React.FC = () => {
                                                     chaintipBlockheight={
                                                         chaintipBlockheight
                                                     }
-                                                    ecc={ecc}
                                                     loadOnClick
                                                 />
                                             );

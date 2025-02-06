@@ -192,7 +192,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
         return null;
     }
     const {
-        ecc,
         fiatPrice,
         chronik,
         agora,
@@ -312,7 +311,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Build the cancel tx
         const cancelTxSer = agoraPartial
             .cancelTx({
-                ecc,
                 // Cashtab default path
                 // This works here because we lookup cancelable offers by the same path
                 // Would need a different approach if Cashtab starts supporting HD wallets
@@ -442,7 +440,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Use an arbitrary sk, pk for the convenant
         const acceptTxSer = agoraPartial
             .acceptTx({
-                ecc,
                 covenantSk: DUMMY_KEYPAIR.sk,
                 covenantPk: DUMMY_KEYPAIR.pk,
                 fuelInputs: signedFuelInputs,

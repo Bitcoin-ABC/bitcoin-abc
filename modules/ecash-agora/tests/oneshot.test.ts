@@ -53,12 +53,11 @@ const SLP_TOKEN_TYPE_NFT1_CHILD = {
 describe('SLP', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
+    const ecc = new Ecc();
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
@@ -128,7 +127,7 @@ describe('SLP', () => {
                 { value: 10000, script: sellerP2pkh },
             ],
         });
-        const genesisTx = txBuildGenesisGroup.sign(ecc);
+        const genesisTx = txBuildGenesisGroup.sign();
         const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
         const groupTokenId = genesisTxid;
 
@@ -177,7 +176,7 @@ describe('SLP', () => {
                 { value: 8000, script: sellerP2pkh },
             ],
         });
-        const genesisChildTx = txBuildGenesisChild.sign(ecc);
+        const genesisChildTx = txBuildGenesisChild.sign();
         const genesisChildTxid = (
             await chronik.broadcastTx(genesisChildTx.ser())
         ).txid;
@@ -250,7 +249,7 @@ describe('SLP', () => {
                 { value: 7000, script: agoraAdP2sh },
             ],
         });
-        const adSetupTx = txBuildAdSetup.sign(ecc);
+        const adSetupTx = txBuildAdSetup.sign();
         const adSetupTxid = (await chronik.broadcastTx(adSetupTx.ser())).txid;
 
         // 4. Seller finishes offer setup + sends NFT to the advertised P2SH
@@ -280,7 +279,7 @@ describe('SLP', () => {
                 { value: 546, script: agoraP2sh },
             ],
         });
-        const offerTx = txBuildOffer.sign(ecc);
+        const offerTx = txBuildOffer.sign();
         const offerPromise = listenNext();
         const offerTxid = (await chronik.broadcastTx(offerTx.ser())).txid;
         const offerOutpoint: OutPoint = {
@@ -408,7 +407,7 @@ describe('SLP', () => {
         });
 
         // Accepting trade failed, must send 80000 sats to seller, but sent 79999
-        const acceptFailTx = txBuildAcceptFail.sign(ecc);
+        const acceptFailTx = txBuildAcceptFail.sign();
         // OP_EQUALVERIFY failed
         assert.isRejected(chronik.broadcastTx(acceptFailTx.ser()));
 
@@ -456,7 +455,6 @@ describe('SLP', () => {
             }),
         ).to.equal(BigInt(cancelFeeSats));
         const cancelTx = offer1.cancelTx({
-            ecc,
             cancelSk: sellerSk,
             fuelInputs: [offer1AdInput],
             recipientScript: newAgoraP2sh,
@@ -648,7 +646,6 @@ describe('SLP', () => {
             }),
         ).to.equal(BigInt(acceptFeeSats));
         const acceptSuccessTx = offer2.acceptTx({
-            ecc,
             covenantSk: buyerSk,
             covenantPk: buyerPk,
             fuelInputs: [offer2AcceptInput],

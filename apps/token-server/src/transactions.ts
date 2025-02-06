@@ -223,7 +223,10 @@ export const sendReward = async (
         });
         let tx;
         try {
-            tx = txBuilder.sign(ecc, SATS_PER_KB, DUST_SATS);
+            tx = txBuilder.sign({
+                feePerKb: SATS_PER_KB,
+                dustLimit: DUST_SATS,
+            });
         } catch (err) {
             if (
                 typeof err === 'object' &&
@@ -338,7 +341,10 @@ export const sendXecAirdrop = async (
         });
         let tx;
         try {
-            tx = txBuilder.sign(ecc, SATS_PER_KB, DUST_SATS);
+            tx = txBuilder.sign({
+                feePerKb: SATS_PER_KB,
+                dustLimit: DUST_SATS,
+            });
         } catch (err) {
             if (
                 typeof err === 'object' &&

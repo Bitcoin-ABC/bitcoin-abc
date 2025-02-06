@@ -2435,7 +2435,6 @@ const Token: React.FC = () => {
                                             }
                                             activePk={pk}
                                             chronik={chronik}
-                                            ecc={ecc}
                                             chaintipBlockheight={
                                                 chaintipBlockheight
                                             }
@@ -2543,7 +2542,6 @@ const Token: React.FC = () => {
                                 wallet={wallet}
                                 activePk={pk}
                                 chaintipBlockheight={chaintipBlockheight}
-                                ecc={ecc}
                                 noCollectionInfo
                             />
                         </>

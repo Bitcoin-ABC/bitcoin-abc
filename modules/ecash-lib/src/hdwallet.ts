@@ -21,7 +21,6 @@ export class HdNode {
     private _parentFingerprint: number;
 
     public constructor(params: {
-        ecc: Ecc;
         seckey: Uint8Array | undefined;
         pubkey: Uint8Array;
         chainCode: Uint8Array;
@@ -29,7 +28,7 @@ export class HdNode {
         index: number;
         parentFingerprint: number;
     }) {
-        this._ecc = params.ecc;
+        this._ecc = new Ecc();
         this._seckey = params.seckey;
         this._pubkey = params.pubkey;
         this._chainCode = params.chainCode;
@@ -113,7 +112,6 @@ export class HdNode {
             seckey = undefined;
         }
         return new HdNode({
-            ecc: this._ecc,
             seckey: seckey,
             pubkey: pubkey,
             chainCode: hashedRight,
@@ -154,14 +152,12 @@ export class HdNode {
     }
 
     public static fromPrivateKey(
-        ecc: Ecc,
         seckey: Uint8Array,
         chainCode: Uint8Array,
     ): HdNode {
         return new HdNode({
-            ecc,
             seckey: seckey,
-            pubkey: ecc.derivePubkey(seckey),
+            pubkey: new Ecc().derivePubkey(seckey),
             chainCode,
             depth: 0,
             index: 0,
@@ -169,13 +165,13 @@ export class HdNode {
         });
     }
 
-    public static fromSeed(ecc: Ecc, seed: Uint8Array): HdNode {
+    public static fromSeed(seed: Uint8Array): HdNode {
         if (seed.length < 16 || seed.length > 64) {
             throw new TypeError('Seed must be between 16 and 64 bytes long');
         }
         const hashed = hmacSha512(strToBytes('Bitcoin seed'), seed);
         const hashedLeft = hashed.slice(0, 32);
         const hashedRight = hashed.slice(32);
-        return HdNode.fromPrivateKey(ecc, hashedLeft, hashedRight);
+        return HdNode.fromPrivateKey(hashedLeft, hashedRight);
     }
 }

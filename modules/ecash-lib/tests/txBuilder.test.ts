@@ -50,12 +50,11 @@ const SIG_HASH_TYPES = [
 describe('TxBuilder', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
+    const ecc = new Ecc();
 
     before(async () => {
         runner = await TestRunner.setup();
         chronik = runner.chronik;
-        ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
@@ -128,7 +127,7 @@ describe('TxBuilder', () => {
                 p2pkh,
             ],
         });
-        const spendTx = txBuild.sign(ecc, 1000, 546);
+        const spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
         const txid = (await chronik.broadcastTx(spendTx.ser())).txid;
 
         // Now have 1 UTXO change in the wallet
@@ -175,7 +174,7 @@ describe('TxBuilder', () => {
                 ],
                 outputs: [p2pkh],
             });
-            const spendTx = txBuild.sign(ecc, 1000, 546);
+            const spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
             await chronik.broadcastTx(spendTx.ser());
         }
     });
@@ -207,7 +206,7 @@ describe('TxBuilder', () => {
                 ],
                 outputs: [p2pk],
             });
-            const spendTx = txBuild.sign(ecc, 1000, 546);
+            const spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
             await chronik.broadcastTx(spendTx.ser());
         }
     });
@@ -251,7 +250,7 @@ describe('TxBuilder', () => {
                 ],
                 outputs: [p2pk],
             });
-            const spendTx = txBuild.sign(ecc, 1000, 546);
+            const spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
             await chronik.broadcastTx(spendTx.ser());
         }
     });
@@ -303,7 +302,7 @@ describe('TxBuilder', () => {
                 ],
                 outputs: [p2sh],
             });
-            const spendTx = txBuild.sign(ecc, 1000, 546);
+            const spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
             await chronik.broadcastTx(spendTx.ser());
         }
     });
@@ -376,7 +375,7 @@ describe('TxBuilder', () => {
                 ],
                 outputs: [p2sh],
             });
-            const spendTx = txBuild.sign(ecc, 1000, 546);
+            const spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
             await chronik.broadcastTx(spendTx.ser());
         }
     });
@@ -441,11 +440,11 @@ describe('TxBuilder', () => {
         });
 
         // 0sats/kB (not broadcast)
-        let spendTx = txBuild.sign(ecc, 0, 546);
+        let spendTx = txBuild.sign({ feePerKb: 0, dustLimit: 546 });
         expect(spendTx.outputs[1].value).to.equal(40000n);
 
         // 1ksats/kB
-        spendTx = txBuild.sign(ecc, 1000, 546);
+        spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs[1].value).to.equal(
             BigInt(40000 - spendTx.serSize()),
@@ -456,7 +455,7 @@ describe('TxBuilder', () => {
             90000,
             p2sh,
         );
-        spendTx = txBuild.sign(ecc, 10000, 546);
+        spendTx = txBuild.sign({ feePerKb: 10000, dustLimit: 546 });
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs[1].value).to.equal(
             BigInt(40000 - 10 * spendTx.serSize()),
@@ -467,7 +466,7 @@ describe('TxBuilder', () => {
             90000,
             p2sh,
         );
-        spendTx = txBuild.sign(ecc, 100000, 546);
+        spendTx = txBuild.sign({ feePerKb: 100000, dustLimit: 546 });
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs[1].value).to.equal(
             BigInt(40000 - 100 * spendTx.serSize()),
@@ -478,7 +477,7 @@ describe('TxBuilder', () => {
             90000,
             p2sh,
         );
-        spendTx = txBuild.sign(ecc, 120000, 546);
+        spendTx = txBuild.sign({ feePerKb: 120000, dustLimit: 546 });
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs.length).to.equal(2);
 
@@ -487,7 +486,7 @@ describe('TxBuilder', () => {
             90000,
             p2sh,
         );
-        spendTx = txBuild.sign(ecc, 100000, /*dustLimit=*/ 5000);
+        spendTx = txBuild.sign({ feePerKb: 100000, dustLimit: 5000 });
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs.length).to.equal(2);
 
@@ -496,7 +495,9 @@ describe('TxBuilder', () => {
             90000,
             p2sh,
         );
-        expect(() => txBuild.sign(ecc, 1000000, 546)).to.throw(
+        expect(() =>
+            txBuild.sign({ feePerKb: 1000000, dustLimit: 546 }),
+        ).to.throw(
             `Insufficient input value (90000): Can only pay for 40000 fees, ` +
                 `but ${spendTx.serSize() * 1000} required`,
         );
@@ -568,11 +569,11 @@ describe('TxBuilder', () => {
         });
 
         // 0sats/kB (not broadcast)
-        let spendTx = txBuild.sign(ecc, 0, 546);
+        let spendTx = txBuild.sign({ feePerKb: 0, dustLimit: 546 });
         expect(spendTx.outputs[2].value).to.equal(40000n);
 
         // 1ksats/kB
-        spendTx = txBuild.sign(ecc, 1000, 546);
+        spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs[2].value).to.equal(
             BigInt(40000 - spendTx.serSize()),
@@ -613,7 +614,7 @@ describe('TxBuilder', () => {
             txBuild.outputs.push({ value: 546, script: p2pkh });
         }
         expect(txBuild.outputs.length).to.equal(253);
-        let spendTx = txBuild.sign(ecc, 1000, 546);
+        let spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
         expect(spendTx.serSize()).to.equal(txSize);
         expect(spendTx.outputs[0].value).to.equal(BigInt(546));
 
@@ -624,13 +625,13 @@ describe('TxBuilder', () => {
         const smallerSize = txSize - p2pkhSize - 2;
         // We can add 2 extra sats for the VARSIZE savings and it's handled fine
         extraOutput.value += 546 + p2pkhSize + 2;
-        spendTx = txBuild.sign(ecc, 1000, 546);
+        spendTx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
         expect(spendTx.serSize()).to.equal(smallerSize);
         expect(spendTx.outputs.length).to.equal(252);
 
         // Adding 1 extra sat -> fails -> showing that the previous tx was exact
         extraOutput.value += 1;
-        expect(() => txBuild.sign(ecc, 1000, 546)).to.throw(
+        expect(() => txBuild.sign({ feePerKb: 1000, dustLimit: 546 })).to.throw(
             `Insufficient input value (180000): Can only pay for ` +
                 `${smallerSize - 1} fees, but ${smallerSize} required`,
         );
@@ -671,7 +672,7 @@ describe('TxBuilder', () => {
             // Leftover script, but will be spliced out again
             outputs: [new Script()],
         });
-        const tx = txBuild.sign(new EccDummy(), 1000, 9999);
+        const tx = txBuild.sign({ feePerKb: 1000, dustLimit: 9999 });
         expect(tx.serSize()).to.equal(expectedSize);
     });
 
@@ -689,17 +690,17 @@ describe('TxBuilder', () => {
             ],
             outputs: [new Script()],
         });
-        expect(() => txBuild.sign(ecc, 1000, 545)).to.throw(
+        expect(() => txBuild.sign({ feePerKb: 1000, dustLimit: 546 })).to.throw(
             'Using a leftover output requires setting SignData.value for all inputs',
         );
         txBuild.inputs[0].input.signData = { value: 1234 };
-        expect(() => txBuild.sign(ecc, 1000)).to.throw(
+        expect(() => txBuild.sign({ feePerKb: 1000 })).to.throw(
             'Using a leftover output requires setting dustLimit',
         );
-        expect(() => txBuild.sign(ecc, 0.1)).to.throw(
+        expect(() => txBuild.sign({ feePerKb: 0.1 })).to.throw(
             'feePerKb must be an integer',
         );
-        expect(() => txBuild.sign(ecc)).to.throw(
+        expect(() => txBuild.sign()).to.throw(
             'Using a leftover output requires setting feePerKb',
         );
     });

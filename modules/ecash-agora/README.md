@@ -112,7 +112,7 @@ const txBuilder = new TxBuilder({
         { value: 546, script: buyerP2pkh },
     ],
 });
-const acceptTx = txBuilder.sign(ecc);
+const acceptTx = txBuilder.sign();
 await chronik.broadcastTx(acceptTx.ser());
 ```
 
@@ -178,3 +178,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 0.4.0
 
 -   Add `getAgoraPartialAcceptFuelInputs` and `getAgoraCancelFuelInputs` [D17637](https://reviews.bitcoinabc.org/D17637)
+
+### 1.0.0
+
+-   Remove unneeded `ecc` param from various functions [D17640](https://reviews.bitcoinabc.org/D17640)
