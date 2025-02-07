@@ -182,3 +182,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 1.0.0
 
 -   Remove unneeded `ecc` param from various functions [D17640](https://reviews.bitcoinabc.org/D17640)
+
+### 1.0.1
+
+-   Do not validate for unspendable offer creation when we calculate fee in `acceptFeeSats()` [D17648](https://reviews.bitcoinabc.org/D17648)

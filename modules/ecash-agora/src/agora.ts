@@ -207,6 +207,8 @@ export class AgoraOffer {
                 },
             ],
             acceptedTokens: params.acceptedTokens,
+            /** We do not need to validate for this condition when we get the fee */
+            allowUnspendable: true,
         });
         const measureTx = txBuild.sign({ ecc: new EccDummy() });
         return BigInt(Math.ceil((measureTx.serSize() * feePerKb) / 1000));

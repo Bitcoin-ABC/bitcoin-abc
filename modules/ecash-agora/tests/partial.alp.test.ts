@@ -652,6 +652,15 @@ describe('AgoraPartial ALP', () => {
             }),
             expectedError,
         );
+
+        // We can estimate the fee without this error, even though the offer is unacceptable
+        expect(
+            offer.acceptFeeSats({
+                recipientScript: offer.txBuilderInput.signData
+                    ?.redeemScript as Script,
+                acceptedTokens: thisTestCase.acceptedTokens,
+            }),
+        ).to.equal(1725n);
     });
     it('Without manually setting an over-ride, we are unable to accept an agora partial if the remaining offer would be unacceptable due to a price less than dust', async () => {
         // ecash-agora does not support creating an agora partial with min accept amount priced less than dust
