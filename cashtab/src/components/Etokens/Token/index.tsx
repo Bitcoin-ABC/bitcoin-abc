@@ -431,7 +431,7 @@ const Token: React.FC = () => {
         // Get min accepted tokens
         // Note this value is in token satoshis
         const minAcceptedTokenSatoshis =
-            previewedAgoraPartial.minAcceptedTokens();
+            previewedAgoraPartial.minAcceptedAtoms();
         // Get the cost for accepting the min offer
         // Note this price is in satoshis (per token satoshi)
         const minAcceptPriceSats = previewedAgoraPartial.askedSats(
@@ -544,8 +544,8 @@ const Token: React.FC = () => {
             for (const utxo of tokenUtxos.utxos) {
                 // getting utxos by tokenId returns only token utxos
                 const { token } = utxo as ScriptUtxoWithToken;
-                const { amount, isMintBaton } = token;
-                undecimalizedBigIntCirculatingSupply += BigInt(amount);
+                const { atoms, isMintBaton } = token;
+                undecimalizedBigIntCirculatingSupply += atoms;
                 if (isMintBaton) {
                     mintBatons += 1;
                 }
@@ -778,7 +778,7 @@ const Token: React.FC = () => {
             const availableNftMintInputs = wallet.state.slpUtxos.filter(
                 (slpUtxo: TokenUtxo) =>
                     slpUtxo?.token?.tokenId === tokenId &&
-                    slpUtxo?.token?.amount === '1',
+                    slpUtxo?.token?.atoms === 1n,
             );
             setAvailableNftInputs(availableNftMintInputs.length);
         }
@@ -815,8 +815,8 @@ const Token: React.FC = () => {
         // Note: we need to catch these in library validation, but it's
         // important to make sure they stop getting created rightnow
         const isUnacceptableOffer =
-            previewedAgoraPartial.minAcceptedTokens() >
-            previewedAgoraPartial.offeredTokens();
+            previewedAgoraPartial.minAcceptedAtoms() >
+            previewedAgoraPartial.offeredAtoms();
         setPreviewedAgoraPartialUnacceptable(isUnacceptableOffer);
 
         // Show the Agora Partial summary and confirm modal when we have a non-null previewedAgoraPartial
@@ -1403,11 +1403,11 @@ const Token: React.FC = () => {
 
         const enforcedOutputs = [
             {
-                value: 0,
-                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [0, 1]),
+                sats: 0n,
+                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [0n, 1n]),
             },
             {
-                value: listPriceSatoshis,
+                sats: BigInt(listPriceSatoshis),
                 script: Script.p2pkh(
                     fromHex(
                         (
@@ -1437,10 +1437,10 @@ const Token: React.FC = () => {
 
         const offerTargetOutputs = [
             {
-                value: 0,
-                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1]),
+                sats: 0n,
+                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1n]),
             },
-            { value: appConfig.dustSats, script: agoraP2sh },
+            { sats: BigInt(appConfig.dustSats), script: agoraP2sh },
         ];
         const offerTxFuelSats = getAgoraAdFuelSats(
             agoraAdScript,
@@ -1465,7 +1465,7 @@ const Token: React.FC = () => {
                         outIdx: thisNftUtxo.outpoint.outIdx,
                     },
                     signData: {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                         outputScript: changeScript,
                     },
                 },
@@ -1474,10 +1474,10 @@ const Token: React.FC = () => {
         ];
         const adSetupTargetOutputs = [
             {
-                value: 0,
-                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1]),
+                sats: 0n,
+                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1n]),
             },
-            { value: adFuelOutputSats, script: agoraAdP2sh },
+            { sats: BigInt(adFuelOutputSats), script: agoraAdP2sh },
         ];
 
         // Broadcast the ad setup tx
@@ -1522,7 +1522,7 @@ const Token: React.FC = () => {
                         outIdx: 1,
                     },
                     signData: {
-                        value: adFuelOutputSats,
+                        sats: BigInt(adFuelOutputSats),
                         redeemScript: agoraAdScript,
                     },
                 },
@@ -1611,7 +1611,7 @@ const Token: React.FC = () => {
         );
 
         // Convert formData min buy qty to BigInt
-        const minAcceptedTokens = BigInt(
+        const minAcceptedAtoms = BigInt(
             undecimalizeTokenAmount(agoraPartialMin, decimals as SlpDecimals),
         );
 
@@ -1624,10 +1624,10 @@ const Token: React.FC = () => {
                 tokenType: (tokenType as TokenType).number,
                 // We cannot render the Token screen until protocol is defined
                 tokenProtocol: protocol as 'ALP' | 'SLP',
-                offeredTokens: userSuggestedOfferedTokens,
-                priceNanoSatsPerToken: priceNanoSatsPerTokenSatoshi,
+                offeredAtoms: userSuggestedOfferedTokens,
+                priceNanoSatsPerAtom: priceNanoSatsPerTokenSatoshi,
                 makerPk: pk,
-                minAcceptedTokens,
+                minAcceptedAtoms,
             });
             return setPreviewedAgoraPartial(agoraPartial);
         } catch (err) {
@@ -1668,7 +1668,7 @@ const Token: React.FC = () => {
         }
 
         // offeredTokens is in units of token satoshis
-        const offeredTokens = previewedAgoraPartial.offeredTokens();
+        const offeredTokens = previewedAgoraPartial.offeredAtoms();
 
         const satsPerKb =
             settings.minFeeSends &&
@@ -1756,7 +1756,7 @@ const Token: React.FC = () => {
         // offeredTokens is in units of token satoshis
         const offeredTokens = (
             previewedAgoraPartial as AgoraPartial
-        ).offeredTokens();
+        ).offeredAtoms();
 
         // To guarantee we have no utxo conflicts while sending a chain of 2 txs
         // We ensure that the target output of the ad setup tx will include enough XEC
@@ -1801,7 +1801,7 @@ const Token: React.FC = () => {
 
         const offerTargetOutputs = [
             {
-                value: 0,
+                sats: 0n,
                 // We will not have any token change for the tx that creates the offer
                 // This is bc the ad setup tx sends the exact amount of tokens we need
                 // for the ad tx (the offer)
@@ -1809,7 +1809,7 @@ const Token: React.FC = () => {
                     sendAmounts[0],
                 ]),
             },
-            { value: appConfig.dustSats, script: agoraP2sh },
+            { sats: BigInt(appConfig.dustSats), script: agoraP2sh },
         ];
 
         const adSetupSatoshis = getAgoraAdFuelSats(
@@ -1829,7 +1829,7 @@ const Token: React.FC = () => {
                 input: {
                     prevOut: slpTokenInput.outpoint,
                     signData: {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                         outputScript: changeScript,
                     },
                 },
@@ -1838,7 +1838,7 @@ const Token: React.FC = () => {
         }
         const adSetupTargetOutputs: TokenTargetOutput[] = [
             {
-                value: 0,
+                sats: 0n,
                 // We use sendAmounts here instead of sendAmounts[0] used in offerTargetOutputs
                 // They may be the same thing, i.e. sendAmounts may be an array of length one
                 // But we could have token change for the ad setup tx
@@ -1849,14 +1849,14 @@ const Token: React.FC = () => {
                 ),
             },
             {
-                value: agoraAdFuelInputSats,
+                sats: BigInt(agoraAdFuelInputSats),
                 script: agoraAdP2sh,
             },
         ];
 
         // Include token change output for the ad setup tx if we have change
         if (sendAmounts.length > 1) {
-            adSetupTargetOutputs.push({ value: appConfig.dustSats });
+            adSetupTargetOutputs.push({ sats: BigInt(appConfig.dustSats) });
         }
 
         // Calculate decimalized total offered amount for notifications
@@ -1908,7 +1908,7 @@ const Token: React.FC = () => {
                         outIdx: 1,
                     },
                     signData: {
-                        value: agoraAdFuelInputSats,
+                        sats: BigInt(agoraAdFuelInputSats),
                         redeemScript: agoraAdScript,
                     },
                 },
@@ -2190,7 +2190,7 @@ const Token: React.FC = () => {
                                             {decimalizedTokenQtyToLocaleFormat(
                                                 decimalizeTokenAmount(
                                                     previewedAgoraPartial
-                                                        .offeredTokens()
+                                                        .offeredAtoms()
                                                         .toString(),
                                                     decimals as SlpDecimals,
                                                 ),
@@ -2206,7 +2206,7 @@ const Token: React.FC = () => {
                                             {decimalizedTokenQtyToLocaleFormat(
                                                 decimalizeTokenAmount(
                                                     previewedAgoraPartial
-                                                        .minAcceptedTokens()
+                                                        .minAcceptedAtoms()
                                                         .toString(),
                                                     decimals as SlpDecimals,
                                                 ),

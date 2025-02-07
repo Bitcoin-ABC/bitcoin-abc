@@ -110,7 +110,7 @@ mod ffi_inner {
     #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct TxOutput {
         /// Value of the output.
-        pub value: i64,
+        pub sats: i64,
         /// Script locking the output.
         pub script: Vec<u8>,
     }

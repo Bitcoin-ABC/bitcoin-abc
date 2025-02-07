@@ -116,11 +116,11 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         },
         inputScript: '0151',
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
-        value: 5000000000,
+        sats: 5000000000n,
         sequenceNo: 0,
     };
     const BASE_TX_OUTPUT = {
-        value: 2000,
+        sats: 2000n,
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
     };
     const BASE_TX_TOKEN_INFO_SLP_NFT = {
@@ -130,7 +130,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
             number: 129,
         },
         entryIdx: 0,
-        amount: '0',
+        atoms: 0n,
         isMintBaton: true,
     };
     const BASE_TOKEN_ENTRY = {
@@ -138,8 +138,8 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         isInvalid: false,
         burnSummary: '',
         failedColorings: [],
-        actualBurnAmount: '0',
-        intentionalBurn: '0',
+        actualBurnAtoms: 0n,
+        intentionalBurnAtoms: 0n,
         burnsMintBatons: false,
     };
     let slpGenesisTxid = '';
@@ -184,23 +184,23 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpGenesis.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001810747454e455349530d534c50204e46542047524f555013536c70204e46542047524f555020746f6b656e0e687474703a2f2f736c702e6e667420787878787878787878787878787878787878787878787878787878787878787801040102080000000000001388',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '5000',
+                    atoms: 5000n,
                     isMintBaton: false,
                 },
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
@@ -208,7 +208,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4999600000,
+                sats: 4999600000n,
             },
         ]);
 
@@ -285,7 +285,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                     txid: 'b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb',
                     outIdx: 2,
                 },
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
@@ -297,7 +297,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpMint.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c50000181044d494e5420b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb0103080000000000000014',
             },
@@ -306,7 +306,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '20',
+                    atoms: 20n,
                     isMintBaton: false,
                 },
             },
@@ -364,11 +364,11 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                     txid: 'b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb',
                     outIdx: 1,
                 },
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '5000',
+                    atoms: 5000n,
                     isMintBaton: false,
                 },
             },
@@ -378,7 +378,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpSend.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001810453454e4420b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb080000000000000001080000000000000063080000000000000384080000000000000fa0',
             },
@@ -387,7 +387,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                 },
             },
@@ -396,7 +396,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '99',
+                    atoms: 99n,
                     isMintBaton: false,
                 },
             },
@@ -405,7 +405,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '900',
+                    atoms: 900n,
                     isMintBaton: false,
                 },
             },
@@ -414,7 +414,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
-                    amount: '4000',
+                    atoms: 4000n,
                     isMintBaton: false,
                 },
             },
@@ -485,12 +485,12 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                     txid: '2c6258bee9033399108e845b3c69e60746b89624b3ec18c5d5cc4b2e88c6ccab',
                     outIdx: 1,
                 },
-                value: 2000,
+                sats: 2000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpGenesisTxid,
                     entryIdx: 1,
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                 },
             },
@@ -500,13 +500,13 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpChildGenesis.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410747454e455349530d534c50204e4654204348494c4413536c70204e4654204348494c4420746f6b656e4c004c0001004c00080000000000000001',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 1400,
+                sats: 1400n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_NFT,
                     tokenId: slpChildGenesisTxid,
@@ -515,7 +515,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                         protocol: 'SLP',
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                 },
             },
@@ -571,7 +571,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         ).to.eql(true);
 
         // Clone as we will use blockTxs.txs later
-        const txsFromBlock = JSON.parse(JSON.stringify(blockTxs.txs));
+        const txsFromBlock = [...blockTxs.txs];
 
         // The first tx is the coinbase tx, which is not a token
         const coinbaseTx = txsFromBlock.shift()!;

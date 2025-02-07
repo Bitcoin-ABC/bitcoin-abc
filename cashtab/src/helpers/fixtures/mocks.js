@@ -168,6 +168,7 @@ export const emptyCashtabWalletJson_pre_2_55_0 = {
         balanceSats: 0,
         nonSlpUtxos: [],
         slpUtxos: [],
+        parsedTxHistory: [],
         tokens: [],
     },
 };
@@ -190,6 +191,7 @@ export const emptyCashtabWalletJson = {
         balanceSats: 0,
         nonSlpUtxos: [],
         slpUtxos: [],
+        parsedTxHistory: [],
         tokens: [],
     },
 };
@@ -212,6 +214,7 @@ export const emptyCashtabWallet = {
         balanceSats: 0,
         nonSlpUtxos: [],
         slpUtxos: [],
+        parsedTxHistory: [],
         tokens: new Map(),
     },
 };
@@ -249,6 +252,7 @@ export const emptyCashtabWalletMultiPathJson = {
         balanceSats: 0,
         nonSlpUtxos: [],
         slpUtxos: [],
+        parsedTxHistory: [],
         tokens: [],
     },
 };
@@ -286,6 +290,7 @@ export const cashtabWalletMultiPathWithTokensJson = {
         balanceSats: 0,
         nonSlpUtxos: [],
         slpUtxos: [],
+        parsedTxHistory: [],
         tokens: [
             [
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',

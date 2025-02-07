@@ -6,8 +6,8 @@ use bitcoinsuite_slp::{
     slp::mint_opreturn,
     structs::TxType,
     test_helpers::{
-        empty_entry, meta_alp, meta_slp as meta, spent_amount, spent_baton,
-        token_amount, token_baton, verify, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4,
+        empty_entry, meta_alp, meta_slp as meta, spent_atoms, spent_baton,
+        token_atoms, token_baton, verify, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4,
     },
     token_tx::{TokenTx, TokenTxEntry},
     token_type::SlpTokenType::*,
@@ -41,14 +41,14 @@ fn test_verify_mint_no_mint_input() {
         assert_eq!(
             verify::<1>(
                 mint_opreturn(&TOKEN_ID2, token_type, None, 44),
-                &[spent_amount(meta(TOKEN_ID2, token_type), 77)],
+                &[spent_atoms(meta(TOKEN_ID2, token_type), 77)],
             ),
             TokenTx {
                 entries: vec![TokenTxEntry {
                     meta: meta(TOKEN_ID2, token_type),
                     tx_type: Some(TxType::MINT),
                     is_invalid: true,
-                    actual_burn_amount: 77,
+                    actual_burn_atoms: 77,
                     burn_error: Some(BurnError::MissingMintBaton),
                     ..empty_entry()
                 }],
@@ -142,7 +142,7 @@ fn test_verify_mint_success_simple() {
                 }],
                 outputs: vec![
                     None,
-                    token_amount::<0>(44),
+                    token_atoms::<0>(44),
                     None,
                     token_baton::<0>(),
                 ],
@@ -163,7 +163,7 @@ fn test_verify_mint_success_with_burn() {
                 verify::<3>(
                     mint_opreturn(&TOKEN_ID2, token_type, Some(3), 44),
                     &[
-                        spent_amount(meta(TOKEN_ID2, token_type), 77),
+                        spent_atoms(meta(TOKEN_ID2, token_type), 77),
                         spent_baton(meta(TOKEN_ID2, token_type)),
                         spent_baton(meta(TOKEN_ID2, wrong_token_type)),
                         spent_baton(meta(TOKEN_ID3, token_type)),
@@ -175,7 +175,7 @@ fn test_verify_mint_success_with_burn() {
                         TokenTxEntry {
                             meta: meta(TOKEN_ID2, token_type),
                             tx_type: Some(TxType::MINT),
-                            actual_burn_amount: 77,
+                            actual_burn_atoms: 77,
                             ..empty_entry()
                         },
                         TokenTxEntry {
@@ -199,7 +199,7 @@ fn test_verify_mint_success_with_burn() {
                     ],
                     outputs: vec![
                         None,
-                        token_amount::<0>(44),
+                        token_atoms::<0>(44),
                         None,
                         token_baton::<0>(),
                     ],

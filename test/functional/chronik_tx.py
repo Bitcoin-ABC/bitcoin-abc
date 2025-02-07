@@ -103,13 +103,13 @@ class ChronikTxTest(BitcoinTestFramework):
                     prev_out=pb.OutPoint(txid=bytes.fromhex(cointx)[::-1], out_idx=0),
                     input_script=bytes(tx.vin[0].scriptSig),
                     output_script=bytes(P2SH_OP_TRUE),
-                    value=coinvalue,
+                    sats=coinvalue,
                     sequence_no=0xFFFFFFFE,
                 )
             ],
             outputs=[
                 pb.TxOutput(
-                    value=value,
+                    sats=value,
                     output_script=bytes(script),
                 )
                 for value, script in zip(send_values, send_scripts)
@@ -161,14 +161,14 @@ class ChronikTxTest(BitcoinTestFramework):
                     prev_out=pb.OutPoint(txid=bytes.fromhex(txid)[::-1], out_idx=i),
                     input_script=bytes(tx2.vin[i].scriptSig),
                     output_script=bytes(script),
-                    value=value,
+                    sats=value,
                     sequence_no=0xFFFFFFF0 + i,
                 )
                 for i, (value, script) in enumerate(zip(send_values, send_scripts))
             ],
             outputs=[
                 pb.TxOutput(
-                    value=tx2.vout[0].nValue,
+                    sats=tx2.vout[0].nValue,
                     output_script=bytes(tx2.vout[0].scriptPubKey),
                 )
             ],

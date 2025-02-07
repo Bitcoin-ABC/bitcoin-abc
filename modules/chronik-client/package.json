@@ -1,13 +1,13 @@
 {
     "name": "chronik-client",
-    "version": "2.1.1",
+    "version": "3.0.0",
     "description": "A client for accessing the Chronik Indexer API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "author": "Tobias Ruck",
     "license": "MIT",
     "scripts": {
-        "build-proto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=proto/ ../../chronik/chronik-proto/proto/chronik.proto -I=../../chronik/chronik-proto/proto/ --ts_proto_opt=esModuleInterop=true --ts_proto_opt=forceLong=string",
+        "build-proto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=proto/ ../../chronik/chronik-proto/proto/chronik.proto -I=../../chronik/chronik-proto/proto/ --ts_proto_opt=esModuleInterop=true --ts_proto_opt=forceLong=bigint",
         "build": "tsc",
         "build-docs": "typedoc --out docs index.ts",
         "test": "mocha -r ts-node/register test/test.ts",

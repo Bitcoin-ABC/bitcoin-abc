@@ -454,8 +454,8 @@ fn to_db_token(token: Option<&Token>, metas: &[TokenMeta]) -> DbToken {
         return DbToken::NoToken;
     };
     match token.variant {
-        TokenVariant::Amount(amount) => {
-            DbToken::Amount(meta_idx(&token.meta, metas), amount)
+        TokenVariant::Atoms(atoms) => {
+            DbToken::Atoms(meta_idx(&token.meta, metas), atoms)
         }
         TokenVariant::MintBaton => {
             DbToken::MintBaton(meta_idx(&token.meta, metas))

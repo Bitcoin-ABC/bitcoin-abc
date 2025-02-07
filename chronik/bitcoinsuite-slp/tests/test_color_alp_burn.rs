@@ -10,7 +10,7 @@ use bitcoinsuite_slp::{
     alp::{burn_section, parse_section, sections_opreturn},
     color::{ColorError, ColoredTx, FailedColoring, IntentionalBurn},
     parsed::ParsedData,
-    structs::{Amount, TokenMeta},
+    structs::{Atoms, TokenMeta},
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
 };
@@ -24,14 +24,14 @@ const TXID3: TxId = TxId::new([6; 32]);
 const TOKEN_ID3: TokenId = TokenId::new(TXID3);
 
 const STD: AlpTokenType = AlpTokenType::Standard;
-const MAX: Amount = 0xffff_ffff_ffff;
+const MAX: Atoms = 0xffff_ffff_ffff;
 
 fn make_tx<const N: usize>(script: Script) -> Tx {
     Tx::with_txid(
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),
@@ -51,8 +51,8 @@ fn parse(pushdata: Bytes) -> ParsedData {
     parse_section(&TXID, pushdata).unwrap().unwrap()
 }
 
-fn make_burn(token_id: &TokenId, amount: Amount) -> Bytes {
-    burn_section(token_id, AlpTokenType::Standard, amount)
+fn make_burn(token_id: &TokenId, atoms: Atoms) -> Bytes {
+    burn_section(token_id, AlpTokenType::Standard, atoms)
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn test_color_alp_burn_duplicate() {
         Some(ColoredTx {
             intentional_burns: vec![IntentionalBurn {
                 meta: meta(TOKEN_ID2),
-                amount: 3,
+                atoms: 3,
             }],
             outputs: vec![None],
             failed_colorings: vec![FailedColoring {
@@ -91,7 +91,7 @@ fn test_color_alp_burn_success_simple() {
         Some(ColoredTx {
             intentional_burns: vec![IntentionalBurn {
                 meta: meta(TOKEN_ID2),
-                amount: 3,
+                atoms: 3,
             }],
             outputs: vec![None],
             ..Default::default()
@@ -110,11 +110,11 @@ fn test_color_alp_burn_success_complex() {
             intentional_burns: vec![
                 IntentionalBurn {
                     meta: meta(TOKEN_ID2),
-                    amount: 1,
+                    atoms: 1,
                 },
                 IntentionalBurn {
                     meta: meta(TOKEN_ID3),
-                    amount: MAX,
+                    atoms: MAX,
                 },
             ],
             outputs: vec![None],

@@ -7,7 +7,7 @@ import {
     ScriptType,
     Tx,
     GenesisInfo,
-    Utxo,
+    ScriptUtxo,
 } from 'chronik-client';
 import { getEmojiFromBalanceSats } from './utils';
 import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
@@ -66,8 +66,8 @@ export const getTokenInfoMap = async (
 
 export interface OutputscriptInfo {
     emoji: string;
-    balanceSats: number;
-    utxos: Utxo[];
+    balanceSats: bigint;
+    utxos: ScriptUtxo[];
 }
 /**
  * Build a reference map of outputScripts and their balance in satoshis
@@ -79,7 +79,7 @@ export const getOutputscriptInfoMap = async (
     chronik: ChronikClient,
     outputScripts: Set<string>,
 ): Promise<false | Map<string, OutputscriptInfo>> => {
-    const outputScriptInfoMap = new Map();
+    const outputScriptInfoMap: Map<string, OutputscriptInfo> = new Map();
     const outputScriptInfoPromises: Promise<void>[] = [];
 
     // For each outputScript, create a promise to get its balance and add
@@ -98,14 +98,10 @@ export const getOutputscriptInfoMap = async (
                             // If this address has utxos, then utxos = [{utxos: []}]
                             const balanceSats =
                                 response.utxos.length === 0
-                                    ? 0
+                                    ? 0n
                                     : response.utxos
-                                          .map(utxo => utxo.value)
-                                          .reduce(
-                                              (prev, curr) => prev + curr,
-                                              0,
-                                          );
-
+                                          .map(utxo => utxo.sats)
+                                          .reduce((prev, curr) => prev + curr);
                             // Set the map outputScript => emoji
                             outputScriptInfoMap.set(outputScript, {
                                 emoji: getEmojiFromBalanceSats(balanceSats),

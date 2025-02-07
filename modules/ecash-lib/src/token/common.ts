@@ -4,8 +4,6 @@
 
 import { strToBytes } from '../io/str.js';
 
-export type Amount = bigint | number;
-
 export const GENESIS = strToBytes('GENESIS');
 export const MINT = strToBytes('MINT');
 export const SEND = strToBytes('SEND');

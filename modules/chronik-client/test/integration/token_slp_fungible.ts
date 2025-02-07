@@ -112,11 +112,11 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
     const BASE_TX_INPUT = {
         inputScript: '0151',
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
-        value: 5000000000,
+        sats: 5000000000n,
         sequenceNo: 0,
     };
     const BASE_TX_OUTPUT = {
-        value: 2000,
+        sats: 2000n,
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
     };
     const BASE_TX_TOKEN_INFO_SLP_FUNGIBLE = {
@@ -126,7 +126,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
             number: 1,
         },
         entryIdx: 0,
-        amount: '0',
+        atoms: 0n,
         isMintBaton: false,
     };
     const BASE_TOKEN_ENTRY = {
@@ -134,8 +134,8 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         isInvalid: false,
         burnSummary: '',
         failedColorings: [],
-        actualBurnAmount: '0',
-        intentionalBurn: '0',
+        actualBurnAtoms: 0n,
+        intentionalBurnAtoms: 0n,
         burnsMintBatons: false,
     };
     let slpGenesisTxid = '';
@@ -184,22 +184,22 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpGenesis.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e4553495307534c5054455354105465737420534c5020546f6b656e203312687474703a2f2f6578616d706c652f736c7020787878787878787878787878787878787878787878787878787878787878787801040102080000000000001388',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
-                    amount: '5000',
+                    atoms: 5000n,
                 },
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
@@ -208,7 +208,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4999600000,
+                sats: 4999600000n,
             },
         ]);
 
@@ -289,7 +289,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
                     txid: slpGenesisTxid,
                     outIdx: 2,
                 },
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
@@ -302,7 +302,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpMint.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c50000101044d494e5420cd295e7eb883b5826e2d8872b1626a4af4ce7ec81c468f1bfdad14632036d20a0103080000000000000014',
             },
@@ -311,7 +311,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
-                    amount: '20',
+                    atoms: 20n,
                 },
             },
             {
@@ -369,11 +369,11 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
                     txid: slpGenesisTxid,
                     outIdx: 1,
                 },
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
-                    amount: '5000',
+                    atoms: 5000n,
                 },
             },
         ]);
@@ -382,26 +382,26 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpSend.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e4420cd295e7eb883b5826e2d8872b1626a4af4ce7ec81c468f1bfdad14632036d20a0800000000000003e8080000000000000fa0',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4000,
+                sats: 4000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
-                    amount: '1000',
+                    atoms: 1000n,
                 },
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4000,
+                sats: 4000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
                     tokenId: slpGenesisTxid,
-                    amount: '4000',
+                    atoms: 4000n,
                 },
             },
         ]);
@@ -445,7 +445,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
                     txid: slpGenesisTxid,
                     outIdx: 3,
                 },
-                value: 4999600000,
+                sats: 4999600000n,
             },
         ]);
 
@@ -454,13 +454,13 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpEmptyGenesis.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e455349534c004c004c004c0001004c00080000000000000000',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4999500000,
+                sats: 4999500000n,
             },
         ]);
 
@@ -496,7 +496,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         const blockTxs = await chronik.blockTxs(CHAIN_INIT_HEIGHT + 2);
 
         // Clone as we will use blockTxs.txs later
-        const txsFromBlock = JSON.parse(JSON.stringify(blockTxs.txs));
+        const txsFromBlock = [...blockTxs.txs];
 
         // The first tx is the coinbase tx, which is not a token
         const coinbaseTx = txsFromBlock.shift()!;

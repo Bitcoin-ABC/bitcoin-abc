@@ -26,22 +26,22 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0372390d04d8440e6708bd41863a64000000736f6c6f706f6f6c2e6f7267',
-                value: 0,
+                sats: 0n,
                 sequenceNo: 0,
             },
         ],
         outputs: [
             {
-                value: 181272025,
+                sats: 181272025n,
                 outputScript:
                     '76a914f4728f398bb962656803346fb4ac45d776041a2e88ac',
             },
             {
-                value: 100012151,
+                sats: 100012151n,
                 outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
             },
             {
-                value: 31253797,
+                sats: 31253797n,
                 outputScript:
                     '76a914197eaf9b9f4b4f038f967c76cf050e3d8f5f872e88ac',
             },
@@ -73,22 +73,22 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0370390d192f5669614254432f4d696e6564206279206d6f6f72646f632f1003e0a10ffd4bebde9cbcad5d8cb90200',
-                value: 0,
+                sats: 0n,
                 sequenceNo: 4294967295,
             },
         ],
         outputs: [
             {
-                value: 181291465,
+                sats: 181291465n,
                 outputScript:
                     '76a914f1c075a01882ae0972f95d3a4177c86c852b7d9188ac',
             },
             {
-                value: 100022876,
+                sats: 100022876n,
                 outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
             },
             {
-                value: 31257149,
+                sats: 31257149n,
                 outputScript:
                     '76a914eaac1f0faac136c3091b67f78c4bc8d0f037b94188ac',
             },
@@ -120,22 +120,22 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0367390d04f0150e6708fabe6d6d25608bc631bda8933fe554bb7a50befe9e4139bda920ac0ee937769cec2ffde7000100000000000001b65911900403003201112f4d696e696e672d44757463682f2d3335',
-                value: 0,
+                sats: 0n,
                 sequenceNo: 0,
             },
         ],
         outputs: [
             {
-                value: 181255884,
+                sats: 181255884n,
                 outputScript:
                     '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
             },
             {
-                value: 100003246,
+                sats: 100003246n,
                 outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
             },
             {
-                value: 31251014,
+                sats: 31251014n,
                 outputScript:
                     '76a914a07b8141956fca49e54b474e5efd894fabab6bbb88ac',
             },
@@ -167,7 +167,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c61f3e6506b6e66be785e1bd91c934252f36ef1345dbeaeeed82cbbc95279ad570c0aa68646e9908e559ebc5306ad323c8fcdd17286564a92f5f03656c32a7a041210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                value: 94297394,
+                sats: 94297394n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
@@ -175,12 +175,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 4200,
+                sats: 4200n,
                 outputScript:
                     '76a914e54253a422ad52174e6ad25762c318a2aaa921db88ac',
             },
             {
-                value: 94292975,
+                sats: 94292975n,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                 spentBy: {
@@ -216,7 +216,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '416492cfb9939f8d08ce8063069242682bfc62832f5a30a8f9cf427a9d1618ca0c72d53a803667e7fc8de07c393d40a58146b34bc0f0a09f36da5cfa32c45456df41210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -226,7 +226,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '454260000',
+                    atoms: 454260000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -240,7 +240,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41128001cde47289dda3455e0c28b85bfd18775ff44b6effee197f7f4c09b9418d1cab4719dc4e3ace8c28a79e3ced43b82b7d8088f949ad1d69f0228048f3046141210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                value: 94291962,
+                sats: 94291962n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
@@ -248,12 +248,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271008000000001b134e10',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914e54253a422ad52174e6ad25762c318a2aaa921db88ac',
                 token: {
@@ -264,13 +264,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000',
+                    atoms: 10000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                 token: {
@@ -281,7 +281,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '454250000',
+                    atoms: 454250000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -291,7 +291,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 94290949,
+                sats: 94290949n,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                 spentBy: {
@@ -318,8 +318,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -345,7 +345,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0441475230075041525449414c4180f1bfdb06735c27ffe75627fa1fecd46844334f6686dd5e64b01d4e68de28d98b6ed87ac5bf86ce27af78b06944beae25e2f0084433d563d6bd19c6616a5a62414c8c4c766a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f89608000000000000000000013b62100000000000298f0000000000006de4ff1700000000f3282c4e03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba601557f77ad075041525449414c88044147523087',
-                value: 914,
+                sats: 914n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -355,7 +355,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2000',
+                    atoms: 2000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -364,12 +364,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f8960800000000000007d0',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript: 'a914563178ea073228709397a2c98baf10677e683e6687',
                 token: {
                     tokenId:
@@ -379,7 +379,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2000',
+                    atoms: 2000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -403,8 +403,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -429,7 +429,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1407996448a8c0b89e341453ba9726eb40a2e8c07401808b82dc3623a2ab2c353c9115cbdbcd738b01d01a718c9c10336823231f7f16cdcc3ac43001c4c0c11e3764422020000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac89680000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac4d2c01f56747f8eef6e95b3408c1c407a69329c149dee323a43bceb0dd10c5cca0224802000000d37b63817b6ea2697604d0aa4701a2697602e2539700887d94527901377f75789263587e7802e253965880bc007e7e68587e527902e253965880bc007e7e825980bc7c7e007e7b02e1539302e2539658807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d3007f5c7f7701207f547f750440aef137886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffffdc591bfcfc4bbdd22709d6be93a5c9f25c9be52771a079ed51a1bd8767c4fa5d40aef137c100000004d0aa4701514d55014c766a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10800000000000000000000e253000000000000e253000000000000d0aa47010000000040aef13703771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60860b8507800000000ab7b63817b6ea2697604d0aa4701a2697602e2539700887d94527901377f75789263587e7802e253965880bc007e7e68587e527902e253965880bc007e7e825980bc7c7e007e7b02e1539302e2539658807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d3007f5c7f7701207f547f750440aef137886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -439,7 +439,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '94000',
+                    atoms: 94000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -452,7 +452,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4171aa357cf2a1e41d819440432b05557bd24da15319e714e6084330496e63f4cce9d8b3e77c86b9ae4a1ebd078a6ed8cbef34347b2d5a99643443c44d350e2ff0412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 30808,
+                sats: 30808n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -460,17 +460,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000000000080000000000016b480800000000000003e8',
             },
             {
-                value: 1000,
+                sats: 1000n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript: 'a914366be7e1eee2040519012d19fbfc3002456aede487',
                 token: {
                     tokenId:
@@ -480,13 +480,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '93000',
+                    atoms: 93000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -497,13 +497,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1000',
+                    atoms: 1000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 26761,
+                sats: 26761n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
             },
@@ -526,8 +526,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -552,7 +552,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41fd18138ab17386e9599e54d9d5f1994d1c4add3af860b1ece44b71d04bc7e7cd799e1234e2959236cd38558713d7fdb797a894c527906b0235a38519ad63fbea4121024f624d04900c2e3b7ea6014cb257f525b6d229db274bceeadbb1f06c07776e82',
-                value: 975251,
+                sats: 975251n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
@@ -564,7 +564,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0441475230075041525449414c4113bb98283dc7a2f69957940bb3a45f4ec6050b61bcc1b1134d786727e379c8793107bf0d0b0e051665ab3eed2cca34901646cf564a1ab52cb32668da229eef0b41004d5f014c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8080000000000000000030276a4000000000000e815000000000000a24a2600000000004b4a343a024f624d04900c2e3b7ea6014cb257f525b6d229db274bceeadbb1f06c07776e8208948eff7f00000000ab7b63817b6ea2697603a24a26a269760376a4009700887d94527901377f75789263587e780376a400965580bc030000007e7e68587e52790376a400965580bc030000007e7e825980bc7c7e0200007e7b02e7159302e8159656807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702dd007f5c7f7701207f547f75044b4a343a886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -574,7 +574,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '855738679296',
+                    atoms: 855738679296n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -583,12 +583,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f808000000c73e000000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
                 token: {
@@ -599,13 +599,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '855738679296',
+                    atoms: 855738679296n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 973723,
+                sats: 973723n,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
             },
@@ -628,8 +628,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -656,7 +656,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4830450221008ac252ef989af11e2c5cb9b5fc0de854f7522d3950146090c90ab79f3db693f502202a07a121ff673ffbc863be66525035e067850b804572035125672bd7dc7e43464121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 44095814,
+                sats: 44095814n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -664,12 +664,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e45534953035052500850657270657475611468747470733a2f2f636173687461622e636f6d2f4c0001000102080000000000002710',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -680,7 +680,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000',
+                    atoms: 10000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -690,7 +690,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -701,7 +701,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
@@ -711,7 +711,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 44094050,
+                sats: 44094050n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
@@ -738,8 +738,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -764,7 +764,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4196b2976df5c8b5a52a02a4cfe29c79e69379d2c431b716ce8cafc173127b831e96e01730893d5fe538cd4919f61932c3720fe21edc3c0f8578cd67ee839c3e924121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -774,7 +774,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
+                    atoms: 18446744073709551615n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -788,7 +788,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c451d43dfbe0cf1a89b6894c1eb54250683569656945f984a1cc9e35c5bc8e6f6822d8a7837ee5cc820647dced5e959fc6245dfcf9981efe9e8309e9ed9c82b24121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 2815,
+                sats: 2815n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -796,12 +796,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e442004009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a246610308000000000000006408ffffffffffffff9b',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -812,13 +812,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
+                    atoms: 100n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -829,13 +829,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551515',
+                    atoms: 18446744073709551515n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 1330,
+                sats: 1330n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
             },
@@ -858,8 +858,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -885,7 +885,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '412a4090cd915b2d5838574c4ba7267264f9f35e3924865f45c3315d2398555f392aaea28f9de19c7f8115797396cb95793a8e1cb1449359c73ea0dd6b765332e44121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -895,7 +895,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
@@ -909,7 +909,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41827f9d3b4b972bd7ac87900120b54e51b21002bdf525a10ac38a7306d73a3f03c2b307b6eb0f332b4170762a0cb510cb0e2e385bc2de0f231b53ecc6de6b4e234121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 2492,
+                sats: 2492n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -917,12 +917,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c50000101044d494e542004009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a24661030102080000000000000021',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -933,13 +933,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '33',
+                    atoms: 33n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -950,13 +950,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
             },
             {
-                value: 1021,
+                sats: 1021n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
             },
@@ -979,8 +979,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1006,7 +1006,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41ebf71b0f30e6518961fba9c0bc17cdbed3ad3c4026c7157cc32e2e898b13c15dea3a5346e8fc8feb31616a9f58a76614490f27e834a6b96abe0007dc4a4174c54121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1016,7 +1016,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
+                    atoms: 18446744073709551615n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1030,7 +1030,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41af685f59477f62587d266c15c8a99fb2e12970ba626eb8c63b73c2dd99e63a0616f873079fa0acfaef869b3ab90bb14f90653c576971ea26a67788c8be26e6724121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 34919953,
+                sats: 34919953n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -1038,12 +1038,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e442004009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a246610308ffffffffffffffc8',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -1054,13 +1054,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551560',
+                    atoms: 18446744073709551560n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 34919100,
+                sats: 34919100n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
             },
@@ -1083,8 +1083,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: 'Unexpected burn: Burns 55 base tokens',
                 failedColorings: [],
-                actualBurnAmount: '55',
-                intentionalBurn: '0',
+                actualBurnAtoms: 55n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1110,7 +1110,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '473044022040b7bb9093b092003b5c41090f4b7560a7bcfed35278fd05d2f1083653529ea902205a11af8aea5d16a01dc7648397eb6b04369dda9e3e9ecc4a9efe3f5b4a41a1dd412102fafcdb1f5f0d2e49909fbafc18f339bcfc2b765b3def934d501eb798e626c7b3',
-                value: 3851630,
+                sats: 3851630n,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a91452558a0640aae72592c3b336a3a4959ce97906b488ac',
@@ -1118,12 +1118,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001020747454e45534953034255581642616467657220556e6976657273616c20546f6b656e1368747470733a2f2f6275782e6469676974616c4c0001041408d6edf91c7b93d18306d3b8244587e43f11df4b080000000000000000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91452558a0640aae72592c3b336a3a4959ce97906b488ac',
                 spentBy: {
@@ -1132,7 +1132,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 3850752,
+                sats: 3850752n,
                 outputScript:
                     '76a914f4592a09e8da1a2157916963bc0fb7fe682df73e88ac',
                 spentBy: {
@@ -1159,8 +1159,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1187,7 +1187,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '0441475230074f4e4553484f5441f726092967ef8ec3ec48829c2beefa8feab1bbddd59d699f39f5a17a5958071ca662d1894cbcdec7496a01dae278180fdf042df9dacc479377c1ba32fe01340b414c562210270000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac752103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6ad074f4e4553484f5488044147523087',
-                value: 860,
+                sats: 860n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1197,7 +1197,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1206,12 +1206,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410453454e44204902178c8ed20bab8984431654501942e76cb651d680559ff83627154958bfec080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript: 'a914e4d13a656429fafb1dbf0cb14b0385b97b1692ef87',
                 plugins: {
                     agora: {
@@ -1234,7 +1234,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1262,8 +1262,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     '0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316',
@@ -1290,7 +1290,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c2ac670257fe9cb6ca0c3fdab8ef461e40fbbdd068c0cc41994be9d87082c8b3017c296296b21d30b76c5e2b855baf53a3ae4831c98c4848479d720eccfb646141004cb0634c6b0000000000000000406a04534c500001410453454e44204902178c8ed20bab8984431654501942e76cb651d680559ff83627154958bfec08000000000000000008000000000000000110270000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac7c7eaa7801327f7701207f7588520144807c7ea86f7bbb7501c17e7c672103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba668abac',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1300,7 +1300,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1326,7 +1326,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41958e12ca0bdf2c998c6f54381804d103d452aa67d0b94e3f61964bc3be4eb3a43bdb5d51b0ed2f7ffe978394b84eb5a0da25bc7c818d10b109d12f57d248cc91412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 651735486,
+                sats: 651735486n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1334,12 +1334,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410453454e44204902178c8ed20bab8984431654501942e76cb651d680559ff83627154958bfec080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1350,13 +1350,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 651734917,
+                sats: 651734917n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
@@ -1379,8 +1379,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     '0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316',
@@ -1407,7 +1407,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '2103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba640694b6878134fc8f5d56a5feb78413c80cfb1b81802774f557d026de210045317e7648c3e52646cff9fdad7326739814e35db3fa824a4890734d820e8b4db33ce4c5ae9051192d1cd35b477981c5ff7151e96a9dcf7361b9489a8d16e2a7c733ec76c0100000001ac2202000000000000ffffffff207bf382a50097a3db0754db5a4feb2d448f69a26cffea3ec0d17120411ed14300000000c10000004422020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac60ff0d00000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac514cb0634c6b0000000000000000406a04534c500001410453454e4420de75efed4ef6026c52738178c71eca1dfe014d44d243ab9ae54d79cf6c96345a08000000000000000008000000000000000134581400000000001976a9147fb54ae2e2f36f98b3e838272725f2cd1b9f3caa88ac7c7eaa7801327f7701207f7588520144807c7ea86f7bbb7501c17e7c672102ce5232f2873c0c7b832bb74d08d904239cb7802b2e3b1ab11cf9d922289e70b668abac',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1417,7 +1417,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1443,7 +1443,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4131b686ad2a4c8da3588a488a9f27dddb341a26248f343a90d54a03251a96653fdd5dff15b739e43bde02bc5c9e062f003e8b756802f0bcd2f884111561362ca1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1953,
+                sats: 1953n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1455,7 +1455,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41dba2adaabd2860975a36fc1eaf95c8e0313dc74be0d4388fe87d11718fc8a211b817d25c4f9efd695638eabf2f9bca1c8aa67de277b8e7ab06a577deecb2ad21412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1467,7 +1467,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41e6d980e95d18f97ea1a99108dc86149f3f21a2be2d8a68786cd0b3a4cf7281c35f339440d85dfe999d9e294fed0d7b51e13d316096a90b307f26f9f2fe7eb1d8412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 821854,
+                sats: 821854n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1479,7 +1479,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4177d441e7f1c6b16ffe13dc880e66f15fa70943c823fa221e8250c840f856720676d160e21d648d2ed4a349567b89795a1f44bbb38afe317a7506789d7cbd054c412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1427068,
+                sats: 1427068n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1487,17 +1487,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410453454e4420de75efed4ef6026c52738178c71eca1dfe014d44d243ab9ae54d79cf6c96345a080000000000000000080000000000000001',
             },
             {
-                value: 1333300,
+                sats: 1333300n,
                 outputScript:
                     '76a9147fb54ae2e2f36f98b3e838272725f2cd1b9f3caa88ac',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1508,13 +1508,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 917344,
+                sats: 917344n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
@@ -1537,8 +1537,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     '78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c',
@@ -1566,7 +1566,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '417e7167fe4f0b007e566c28646aa109b20d6489476a3bc70e12f25dc76ff81f875cd7d0432b5f5906d67dba505dedb078247133c3901c5336f8c43aff97aa2885412102ce5232f2873c0c7b832bb74d08d904239cb7802b2e3b1ab11cf9d922289e70b6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1576,7 +1576,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 1,
                 },
@@ -1590,7 +1590,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41f46f82426d8d7402565b6f2f9913edc182fca96830841db667b755a909297c19f9c8fcedead5617db5bce127151cd6959a97bc1b66ac6df920f899ea90f62ba5412102ce5232f2873c0c7b832bb74d08d904239cb7802b2e3b1ab11cf9d922289e70b6',
-                value: 67750,
+                sats: 67750n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9147fb54ae2e2f36f98b3e838272725f2cd1b9f3caa88ac',
@@ -1598,12 +1598,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410747454e4553495308524d5a736d6f6b6524586f6c6f69747a6375696e746c69204e465420436967617220436f6c6c656374696f6e2e1568747470733a2f2f786f6c6f7361726d792e78797a2031dd442b9e47cf7224f78f8fce5ca940e34a6c0674100ebc426aa63d9c81e33c01004c00080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9147fb54ae2e2f36f98b3e838272725f2cd1b9f3caa88ac',
                 token: {
@@ -1614,7 +1614,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1624,7 +1624,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 67251,
+                sats: 67251n,
                 outputScript:
                     '76a9147fb54ae2e2f36f98b3e838272725f2cd1b9f3caa88ac',
                 spentBy: {
@@ -1651,8 +1651,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     '8fd3f14abd2b176a1d4bd5136542cd2a7ba3df0e11947dd19326c9d1cd81ae09',
@@ -1669,8 +1669,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1696,7 +1696,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41d3bb8bb4478a86819fdff03619b170bfb7a8f5c58c859b676560f51cde0ebc779ac9cf42f8b9ee5dc501d165579bbe9107c378eba5daa487ae874ea382c92c6f412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1706,7 +1706,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1720,7 +1720,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '411e324d5198508f8f86bd44ed1c73711cbdbdaa5215194e009d1c6060d669b57c1bb37b5cb273a269ad2b890a01290e8003ca03cf981f913a9f76a2aea0d969b0412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1728,12 +1728,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410453454e4420de75efed4ef6026c52738178c71eca1dfe014d44d243ab9ae54d79cf6c96345a080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91445cdbfeb4ed47211afeeae8b3e045c9ab3d90b1188ac',
                 token: {
@@ -1744,13 +1744,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 576,
+                sats: 576n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
@@ -1773,8 +1773,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     '78efa5177e99bf05b48948ac7e23e6cc2255764e52ccf7092afb979a766dee2c',
@@ -1801,7 +1801,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41482340e636feab0d15efb309e72eac0f559d0b85eb1799e0a1419430e95448a6a5c1e3961c92861e653dde4428e6e3a79c90d10911b045e7469f7beeae62fc56c1210378d370d2cd269a77ac2f37c28d98b392e5b9892f3b3406bfec8794c82244b039',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1811,7 +1811,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '49756',
+                    atoms: 49756n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1825,7 +1825,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4152ed9a66a0c40759e400a1484df1a1d2b152c9d6917abf3beaf974f21a935d60853490ae5a07c237531016ceae6c1f01cce9cf2a1417b2b2bcbbc4737ea2fe35412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
@@ -1837,7 +1837,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '412a65517b4df68bb03ba2b7cd85e70af662503bbc8be209e7fbf18bb0950ff7e0d589f0b3e8119b5e67314fbedd856968890556593d97db58c78e86d2417f27d7412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
@@ -1849,7 +1849,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '412c9a66d04d341b1f0c3a15689265729a18f5605269909ad9f7b842ea03d96f8540e1b5b272ddc9db5f2d392a8e0569428a7ba4b5d99bbc707168898399f00da7412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
@@ -1861,7 +1861,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41f2ffdbd5f3694669d448899d3f6d939a8165d70cba6be2eaa8416847d56d4630a7b3ac8a35641705e4eb583b391a46c204920641dd85e2b7e04dd18553422651412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
@@ -1869,12 +1869,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a503d534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd038a02000000003e3000000000948f00000000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
                 token: {
@@ -1885,13 +1885,13 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '650',
+                    atoms: 650n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 1960,
+                sats: 1960n,
                 outputScript: 'a914b0bfb87508e5203803490c2f3891d040f772ba0f87',
                 token: {
                     tokenId:
@@ -1901,7 +1901,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '12350',
+                    atoms: 12350n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1911,7 +1911,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914575116c8adf5817c99fc5bdac8db18d10c25703d88ac',
                 token: {
@@ -1922,7 +1922,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '36756',
+                    atoms: 36756n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1950,8 +1950,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1976,7 +1976,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41e3e0fb1725f4712ded8c484eeb51212d654301bbcd4403289c9f6d502d161d8f805a1e942bc3f76ad9e63e3cecdc743bd7fe7b1ecfda4e0c57e47d41849ff3cd412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1986,7 +1986,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2000,7 +2000,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41a523800ea0e685c77a9aba1fbbca9413993facd0ca2243dd7273438a8712af3dc6f5d95cda8ce24bf9db1d3c16e2c567bedd2acf9378bdd42f0248f49a2dbbe5412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 149303398,
+                sats: 149303398n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -2008,17 +2008,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5030534c503200044255524e3f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e11010000000000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
             },
             {
-                value: 149302553,
+                sats: 149302553n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
             },
@@ -2040,8 +2040,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '1',
-                intentionalBurn: '1',
+                actualBurnAtoms: 1n,
+                intentionalBurnAtoms: 1n,
                 burnsMintBatons: false,
             },
         ],
@@ -2067,7 +2067,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41036e1d53dbbad08e42ec997e6d83bddd36bcd74d5a56bfd26ffb341cb02d4b1ec7bca63e187b68674a3fa88251937024b5a63b04a28c090556d3a32f3ecc0014412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2077,7 +2077,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
@@ -2091,7 +2091,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c1b8e7f078f3223267a07511d8db2bc259cf804f9dd34a0b043a3fc320a518df245d69e9f913b2b745181f2384895902827c232551f65289bbfa63080058cfe9412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2807578,
+                sats: 2807578n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -2099,12 +2099,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5032534c503200044d494e543f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e110163000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2115,7 +2115,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99',
+                    atoms: 99n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2125,7 +2125,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2136,13 +2136,13 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
             },
             {
-                value: 2806576,
+                sats: 2806576n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
@@ -2164,8 +2164,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2191,7 +2191,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41a8f890a9ea9c07e9f7cc7458ce9822af102d38d2b1e3bfd06615ab083710209d3d249ef5cee9a185dbed5b83c79b6626f29fb101f2b17e0b8aafc92dd63e3411412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2564,
+                sats: 2564n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -2199,12 +2199,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a504c51534c5032000747454e4553495302544208546962657269756d0b636173687461622e636f6d002103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60001a0860100000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2215,7 +2215,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '100000',
+                    atoms: 100000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2225,7 +2225,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2236,7 +2236,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
@@ -2246,7 +2246,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 1125,
+                sats: 1125n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -2272,8 +2272,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2299,7 +2299,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41757b94ec8879a30d97a1337794b0b3028290fb2a8376301c77dbe1f6cdd0d4ed9b6b0b85bc860f1c64fce450e9703d913eda39d1ce8f543784a22f802fcb9055412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2309,7 +2309,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1023',
+                    atoms: 1023n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2323,7 +2323,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '411342d2bfa3dd23a4b651445603d49c1a616465b5e63dc022c19c419f94be4097e75de234d05ea5b2854787ba6d15e97392a60f93b1187fe77613f67deda820ad412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2333,7 +2333,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99106',
+                    atoms: 99106n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2347,7 +2347,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4159e97bf61cd3772560593340f6709223404eea9b3c092f877f7b58594f3c42fec16ae9f0a1750e49f522992120a3919e29419f49a935bded34d901a0d76a4d6e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1001,
+                sats: 1001n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -2355,12 +2355,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a504b41475230075041525449414c0000e253000000000000630800000000000048c420000000000029e3a34103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba637534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1102a08601000000810000000000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript: 'a9144df7df04abf59471392892042427a81e2e815d2b87',
                 plugins: {
                     agora: {
@@ -2388,7 +2388,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '100000',
+                    atoms: 100000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2398,7 +2398,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2409,7 +2409,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '129',
+                    atoms: 129n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2432,8 +2432,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2459,7 +2459,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1401a0c37b457891c798bbba4b5dbb4c336aed6c95e09ceb2ddd0b4f1c5e7359612293582d4ee1d24cd16fd6e0512d223ffc60cd310e83c72fe316e24ea700f47064422020000000000001976a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac04470100000000001976a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac4d240175c832e777cca8c0298fd928ba4e1bed04b515b2f0543dbefcb78f94a158002902000000cb7b63817b6ea269760348c420a2697602e2539700887d945279012a7f757892635357807e7802e253965667525768807e527902e2539656807e827c7e5379012a7f777c7e825980bc7c7e007e7b026208930263089658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702cb007f5c7f7701207f547f750429e3a341886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac2202000000000000ffffffff81d94ad6440c1b9b54eb2336f0c3d63102d25ba30e1443a1a94b9656de6bcf5f29e3a341c10000000348c420514d4f014c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000e253000000000000630800000000000048c420000000000029e3a34103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba608f8f4dd7f00000000ab7b63817b6ea269760348c420a2697602e2539700887d945279012a7f757892635357807e7802e253965667525768807e527902e2539656807e827c7e5379012a7f777c7e825980bc7c7e007e7b026208930263089658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702cb007f5c7f7701207f547f750429e3a341886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2469,7 +2469,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99900',
+                    atoms: 99900n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2500,7 +2500,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4199fcebed608d53517bab47c15e13776e44fd069636c0115d20a445dc85c0f269800e94cb7279bd2f3db1d430158e42e46461d0b5b5c13f8bb2d4eea7ba2437134121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 811,
+                sats: 811n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -2512,7 +2512,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '411f9e02597b5c7a70b77d8a25b6fa41124e51ff54ad6ec96775e27bbdfcd1711dab668c52b7b873572d3bb2aab31729f612e9dd71d298822640875ba3b257e59d4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 87315,
+                sats: 87315n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -2520,17 +2520,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a504b41475230075041525449414c0000e253000000000000630800000000000048c420000000000029e3a34103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba63d534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1103000000000000d88501000000640000000000',
             },
             {
-                value: 1001,
+                sats: 1001n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript: 'a91436efd4946e1236d077121e79397d3a255891b43087',
                 plugins: {
                     agora: {
@@ -2558,13 +2558,13 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99800',
+                    atoms: 99800n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -2575,13 +2575,13 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '100',
+                    atoms: 100n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 83716,
+                sats: 83716n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
             },
@@ -2603,8 +2603,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2629,7 +2629,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1408b93bfc2f99716388ddc43a1f2def4070dbf3fcdf1e19b772f695d450d5b59404258de9a8fcc872004e4c439102a22d91fe80bb23f5c3eb1b942e664f4f01c2a4422020000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac10ffe508000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac4d2d012fc52eded200d312a9127274cf23976d7390387e82ae50dab33f5194e00f061e01000000d47b63817b6ea2697604ea78cc0ca2697604b1a547019700887d945279012a7f757892635357807e7804b1a54701965667525768807e527904b1a547019656807e827c7e5379012a7f777c7e825980bc7c7e007e7b03c546039303c646039658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702d4007f5c7f7701207f547f750496856f53886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac2202000000000000ffffffff4f6718f3826e94eccb06fc0fd1d29b0245141c9774089952b9229272545a709996856f53c10000000424b9fc7f514d58014c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000b1a5470100000000c646030000000000ea78cc0c0000000096856f5303771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60824b9fc7f00000000ab7b63817b6ea2697604ea78cc0ca2697604b1a547019700887d945279012a7f757892635357807e7804b1a54701965667525768807e527904b1a547019656807e827c7e5379012a7f777c7e825980bc7c7e007e7b03c546039303c646039658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702d4007f5c7f7701207f547f750496856f53886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2639,7 +2639,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '100',
+                    atoms: 100n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2670,7 +2670,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41972d1961aeb50fccfa74eef559db92947ad0a1e87649a653680534e35b77e4c1f3ce525d02cae387149d637597c1b16b0ce66481aff406eaac5bf52b42b2bfc1412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 642,
+                sats: 642n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -2682,7 +2682,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41b4a1fa9f2eb9aa1e1107a0daa0789140b5dd1f709bf05f5876eb113c367bc8b9965b3c28405a0899b5f6d3faf4c944a4de8c7e1e9aaccd77bfcc38d8241b8620412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 587,
+                sats: 587n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -2694,7 +2694,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41655a797528798468a7c4ac17cb6a818daecce7b69104e89a488ebe8484e8846a8fdff5a405042245a6c43a240e3a1469ce64fc833c5d6cf6fae9048325a68c4d412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 583,
+                sats: 583n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -2706,7 +2706,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41e4f342e5d625580b576f244fc89957eb777a445a3709006b9f0dbee41b7426d7d0451b17f17286553c76b2b60d5e8032663fb59e2626f232064844554da90725412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 583,
+                sats: 583n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -2718,7 +2718,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41b5cbfee5ebf18cf6ea9ac18975afd410d634984d03fb3f695df9239f4e8bd3337eef76a4fcc47575902232a97a48f720d51f821f7ec02f52ffd48560d782abb0412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 149302049,
+                sats: 149302049n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -2726,17 +2726,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a504b41475230075041525449414c0000b1a5470100000000c646030000000000ea78cc0c0000000096856f5303771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba637534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1102000000000000640000000000',
             },
             {
-                value: 10001,
+                sats: 10001n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 plugins: {
@@ -2756,13 +2756,13 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '100',
+                    atoms: 100n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 149290768,
+                sats: 149290768n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
             },
@@ -2784,8 +2784,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2813,7 +2813,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41bd2efd17994e179019c3023e44d66b61b8eeafcfd5a946c12b6ef86dda404dce1bba452a1bde7dd32f7ffa41175644ce9eafa061d1a87e45b18ac7402fedc91a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -2825,7 +2825,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41737e4eac6598415b4d7d3edae5fb0cfcf6b0e3289b322ee50e6862b717b4f449fda9fd31331efff11a211ba2ce04192259e83291544c64a8f7f5d8ed37362bbd41004d52014c78534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e116a504b41475230075041525449414c0000fcff1f0000000000000f000000000000fcff1f0000000000fb0af93b03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba60804f0df7f00000000ab7b63817b6ea2697603fcff1fa2697603fcff1f9700887d945279012a7f757892635357807e7803fcff1f965667525768807e527903fcff1f9656807e827c7e5379012a7f777c7e825980bc7c7e007e7b02ff0e9302000f9658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702ce007f5c7f7701207f547f7504fb0af93b886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2835,7 +2835,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1023',
+                    atoms: 1023n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2862,12 +2862,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5031534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1101ff0300000000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2878,7 +2878,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1023',
+                    atoms: 1023n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2905,8 +2905,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2933,7 +2933,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c9594e4dd7338ad9ec44a81ab75db2ccb737b961b00f2f8a51e0f581158b5c25ff41b26357f432821917a642cad0fd68371a75686bd3b7847dc6daae26e3eb6a4121037bc7f6ca0474be3edf7a2ce4e753855998273e9db618b135c20ee0e4b5e9fce8',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967294,
                 token: {
                     tokenId:
@@ -2943,7 +2943,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_UNKNOWN',
                         number: 200,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: false,
                     entryIdx: 1,
                 },
@@ -2957,7 +2957,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '418aafb5e789fbc194ed7ecbad3bea728d00d9c089d3005bd6cf3487a8f196b2444e1552c5079805a790ab7339b4ef1932749f19ded730852cbc993dd80a04189d4121033b5a78b9d86813dd402f05cf0627dc4273090c70a9e52109204da0f272980633',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967294,
                 token: {
                     tokenId:
@@ -2967,7 +2967,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_UNKNOWN',
                         number: 200,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: false,
                     entryIdx: 1,
                 },
@@ -2981,7 +2981,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '414d72085dfe8b9deb741c15e83822d778f5825e35c44dbd3753937b697538e502d71aae0215881f07bd8c66112abfe466b95cb8ebc0d7e9ca0c4fd063853ad73e412102637953859a84e61e87df221c91ac3a38c59fa7e652e43894adc4443a373bcd10',
-                value: 600,
+                sats: 600n,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a91496345bfc72a63d798a7f1deace0be9edf209a24b88ac',
@@ -2989,11 +2989,11 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript: '6a5005534c5032ff',
             },
             {
-                value: 1000,
+                sats: 1000n,
                 outputScript:
                     '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                 token: {
@@ -3004,7 +3004,7 @@ export const dailyTxs: Tx[] = [
                         type: 'ALP_TOKEN_TYPE_UNKNOWN',
                         number: 255,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -3028,8 +3028,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
             {
@@ -3044,8 +3044,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: true,
                 burnSummary: 'Unexpected burn: ',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -3071,7 +3071,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4194fe416801d0ae6f2ed87fcf3e66e74de77ca425040678df43971201f264c7cf01414e773a53be4f36b230fc4c5ee07be6c85073551f5bf3c9a1ae93e85d6c3f41210290b50035060622db41171ef7f9704efd881d4beed12222f807bcc627c94570da',
-                value: 550,
+                sats: 550n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91481a14c64a81f0a9c35b17499b355de9856fe1c5c88ac',
@@ -3083,7 +3083,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41a59a9d4eb3449ef6ef8c3a99256711022b4cf24aec72e8ce7a132ba01428a27d2e671f0c38adfe36a9011556b2859fb7dd5bcf3518eab66474f633c079de1e5a41210290b50035060622db41171ef7f9704efd881d4beed12222f807bcc627c94570da',
-                value: 49493,
+                sats: 49493n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91481a14c64a81f0a9c35b17499b355de9856fe1c5c88ac',
@@ -3091,17 +3091,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04636861740468617368203130294bfa5ba853cc17d90afe4ae7a2df7de011ed8713ed7eb90bf016cbb6083065636173683a717a71367a6e727934713073343870346b3936666e7636346d367639646c737574736536686d65783765',
             },
             {
-                value: 550,
+                sats: 550n,
                 outputScript:
                     '76a91470a784633e942b7e1c9947255910c8132623225c88ac',
             },
             {
-                value: 48564,
+                sats: 48564n,
                 outputScript:
                     '76a91481a14c64a81f0a9c35b17499b355de9856fe1c5c88ac',
             },
@@ -3133,7 +3133,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4148e8628c19bd048ba199221ead5dc7f43fb50385cc4190bc556f2a0229b153945e653cfe49072566bc13d1f5b77ef9aa6ef8dcc70f112e57ca1ab0ad6d2273f44121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
-                value: 25000,
+                sats: 25000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
@@ -3141,12 +3141,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04626c6f674c6c3938383164646139616530613065623038373238323236303638663231353138653530623630636453756e204f637420313320323032342032313a31343a303220474d542b3131303020284175737472616c69616e204561737465726e204461796c696768742054696d6529',
             },
             {
-                value: 550,
+                sats: 550n,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
                 spentBy: {
@@ -3155,7 +3155,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 23758,
+                sats: 23758n,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
                 spentBy: {
@@ -3191,7 +3191,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41d1e05374149017f7a14f8cb6978350035aaaba5d24723b959cd44c214796964540cdfce6b593ff850f2eb4336174b038b17e7fe8d5e2a3c7b92c6e78d5625b08412103643c1ca0e8480cf7b8be96ea475714c0122f92e4f9a0b22fbbd3bcf0e302d58c',
-                value: 10000,
+                sats: 10000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914c8080b00b32aba4977c9a9af56b9d9226f147e1688ac',
@@ -3199,17 +3199,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a0464726f702009c53c9a9fe0df2cb729dd6f99f2b836c59b842d6652becd85658e277caab611',
             },
             {
-                value: 1000,
+                sats: 1000n,
                 outputScript:
                     '76a9143d1a781059c9915716091c90f0be3e77e02b6bba88ac',
             },
             {
-                value: 8463,
+                sats: 8463n,
                 outputScript:
                     '76a914c8080b00b32aba4977c9a9af56b9d9226f147e1688ac',
             },
@@ -3241,7 +3241,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '414979186503256f02393cbf767fa533f7bfabb35ab14114842807bb7bc9e52a0a0ba0d87806449ae35f23c0b6fdb2e2ddf19e7c5594ccaa0ba74bfbcaba28d2d0412102cbce237226bd8bba1a02def66085cfff2427042a98d8bf9590ccced8207d233b',
-                value: 4628,
+                sats: 4628n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140f81c58578bd5ecc95a82ed0a89bc7061f0c04b488ac',
@@ -3249,17 +3249,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04007461621a5468616e6b732062726f2e200a49206170707265636961746520',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914a805a320360fa685f83605d8e56de6f9d8a7a99988ac',
             },
             {
-                value: 3557,
+                sats: 3557n,
                 outputScript:
                     '76a9140f81c58578bd5ecc95a82ed0a89bc7061f0c04b488ac',
             },
@@ -3291,7 +3291,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '411f507db40c8fb326008146f0e4d95e172e3e32c817f74e891b357e8a8ba6e21ac6ff0e3a391cf2395dfa8d5168fee9cb8b8d03812d47f29f76482dac8c7175f341210349c0d5569a0a43c4473bdcd11889de00327303007e24972941ccbf3a3dc61ccc',
-                value: 50000,
+                sats: 50000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b48669ce8873c71698151db0453e6285aeb07c588ac',
@@ -3299,17 +3299,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a046175746814619e0bb30cc23b2879f7b1131a858ea9f0d3d873',
             },
             {
-                value: 550,
+                sats: 550n,
                 outputScript:
                     '76a914b20298c1b5d6a82a61f6c8cd708fa87a1ce1a97a88ac',
             },
             {
-                value: 48937,
+                sats: 48937n,
                 outputScript:
                     '76a9148b48669ce8873c71698151db0453e6285aeb07c588ac',
             },
@@ -3341,7 +3341,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c4a70b96af0dc94bb5cafd6d847ea6b8d7c509b0914a90fbffb35dcabe119c0a61e5cd376baab1128c44c89d09ca98c84ed2e695d706329f170b3a18c6bc08cf4121039f0061726e4fed07061f705d34707b7f9c2f175bfa2ca7fe7df0a81e9efe1e8b',
-                value: 2903745,
+                sats: 2903745n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
@@ -3349,16 +3349,16 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript: '6a045041590000000863a9892c7792fbfd',
             },
             {
-                value: 5000,
+                sats: 5000n,
                 outputScript:
                     '76a914631dde3df001e09c9cfde6c72c8ae02849f2c0c388ac',
             },
             {
-                value: 2898252,
+                sats: 2898252n,
                 outputScript:
                     '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
             },
@@ -3390,7 +3390,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41fe808a1d825c384785d0e3e37be0f3af10670e075f61be1c12cd14ed89ae7f01a3af3a21ff1931326058df7cb530b84a430ac9dc65ee73734494b2010f682bc14121031febf12ea22d33cb6da0599c3fcb29b80c88efaf16c1c024192f9c2e03ce4675',
-                value: 18500,
+                sats: 18500n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914c2b4edba79887da00c8022187195caf7da6ef03788ac',
@@ -3398,17 +3398,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a0470617977204999ccb611ae9d9c28b06215d42e8695cf5230db8c21707b0d36268bc68ffc76',
             },
             {
-                value: 550,
+                sats: 550n,
                 outputScript:
                     '76a914c4d76949bd98d3a2f7d0b63322c1d4a5c2139a8b88ac',
             },
             {
-                value: 17413,
+                sats: 17413n,
                 outputScript:
                     '76a914c2b4edba79887da00c8022187195caf7da6ef03788ac',
             },
@@ -3440,7 +3440,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41df3bbe84dcbcf9efb6fcbab59878055178d29ea98b1156a8ac2c6f54e4fbd7482a38e34a7a7ea41388362272db9b7ada93109a3e058d004c80fdec75db506de7412102b1a4d65f26afe16fba3760459ffeba454a023da32e618fce929a5531292085ab',
-                value: 19044530,
+                sats: 19044530n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140a797a01e2673b24a02fb80b5f46a70cb7b5a4d888ac',
@@ -3452,7 +3452,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41995ba8a2c1c789a7b0a23e6a956c61beedc5c47c20b16eb90a03c2dda683caaa6c38101df05adbdd12eb17cbc1445f9c6b922ebee33873409da201eb021afe8c412103d0f243652691c1244f5c77624fec85bf4bed316126bc9bb39ca1154f89017a2a',
-                value: 21813626,
+                sats: 21813626n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144fc1984258f87c3bc0900156fe926436a78c12df88ac',
@@ -3464,7 +3464,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '419f2360309485fbb734f4494f30e084204712d829baa2f4a4f05cc4ace0424e9cff4110c6b0997462d9adb30be7565c7cac3897c43ad378797dde20b6d8d896fc41210278f666cae97366d63b06b9e1e7b4cb6d69aa625805ea32862872d8d930c5d50c',
-                value: 394728,
+                sats: 394728n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91450c67b8481300a093b5501a6903e8ed98381f53988ac',
@@ -3476,7 +3476,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '410c585f2b3753202282bb590e452a5a955cda78ae6dd7bfc7475734be384cbb0930d92abcb9e0c5a03c7fc8fe5347170f83055ee1db213d47382839a9ddc6dd544121021684217e7f6b9b9fca552a01ca6215f52646a388e986df2c468bea7c42a80f6c',
-                value: 414991,
+                sats: 414991n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914799b9c14ebc56fd5ba2a3801ba64743242f1af5e88ac',
@@ -3488,7 +3488,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4146244f76308483868efe3e04146ef7d8be8b972d17b92124f9f2b833de1acdfa0a0311c359f0e114fd780876e96d3376939cdb8496671bf64b8141ccec9f4b22412102dfbb426682c141297c626c0bbb4eda4d1805a41ec6a5f9046e7431818523d60e',
-                value: 7028571,
+                sats: 7028571n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914ff4b390e072bdaff1985435509fcc80eb717e6dd88ac',
@@ -3500,7 +3500,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '412dd0e8f66411bd6e637139475b0c48d00493f24c6fee5eb90a4316af61734020bb0b316b8d2dc198c5a8541691e4162121ad307cbb74d33993fb009b2fa81f9841210339f66ba9e96d8e117d1354f3a3e1547efbba247bf6e3cadf25e6b78e6bd119ba',
-                value: 9302929,
+                sats: 9302929n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91450e0c8c98359095cafb50fb11c40956ff0d4fbf588ac',
@@ -3512,7 +3512,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4129126ada21287ed43fe7e1644c7eb4fe1bd165941c264c99794c736b38171223ef59816a6d7ad956ea7ea09603d18f8de57fb225f76fe0215e22968230ab53db4121028115cb253822364f3fda454be0fc930ddf7ade935ce836a3fef1946b0b306d7f',
-                value: 12522752,
+                sats: 12522752n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9149314d58e27f38fb043b9a5aa7a8ae61d2617390688ac',
@@ -3524,7 +3524,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41e39a6d0e85a2c4513ddaa878b5ed59a6dc995fff3afcda72fbd686b64ce44949c111c71e34f4464efe823dd558b807eefb4524ad9e6cd38c150a13857623cff04121025b46687783b420affaac912c62cc08df3f600a4a61e689621c1a5dc7ac636433',
-                value: 20061909,
+                sats: 20061909n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914dc82a51a0c936d0d102ec2cbd4d225e8057cec3f88ac',
@@ -3536,7 +3536,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41880eaf18e82a6367228cb6a710072725ad6bb4521a250745967d431275dc25e5985093dd92de4d83cf5b2af4b86db070f6400d274afc68252e251079e216d3cf412103eb0f7de9e1e9cdcab35ea59e7dec29fc738ac42e9c2f76889ee7a9cafe88c39d',
-                value: 56109568,
+                sats: 56109568n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914493d17051df0b8e38a08084192b5a38cc493d3c988ac',
@@ -3548,7 +3548,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41932b38a6267156ba04423f0ed3a3004844ead66c1240df89769b0a401300f2d084e69ae26712b73e37264ef06b6349f2943ea07b718b84026bf46a9cf29a9d54412102dba5cafe198f94787aac78c77feb3334745f983fbcdd0c523a9e44890410d0e0',
-                value: 723423,
+                sats: 723423n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914356f56b50c33cda30907ed5a280adda2c201943b88ac',
@@ -3560,7 +3560,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41b5a0fae4c5e44a344663206d2159fde79e93a55d7948b2073f373dffbc28012b43d83896813db3829235e5a0c769c0293e62cb97e771da22c97a22e4eb2b29a54121031cb5f7a8937279d887cde5749cabfc0dbab5bcd0f07269ccd9a136aeeb0ae873',
-                value: 1574168,
+                sats: 1574168n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91433e10aae895a2ee756b6c9d23ca7e0cd38c62d9988ac',
@@ -3572,7 +3572,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41538aa46dea3cb55bc28fdca8d9b912865ce6c42f2a31348d3088b88c8571ac95c9d68d65cfcb3ab4f15a37a13f5a2f00702219cf6a4b3047e56c4e590b963fc9412102be5c732ffd14a71bbc48fc1968137b9718bc12469844123acceecb317a88acb7',
-                value: 5347523,
+                sats: 5347523n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e62f1eee7b4e6877dedf7b5aea40f87297467be688ac',
@@ -3584,7 +3584,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4102e53a109e468484c2f736b69466cd170ca387275df314a8add14317103b5cbe9c7f032eca20fda1ef15381d015a12b33f6c68591aa912f7852ccc7f96ead1ff412103422e3bbe0e1d4966b0df5e60bd27fac28b8008722c2b06719ca1d8c66e827393',
-                value: 5709247,
+                sats: 5709247n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914c3c0b825fe2f6a44c745eccb0f47367f7ddbc8d188ac',
@@ -3596,7 +3596,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41fe8583171c7b0f9fa661f7e19983eaa04bada5244d5696aa7a47e4d16a8811c231c4cf70d10dedd72745b07a0971781a1cf18fef8405bf9f43f0052654c780b4412102e263921e2c0cc86e5eb011aec807b330afacca37d4709950011efc288edd9e35',
-                value: 12202011,
+                sats: 12202011n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e9f60021f56e16676ecad578abb1346db5e30d8888ac',
@@ -3608,7 +3608,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41fb8b372ec7450923d58f117401af1da185be2e23c4ec67e0c39a2e2fc51a1732805aac25dbf7d6023b5605e8b23d654a86676e1270a0c7027327c451d094ab9241210388abbae310cc1e415e49375f4a9205a1e48a62be5623f684700aee65f62ba506',
-                value: 15785620,
+                sats: 15785620n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9149817f6012414b1da0846093b7bdca256b26cbe4388ac',
@@ -3620,7 +3620,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '418354b6ce1e067e299e50c749a2582bf2af1340c1b9b0bbc167bc76a90076e9d5bf3226c856342d3e95d89c06bd0172fae0b2a1ab746474e63b3b673db7423ff0412103c96315e98c33ca47add711d1f8d3f18ca9cfa7632353d3fd26eb47fbc83a0eb9',
-                value: 6027875,
+                sats: 6027875n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91414018c2de14ba872dc49a0b1dbf1b4fad6f5baad88ac',
@@ -3632,7 +3632,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '415fa716ae82dd29033e38310a38ffa92731bffc4be413dd344270249a0f7743e39180988b42f0cc0af21669b067bbcaa919eb75d27f4c0365a084eec24f462edd412103152fd9fe4d3e7932067de80cc9108427c3dc2c5846fbe90a89bcadf2960fcb62',
-                value: 3368231,
+                sats: 3368231n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9149f7e0f97d488acaa7e22e7b897bb8b0af442207488ac',
@@ -3644,7 +3644,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41471802e2bdb2e81a0404bec557885551d64f68c46144a2f1d30a76a8f46d9f52e8224ecbe0461f6689846a69b7754e3c71a2c06e0936db9b0d9af26dba6782c8412102999cc772ab81937c263a7e16003ecf1a7d66dc2b0e03824adea22eb569f67e38',
-                value: 29633909,
+                sats: 29633909n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9145c98423dd06247796fd7d15bf6142df6dd65dfb788ac',
@@ -3656,7 +3656,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41098b8fc3e6357011795c444e0ff9665413380ef7a006ff133f4599f18dcbd476b41272db3a51c254389fe71d1d1d72832467b85e8826729da1538d0c79514a4e41210227c3905f79aacb942750876c92525d0606a60d67479549f30f15727346c391c7',
-                value: 9883971,
+                sats: 9883971n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91466a8ce404edf535033a47377130e8f1a16dec66888ac',
@@ -3668,7 +3668,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41760d8aeb07e7ca65b4e108d262765da3623e5c8bdec061c3e4d7739af9674a7cab39aa9084334ebf4e93ca92a56a304691c2068d7cc08f4139c72943323495654121022a15b004a007154b8ea8cbfca2b2b1deb7486bd637e3289d52ced0b17c24ba9b',
-                value: 16806623,
+                sats: 16806623n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914f89793e870c57d76572d3d51eeda078f910b206388ac',
@@ -3680,7 +3680,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41ed99a385474633a98f857089f0dc019c214d155031f871f5018f93d0b5071324faf9f3c01b08bcd4209fbec188da6bffeb50a4c469479cd4f0fbdb71b59c4cbe412103dccb27bc84af3b5dcdfed5f08df935e168051ad32c242e698d0c1f464c2e9832',
-                value: 186916,
+                sats: 186916n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914dca716d5af6b1288acd17ee88fb20a2829ab2ec588ac',
@@ -3692,7 +3692,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41821e4c860943978ee09812f333d1b80cc219b3f1e48b60036c3072a1c811f806f28eecb34fc1ffa1c3165be97c1906744e51c8a2900f2d59112635112ddc47144121038b04a447c830a862d06b3ec4ebafd1be3d9ee1c149630616a4a27fed46cea362',
-                value: 614009,
+                sats: 614009n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914dd92844bcba0daa04127dd0ff9581741af1feb8288ac',
@@ -3704,7 +3704,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '418a9b080fc4cc5b6284578bba95d9152f492a67a70e5ba93a01a40070223bb19f45018032b728edf4f7fbd4168658043ef7ede5aef8122ba1feb7002d714486544121020b4049376b0d37186240f2c834bc8579de9a8e3ad2370a0ad565eb455e1caa0d',
-                value: 9846080,
+                sats: 9846080n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914489371d01d4633920176d556d614b1df7e3c4c6c88ac',
@@ -3716,7 +3716,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41190cb88f905718c97ce7624f518be0895a7ac3dff36b909ad3c4a65f69fd7d5247b7d11f4e578c97be3277b66d355dd02cc0149fefa839a2117a840bdda3ae63412103e74e4014d3a5524029c160af6d3cbfddddedb906b71436c4f8b74ed0f21c0673',
-                value: 1014962,
+                sats: 1014962n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140820720277dd2e4c117d7d601957ee8b98719daa88ac',
@@ -3728,7 +3728,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41f41af2c300d637d1dc76be1c22d41db11d5dcb96e6c9bf38a436e7c1985dcedce1f27ef0d4d220cc78f3becf5d1ca4ce4d4c3cfb74c86330b6dc5bf444c40591412103f9c5d3255a762234e5fe3b00744dcfdb8824344bc424a6e3de12d4e36b386851',
-                value: 3195908,
+                sats: 3195908n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9141b4ec15252b9beadd55e564588efd9c58412f08688ac',
@@ -3740,7 +3740,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '419cdb4446c3b8ad1230193c299f1d22697ee02473acd74436e7690e5a8d8e2635a98e21e5709339b701bb68f2e82fb52c66619acb0c93bdd688ad9bfb6dccc14841210258f27cebaa7be00e2bce38a0462154fb36c066f5338097f5492290a036e4468e',
-                value: 3547312,
+                sats: 3547312n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914ebabc065b7548d0a97488addb928bfd0bb5ffd9f88ac',
@@ -3752,7 +3752,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '412c51435daa98770fa841f30c56f57a28e55542b9d38c0958dc54ae9adec71f8b88da708d9f48df308587768f78ba9fa1de813a38f985d568248c2203253d279f4121037816e3882a1bb7d211f279d80514924a67821da755fb975e6b1da22f20d00a3d',
-                value: 7845327,
+                sats: 7845327n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91410b4904640491d3760f3c6021ecee661621d315788ac',
@@ -3764,7 +3764,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41c4d3e5bcac9b4bccba9836816eb92d7e1f2fa8c756c52e16245add08a02f441944a9ef716fe12646f800a63120eb2d045ddfe9bf8e40ab47115a04042fdf71114121030531127dac1724380ead04e01d060d2561db071dc0bca09826109a4dfcc969b2',
-                value: 8867513,
+                sats: 8867513n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914da4c46bb1853086cdf8ee66e07896d273982696388ac',
@@ -3776,7 +3776,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41de89262a098ff147bb603154f923f925b31ff1998b95441b39880421498627c2cbaa595a1920cbedff8fa4402fd8e85b517f82f044cd7b09d6f1e4d89a4712a24121025a31dd35e3dcb26bd847036dcbe581d3890904799d527b490234fdb4008aa60b',
-                value: 15639927,
+                sats: 15639927n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91497d20588c573a9845baacf6f0b8163e20ece5d7b88ac',
@@ -3788,7 +3788,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '413c94e9367505680d3f5e6695b79661da5dcb2effc1fbbf2b6411e26516e9347bb50b79607b691c4199eba64f2efc536512d45cc0bfb650948f8f45f689defeb141210221432af3ad2ce61807769c17528d7bd057cbd870c71fe660bf784d3b9ad2b4d8',
-                value: 8534104,
+                sats: 8534104n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91441b9b10ab1727cb4d16a94131511ff4376113d2288ac',
@@ -3800,7 +3800,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '419a17384c24d95cfab02e7bb27ec592b35bc98bbfac6109cdf999f7808e613a3795924b484b2be1c3ebddc2fe1564d9092a244309aff78d3bc71d95797184b59441210391ec904754962bfe2138ca65ebd66956d9d1c572bbba41896dddf744b9d20cf8',
-                value: 11857272,
+                sats: 11857272n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914cde9bc0f8ee4bc5bde25c2e3763186389e9d82eb88ac',
@@ -3812,7 +3812,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '410c5743e207476e6dd36c076ebece2681568de8855581305e350ad8caf54c2cb043230b8ac3b5ddb3e4cc8ee1b1519f95178f19d521b1a4072f3638bcd164cf1341210316c3301c214cf5700a35bc0a5d0c41e7c4a48acff8da61d7ae66e79d8ef68026',
-                value: 6300897,
+                sats: 6300897n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9147a9abbe29cb7fcf541b68981840dc4c2c672504b88ac',
@@ -3824,7 +3824,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41b10fc4389ec67240720117d5140fba2a564095314220f5e2fafd7654da1e43fee3bf0df9464a99edc0687c8f86b552f8439c8b5908786ac9aae643c1e8c22fe94121027caaf5c02a2270a282cdb719fc22191fe86df130b98bc2f59c7881c8cd9d8e62',
-                value: 6765543,
+                sats: 6765543n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91468bf52bfab795729eb8bf2d067507068909c0b3688ac',
@@ -3836,7 +3836,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4179f63f6c2b66cfffcf83f7c4ba49591bc5dad419a75c8e15e46811d0337399abbcab7f6e0655059727d345bf83139d287e8e93232dc75319672135bc9927d9e3412103ed359db19ec76388c224eb7f631a1411939fbcc01da55d5a01d1f6130d214a22',
-                value: 2129682,
+                sats: 2129682n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914ff119315f056f5a79ad69bc514ccd98fe325cc1288ac',
@@ -3848,7 +3848,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '410ad92695b50884c07014a1e7c6cb3126da5cb3ce44c2bc05ae9f2039a156ff958f7198c47f2621eee11a5289fd83d126afbc5a185a4ebf3fbfd6db274aebe94a412103b7f3e5aa641ce8be9ea9268ae50b3561d7b70e6bb7add4ed3805f9a51bfaa3f1',
-                value: 3175212,
+                sats: 3175212n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144f78f400b6ea94bcc152fd86a3a342392a0d393088ac',
@@ -3860,7 +3860,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '414305bfa6ef186ddd3f4b8b97a4ebeff87161d67b2dec4408ea4a6f91cdf7db47382e96351a33dc49ebe02be37b14e5bc990cad04eaddc90f21a8060dee2e2b24412102b982e67fe423b3dd45e38bb2457f0bf66d94a7d559d32d70319cf4dbddf66c9c',
-                value: 30314073,
+                sats: 30314073n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914905cf8c762e3027b5562fb4dc949225999b7561a88ac',
@@ -3872,7 +3872,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4192783667e913c048b56c041fc3fcfba6f4eb7f123deca342a2e6b461a66c11178db5082c2e6158b61518de5725970c71199cc2736aa789888d62ab9b290c8ec94121026799d87f335bb8a8705e9a5ecc3098073b988315806b2b0c38fd6d76352474f2',
-                value: 62502527,
+                sats: 62502527n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914cf53e1bbbb20d10464328fb25ea22ce9c23348cc88ac',
@@ -3884,7 +3884,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '415ccd55e0a38970dff3a6fbddb96de79199b6e3949997fda69a6daf021b74964570d9a0ec0cedfc31ceed0c0a8f78a4c97a4ad2b372880cc2b5e73190f7e9a59341210208a31c990c4c0e0e5ae7d795d74ecbe782a5798f358ee70607f240b6a62fd925',
-                value: 12975492,
+                sats: 12975492n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9147ba0a29a0d139dcfcfc37bf44fa3c0b07eb4b08488ac',
@@ -3896,7 +3896,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41539175855a3e0ad5babfbc685ba9dcf8b515cbc9b109d016bba34b07ab502c7cf0e0c21be2f5e9320d51a4f33f9b2c46e57c7be56bf893afd4048b8b7863f4e54121036d7c1368ecb38e607c3a4905d4831d0d1b7a0452da451a87524eb585f68c5845',
-                value: 52978008,
+                sats: 52978008n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914ba83a81ec8cb0e5c4c3d4f0584fcc778a08a431088ac',
@@ -3908,7 +3908,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41afd3ae1e1909d2b01a09e4be777857e7340d7b5aac524c4b0f258dcb3c91a80332f9a4c7f3bf1b21646362d5507a7725006c1815de581945ee4808c8e36e8f52412102966e2bc7578c25d70d601d404051d3880327ea8b742a754f19e234397ba67187',
-                value: 2926809,
+                sats: 2926809n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e8a84faf2151752cce5b1a90c149cee3de8a175e88ac',
@@ -3920,7 +3920,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41400258c69411e26ba097394882ae6b83837103a30b36b224348574375b070c40ae445ccb3301ef95b08215fbabea7fa92392506aa5a8420dd90669e00bbb9cae41210301bd439789b92005e5994ca61c073e91c75265a9ae7d66510a80601e0e46a8ec',
-                value: 6374291,
+                sats: 6374291n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e1cf05100ed4381378604695ac6a695dc6cbd59c88ac',
@@ -3932,7 +3932,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41178c840dfeddc76f7c8801a8e6625896c2afafe3bf02224b34b5f55576c7ec1e487e39eb04c5da64ad7a1006e939084d6d0c167d2bc5275ded4aa88f91ee2a314121027fab9d61001eba328d64a41394ff6c7d20111cfe6125603b3a402a8a392e2333',
-                value: 19205093,
+                sats: 19205093n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91412da0c1ee9d0e3ae99bc0d03c0389f82e5d55eb288ac',
@@ -3944,7 +3944,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41afd33612b059e08d9137d1c52153a4293d63e06c29ed82fd234e453748b3dc2d887a87567cfa0e71c173cd1afccfbb4d67073b13f51e3aafb8904378366a2e7f412103812b9b680b5621d0e5a4493bcaf1e6d73c5f2141b193fa7740a5df1bf5c3d2e5',
-                value: 30781733,
+                sats: 30781733n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9145d85e859e9d4e8feb5a618ea903ebf377b54d75e88ac',
@@ -3956,7 +3956,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '411b68176b5719f9192ad5f36e40ec03d86bc37af85f7fe1b184e12bc49ce03851a61bd1faae069c73ac471a997938640331edfacfd86f01ab65314900ccc93b20412102af2c8eb8dfd66767d20a2afdd600f75112d820737d8bf5147f5d6a11a94689e1',
-                value: 7563155,
+                sats: 7563155n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914d35af95bb47672ead30711dea85ac05bb8a854ac88ac',
@@ -3968,7 +3968,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41509fac1d23154ca52bbbed8287f20b81316af0ed83da37383671ef804251e81952c9fdede17a30b8197340f83256f367ed308bb2d26ae9620ea6a117fb634d464121036679c1faac5d79d3292634693cf8aa5de6313859a30a8e024ff03a0ca27756e8',
-                value: 11318359,
+                sats: 11318359n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914b0dec1ba4c6efb18f91167342c3c2988f5dfa75888ac',
@@ -3980,7 +3980,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41cdb6a6ee3b61ddd9f46b2dda0658f1ce7d5510401e6be6843dbbbc603fbcad46142176090c2c295967287a6a81cf1c9a27fdc5d1b8c9ea5267e9be4aa91b2bc0412103f2a000ceebf0dcc71b78c2076ceb5298d821f186344ef4ed9752ebfd206d3692',
-                value: 14100332,
+                sats: 14100332n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e9d34d084b11e4ce88cc9d0869c90c207379f9c988ac',
@@ -3992,7 +3992,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4132a8a9642523289a520a19e325820db0a1b1e64d15b1cf122454c59d2960985e6e9fba429d26a759185220f3f9a5a6bfe915d217443bb134af4483f54815441a4121039fbfbb5269555db15811a1160c4b367ea144661791e4590f3c2214d543dad64e',
-                value: 14378379,
+                sats: 14378379n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914cd6a09b5535b40ff022140a471cdc16d0e66da4288ac',
@@ -4004,7 +4004,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41acf4a95bd83fbe0c0b853bd82d93bec1333554a4132c7e036175923aa7bf1a96c6aaa5ae6c5347040ca365c1aa24f41eba8ec9154822fac9530d0bef707b93e34121027edf78be3a7f824b1813b82aba7f7be1048817ca5148e9d130e424be56b47730',
-                value: 65926662,
+                sats: 65926662n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914208e9de659ed7c1d4bdff00eda7cd0ffd4b6ceca88ac',
@@ -4016,7 +4016,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4119da1345166c8694db830101e9608dfe7308c1991768cb65291eea3bc0074f7fc71c7e7995570a0fb93f45cb82738efaa036bfce189f1b6388456b987a965d8d4121038d89d5e03a0d7589d3d6c1c5058ad796be4e4f52baa709f10617de8f9f33690e',
-                value: 3472995,
+                sats: 3472995n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e10383617cf53b7e9dca0f42e868e2e3dc82502d88ac',
@@ -4028,7 +4028,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4115e468dc353553fcc0000d682370329814fa7ca2eecac4c84382d799fc471f46d192874bbaca09168742cefbf8ff400cf3dc48d03454ca15bfe8a6608a5a94be41210309a4885102f697f07d003cbb066a93c68446ccf0a1afacec1b40eb2fe5582ee5',
-                value: 3836272,
+                sats: 3836272n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91492c4ba6ddd7501ab82286a9e9615364535e2f3f888ac',
@@ -4040,7 +4040,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4187e8db9862eed3a1caa1277cb5ad7b98dd35a005e4873b7438a7bf9977c739a68428a630503f46c6298621e5cb5a0390d49e806497e7f00f82ec5504549d948c4121038e774c9432e144b196f92122e67f291cd1bebc704a448bf4d7e156725a1df4d5',
-                value: 4277798,
+                sats: 4277798n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e44c948de92c030bb0626208295d73315b8c5e988ac',
@@ -4052,7 +4052,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4131a686c7274fa77c615ba8bfcb2d7430054f0e81c7302e2c1761b80f0bc5291f0dda9c814297799d79c9866391c7614e677d56ab8c376fc40ca97d3082b5c32b412102a69bbd2a7b05ed30d06be79231078b8054266c141123b9614b3e0e0131ec7805',
-                value: 6063080,
+                sats: 6063080n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914f73e9cf52eb1748d21fcab670fc3e567085685f488ac',
@@ -4064,7 +4064,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '4130a61428674676161422657ae38362f7d71131efe99725bcb59d49dffb976e3739802b0050d3c462c8742eda191f81340273f045b6edbf49956364003c28712e4121032a1b09b6bff6cd9e7a24fe362c2c2601c21987e3cebadae381d8ced9a7f53ea1',
-                value: 23507881,
+                sats: 23507881n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9142cc2ac6f08c48193fbbc5eb69a4540c98f434d9688ac',
@@ -4076,7 +4076,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41ef5090a88edc015d00612b69ef7185039b94ef6832bcb377cabb8def1ae2d4eeea58b5349591e346ec4947583fff76e79182ee9008e3cfa7a90a864e33678724412103222133f854bc03ddba9e33bf2a835e48cb7104945677912cbb4ed577643fa4aa',
-                value: 24929079,
+                sats: 24929079n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9142cc23fe84f3b64ff7b24c1a0cf354ea583072a0388ac',
@@ -4088,7 +4088,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '417febf2d756ce0e52854d180ee6a4f6face48786ce1cac18cd915de9dcd2d981ac94e2501e15167d707e5a8067cc5efe0a3b17a9cdc27850a0191453bf52d416541210208fd87bf70ab65ac9ebbe050a5c7e3bb8dd31edb21e2aea47d7a146e0ae3f8d2',
-                value: 44828158,
+                sats: 44828158n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9142656de90609eb0cbdd7c4244b3d55d71ceda667b88ac',
@@ -4100,7 +4100,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41b93878fb3a450cae4ba3d51076b002cd8f57aca1e3571bef90ab66f94bd05396d7b25e2e46a664f5c17c4fc5ad27f02d5bf5406d588e02b54a774ec627e4e698412103067a6da11957d765e831d47e6dee1a45e59aa28f60500a39bb158157c3eb1509',
-                value: 15070744,
+                sats: 15070744n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914f7c311ddfc0ed8a87d8a699df9c9acbb98720d2b88ac',
@@ -4108,17 +4108,17 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a0446555a0020194246d7e7a3e1c8b88559ee210b390ceb8b9ab82f860d9c9d6f9daa01f6c82f',
             },
             {
-                value: 165265,
+                sats: 165265n,
                 outputScript:
                     '76a914d0a105a83b6c44147cf2b4c5b5c8a3c75de1163e88ac',
             },
             {
-                value: 415331,
+                sats: 415331n,
                 outputScript:
                     '76a914ca82960460fd35b5a59b2c6bf6372f3ad171bcb988ac',
                 spentBy: {
@@ -4127,12 +4127,12 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 513772,
+                sats: 513772n,
                 outputScript:
                     '76a9143505593cb0094cece0165201c1b5320e8e0e88cb88ac',
             },
             {
-                value: 620346,
+                sats: 620346n,
                 outputScript:
                     '76a9144523d89bee4b8481f9111865bfabcedf70d5f73488ac',
                 spentBy: {
@@ -4141,22 +4141,22 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 745522,
+                sats: 745522n,
                 outputScript:
                     '76a914e0577e495872e411ec85bb2db60c08bd41d970c788ac',
             },
             {
-                value: 951733,
+                sats: 951733n,
                 outputScript:
                     '76a9142884eb394c83672e40e24eed0d9f2532def1df2488ac',
             },
             {
-                value: 977317,
+                sats: 977317n,
                 outputScript:
                     '76a9143cdaf26959fe02da6dd9b1ecf57fdc8e70f80def88ac',
             },
             {
-                value: 1637364,
+                sats: 1637364n,
                 outputScript:
                     '76a9149f30bd564d189088a41af3298dc5e87b33482d6188ac',
                 spentBy: {
@@ -4165,7 +4165,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 1709164,
+                sats: 1709164n,
                 outputScript:
                     '76a91456341f200e54c76f06fff1e610603d489e87e2ed88ac',
                 spentBy: {
@@ -4174,37 +4174,37 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 1734037,
+                sats: 1734037n,
                 outputScript:
                     '76a914deda3755e569aa7ad431b679376465e234c1ab0e88ac',
             },
             {
-                value: 1787574,
+                sats: 1787574n,
                 outputScript:
                     '76a914e577b97b63b684ff4bce76638b39e9bf7337391a88ac',
             },
             {
-                value: 1794906,
+                sats: 1794906n,
                 outputScript:
                     '76a914122e9d948f848e322accc989c63b68b1f1f4a27e88ac',
             },
             {
-                value: 1809132,
+                sats: 1809132n,
                 outputScript:
                     '76a914d2d288f72d59325aa7a93f378456416b35c1089488ac',
             },
             {
-                value: 1830109,
+                sats: 1830109n,
                 outputScript:
                     '76a91437ff7ce27ff184efda22c428d870713d7071531788ac',
             },
             {
-                value: 2048566,
+                sats: 2048566n,
                 outputScript:
                     '76a91471a3f02e0e7c1bd4b6c06a72aeeb9aef3c84226888ac',
             },
             {
-                value: 2179080,
+                sats: 2179080n,
                 outputScript:
                     '76a9147133b978e3d9c4004ef8c8e288395f86a4ca64fc88ac',
                 spentBy: {
@@ -4213,7 +4213,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 2390444,
+                sats: 2390444n,
                 outputScript:
                     '76a914f974ac8c5784b78316c66ee06720d6694b6a454288ac',
                 spentBy: {
@@ -4222,17 +4222,17 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 2911412,
+                sats: 2911412n,
                 outputScript:
                     '76a914f2a178204a2efeaa652ed11df741ff13c715014388ac',
             },
             {
-                value: 2966953,
+                sats: 2966953n,
                 outputScript:
                     '76a9144b8bcd98ebee333f0018b11071e8308fbe95554e88ac',
             },
             {
-                value: 3004755,
+                sats: 3004755n,
                 outputScript:
                     '76a914d68020a4bb2d9f6cdb6516938c1b1f4c4b6a4efd88ac',
                 spentBy: {
@@ -4241,17 +4241,17 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 3143178,
+                sats: 3143178n,
                 outputScript:
                     '76a91413fe018b9d729cb23e86628d04365ea77e8d443888ac',
             },
             {
-                value: 3199496,
+                sats: 3199496n,
                 outputScript:
                     '76a914a72c7bf5b4661af684c4990af751bdc9cdb871cf88ac',
             },
             {
-                value: 3258788,
+                sats: 3258788n,
                 outputScript:
                     '76a914f339d9aff74cb1bd22d600e38d09b0649225317d88ac',
                 spentBy: {
@@ -4260,7 +4260,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 3270709,
+                sats: 3270709n,
                 outputScript:
                     '76a914ea8762d67b8ba330a86703abfb4a0eed28719f1b88ac',
                 spentBy: {
@@ -4269,7 +4269,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 3428216,
+                sats: 3428216n,
                 outputScript:
                     '76a9141021bc93de524c2b76c8ff770f1db96a11dd07eb88ac',
                 spentBy: {
@@ -4278,12 +4278,12 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 3634054,
+                sats: 3634054n,
                 outputScript:
                     '76a9146a224d728e90a9796fdb2dde295788453a0121c788ac',
             },
             {
-                value: 3806325,
+                sats: 3806325n,
                 outputScript:
                     '76a914b0f96288a5544986d45a5d67992b52534e61585a88ac',
                 spentBy: {
@@ -4292,47 +4292,47 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 3961600,
+                sats: 3961600n,
                 outputScript:
                     '76a914581217d2826ef7cdfe158da53797752d1b1a84fa88ac',
             },
             {
-                value: 4188894,
+                sats: 4188894n,
                 outputScript:
                     '76a914dae3359f7056323a08cfb480334a8b4543cc7caf88ac',
             },
             {
-                value: 4417013,
+                sats: 4417013n,
                 outputScript:
                     '76a914d6dcbb2c33b936e7f4e2d38b9782ee9c4bcc370d88ac',
             },
             {
-                value: 4496101,
+                sats: 4496101n,
                 outputScript:
                     '76a91487f03b804d802f3ee5357149c4d192d6150c254088ac',
             },
             {
-                value: 5142036,
+                sats: 5142036n,
                 outputScript:
                     '76a9142c5c4f436e1e0adc06592e188dff7731600b9c3a88ac',
             },
             {
-                value: 5192325,
+                sats: 5192325n,
                 outputScript:
                     '76a9140817b0b24e07482730af2f30b5b5811a905071b388ac',
             },
             {
-                value: 5219666,
+                sats: 5219666n,
                 outputScript:
                     '76a914cfa9bc00c9d7fa1932b786986f10082af9c6b48f88ac',
             },
             {
-                value: 5350325,
+                sats: 5350325n,
                 outputScript:
                     '76a914d34f5216d288ab84cf5ef3e2675fac013c82408b88ac',
             },
             {
-                value: 5525456,
+                sats: 5525456n,
                 outputScript:
                     '76a914a046783da29e24286e887bec2be51e776e56ec6f88ac',
                 spentBy: {
@@ -4341,22 +4341,22 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 5576379,
+                sats: 5576379n,
                 outputScript:
                     '76a914bfc31c471ae0929046880f56977bce04bafce82a88ac',
             },
             {
-                value: 5882456,
+                sats: 5882456n,
                 outputScript:
                     '76a914633e45a98df30365d95b560a5dece001d40da15788ac',
             },
             {
-                value: 6227395,
+                sats: 6227395n,
                 outputScript:
                     '76a91474615b2ba0fb2c37106aa0ff42f6213af036d45788ac',
             },
             {
-                value: 6337179,
+                sats: 6337179n,
                 outputScript:
                     '76a914764ca1c4108ecb20e0daad7b8e3ecf64da8a546a88ac',
                 spentBy: {
@@ -4365,32 +4365,32 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 6464974,
+                sats: 6464974n,
                 outputScript:
                     '76a914e32dd21a1b04ffcfb3b4d6a2a78c1bf1c1e1c63d88ac',
             },
             {
-                value: 6529342,
+                sats: 6529342n,
                 outputScript:
                     '76a914c4eefae07113114399c503d5663154c1563aae8288ac',
             },
             {
-                value: 6560940,
+                sats: 6560940n,
                 outputScript:
                     '76a91454ecb17cfe67b65105f09c5ee7d1fe066d5340ae88ac',
             },
             {
-                value: 6622255,
+                sats: 6622255n,
                 outputScript:
                     '76a91426e17f7957ac242c076351839cb02ae879c9412e88ac',
             },
             {
-                value: 6649523,
+                sats: 6649523n,
                 outputScript:
                     '76a914ad2d233aad04cc481b19ead6a15b37ae865c33d588ac',
             },
             {
-                value: 6966573,
+                sats: 6966573n,
                 outputScript:
                     '76a914294aa90705c956c74700c97a92d7ce219bc8088088ac',
                 spentBy: {
@@ -4399,7 +4399,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 7237077,
+                sats: 7237077n,
                 outputScript:
                     '76a914b55a3f80593d1ef2b85dc25e20335347871b28c488ac',
                 spentBy: {
@@ -4408,17 +4408,17 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 7247037,
+                sats: 7247037n,
                 outputScript:
                     '76a91409360004e44bb8b116cfd70301cb3e58c85bdc6e88ac',
             },
             {
-                value: 7571632,
+                sats: 7571632n,
                 outputScript:
                     '76a914b746811bdaf55f875770cd78b068209ed987323788ac',
             },
             {
-                value: 7936466,
+                sats: 7936466n,
                 outputScript:
                     '76a9147eadf036427bcf114711bd09f1c6cd71f7d99a5988ac',
                 spentBy: {
@@ -4427,12 +4427,12 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 9483487,
+                sats: 9483487n,
                 outputScript:
                     '76a91471308336e8b5e92ac1e57414e9f0a025b2a5019888ac',
             },
             {
-                value: 9577280,
+                sats: 9577280n,
                 outputScript:
                     '76a914e85d5b1a53a128308e326aad645027b2c8c4ac2788ac',
                 spentBy: {
@@ -4441,12 +4441,12 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 9828407,
+                sats: 9828407n,
                 outputScript:
                     '76a91488528685bbe4c696b58c8b6d5411606bcb3cc63888ac',
             },
             {
-                value: 10210178,
+                sats: 10210178n,
                 outputScript:
                     '76a914d1ac9f7674d3881fa7675a552691d4a433aeb38e88ac',
                 spentBy: {
@@ -4455,17 +4455,17 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 10402019,
+                sats: 10402019n,
                 outputScript:
                     '76a9146674b3bdf74ae56d356815b40821385e23b88cdc88ac',
             },
             {
-                value: 10651856,
+                sats: 10651856n,
                 outputScript:
                     '76a914269454c951ad997703c868cab35a8a80a87dc54e88ac',
             },
             {
-                value: 11003947,
+                sats: 11003947n,
                 outputScript:
                     '76a9147b8c09c622dcfca426b5b9c46680b80265ee9c5c88ac',
                 spentBy: {
@@ -4474,32 +4474,32 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 11036265,
+                sats: 11036265n,
                 outputScript:
                     '76a914fd793cd1790bcc882cdd531f085353bd9cceee7088ac',
             },
             {
-                value: 11983981,
+                sats: 11983981n,
                 outputScript:
                     '76a914f3983d2e5ce9a94f386c17f4526665ed8fc776bf88ac',
             },
             {
-                value: 12224144,
+                sats: 12224144n,
                 outputScript:
                     '76a914f4f21ca1c5cdc979bc0d88de0e6a4faaae77affe88ac',
             },
             {
-                value: 12434515,
+                sats: 12434515n,
                 outputScript:
                     '76a914047e120012f39c07127dc9dcce6490c1b3af613288ac',
             },
             {
-                value: 12544565,
+                sats: 12544565n,
                 outputScript:
                     '76a91498884aa69b0213b32dd58f4bcf9d76edde2f796a88ac',
             },
             {
-                value: 13856128,
+                sats: 13856128n,
                 outputScript:
                     '76a9146a1d4ac47decfd68e4223e6932d2d27797429a2f88ac',
                 spentBy: {
@@ -4508,32 +4508,32 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 13926555,
+                sats: 13926555n,
                 outputScript:
                     '76a9147c8467c80862216ceed083263064dee5a285eff088ac',
             },
             {
-                value: 13953640,
+                sats: 13953640n,
                 outputScript:
                     '76a914e815252fbb0c8649aa03851e828e6d6ce554ca8188ac',
             },
             {
-                value: 14604288,
+                sats: 14604288n,
                 outputScript:
                     '76a914c6f3e86c0b5be88b5dea5c5f97f8898d83dde84b88ac',
             },
             {
-                value: 14796850,
+                sats: 14796850n,
                 outputScript:
                     '76a914f18a494b498b8893efac9877c58259f9f956df3488ac',
             },
             {
-                value: 15003691,
+                sats: 15003691n,
                 outputScript:
                     '76a9144b8093c3ddf67df71ad3a55d6a1f786f07c6e9f388ac',
             },
             {
-                value: 15069088,
+                sats: 15069088n,
                 outputScript:
                     '76a914e7b2d4e1a0269e16e506b9532e8d0fcd6146f38988ac',
                 spentBy: {
@@ -4542,7 +4542,7 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 15542738,
+                sats: 15542738n,
                 outputScript:
                     '76a9148f2abbbc1531b363b250cd45748ab017230d971d88ac',
                 spentBy: {
@@ -4551,32 +4551,32 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 16694191,
+                sats: 16694191n,
                 outputScript:
                     '76a914158f31b3ec66a43d8115e4711cfe2a8623ca513688ac',
             },
             {
-                value: 16936236,
+                sats: 16936236n,
                 outputScript:
                     '76a914d0b8bee8deb1e0c45128d6da73bb3a88f583cf5188ac',
             },
             {
-                value: 17419891,
+                sats: 17419891n,
                 outputScript:
                     '76a914496bfb89eeaf405b4cabb03705c65246414f8f9088ac',
             },
             {
-                value: 17878439,
+                sats: 17878439n,
                 outputScript:
                     '76a914320a5c0c0c17172aa799df5e9f01fcfe34cc8acc88ac',
             },
             {
-                value: 18203996,
+                sats: 18203996n,
                 outputScript:
                     '76a9149c532629e3bbd6b5df9fa7b2a3a8cc447a9c96b088ac',
             },
             {
-                value: 18343505,
+                sats: 18343505n,
                 outputScript:
                     '76a9140c15e03cb7db4f39a4c5dc5318a1e8a5b3c6c9ce88ac',
                 spentBy: {
@@ -4585,22 +4585,22 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 20055678,
+                sats: 20055678n,
                 outputScript:
                     '76a914d82b642270c662ad12ba298b677d543deb27b4bf88ac',
             },
             {
-                value: 21519776,
+                sats: 21519776n,
                 outputScript:
                     '76a914da876799bf44f7eee7c17a0628223caa24b9dd6e88ac',
             },
             {
-                value: 22638667,
+                sats: 22638667n,
                 outputScript:
                     '76a9140f6308b30e5406711fe10ff4d091c35168d83b0388ac',
             },
             {
-                value: 23648127,
+                sats: 23648127n,
                 outputScript:
                     '76a914283acdf34fe0b72b8c668057ef09e68de883f1dc88ac',
                 spentBy: {
@@ -4609,12 +4609,12 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 24750932,
+                sats: 24750932n,
                 outputScript:
                     '76a9149213d8dfdafe9925f3c3005ab195c0b9dec4b94888ac',
             },
             {
-                value: 33183717,
+                sats: 33183717n,
                 outputScript:
                     '76a91495d307ac4c97d450c8e8520a40478cfdb7631cf988ac',
                 spentBy: {
@@ -4623,12 +4623,12 @@ export const dailyTxs: Tx[] = [
                 },
             },
             {
-                value: 38734503,
+                sats: 38734503n,
                 outputScript:
                     '76a9143a6425c522cbfee2ee3892d77734ff4170bae1fe88ac',
             },
             {
-                value: 69219464,
+                sats: 69219464n,
                 outputScript:
                     '76a9140f20b1267a5ab07ba65f860285c5f8c4a726ee2288ac',
             },
@@ -4660,7 +4660,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41d3e2a6b3b740a0b79fcf437b4a4bf5a8d7b97d9295236aef0de5d08f3b757e7386328ae2b702bf469b69d115eada9c2f4871075bcabee76e59635321056e802a4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -4670,7 +4670,7 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999756000000000',
+                    atoms: 999756000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -4684,7 +4684,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '41d6b0dc3a7426777555d9f824c5c508c2c7b46d5a8d3f30864bb7377aa17f5c2fda0ba3951559cef4100b79b9070a32faa31e8047825dc47889f7cffca8fd028b4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 4300,
+                sats: 4300n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -4692,12 +4692,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000002540be4000800038d4381321400',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -4708,13 +4708,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000000',
+                    atoms: 10000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -4725,13 +4725,13 @@ export const dailyTxs: Tx[] = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999746000000000',
+                    atoms: 999746000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 2815,
+                sats: 2815n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
             },
@@ -4754,8 +4754,8 @@ export const dailyTxs: Tx[] = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -4779,7 +4779,7 @@ export const dailyTxs: Tx[] = [
                 },
                 inputScript:
                     '47304402202be54e9bb516220fd0bc48755e50374ca274b10325b896657d898849b3abc0b902201eb90668fdac9fb3133810b645f1b95ac5c8a2d410727eea355bcb07c13d48bd412103562731a08eb23e6260b516c4564f746033e9080bc9f61ad2158a63927500b8b1',
-                value: 2016227,
+                sats: 2016227n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
@@ -4787,12 +4787,12 @@ export const dailyTxs: Tx[] = [
         ],
         outputs: [
             {
-                value: 1972000,
+                sats: 1972000n,
                 outputScript:
                     '76a9145f41a47e1a4a86143ea999604cc504a3f19dc67088ac',
             },
             {
-                value: 44001,
+                sats: 44001n,
                 outputScript:
                     '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
             },

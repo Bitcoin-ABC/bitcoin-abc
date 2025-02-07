@@ -13,7 +13,7 @@ import { TokenType } from 'chronik-client';
 // Cashtab spec
 // This is how Cashtab defines a token utxo to be received
 // by the wallet broadcasting this transaction.
-export const TOKEN_DUST_CHANGE_OUTPUT = { value: appConfig.dustSats };
+export const TOKEN_DUST_CHANGE_OUTPUT = { sats: BigInt(appConfig.dustSats) };
 
 export interface TokenInputInfo {
     tokenInputs: TokenUtxo[];
@@ -22,7 +22,7 @@ export interface TokenInputInfo {
 }
 
 export interface TokenTargetOutput {
-    value: number;
+    sats: bigint;
     script?: Script;
 }
 
@@ -90,8 +90,7 @@ export const getSendTokenInputs = (
 
     const tokenInputs = [];
     for (const utxo of allSendUtxos) {
-        totalTokenInputUtxoQty =
-            totalTokenInputUtxoQty + BigInt(utxo.token.amount);
+        totalTokenInputUtxoQty = totalTokenInputUtxoQty + utxo.token.atoms;
 
         tokenInputs.push(utxo);
         if (totalTokenInputUtxoQty >= sendQtyBigInt) {

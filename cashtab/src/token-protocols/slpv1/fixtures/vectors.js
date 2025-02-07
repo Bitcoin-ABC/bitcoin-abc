@@ -6,7 +6,7 @@
 import appConfig from 'config/app';
 import { mockBurnOpReturnTokenUtxos, mockBurnAllTokenUtxos } from './mocks';
 import {
-    MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+    MAX_OUTPUT_AMOUNT_SLP_ATOMS,
     SLP1_NFT_CHILD_GENESIS_AMOUNT,
 } from 'token-protocols/slpv1';
 import { Script, fromHex } from 'ecash-lib';
@@ -34,7 +34,7 @@ export default {
                 mintBatonOutIdx: undefined,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c0001034c000800000000004c4b40',
@@ -42,7 +42,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -60,7 +60,7 @@ export default {
                 mintBatonOutIdx: 2,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c00010301020800000000004c4b40',
@@ -68,10 +68,10 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -85,11 +85,11 @@ export default {
                     hash: '',
                     decimals: 0,
                 },
-                initialQuantity: '100',
+                initialQuantity: 100n,
                 mintBatonOutIdx: 2,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
@@ -97,10 +97,10 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -120,7 +120,7 @@ export default {
                 mintBatonOutIdx: undefined,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001094c0008ffffffffffffffff',
@@ -128,7 +128,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -142,11 +142,11 @@ export default {
                     hash: '',
                     decimals: 0,
                 },
-                initialQuantity: MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+                initialQuantity: MAX_OUTPUT_AMOUNT_SLP_ATOMS,
                 mintBatonOutIdx: 2,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c000100010208ffffffffffffffff',
@@ -154,10 +154,10 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -187,9 +187,11 @@ export default {
                     hash: '',
                     decimals: 0,
                 },
-                initialQuantity: `${MAX_MINT_AMOUNT_TOKEN_SATOSHIS}1`,
+                initialQuantity: BigInt(
+                    `${MAX_OUTPUT_AMOUNT_SLP_ATOMS.toString()}1`,
+                ),
                 mintBatonOutIdx: 2,
-                errorMsg: 'Amount out of range: 184467440737095516151',
+                errorMsg: 'Atoms out of range: 184467440737095516151',
             },
             {
                 description: 'Invalid document hash',
@@ -224,14 +226,14 @@ export default {
                 decimals: 2,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010453454e44204209be6bd48937263edef94ceaf77a417ab1b35b0c69559cfdf4a435e2bf1a88080000000002f969e0',
                             ),
                         ),
                     },
-                    { value: appConfig.dustSats },
+                    { sats: BigInt(appConfig.dustSats) },
                 ],
             },
             {
@@ -250,14 +252,14 @@ export default {
                 },
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010453454e442056e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55080000000000000000',
                             ),
                         ),
                     },
-                    { value: appConfig.dustSats },
+                    { sats: BigInt(appConfig.dustSats) },
                 ],
             },
         ],
@@ -268,31 +270,31 @@ export default {
                 description: 'We can get a single mint baton',
                 utxos: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -300,10 +302,10 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 returned: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
@@ -314,58 +316,58 @@ export default {
                     'We can get the correct mint baton from from an array including other token utxos, mint batons, and non-token utxos',
                 utxos: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '4588000000',
+                            atoms: 4588000000n,
                             isMintBaton: false,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -373,10 +375,10 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 returned: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
@@ -386,66 +388,66 @@ export default {
                 description: 'We can get multiple mint batons',
                 utxos: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '4588000000',
+                            atoms: 4588000000n,
                             isMintBaton: false,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -453,18 +455,18 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 returned: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
@@ -475,31 +477,31 @@ export default {
                     'We return an empty array if no matches are found from a bad tokenId',
                 utxos: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -512,31 +514,31 @@ export default {
                     'We return an empty array if we have no mint batons for a given tokenId',
                 utxos: [
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         token: {
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -557,15 +559,15 @@ export default {
                 tokenProtocolNumber: 1,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}01020800000000000003e8`,
                             ),
                         ),
                     },
-                    { value: appConfig.dustSats },
-                    { value: appConfig.dustSats },
+                    { sats: BigInt(appConfig.dustSats) },
+                    { sats: BigInt(appConfig.dustSats) },
                 ],
             },
             {
@@ -577,15 +579,15 @@ export default {
                 tokenProtocolNumber: 1,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208000000e8dc00dd15`,
                             ),
                         ),
                     },
-                    { value: appConfig.dustSats },
-                    { value: appConfig.dustSats },
+                    { sats: BigInt(appConfig.dustSats) },
+                    { sats: BigInt(appConfig.dustSats) },
                 ],
             },
             {
@@ -597,15 +599,15 @@ export default {
                 tokenProtocolNumber: 1,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
                             ),
                         ),
                     },
-                    { value: appConfig.dustSats },
-                    { value: appConfig.dustSats },
+                    { sats: BigInt(appConfig.dustSats) },
+                    { sats: BigInt(appConfig.dustSats) },
                 ],
             },
             {
@@ -617,15 +619,15 @@ export default {
                 tokenProtocolNumber: 0x81,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c500001${'81'}044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
                             ),
                         ),
                     },
-                    { value: appConfig.dustSats },
-                    { value: appConfig.dustSats },
+                    { sats: BigInt(appConfig.dustSats) },
+                    { sats: BigInt(appConfig.dustSats) },
                 ],
             },
         ],
@@ -637,7 +639,7 @@ export default {
                 decimals: 0,
                 mintQty: '18446744073709551616',
                 tokenProtocolNumber: 1,
-                error: 'Amount out of range: 18446744073709551616',
+                error: 'Atoms out of range: 18446744073709551616',
             },
         ],
     },
@@ -646,7 +648,7 @@ export default {
             {
                 description: '0 decimals',
                 decimals: 0,
-                returned: MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+                returned: MAX_OUTPUT_AMOUNT_SLP_ATOMS.toString(),
             },
             {
                 description: '1 decimals',
@@ -710,7 +712,7 @@ export default {
                 mintBatonOutIdx: undefined,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001810747454e45534953034e5054104e46543120506172656e7420546573741468747470733a2f2f636173687461622e636f6d2f200000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c01004c00080000000000000064',
@@ -718,7 +720,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -735,7 +737,7 @@ export default {
                 mintBatonOutIdx: 2,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001810747454e45534953034e5054104e46543120506172656e7420546573741468747470733a2f2f636173687461622e636f6d2f200000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c01000102080000000000000064',
@@ -743,10 +745,10 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -758,11 +760,11 @@ export default {
                     url: 'https://cashtab.com/',
                     hash: '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
                 },
-                initialQuantity: BigInt(MAX_MINT_AMOUNT_TOKEN_SATOSHIS),
+                initialQuantity: BigInt(MAX_OUTPUT_AMOUNT_SLP_ATOMS),
                 mintBatonOutIdx: undefined,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001810747454e45534953034e5054104e46543120506172656e7420546573741468747470733a2f2f636173687461622e636f6d2f200000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c01004c0008ffffffffffffffff',
@@ -770,7 +772,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -799,10 +801,12 @@ export default {
                     documentHash:
                         '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
                 },
-                initialQuantity: BigInt(`${MAX_MINT_AMOUNT_TOKEN_SATOSHIS}1`),
+                initialQuantity: BigInt(
+                    `${MAX_OUTPUT_AMOUNT_SLP_ATOMS.toString()}1`,
+                ),
                 mintBatonOutIdx: undefined,
                 mintAddress: GENESIS_MINT_ADDRESS,
-                errorMsg: 'Amount out of range: 184467440737095516151',
+                errorMsg: 'Atoms out of range: 184467440737095516151',
             },
         ],
     },
@@ -815,15 +819,15 @@ export default {
                 mintQty: '1000',
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c50000181044d494e5420${MOCK_TOKEN_ID}01020800000000000003e8`,
                             ),
                         ),
                     },
-                    { value: 546 },
-                    { value: 546 },
+                    { sats: 546n },
+                    { sats: 546n },
                 ],
             },
             {
@@ -833,15 +837,15 @@ export default {
                 mintQty: '18446744073709551615',
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c50000181044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
                             ),
                         ),
                     },
-                    { value: 546 },
-                    { value: 546 },
+                    { sats: 546n },
+                    { sats: 546n },
                 ],
             },
         ],
@@ -868,11 +872,11 @@ export default {
                 description: 'Gets NFT1 parent spendable utxo with qty !== 1',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100',
+                            atoms: 100n,
                             isMintBaton: false,
                         },
                     },
@@ -881,7 +885,7 @@ export default {
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100',
+                            atoms: 100n,
                             isMintBaton: false,
                         },
                     },
@@ -892,11 +896,11 @@ export default {
                     'Ignores NFT1 parent spendable utxo with qty === 1',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1',
+                            atoms: 1n,
                             isMintBaton: false,
                         },
                     },
@@ -908,25 +912,25 @@ export default {
                     'Returns multiple utxos at multiple amounts and ignores amount === 1',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1',
+                            atoms: 1n,
                             isMintBaton: false,
                         },
                     },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '2',
+                            atoms: 2n,
                             isMintBaton: false,
                         },
                     },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '3',
+                            atoms: 3n,
                             isMintBaton: false,
                         },
                     },
@@ -935,14 +939,14 @@ export default {
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '2',
+                            atoms: 2n,
                             isMintBaton: false,
                         },
                     },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '3',
+                            atoms: 3n,
                             isMintBaton: false,
                         },
                     },
@@ -954,11 +958,11 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
                     [
-                        { value: 546 },
+                        { sats: 546n },
                         {
                             token: {
                                 tokenId: MOCK_TOKEN_ID,
-                                amount: '2',
+                                atoms: 2n,
                                 isMintBaton: true,
                             },
                         },
@@ -972,12 +976,12 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
                     [
-                        { value: 546 },
+                        { sats: 546n },
                         {
                             token: {
                                 tokenId:
                                     '2222222222222222222222222222222222222222222222222222222222222222',
-                                amount: '100',
+                                atoms: 100n,
                                 isMintBaton: false,
                             },
                         },
@@ -998,21 +1002,21 @@ export default {
                             txid: '1111111111111111111111111111111111111111111111111111111111111111',
                             outIdx: 0,
                         },
-                        value: 546,
-                        token: { tokenId: MOCK_TOKEN_ID, amount: '19' },
+                        sats: 546n,
+                        token: { tokenId: MOCK_TOKEN_ID, atoms: 19n },
                         path: 1899,
                     },
                 ],
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001810453454e44201111111111111111111111111111111111111111111111111111111111111111080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001',
                             ),
                         ),
                     },
-                ].concat(Array(19).fill({ value: appConfig.dustSats })),
+                ].concat(Array(19).fill({ sats: BigInt(appConfig.dustSats) })),
                 rawTx: {
                     hex: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441a052a96ddf50be866be7f320d493ed00d4095f0b2568ebe2469c9194af093399788bf96d448fff97b4f55fd8b373d16bd86dac80c7b7384d685c3c5280450941412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a800000000644183ddac59e648aea5776c2c4cd9cf04bce0c4d52f5511c91c49534d415a3c307668f31cc4cf697054016430c155fdb3d9a159ac5b886e7d5ff916dde2d7965dc3412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff150000000000000000d96a04534c500001810453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000122020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac2e170f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
                     txid: 'c2e390182ae4a60d72a6e84d749b96aa0345a6d46e1d7f858741862b6338f476',
@@ -1027,21 +1031,21 @@ export default {
                             txid: '1111111111111111111111111111111111111111111111111111111111111112',
                             outIdx: 0,
                         },
-                        value: 546,
-                        token: { tokenId: MOCK_TOKEN_ID, amount: '100' },
+                        sats: 546n,
+                        token: { tokenId: MOCK_TOKEN_ID, atoms: 100n },
                         path: 1899,
                     },
                 ],
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001810453454e44201111111111111111111111111111111111111111111111111111111111111111080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000052',
                             ),
                         ),
                     },
-                ].concat(Array(19).fill({ value: appConfig.dustSats })),
+                ].concat(Array(19).fill({ sats: BigInt(appConfig.dustSats) })),
                 rawTx: {
                     hex: '0200000002121111111111111111111111111111111111111111111111111111111111111100000000644174469e041aea3eb24860cb0f0e0eededd2cf331d9488c8404c2aeb1905b43ae8d421e8d53d385db63f2f5b63ffe6ccd5b911139bc4082aebacefc38bcbe94322412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006441d1ac7ebb818bed5b6aee56ee958a3fbd04cb38dae5cc1beceab5a47b3b830b6367011ec5ac4618a2366541193229047093a758b5ac196dc03b864b39119021eb412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff150000000000000000d96a04534c500001810453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000005222020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac2e170f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
                     txid: '406da5277c8efc497cd9efd826047ff3dc310a8a307d3f72e9f1792993f9079d',
@@ -1056,21 +1060,21 @@ export default {
                             txid: '1111111111111111111111111111111111111111111111111111111111111114',
                             outIdx: 0,
                         },
-                        value: 546,
-                        token: { tokenId: MOCK_TOKEN_ID, amount: '12' },
+                        sats: 546n,
+                        token: { tokenId: MOCK_TOKEN_ID, atoms: 12n },
                         path: 1899,
                     },
                 ],
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001810453454e44201111111111111111111111111111111111111111111111111111111111111111080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001',
                             ),
                         ),
                     },
-                ].concat(Array(12).fill({ value: appConfig.dustSats })),
+                ].concat(Array(12).fill({ sats: BigInt(appConfig.dustSats) })),
                 rawTx: {
                     hex: '02000000021411111111111111111111111111111111111111111111111111111111111111000000006441f4a858c46ba25b9ffc56e9738b0dfc36799754696761fae70489f0aafaddea3310074cf0bdb710f890a3658ee0ae6390f0a7461c057b4137b173d2324a1dada9412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a80000000064412e1501aceab58ac24d3fa0d8d58307a57fd820e216b65e62b342ff09e79278734e2a671c4671a93889b4093459ff2a43ee1dfaefd9ac61f9a61ebfcfe118f859412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff0e00000000000000009a6a04534c500001810453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000122020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac49270f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
                     txid: 'c4209cf2035c092b484d9649424727a911705e4ab8855f5165d38aeb21485ec9',
@@ -1094,11 +1098,11 @@ export default {
                     'Returns a single utxo of amount 1 if it exists in given utxo set',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: false,
                         },
                     },
@@ -1107,7 +1111,7 @@ export default {
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: false,
                         },
                     },
@@ -1118,11 +1122,11 @@ export default {
                     'Does not return a single utxo of amount 1 if it exists in given utxo set and is a mint baton (not expected to ever happen)',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: true,
                         },
                     },
@@ -1134,25 +1138,25 @@ export default {
                     'Returns a single utxo of amount 1 even if more than 1 eligible utxos exist in given utxo set',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: false,
                         },
                     },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: false,
                         },
                     },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: false,
                         },
                     },
@@ -1161,7 +1165,7 @@ export default {
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            atoms: SLP1_NFT_CHILD_GENESIS_AMOUNT,
                             isMintBaton: false,
                         },
                     },
@@ -1172,11 +1176,11 @@ export default {
                     'Returns an empty array even if parent token utxos exist but do not have amount === 1',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '2',
+                            atoms: 2n,
                             isMintBaton: false,
                         },
                     },
@@ -1188,12 +1192,12 @@ export default {
                     'Returns an empty array if no utxos of correct tokenId and amount exist',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '1',
+                            atoms: 1n,
                             isMintBaton: false,
                         },
                     },
@@ -1216,7 +1220,7 @@ export default {
                 },
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001410747454e4553495304544553540f4d79206661766f72697465204e46540b636173687461622e636f6d20333333333333333333333333333333333333333333333333333333333333333301004c00080000000000000001',
@@ -1224,7 +1228,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -1240,7 +1244,7 @@ export default {
                 },
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001410747454e455349534c004c004c004c0001004c00080000000000000001',
@@ -1248,7 +1252,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -1260,7 +1264,7 @@ export default {
                 description: 'Returns the NFT if it exists in given utxo set',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId: MOCK_TOKEN_ID,
@@ -1280,7 +1284,7 @@ export default {
                     'Returns an empty array if no utxos of correct tokenId are in this utxo set',
                 tokenId: MOCK_TOKEN_ID,
                 slpUtxos: [
-                    { value: 546 },
+                    { sats: 546n },
                     {
                         token: {
                             tokenId:
@@ -1300,7 +1304,7 @@ export default {
                 destinationAddress: SEND_DESTINATION_ADDRESS,
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 `6a04534c500001410453454e4420${MOCK_TOKEN_ID}080000000000000001`,
@@ -1309,7 +1313,7 @@ export default {
                     },
                     {
                         script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -1320,20 +1324,20 @@ export default {
             {
                 description:
                     'A token dust change targetOutput is recognized as such',
-                targetOutput: { value: appConfig.dustSats },
+                targetOutput: { sats: BigInt(appConfig.dustSats) },
                 returned: true,
             },
             {
                 description:
                     'If value is 1 satoshi more than dust, not a token dust change output',
-                targetOutput: { value: appConfig.dustSats + 1 },
+                targetOutput: { sats: BigInt(appConfig.dustSats) + 1n },
                 returned: false,
             },
             {
                 description:
                     'If we have a key other than value, not a token dust change output',
                 targetOutput: {
-                    value: appConfig.dustSats,
+                    sats: BigInt(appConfig.dustSats),
                     script: 'some script',
                 },
                 returned: false,

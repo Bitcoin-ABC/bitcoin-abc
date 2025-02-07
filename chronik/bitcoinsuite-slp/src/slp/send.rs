@@ -9,7 +9,7 @@ use bytes::Bytes;
 use crate::{
     parsed::{ParsedData, ParsedTxType},
     slp::{
-        common::{parse_amount, parse_token_id},
+        common::{parse_atoms, parse_token_id},
         ParseError,
     },
     structs::TokenMeta,
@@ -66,7 +66,7 @@ pub(crate) fn parse_send_data(
     let output_quantities = data_iter
         .enumerate()
         .map(|(idx, quantity)| {
-            parse_amount(&quantity, TOKEN_OUTPUT_QUANTITY_FIELD_NAMES[idx])
+            parse_atoms(&quantity, TOKEN_OUTPUT_QUANTITY_FIELD_NAMES[idx])
         })
         .collect::<Result<Vec<_>, _>>()?;
 

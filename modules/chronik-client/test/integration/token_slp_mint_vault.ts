@@ -115,11 +115,11 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         },
         inputScript: '0151',
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
-        value: 100000,
+        sats: 100000n,
         sequenceNo: 0,
     };
     const BASE_TX_OUTPUT = {
-        value: 10000,
+        sats: 10000n,
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
     };
     const BASE_TX_TOKEN_INFO_SLP_V2 = {
@@ -129,7 +129,7 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
             number: 2,
         },
         entryIdx: 0,
-        amount: '1000',
+        atoms: 1000n,
         isMintBaton: false,
     };
     const BASE_TOKEN_ENTRY = {
@@ -137,8 +137,8 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         isInvalid: false,
         burnSummary: '',
         failedColorings: [],
-        actualBurnAmount: '0',
-        intentionalBurn: '0',
+        actualBurnAtoms: 0n,
+        intentionalBurnAtoms: 0n,
         burnsMintBatons: false,
     };
 
@@ -192,7 +192,7 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 79000,
+                sats: 79000n,
                 outputScript: 'a91428e2146de5a061bf57845a04968d89cbdab733e387',
             },
         ]);
@@ -261,13 +261,13 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         expect(slpVaultGenesis.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001020747454e4553495308534c505641554c540130013020787878787878787878787878787878787878787878787878787878787878787801001428e2146de5a061bf57845a04968d89cbdab733e30800000000000003e8',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 546,
+                sats: 546n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_SLP_V2,
                     tokenId: slpVaultGenesisTxid,
@@ -275,7 +275,7 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 99000,
+                sats: 99000n,
             },
         ]);
 
@@ -342,7 +342,7 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
                 },
                 inputScript: '015c',
                 outputScript: 'a91428e2146de5a061bf57845a04968d89cbdab733e387',
-                value: 10000,
+                sats: 10000n,
             },
         ]);
 
@@ -350,13 +350,13 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         expect(slpVaultMint.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c50000102044d494e5420768626ba27515513f148d714453bd2964f0de49c6686fa54da56ae4e19387c70080000000000000fa0',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 9000,
+                sats: 9000n,
             },
         ]);
 

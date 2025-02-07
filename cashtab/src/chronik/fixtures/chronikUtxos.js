@@ -10,9 +10,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755309,
         isCoinbase: false,
-        value: 12233856,
         address: 'ecash:qz5lf9pxde9neq3hzte8mmwts03sktl9numh06k74t',
         isFinal: true,
+        sats: 12233856n,
     },
     {
         outpoint: {
@@ -21,7 +21,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680782,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -32,9 +31,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -43,9 +43,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680784,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 546n,
     },
     {
         outpoint: {
@@ -54,9 +54,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680784,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 546n,
     },
     {
         outpoint: {
@@ -65,7 +65,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680784,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -76,9 +75,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -87,7 +87,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 681190,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -98,9 +97,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -109,7 +109,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 681191,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -120,9 +119,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -131,7 +131,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 685181,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -142,9 +141,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -153,7 +153,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 687240,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -164,9 +163,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '99999999',
             isMintBaton: false,
+            atoms: 99999999n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -175,7 +175,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 692599,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -186,9 +185,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '120000000',
             isMintBaton: false,
+            atoms: 120000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -197,7 +197,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 692599,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -208,9 +207,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '120000000',
             isMintBaton: false,
+            atoms: 120000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -219,7 +219,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700185,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -230,9 +229,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '5500000',
             isMintBaton: false,
+            atoms: 5500000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -241,7 +241,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700572,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -252,9 +251,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '990',
             isMintBaton: false,
+            atoms: 990n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -263,7 +263,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700677,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -274,9 +273,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '333',
             isMintBaton: false,
+            atoms: 333n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -285,7 +285,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700915,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -296,9 +295,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '999975',
             isMintBaton: false,
+            atoms: 999975n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -307,7 +307,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -318,9 +317,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '3',
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -329,7 +329,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -340,9 +339,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -351,7 +351,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -362,9 +361,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -373,7 +373,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -384,9 +383,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -395,7 +395,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -406,9 +405,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -417,7 +417,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701189,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -428,9 +427,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -439,7 +439,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701189,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -450,9 +449,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -461,7 +461,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701191,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -472,9 +471,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2000000000',
             isMintBaton: false,
+            atoms: 2000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -483,7 +483,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701194,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -494,9 +493,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1000000000',
             isMintBaton: false,
+            atoms: 1000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -505,7 +505,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701208,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -516,9 +515,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -527,7 +527,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701211,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -538,9 +537,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '789698951',
             isMintBaton: false,
+            atoms: 789698951n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -549,7 +549,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701211,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -560,9 +559,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1000000000',
             isMintBaton: false,
+            atoms: 1000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -571,7 +571,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701221,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -582,9 +581,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -593,7 +593,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701223,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -604,9 +603,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '9000',
             isMintBaton: false,
+            atoms: 9000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -615,7 +615,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 709251,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -626,9 +625,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1000',
             isMintBaton: false,
+            atoms: 1000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -637,7 +637,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 709259,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -648,9 +647,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -659,7 +659,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 709668,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -670,9 +669,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -681,7 +681,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 710065,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -692,9 +691,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '100',
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -703,7 +703,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 711227,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -714,9 +713,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '17',
             isMintBaton: false,
+            atoms: 17n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -725,7 +725,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 715815,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -736,9 +735,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '100',
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -747,7 +747,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 715815,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -758,9 +757,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '102',
             isMintBaton: false,
+            atoms: 102n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -769,7 +769,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 715816,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -780,9 +779,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '102',
             isMintBaton: false,
+            atoms: 102n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -791,7 +791,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 717055,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -802,9 +801,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '10',
             isMintBaton: false,
+            atoms: 10n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -813,7 +813,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 717824,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -824,9 +823,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '10000',
             isMintBaton: false,
+            atoms: 10000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -835,7 +835,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 718091,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -846,9 +845,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '5235120760000000',
             isMintBaton: false,
+            atoms: 5235120760000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -857,7 +857,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 718280,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -868,9 +867,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '10000',
             isMintBaton: false,
+            atoms: 10000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -879,7 +879,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 718790,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -890,9 +889,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '9999999900',
             isMintBaton: false,
+            atoms: 9999999900n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -901,7 +901,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720056,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -912,9 +911,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '100',
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -923,7 +923,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -934,9 +933,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -945,7 +945,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -956,9 +955,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '3',
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -967,7 +967,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -978,9 +977,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -989,7 +989,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1000,9 +999,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '4',
             isMintBaton: false,
+            atoms: 4n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1011,7 +1011,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720078,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1022,9 +1021,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '55',
             isMintBaton: false,
+            atoms: 55n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1033,7 +1033,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720951,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1044,9 +1043,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '99',
             isMintBaton: false,
+            atoms: 99n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1055,7 +1055,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 721083,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1066,9 +1065,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '82',
             isMintBaton: false,
+            atoms: 82n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1077,9 +1077,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 724822,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1088,9 +1088,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 725143,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1099,7 +1099,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 725871,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1110,9 +1109,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '55',
             isMintBaton: false,
+            atoms: 55n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1121,7 +1121,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 725882,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1132,9 +1131,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '47800000000',
             isMintBaton: false,
+            atoms: 47800000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1143,7 +1143,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726001,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1154,9 +1153,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '996000',
             isMintBaton: false,
+            atoms: 996000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1165,7 +1165,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726009,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1176,9 +1175,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '69',
             isMintBaton: false,
+            atoms: 69n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1187,7 +1187,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726019,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1198,9 +1197,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '999989983',
             isMintBaton: false,
+            atoms: 999989983n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1209,7 +1209,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726053,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1220,9 +1219,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '9000',
             isMintBaton: false,
+            atoms: 9000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1231,7 +1231,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726277,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1242,9 +1241,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '999888000000000',
             isMintBaton: false,
+            atoms: 999888000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1253,7 +1253,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726809,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1264,9 +1263,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2200',
             isMintBaton: false,
+            atoms: 2200n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1275,7 +1275,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1286,9 +1285,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1297,7 +1297,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1308,9 +1307,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '9955000000000',
             isMintBaton: false,
+            atoms: 9955000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1319,7 +1319,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1330,9 +1329,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '100',
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1341,7 +1341,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 727176,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1352,9 +1351,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '5000',
             isMintBaton: false,
+            atoms: 5000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1363,7 +1363,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728150,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1374,9 +1373,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '6968',
             isMintBaton: false,
+            atoms: 6968n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1385,7 +1385,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728285,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1396,9 +1395,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '5',
             isMintBaton: false,
+            atoms: 5n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1407,7 +1407,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728707,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1418,9 +1417,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '999999000',
             isMintBaton: false,
+            atoms: 999999000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1429,7 +1429,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728726,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1440,9 +1439,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1700',
             isMintBaton: false,
+            atoms: 1700n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1451,9 +1451,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 731918,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1462,7 +1462,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 737787,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1473,9 +1472,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '26',
             isMintBaton: false,
+            atoms: 26n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1484,7 +1484,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 738246,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1495,9 +1494,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '999999900',
             isMintBaton: false,
+            atoms: 999999900n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1506,7 +1506,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 738929,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1517,9 +1516,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '999897000000000',
             isMintBaton: false,
+            atoms: 999897000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1528,9 +1528,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 739911,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -1539,9 +1539,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740052,
         isCoinbase: false,
-        value: 600,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 600n,
     },
     {
         outpoint: {
@@ -1550,9 +1550,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740198,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -1561,9 +1561,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740198,
         isCoinbase: false,
-        value: 7700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 7700n,
     },
     {
         outpoint: {
@@ -1572,9 +1572,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740963,
         isCoinbase: false,
-        value: 700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 700n,
     },
     {
         outpoint: {
@@ -1583,9 +1583,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740963,
         isCoinbase: false,
-        value: 1245,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1245n,
     },
     {
         outpoint: {
@@ -1594,9 +1594,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741057,
         isCoinbase: false,
-        value: 1700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1700n,
     },
     {
         outpoint: {
@@ -1605,9 +1605,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741057,
         isCoinbase: false,
-        value: 800,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 800n,
     },
     {
         outpoint: {
@@ -1616,9 +1616,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741057,
         isCoinbase: false,
-        value: 600,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 600n,
     },
     {
         outpoint: {
@@ -1627,9 +1627,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 1100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1100n,
     },
     {
         outpoint: {
@@ -1638,9 +1638,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 6600,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 6600n,
     },
     {
         outpoint: {
@@ -1649,9 +1649,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 1000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1000n,
     },
     {
         outpoint: {
@@ -1660,9 +1660,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 1200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1200n,
     },
     {
         outpoint: {
@@ -1671,9 +1671,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 5500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 5500n,
     },
     {
         outpoint: {
@@ -1682,9 +1682,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 23200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 23200n,
     },
     {
         outpoint: {
@@ -1693,9 +1693,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        value: 10100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 10100n,
     },
     {
         outpoint: {
@@ -1704,9 +1704,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741063,
         isCoinbase: false,
-        value: 2300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2300n,
     },
     {
         outpoint: {
@@ -1715,9 +1715,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741063,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -1726,9 +1726,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741182,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -1737,7 +1737,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741190,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1748,9 +1747,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '12',
             isMintBaton: false,
+            atoms: 12n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1759,7 +1759,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741195,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1770,9 +1769,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1781,7 +1781,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741195,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1792,9 +1791,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '3',
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1803,7 +1803,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741195,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1814,9 +1813,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '3',
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1825,7 +1825,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741197,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1836,9 +1835,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '123456789',
             isMintBaton: false,
+            atoms: 123456789n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1847,9 +1847,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        value: 700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 700n,
     },
     {
         outpoint: {
@@ -1858,7 +1858,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1869,9 +1868,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '100000000',
             isMintBaton: false,
+            atoms: 100000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1880,9 +1880,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        value: 800,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 800n,
     },
     {
         outpoint: {
@@ -1891,9 +1891,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741207,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -1902,9 +1902,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741208,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -1913,9 +1913,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741210,
         isCoinbase: false,
-        value: 2195,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2195n,
     },
     {
         outpoint: {
@@ -1924,9 +1924,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741769,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -1935,7 +1935,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741791,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1946,9 +1945,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '3',
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1957,9 +1957,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741791,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -1968,7 +1968,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741791,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -1979,9 +1978,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -1990,7 +1990,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2001,9 +2000,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '5',
             isMintBaton: false,
+            atoms: 5n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2012,7 +2012,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2023,9 +2022,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2034,7 +2034,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2045,9 +2044,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '7',
             isMintBaton: false,
+            atoms: 7n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2056,7 +2056,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2067,9 +2066,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '17',
             isMintBaton: false,
+            atoms: 17n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2078,7 +2078,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741797,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2089,9 +2088,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2100,7 +2100,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741798,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2111,9 +2110,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '11',
             isMintBaton: false,
+            atoms: 11n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2122,7 +2122,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741798,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2133,9 +2132,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2144,9 +2144,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741799,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2155,7 +2155,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741799,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2166,9 +2165,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '33',
             isMintBaton: false,
+            atoms: 33n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2177,9 +2177,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742051,
         isCoinbase: false,
-        value: 1100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1100n,
     },
     {
         outpoint: {
@@ -2188,9 +2188,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742051,
         isCoinbase: false,
-        value: 1200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1200n,
     },
     {
         outpoint: {
@@ -2199,7 +2199,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2210,9 +2209,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '1',
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2221,9 +2221,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        value: 3400,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3400n,
     },
     {
         outpoint: {
@@ -2232,9 +2232,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        value: 3500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3500n,
     },
     {
         outpoint: {
@@ -2243,9 +2243,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2254,7 +2254,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742075,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2265,9 +2264,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '3',
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2276,7 +2276,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742075,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2287,9 +2286,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '2',
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2298,9 +2298,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742792,
         isCoinbase: false,
-        value: 200000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 200000n,
     },
     {
         outpoint: {
@@ -2309,9 +2309,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742792,
         isCoinbase: false,
-        value: 100000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 100000n,
     },
     {
         outpoint: {
@@ -2320,9 +2320,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742796,
         isCoinbase: false,
-        value: 250000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 250000n,
     },
     {
         outpoint: {
@@ -2331,9 +2331,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742796,
         isCoinbase: false,
-        value: 50000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 50000n,
     },
     {
         outpoint: {
@@ -2342,9 +2342,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742797,
         isCoinbase: false,
-        value: 250000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 250000n,
     },
     {
         outpoint: {
@@ -2353,9 +2353,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742799,
         isCoinbase: false,
-        value: 155500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 155500n,
     },
     {
         outpoint: {
@@ -2364,9 +2364,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742799,
         isCoinbase: false,
-        value: 333300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 333300n,
     },
     {
         outpoint: {
@@ -2375,9 +2375,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742800,
         isCoinbase: false,
-        value: 333300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 333300n,
     },
     {
         outpoint: {
@@ -2386,9 +2386,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742800,
         isCoinbase: false,
-        value: 111100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 111100n,
     },
     {
         outpoint: {
@@ -2397,9 +2397,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742800,
         isCoinbase: false,
-        value: 88800,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 88800n,
     },
     {
         outpoint: {
@@ -2408,9 +2408,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742994,
         isCoinbase: false,
-        value: 3330,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3330n,
     },
     {
         outpoint: {
@@ -2419,9 +2419,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742994,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2430,9 +2430,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742999,
         isCoinbase: false,
-        value: 1600,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1600n,
     },
     {
         outpoint: {
@@ -2441,9 +2441,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743101,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2452,9 +2452,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743138,
         isCoinbase: false,
-        value: 1100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1100n,
     },
     {
         outpoint: {
@@ -2463,9 +2463,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743158,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -2474,9 +2474,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743228,
         isCoinbase: false,
-        value: 3400,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3400n,
     },
     {
         outpoint: {
@@ -2485,9 +2485,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743228,
         isCoinbase: false,
-        value: 2200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2200n,
     },
     {
         outpoint: {
@@ -2496,9 +2496,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743228,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2507,9 +2507,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743257,
         isCoinbase: false,
-        value: 11100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 11100n,
     },
     {
         outpoint: {
@@ -2518,9 +2518,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743350,
         isCoinbase: false,
-        value: 1200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1200n,
     },
     {
         outpoint: {
@@ -2529,9 +2529,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743775,
         isCoinbase: false,
-        value: 3700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3700n,
     },
     {
         outpoint: {
@@ -2540,9 +2540,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743782,
         isCoinbase: false,
-        value: 1700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1700n,
     },
     {
         outpoint: {
@@ -2551,9 +2551,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743972,
         isCoinbase: false,
-        value: 7700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 7700n,
     },
     {
         outpoint: {
@@ -2562,9 +2562,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744136,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2573,9 +2573,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744138,
         isCoinbase: false,
-        value: 4200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 4200n,
     },
     {
         outpoint: {
@@ -2584,9 +2584,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744138,
         isCoinbase: false,
-        value: 12000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 12000n,
     },
     {
         outpoint: {
@@ -2595,9 +2595,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744138,
         isCoinbase: false,
-        value: 12100,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 12100n,
     },
     {
         outpoint: {
@@ -2606,9 +2606,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744841,
         isCoinbase: false,
-        value: 7700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 7700n,
     },
     {
         outpoint: {
@@ -2617,9 +2617,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744841,
         isCoinbase: false,
-        value: 700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 700n,
     },
     {
         outpoint: {
@@ -2628,9 +2628,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745157,
         isCoinbase: false,
-        value: 3700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3700n,
     },
     {
         outpoint: {
@@ -2639,9 +2639,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745157,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2650,9 +2650,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745158,
         isCoinbase: false,
-        value: 4200,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 4200n,
     },
     {
         outpoint: {
@@ -2661,9 +2661,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745160,
         isCoinbase: false,
-        value: 9990,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 9990n,
     },
     {
         outpoint: {
@@ -2672,9 +2672,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745160,
         isCoinbase: false,
-        value: 10081,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 10081n,
     },
     {
         outpoint: {
@@ -2683,9 +2683,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745251,
         isCoinbase: false,
-        value: 50000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 50000n,
     },
     {
         outpoint: {
@@ -2694,9 +2694,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745254,
         isCoinbase: false,
-        value: 55000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 55000n,
     },
     {
         outpoint: {
@@ -2705,9 +2705,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745275,
         isCoinbase: false,
-        value: 250779,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 250779n,
     },
     {
         outpoint: {
@@ -2716,9 +2716,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745520,
         isCoinbase: false,
-        value: 49400,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 49400n,
     },
     {
         outpoint: {
@@ -2727,9 +2727,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747209,
         isCoinbase: false,
-        value: 5500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 5500n,
     },
     {
         outpoint: {
@@ -2738,9 +2738,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747210,
         isCoinbase: false,
-        value: 5821,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 5821n,
     },
     {
         outpoint: {
@@ -2749,9 +2749,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747210,
         isCoinbase: false,
-        value: 3500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3500n,
     },
     {
         outpoint: {
@@ -2760,7 +2760,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747210,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2771,9 +2770,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '107000000000',
             isMintBaton: false,
+            atoms: 107000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2782,9 +2782,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747433,
         isCoinbase: false,
-        value: 5000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 5000n,
     },
     {
         outpoint: {
@@ -2793,9 +2793,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747433,
         isCoinbase: false,
-        value: 15000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 15000n,
     },
     {
         outpoint: {
@@ -2804,9 +2804,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747604,
         isCoinbase: false,
-        value: 7700,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 7700n,
     },
     {
         outpoint: {
@@ -2815,9 +2815,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 749030,
         isCoinbase: false,
-        value: 5500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 5500n,
     },
     {
         outpoint: {
@@ -2826,9 +2826,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 753929,
         isCoinbase: false,
-        value: 3300,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3300n,
     },
     {
         outpoint: {
@@ -2837,9 +2837,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 754182,
         isCoinbase: false,
-        value: 79785,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 79785n,
     },
     {
         outpoint: {
@@ -2848,9 +2848,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 754318,
         isCoinbase: false,
-        value: 83715,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 83715n,
     },
     {
         outpoint: {
@@ -2859,9 +2859,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 754464,
         isCoinbase: false,
-        value: 5500,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 5500n,
     },
     {
         outpoint: {
@@ -2870,9 +2870,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755028,
         isCoinbase: false,
-        value: 10000,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 10000n,
     },
     {
         outpoint: {
@@ -2881,7 +2881,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755294,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2892,9 +2891,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '7900000000',
             isMintBaton: false,
+            atoms: 7900000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2903,9 +2903,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755309,
         isCoinbase: false,
-        value: 7077,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 7077n,
     },
     {
         outpoint: {
@@ -2914,9 +2914,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755325,
         isCoinbase: false,
-        value: 9145,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 9145n,
     },
     {
         outpoint: {
@@ -2925,7 +2925,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756151,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2936,9 +2935,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '210000000',
             isMintBaton: false,
+            atoms: 210000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2947,7 +2947,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756151,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -2958,9 +2957,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '5400000',
             isMintBaton: false,
+            atoms: 5400000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -2969,9 +2969,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756151,
         isCoinbase: false,
-        value: 48182,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 48182n,
     },
     {
         outpoint: {
@@ -2980,9 +2980,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        value: 3182,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 3182n,
     },
     {
         outpoint: {
@@ -2991,9 +2991,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        value: 39176,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 39176n,
     },
     {
         outpoint: {
@@ -3002,9 +3002,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        value: 48182,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 48182n,
     },
     {
         outpoint: {
@@ -3013,9 +3013,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        value: 6434,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 6434n,
     },
     {
         outpoint: {
@@ -3024,9 +3024,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        value: 600155,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 600155n,
     },
     {
         outpoint: {
@@ -3035,9 +3035,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        value: 1046,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1046n,
     },
     {
         outpoint: {
@@ -3046,9 +3046,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756159,
         isCoinbase: false,
-        value: 1155,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1155n,
     },
     {
         outpoint: {
@@ -3057,9 +3057,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756224,
         isCoinbase: false,
-        value: 1482,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 1482n,
     },
     {
         outpoint: {
@@ -3068,9 +3068,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756225,
         isCoinbase: false,
-        value: 54429518,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 54429518n,
     },
     {
         outpoint: {
@@ -3079,9 +3079,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756229,
         isCoinbase: false,
-        value: 7255,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 7255n,
     },
     {
         outpoint: {
@@ -3090,7 +3090,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756229,
         isCoinbase: false,
-        value: 546,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
@@ -3101,9 +3100,10 @@ export const mockChronikUtxos = [
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            amount: '117',
             isMintBaton: false,
+            atoms: 117n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -3112,9 +3112,9 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756229,
         isCoinbase: false,
-        value: 2255,
         address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
+        sats: 2255n,
     },
 ];
 
@@ -3127,7 +3127,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680782,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3138,9 +3137,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3149,7 +3149,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680784,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3160,9 +3159,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3171,7 +3171,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 681190,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3182,9 +3181,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3193,7 +3193,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 681191,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3204,9 +3203,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3215,7 +3215,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 685181,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3226,9 +3225,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3237,7 +3237,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 687240,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3248,9 +3247,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '99999999',
                 isMintBaton: false,
+                atoms: 99999999n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3259,7 +3259,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 692599,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3270,9 +3269,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '120000000',
                 isMintBaton: false,
+                atoms: 120000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3281,7 +3281,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 692599,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3292,9 +3291,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '120000000',
                 isMintBaton: false,
+                atoms: 120000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3303,7 +3303,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700185,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3314,9 +3313,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5500000',
                 isMintBaton: false,
+                atoms: 5500000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3325,7 +3325,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700572,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3336,9 +3335,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '990',
                 isMintBaton: false,
+                atoms: 990n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3347,7 +3347,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700677,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3358,9 +3357,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '333',
                 isMintBaton: false,
+                atoms: 333n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3369,7 +3369,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700915,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3380,9 +3379,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '999975',
                 isMintBaton: false,
+                atoms: 999975n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3391,7 +3391,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3402,9 +3401,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '3',
                 isMintBaton: false,
+                atoms: 3n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3413,7 +3413,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3424,9 +3423,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3435,7 +3435,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3446,9 +3445,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3457,7 +3457,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3468,9 +3467,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3479,7 +3479,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3490,9 +3489,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3501,7 +3501,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701189,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3512,9 +3511,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3523,7 +3523,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701189,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3534,9 +3533,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3545,7 +3545,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701191,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3556,9 +3555,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2000000000',
                 isMintBaton: false,
+                atoms: 2000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3567,7 +3567,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701194,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3578,9 +3577,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1000000000',
                 isMintBaton: false,
+                atoms: 1000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3589,7 +3589,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701208,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3600,9 +3599,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3611,7 +3611,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701211,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3622,9 +3621,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '789698951',
                 isMintBaton: false,
+                atoms: 789698951n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3633,7 +3633,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701211,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3644,9 +3643,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1000000000',
                 isMintBaton: false,
+                atoms: 1000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3655,7 +3655,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701221,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3666,9 +3665,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3677,7 +3677,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701223,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3688,9 +3687,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '9000',
                 isMintBaton: false,
+                atoms: 9000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3699,7 +3699,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 709251,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3710,9 +3709,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1000',
                 isMintBaton: false,
+                atoms: 1000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3721,7 +3721,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 709259,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3732,9 +3731,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3743,7 +3743,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 709668,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3754,9 +3753,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3765,7 +3765,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 710065,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3776,9 +3775,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '100',
                 isMintBaton: false,
+                atoms: 100n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3787,7 +3787,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 711227,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3798,9 +3797,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '17',
                 isMintBaton: false,
+                atoms: 17n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3809,7 +3809,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 715815,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3820,9 +3819,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '100',
                 isMintBaton: false,
+                atoms: 100n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3831,7 +3831,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 715815,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3842,9 +3841,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '102',
                 isMintBaton: false,
+                atoms: 102n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3853,7 +3853,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 715816,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3864,9 +3863,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '102',
                 isMintBaton: false,
+                atoms: 102n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3875,7 +3875,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 717055,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3886,9 +3885,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '10',
                 isMintBaton: false,
+                atoms: 10n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3897,7 +3897,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 717824,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3908,9 +3907,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '10000',
                 isMintBaton: false,
+                atoms: 10000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3919,7 +3919,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 718091,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3930,9 +3929,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5235120760000000',
                 isMintBaton: false,
+                atoms: 5235120760000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3941,7 +3941,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 718280,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3952,9 +3951,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '10000',
                 isMintBaton: false,
+                atoms: 10000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3963,7 +3963,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 718790,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3974,9 +3973,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '9999999900',
                 isMintBaton: false,
+                atoms: 9999999900n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -3985,7 +3985,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720056,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -3996,9 +3995,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '100',
                 isMintBaton: false,
+                atoms: 100n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4007,7 +4007,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4018,9 +4017,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4029,7 +4029,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4040,9 +4039,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '3',
                 isMintBaton: false,
+                atoms: 3n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4051,7 +4051,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4062,9 +4061,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4073,7 +4073,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4084,9 +4083,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '4',
                 isMintBaton: false,
+                atoms: 4n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4095,7 +4095,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720078,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4106,9 +4105,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '55',
                 isMintBaton: false,
+                atoms: 55n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4117,7 +4117,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720951,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4128,9 +4127,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '99',
                 isMintBaton: false,
+                atoms: 99n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4139,7 +4139,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 721083,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4150,9 +4149,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '82',
                 isMintBaton: false,
+                atoms: 82n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4161,7 +4161,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 725871,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4172,9 +4171,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '55',
                 isMintBaton: false,
+                atoms: 55n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4183,7 +4183,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 725882,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4194,9 +4193,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '47800000000',
                 isMintBaton: false,
+                atoms: 47800000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4205,7 +4205,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726001,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4216,9 +4215,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '996000',
                 isMintBaton: false,
+                atoms: 996000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4227,7 +4227,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726009,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4238,9 +4237,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '69',
                 isMintBaton: false,
+                atoms: 69n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4249,7 +4249,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726019,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4260,9 +4259,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '999989983',
                 isMintBaton: false,
+                atoms: 999989983n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4271,7 +4271,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726053,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4282,9 +4281,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '9000',
                 isMintBaton: false,
+                atoms: 9000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4293,7 +4293,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726277,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4304,9 +4303,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '999888000000000',
                 isMintBaton: false,
+                atoms: 999888000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4315,7 +4315,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726809,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4326,9 +4325,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2200',
                 isMintBaton: false,
+                atoms: 2200n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4337,7 +4337,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726826,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4348,9 +4347,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4359,7 +4359,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726826,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4370,9 +4369,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '9955000000000',
                 isMintBaton: false,
+                atoms: 9955000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4381,7 +4381,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726826,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4392,9 +4391,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '100',
                 isMintBaton: false,
+                atoms: 100n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4403,7 +4403,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 727176,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4414,9 +4413,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5000',
                 isMintBaton: false,
+                atoms: 5000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4425,7 +4425,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728150,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4436,9 +4435,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '6968',
                 isMintBaton: false,
+                atoms: 6968n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4447,7 +4447,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728285,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4458,9 +4457,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5',
                 isMintBaton: false,
+                atoms: 5n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4469,7 +4469,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728707,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4480,9 +4479,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '999999000',
                 isMintBaton: false,
+                atoms: 999999000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4491,7 +4491,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728726,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4502,9 +4501,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1700',
                 isMintBaton: false,
+                atoms: 1700n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4513,7 +4513,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 737787,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4524,9 +4523,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '26',
                 isMintBaton: false,
+                atoms: 26n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4535,7 +4535,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 738246,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4546,9 +4545,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '999999900',
                 isMintBaton: false,
+                atoms: 999999900n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4557,7 +4557,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 738929,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4568,9 +4567,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '999897000000000',
                 isMintBaton: false,
+                atoms: 999897000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4579,7 +4579,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741190,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4590,9 +4589,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '12',
                 isMintBaton: false,
+                atoms: 12n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4601,7 +4601,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741195,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4612,9 +4611,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4623,7 +4623,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741195,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4634,9 +4633,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '3',
                 isMintBaton: false,
+                atoms: 3n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4645,7 +4645,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741195,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4656,9 +4655,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '3',
                 isMintBaton: false,
+                atoms: 3n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4667,7 +4667,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741197,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4678,9 +4677,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '123456789',
                 isMintBaton: false,
+                atoms: 123456789n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4689,7 +4689,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741200,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4700,9 +4699,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '100000000',
                 isMintBaton: false,
+                atoms: 100000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4711,7 +4711,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741791,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4722,9 +4721,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '3',
                 isMintBaton: false,
+                atoms: 3n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4733,7 +4733,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741791,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4744,9 +4743,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4755,7 +4755,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4766,9 +4765,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5',
                 isMintBaton: false,
+                atoms: 5n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4777,7 +4777,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4788,9 +4787,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4799,7 +4799,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4810,9 +4809,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '7',
                 isMintBaton: false,
+                atoms: 7n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4821,7 +4821,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4832,9 +4831,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '17',
                 isMintBaton: false,
+                atoms: 17n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4843,7 +4843,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741797,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4854,9 +4853,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4865,7 +4865,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741798,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4876,9 +4875,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '11',
                 isMintBaton: false,
+                atoms: 11n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4887,7 +4887,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741798,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4898,9 +4897,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4909,7 +4909,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741799,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4920,9 +4919,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '33',
                 isMintBaton: false,
+                atoms: 33n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4931,7 +4931,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4942,9 +4941,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
                 isMintBaton: false,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4953,7 +4953,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742075,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4964,9 +4963,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '3',
                 isMintBaton: false,
+                atoms: 3n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4975,7 +4975,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742075,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -4986,9 +4985,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '2',
                 isMintBaton: false,
+                atoms: 2n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -4997,7 +4997,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747210,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -5008,9 +5007,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '107000000000',
                 isMintBaton: false,
+                atoms: 107000000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5019,7 +5019,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755294,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -5030,9 +5029,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '7900000000',
                 isMintBaton: false,
+                atoms: 7900000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5041,7 +5041,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756151,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -5052,9 +5051,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '210000000',
                 isMintBaton: false,
+                atoms: 210000000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5063,7 +5063,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756151,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -5074,9 +5073,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5400000',
                 isMintBaton: false,
+                atoms: 5400000n,
             },
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5085,7 +5085,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756229,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
@@ -5096,9 +5095,10 @@ export const mockOrganizedUtxosByType = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '117',
                 isMintBaton: false,
+                atoms: 117n,
             },
+            sats: 546n,
         },
     ],
     nonSlpUtxos: [
@@ -5109,9 +5109,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755309,
             isCoinbase: false,
-            value: 12233856,
             address: 'ecash:qz5lf9pxde9neq3hzte8mmwts03sktl9numh06k74t',
             isFinal: true,
+            sats: 12233856n,
         },
         {
             outpoint: {
@@ -5120,9 +5120,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680784,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5131,9 +5131,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680784,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5142,9 +5142,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 724822,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5153,9 +5153,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 725143,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5164,9 +5164,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 731918,
             isCoinbase: false,
-            value: 546,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 546n,
         },
         {
             outpoint: {
@@ -5175,9 +5175,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 739911,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5186,9 +5186,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740052,
             isCoinbase: false,
-            value: 600,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 600n,
         },
         {
             outpoint: {
@@ -5197,9 +5197,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740198,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5208,9 +5208,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740198,
             isCoinbase: false,
-            value: 7700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 7700n,
         },
         {
             outpoint: {
@@ -5219,9 +5219,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740963,
             isCoinbase: false,
-            value: 700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 700n,
         },
         {
             outpoint: {
@@ -5230,9 +5230,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740963,
             isCoinbase: false,
-            value: 1245,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1245n,
         },
         {
             outpoint: {
@@ -5241,9 +5241,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741057,
             isCoinbase: false,
-            value: 1700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1700n,
         },
         {
             outpoint: {
@@ -5252,9 +5252,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741057,
             isCoinbase: false,
-            value: 800,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 800n,
         },
         {
             outpoint: {
@@ -5263,9 +5263,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741057,
             isCoinbase: false,
-            value: 600,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 600n,
         },
         {
             outpoint: {
@@ -5274,9 +5274,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 1100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1100n,
         },
         {
             outpoint: {
@@ -5285,9 +5285,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 6600,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 6600n,
         },
         {
             outpoint: {
@@ -5296,9 +5296,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 1000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1000n,
         },
         {
             outpoint: {
@@ -5307,9 +5307,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 1200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1200n,
         },
         {
             outpoint: {
@@ -5318,9 +5318,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 5500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 5500n,
         },
         {
             outpoint: {
@@ -5329,9 +5329,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 23200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 23200n,
         },
         {
             outpoint: {
@@ -5340,9 +5340,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            value: 10100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 10100n,
         },
         {
             outpoint: {
@@ -5351,9 +5351,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741063,
             isCoinbase: false,
-            value: 2300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2300n,
         },
         {
             outpoint: {
@@ -5362,9 +5362,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741063,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5373,9 +5373,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741182,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5384,9 +5384,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741200,
             isCoinbase: false,
-            value: 700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 700n,
         },
         {
             outpoint: {
@@ -5395,9 +5395,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741200,
             isCoinbase: false,
-            value: 800,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 800n,
         },
         {
             outpoint: {
@@ -5406,9 +5406,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741207,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5417,9 +5417,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741208,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5428,9 +5428,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741210,
             isCoinbase: false,
-            value: 2195,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2195n,
         },
         {
             outpoint: {
@@ -5439,9 +5439,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741769,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5450,9 +5450,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741791,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5461,9 +5461,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741799,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5472,9 +5472,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742051,
             isCoinbase: false,
-            value: 1100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1100n,
         },
         {
             outpoint: {
@@ -5483,9 +5483,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742051,
             isCoinbase: false,
-            value: 1200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1200n,
         },
         {
             outpoint: {
@@ -5494,9 +5494,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            value: 3400,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3400n,
         },
         {
             outpoint: {
@@ -5505,9 +5505,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            value: 3500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3500n,
         },
         {
             outpoint: {
@@ -5516,9 +5516,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5527,9 +5527,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742792,
             isCoinbase: false,
-            value: 200000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 200000n,
         },
         {
             outpoint: {
@@ -5538,9 +5538,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742792,
             isCoinbase: false,
-            value: 100000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 100000n,
         },
         {
             outpoint: {
@@ -5549,9 +5549,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742796,
             isCoinbase: false,
-            value: 250000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 250000n,
         },
         {
             outpoint: {
@@ -5560,9 +5560,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742796,
             isCoinbase: false,
-            value: 50000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 50000n,
         },
         {
             outpoint: {
@@ -5571,9 +5571,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742797,
             isCoinbase: false,
-            value: 250000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 250000n,
         },
         {
             outpoint: {
@@ -5582,9 +5582,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742799,
             isCoinbase: false,
-            value: 155500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 155500n,
         },
         {
             outpoint: {
@@ -5593,9 +5593,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742799,
             isCoinbase: false,
-            value: 333300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 333300n,
         },
         {
             outpoint: {
@@ -5604,9 +5604,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742800,
             isCoinbase: false,
-            value: 333300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 333300n,
         },
         {
             outpoint: {
@@ -5615,9 +5615,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742800,
             isCoinbase: false,
-            value: 111100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 111100n,
         },
         {
             outpoint: {
@@ -5626,9 +5626,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742800,
             isCoinbase: false,
-            value: 88800,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 88800n,
         },
         {
             outpoint: {
@@ -5637,9 +5637,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742994,
             isCoinbase: false,
-            value: 3330,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3330n,
         },
         {
             outpoint: {
@@ -5648,9 +5648,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742994,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5659,9 +5659,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742999,
             isCoinbase: false,
-            value: 1600,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1600n,
         },
         {
             outpoint: {
@@ -5670,9 +5670,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743101,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5681,9 +5681,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743138,
             isCoinbase: false,
-            value: 1100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1100n,
         },
         {
             outpoint: {
@@ -5692,9 +5692,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743158,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5703,9 +5703,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743228,
             isCoinbase: false,
-            value: 3400,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3400n,
         },
         {
             outpoint: {
@@ -5714,9 +5714,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743228,
             isCoinbase: false,
-            value: 2200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2200n,
         },
         {
             outpoint: {
@@ -5725,9 +5725,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743228,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5736,9 +5736,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743257,
             isCoinbase: false,
-            value: 11100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 11100n,
         },
         {
             outpoint: {
@@ -5747,9 +5747,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743350,
             isCoinbase: false,
-            value: 1200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1200n,
         },
         {
             outpoint: {
@@ -5758,9 +5758,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743775,
             isCoinbase: false,
-            value: 3700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3700n,
         },
         {
             outpoint: {
@@ -5769,9 +5769,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743782,
             isCoinbase: false,
-            value: 1700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1700n,
         },
         {
             outpoint: {
@@ -5780,9 +5780,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743972,
             isCoinbase: false,
-            value: 7700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 7700n,
         },
         {
             outpoint: {
@@ -5791,9 +5791,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744136,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5802,9 +5802,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744138,
             isCoinbase: false,
-            value: 4200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 4200n,
         },
         {
             outpoint: {
@@ -5813,9 +5813,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744138,
             isCoinbase: false,
-            value: 12000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 12000n,
         },
         {
             outpoint: {
@@ -5824,9 +5824,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744138,
             isCoinbase: false,
-            value: 12100,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 12100n,
         },
         {
             outpoint: {
@@ -5835,9 +5835,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744841,
             isCoinbase: false,
-            value: 7700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 7700n,
         },
         {
             outpoint: {
@@ -5846,9 +5846,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744841,
             isCoinbase: false,
-            value: 700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 700n,
         },
         {
             outpoint: {
@@ -5857,9 +5857,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745157,
             isCoinbase: false,
-            value: 3700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3700n,
         },
         {
             outpoint: {
@@ -5868,9 +5868,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745157,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -5879,9 +5879,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745158,
             isCoinbase: false,
-            value: 4200,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 4200n,
         },
         {
             outpoint: {
@@ -5890,9 +5890,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745160,
             isCoinbase: false,
-            value: 9990,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 9990n,
         },
         {
             outpoint: {
@@ -5901,9 +5901,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745160,
             isCoinbase: false,
-            value: 10081,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 10081n,
         },
         {
             outpoint: {
@@ -5912,9 +5912,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745251,
             isCoinbase: false,
-            value: 50000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 50000n,
         },
         {
             outpoint: {
@@ -5923,9 +5923,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745254,
             isCoinbase: false,
-            value: 55000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 55000n,
         },
         {
             outpoint: {
@@ -5934,9 +5934,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745275,
             isCoinbase: false,
-            value: 250779,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 250779n,
         },
         {
             outpoint: {
@@ -5945,9 +5945,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745520,
             isCoinbase: false,
-            value: 49400,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 49400n,
         },
         {
             outpoint: {
@@ -5956,9 +5956,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747209,
             isCoinbase: false,
-            value: 5500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 5500n,
         },
         {
             outpoint: {
@@ -5967,9 +5967,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747210,
             isCoinbase: false,
-            value: 5821,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 5821n,
         },
         {
             outpoint: {
@@ -5978,9 +5978,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747210,
             isCoinbase: false,
-            value: 3500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3500n,
         },
         {
             outpoint: {
@@ -5989,9 +5989,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747433,
             isCoinbase: false,
-            value: 5000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 5000n,
         },
         {
             outpoint: {
@@ -6000,9 +6000,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747433,
             isCoinbase: false,
-            value: 15000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 15000n,
         },
         {
             outpoint: {
@@ -6011,9 +6011,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747604,
             isCoinbase: false,
-            value: 7700,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 7700n,
         },
         {
             outpoint: {
@@ -6022,9 +6022,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 749030,
             isCoinbase: false,
-            value: 5500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 5500n,
         },
         {
             outpoint: {
@@ -6033,9 +6033,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 753929,
             isCoinbase: false,
-            value: 3300,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3300n,
         },
         {
             outpoint: {
@@ -6044,9 +6044,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 754182,
             isCoinbase: false,
-            value: 79785,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 79785n,
         },
         {
             outpoint: {
@@ -6055,9 +6055,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 754318,
             isCoinbase: false,
-            value: 83715,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 83715n,
         },
         {
             outpoint: {
@@ -6066,9 +6066,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 754464,
             isCoinbase: false,
-            value: 5500,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 5500n,
         },
         {
             outpoint: {
@@ -6077,9 +6077,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755028,
             isCoinbase: false,
-            value: 10000,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 10000n,
         },
         {
             outpoint: {
@@ -6088,9 +6088,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755309,
             isCoinbase: false,
-            value: 7077,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 7077n,
         },
         {
             outpoint: {
@@ -6099,9 +6099,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755325,
             isCoinbase: false,
-            value: 9145,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 9145n,
         },
         {
             outpoint: {
@@ -6110,9 +6110,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756151,
             isCoinbase: false,
-            value: 48182,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 48182n,
         },
         {
             outpoint: {
@@ -6121,9 +6121,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            value: 3182,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 3182n,
         },
         {
             outpoint: {
@@ -6132,9 +6132,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            value: 39176,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 39176n,
         },
         {
             outpoint: {
@@ -6143,9 +6143,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            value: 48182,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 48182n,
         },
         {
             outpoint: {
@@ -6154,9 +6154,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            value: 6434,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 6434n,
         },
         {
             outpoint: {
@@ -6165,9 +6165,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            value: 600155,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 600155n,
         },
         {
             outpoint: {
@@ -6176,9 +6176,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            value: 1046,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1046n,
         },
         {
             outpoint: {
@@ -6187,9 +6187,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756159,
             isCoinbase: false,
-            value: 1155,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1155n,
         },
         {
             outpoint: {
@@ -6198,9 +6198,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756224,
             isCoinbase: false,
-            value: 1482,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 1482n,
         },
         {
             outpoint: {
@@ -6209,9 +6209,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756225,
             isCoinbase: false,
-            value: 54429518,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 54429518n,
         },
         {
             outpoint: {
@@ -6220,9 +6220,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756229,
             isCoinbase: false,
-            value: 7255,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 7255n,
         },
         {
             outpoint: {
@@ -6231,9 +6231,9 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756229,
             isCoinbase: false,
-            value: 2255,
             address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
+            sats: 2255n,
         },
     ],
 };

@@ -905,10 +905,10 @@ export default {
             },
             {
                 description: 'Splits token utxos and non-token utxos',
-                chronikUtxos: [{ token: 'true' }, { amount: 500 }],
+                chronikUtxos: [{ token: 'true' }, { atoms: 500 }],
                 returned: {
                     slpUtxos: [{ token: 'true' }],
-                    nonSlpUtxos: [{ amount: 500 }],
+                    nonSlpUtxos: [{ atoms: 500 }],
                 },
             },
             {
@@ -923,10 +923,10 @@ export default {
             {
                 description:
                     'Returns empty array for preliminarySlpUtxos if no token utxos found',
-                chronikUtxos: [{ amount: 500 }, { amount: 500 }],
+                chronikUtxos: [{ atoms: 500 }, { atoms: 500 }],
                 returned: {
                     slpUtxos: [],
-                    nonSlpUtxos: [{ amount: 500 }, { amount: 500 }],
+                    nonSlpUtxos: [{ atoms: 500 }, { atoms: 500 }],
                 },
             },
         ],
@@ -970,7 +970,7 @@ export default {
                             },
                             inputScript:
                                 '483045022100fb14b5f82605972478186c91ff6fab2051b46abd2a8aa9774b3e9276715daf39022046a62933cc3acf59129fbf373ef05480342312bc33aaa8bf7fb5a0495b5dc80e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                            value: 1617,
+                            sats: 1617n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -978,12 +978,12 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001010747454e4553495303414243034142431468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000000c',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                             token: {
@@ -994,7 +994,7 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '12',
+                                atoms: 12n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
@@ -1021,8 +1021,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1093,7 +1093,7 @@ export default {
                             },
                             inputScript:
                                 '483045022100fb14b5f82605972478186c91ff6fab2051b46abd2a8aa9774b3e9276715daf39022046a62933cc3acf59129fbf373ef05480342312bc33aaa8bf7fb5a0495b5dc80e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                            value: 1617,
+                            sats: 1617n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1101,12 +1101,12 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001010747454e4553495303414243034142431468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000000c',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                             token: {
@@ -1117,7 +1117,7 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '12',
+                                atoms: 12n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
@@ -1144,8 +1144,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1210,7 +1210,7 @@ export default {
                             },
                             inputScript:
                                 '483045022100e28006843eb071ec6d8dd105284f2ca625a28f4dc85418910b59a5ab13fc6c2002205921fb12b541d1cd1a63e7e012aca5735df3398525f64bac04337d21029413614121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-                            value: 91048,
+                            sats: 91048n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
@@ -1218,12 +1218,12 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                             token: {
@@ -1234,7 +1234,7 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '100',
+                                atoms: 100n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
@@ -1244,7 +1244,7 @@ export default {
                             },
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                             token: {
@@ -1255,13 +1255,13 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '0',
+                                atoms: 0n,
                                 isMintBaton: true,
                                 entryIdx: 0,
                             },
                         },
                         {
-                            value: 89406,
+                            sats: 89406n,
                             outputScript:
                                 '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                             spentBy: {
@@ -1287,8 +1287,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1365,7 +1365,7 @@ export default {
                             },
                             inputScript:
                                 '4130ef71df9d2daacf48d05a0361e103e087b636f4d68af8decd769227caf198003991629bf7057fa1572fc0dd3581115a1b06b5c0eafc88555e58521956fe5cbc410768999600fc71a024752102d8cb55aaf01f84335130bf7b3751267e5cf3398a60e5162ff93ec8d77f14850fac',
-                            value: 4000,
+                            sats: 4000n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 'a91464275fca443d169d23d077c85ad1bb7a31b6e05987',
@@ -1373,12 +1373,12 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a504c63534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a914bbb6c4fecc56ecce35958f87c2367cd3f5e88c2788ac',
                             token: {
@@ -1389,7 +1389,7 @@ export default {
                                     type: 'ALP_TOKEN_TYPE_STANDARD',
                                     number: 0,
                                 },
-                                amount: '0',
+                                atoms: 0n,
                                 isMintBaton: true,
                                 entryIdx: 0,
                             },
@@ -1416,8 +1416,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1494,7 +1494,7 @@ export default {
                             },
                             inputScript:
                                 '41614bc7f35d66b30c017e111c98ad22086730435bea6cf0ec54188ca425863f2a60ee808a11564258d0defc2bfa1505953e18a8108409fb048cfa39bdacc82fce4121027e6cf8229495afadcb5a7e40365bbc82afcf145eacca3193151e68a61fc81743',
-                            value: 3200,
+                            sats: 3200n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a914502ee2f475081f2031861f3a275c52722199280e88ac',
@@ -1502,12 +1502,12 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001010747454e45534953034255581642616467657220556e6976657273616c20546f6b656e1368747470733a2f2f6275782e6469676974616c4c0001040102080000000000000000',
                         },
                         {
-                            value: 2300,
+                            sats: 2300n,
                             outputScript:
                                 'a9144d80de3cda49fd1bd98eb535da0f2e4880935ea987',
                             spentBy: {
@@ -1516,7 +1516,7 @@ export default {
                             },
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 'a91420d151c5ab4ca4154407626069eaafd8ce6306fc87',
                             token: {
@@ -1527,7 +1527,7 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '0',
+                                atoms: 0n,
                                 isMintBaton: true,
                                 entryIdx: 0,
                             },
@@ -1554,8 +1554,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1632,7 +1632,7 @@ export default {
                             },
                             inputScript:
                                 '473044022040b7bb9093b092003b5c41090f4b7560a7bcfed35278fd05d2f1083653529ea902205a11af8aea5d16a01dc7648397eb6b04369dda9e3e9ecc4a9efe3f5b4a41a1dd412102fafcdb1f5f0d2e49909fbafc18f339bcfc2b765b3def934d501eb798e626c7b3',
-                            value: 3851630,
+                            sats: 3851630n,
                             sequenceNo: 4294967294,
                             outputScript:
                                 '76a91452558a0640aae72592c3b336a3a4959ce97906b488ac',
@@ -1640,17 +1640,17 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001020747454e45534953034255581642616467657220556e6976657273616c20546f6b656e1368747470733a2f2f6275782e6469676974616c4c0001041408d6edf91c7b93d18306d3b8244587e43f11df4b080000000000000000',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a91452558a0640aae72592c3b336a3a4959ce97906b488ac',
                         },
                         {
-                            value: 3850752,
+                            sats: 3850752n,
                             outputScript:
                                 '76a914f4592a09e8da1a2157916963bc0fb7fe682df73e88ac',
                         },
@@ -1672,8 +1672,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1748,7 +1748,7 @@ export default {
                             },
                             inputScript:
                                 '483045022100e394332d19812c6b78ac39484dd755473348cc11920ceaea00c9185dc36cac9302203f04fbb661cd9137d5536667f03f89f2096b487a95b7a9eddbf2a33c7fb12d93412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                            value: 546,
+                            sats: 546n,
                             sequenceNo: 4294967295,
                             token: {
                                 tokenId:
@@ -1758,7 +1758,7 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                     number: 129,
                                 },
-                                amount: '1',
+                                atoms: 1n,
                                 isMintBaton: false,
                                 entryIdx: 1,
                             },
@@ -1772,7 +1772,7 @@ export default {
                             },
                             inputScript:
                                 '47304402200dd2615f8545e57157d0cba016db42d4e25688a265155c7c332cf049eec4300202206cc96ee2f25141302f5e2aaade959ef9d972739f054585cf5dedb6bfec2f5928412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                            value: 32767046,
+                            sats: 32767046n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1780,12 +1780,12 @@ export default {
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001410747454e455349530247430b476f72646f6e204368656e2d68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29208247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d7201004c00080000000000000001',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                             token: {
@@ -1796,13 +1796,13 @@ export default {
                                     type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                                     number: 65,
                                 },
-                                amount: '1',
+                                atoms: 1n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
                         },
                         {
-                            value: 32766028,
+                            sats: 32766028n,
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         },
@@ -1824,8 +1824,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                             groupTokenId:
                                 '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
@@ -1842,8 +1842,8 @@ export default {
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],

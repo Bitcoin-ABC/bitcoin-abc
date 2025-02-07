@@ -22,18 +22,18 @@ import {
 // CACHET candle created by Agora Partial Alpha
 // Created by approx params offering 100, min 0.1, 10,000 XEC per CACHET
 const agoraPartialCachetAlphaOne = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1040365320,
-    minAcceptedScaledTruncTokens: 2147470n,
+    minAcceptedScaledTruncAtoms: 2147470n,
     numSatsTruncBytes: 1,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 5497n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 5497n,
     scriptLen: 214,
     tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 214747n,
+    atomsScaleFactor: 214747n,
     tokenType: 1,
-    truncTokens: 10000n,
+    truncAtoms: 10000n,
     makerPk: DUMMY_KEYPAIR.pk,
 });
 const agoraOfferCachetAlphaOne = new AgoraOffer({
@@ -43,7 +43,7 @@ const agoraOfferCachetAlphaOne = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '10000',
+        atoms: 10000n,
         isMintBaton: false,
         tokenId:
             'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
@@ -60,7 +60,7 @@ const agoraOfferCachetAlphaOne = new AgoraOffer({
         },
         signData: {
             redeemScript: agoraPartialCachetAlphaOne.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -73,7 +73,7 @@ const agoraOfferCachetAlphaOne = new AgoraOffer({
 const heismanNftOne = new AgoraOneshot({
     enforcedOutputs: [
         {
-            value: 0n,
+            sats: 0n,
             script: new Script(
                 fromHex(
                     '6a04534c500001410453454e4420be095430a16a024134bea079f235bcd2f79425c42659f9346416f626671f371c080000000000000000080000000000000001',
@@ -81,7 +81,7 @@ const heismanNftOne = new AgoraOneshot({
             ),
         },
         {
-            value: 5000000000n,
+            sats: 5000000000n,
             script: new Script(
                 fromHex('76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac'),
             ),
@@ -102,10 +102,10 @@ const heismanNftOneUtxo = {
             type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
             number: 65,
         } as TokenType,
-        amount: '1',
+        atoms: 1n,
         isMintBaton: false,
     },
-    value: 546,
+    sats: 546n,
 };
 export const heismanNftOneOffer = new AgoraOffer({
     variant: {
@@ -117,7 +117,7 @@ export const heismanNftOneOffer = new AgoraOffer({
     txBuilderInput: {
         prevOut: heismanNftOneUtxo.outpoint,
         signData: {
-            value: heismanNftOneUtxo.value,
+            sats: heismanNftOneUtxo.sats,
             redeemScript: heismanNftOne.script(),
         },
     },
@@ -128,44 +128,44 @@ interface GetAgoraPartialAcceptFuelInputsReturn {
     description: string;
     agoraOffer: AgoraOffer;
     utxos: ScriptUtxo[];
-    acceptedTokens: bigint;
-    feePerKb: number;
+    acceptedAtoms: bigint;
+    feePerKb: bigint;
     returned: ScriptUtxo[];
 }
 interface GetAgoraPartialAcceptFuelInputsError {
     description: string;
     agoraOffer: AgoraOffer;
     utxos: ScriptUtxo[];
-    acceptedTokens: bigint;
-    feePerKb: number;
+    acceptedAtoms: bigint;
+    feePerKb: bigint;
     error: string;
 }
 interface GetAgoraOneshotAcceptFuelInputsReturn {
     description: string;
     oneshotOffer: AgoraOffer;
     utxos: ScriptUtxo[];
-    feePerKb: number;
+    feePerKb: bigint;
     returned: ScriptUtxo[];
 }
 interface GetAgoraOneshotAcceptFuelInputsError {
     description: string;
     oneshotOffer: AgoraOffer;
     utxos: ScriptUtxo[];
-    feePerKb: number;
+    feePerKb: bigint;
     error: string;
 }
 interface GetAgoraPartialCancelFuelInputsReturn {
     description: string;
     agoraOffer: AgoraOffer;
     utxos: ScriptUtxo[];
-    feePerKb: number;
+    feePerKb: bigint;
     returned: ScriptUtxo[];
 }
 interface GetAgoraPartialCancelFuelInputsError {
     description: string;
     agoraOffer: AgoraOffer;
     utxos: ScriptUtxo[];
-    feePerKb: number;
+    feePerKb: bigint;
     error: string;
 }
 const vectors: {
@@ -191,10 +191,10 @@ const vectors: {
                 // acceptFeeSats 1182n
                 // askedSats 5460736n
                 // requiredSats 5461918n
-                utxos: [{ value: 5461918 }] as unknown as ScriptUtxo[],
-                acceptedTokens: 546n,
-                feePerKb: 1000,
-                returned: [{ value: 5461918 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 5461918n }] as unknown as ScriptUtxo[],
+                acceptedAtoms: 546n,
+                feePerKb: 1000n,
+                returned: [{ sats: 5461918n }] as unknown as ScriptUtxo[],
             },
             {
                 description:
@@ -203,10 +203,10 @@ const vectors: {
                 // acceptFeeSats 2376n
                 // askedSats 5460736n
                 // requiredSats 5463112
-                utxos: [{ value: 5463112 }] as unknown as ScriptUtxo[],
-                acceptedTokens: 546n,
-                feePerKb: 2010,
-                returned: [{ value: 5463112 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 5463112n }] as unknown as ScriptUtxo[],
+                acceptedAtoms: 546n,
+                feePerKb: 2010n,
+                returned: [{ sats: 5463112n }] as unknown as ScriptUtxo[],
             },
             {
                 description: 'Two inputs exactly covering the price + fee',
@@ -215,14 +215,14 @@ const vectors: {
                 // askedSats 5460736n
                 // requiredSats 5462059n
                 utxos: [
-                    { value: 5461917 },
-                    { value: 142 },
+                    { sats: 5461917n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                acceptedTokens: 546n,
-                feePerKb: 1000,
+                acceptedAtoms: 546n,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 5461917 },
-                    { value: 142 },
+                    { sats: 5461917n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
             {
@@ -232,16 +232,16 @@ const vectors: {
                 // askedSats 5460736n
                 // requiredSats 5462059n
                 utxos: [
-                    { value: 5461917 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 5461917n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                acceptedTokens: 546n,
-                feePerKb: 1000,
+                acceptedAtoms: 546n,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 5461917 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 5461917n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
         ],
@@ -250,9 +250,9 @@ const vectors: {
                 description:
                     'We throw an error if available utxos can only cover 1 satoshi less than price + fee',
                 agoraOffer: agoraOfferCachetAlphaOne,
-                utxos: [{ value: 5461917 }] as unknown as ScriptUtxo[],
-                acceptedTokens: 546n,
-                feePerKb: 1000,
+                utxos: [{ sats: 5461917n }] as unknown as ScriptUtxo[],
+                acceptedAtoms: 546n,
+                feePerKb: 1000n,
                 error: 'Insufficient utxos to accept this offer',
             },
         ],
@@ -266,9 +266,9 @@ const vectors: {
                 // acceptFeeSats 740n
                 // askedSats 5000000000n
                 // requiredSats 5000000740n
-                utxos: [{ value: 5000000740 }] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
-                returned: [{ value: 5000000740 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 5000000740n }] as unknown as ScriptUtxo[],
+                feePerKb: 1000n,
+                returned: [{ sats: 5000000740n }] as unknown as ScriptUtxo[],
             },
             {
                 description:
@@ -277,9 +277,9 @@ const vectors: {
                 // acceptFeeSats 1488n
                 // askedSats 5000000000n
                 // requiredSats 5000001488n
-                utxos: [{ value: 5000001488 }] as unknown as ScriptUtxo[],
-                feePerKb: 2010,
-                returned: [{ value: 5000001488 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 5000001488n }] as unknown as ScriptUtxo[],
+                feePerKb: 2010n,
+                returned: [{ sats: 5000001488n }] as unknown as ScriptUtxo[],
             },
             {
                 description: 'Two inputs exactly covering the price + fee',
@@ -288,13 +288,13 @@ const vectors: {
                 // askedSats 5000000000n
                 // requiredSats 5000000740n
                 utxos: [
-                    { value: 5000000739 },
-                    { value: 142 },
+                    { sats: 5000000739n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 5000000739 },
-                    { value: 142 },
+                    { sats: 5000000739n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
             {
@@ -304,15 +304,15 @@ const vectors: {
                 // askedSats 5000000000n
                 // requiredSats 5000000881n
                 utxos: [
-                    { value: 5000000739 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 5000000739n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 5000000739 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 5000000739n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
         ],
@@ -321,8 +321,8 @@ const vectors: {
                 description:
                     'We throw an error if available utxos can only cover 1 satoshi less than price + fee',
                 oneshotOffer: heismanNftOneOffer,
-                utxos: [{ value: 5000000739 }] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                utxos: [{ sats: 5000000739n }] as unknown as ScriptUtxo[],
+                feePerKb: 1000n,
                 error: 'Insufficient utxos to accept this offer',
             },
         ],
@@ -334,31 +334,31 @@ const vectors: {
                     'We can get a single fuel input to cancel the offer, if the wallet has one exactly covering the fee',
                 agoraOffer: agoraOfferCachetAlphaOne,
                 // cancelFeeSats 719n
-                utxos: [{ value: 719 }] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
-                returned: [{ value: 719 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 719n }] as unknown as ScriptUtxo[],
+                feePerKb: 1000n,
+                returned: [{ sats: 719n }] as unknown as ScriptUtxo[],
             },
             {
                 description:
                     'We can get a single fuel input to cancel the offer, if the wallet has one exactly covering the fee, at a higher than min fee',
                 agoraOffer: agoraOfferCachetAlphaOne,
                 // cancelFeeSats 1446
-                utxos: [{ value: 1446 }] as unknown as ScriptUtxo[],
-                feePerKb: 2010,
-                returned: [{ value: 1446 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 1446n }] as unknown as ScriptUtxo[],
+                feePerKb: 2010n,
+                returned: [{ sats: 1446n }] as unknown as ScriptUtxo[],
             },
             {
                 description: 'Two inputs exactly covering the fee',
                 agoraOffer: agoraOfferCachetAlphaOne,
                 // cancelFeeSats 860n
                 utxos: [
-                    { value: 718 },
-                    { value: 142 },
+                    { sats: 718n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 718 },
-                    { value: 142 },
+                    { sats: 718n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
             {
@@ -366,15 +366,15 @@ const vectors: {
                 agoraOffer: agoraOfferCachetAlphaOne,
                 // cancelFeeSats 1001n
                 utxos: [
-                    { value: 718 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 718n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 718 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 718n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
             // ONESHOT cases
@@ -383,18 +383,18 @@ const vectors: {
                     'ONESHOT: We can get a single fuel input to cancel the offer, if the wallet has one exactly covering the price + fee',
                 agoraOffer: heismanNftOneOffer,
                 // cancelFeeSats 535
-                utxos: [{ value: 535 }] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
-                returned: [{ value: 535 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 535n }] as unknown as ScriptUtxo[],
+                feePerKb: 1000n,
+                returned: [{ sats: 535n }] as unknown as ScriptUtxo[],
             },
             {
                 description:
                     'ONESHOT: We can get a single fuel input to cancel the offer, if the wallet has one exactly covering the price + fee, at a higher than min fee',
                 agoraOffer: heismanNftOneOffer,
                 // cancelFeeSats 1076
-                utxos: [{ value: 1076 }] as unknown as ScriptUtxo[],
-                feePerKb: 2010,
-                returned: [{ value: 1076 }] as unknown as ScriptUtxo[],
+                utxos: [{ sats: 1076n }] as unknown as ScriptUtxo[],
+                feePerKb: 2010n,
+                returned: [{ sats: 1076n }] as unknown as ScriptUtxo[],
             },
             {
                 description:
@@ -402,13 +402,13 @@ const vectors: {
                 agoraOffer: heismanNftOneOffer,
                 // cancelFeeSats 676
                 utxos: [
-                    { value: 534 },
-                    { value: 142 },
+                    { sats: 534n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 534 },
-                    { value: 142 },
+                    { sats: 534n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
             {
@@ -417,15 +417,15 @@ const vectors: {
                 agoraOffer: heismanNftOneOffer,
                 // cancelFeeSats 817
                 utxos: [
-                    { value: 534 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 534n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 returned: [
-                    { value: 534 },
-                    { value: 141 },
-                    { value: 142 },
+                    { sats: 534n },
+                    { sats: 141n },
+                    { sats: 142n },
                 ] as unknown as ScriptUtxo[],
             },
         ],
@@ -434,8 +434,8 @@ const vectors: {
                 description:
                     'We throw an error if available utxos can only cover 1 satoshi less than fee',
                 agoraOffer: agoraOfferCachetAlphaOne,
-                utxos: [{ value: 718 }] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                utxos: [{ sats: 718n }] as unknown as ScriptUtxo[],
+                feePerKb: 1000n,
                 error: 'Insufficient utxos to cancel this offer',
             },
             {
@@ -444,10 +444,10 @@ const vectors: {
                 agoraOffer: heismanNftOneOffer,
                 utxos: [
                     {
-                        value: 534,
+                        sats: 534n,
                     },
                 ] as unknown as ScriptUtxo[],
-                feePerKb: 1000,
+                feePerKb: 1000n,
                 error: 'Insufficient utxos to cancel this offer',
             },
         ],
@@ -460,18 +460,13 @@ describe('Functions used to get inputs required for accept or cancel txs', () =>
             vectors.getAgoraPartialAcceptFuelInputs;
         for (const expectedReturn of expectedReturns) {
             it(`Return: ${expectedReturn.description}`, () => {
-                const {
-                    agoraOffer,
-                    utxos,
-                    acceptedTokens,
-                    feePerKb,
-                    returned,
-                } = expectedReturn;
+                const { agoraOffer, utxos, acceptedAtoms, feePerKb, returned } =
+                    expectedReturn;
                 expect(
                     getAgoraPartialAcceptFuelInputs(
                         agoraOffer,
                         utxos,
-                        acceptedTokens,
+                        acceptedAtoms,
                         feePerKb,
                     ),
                 ).to.deep.equal(returned);
@@ -479,13 +474,13 @@ describe('Functions used to get inputs required for accept or cancel txs', () =>
         }
         for (const expectedError of expectedErrors) {
             it(`Error: ${expectedError.description}`, () => {
-                const { agoraOffer, utxos, acceptedTokens, feePerKb, error } =
+                const { agoraOffer, utxos, acceptedAtoms, feePerKb, error } =
                     expectedError;
                 expect(() =>
                     getAgoraPartialAcceptFuelInputs(
                         agoraOffer,
                         utxos,
-                        acceptedTokens,
+                        acceptedAtoms,
                         feePerKb,
                     ),
                 ).to.throw(error);

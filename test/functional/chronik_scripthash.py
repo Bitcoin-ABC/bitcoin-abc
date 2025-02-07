@@ -122,7 +122,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
                         ),
                         block_height=0,
                         is_coinbase=True,
-                        value=50_000_000 * XEC,
+                        sats=50_000_000 * XEC,
                         is_final=False,
                     )
                 ],
@@ -260,7 +260,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         proto = self.chronik.script("scripthash", scripthash_hex).utxos().ok()
         assert_equal(len(proto.utxos), 1)
         assert_equal(proto.utxos[0].block_height, -1)
-        assert_equal(proto.utxos[0].value, 1337)
+        assert_equal(proto.utxos[0].sats, 1337)
 
     def test_conflicts(self):
         self.log.info("A mempool transaction is replaced by a mined transaction")

@@ -15,8 +15,7 @@ use crate::{
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
     slp,
     structs::{
-        Amount, GenesisInfo, Token, TokenMeta, TokenOutput, TokenVariant,
-        TxType,
+        Atoms, GenesisInfo, Token, TokenMeta, TokenOutput, TokenVariant, TxType,
     },
     token_id::TokenId,
     token_type::{SlpTokenType, TokenType},
@@ -103,7 +102,7 @@ pub struct IntentionalBurn {
     /// Which token meta should be burned
     pub meta: TokenMeta,
     /// How many tokens should be burned
-    pub amount: Amount,
+    pub atoms: Atoms,
 }
 
 /// Error when trying to color a parsed section.
@@ -164,16 +163,16 @@ pub enum ColorError {
 
     /// Outputs cannot be colored twice by different sections
     #[error(
-        "Overlapping amount when trying to color {amount} at index \
+        "Overlapping atoms when trying to color {atoms} at index \
          {output_idx}, output is already colored with {prev_token}"
     )]
-    OverlappingAmount {
+    OverlappingAtoms {
         /// Previous token the output is already colored with
         prev_token: Token,
         /// Index of the output that we tried to color twice
         output_idx: usize,
         /// Amount that tried to color an output twice
-        amount: Amount,
+        atoms: Atoms,
     },
 
     /// Outputs cannot be colored twice by different sections
@@ -328,7 +327,7 @@ impl ColoredTx {
             }
             ParsedTxType::Mint(mint) => self.color_mint(meta, mint),
             ParsedTxType::Send(send) => self.color_send(meta, send),
-            ParsedTxType::Burn(amount) => self.color_burn(meta, amount),
+            ParsedTxType::Burn(burn) => self.color_burn(meta, burn),
             ParsedTxType::Unknown => self.color_unknown(meta),
         }
     }
@@ -384,16 +383,16 @@ impl ColoredTx {
 
         let mut out_of_range_idx = None;
         // Verify no outputs have been colored already
-        for (output_idx, &amount) in
-            mint_data.amounts_range().zip(&mint_data.amounts)
+        for (output_idx, &atoms) in
+            mint_data.atoms_vec_range().zip(&mint_data.atoms_vec)
         {
-            if amount != 0 {
+            if atoms != 0 {
                 match self.outputs.get(output_idx) {
                     Some(Some(token)) => {
-                        return Err(OverlappingAmount {
+                        return Err(OverlappingAtoms {
                             prev_token: self.token(token),
                             output_idx,
-                            amount,
+                            atoms,
                         });
                     }
                     Some(None) => {}
@@ -425,16 +424,16 @@ impl ColoredTx {
         }
 
         // Now, color all outputs
-        for (output_idx, &amount) in
-            mint_data.amounts_range().zip(&mint_data.amounts)
+        for (output_idx, &atoms) in
+            mint_data.atoms_vec_range().zip(&mint_data.atoms_vec)
         {
             if output_idx >= self.outputs.len() {
                 break;
             }
-            if amount > 0 {
+            if atoms > 0 {
                 self.outputs[output_idx] = Some(TokenOutput {
                     token_idx,
-                    variant: TokenVariant::Amount(amount),
+                    variant: TokenVariant::Atoms(atoms),
                 });
             }
         }
@@ -454,18 +453,18 @@ impl ColoredTx {
     fn color_send(
         &mut self,
         meta: TokenMeta,
-        amounts: Vec<Amount>,
+        atoms: Vec<Atoms>,
     ) -> Result<(), ColorError> {
         // Verify no outputs have been colored already
         let mut out_of_range_idx = None;
-        for (idx, &amount) in amounts.iter().enumerate() {
-            if amount != 0 {
+        for (idx, &atoms) in atoms.iter().enumerate() {
+            if atoms != 0 {
                 match self.outputs.get(idx + 1) {
                     Some(Some(token)) => {
-                        return Err(OverlappingAmount {
+                        return Err(OverlappingAtoms {
                             prev_token: self.token(token),
                             output_idx: idx + 1,
-                            amount,
+                            atoms,
                         })
                     }
                     Some(None) => {}
@@ -486,15 +485,15 @@ impl ColoredTx {
 
         // Color outputs and also calculate the required input sum
         let mut required_input_sum = 0u128;
-        for (idx, &amount) in amounts.iter().enumerate() {
-            if amount == 0 {
+        for (idx, &atoms) in atoms.iter().enumerate() {
+            if atoms == 0 {
                 continue;
             }
-            required_input_sum += u128::from(amount);
+            required_input_sum += u128::from(atoms);
             if let Some(output) = self.outputs.get_mut(idx + 1) {
                 *output = Some(TokenOutput {
                     token_idx: self.sections.len(),
-                    variant: TokenVariant::Amount(amount),
+                    variant: TokenVariant::Atoms(atoms),
                 });
             }
         }
@@ -512,7 +511,7 @@ impl ColoredTx {
     fn color_burn(
         &mut self,
         meta: TokenMeta,
-        amount: Amount,
+        atoms: Atoms,
     ) -> Result<(), ColorError> {
         for (prev_burn_idx, prev_burn) in
             self.intentional_burns.iter().enumerate()
@@ -525,8 +524,7 @@ impl ColoredTx {
                 });
             }
         }
-        self.intentional_burns
-            .push(IntentionalBurn { meta, amount });
+        self.intentional_burns.push(IntentionalBurn { meta, atoms });
         Ok(())
     }
 

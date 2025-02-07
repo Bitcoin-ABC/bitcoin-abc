@@ -29,7 +29,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: false,
                 token: {
                     tokenId:
@@ -39,7 +39,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100000',
+                    atoms: 100000n,
                     isMintBaton: false,
                 },
                 path: 1899,
@@ -51,7 +51,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: false,
                 token: {
                     tokenId:
@@ -61,7 +61,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3000',
+                    atoms: 3000n,
                     isMintBaton: false,
                 },
                 path: 1899,
@@ -75,7 +75,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 420000,
+                sats: 420000n,
                 isFinal: false,
                 path: 1899,
             },
@@ -102,7 +102,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '4175beba74315f8f184c629a6c59a645789c7711bd36536234f226aea983df3528b4d9bb38929c94d177d156c193600ed0f591d662d0254ed9c14cb145e5fb8bab412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -112,7 +112,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '20989999',
+                            atoms: 20989999n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -126,7 +126,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '411507c71cf5785a081b31e872cc33958072e00261791541bb5b322ce239b8a4c1559e9fc0d812ba977bb72c0a3fac6490368dba7c2690ccefe6879bf43f10602a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 11028,
+                        sats: 11028n,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -134,12 +134,12 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 ],
                 outputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         outputScript:
                             '6a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896080000000000000bb8080000000001403c77',
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
                         token: {
@@ -150,7 +150,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '3000',
+                            atoms: 3000n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -160,7 +160,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                         token: {
@@ -171,13 +171,13 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '20986999',
+                            atoms: 20986999n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
                     },
                     {
-                        value: 10015,
+                        sats: 10015n,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
@@ -203,8 +203,8 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                         burnsMintBatons: false,
                     },
                 ],
@@ -256,7 +256,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41ceb2cdb712138d3ee6b14304d33658388ad474e049bed0d62a9d581685b8dbcaa044e043ee43cc38244e85f9f1b150779285bbfba3dd715a35ffe5a93c395f50412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -266,7 +266,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '4621',
+                            atoms: 4621n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -280,7 +280,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41cc1b1fb6a49b0ecb793887832a4ed51f465f0e2b802e9cf96915cc4bff0aa2bc3cff78e7bdc8004cb9b3ac2e3c73a42fd320cda51ded9f73fb4cfb987a9b89ac412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -290,7 +290,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '26101',
+                            atoms: 26101n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -304,7 +304,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41ddb9e54a08bb9e498db59d744a90ab5825b60a7d9ed755ea6f9ebe9474fe8f05bf95683bf90d0181138b0f7b090d48b4f119319821e6946abca1e1105a0c24f8412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -314,7 +314,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '18850',
+                            atoms: 18850n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -328,7 +328,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41ae70070af786bebf975fcf867b1c62817654301391748998289814172472f92a9ef1ade2c141aad9a32f00a428cad8784ee5c684ee7506a6c71d7a2ce1b19c3e412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -338,7 +338,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '22508',
+                            atoms: 22508n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -352,7 +352,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '4184f1c491fd4f4a166b785c405cd5a4506fbcd59d1cd215e0eaf90b75f9aa36af18fc89d74a3706c17417a12dac2fc3b374e2acace4c26bd8ee4dadcecd133243412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -362,7 +362,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '17631',
+                            atoms: 17631n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -376,7 +376,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '412779265c3bba36e1d9121c0c4310039c8ff2857442c9f9340899be900e6e49339ead33e591ba2ad799beaf81ed510d2f8c54146b1b4f96a68bb26bdde474de8a412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -386,7 +386,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '31763',
+                            atoms: 31763n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -396,12 +396,12 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 ],
                 outputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         outputScript:
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10800000000000186a00800000000000053e2',
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
                         token: {
@@ -412,7 +412,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100000',
+                            atoms: 100000n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -422,7 +422,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                         token: {
@@ -433,7 +433,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '21474',
+                            atoms: 21474n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -443,7 +443,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                     },
                     {
-                        value: 1153,
+                        sats: 1153n,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                         spentBy: {
@@ -469,8 +469,8 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                         burnsMintBatons: false,
                     },
                 ],
@@ -521,7 +521,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '416dc42feba5d75bba26f448afb3ae7d2d7b49cb6823397bf1c4bf00808a8716102838ec0631c8f941a439e8e6fd5aee62d695a21e3937899c5cf4e3d06fabcf4d412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                        value: 274786076,
+                        sats: 274786076n,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -529,7 +529,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 ],
                 outputs: [
                     {
-                        value: 4200,
+                        sats: 4200n,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
                         spentBy: {
@@ -538,7 +538,7 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                         },
                     },
                     {
-                        value: 274781657,
+                        sats: 274781657n,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                         spentBy: {
@@ -608,7 +608,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: false,
                 token: {
                     tokenId:
@@ -618,7 +618,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '30000',
+                    atoms: 30000n,
                     isMintBaton: false,
                 },
                 path: 1899,
@@ -633,7 +633,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                 blockHeight: -1,
                 isCoinbase: false,
                 // Enough sats for the min buy in orderbook buy test
-                value: 39016,
+                sats: 39016n,
                 isFinal: false,
                 path: 1899,
             },
@@ -656,7 +656,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '416cf72fa0fa46369307d5a5320908c93283ba825384b12692f15968d840f82ff12c6a0a7e2983ff1d3a2273d075f1ca774d17dfe6af67b7e7ca77591401741a9941210233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd',
-                        value: 546,
+                        sats: 546n,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -666,7 +666,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '70000',
+                            atoms: 70000n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -680,7 +680,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '413e9ebd5dcf4d0ee6faa85dd6250e12ce2c8c436122dcd3bcfa3570de219b1b54fec51a926f729c0ef651ee3e556252aea6ba2a0053eb1d10aba32c6ec3e7405341210233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd',
-                        value: 8095,
+                        sats: 8095n,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
@@ -688,12 +688,12 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                 ],
                 outputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         outputScript:
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000007530080000000000009c40',
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         outputScript:
                             '76a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac',
                         token: {
@@ -704,7 +704,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '30000',
+                            atoms: 30000n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
@@ -714,7 +714,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         },
                     },
                     {
-                        value: 546,
+                        sats: 546n,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
                         token: {
@@ -725,13 +725,13 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '40000',
+                            atoms: 40000n,
                             isMintBaton: false,
                             entryIdx: 0,
                         },
                     },
                     {
-                        value: 6610,
+                        sats: 6610n,
                         outputScript:
                             '76a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac',
                         spentBy: {
@@ -757,8 +757,8 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                         burnsMintBatons: false,
                     },
                 ],
@@ -809,7 +809,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '415a784d081e335d3289e85feaac7d2caff51a016071aa5112dc987269bc6376efb67e60932d9cb3e1713a3ed35caa1a516cfadac5947066bcc7a86d31af19df7e4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                        value: 3170,
+                        sats: 3170n,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -821,7 +821,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         },
                         inputScript:
                             '413795c48264e243bf51371dde61d377ff5682edd51fff810a4d17a37d7cc0a8214413e15964d0c10ca79c37061ef89dee5b8b95ac2ce047a99db270ab70393ee94121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                        value: 4246,
+                        sats: 4246n,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -829,7 +829,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                 ],
                 outputs: [
                     {
-                        value: 4200,
+                        sats: 4200n,
                         outputScript:
                             '76a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac',
                         spentBy: {
@@ -838,7 +838,7 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                         },
                     },
                     {
-                        value: 2492,
+                        sats: 2492n,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                         spentBy: {
@@ -925,18 +925,18 @@ export const agoraPartialBetaKeypair = {
 // CACHET candle created by Agora Partial Alpha
 // Created by approx params offering 100, min 0.1, 10,000 XEC per CACHET
 const agoraPartialCachetAlphaOne = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1040365320,
-    minAcceptedScaledTruncTokens: 2147470n,
+    minAcceptedScaledTruncAtoms: 2147470n,
     numSatsTruncBytes: 1,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 5497n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 5497n,
     scriptLen: 214,
     tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 214747n,
+    atomsScaleFactor: 214747n,
     tokenType: 1,
-    truncTokens: 10000n,
+    truncAtoms: 10000n,
     makerPk: agoraPartialAlphaKeypair.pk,
 });
 export const agoraOfferCachetAlphaOne = new AgoraOffer({
@@ -946,7 +946,7 @@ export const agoraOfferCachetAlphaOne = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '10000',
+        atoms: 10000n,
         isMintBaton: false,
         tokenId:
             'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
@@ -963,7 +963,7 @@ export const agoraOfferCachetAlphaOne = new AgoraOffer({
         },
         signData: {
             redeemScript: agoraPartialCachetAlphaOne.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -975,18 +975,18 @@ export const agoraOfferCachetAlphaOne = new AgoraOffer({
 // CACHET candle created by Agora Partial Alpha
 // Created by approx params offering 200, min 0.2, 1200 XEC per CACHET
 const agoraPartialCachetAlphaTwo = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1653017945,
-    minAcceptedScaledTruncTokens: 2147460n,
+    minAcceptedScaledTruncAtoms: 2147460n,
     numSatsTruncBytes: 1,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 22906n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 22906n,
     scriptLen: 214,
     tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 107373n,
+    atomsScaleFactor: 107373n,
     tokenType: 1,
-    truncTokens: 20000n,
+    truncAtoms: 20000n,
     makerPk: agoraPartialAlphaKeypair.pk,
 });
 export const agoraOfferCachetAlphaTwo = new AgoraOffer({
@@ -996,7 +996,7 @@ export const agoraOfferCachetAlphaTwo = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '20000',
+        atoms: 20000n,
         isMintBaton: false,
         tokenId:
             'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
@@ -1013,7 +1013,7 @@ export const agoraOfferCachetAlphaTwo = new AgoraOffer({
         },
         signData: {
             redeemScript: agoraPartialCachetAlphaTwo.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -1025,18 +1025,18 @@ export const agoraOfferCachetAlphaTwo = new AgoraOffer({
 // BULL candle created by Agora Partial Alpha
 // Created by approx params offering 888, min 8, 50,000 XEC per BULL
 const agoraPartialBullAlphaOne = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1350463393,
-    minAcceptedScaledTruncTokens: 19346408n,
+    minAcceptedScaledTruncAtoms: 19346408n,
     numSatsTruncBytes: 2,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 31697n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 31697n,
     scriptLen: 216,
     tokenId: '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 2418301n,
+    atomsScaleFactor: 2418301n,
     tokenType: 1,
-    truncTokens: 888n,
+    truncAtoms: 888n,
     makerPk: agoraPartialAlphaKeypair.pk,
 });
 export const agoraOfferBullAlphaOne = new AgoraOffer({
@@ -1046,7 +1046,7 @@ export const agoraOfferBullAlphaOne = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '888',
+        atoms: 888n,
         isMintBaton: false,
         tokenId:
             '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
@@ -1063,7 +1063,7 @@ export const agoraOfferBullAlphaOne = new AgoraOffer({
         },
         signData: {
             redeemScript: agoraPartialBullAlphaOne.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -1075,18 +1075,18 @@ export const agoraOfferBullAlphaOne = new AgoraOffer({
 // CACHET candle created by Agora Partial Beta
 // Created by approx params offering 300, min 0.3, 12,000 XEC per CACHET
 const agoraPartialCachetBetaOne = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1075803086,
-    minAcceptedScaledTruncTokens: 2147460n,
+    minAcceptedScaledTruncAtoms: 2147460n,
     numSatsTruncBytes: 1,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 1527n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 1527n,
     scriptLen: 214,
     tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 71582n,
+    atomsScaleFactor: 71582n,
     tokenType: 1,
-    truncTokens: 30000n,
+    truncAtoms: 30000n,
     makerPk: agoraPartialBetaKeypair.pk,
 });
 export const agoraOfferCachetBetaOne = new AgoraOffer({
@@ -1096,7 +1096,7 @@ export const agoraOfferCachetBetaOne = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '30000',
+        atoms: 30000n,
         isMintBaton: false,
         tokenId:
             'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
@@ -1114,7 +1114,7 @@ export const agoraOfferCachetBetaOne = new AgoraOffer({
         signData: {
             // "redeemScript" key is calculated from the built AgoraPartial
             redeemScript: agoraPartialCachetBetaOne.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -1127,18 +1127,18 @@ export const agoraOfferCachetBetaOne = new AgoraOffer({
 // CACHET candle created by Agora Partial Alpha
 // Created by approx params offering 100, min 0.1, 10,000 XEC per CACHET
 const agoraPartialCachetAlphaUnacceptable = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1022658985,
-    minAcceptedScaledTruncTokens: 2225600000n,
+    minAcceptedScaledTruncAtoms: 2225600000n,
     numSatsTruncBytes: 0,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 214n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 214n,
     scriptLen: 212,
     tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 214n,
+    atomsScaleFactor: 214n,
     tokenType: 1,
-    truncTokens: 10000000n,
+    truncAtoms: 10000000n,
     makerPk: agoraPartialAlphaKeypair.pk,
 });
 export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
@@ -1148,7 +1148,7 @@ export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '10000000',
+        atoms: 10000000n,
         isMintBaton: false,
         tokenId:
             'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
@@ -1165,7 +1165,7 @@ export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
         },
         signData: {
             redeemScript: agoraPartialCachetAlphaUnacceptable.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -1177,18 +1177,18 @@ export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
 // XECX candle created by Agora Partial Alpha
 // Copied from real offer, min accept 96k XECX, lots of partial accepts already in
 const agoraPartialXecxAlphaOne = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1385162239,
-    minAcceptedScaledTruncTokens: 1875000n,
+    minAcceptedScaledTruncAtoms: 1875000n,
     numSatsTruncBytes: 1,
-    numTokenTruncBytes: 1,
-    scaledTruncTokensPerTruncSat: 5n,
+    numAtomsTruncBytes: 1,
+    scaledTruncAtomsPerTruncSat: 5n,
     scriptLen: 194,
     tokenId: 'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
     tokenProtocol: 'ALP',
-    tokenScaleFactor: 5n,
+    atomsScaleFactor: 5n,
     tokenType: 0,
-    truncTokens: 175289017n,
+    truncAtoms: 175289017n,
     makerPk: agoraPartialAlphaKeypair.pk,
 });
 export const agoraOfferXecxAlphaOne = new AgoraOffer({
@@ -1198,7 +1198,7 @@ export const agoraOfferXecxAlphaOne = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '44873988352',
+        atoms: 44873988352n,
         isMintBaton: false,
         tokenId:
             'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4',
@@ -1215,7 +1215,7 @@ export const agoraOfferXecxAlphaOne = new AgoraOffer({
         },
         signData: {
             redeemScript: agoraPartialXecxAlphaOne.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -1225,18 +1225,18 @@ export const agoraOfferXecxAlphaOne = new AgoraOffer({
 });
 
 export const scamAgoraPartial = new AgoraPartial({
-    dustAmount: 546,
+    dustSats: 546n,
     enforcedLockTime: 1174486988,
-    minAcceptedScaledTruncTokens: 260100n,
+    minAcceptedScaledTruncAtoms: 260100n,
     numSatsTruncBytes: 1,
-    numTokenTruncBytes: 0,
-    scaledTruncTokensPerTruncSat: 26n,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 26n,
     scriptLen: 209,
     tokenId: '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
     tokenProtocol: 'SLP',
-    tokenScaleFactor: 2601n,
+    atomsScaleFactor: 2601n,
     tokenType: 1,
-    truncTokens: 825472n,
+    truncAtoms: 825472n,
     // Does not correspond with real offer but do this for testing
     makerPk: agoraPartialAlphaKeypair.pk,
 });
@@ -1247,7 +1247,7 @@ export const scamAgoraOffer = new AgoraOffer({
     },
     status: 'OPEN',
     token: {
-        amount: '825472',
+        atoms: 825472n,
         isMintBaton: false,
         tokenId:
             '9c662233f8553e72ab3848a37d72fbc3f894611aae43033cde707213a537bba0',
@@ -1265,7 +1265,7 @@ export const scamAgoraOffer = new AgoraOffer({
         signData: {
             // "redeemScript" key is calculated from the built AgoraPartial
             redeemScript: scamAgoraPartial.script(),
-            value: 546,
+            sats: 546n,
         },
     },
     variant: {
@@ -1308,7 +1308,7 @@ export const cachetCacheMocks = {
                 },
                 inputScript:
                     '4830450221009bb1fb7d49d9ac64b79ea041be2e2efa5a8709a470930b04c27c9fc46ed1906302206a0a9daf5e64e934a3467951dd2da37405969d4434d4006ddfea3ed39ff4e0ae412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1316,12 +1316,12 @@ export const cachetCacheMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e4553495306434143484554064361636865741468747470733a2f2f636173687461622e636f6d2f4c0001020102080000000000989680',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1332,7 +1332,7 @@ export const cachetCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000',
+                    atoms: 10000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1342,7 +1342,7 @@ export const cachetCacheMocks = {
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1353,7 +1353,7 @@ export const cachetCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
@@ -1363,7 +1363,7 @@ export const cachetCacheMocks = {
                 },
             },
             {
-                value: 773,
+                sats: 773n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -1389,8 +1389,8 @@ export const cachetCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1437,7 +1437,7 @@ export const bullCacheMocks = {
                 },
                 inputScript:
                     '47304402207801a307548c5ecccd6e37043bda5e96cb9d27c93e4e60deaff4344605f138b202201a7fd155a42171c4b3331425b3e708df4e9606edfd221b2e500e3fb6bb541f2b412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 981921,
+                sats: 981921n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1445,12 +1445,12 @@ export const bullCacheMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e455349530442554c4c0442756c6c1468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000001406f40',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1461,7 +1461,7 @@ export const bullCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '21000000',
+                    atoms: 21000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1471,7 +1471,7 @@ export const bullCacheMocks = {
                 },
             },
             {
-                value: 981078,
+                sats: 981078n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -1497,8 +1497,8 @@ export const bullCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1545,7 +1545,7 @@ export const scamCacheMocks = {
                 },
                 inputScript:
                     '41c49a217049062d517dbf6884fc4d34c1e29b39e387782de7be7214fb3aefdea3f875e70cab2aacf570084a8332c89cf3c2fe01b43007cd35991a4d4f0dd403f9412103e8f234ebcc6d04a7046f53b2fae4c2dd2904de5da609632f50277b90af57a9d5',
-                value: 4200,
+                sats: 4200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
@@ -1553,12 +1553,12 @@ export const scamCacheMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e45534953034255581642616467657220556e6976657273616c20546f6b656e1368747470733a2f2f6275782e6469676974616c4c0001020102080000000000989680',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
                 token: {
@@ -1569,7 +1569,7 @@ export const scamCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000',
+                    atoms: 10000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1579,7 +1579,7 @@ export const scamCacheMocks = {
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
                 token: {
@@ -1590,13 +1590,13 @@ export const scamCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
             },
             {
-                value: 2424,
+                sats: 2424n,
                 outputScript:
                     '76a914a774587b6a06e40bfe1731f1aa85f8e1f6771a1188ac',
                 spentBy: {
@@ -1622,8 +1622,8 @@ export const scamCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1672,7 +1672,7 @@ export const tokenMockXecx = {
                 },
                 inputScript:
                     '417c385fcf803ce611628beaf13449e1781116dff0a822d7798fe63ead1c15076d9557e3ff45eee3861e0d7569430a5a12a0a1002ee41860572ade51e078139c4c412103e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f650',
-                value: 12544610190,
+                sats: 12544610190n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
@@ -1680,12 +1680,12 @@ export const tokenMockXecx = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a504c57534c5032000747454e4553495304584543580a5374616b6564205845430d7374616b65645865632e636f6d002103e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f65002010e21fdc39e0101',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
                 token: {
@@ -1696,7 +1696,7 @@ export const tokenMockXecx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1781404606734',
+                    atoms: 1781404606734n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1706,7 +1706,7 @@ export const tokenMockXecx = {
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
                 token: {
@@ -1717,13 +1717,13 @@ export const tokenMockXecx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
             },
             {
-                value: 12544608388,
+                sats: 12544608388n,
                 outputScript:
                     '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
                 spentBy: {
@@ -1749,8 +1749,8 @@ export const tokenMockXecx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1858,7 +1858,7 @@ export const cachedHeisman: CashtabCachedTokenInfo = {
 const heismanNftOne = new AgoraOneshot({
     enforcedOutputs: [
         {
-            value: 0n,
+            sats: 0n,
             script: new Script(
                 fromHex(
                     '6a04534c500001410453454e4420be095430a16a024134bea079f235bcd2f79425c42659f9346416f626671f371c080000000000000000080000000000000001',
@@ -1866,7 +1866,7 @@ const heismanNftOne = new AgoraOneshot({
             ),
         },
         {
-            value: 5000000000n,
+            sats: 5000000000n,
             script: new Script(
                 fromHex('76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac'),
             ),
@@ -1887,10 +1887,10 @@ const heismanNftOneUtxo = {
             type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
             number: 65,
         } as TokenType,
-        amount: '1',
+        atoms: 1n,
         isMintBaton: false,
     },
-    value: 546,
+    sats: 546n,
 };
 export const heismanNftOneOffer = new AgoraOffer({
     variant: {
@@ -1902,7 +1902,7 @@ export const heismanNftOneOffer = new AgoraOffer({
     txBuilderInput: {
         prevOut: heismanNftOneUtxo.outpoint,
         signData: {
-            value: heismanNftOneUtxo.value,
+            sats: heismanNftOneUtxo.sats,
             redeemScript: heismanNftOne.script(),
         },
     },
@@ -1921,7 +1921,7 @@ export const heismanNftOneCache = {
                 },
                 inputScript:
                     '483045022100b485b532b1d5532791292d8168cba3549cf3f32df32436f0131d550c1187a77b02206898f4e113acbbdbab5ff3045b2e62624f5f66017caecb472c01b8fa83c35bcb412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1931,7 +1931,7 @@ export const heismanNftOneCache = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 1,
                 },
@@ -1945,7 +1945,7 @@ export const heismanNftOneCache = {
                 },
                 inputScript:
                     '47304402203be48792b013d852678f15c2e2980cca23345a99c5681b976a070cc9d3be1964022030f3f3ddc7bf3034cacb32925787fd925b1c978252db009cb74d03ac201bd404412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32751479,
+                sats: 32751479n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1953,12 +1953,12 @@ export const heismanNftOneCache = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410747454e45534953024c4b0c4c61727279204b656c6c65792a68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f4c617272795f4b656c6c657920b90001b24f54d893a15d61e84eacaec86a025abf4da6b7f02f60a439a013dc2401004c00080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1969,7 +1969,7 @@ export const heismanNftOneCache = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1979,7 +1979,7 @@ export const heismanNftOneCache = {
                 },
             },
             {
-                value: 32750465,
+                sats: 32750465n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -2005,8 +2005,8 @@ export const heismanNftOneCache = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
@@ -2023,8 +2023,8 @@ export const heismanNftOneCache = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2108,7 +2108,7 @@ export const heismanCollectionCacheMocks = {
                 },
                 inputScript:
                     '483045022100eb2e68c7d02eda2dd64c22a079d832c5c85f34f1ced264cd3b37658d4cd0b89e02203e204cd625a05c8ba59291567bc14d0bfa193a9a37cbc00aec804a224dc910d1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32766028,
+                sats: 32766028n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -2116,12 +2116,12 @@ export const heismanCollectionCacheMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001810747454e455349530348534d0b54686520486569736d616e2c68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f486569736d616e5f54726f7068792073229094743335d380cd7ce479fb38c9dfe77cdd97668aa0c4d9183855fcb97601004c00080000000000000059',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2132,7 +2132,7 @@ export const heismanCollectionCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '89',
+                    atoms: 89n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2142,7 +2142,7 @@ export const heismanCollectionCacheMocks = {
                 },
             },
             {
-                value: 32764762,
+                sats: 32764762n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -2168,8 +2168,8 @@ export const heismanCollectionCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -2217,7 +2217,7 @@ export const lkCacheMocks = {
                 },
                 inputScript:
                     '483045022100b485b532b1d5532791292d8168cba3549cf3f32df32436f0131d550c1187a77b02206898f4e113acbbdbab5ff3045b2e62624f5f66017caecb472c01b8fa83c35bcb412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2227,7 +2227,7 @@ export const lkCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 1,
                 },
@@ -2241,7 +2241,7 @@ export const lkCacheMocks = {
                 },
                 inputScript:
                     '47304402203be48792b013d852678f15c2e2980cca23345a99c5681b976a070cc9d3be1964022030f3f3ddc7bf3034cacb32925787fd925b1c978252db009cb74d03ac201bd404412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32751479,
+                sats: 32751479n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -2249,12 +2249,12 @@ export const lkCacheMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410747454e45534953024c4b0c4c61727279204b656c6c65792a68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f4c617272795f4b656c6c657920b90001b24f54d893a15d61e84eacaec86a025abf4da6b7f02f60a439a013dc2401004c00080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2265,7 +2265,7 @@ export const lkCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -2275,7 +2275,7 @@ export const lkCacheMocks = {
                 },
             },
             {
-                value: 32750465,
+                sats: 32750465n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -2301,8 +2301,8 @@ export const lkCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
@@ -2319,8 +2319,8 @@ export const lkCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],

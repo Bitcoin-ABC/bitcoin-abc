@@ -21,12 +21,12 @@ function getIp(req: Request) {
     return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 }
 
-function getBalanceSatoshi(utxos: ScriptUtxo[]) {
-    let balanceSatoshi = 0;
+function getBalanceSats(utxos: ScriptUtxo[]): bigint {
+    let balanceSats = 0n;
     for (const utxo of utxos) {
-        balanceSatoshi += utxo.value;
+        balanceSats += utxo.sats;
     }
-    return balanceSatoshi;
+    return balanceSats;
 }
 
 // Prepare the common error responses
@@ -84,9 +84,9 @@ import { config } from './config';
             }`,
         );
     }
-    const balance = getBalanceSatoshi(utxos);
+    const balance = getBalanceSats(utxos);
     console.log(
-        `Current balance for the faucet wallet is ${balance / 100} ${
+        `Current balance for the faucet wallet is ${Number(balance) / 100} ${
             config.ticker
         }`,
     );
@@ -183,10 +183,10 @@ import { config } from './config';
                 const chronikResponse = await chronik
                     .address(walletAddress)
                     .utxos();
-                const balance = await getBalanceSatoshi(chronikResponse.utxos);
+                const balance = await getBalanceSats(chronikResponse.utxos);
                 if (balance < config.amount) {
                     console.log(
-                        `Balance is too low (${balance / 100} ${
+                        `Balance is too low (${Number(balance) / 100} ${
                             config.ticker
                         })`,
                     );
@@ -203,7 +203,7 @@ import { config } from './config';
                         input: {
                             prevOut: utxo.outpoint,
                             signData: {
-                                value: utxo.value,
+                                sats: utxo.sats,
                                 outputScript: walletP2PKH,
                             },
                         },
@@ -218,7 +218,7 @@ import { config } from './config';
                     inputs: inputs,
                     outputs: [
                         {
-                            value: config.amount,
+                            sats: config.amount,
                             script: destinationScript,
                         },
                         walletP2PKH,
@@ -227,7 +227,7 @@ import { config } from './config';
 
                 const tx = txBuilder.sign({
                     feePerKb: config.feeSatPerKB,
-                    dustLimit: config.dust,
+                    dustSats: config.dust,
                 });
                 const resp = await chronik.broadcastTx(
                     tx.ser(),
@@ -255,7 +255,7 @@ import { config } from './config';
             addressMap.set(address, Date.now());
 
             console.log(
-                `Successfully sent ${config.amount / 100} ${
+                `Successfully sent ${Number(config.amount) / 100} ${
                     config.ticker
                 } to ${address}: ${txid}`,
             );
@@ -286,7 +286,7 @@ import { config } from './config';
                 });
             }
 
-            const balance = await getBalanceSatoshi(utxos);
+            const balance = await getBalanceSats(utxos);
             return res.status(200).json({
                 address: walletAddress,
                 balance: balance,

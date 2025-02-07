@@ -1,4 +1,4 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2023-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -189,7 +189,7 @@ async function generateMock(
             // If you don't have a mock for this particular outputScript in block.js,
             // mock it as an address with a single utxo for 100 XEC
             mockedChronik.setUtxosByScript(type as 'p2pkh' | 'p2sh', hash, [
-                { value: 10000 } as ScriptUtxo,
+                { sats: 10000n } as ScriptUtxo,
             ]);
         }
     });
@@ -241,7 +241,7 @@ async function generateMock(
     // We want this string to appear in the generated blocks.js file,
     // but not in this file, as we want this file to show up in phab diffs
 
-    const mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n\n// eslint-disable-next-line @typescript-eslint/no-explicit-any\nconst mockedBlock: any =${JSON.stringify(
+    const mocksWrite = `// Copyright (c) 2023-2025 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n\n// eslint-disable-next-line @typescript-eslint/no-explicit-any\nconst mockedBlock: any =${JSON.stringify(
         returnedMocks,
         jsonReplacer,
         2,

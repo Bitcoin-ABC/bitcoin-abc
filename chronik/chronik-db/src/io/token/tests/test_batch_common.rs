@@ -15,7 +15,7 @@ use bitcoinsuite_slp::{
 use pretty_assertions::assert_eq;
 
 use crate::io::token::{
-    tests::mock::{db_amount, db_baton, make_tx, token_id, MockTokenDb},
+    tests::mock::{db_atoms, db_baton, make_tx, token_id, MockTokenDb},
     BatchError,
     DbToken::NoToken,
     DbTokenTx, TokenReader,
@@ -165,7 +165,7 @@ fn test_batch_topological_sort() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![4],
             inputs: vec![],
-            outputs: vec![NoToken, db_amount::<0>(1000), db_baton::<0>()],
+            outputs: vec![NoToken, db_atoms::<0>(1000), db_baton::<0>()],
             ..Default::default()
         }),
     );
@@ -179,8 +179,8 @@ fn test_batch_topological_sort() -> Result<()> {
         token_reader.token_tx(2)?,
         Some(DbTokenTx {
             token_tx_nums: vec![4],
-            inputs: vec![db_amount::<0>(1000)],
-            outputs: vec![NoToken, db_amount::<0>(400)],
+            inputs: vec![db_atoms::<0>(1000)],
+            outputs: vec![NoToken, db_atoms::<0>(400)],
             ..Default::default()
         }),
     );
@@ -191,8 +191,8 @@ fn test_batch_topological_sort() -> Result<()> {
         token_reader.token_tx(3)?,
         Some(DbTokenTx {
             token_tx_nums: vec![4],
-            inputs: vec![db_amount::<0>(400)],
-            outputs: vec![NoToken, db_amount::<0>(300), db_amount::<0>(100),],
+            inputs: vec![db_atoms::<0>(400)],
+            outputs: vec![NoToken, db_atoms::<0>(300), db_atoms::<0>(100),],
             ..Default::default()
         }),
     );
@@ -203,7 +203,7 @@ fn test_batch_topological_sort() -> Result<()> {
         token_reader.token_tx(1)?,
         Some(DbTokenTx {
             token_tx_nums: vec![4],
-            inputs: vec![db_amount::<0>(300)],
+            inputs: vec![db_atoms::<0>(300)],
             outputs: vec![NoToken, NoToken, NoToken],
             ..Default::default()
         }),

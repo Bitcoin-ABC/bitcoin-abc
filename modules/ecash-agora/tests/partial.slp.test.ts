@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChronikClient } from 'chronik-client';
 import {
     ALL_BIP143,
-    DEFAULT_DUST_LIMIT,
+    DEFAULT_DUST_SATS,
     Ecc,
     P2PKHSignatory,
     SLP_FUNGIBLE,
@@ -28,13 +28,13 @@ use(chaiAsPromised);
 
 // This test needs a lot of sats
 const NUM_COINS = 500;
-const COIN_VALUE = 1100000000;
+const COIN_VALUE = 1100000000n;
 
 const BASE_PARAMS_SLP = {
     tokenId: '00'.repeat(32), // filled in later
     tokenType: SLP_FUNGIBLE,
     tokenProtocol: 'SLP' as const,
-    dustAmount: DEFAULT_DUST_LIMIT,
+    dustSats: DEFAULT_DUST_SATS,
 };
 
 const ecc = new Ecc();
@@ -54,17 +54,17 @@ describe('AgoraPartial SLP', () => {
     let chronik: ChronikClient;
 
     async function makeBuilderInputs(
-        values: number[],
+        values: bigint[],
     ): Promise<TxBuilderInput[]> {
         const txid = await runner.sendToScript(values, makerScript);
-        return values.map((value, outIdx) => ({
+        return values.map((sats, outIdx) => ({
             input: {
                 prevOut: {
                     txid,
                     outIdx,
                 },
                 signData: {
-                    value,
+                    sats,
                     outputScript: makerScript,
                 },
             },
@@ -83,410 +83,410 @@ describe('AgoraPartial SLP', () => {
     });
 
     interface TestCase {
-        offeredTokens: bigint;
+        offeredAtoms: bigint;
         info: string;
-        priceNanoSatsPerToken: bigint;
-        acceptedTokens: bigint;
-        askedSats: number;
+        priceNanoSatsPerAtom: bigint;
+        acceptedAtoms: bigint;
+        askedSats: bigint;
         allowUnspendable?: boolean;
     }
     const TEST_CASES: TestCase[] = [
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1sat/token, full accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 1000n,
-            askedSats: 1000,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 1000n,
+            askedSats: 1000n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1sat/token, dust accept, must allowUnspendable',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 546n,
-            askedSats: 546,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 546n,
+            askedSats: 546n,
             allowUnspendable: true,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000sat/token, full accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 1000n,
-            askedSats: 1000225,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 1000n,
+            askedSats: 1000225n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000sat/token, half accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 500n,
-            askedSats: 500113,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 500n,
+            askedSats: 500113n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000sat/token, 1 accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 1n,
-            askedSats: 1001,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 1n,
+            askedSats: 1001n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000000sat/token, full accept',
-            priceNanoSatsPerToken: 1000000n * 1000000000n,
-            acceptedTokens: 1000n,
-            askedSats: 1000013824,
+            priceNanoSatsPerAtom: 1000000n * 1000000000n,
+            acceptedAtoms: 1000n,
+            askedSats: 1000013824n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000000sat/token, half accept',
-            priceNanoSatsPerToken: 1000000n * 1000000000n,
-            acceptedTokens: 500n,
-            askedSats: 500039680,
+            priceNanoSatsPerAtom: 1000000n * 1000000000n,
+            acceptedAtoms: 500n,
+            askedSats: 500039680n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000000sat/token, 1 accept',
-            priceNanoSatsPerToken: 1000000n * 1000000000n,
-            acceptedTokens: 1n,
-            askedSats: 1048576,
+            priceNanoSatsPerAtom: 1000000n * 1000000000n,
+            acceptedAtoms: 1n,
+            askedSats: 1048576n,
         },
         {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1000000000sat/token, 1 accept',
-            priceNanoSatsPerToken: 1000000000n * 1000000000n,
-            acceptedTokens: 1n,
-            askedSats: 1006632960,
+            priceNanoSatsPerAtom: 1000000000n * 1000000000n,
+            acceptedAtoms: 1n,
+            askedSats: 1006632960n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '0.001sat/token, full accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 1000000n,
-            askedSats: 1000,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 1000000n,
+            askedSats: 1000n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1sat/token, full accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 1000000n,
-            askedSats: 1000000,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 1000000n,
+            askedSats: 1000000n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1sat/token, half accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 500000n,
-            askedSats: 500000,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 500000n,
+            askedSats: 500000n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1sat/token, dust accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 546n,
-            askedSats: 546,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 546n,
+            askedSats: 546n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1000sat/token, full accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 999936n,
-            askedSats: 999948288,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 999936n,
+            askedSats: 999948288n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1000sat/token, half accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 499968n,
-            askedSats: 499974144,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 499968n,
+            askedSats: 499974144n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1000sat/token, 256 accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 256n,
-            askedSats: 262144,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 256n,
+            askedSats: 262144n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1000000sat/token, 1024 accept',
-            priceNanoSatsPerToken: 1000000n * 1000000000n,
-            acceptedTokens: 1024n,
-            askedSats: 1040187392,
+            priceNanoSatsPerAtom: 1000000n * 1000000000n,
+            acceptedAtoms: 1024n,
+            askedSats: 1040187392n,
         },
         {
-            offeredTokens: 1000000n,
+            offeredAtoms: 1000000n,
             info: '1000000sat/token, 256 accept',
-            priceNanoSatsPerToken: 1000000n * 1000000000n,
-            acceptedTokens: 256n,
-            askedSats: 268435456,
+            priceNanoSatsPerAtom: 1000000n * 1000000000n,
+            acceptedAtoms: 256n,
+            askedSats: 268435456n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '0.001sat/token, full accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 1000000000n,
-            askedSats: 1000000,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 1000000000n,
+            askedSats: 1000000n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '0.001sat/token, half accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 500000000n,
-            askedSats: 500000,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 500000000n,
+            askedSats: 500000n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '0.001sat/token, dust accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 546000n,
-            askedSats: 546,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 546000n,
+            askedSats: 546n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '1sat/token, full accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 1000000000n,
-            askedSats: 1000000000,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 1000000000n,
+            askedSats: 1000000000n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '1sat/token, half accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 500000000n,
-            askedSats: 500000000,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 500000000n,
+            askedSats: 500000000n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '1sat/token, dust accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 546n,
-            askedSats: 546,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 546n,
+            askedSats: 546n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '1000sat/token, 983040 accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 983040n,
-            askedSats: 989855744,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 983040n,
+            askedSats: 989855744n,
         },
         {
-            offeredTokens: 1000000000n,
+            offeredAtoms: 1000000000n,
             info: '1000sat/token, 65536 accept',
-            priceNanoSatsPerToken: 1000n * 1000000000n,
-            acceptedTokens: 65536n,
-            askedSats: 67108864,
+            priceNanoSatsPerAtom: 1000n * 1000000000n,
+            acceptedAtoms: 65536n,
+            askedSats: 67108864n,
         },
         {
-            offeredTokens: 1000000000000n,
+            offeredAtoms: 1000000000000n,
             info: '0.000001sat/token, full accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 999999995904n,
-            askedSats: 1000108,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 999999995904n,
+            askedSats: 1000108n,
         },
         {
-            offeredTokens: 1000000000000n,
+            offeredAtoms: 1000000000000n,
             info: '0.000001sat/token, half accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 546045952n,
-            askedSats: 547,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 546045952n,
+            askedSats: 547n,
         },
         {
-            offeredTokens: 1000000000000n,
+            offeredAtoms: 1000000000000n,
             info: '0.001sat/token, full accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 999999995904n,
-            askedSats: 1068115230,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 999999995904n,
+            askedSats: 1068115230n,
         },
         {
-            offeredTokens: 1000000000000n,
+            offeredAtoms: 1000000000000n,
             info: '0.001sat/token, dust accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 589824n,
-            askedSats: 630,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 589824n,
+            askedSats: 630n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '0.000000001sat/token, full accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 999999986991104n,
-            askedSats: 1000358,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 999999986991104n,
+            askedSats: 1000358n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '0.000000001sat/token, dust accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 546014494720n,
-            askedSats: 547,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 546014494720n,
+            askedSats: 547n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '0.000001sat/token, full accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 999999986991104n,
-            askedSats: 1072883592,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 999999986991104n,
+            askedSats: 1072883592n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '0.000001sat/token, dust accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 570425344n,
-            askedSats: 612,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 570425344n,
+            askedSats: 612n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '0.001sat/token, 1/1000 accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 999989182464n,
-            askedSats: 1004470272,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 999989182464n,
+            askedSats: 1004470272n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '0.001sat/token, min accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 0x1000000n,
-            askedSats: 65536,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 0x1000000n,
+            askedSats: 65536n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '1sat/token, 1/1000000 accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 989855744n,
-            askedSats: 989855744,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 989855744n,
+            askedSats: 989855744n,
         },
         {
-            offeredTokens: 1000000000000000n,
+            offeredAtoms: 1000000000000000n,
             info: '1sat/token, min accept',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 0x1000000n,
-            askedSats: 16777216,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 0x1000000n,
+            askedSats: 16777216n,
         },
         {
-            offeredTokens: 1000000000000000000n,
+            offeredAtoms: 1000000000000000000n,
             info: '0.000000001sat/token, full accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 999999997191651328n,
-            askedSats: 1047737894,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 999999997191651328n,
+            askedSats: 1047737894n,
         },
         {
-            offeredTokens: 1000000000000000000n,
+            offeredAtoms: 1000000000000000000n,
             info: '0.000000001sat/token, dust accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 558345748480n,
-            askedSats: 585,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 558345748480n,
+            askedSats: 585n,
         },
         {
-            offeredTokens: 1000000000000000000n,
+            offeredAtoms: 1000000000000000000n,
             info: '0.000001sat/token, 1/1000 accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 999997235527680n,
-            askedSats: 1002438656,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 999997235527680n,
+            askedSats: 1002438656n,
         },
         {
-            offeredTokens: 1000000000000000000n,
+            offeredAtoms: 1000000000000000000n,
             info: '0.000001sat/token, min accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 0x100000000n,
-            askedSats: 65536,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 0x100000000n,
+            askedSats: 65536n,
         },
         {
-            offeredTokens: 1000000000000000000n,
+            offeredAtoms: 1000000000000000000n,
             info: '0.001sat/token, 1/1000000 accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 996432412672n,
-            askedSats: 1006632960,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 996432412672n,
+            askedSats: 1006632960n,
         },
         {
-            offeredTokens: 1000000000000000000n,
+            offeredAtoms: 1000000000000000000n,
             info: '0.001sat/token, min accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 0x100000000n,
-            askedSats: 16777216,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 0x100000000n,
+            askedSats: 16777216n,
         },
         {
-            offeredTokens: 0x7fffffffffffffffn,
+            offeredAtoms: 0x7fffffffffffffffn,
             info: '0.000000001sat/token, max sats accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 999999997191651328n,
-            askedSats: 1010248448,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 999999997191651328n,
+            askedSats: 1010248448n,
         },
         {
-            offeredTokens: 0x7fffffffffffffffn,
+            offeredAtoms: 0x7fffffffffffffffn,
             info: '0.000000001sat/token, dust accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 558345748480n,
-            askedSats: 768,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 558345748480n,
+            askedSats: 768n,
         },
         {
-            offeredTokens: 0x7fffffffffffffffn,
+            offeredAtoms: 0x7fffffffffffffffn,
             info: '0.000001sat/token, max sats accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 999997235527680n,
-            askedSats: 1017249792,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 999997235527680n,
+            askedSats: 1017249792n,
         },
         {
-            offeredTokens: 0x7fffffffffffffffn,
+            offeredAtoms: 0x7fffffffffffffffn,
             info: '0.000001sat/token, min accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 0x100000000n,
-            askedSats: 65536,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 0x100000000n,
+            askedSats: 65536n,
         },
         {
-            offeredTokens: 0x7fffffffffffffffn,
+            offeredAtoms: 0x7fffffffffffffffn,
             info: '0.001sat/token, max sats accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 0xc300000000n,
-            askedSats: 1090519040,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 0xc300000000n,
+            askedSats: 1090519040n,
         },
         {
-            offeredTokens: 0x7fffffffffffffffn,
+            offeredAtoms: 0x7fffffffffffffffn,
             info: '0.001sat/token, min accept',
-            priceNanoSatsPerToken: 1000000n,
-            acceptedTokens: 0x100000000n,
-            askedSats: 16777216,
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 0x100000000n,
+            askedSats: 16777216n,
         },
         {
-            offeredTokens: 0xffffffffffffffffn,
+            offeredAtoms: 0xffffffffffffffffn,
             info: '0.000000001sat/token, max sats accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 999999228392505344n,
-            askedSats: 1027665664,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 999999228392505344n,
+            askedSats: 1027665664n,
         },
         {
-            offeredTokens: 0xffffffffffffffffn,
+            offeredAtoms: 0xffffffffffffffffn,
             info: '0.000000001sat/token, dust accept',
-            priceNanoSatsPerToken: 1n,
-            acceptedTokens: 0x10000000000n,
-            askedSats: 1280,
+            priceNanoSatsPerAtom: 1n,
+            acceptedAtoms: 0x10000000000n,
+            askedSats: 1280n,
         },
         {
-            offeredTokens: 0xffffffffffffffffn,
+            offeredAtoms: 0xffffffffffffffffn,
             info: '0.000001sat/token, max sats accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 999456069648384n,
-            askedSats: 1089339392,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 999456069648384n,
+            askedSats: 1089339392n,
         },
         {
-            offeredTokens: 0xffffffffffffffffn,
+            offeredAtoms: 0xffffffffffffffffn,
             info: '0.000001sat/token, min accept',
-            priceNanoSatsPerToken: 1000n,
-            acceptedTokens: 0x10000000000n,
-            askedSats: 1245184,
+            priceNanoSatsPerAtom: 1000n,
+            acceptedAtoms: 0x10000000000n,
+            askedSats: 1245184n,
         },
     ];
 
     for (const testCase of TEST_CASES) {
-        it(`AgoraPartial SLP ${testCase.offeredTokens} for ${testCase.info}`, async () => {
+        it(`AgoraPartial SLP ${testCase.offeredAtoms} for ${testCase.info}`, async () => {
             const agora = new Agora(chronik);
             const agoraPartial = await agora.selectParams({
-                offeredTokens: testCase.offeredTokens,
-                priceNanoSatsPerToken: testCase.priceNanoSatsPerToken,
-                minAcceptedTokens: testCase.acceptedTokens,
+                offeredAtoms: testCase.offeredAtoms,
+                priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
+                minAcceptedAtoms: testCase.acceptedAtoms,
                 makerPk,
                 ...BASE_PARAMS_SLP,
             });
-            const askedSats = agoraPartial.askedSats(testCase.acceptedTokens);
+            const askedSats = agoraPartial.askedSats(testCase.acceptedAtoms);
             const requiredSats = askedSats + 2000n;
             const [fuelInput, takerInput] = await makeBuilderInputs([
-                4000,
-                Number(requiredSats),
+                4000n,
+                requiredSats,
             ]);
 
             const offer = await makeSlpOffer({
@@ -500,34 +500,32 @@ describe('AgoraPartial SLP', () => {
                 takerSk,
                 offer,
                 takerInput,
-                acceptedTokens: testCase.acceptedTokens,
+                acceptedAtoms: testCase.acceptedAtoms,
                 allowUnspendable: testCase.allowUnspendable,
             });
             const acceptTx = await chronik.tx(acceptTxid);
-            const offeredTokens = agoraPartial.offeredTokens();
-            const isFullAccept = testCase.acceptedTokens == offeredTokens;
+            const offeredAtoms = agoraPartial.offeredAtoms();
+            const isFullAccept = testCase.acceptedAtoms == offeredAtoms;
             if (isFullAccept) {
                 // FULL ACCEPT
                 // 0th output is OP_RETURN SLP SEND
                 expect(acceptTx.outputs[0].outputScript).to.equal(
                     toHex(
                         slpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                            0,
-                            agoraPartial.offeredTokens(),
+                            0n,
+                            agoraPartial.offeredAtoms(),
                         ]).bytecode,
                     ),
                 );
                 // 1st output is sats to maker
                 expect(acceptTx.outputs[1].token).to.equal(undefined);
-                expect(acceptTx.outputs[1].value).to.equal(testCase.askedSats);
+                expect(acceptTx.outputs[1].sats).to.equal(testCase.askedSats);
                 expect(acceptTx.outputs[1].outputScript).to.equal(
                     makerScriptHex,
                 );
                 // 2nd output is tokens to taker
-                expect(acceptTx.outputs[2].token?.amount).to.equal(
-                    offeredTokens.toString(),
-                );
-                expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+                expect(acceptTx.outputs[2].token?.atoms).to.equal(offeredAtoms);
+                expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
                 expect(acceptTx.outputs[2].outputScript).to.equal(
                     takerScriptHex,
                 );
@@ -540,36 +538,34 @@ describe('AgoraPartial SLP', () => {
             }
 
             // PARTIAL ACCEPT
-            const leftoverTokens = offeredTokens - testCase.acceptedTokens;
-            const leftoverTruncTokens =
-                leftoverTokens >> BigInt(8 * agoraPartial.numTokenTruncBytes);
+            const leftoverTokens = offeredAtoms - testCase.acceptedAtoms;
+            const leftovertruncAtoms =
+                leftoverTokens >> BigInt(8 * agoraPartial.numAtomsTruncBytes);
             // 0th output is OP_RETURN SLP SEND
             expect(acceptTx.outputs[0].outputScript).to.equal(
                 toHex(
                     slpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                        0,
+                        0n,
                         leftoverTokens,
-                        testCase.acceptedTokens,
+                        testCase.acceptedAtoms,
                     ]).bytecode,
                 ),
             );
             // 1st output is sats to maker
             expect(acceptTx.outputs[1].token).to.equal(undefined);
-            expect(acceptTx.outputs[1].value).to.equal(testCase.askedSats);
+            expect(acceptTx.outputs[1].sats).to.equal(testCase.askedSats);
             expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
             // 2nd output is back to the P2SH Script
-            expect(acceptTx.outputs[2].token?.amount).to.equal(
-                leftoverTokens.toString(),
-            );
-            expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+            expect(acceptTx.outputs[2].token?.atoms).to.equal(leftoverTokens);
+            expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
             expect(acceptTx.outputs[2].outputScript.slice(0, 4)).to.equal(
                 'a914',
             );
             // 3rd output is tokens to taker
-            expect(acceptTx.outputs[3].token?.amount).to.equal(
-                testCase.acceptedTokens.toString(),
+            expect(acceptTx.outputs[3].token?.atoms).to.equal(
+                testCase.acceptedAtoms,
             );
-            expect(acceptTx.outputs[3].value).to.equal(DEFAULT_DUST_LIMIT);
+            expect(acceptTx.outputs[3].sats).to.equal(DEFAULT_DUST_SATS);
             expect(acceptTx.outputs[3].outputScript).to.equal(takerScriptHex);
             // Offer is now modified
             const newOffers = await agora.activeOffersByTokenId(
@@ -581,7 +577,7 @@ describe('AgoraPartial SLP', () => {
                 type: 'PARTIAL',
                 params: new AgoraPartial({
                     ...agoraPartial,
-                    truncTokens: leftoverTruncTokens,
+                    truncAtoms: leftovertruncAtoms,
                 }),
             });
 
@@ -593,17 +589,13 @@ describe('AgoraPartial SLP', () => {
             const cancelTxSer = newOffer
                 .cancelTx({
                     cancelSk: makerSk,
-                    fuelInputs: await makeBuilderInputs([
-                        Number(cancelFeeSats),
-                    ]),
+                    fuelInputs: await makeBuilderInputs([cancelFeeSats]),
                     recipientScript: makerScript,
                 })
                 .ser();
             const cancelTxid = (await chronik.broadcastTx(cancelTxSer)).txid;
             const cancelTx = await chronik.tx(cancelTxid);
-            expect(cancelTx.outputs[1].token?.amount).to.equal(
-                leftoverTokens.toString(),
-            );
+            expect(cancelTx.outputs[1].token?.atoms).to.equal(leftoverTokens);
             expect(cancelTx.outputs[1].outputScript).to.equal(makerScriptHex);
 
             // takerIndex is 2 for full accept, 3 for partial accept
@@ -611,9 +603,9 @@ describe('AgoraPartial SLP', () => {
 
             // Get takenInfo from offer creation params
             const takenInfo: TakenInfo = {
-                satoshisPaid: testCase.askedSats,
+                sats: BigInt(testCase.askedSats),
                 takerScriptHex: acceptTx.outputs[takerIndex].outputScript,
-                baseTokens: testCase.acceptedTokens.toString(),
+                atoms: testCase.acceptedAtoms,
             };
 
             // Tx history by token ID
@@ -646,26 +638,26 @@ describe('AgoraPartial SLP', () => {
 
     it('Without manually setting an over-ride, we are unable to accept an agora partial if the remaining offer would be unacceptable due to the terms of the contract', async () => {
         const thisTestCase: TestCase = {
-            offeredTokens: 1000n,
+            offeredAtoms: 1000n,
             info: '1sat/token, dust accept, must allowUnspendable',
-            priceNanoSatsPerToken: 1000000000n,
-            acceptedTokens: 546n,
-            askedSats: 546,
+            priceNanoSatsPerAtom: 1000000000n,
+            acceptedAtoms: 546n,
+            askedSats: 546n,
             allowUnspendable: true,
         };
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: thisTestCase.offeredTokens,
-            priceNanoSatsPerToken: thisTestCase.priceNanoSatsPerToken,
-            minAcceptedTokens: thisTestCase.acceptedTokens,
+            offeredAtoms: thisTestCase.offeredAtoms,
+            priceNanoSatsPerAtom: thisTestCase.priceNanoSatsPerAtom,
+            minAcceptedAtoms: thisTestCase.acceptedAtoms,
             makerPk,
             ...BASE_PARAMS_SLP,
         });
-        const askedSats = agoraPartial.askedSats(thisTestCase.acceptedTokens);
+        const askedSats = agoraPartial.askedSats(thisTestCase.acceptedAtoms);
         const requiredSats = askedSats + 2000n;
         const [fuelInput, takerInput] = await makeBuilderInputs([
-            4000,
-            Number(requiredSats),
+            4000n,
+            requiredSats,
         ]);
 
         const offer = await makeSlpOffer({
@@ -681,7 +673,7 @@ describe('AgoraPartial SLP', () => {
         // We can get the error from this isolated method
         expect(() =>
             agoraPartial.preventUnacceptableRemainder(
-                thisTestCase.acceptedTokens,
+                thisTestCase.acceptedAtoms,
             ),
         ).to.throw(Error, expectedError);
 
@@ -692,7 +684,7 @@ describe('AgoraPartial SLP', () => {
                 takerSk,
                 offer,
                 takerInput,
-                acceptedTokens: thisTestCase.acceptedTokens,
+                acceptedAtoms: thisTestCase.acceptedAtoms,
                 allowUnspendable: false,
             }),
             expectedError,
@@ -707,23 +699,23 @@ describe('AgoraPartial SLP', () => {
 
         // Manually build an offer equivalent to previous test but accepting 500 tokens
         const agoraPartial = new AgoraPartial({
-            truncTokens: 1000n,
-            numTokenTruncBytes: 0,
-            tokenScaleFactor: 2145336n,
-            scaledTruncTokensPerTruncSat: 2145336n,
+            truncAtoms: 1000n,
+            numAtomsTruncBytes: 0,
+            atomsScaleFactor: 2145336n,
+            scaledTruncAtomsPerTruncSat: 2145336n,
             numSatsTruncBytes: 0,
-            minAcceptedScaledTruncTokens: 1072668000n,
+            minAcceptedScaledTruncAtoms: 1072668000n,
             scriptLen: 216,
             enforcedLockTime: 1087959628,
             makerPk,
             ...BASE_PARAMS_SLP,
         });
-        const acceptedTokens = 500n;
-        const askedSats = agoraPartial.askedSats(acceptedTokens);
+        const acceptedAtoms = 500n;
+        const askedSats = agoraPartial.askedSats(acceptedAtoms);
         const requiredSats = askedSats + 2000n;
         const [fuelInput, takerInput] = await makeBuilderInputs([
-            4000,
-            Number(requiredSats),
+            4000n,
+            requiredSats,
         ]);
 
         const offer = await makeSlpOffer({
@@ -738,7 +730,7 @@ describe('AgoraPartial SLP', () => {
 
         // We can get the error from this isolated method
         expect(() =>
-            agoraPartial.preventUnacceptableRemainder(acceptedTokens),
+            agoraPartial.preventUnacceptableRemainder(acceptedAtoms),
         ).to.throw(Error, expectedError);
 
         // Or by attempting to accept the offer
@@ -748,7 +740,7 @@ describe('AgoraPartial SLP', () => {
                 takerSk,
                 offer,
                 takerInput,
-                acceptedTokens: acceptedTokens,
+                acceptedAtoms: acceptedAtoms,
                 allowUnspendable: false,
             }),
             expectedError,
@@ -761,7 +753,7 @@ describe('AgoraPartial SLP', () => {
                 takerSk,
                 offer,
                 takerInput,
-                acceptedTokens: acceptedTokens,
+                acceptedAtoms: acceptedAtoms,
                 allowUnspendable: undefined,
             }),
             expectedError,
@@ -774,7 +766,7 @@ describe('AgoraPartial SLP', () => {
                 takerSk,
                 offer,
                 takerInput,
-                acceptedTokens: acceptedTokens,
+                acceptedAtoms: acceptedAtoms,
             }),
             expectedError,
         );

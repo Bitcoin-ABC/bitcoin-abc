@@ -41,7 +41,7 @@ const mockTokenType: TokenType = {
 const mockToken: Token = {
     tokenId: mockTokenId,
     tokenType: mockTokenType,
-    amount: '100',
+    atoms: 100n,
     isMintBaton: false,
 };
 // Mock p2pkh holder
@@ -50,7 +50,7 @@ const mockHolderP2pkh: Utxo = {
     blockHeight: 800000,
     isCoinbase: false,
     script: '76a91400cd590bfb90b6dc1725530d6c36c78b88ddb60888ac',
-    value: 546,
+    sats: 546n,
     isFinal: true,
     token: mockToken,
 };
@@ -60,7 +60,7 @@ const mockHolderP2sh: Utxo = {
     blockHeight: 800000,
     isCoinbase: false,
     script: 'a914cfbe04a8a5fa04a032977138d8099862d5b40f7687',
-    value: 546,
+    sats: 546n,
     isFinal: true,
     token: mockToken,
 };
@@ -75,7 +75,7 @@ const mockedTokenUtxos: TokenIdUtxos = {
     utxos: [
         mockHolderP2pkh,
         mockHolderP2sh,
-        { ...mockHolderP2pkh, token: { ...mockToken, amount: '500' } },
+        { ...mockHolderP2pkh, token: { ...mockToken, atoms: 500n } },
     ],
 };
 describe('Cashtab airdrop methods', () => {

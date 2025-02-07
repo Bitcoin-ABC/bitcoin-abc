@@ -55,8 +55,8 @@ You can create a "one shot" offer (one that offers all or nothing) using `AgoraO
 
 ```ts
 const enforcedOutputs: TxOutput[] = [
-    { value: 0, script: slpSend(tokenId, SLP_NFT1_CHILD, [0, 1]) },
-    { value: 80000, script: sellerP2pkh },
+    { sats: 0n, script: slpSend(tokenId, SLP_NFT1_CHILD, [0n, 1n]) },
+    { sats: 80000n, script: sellerP2pkh },
 ];
 const agoraOneshot = new AgoraOneshot({
     enforcedOutputs,
@@ -79,7 +79,7 @@ const txBuilder = new TxBuilder({
                     outIdx: 1,
                 },
                 signData: {
-                    value: 546,
+                    sats: 546n,
                     redeemScript: agoraScript,
                 },
             },
@@ -96,7 +96,7 @@ const txBuilder = new TxBuilder({
                     outIdx: 0,
                 },
                 signData: {
-                    value: 90000,
+                    sats: 90000n,
                     outputScript: buyerP2pkh,
                 },
             },
@@ -105,11 +105,11 @@ const txBuilder = new TxBuilder({
     ],
     outputs: [
         {
-            value: 0,
-            script: slpSend(tokenId, SLP_NFT1_CHILD, [0, 1]),
+            sats: 0n,
+            script: slpSend(tokenId, SLP_NFT1_CHILD, [0n, 1n]),
         },
-        { value: 80000, script: sellerP2pkh },
-        { value: 546, script: buyerP2pkh },
+        { sats: 80000n, script: sellerP2pkh },
+        { sats: 546n, script: buyerP2pkh },
     ],
 });
 const acceptTx = txBuilder.sign();
@@ -186,3 +186,8 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 1.0.1
 
 -   Do not validate for unspendable offer creation when we calculate fee in `acceptFeeSats()` [D17648](https://reviews.bitcoinabc.org/D17648)
+
+### 2.0.0
+
+-   Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
+-   Introduce 'atoms' as term for base unit of tokens. Implement in lib. The term "token" is ambiguous as it is not clear that we are talking about base tokens.

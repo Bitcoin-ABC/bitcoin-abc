@@ -529,7 +529,7 @@ describe('<Token />', () => {
             },
             blockHeight: -1,
             isCoinbase: false,
-            value: 546,
+            sats: 546n,
             isFinal: false,
             token: {
                 tokenId:
@@ -539,7 +539,7 @@ describe('<Token />', () => {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
             },
             path: 1899,
@@ -551,7 +551,7 @@ describe('<Token />', () => {
             },
             blockHeight: -1,
             isCoinbase: false,
-            value: 546,
+            sats: 546n,
             isFinal: false,
             token: {
                 tokenId:
@@ -561,7 +561,7 @@ describe('<Token />', () => {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '20000',
+                atoms: 20000n,
                 isMintBaton: false,
             },
             path: 1899,
@@ -647,7 +647,7 @@ describe('<Token />', () => {
             },
             blockHeight: -1,
             isCoinbase: false,
-            value: 546,
+            sats: 546n,
             isFinal: false,
             token: {
                 tokenId:
@@ -657,7 +657,7 @@ describe('<Token />', () => {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
             },
             path: 1899,
@@ -669,7 +669,7 @@ describe('<Token />', () => {
             },
             blockHeight: -1,
             isCoinbase: false,
-            value: 546,
+            sats: 546n,
             isFinal: false,
             token: {
                 tokenId:
@@ -679,7 +679,7 @@ describe('<Token />', () => {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '20000',
+                atoms: 20000n,
                 isMintBaton: false,
             },
             path: 1899,

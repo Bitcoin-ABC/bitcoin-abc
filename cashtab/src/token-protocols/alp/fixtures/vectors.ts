@@ -8,7 +8,7 @@ import {
     TokenInputInfo,
 } from 'token-protocols';
 import {
-    MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+    MAX_OUTPUT_AMOUNT_ALP_ATOMS,
     CashtabAlpGenesisInfo,
 } from 'token-protocols/alp';
 import {
@@ -37,12 +37,12 @@ const DUMMY_TOKEN_TYPE_ALP: TokenType = {
 const DUMMY_TOKEN_ALP: Token = {
     tokenType: DUMMY_TOKEN_TYPE_ALP,
     tokenId: MOCK_TOKEN_ID,
-    amount: '1000',
+    atoms: 1000n,
     isMintBaton: false,
 };
 const DUMMY_UTXO: CashtabUtxo = {
     outpoint: DUMMY_OUTPOINT,
-    value: 546,
+    sats: 546n,
     blockHeight: 800000,
     isCoinbase: false,
     isFinal: true,
@@ -115,7 +115,7 @@ const vectors: AlpVectors = {
             {
                 description: '0 decimals',
                 decimals: 0,
-                returned: MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+                returned: MAX_OUTPUT_AMOUNT_ALP_ATOMS.toString(),
             },
             {
                 description: '1 decimals',
@@ -180,7 +180,7 @@ const vectors: AlpVectors = {
                 includeMintBaton: false,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504c5c534c5032000747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10301404b4c00000000',
@@ -205,7 +205,7 @@ const vectors: AlpVectors = {
                 includeMintBaton: true,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504c5c534c5032000747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10301404b4c00000001',
@@ -231,7 +231,7 @@ const vectors: AlpVectors = {
                 includeMintBaton: true,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504c5d534c5032000747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1000164000000000001',
@@ -259,7 +259,7 @@ const vectors: AlpVectors = {
                 includeMintBaton: true,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504c5d534c5032000747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10901ffffffffffff01',
@@ -281,11 +281,11 @@ const vectors: AlpVectors = {
                     decimals: 0,
                     authPubkey: toHex(DUMMY_KEYPAIR.pk),
                 },
-                initialQuantity: BigInt(MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS),
+                initialQuantity: BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS),
                 includeMintBaton: true,
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504c5d534c5032000747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10001ffffffffffff01',
@@ -308,9 +308,7 @@ const vectors: AlpVectors = {
                     decimals: 0,
                     authPubkey: toHex(DUMMY_KEYPAIR.pk),
                 },
-                initialQuantity: BigInt(
-                    `${MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS}1`,
-                ),
+                initialQuantity: BigInt(`${MAX_OUTPUT_AMOUNT_ALP_ATOMS}1`),
                 includeMintBaton: true,
                 errorMsg: `Cannot fit 655359 into a u16`,
             },
@@ -327,27 +325,24 @@ const vectors: AlpVectors = {
                             ...DUMMY_UTXO,
                             token: {
                                 ...DUMMY_TOKEN_ALP,
-                                amount: MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
                             },
                         },
                         {
                             ...DUMMY_UTXO,
                             token: {
                                 ...DUMMY_TOKEN_ALP,
-                                amount: MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
                             },
                         },
                     ],
-                    sendAmounts: [
-                        BigInt(MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS),
-                        1n,
-                    ],
+                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS), 1n],
                     tokenId: MOCK_TOKEN_ID,
                 },
                 destinationAddress: DUMMY_ADDRESS,
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a5037534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111102ffffffffffff010000000000',
@@ -371,24 +366,24 @@ const vectors: AlpVectors = {
                             ...DUMMY_UTXO,
                             token: {
                                 ...DUMMY_TOKEN_ALP,
-                                amount: MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
                             },
                         },
                         {
                             ...DUMMY_UTXO,
                             token: {
                                 ...DUMMY_TOKEN_ALP,
-                                amount: MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
                             },
                         },
                     ],
-                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS)],
+                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS)],
                     tokenId: MOCK_TOKEN_ID,
                 },
                 destinationAddress: DUMMY_ADDRESS,
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a5031534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111101ffffffffffff',
@@ -416,7 +411,7 @@ const vectors: AlpVectors = {
                 },
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a5030534c503200044255524e1111111111111111111111111111111111111111111111111111111111111111640000000000',
@@ -438,7 +433,7 @@ const vectors: AlpVectors = {
                 },
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a5030534c503200044255524e111111111111111111111111111111111111111111111111111111111111111164000000000031534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111101140000000000',
@@ -459,10 +454,10 @@ const vectors: AlpVectors = {
                 description:
                     'We can get target outputs for an ALP mint tx for highest 1-output qty',
                 tokenId: MOCK_TOKEN_ID,
-                mintQty: BigInt(MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS),
+                mintQty: BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS),
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a5032534c503200044d494e54111111111111111111111111111111111111111111111111111111111111111101ffffffffffff01',
@@ -488,7 +483,7 @@ const vectors: AlpVectors = {
                 agoraPartial: agoraPartialAlpTiberium,
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504b41475230075041525449414c000161ff1f0000000000737b02000000000061ff1f00000000008636ba26023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b117534c5032000453454e4402000400000000b88201000000',
@@ -517,7 +512,7 @@ const vectors: AlpVectors = {
                 agoraPartial: agoraPartialAlpTiberium,
                 returned: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a504b41475230075041525449414c000161ff1f0000000000737b02000000000061ff1f00000000008636ba26023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b111534c5032000453454e4401000400000000',

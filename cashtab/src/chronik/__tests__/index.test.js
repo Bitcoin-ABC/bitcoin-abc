@@ -203,7 +203,7 @@ describe('Cashtab chronik.js functions', () => {
                     },
                     blockHeight: 836457,
                     isCoinbase: false,
-                    value: 1000,
+                    sats: 1000n,
                     isFinal: true,
                     token: {
                         tokenId:
@@ -213,7 +213,7 @@ describe('Cashtab chronik.js functions', () => {
                             type: 'ALP_TOKEN_TYPE_UNKNOWN',
                             number: 255,
                         },
-                        amount: '0',
+                        atoms: 0n,
                         isMintBaton: false,
                     },
                     path: 1899,
@@ -249,13 +249,13 @@ describe('Cashtab chronik.js functions', () => {
 
         // Set tx history for all paths
         const mockedChronik = new MockChronikClient();
-        mockedChronik.setUtxosByAddress(defaultAddress, [{ value: 546 }]);
-        mockedChronik.setUtxosByAddress(secondaryAddress, [{ value: 546 }]);
+        mockedChronik.setUtxosByAddress(defaultAddress, [{ sats: 546n }]);
+        mockedChronik.setUtxosByAddress(secondaryAddress, [{ sats: 546n }]);
         expect(
             await getUtxos(mockedChronik, mockTxHistoryWallet),
         ).toStrictEqual([
-            { value: 546, path: 1899 },
-            { value: 546, path: 145 },
+            { sats: 546n, path: 1899 },
+            { sats: 546n, path: 145 },
         ]);
     });
     it('We can get and parse tx history from a multi-path wallet, and update the token cache at the same time', async () => {

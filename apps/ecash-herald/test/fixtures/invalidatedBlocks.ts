@@ -12,12 +12,12 @@ const invalidatedBlockFixture = [
                 '0394340d0492ae026708fabe6d6daf60fc610807858663407096d0cb0b05229c70aa6c9618533929fc17e36632c6000100000000000000b1145b730000009d00122f4d696e696e672d44757463682f2d313236',
             outputs: [
                 {
-                    value: 181250772,
+                    sats: 181250772n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                 },
                 {
-                    value: 31250132,
+                    sats: 31250132n,
                     outputScript:
                         '76a914b03bb6f8567bade53cc3a716e0414c1082a8530088ac',
                 },
@@ -39,12 +39,12 @@ const invalidatedBlockFixture = [
                 '0394340d0492ae026708fabe6d6daf60fc610807858663407096d0cb0b05229c70aa6c9618533929fc17e36632c6000100000000000000b1145b730000009d00122f4d696e696e672d44757463682f2d313236',
             outputs: [
                 {
-                    value: 181250772,
+                    sats: 181250772n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                 },
                 {
-                    value: 100000424,
+                    sats: 100000424n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 },
@@ -63,17 +63,17 @@ const invalidatedBlockFixture = [
                 '0394340d0492ae026708fabe6d6daf60fc610807858663407096d0cb0b05229c70aa6c9618533929fc17e36632c6000100000000000000b1145b730000009d00122f4d696e696e672d44757463682f2d313236',
             outputs: [
                 {
-                    value: 181250772,
+                    sats: 181250772n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                 },
                 {
-                    value: 100000424,
+                    sats: 100000424n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 },
                 {
-                    value: 31250132,
+                    sats: 31250132n,
                     outputScript:
                         '76a914b03bb6f8567bade53cc3a716e0414c1082a8530088ac',
                 },
@@ -96,17 +96,17 @@ const invalidatedBlockFixture = [
                 '0394340d0492ae026708fabe6d6daf60fc610807858663407096d0cb0b05229c70aa6c9618533929fc17e36632c6000100000000000000b1145b730000009d00122f4d696e696e672d44757463682f2d313236',
             outputs: [
                 {
-                    value: 181250772,
+                    sats: 181250772n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                 },
                 {
-                    value: 100000424,
+                    sats: 100000424n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 },
                 {
-                    value: 31250132,
+                    sats: 31250132n,
                     outputScript:
                         '76a914b03bb6f8567bade53cc3a716e0414c1082a8530088ac',
                 },
@@ -128,17 +128,17 @@ const invalidatedBlockFixture = [
                 '0394340d0492ae026708fabe6d6daf60fc610807858663407096d0cb0b05229c70aa6c9618533929fc17e36632c6000100000000000000b1145b730000009d00122f4d696e696e672d44757463682f2d313236',
             outputs: [
                 {
-                    value: 181250772,
+                    sats: 181250772n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                 },
                 {
-                    value: 100000424,
+                    sats: 100000424n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 },
                 {
-                    value: 31250132,
+                    sats: 31250132n,
                     outputScript:
                         '76a914b03bb6f8567bade53cc3a716e0414c1082a8530088ac',
                 },
@@ -168,17 +168,17 @@ const invalidatedBlockFixture = [
                 '0394340d0492ae026708fabe6d6daf60fc610807858663407096d0cb0b05229c70aa6c9618533929fc17e36632c6000100000000000000b1145b730000009d00122f4d696e696e672d44757463682f2d313236',
             outputs: [
                 {
-                    value: 181250772,
+                    sats: 181250772n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                 },
                 {
-                    value: 100000424,
+                    sats: 100000424n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 },
                 {
-                    value: 31250132,
+                    sats: 31250132n,
                     outputScript:
                         '76a914b03bb6f8567bade53cc3a716e0414c1082a8530088ac',
                 },

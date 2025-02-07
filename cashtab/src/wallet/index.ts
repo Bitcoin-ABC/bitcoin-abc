@@ -17,6 +17,13 @@ import {
     LegacyCashtabWallet_Pre_2_55_0,
 } from 'components/App/fixtures/mocks';
 import wif from 'wif';
+import {
+    TokenJson,
+    TxJson,
+    LegacyTxInputJson,
+    LegacyTxOutputJson,
+    LegacyTokenEntryJson,
+} from 'helpers';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export interface LegacyPathInfo_Pre_2_55_0 {
@@ -64,12 +71,40 @@ export interface ScriptUtxoWithToken extends ScriptUtxo {
 export interface NonTokenUtxo extends Omit<ScriptUtxo, 'token'> {
     path: number;
 }
+
+export interface NonTokenUtxoJson extends Omit<NonTokenUtxo, 'sats'> {
+    sats: string;
+}
+
+export interface LegacyNonTokenUtxoJson extends Omit<NonTokenUtxoJson, 'sats'> {
+    value: number;
+}
+
 export interface TokenUtxo extends NonTokenUtxo {
     token: Token;
 }
+
+export interface TokenUtxoJson extends Omit<NonTokenUtxoJson, 'token'> {
+    token: TokenJson;
+}
+
+export interface LegacyTokenJson extends Omit<TokenJson, 'atoms'> {
+    amount: string;
+}
+export interface LegacyTokenUtxoJson
+    extends Omit<TokenUtxoJson, 'sats' | 'token'> {
+    value: number;
+    token: LegacyTokenJson;
+}
+
 export interface CashtabUtxo extends NonTokenUtxo {
     token?: Token;
 }
+
+export interface CashtabUtxoJson extends NonTokenUtxoJson {
+    token?: TokenJson;
+}
+
 export interface CashtabWalletState {
     balanceSats: number;
     nonSlpUtxos: NonTokenUtxo[];
@@ -79,6 +114,15 @@ export interface CashtabWalletState {
 }
 export interface CashtabTx extends Tx {
     parsed: ParsedTx;
+}
+export interface CashtabTxJson extends TxJson {
+    parsed: ParsedTx;
+}
+export interface LegacyCashtabTxJson
+    extends Omit<CashtabTxJson, 'inputs' | 'outputs' | 'tokenEntries'> {
+    inputs: LegacyTxInputJson[];
+    outputs: LegacyTxOutputJson[];
+    tokenEntries: LegacyTokenEntryJson[];
 }
 export interface CashtabWalletPaths extends Map<number, CashtabPathInfo> {
     // Assert that path 1899, the default path, is always defined
@@ -119,7 +163,7 @@ export const DUMMY_KEYPAIR = {
  */
 export const getBalanceSats = (nonSlpUtxos: NonTokenUtxo[]): number => {
     return nonSlpUtxos.reduce(
-        (previousBalance, utxo) => previousBalance + utxo.value,
+        (previousBalance, utxo) => previousBalance + Number(utxo.sats),
         0,
     );
 };
@@ -336,8 +380,15 @@ export interface LegacyPathInfo extends LegacyPathInfo_Pre_2_55_0 {
     path: number;
 }
 
-export interface StoredCashtabState extends Omit<CashtabWalletState, 'tokens'> {
+export interface StoredCashtabState
+    extends Omit<
+        CashtabWalletState,
+        'tokens' | 'slpUtxos' | 'nonSlpUtxos' | 'parsedTxHistory'
+    > {
     tokens: [string, string][];
+    slpUtxos: TokenUtxoJson[] | LegacyTokenUtxoJson[];
+    nonSlpUtxos: NonTokenUtxoJson[] | LegacyNonTokenUtxoJson[];
+    parsedTxHistory: CashtabTxJson[] | LegacyCashtabTxJson[];
 }
 
 export type LegacyCashtabWallet =

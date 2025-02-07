@@ -7,7 +7,7 @@ use bytes::Bytes;
 use crate::{
     parsed::{ParsedData, ParsedMintData, ParsedTxType},
     slp::{
-        common::{parse_amount, parse_token_id},
+        common::{parse_atoms, parse_token_id},
         ParseError,
     },
     structs::TokenMeta,
@@ -49,14 +49,14 @@ pub(crate) fn parse_mint_data_baton(
     let additional_quantity = data_iter.next().unwrap();
     assert!(data_iter.next().is_none());
     let additional_quantity =
-        parse_amount(&additional_quantity, "additional_quantity")?;
+        parse_atoms(&additional_quantity, "additional_quantity")?;
 
-    let mut amounts = vec![additional_quantity];
+    let mut atoms_vec = vec![additional_quantity];
     if let Some(mint_baton_out_idx) = mint_baton_out_idx {
         // Pad mint amount 0s so the mint baton is at the correct output
         // -1 for the OP_RETURN output, and -1 for the additional quantity
         // output
-        amounts.extend(vec![0; mint_baton_out_idx - 2]);
+        atoms_vec.extend(vec![0; mint_baton_out_idx - 2]);
     }
 
     Ok(ParsedData {
@@ -65,7 +65,7 @@ pub(crate) fn parse_mint_data_baton(
             token_type: TokenType::Slp(token_type),
         },
         tx_type: ParsedTxType::Mint(ParsedMintData {
-            amounts,
+            atoms_vec,
             num_batons: mint_baton_out_idx.is_some() as usize,
         }),
     })

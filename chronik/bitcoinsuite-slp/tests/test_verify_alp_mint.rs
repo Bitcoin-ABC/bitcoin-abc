@@ -6,7 +6,7 @@ use bitcoinsuite_slp::{
     alp::sections_opreturn,
     structs::TxType,
     test_helpers::{
-        alp_mint, empty_entry, meta_alp as meta, spent_baton, token_amount,
+        alp_mint, empty_entry, meta_alp as meta, spent_baton, token_atoms,
         token_baton, verify, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4, TOKEN_ID5,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -78,7 +78,7 @@ fn test_verify_alp_success_simple() {
                 tx_type: Some(TxType::MINT),
                 ..empty_entry()
             }],
-            outputs: vec![None, token_amount::<0>(100), token_baton::<0>()],
+            outputs: vec![None, token_atoms::<0>(100), token_baton::<0>()],
             failed_parsings: vec![],
         },
     );
@@ -128,8 +128,8 @@ fn test_verify_alp_success_big() {
             ],
             outputs: vec![
                 None,
-                token_amount::<0>(100),
-                token_amount::<1>(15),
+                token_atoms::<0>(100),
+                token_atoms::<1>(15),
                 token_baton::<0>(),
                 token_baton::<1>(),
                 None,

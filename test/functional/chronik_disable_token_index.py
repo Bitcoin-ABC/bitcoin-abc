@@ -73,13 +73,13 @@ class ChronikDisableTokenIndex(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, amount=1000),
+                alp_token(token_id=tx.hash, atoms=1000),
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -125,16 +125,16 @@ class ChronikDisableTokenIndex(BitcoinTestFramework):
                     token_id=genesis.txid,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.SEND,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[
-                alp_token(token_id=genesis.txid, amount=1000),
+                alp_token(token_id=genesis.txid, atoms=1000),
             ],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=genesis.txid, amount=300),
-                alp_token(token_id=genesis.txid, amount=700),
+                alp_token(token_id=genesis.txid, atoms=300),
+                alp_token(token_id=genesis.txid, atoms=700),
             ],
         )
         send_not_token = TokenTx(
@@ -171,11 +171,11 @@ class ChronikDisableTokenIndex(BitcoinTestFramework):
                     token_id=genesis.txid,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     is_invalid=True,
-                    burn_summary="Unexpected burn: Burns 300 base tokens",
-                    actual_burn_amount="300",
+                    burn_summary="Unexpected burn: Burns 300 atoms",
+                    actual_burn_atoms="300",
                 ),
             ],
-            inputs=[alp_token(token_id=genesis.txid, amount=300)],
+            inputs=[alp_token(token_id=genesis.txid, atoms=300)],
             outputs=[pb.Token(), pb.Token(), pb.Token()],
         )
         burn_not_token = TokenTx(
@@ -185,7 +185,7 @@ class ChronikDisableTokenIndex(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[pb.Token(), pb.Token(), pb.Token()],
         )
-        burn_error = f"400: Tx {burn.txid} failed token checks: Unexpected burn: Burns 300 base tokens."
+        burn_error = f"400: Tx {burn.txid} failed token checks: Unexpected burn: Burns 300 atoms."
         burn.send(chronik, error=burn_error)
         burn.test(chronik)
 

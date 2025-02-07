@@ -148,7 +148,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             ],
             outputs=[
                 pb.TxOutput(
-                    value=coinvalue,
+                    sats=coinvalue,
                     output_script=bytes(tx_coinbase.vout[0].scriptPubKey),
                 ),
                 pb.TxOutput(
@@ -169,13 +169,13 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
                     prev_out=pb.OutPoint(txid=bytes.fromhex(cointx)[::-1], out_idx=0),
                     input_script=bytes(SCRIPTSIG_OP_TRUE),
                     output_script=bytes(P2SH_OP_TRUE),
-                    value=coinvalue,
+                    sats=coinvalue,
                     sequence_no=0,
                 ),
             ],
             outputs=[
                 pb.TxOutput(
-                    value=coinvalue - 10000,
+                    sats=coinvalue - 10000,
                     output_script=bytes(P2SH_OP_TRUE),
                     spent_by=pb.SpentBy(
                         txid=bytes.fromhex(tx2.hash)[::-1],
@@ -183,7 +183,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
                     ),
                 ),
                 pb.TxOutput(
-                    value=1000,
+                    sats=1000,
                     output_script=bytes(CScript([OP_RETURN, b"test"])),
                 ),
             ],
@@ -200,17 +200,17 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
                     prev_out=pb.OutPoint(txid=bytes.fromhex(tx1.hash)[::-1], out_idx=0),
                     input_script=bytes(SCRIPTSIG_OP_TRUE),
                     output_script=bytes(P2SH_OP_TRUE),
-                    value=coinvalue - 10000,
+                    sats=coinvalue - 10000,
                     sequence_no=0,
                 ),
             ],
             outputs=[
                 pb.TxOutput(
-                    value=3000,
+                    sats=3000,
                     output_script=bytes(CScript([OP_RETURN, b"test"])),
                 ),
                 pb.TxOutput(
-                    value=coinvalue - 20000,
+                    sats=coinvalue - 20000,
                     output_script=bytes(P2SH_OP_TRUE),
                 ),
             ],

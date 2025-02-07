@@ -7,12 +7,12 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClient, WsMsgClient, WsEndpoint, Tx } from '../../index';
+import { ChronikClient, WsEndpoint, WsMsgClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
+    expectWsMsgs,
     setMochaTimeout,
     TestInfo,
-    expectWsMsgs,
 } from '../setup/testRunner';
 
 const expect = chai.expect;
@@ -132,7 +132,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         isFinal: false,
         outpoint: BASE_OUTPOINT,
         script: TEST_UTXO_OUTPUTSCRIPT,
-        value: 1000,
+        sats: 1000n,
     };
 
     const FIRST_PLUGIN_OPRETURN = '6a0454455354046172676f04616c656603616263';
@@ -309,7 +309,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
 
         // We get plugin info in expected shape for outputs
         expect(outputs[0]).to.deep.equal({
-            value: 0,
+            sats: 0n,
             outputScript: FIRST_PLUGIN_OPRETURN,
             // No plugins key here as no associated plugin data for this output
         });
@@ -368,7 +368,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
                             groups: [BYTES_a],
                         },
                     },
-                    value: 4999990000,
+                    sats: 4999990000n,
                 },
             ],
         });
@@ -449,7 +449,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
 
         // We get plugin info in expected shape for outputs
         expect(outputs[0]).to.deep.equal({
-            value: 0,
+            sats: 0n,
             outputScript: SECOND_PLUGIN_OPRETURN,
             // No plugins key here as no associated plugin data for this output
         });
@@ -509,7 +509,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
                             groups: [BYTES_b],
                         },
                     },
-                    value: 4999980000,
+                    sats: 4999980000n,
                 },
             ],
         });
@@ -589,7 +589,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
 
         // We get plugin info in expected shape for outputs
         expect(outputs[0]).to.deep.equal({
-            value: 0,
+            sats: 0n,
             outputScript: FIRST_PLUGIN_OPRETURN,
             // No plugins key here as no associated plugin data for this output
         });
@@ -705,7 +705,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
 
         // We get plugin info in expected shape for outputs
         expect(outputs[0]).to.deep.equal({
-            value: 0,
+            sats: 0n,
             outputScript: THIRD_PLUGIN_OPRETURN,
             // No plugins key here as no associated plugin data for this output
         });
@@ -730,7 +730,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
                     data: [BYTES_carp, BYTES_blub, BYTES_abc],
                 },
             },
-            value: 4999970000,
+            sats: 4999970000n,
         };
         expect(thesePluginUtxos).to.deep.equal({
             groupHex: BYTES_c,
@@ -891,7 +891,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
 
         // We get plugin info in expected shape for outputs
         expect(outputs[0]).to.deep.equal({
-            value: 0,
+            sats: 0n,
             outputScript: SECOND_PLUGIN_OPRETURN,
             // No plugins key here as no associated plugin data for this output
         });

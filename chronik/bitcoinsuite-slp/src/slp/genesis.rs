@@ -10,7 +10,7 @@ use bytes::Bytes;
 
 use crate::{
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
-    slp::{common::parse_amount, ParseError},
+    slp::{common::parse_atoms, ParseError},
     structs::{GenesisInfo, TokenMeta},
     token_id::TokenId,
     token_type::{SlpTokenType, TokenType},
@@ -60,7 +60,7 @@ pub(crate) fn parse_genesis_data(
         });
     }
     let mint_field = parse_mint_field(token_type, &mint_field)?;
-    let initial_quantity = parse_amount(&initial_quantity, "initial_quantity")?;
+    let initial_quantity = parse_atoms(&initial_quantity, "initial_quantity")?;
     if decimals[0] > 9 {
         return Err(ParseError::InvalidDecimals {
             actual: decimals[0] as usize,
@@ -80,11 +80,11 @@ pub(crate) fn parse_genesis_data(
             return Err(ParseError::Nft1ChildInvalidDecimals(decimals));
         }
     }
-    let mut amounts = vec![initial_quantity];
+    let mut atoms_vec = vec![initial_quantity];
     if let Some(mint_baton_out_idx) = mint_field.mint_baton_out_idx() {
         // Pad mint amount 0s so the mint baton is at the correct output
         // -1 for the OP_RETURN output, and -1 for the initial quantity output
-        amounts.extend(vec![0; mint_baton_out_idx as usize - 2]);
+        atoms_vec.extend(vec![0; mint_baton_out_idx as usize - 2]);
     }
 
     Ok(ParsedData {
@@ -104,7 +104,7 @@ pub(crate) fn parse_genesis_data(
                 decimals,
             },
             mint_data: ParsedMintData {
-                amounts,
+                atoms_vec,
                 num_batons: mint_field.mint_baton_out_idx().is_some() as usize,
             },
         }),

@@ -8,7 +8,7 @@ import { ChronikClient } from 'chronik-client';
 import {
     ALL_BIP143,
     ALP_STANDARD,
-    DEFAULT_DUST_LIMIT,
+    DEFAULT_DUST_SATS,
     Ecc,
     P2PKHSignatory,
     Script,
@@ -31,10 +31,10 @@ const BASE_PARAMS_ALP = {
     tokenId: '00'.repeat(32), // filled in later
     tokenType: ALP_STANDARD,
     tokenProtocol: 'ALP' as const,
-    dustAmount: DEFAULT_DUST_LIMIT,
+    dustSats: DEFAULT_DUST_SATS,
 };
 
-const BIGSATS = 149 * 5000000000 - 20000;
+const BIGSATS = BigInt(149 * 5000000000 - 20000);
 
 const ecc = new Ecc();
 
@@ -51,17 +51,17 @@ const takerScriptHex = toHex(takerScript.bytecode);
 
 async function makeBuilderInputs(
     runner: TestRunner,
-    values: number[],
+    values: bigint[],
 ): Promise<TxBuilderInput[]> {
     const txid = await runner.sendToScript(values, makerScript);
-    return values.map((value, outIdx) => ({
+    return values.map((sats, outIdx) => ({
         input: {
             prevOut: {
                 txid,
                 outIdx,
             },
             signData: {
-                value,
+                sats,
                 outputScript: makerScript,
             },
         },
@@ -76,7 +76,7 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        await runner.setupCoins(1, BIGSATS + 11000);
+        await runner.setupCoins(1, BIGSATS + 11000n);
     });
 
     after(() => {
@@ -85,43 +85,43 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
 
     it('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', async () => {
         const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000,
+            10000n,
             BIGSATS,
         ]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: 0xffffffffffffn,
-            priceNanoSatsPerToken: 2600000n, // scaled to use the XEC
+            offeredAtoms: 0xffffffffffffn,
+            priceNanoSatsPerAtom: 2600000n, // scaled to use the XEC
             makerPk: makerPk,
-            minAcceptedTokens: 0xffffffffn,
+            minAcceptedAtoms: 0xffffffffn,
             ...BASE_PARAMS_ALP,
         });
 
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 0xffffffn,
-                numTokenTruncBytes: 3,
-                tokenScaleFactor: 127n,
-                scaledTruncTokensPerTruncSat: 190n,
+                truncAtoms: 0xffffffn,
+                numAtomsTruncBytes: 3,
+                atomsScaleFactor: 127n,
+                scaledTruncAtomsPerTruncSat: 190n,
                 numSatsTruncBytes: 2,
                 makerPk,
-                minAcceptedScaledTruncTokens: 32511n,
+                minAcceptedScaledTruncAtoms: 32511n,
                 ...BASE_PARAMS_ALP,
                 enforcedLockTime: agoraPartial.enforcedLockTime,
                 scriptLen: 204,
             }),
         );
-        expect(agoraPartial.offeredTokens()).to.equal(0xffffff000000n);
+        expect(agoraPartial.offeredAtoms()).to.equal(0xffffff000000n);
         expect(agoraPartial.askedSats(0x1000000n)).to.equal(65536n);
-        expect(agoraPartial.priceNanoSatsPerToken(0x1000000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0x1000000n)).to.equal(
             3906250n,
         );
         expect(agoraPartial.askedSats(0xffffff000000n)).to.equal(734936694784n);
-        expect(agoraPartial.priceNanoSatsPerToken(0xffffff000000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0xffffff000000n)).to.equal(
             2611019n,
         );
-        expect(agoraPartial.priceNanoSatsPerToken()).to.equal(2611019n);
+        expect(agoraPartial.priceNanoSatsPerAtom()).to.equal(2611019n);
 
         const offer = await makeAlpOffer({
             chronik,
@@ -134,7 +134,7 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
             offer,
             takerSk,
             takerInput,
-            acceptedTokens: agoraPartial.offeredTokens(),
+            acceptedAtoms: agoraPartial.offeredAtoms(),
         });
 
         const acceptTx = await chronik.tx(acceptTxid);
@@ -144,23 +144,21 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
                 emppScript([
                     agoraPartial.adPushdata(),
                     alpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                        0,
-                        agoraPartial.offeredTokens(),
+                        0n,
+                        agoraPartial.offeredAtoms(),
                     ]),
                 ]).bytecode,
             ),
         );
-        expect(acceptTx.outputs[0].value).to.equal(0);
+        expect(acceptTx.outputs[0].sats).to.equal(0n);
         expect(acceptTx.outputs[0].token).to.equal(undefined);
         // 1st output is sats to maker
         expect(acceptTx.outputs[1].token).to.equal(undefined);
-        expect(acceptTx.outputs[1].value).to.equal(734936694784);
+        expect(acceptTx.outputs[1].sats).to.equal(734936694784n);
         expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
         // 2nd output is tokens to taker
-        expect(acceptTx.outputs[2].token?.amount).to.equal(
-            0xffffff000000n.toString(),
-        );
-        expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[2].token?.atoms).to.equal(0xffffff000000n);
+        expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[2].outputScript).to.equal(takerScriptHex);
     });
 });
@@ -168,12 +166,11 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
 describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
-    let ecc: Ecc;
 
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        await runner.setupCoins(1, BIGSATS + 11000);
+        await runner.setupCoins(1, BIGSATS + 11000n);
     });
 
     after(() => {
@@ -182,44 +179,44 @@ describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
 
     it('AgoraPartial ALP 7450M XEC vs 2p48-1 small accept', async () => {
         const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000,
+            10000n,
             BIGSATS,
         ]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: 0xffffffffffffn,
-            priceNanoSatsPerToken: 30000000000000n, // scaled to use the XEC
+            offeredAtoms: 0xffffffffffffn,
+            priceNanoSatsPerAtom: 30000000000000n, // scaled to use the XEC
             makerPk,
-            minAcceptedTokens: 0x1000000n,
+            minAcceptedAtoms: 0x1000000n,
             ...BASE_PARAMS_ALP,
         });
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 0xffffffn,
-                numTokenTruncBytes: 3,
-                tokenScaleFactor: 128n,
-                scaledTruncTokensPerTruncSat: 1n,
+                truncAtoms: 0xffffffn,
+                numAtomsTruncBytes: 3,
+                atomsScaleFactor: 128n,
+                scaledTruncAtomsPerTruncSat: 1n,
                 numSatsTruncBytes: 4,
                 makerPk,
-                minAcceptedScaledTruncTokens: 128n,
+                minAcceptedScaledTruncAtoms: 128n,
                 ...BASE_PARAMS_ALP,
                 enforcedLockTime: agoraPartial.enforcedLockTime,
                 scriptLen: 205,
             }),
         );
-        expect(agoraPartial.offeredTokens()).to.equal(0xffffff000000n);
+        expect(agoraPartial.offeredAtoms()).to.equal(0xffffff000000n);
         expect(agoraPartial.askedSats(0x1000000n)).to.equal(549755813888n);
-        expect(agoraPartial.priceNanoSatsPerToken(0x1000000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0x1000000n)).to.equal(
             32768000000000n,
         );
         expect(agoraPartial.askedSats(0xffffff000000n)).to.equal(
             9223371487098961920n,
         );
-        expect(agoraPartial.priceNanoSatsPerToken(0xffffff000000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0xffffff000000n)).to.equal(
             32768000000000n,
         );
-        expect(agoraPartial.priceNanoSatsPerToken()).to.equal(32768000000000n);
+        expect(agoraPartial.priceNanoSatsPerAtom()).to.equal(32768000000000n);
 
         const offer = await makeAlpOffer({
             chronik,
@@ -227,13 +224,13 @@ describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
             makerSk,
             fuelInput,
         });
-        const acceptedTokens = 0x1000000n;
+        const acceptedAtoms = 0x1000000n;
         const acceptTxid = await takeAlpOffer({
             chronik,
             offer,
             takerSk,
             takerInput,
-            acceptedTokens,
+            acceptedAtoms,
         });
 
         const acceptTx = await chronik.tx(acceptTxid);
@@ -244,30 +241,28 @@ describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
                 emppScript([
                     agoraPartial.adPushdata(),
                     alpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                        0,
-                        agoraPartial.offeredTokens() - acceptedTokens,
-                        acceptedTokens,
+                        0n,
+                        agoraPartial.offeredAtoms() - acceptedAtoms,
+                        acceptedAtoms,
                     ]),
                 ]).bytecode,
             ),
         );
-        expect(acceptTx.outputs[0].value).to.equal(0);
+        expect(acceptTx.outputs[0].sats).to.equal(0n);
         expect(acceptTx.outputs[0].token).to.equal(undefined);
         // 1st output is sats to maker
         expect(acceptTx.outputs[1].token).to.equal(undefined);
-        expect(acceptTx.outputs[1].value).to.equal(549755813888);
+        expect(acceptTx.outputs[1].sats).to.equal(549755813888n);
         expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
         // 2nd output is back to the P2SH Script
-        expect(acceptTx.outputs[2].token?.amount).to.equal(
-            (agoraPartial.offeredTokens() - acceptedTokens).toString(),
+        expect(acceptTx.outputs[2].token?.atoms).to.equal(
+            agoraPartial.offeredAtoms() - acceptedAtoms,
         );
-        expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[2].outputScript.slice(0, 4)).to.equal('a914');
         // 3rd output is tokens to taker
-        expect(acceptTx.outputs[3].token?.amount).to.equal(
-            acceptedTokens.toString(),
-        );
-        expect(acceptTx.outputs[3].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[3].token?.atoms).to.equal(acceptedAtoms);
+        expect(acceptTx.outputs[3].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[3].outputScript).to.equal(takerScriptHex);
     });
 });
@@ -279,7 +274,7 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        await runner.setupCoins(1, BIGSATS + 11000);
+        await runner.setupCoins(1, BIGSATS + 11000n);
     });
 
     after(() => {
@@ -288,42 +283,42 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
 
     it('AgoraPartial ALP 7450M XEC vs 2p47-1 full accept', async () => {
         const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000,
+            10000n,
             BIGSATS,
         ]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: 0x7fffffffffffn,
-            priceNanoSatsPerToken: 5000000n, // scaled to use the XEC
+            offeredAtoms: 0x7fffffffffffn,
+            priceNanoSatsPerAtom: 5000000n, // scaled to use the XEC
             makerPk: makerPk,
-            minAcceptedTokens: 0xffffffffn,
+            minAcceptedAtoms: 0xffffffffn,
             ...BASE_PARAMS_ALP,
         });
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 0x7fffff38n,
-                numTokenTruncBytes: 2,
-                tokenScaleFactor: 1n,
-                scaledTruncTokensPerTruncSat: 200n,
+                truncAtoms: 0x7fffff38n,
+                numAtomsTruncBytes: 2,
+                atomsScaleFactor: 1n,
+                scaledTruncAtomsPerTruncSat: 200n,
                 numSatsTruncBytes: 2,
                 makerPk,
-                minAcceptedScaledTruncTokens: 0xffffn,
+                minAcceptedScaledTruncAtoms: 0xffffn,
                 ...BASE_PARAMS_ALP,
                 enforcedLockTime: agoraPartial.enforcedLockTime,
                 scriptLen: 199,
             }),
         );
-        expect(agoraPartial.offeredTokens()).to.equal(0x7fffff380000n);
+        expect(agoraPartial.offeredAtoms()).to.equal(0x7fffff380000n);
         expect(agoraPartial.askedSats(0x10000n)).to.equal(65536n);
-        expect(agoraPartial.priceNanoSatsPerToken(0x10000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0x10000n)).to.equal(
             1000000000n,
         );
         expect(agoraPartial.askedSats(0x7fffff380000n)).to.equal(703687426048n);
-        expect(agoraPartial.priceNanoSatsPerToken(0x7fffff380000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0x7fffff380000n)).to.equal(
             5000000n,
         );
-        expect(agoraPartial.priceNanoSatsPerToken()).to.equal(5000000n);
+        expect(agoraPartial.priceNanoSatsPerAtom()).to.equal(5000000n);
 
         const offer = await makeAlpOffer({
             chronik,
@@ -336,7 +331,7 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
             offer,
             takerSk,
             takerInput,
-            acceptedTokens: agoraPartial.offeredTokens(),
+            acceptedAtoms: agoraPartial.offeredAtoms(),
         });
 
         const acceptTx = await chronik.tx(acceptTxid);
@@ -347,23 +342,23 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
                 emppScript([
                     agoraPartial.adPushdata(),
                     alpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                        0,
-                        agoraPartial.offeredTokens(),
+                        0n,
+                        agoraPartial.offeredAtoms(),
                     ]),
                 ]).bytecode,
             ),
         );
-        expect(acceptTx.outputs[0].value).to.equal(0);
+        expect(acceptTx.outputs[0].sats).to.equal(0n);
         expect(acceptTx.outputs[0].token).to.equal(undefined);
         // 1st output is sats to maker
         expect(acceptTx.outputs[1].token).to.equal(undefined);
-        expect(acceptTx.outputs[1].value).to.equal(703687426048);
+        expect(acceptTx.outputs[1].sats).to.equal(703687426048n);
         expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
         // 2nd output is tokens to taker
-        expect(acceptTx.outputs[2].token?.amount).to.equal(
-            agoraPartial.offeredTokens().toString(),
+        expect(acceptTx.outputs[2].token?.atoms).to.equal(
+            agoraPartial.offeredAtoms(),
         );
-        expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[2].outputScript).to.equal(takerScriptHex);
     });
 });
@@ -375,7 +370,7 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        await runner.setupCoins(1, BIGSATS + 11000);
+        await runner.setupCoins(1, BIGSATS + 11000n);
     });
 
     after(() => {
@@ -384,44 +379,44 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
 
     it('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', async () => {
         const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000,
+            10000n,
             BIGSATS,
         ]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: 0x7fffffffffffn,
-            priceNanoSatsPerToken: 32000000000000n,
+            offeredAtoms: 0x7fffffffffffn,
+            priceNanoSatsPerAtom: 32000000000000n,
             makerPk,
-            minAcceptedTokens: 0x1000000n,
+            minAcceptedAtoms: 0x1000000n,
             ...BASE_PARAMS_ALP,
         });
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 0x7fffffn,
-                numTokenTruncBytes: 3,
-                tokenScaleFactor: 256n,
-                scaledTruncTokensPerTruncSat: 2n,
+                truncAtoms: 0x7fffffn,
+                numAtomsTruncBytes: 3,
+                atomsScaleFactor: 256n,
+                scaledTruncAtomsPerTruncSat: 2n,
                 numSatsTruncBytes: 4,
                 makerPk,
-                minAcceptedScaledTruncTokens: 256n,
+                minAcceptedScaledTruncAtoms: 256n,
                 ...BASE_PARAMS_ALP,
                 enforcedLockTime: agoraPartial.enforcedLockTime,
                 scriptLen: 205,
             }),
         );
-        expect(agoraPartial.offeredTokens()).to.equal(0x7fffff000000n);
+        expect(agoraPartial.offeredAtoms()).to.equal(0x7fffff000000n);
         expect(agoraPartial.askedSats(0x1000000n)).to.equal(549755813888n);
-        expect(agoraPartial.priceNanoSatsPerToken(0x1000000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0x1000000n)).to.equal(
             32768000000000n,
         );
         expect(agoraPartial.askedSats(0x7fffff000000n)).to.equal(
             4611685468671574016n,
         );
-        expect(agoraPartial.priceNanoSatsPerToken(0x7fffff000000n)).to.equal(
+        expect(agoraPartial.priceNanoSatsPerAtom(0x7fffff000000n)).to.equal(
             32768000000000n,
         );
-        expect(agoraPartial.priceNanoSatsPerToken()).to.equal(32768000000000n);
+        expect(agoraPartial.priceNanoSatsPerAtom()).to.equal(32768000000000n);
 
         const offer = await makeAlpOffer({
             chronik,
@@ -429,13 +424,13 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
             makerSk,
             fuelInput,
         });
-        const acceptedTokens = 0x1000000n;
+        const acceptedAtoms = 0x1000000n;
         const acceptTxid = await takeAlpOffer({
             chronik,
             offer,
             takerSk,
             takerInput,
-            acceptedTokens,
+            acceptedAtoms,
         });
 
         const acceptTx = await chronik.tx(acceptTxid);
@@ -446,30 +441,28 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
                 emppScript([
                     agoraPartial.adPushdata(),
                     alpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                        0,
-                        agoraPartial.offeredTokens() - acceptedTokens,
-                        acceptedTokens,
+                        0n,
+                        agoraPartial.offeredAtoms() - acceptedAtoms,
+                        acceptedAtoms,
                     ]),
                 ]).bytecode,
             ),
         );
-        expect(acceptTx.outputs[0].value).to.equal(0);
+        expect(acceptTx.outputs[0].sats).to.equal(0n);
         expect(acceptTx.outputs[0].token).to.equal(undefined);
         // 1st output is sats to maker
         expect(acceptTx.outputs[1].token).to.equal(undefined);
-        expect(acceptTx.outputs[1].value).to.equal(549755813888);
+        expect(acceptTx.outputs[1].sats).to.equal(549755813888n);
         expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
         // 2nd output is back to the P2SH Script
-        expect(acceptTx.outputs[2].token?.amount).to.equal(
-            (agoraPartial.offeredTokens() - acceptedTokens).toString(),
+        expect(acceptTx.outputs[2].token?.atoms).to.equal(
+            agoraPartial.offeredAtoms() - acceptedAtoms,
         );
-        expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[2].outputScript.slice(0, 4)).to.equal('a914');
         // 3rd output is tokens to taker
-        expect(acceptTx.outputs[3].token?.amount).to.equal(
-            acceptedTokens.toString(),
-        );
-        expect(acceptTx.outputs[3].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[3].token?.atoms).to.equal(acceptedAtoms);
+        expect(acceptTx.outputs[3].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[3].outputScript).to.equal(takerScriptHex);
     });
 });
@@ -481,7 +474,7 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        await runner.setupCoins(1, BIGSATS + 11000);
+        await runner.setupCoins(1, BIGSATS + 11000n);
     });
 
     after(() => {
@@ -490,34 +483,34 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
 
     it('AgoraPartial ALP 7450M XEC vs 100 full accept', async () => {
         const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000,
+            10000n,
             BIGSATS,
         ]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: 100n,
-            priceNanoSatsPerToken: 7123456780n * 1000000000n, // scaled to use the XEC
+            offeredAtoms: 100n,
+            priceNanoSatsPerAtom: 7123456780n * 1000000000n, // scaled to use the XEC
             makerPk: makerPk,
-            minAcceptedTokens: 1n,
+            minAcceptedAtoms: 1n,
             ...BASE_PARAMS_ALP,
         });
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 100n,
-                numTokenTruncBytes: 0,
-                tokenScaleFactor: 0x7fff3a28n / 100n,
-                scaledTruncTokensPerTruncSat: 50576n,
+                truncAtoms: 100n,
+                numAtomsTruncBytes: 0,
+                atomsScaleFactor: 0x7fff3a28n / 100n,
+                scaledTruncAtomsPerTruncSat: 50576n,
                 numSatsTruncBytes: 3,
                 makerPk,
-                minAcceptedScaledTruncTokens: 0x7fff3a28n / 100n,
+                minAcceptedScaledTruncAtoms: 0x7fff3a28n / 100n,
                 ...BASE_PARAMS_ALP,
                 enforcedLockTime: agoraPartial.enforcedLockTime,
                 scriptLen: 215,
             }),
         );
-        expect(agoraPartial.offeredTokens()).to.equal(100n);
-        expect(agoraPartial.minAcceptedTokens()).to.equal(1n);
+        expect(agoraPartial.offeredAtoms()).to.equal(100n);
+        expect(agoraPartial.minAcceptedAtoms()).to.equal(1n);
         expect(agoraPartial.askedSats(1n)).to.equal(7130316800n);
         expect(agoraPartial.askedSats(2n)).to.equal(7130316800n * 2n);
         expect(agoraPartial.askedSats(3n)).to.equal(7124724394n * 3n + 2n);
@@ -537,7 +530,7 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
             offer,
             takerSk,
             takerInput,
-            acceptedTokens: 100n,
+            acceptedAtoms: 100n,
         });
         const acceptTx = await chronik.tx(acceptTxid);
 
@@ -547,21 +540,21 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
                 emppScript([
                     agoraPartial.adPushdata(),
                     alpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
-                        0,
-                        agoraPartial.offeredTokens(),
+                        0n,
+                        agoraPartial.offeredAtoms(),
                     ]),
                 ]).bytecode,
             ),
         );
-        expect(acceptTx.outputs[0].value).to.equal(0);
+        expect(acceptTx.outputs[0].sats).to.equal(0n);
         expect(acceptTx.outputs[0].token).to.equal(undefined);
         // 1st output is sats to maker
         expect(acceptTx.outputs[1].token).to.equal(undefined);
-        expect(acceptTx.outputs[1].value).to.equal(712360591360);
+        expect(acceptTx.outputs[1].sats).to.equal(712360591360n);
         expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
         // 2nd output is tokens to taker
-        expect(acceptTx.outputs[2].token?.amount).to.equal('100');
-        expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[2].token?.atoms).to.equal(100n);
+        expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[2].outputScript).to.equal(takerScriptHex);
     });
 });
@@ -573,7 +566,7 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
     before(async () => {
         runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
-        await runner.setupCoins(1, BIGSATS + 11000);
+        await runner.setupCoins(1, BIGSATS + 11000n);
     });
 
     after(() => {
@@ -582,34 +575,34 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
 
     it('AgoraPartial ALP 7450M XEC vs 100 small accept', async () => {
         const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000,
+            10000n,
             BIGSATS,
         ]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
-            offeredTokens: 100n,
-            priceNanoSatsPerToken: 712345678000n * 1000000000n, // scaled to use the XEC
+            offeredAtoms: 100n,
+            priceNanoSatsPerAtom: 712345678000n * 1000000000n, // scaled to use the XEC
             makerPk: makerPk,
-            minAcceptedTokens: 1n,
+            minAcceptedAtoms: 1n,
             ...BASE_PARAMS_ALP,
         });
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
-                truncTokens: 100n,
-                numTokenTruncBytes: 0,
-                tokenScaleFactor: 0x7ffe05f4n / 100n,
-                scaledTruncTokensPerTruncSat: 129471n,
+                truncAtoms: 100n,
+                numAtomsTruncBytes: 0,
+                atomsScaleFactor: 0x7ffe05f4n / 100n,
+                scaledTruncAtomsPerTruncSat: 129471n,
                 numSatsTruncBytes: 4,
                 makerPk,
-                minAcceptedScaledTruncTokens: 0x7ffe05f4n / 100n,
+                minAcceptedScaledTruncAtoms: 0x7ffe05f4n / 100n,
                 ...BASE_PARAMS_ALP,
                 enforcedLockTime: agoraPartial.enforcedLockTime,
                 scriptLen: 216,
             }),
         );
-        expect(agoraPartial.offeredTokens()).to.equal(100n);
-        expect(agoraPartial.minAcceptedTokens()).to.equal(1n);
+        expect(agoraPartial.offeredAtoms()).to.equal(100n);
+        expect(agoraPartial.minAcceptedAtoms()).to.equal(1n);
         expect(agoraPartial.askedSats(1n)).to.equal(712964571136n);
         expect(agoraPartial.askedSats(10n)).to.equal(7125350744064n);
         expect(agoraPartial.askedSats(100n)).to.equal(71236327571456n);
@@ -625,7 +618,7 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
             offer,
             takerSk,
             takerInput,
-            acceptedTokens: 1n,
+            acceptedAtoms: 1n,
         });
         const acceptTx = await chronik.tx(acceptTxid);
 
@@ -634,27 +627,27 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
             toHex(
                 emppScript([
                     agoraPartial.adPushdata(),
-                    alpSend(
-                        agoraPartial.tokenId,
-                        agoraPartial.tokenType,
-                        [0, 99, 1],
-                    ),
+                    alpSend(agoraPartial.tokenId, agoraPartial.tokenType, [
+                        0n,
+                        99n,
+                        1n,
+                    ]),
                 ]).bytecode,
             ),
         );
-        expect(acceptTx.outputs[0].value).to.equal(0);
+        expect(acceptTx.outputs[0].sats).to.equal(0n);
         expect(acceptTx.outputs[0].token).to.equal(undefined);
         // 1st output is sats to maker
         expect(acceptTx.outputs[1].token).to.equal(undefined);
-        expect(acceptTx.outputs[1].value).to.equal(712964571136);
+        expect(acceptTx.outputs[1].sats).to.equal(712964571136n);
         expect(acceptTx.outputs[1].outputScript).to.equal(makerScriptHex);
         // 2nd output is back to the P2SH Script
-        expect(acceptTx.outputs[2].token?.amount).to.equal('99');
-        expect(acceptTx.outputs[2].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[2].token?.atoms).to.equal(99n);
+        expect(acceptTx.outputs[2].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[2].outputScript.slice(0, 4)).to.equal('a914');
         // 3rd output is tokens to taker
-        expect(acceptTx.outputs[3].token?.amount).to.equal('1');
-        expect(acceptTx.outputs[3].value).to.equal(DEFAULT_DUST_LIMIT);
+        expect(acceptTx.outputs[3].token?.atoms).to.equal(1n);
+        expect(acceptTx.outputs[3].sats).to.equal(DEFAULT_DUST_SATS);
         expect(acceptTx.outputs[3].outputScript).to.equal(takerScriptHex);
     });
 });

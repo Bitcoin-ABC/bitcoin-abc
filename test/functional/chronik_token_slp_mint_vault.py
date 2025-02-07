@@ -115,13 +115,13 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                vault_token(token_id=tx.hash, amount=1000),
+                vault_token(token_id=tx.hash, atoms=1000),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
@@ -168,7 +168,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                     tx_type=pb.MINT,
                     is_invalid=True,
                     burn_summary="Validation error: Missing MINT vault",
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
@@ -226,13 +226,13 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                     token_id=genesis.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
                     tx_type=pb.MINT,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                vault_token(token_id=genesis.txid, amount=5000),
+                vault_token(token_id=genesis.txid, atoms=5000),
             ],
         )
         mint2.send(chronik)
@@ -264,7 +264,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                     token_id=genesis.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
                     tx_type=pb.MINT,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
@@ -344,7 +344,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
                     tx_type=pb.SEND,
                     is_invalid=True,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                     burn_summary="Validation error: Insufficient token input output sum: 0 < 4000",
                 ),
             ],
@@ -367,17 +367,17 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
         mint.status = pb.TOKEN_STATUS_NORMAL
         mint.entries[0].is_invalid = False
         mint.entries[0].burn_summary = ""
-        mint.outputs = [pb.Token(), vault_token(token_id=genesis.txid, amount=4000)]
+        mint.outputs = [pb.Token(), vault_token(token_id=genesis.txid, atoms=4000)]
         mint.test(chronik, block_hashes[-1])
         # The SEND also transitively becomes valid
         send.status = pb.TOKEN_STATUS_NORMAL
         send.entries[0].is_invalid = False
         send.entries[0].burn_summary = ""
-        send.inputs = [vault_token(token_id=genesis.txid, amount=4000)]
+        send.inputs = [vault_token(token_id=genesis.txid, atoms=4000)]
         send.outputs = [
             pb.Token(),
-            vault_token(token_id=genesis.txid, amount=3000),
-            vault_token(token_id=genesis.txid, amount=1000),
+            vault_token(token_id=genesis.txid, atoms=3000),
+            vault_token(token_id=genesis.txid, atoms=1000),
         ]
         send.test(chronik, block_hashes[-1])
 

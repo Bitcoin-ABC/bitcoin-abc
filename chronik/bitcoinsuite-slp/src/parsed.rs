@@ -6,7 +6,7 @@
 
 use std::ops::Range;
 
-use crate::structs::{Amount, GenesisInfo, TokenMeta, TxType};
+use crate::structs::{Atoms, GenesisInfo, TokenMeta, TxType};
 
 /// Parsed data from SLP or ALP.
 /// For SLP, this is from parsing an entire `OP_RETURN`.
@@ -28,9 +28,9 @@ pub enum ParsedTxType {
     /// Parsed MINT tx with mint data
     Mint(ParsedMintData),
     /// Parsed SEND tx with send amounts
-    Send(Vec<Amount>),
+    Send(Vec<Atoms>),
     /// Parsed BURN tx with the burned amount
-    Burn(Amount),
+    Burn(Atoms),
     /// Parsed unknown token type
     Unknown,
 }
@@ -47,9 +47,9 @@ pub struct ParsedGenesis {
 /// Mint data of a GENESIS or MINT tx
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct ParsedMintData {
-    /// List of amounts to be minted by this tx, each having their own tx
-    /// output
-    pub amounts: Vec<Amount>,
+    /// List of amounts (in atoms) to be minted by this tx, each having their
+    /// own tx output.
+    pub atoms_vec: Vec<Atoms>,
     /// Number of mint batons to create, each having their own tx output
     pub num_batons: usize,
 }
@@ -69,13 +69,13 @@ impl ParsedTxType {
 
 impl ParsedMintData {
     /// [`Range`] for the outputs that will receive an amount
-    pub fn amounts_range(&self) -> Range<usize> {
-        1..1 + self.amounts.len()
+    pub fn atoms_vec_range(&self) -> Range<usize> {
+        1..1 + self.atoms_vec.len()
     }
 
     /// [`Range`] for the outputs that will receive a mint baton
     pub fn batons_range(&self) -> Range<usize> {
-        let start = 1 + self.amounts.len();
+        let start = 1 + self.atoms_vec.len();
         start..start + self.num_batons
     }
 }

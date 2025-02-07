@@ -350,7 +350,7 @@ describe('<Airdrop />', () => {
         const mockToken = {
             tokenId: airdropTokenId,
             tokenType: mockTokenType,
-            amount: '100',
+            atoms: 100n,
             isMintBaton: false,
         };
         // Mock p2pkh holder
@@ -359,7 +359,7 @@ describe('<Airdrop />', () => {
             blockHeight: 800000,
             isCoinbase: false,
             script: '76a91400cd590bfb90b6dc1725530d6c36c78b88ddb60888ac',
-            value: 546,
+            sats: 546n,
             isFinal: true,
             token: mockToken,
         };

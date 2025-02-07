@@ -11,7 +11,7 @@ use crate::{
     alp::consts::ALP_LOKAD_ID,
     consts::{BURN, GENESIS, MINT, SEND},
     parsed::ParsedMintData,
-    structs::{Amount, GenesisInfo},
+    structs::{Atoms, GenesisInfo},
     token_id::TokenId,
     token_type::AlpTokenType,
 };
@@ -81,7 +81,7 @@ pub fn mint_section(
 pub fn burn_section(
     token_id: &TokenId,
     token_type: AlpTokenType,
-    amount: Amount,
+    atoms: Atoms,
 ) -> Bytes {
     let mut section = BytesMut::new();
     section.put_slice(&ALP_LOKAD_ID);
@@ -89,15 +89,15 @@ pub fn burn_section(
     section.put_slice(&[BURN.len() as u8]);
     section.put_slice(BURN);
     section.put_slice(token_id.txid().hash().as_le_bytes());
-    put_amount(&mut section, amount);
+    put_atoms(&mut section, atoms);
     section.freeze()
 }
 
 /// Build an ALP SEND pushdata section
-pub fn send_section<I: ExactSizeIterator<Item = Amount>>(
+pub fn send_section<I: ExactSizeIterator<Item = Atoms>>(
     token_id: &TokenId,
     token_type: AlpTokenType,
-    send_amounts: impl IntoIterator<Item = Amount, IntoIter = I>,
+    send_amounts: impl IntoIterator<Item = Atoms, IntoIter = I>,
 ) -> Bytes {
     let mut section = BytesMut::new();
     section.put_slice(&ALP_LOKAD_ID);
@@ -109,19 +109,19 @@ pub fn send_section<I: ExactSizeIterator<Item = Amount>>(
     let send_amounts = send_amounts.into_iter();
     section.put_slice(&[send_amounts.len() as u8]);
     for send_amount in send_amounts {
-        put_amount(&mut section, send_amount);
+        put_atoms(&mut section, send_amount);
     }
     section.freeze()
 }
 
 fn put_mint_data(section: &mut BytesMut, mint_data: &ParsedMintData) {
-    section.put_slice(&[mint_data.amounts.len() as u8]);
-    for &amount in &mint_data.amounts {
-        put_amount(section, amount);
+    section.put_slice(&[mint_data.atoms_vec.len() as u8]);
+    for &atoms in &mint_data.atoms_vec {
+        put_atoms(section, atoms);
     }
     section.put_slice(&[mint_data.num_batons as u8]);
 }
 
-fn put_amount(section: &mut BytesMut, amount: Amount) {
-    section.put_slice(&amount.to_le_bytes()[..6]);
+fn put_atoms(section: &mut BytesMut, atoms: Atoms) {
+    section.put_slice(&atoms.to_le_bytes()[..6]);
 }

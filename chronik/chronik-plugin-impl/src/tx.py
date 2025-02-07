@@ -29,8 +29,8 @@ class TxOutput(NamedTuple):
     # scriptPubKey, script locking the output
     script: CScript
 
-    # value of the output, in satoshis
-    value: int
+    # Satoshis sent to this output
+    sats: int
 
     # ALP/SLP value attached to the output
     token: Optional[Token]

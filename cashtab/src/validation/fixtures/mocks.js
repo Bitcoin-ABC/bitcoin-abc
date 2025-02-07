@@ -49,6 +49,7 @@ export const validWalletPre_2_1_0 = {
         nonSlpUtxos: [],
         slpUtxos: [],
         tokens: [],
+        parsedTxHistory: [],
     },
 };
 
@@ -72,6 +73,7 @@ export const validWalletJson = {
         nonSlpUtxos: [],
         slpUtxos: [],
         tokens: [],
+        parsedTxHistory: [],
     },
 };
 
@@ -94,6 +96,7 @@ export const invalidWalletBadSkType = {
         balanceSats: 0,
         nonSlpUtxos: [],
         slpUtxos: [],
+        parsedTxHistory: [],
         tokens: new Map(),
     },
 };
@@ -128,5 +131,6 @@ export const validWalletJsonMultiPath = {
         nonSlpUtxos: [],
         slpUtxos: [],
         tokens: [],
+        parsedTxHistory: [],
     },
 };

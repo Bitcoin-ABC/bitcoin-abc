@@ -84,7 +84,7 @@ export class TxBuilder {
             if (input.input.signData === undefined) {
                 return undefined;
             }
-            inputSum += BigInt(input.input.signData.value);
+            inputSum += BigInt(input.input.signData.sats);
         }
         return inputSum;
     }
@@ -108,11 +108,11 @@ export class TxBuilder {
                 }
                 leftoverIdx = idx;
                 outputs[idx] = {
-                    value: 0, // placeholder
+                    sats: 0n, // placeholder
                     script: builderOutput.copy(),
                 };
             } else {
-                fixedOutputSum += BigInt(builderOutput.value);
+                fixedOutputSum += BigInt(builderOutput.sats);
                 outputs[idx] = copyTxOutput(builderOutput);
             }
         }
@@ -122,8 +122,8 @@ export class TxBuilder {
     /** Sign the tx built by this builder and return a Tx */
     public sign(params?: {
         ecc?: Ecc;
-        feePerKb?: number;
-        dustLimit?: number;
+        feePerKb?: bigint;
+        dustSats?: bigint;
     }): Tx {
         const ecc = params?.ecc ?? new Ecc();
         const { fixedOutputSum, leftoverIdx, outputs } = this.prepareOutputs();
@@ -147,7 +147,7 @@ export class TxBuilder {
             const inputSum = this.inputSum();
             if (inputSum === undefined) {
                 throw new Error(
-                    'Using a leftover output requires setting SignData.value for all inputs',
+                    'Using a leftover output requires setting SignData.sats for all inputs',
                 );
             }
             if (params?.feePerKb === undefined) {
@@ -155,12 +155,12 @@ export class TxBuilder {
                     'Using a leftover output requires setting feePerKb',
                 );
             }
-            if (!Number.isInteger(params.feePerKb)) {
-                throw new Error('feePerKb must be an integer');
+            if (typeof params.feePerKb !== 'bigint') {
+                throw new Error('feePerKb must be a bigint');
             }
-            if (params?.dustLimit === undefined) {
+            if (params?.dustSats === undefined) {
                 throw new Error(
-                    'Using a leftover output requires setting dustLimit',
+                    'Using a leftover output requires setting dustSats',
                 );
             }
             const dummyUnsignedTx = UnsignedTx.dummyFromTx(
@@ -175,8 +175,8 @@ export class TxBuilder {
             updateSignatories(new EccDummy(), dummyUnsignedTx);
             let txSize = dummyUnsignedTx.tx.serSize();
             let txFee = calcTxFee(txSize, params.feePerKb);
-            const leftoverValue = inputSum - (fixedOutputSum + txFee);
-            if (leftoverValue < params.dustLimit) {
+            const leftoverSats = inputSum - (fixedOutputSum + txFee);
+            if (leftoverSats < params.dustSats) {
                 // inputs cannot pay for a dust leftover -> remove & recalc
                 outputs.splice(leftoverIdx, 1);
                 dummyUnsignedTx.tx.outputs = outputs;
@@ -185,11 +185,11 @@ export class TxBuilder {
                 txSize = dummyUnsignedTx.tx.serSize();
                 txFee = calcTxFee(txSize, params.feePerKb);
             } else {
-                outputs[leftoverIdx].value = leftoverValue;
+                outputs[leftoverIdx].sats = leftoverSats;
             }
             if (inputSum < fixedOutputSum + txFee) {
                 throw new Error(
-                    `Insufficient input value (${inputSum}): Can only pay for ${
+                    `Insufficient input sats (${inputSum}): Can only pay for ${
                         inputSum - fixedOutputSum
                     } fees, but ${txFee} required`,
                 );
@@ -210,7 +210,7 @@ export class TxBuilder {
 
 /** Calculate the required tx fee for the given txSize and feePerKb,
  *  rounding up */
-export function calcTxFee(txSize: number, feePerKb: number): bigint {
+export function calcTxFee(txSize: number, feePerKb: bigint): bigint {
     return (BigInt(txSize) * BigInt(feePerKb) + 999n) / 1000n;
 }
 

@@ -100,11 +100,9 @@ impl TokenModule {
             entry.group_token_meta.map(|meta| meta.token_id.to_string()),
         )?;
         kwargs.set_item("is_invalid", entry.is_invalid)?;
-        kwargs.set_item("actual_burn_amount", entry.actual_burn_amount)?;
-        kwargs.set_item(
-            "intentional_burn_amount",
-            entry.intentional_burn_amount,
-        )?;
+        kwargs.set_item("actual_burn_atoms", entry.actual_burn_atoms)?;
+        kwargs
+            .set_item("intentional_burn_atoms", entry.intentional_burn_atoms)?;
         kwargs.set_item("burns_mint_batons", entry.burns_mint_batons)?;
         kwargs.set_item(
             "genesis_info",
@@ -133,7 +131,7 @@ impl TokenModule {
             .set_item("token_protocol", entry.getattr(py, "token_protocol")?)?;
         kwargs.set_item("token_type", entry.getattr(py, "token_type")?)?;
         kwargs.set_item("entry_idx", entry_idx)?;
-        kwargs.set_item("amount", token_variant.amount())?;
+        kwargs.set_item("atoms", token_variant.atoms())?;
         kwargs.set_item("is_mint_baton", token_variant.is_mint_baton())?;
 
         self.cls_token.call(py, (), Some(&kwargs))

@@ -58,12 +58,12 @@ const MOCK_TX_INPUT: TxInput = {
     outputScript: 'should be overwritten in tests',
     prevOut: MOCK_OUTPOINT,
     inputScript: '',
-    value: 550,
+    sats: 550n,
     sequenceNo: 100,
 };
 
 const MOCK_TX_OUTPUT: TxOutput = {
-    value: 546,
+    sats: 546n,
     outputScript: 'to be updated in test',
 };
 
@@ -86,7 +86,7 @@ export const MOCK_SCRIPT_UTXO: ScriptUtxo = {
     outpoint: MOCK_OUTPOINT,
     blockHeight: 800000,
     isCoinbase: false,
-    value: 546,
+    sats: 546n,
     isFinal: true,
 };
 
@@ -98,7 +98,7 @@ const MOCK_TOKEN_TYPE: TokenType = {
 export const MOCK_UTXO_TOKEN: Token = {
     tokenId: MOCK_TOKENID_ONES,
     tokenType: MOCK_TOKEN_TYPE,
-    amount: '1',
+    atoms: 1n,
     isMintBaton: false,
 };
 export const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo = {
@@ -109,7 +109,7 @@ const MOCK_MINT_BATON_TOKEN_UTXO: ScriptUtxo = {
     ...MOCK_SPENDABLE_TOKEN_UTXO,
     token: {
         ...MOCK_UTXO_TOKEN,
-        amount: '0',
+        atoms: 0n,
         isMintBaton: true,
     },
 };
@@ -127,7 +127,7 @@ const MOCK_TX_OUTPUT_TOKEN: Token = {
         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
         number: 1,
     },
-    amount: '1',
+    atoms: 1n,
     isMintBaton: false,
     entryIdx: 0,
 };
@@ -307,7 +307,7 @@ interface SendXecAirdropReturn {
     description: string;
     wallet: ServerWallet;
     utxos: ScriptUtxo[];
-    xecAirdropAmountSats: number;
+    xecAirdropAmountSats: bigint;
     destinationAddress: string;
     returned: RewardBroadcastSuccess;
 }
@@ -316,7 +316,7 @@ interface SendXecAirdropError {
     description: string;
     wallet: ServerWallet;
     utxos: Error | ScriptUtxo[];
-    xecAirdropAmountSats: number;
+    xecAirdropAmountSats: bigint;
     destinationAddress: string;
     error: Error;
 }
@@ -690,7 +690,7 @@ const vectors: TestVectors = {
                         outputs: [
                             {
                                 ...MOCK_TX_OUTPUT,
-                                value: 546,
+                                sats: 546n,
                                 outputScript: MOCK_CHECKED_OUTPUTSCRIPT,
                             },
                         ],
@@ -716,7 +716,7 @@ const vectors: TestVectors = {
                         outputs: [
                             {
                                 ...MOCK_TX_OUTPUT,
-                                value: 546,
+                                sats: 546n,
                                 token: {
                                     ...MOCK_TX_OUTPUT_TOKEN,
                                     tokenId: 'someOtherTokenId',
@@ -746,7 +746,7 @@ const vectors: TestVectors = {
                         outputs: [
                             {
                                 ...MOCK_TX_OUTPUT,
-                                value: 546,
+                                sats: 546n,
                                 token: {
                                     ...MOCK_TX_OUTPUT_TOKEN,
                                     tokenId: MOCK_REWARD_TOKENID,
@@ -933,13 +933,13 @@ const vectors: TestVectors = {
                                     17, 8, 0, 0, 0, 0, 0, 0, 0, 3,
                                 ]),
                             ),
-                            value: 0,
+                            sats: 0n,
                         },
                         {
                             script: Script.fromAddress(
                                 'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx',
                             ),
-                            value: 546,
+                            sats: 546n,
                         },
                     ],
                 },
@@ -955,7 +955,7 @@ const vectors: TestVectors = {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
                         token: {
                             ...MOCK_UTXO_TOKEN,
-                            amount: '5',
+                            atoms: 5n,
                         },
                     },
                 ],
@@ -966,7 +966,7 @@ const vectors: TestVectors = {
                             ...MOCK_SPENDABLE_TOKEN_UTXO,
                             token: {
                                 ...MOCK_UTXO_TOKEN,
-                                amount: '5',
+                                atoms: 5n,
                             },
                         },
                     ],
@@ -982,17 +982,17 @@ const vectors: TestVectors = {
                                     0, 0, 0, 0, 2,
                                 ]),
                             ),
-                            value: 0,
+                            sats: 0n,
                         },
                         {
                             script: Script.fromAddress(
                                 'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx',
                             ),
-                            value: 546,
+                            sats: 546n,
                         },
                         {
                             script: Script.fromAddress(MOCK_WALLET.address),
-                            value: 546,
+                            sats: 546n,
                         },
                     ],
                 },
@@ -1033,7 +1033,7 @@ const vectors: TestVectors = {
                         token: {
                             ...MOCK_UTXO_TOKEN,
                             tokenId: MOCK_TOKENID_TWOS,
-                            amount: '5',
+                            atoms: 5n,
                         },
                     },
                 ],
@@ -1052,7 +1052,7 @@ const vectors: TestVectors = {
                         token: {
                             ...MOCK_UTXO_TOKEN,
                             isMintBaton: true,
-                            amount: '5',
+                            atoms: 5n,
                         },
                     },
                 ],
@@ -1067,7 +1067,7 @@ const vectors: TestVectors = {
                 description: 'Token reward tx with no token change',
                 wallet: MOCK_WALLET,
                 utxos: [
-                    { ...MOCK_SCRIPT_UTXO, value: 10000 },
+                    { ...MOCK_SCRIPT_UTXO, sats: 10000n },
                     {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
                         outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
@@ -1087,11 +1087,11 @@ const vectors: TestVectors = {
                 description: 'Token reward tx with change',
                 wallet: MOCK_WALLET,
                 utxos: [
-                    { ...MOCK_SCRIPT_UTXO, value: 10000 },
+                    { ...MOCK_SCRIPT_UTXO, sats: 10000n },
                     {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
                         outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
-                        token: { ...MOCK_UTXO_TOKEN, amount: '10' },
+                        token: { ...MOCK_UTXO_TOKEN, atoms: 10n },
                     },
                 ],
                 tokenId: MOCK_TOKENID_ONES,
@@ -1119,7 +1119,7 @@ const vectors: TestVectors = {
                 description: 'Expected error if insufficient token balance',
                 wallet: MOCK_WALLET,
                 utxos: [
-                    { ...MOCK_SCRIPT_UTXO, value: 10000 },
+                    { ...MOCK_SCRIPT_UTXO, sats: 10000n },
                     {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
                         outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
@@ -1149,7 +1149,7 @@ const vectors: TestVectors = {
                     {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
                         outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
-                        token: { ...MOCK_UTXO_TOKEN, amount: '2' },
+                        token: { ...MOCK_UTXO_TOKEN, atoms: 2n },
                     },
                 ],
                 tokenId: MOCK_TOKENID_ONES,
@@ -1164,8 +1164,8 @@ const vectors: TestVectors = {
             {
                 description: 'XEC Airdrop with no change',
                 wallet: MOCK_WALLET,
-                utxos: [{ ...MOCK_SCRIPT_UTXO, value: 2185 }],
-                xecAirdropAmountSats: 2000,
+                utxos: [{ ...MOCK_SCRIPT_UTXO, sats: 2185n }],
+                xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 returned: {
                     hex: '0200000001111111111111111111111111111111111111111111111111111111111111111100000000644119ee30fd7a03ffe1b969c994842e5190a47e64a634efb4a8743762c7db6a9e76996fd119abddbc84c911bcab99da86e361d49d1a7452871f918f9ab7574cf3d041210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
@@ -1179,14 +1179,14 @@ const vectors: TestVectors = {
                     'XEC Airdrop with no change, where we try to build the tx without enough XEC to cover the fee',
                 wallet: MOCK_WALLET,
                 utxos: [
-                    { ...MOCK_SCRIPT_UTXO, value: 2001 },
+                    { ...MOCK_SCRIPT_UTXO, sats: 2001n },
                     {
                         ...MOCK_SCRIPT_UTXO,
-                        value: 546,
+                        sats: 546n,
                         outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
                     },
                 ],
-                xecAirdropAmountSats: 2000,
+                xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 returned: {
                     hex: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441f3db06231bd7aed9e487caf1f509aa99b28b3685ac98b4410003ba1458989989b19d844e987f0b3a7fbfaae5dc56fee2a74c81856d68b492cab1e1321b1e0ca841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111010000006441cce8ff45845e94742322d073244151c8558c4e346ed5f017dd3e0fc5476a12a7cdffdaf737d2e8a9cdade5a780e1ad96217868cbfc4f06340646d4c2c9b5d70341210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
@@ -1198,8 +1198,8 @@ const vectors: TestVectors = {
             {
                 description: 'XEC Airdrop with change',
                 wallet: MOCK_WALLET,
-                utxos: [{ ...MOCK_SCRIPT_UTXO, value: 10000 }],
-                xecAirdropAmountSats: 2000,
+                utxos: [{ ...MOCK_SCRIPT_UTXO, sats: 10000n }],
+                xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 returned: {
                     hex: '02000000011111111111111111111111111111111111111111111111111111111111111111000000006441180e2b57a8e5f90717049afc9800699a95e84b260004c1b67f178e1a111b663cc3692d7b7890b2dce93003ebbfce466c465000137d8c0aa5a4e5c5d3719a729841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff02d0070000000000001976a914000000000000000000000000000000000000000088ac651e0000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
@@ -1214,7 +1214,7 @@ const vectors: TestVectors = {
                 description: 'Expected error if wallet fails to sync utxo set',
                 wallet: MOCK_WALLET,
                 utxos: new Error('Some chronik error trying to fetch utxos'),
-                xecAirdropAmountSats: 2000,
+                xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error('Some chronik error trying to fetch utxos'),
             },
@@ -1222,8 +1222,8 @@ const vectors: TestVectors = {
                 description:
                     'Expected error if XEC balance is one satoshi too little to cover the tx',
                 wallet: MOCK_WALLET,
-                utxos: [{ ...MOCK_SCRIPT_UTXO, value: 2184 }],
-                xecAirdropAmountSats: 2000,
+                utxos: [{ ...MOCK_SCRIPT_UTXO, sats: 2184n }],
+                xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error(
                     'Insufficient XEC utxos to complete XEC airdrop tx',
@@ -1236,11 +1236,11 @@ const vectors: TestVectors = {
                 utxos: [
                     {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
-                        value: 20000,
+                        sats: 20000n,
                         outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
                     },
                 ],
-                xecAirdropAmountSats: 2000,
+                xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error(
                     'Insufficient XEC utxos to complete XEC airdrop tx',

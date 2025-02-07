@@ -14,7 +14,7 @@ use bitcoinsuite_slp::{
 use pretty_assertions::assert_eq;
 
 use crate::io::token::{
-    tests::mock::{db_amount, make_tx, token_id, MockTokenDb},
+    tests::mock::{db_atoms, make_tx, token_id, MockTokenDb},
     DbToken::NoToken,
     DbTokenTx, TokenReader,
 };
@@ -53,7 +53,7 @@ fn test_batch_burn() -> Result<()> {
                 Standard,
                 &GenesisInfo::empty_alp(),
                 &ParsedMintData {
-                    amounts: vec![1000, 2000],
+                    atoms_vec: vec![1000, 2000],
                     num_batons: 0,
                 },
             )]),
@@ -78,7 +78,7 @@ fn test_batch_burn() -> Result<()> {
         token_reader.token_tx(5)?,
         Some(DbTokenTx {
             token_tx_nums: vec![3],
-            inputs: vec![db_amount::<0>(1000)],
+            inputs: vec![db_atoms::<0>(1000)],
             outputs: vec![NoToken],
             ..Default::default()
         }),
@@ -88,7 +88,7 @@ fn test_batch_burn() -> Result<()> {
         token_reader.token_tx(6)?,
         Some(DbTokenTx {
             token_tx_nums: vec![4],
-            inputs: vec![db_amount::<0>(1000)],
+            inputs: vec![db_atoms::<0>(1000)],
             outputs: vec![NoToken],
             ..Default::default()
         }),

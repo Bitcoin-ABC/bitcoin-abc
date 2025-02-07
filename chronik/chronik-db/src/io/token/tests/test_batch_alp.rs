@@ -14,7 +14,7 @@ use bitcoinsuite_slp::{
 use pretty_assertions::assert_eq;
 
 use crate::io::token::{
-    tests::mock::{db_amount, db_baton, make_tx, token_id, MockTokenDb},
+    tests::mock::{db_atoms, db_baton, make_tx, token_id, MockTokenDb},
     DbToken::NoToken,
     DbTokenTx, TokenReader,
 };
@@ -47,7 +47,7 @@ fn test_batch_alp() -> Result<()> {
                 Standard,
                 &genesis_info,
                 &ParsedMintData {
-                    amounts: vec![1, 0, 3],
+                    atoms_vec: vec![1, 0, 3],
                     num_batons: 2,
                 },
             )]),
@@ -61,7 +61,7 @@ fn test_batch_alp() -> Result<()> {
                 &token_id(1),
                 Standard,
                 &ParsedMintData {
-                    amounts: vec![4, 0, 0, 5],
+                    atoms_vec: vec![4, 0, 0, 5],
                     num_batons: 1,
                 },
             )]),
@@ -86,9 +86,9 @@ fn test_batch_alp() -> Result<()> {
             inputs: vec![],
             outputs: vec![
                 NoToken,
-                db_amount::<0>(1),
+                db_atoms::<0>(1),
                 NoToken,
-                db_amount::<0>(3),
+                db_atoms::<0>(3),
                 db_baton::<0>(),
                 db_baton::<0>(),
             ],
@@ -105,10 +105,10 @@ fn test_batch_alp() -> Result<()> {
             inputs: vec![db_baton::<0>()],
             outputs: vec![
                 NoToken,
-                db_amount::<0>(4),
+                db_atoms::<0>(4),
                 NoToken,
                 NoToken,
-                db_amount::<0>(5),
+                db_atoms::<0>(5),
                 db_baton::<0>(),
             ],
             ..Default::default()
@@ -121,12 +121,12 @@ fn test_batch_alp() -> Result<()> {
         token_reader.token_tx(3)?,
         Some(DbTokenTx {
             token_tx_nums: vec![1],
-            inputs: vec![db_amount::<0>(3), db_amount::<0>(4)],
+            inputs: vec![db_atoms::<0>(3), db_atoms::<0>(4)],
             outputs: vec![
+                NoToken, // Add empty comment for linter
+                db_atoms::<0>(1),
                 NoToken,
-                db_amount::<0>(1),
-                NoToken,
-                db_amount::<0>(6),
+                db_atoms::<0>(6),
             ],
             ..Default::default()
         }),
@@ -146,7 +146,7 @@ fn test_batch_alp() -> Result<()> {
                     Standard,
                     &GenesisInfo::default(),
                     &ParsedMintData {
-                        amounts: vec![100, 0, 200],
+                        atoms_vec: vec![100, 0, 200],
                         num_batons: 1,
                     },
                 ),
@@ -154,7 +154,7 @@ fn test_batch_alp() -> Result<()> {
                     &token_id(1),
                     Standard,
                     &ParsedMintData {
-                        amounts: vec![0, 4, 0, 0],
+                        atoms_vec: vec![0, 4, 0, 0],
                         num_batons: 1,
                     },
                 ),
@@ -166,12 +166,12 @@ fn test_batch_alp() -> Result<()> {
         token_reader.token_tx(5)?,
         Some(DbTokenTx {
             token_tx_nums: vec![5, 1],
-            inputs: vec![db_baton::<1>(), db_amount::<1>(1)],
+            inputs: vec![db_baton::<1>(), db_atoms::<1>(1)],
             outputs: vec![
                 NoToken,
-                db_amount::<0>(100),
-                db_amount::<1>(4),
-                db_amount::<0>(200),
+                db_atoms::<0>(100),
+                db_atoms::<1>(4),
+                db_atoms::<0>(200),
                 db_baton::<0>(),
                 db_baton::<1>(),
             ],

@@ -89,7 +89,7 @@ impl From<TxInput> for ffi::TxInput {
 impl From<ffi::TxOutput> for TxOutput {
     fn from(output: ffi::TxOutput) -> Self {
         TxOutput {
-            value: output.value,
+            sats: output.sats,
             script: Script::new(output.script.into()),
         }
     }
@@ -98,7 +98,7 @@ impl From<ffi::TxOutput> for TxOutput {
 impl From<TxOutput> for ffi::TxOutput {
     fn from(output: TxOutput) -> Self {
         ffi::TxOutput {
-            value: output.value,
+            sats: output.sats,
             script: output.script.to_vec(),
         }
     }

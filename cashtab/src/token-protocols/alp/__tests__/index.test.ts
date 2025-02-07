@@ -13,7 +13,7 @@ import {
 import vectors from '../fixtures/vectors';
 
 describe('ALP token methods', () => {
-    describe('Gets max mint/send/burn SLP amount, decimalized', () => {
+    describe('Gets max mint/send/burn ALP amount, decimalized', () => {
         const { expectedReturns } = vectors.getMaxDecimalizedAlpQty;
         expectedReturns.forEach(vector => {
             const { description, decimals, returned } = vector;

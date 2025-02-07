@@ -63,7 +63,7 @@ fn test_batch_disconnect() -> Result<()> {
                 Standard,
                 &GenesisInfo::empty_alp(),
                 &ParsedMintData {
-                    amounts: vec![1, 0, 3],
+                    atoms_vec: vec![1, 0, 3],
                     num_batons: 2,
                 },
             )]),
@@ -77,7 +77,7 @@ fn test_batch_disconnect() -> Result<()> {
                 &token_id(4),
                 Standard,
                 &ParsedMintData {
-                    amounts: vec![4, 0, 0, 5],
+                    atoms_vec: vec![4, 0, 0, 5],
                     num_batons: 1,
                 },
             )]),

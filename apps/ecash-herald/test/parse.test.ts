@@ -154,7 +154,7 @@ describe('parse.js functions', function () {
                 coingeckoPrices,
             } = airdrops[i];
             const xecReceivingOutputs = new Map(airdropRecipientsKeyValueArray);
-            let totalSatsSent = 0;
+            let totalSatsSent = 0n;
             for (const satoshis of xecReceivingOutputs.values()) {
                 totalSatsSent += satoshis;
             }
@@ -212,7 +212,7 @@ describe('parse.js functions', function () {
             const xecReceivingOutputs = new Map(
                 xecReceivingOutputsKeyValueArray,
             );
-            let totalSatsSent = 0;
+            let totalSatsSent = 0n;
             for (const satoshis of xecReceivingOutputs.values()) {
                 totalSatsSent += satoshis;
             }

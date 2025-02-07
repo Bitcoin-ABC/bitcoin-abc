@@ -51,7 +51,7 @@ export function parseAgoraTx(tx: chronik.Tx): ParsedAd | undefined {
             opreturnScript = slpSend(
                 tokenEntry.tokenId,
                 tokenEntry.tokenType.number,
-                [0, BigInt(offerOutput.token.amount)],
+                [0n, offerOutput.token.atoms],
             );
             break;
         case 'ALP':
@@ -103,7 +103,7 @@ export function parseAgoraTx(tx: chronik.Tx): ParsedAd | undefined {
         txBuilderInput: {
             prevOut: outpoint,
             signData: {
-                value: offerOutput.value,
+                sats: offerOutput.sats,
                 redeemScript: expectedAgoraScript,
             },
         },

@@ -150,17 +150,17 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
                             ),
                             input_script=bytes(SCRIPTSIG_OP_TRUE),
                             output_script=bytes(P2SH_OP_TRUE),
-                            value=coinvalue,
+                            sats=coinvalue,
                             sequence_no=0xFFFFFFFF,
                         )
                     ],
                     outputs=[
                         pb.TxOutput(
-                            value=coinvalue - 1000,
+                            sats=coinvalue - 1000,
                             output_script=bytes(P2SH_OP_TRUE),
                         ),
                         pb.TxOutput(
-                            value=0,
+                            sats=0,
                             output_script=bytes(pad_script),
                         ),
                     ],

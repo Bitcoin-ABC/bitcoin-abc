@@ -36,23 +36,17 @@ export const initializeCashtabStateForTests = async (
 
     // Set wallets in localforage
 
-    // If wallet is post-2.9.0, make sure the JSON is in localforage and not the actual wallet
     let localforageWallets = [];
     for (const wallet of wallets) {
-        if (
-            // Pre 2.1.0 wallet
-            'Path145' in wallet ||
-            // Pre 2.9.0 wallet
-            (Array.isArray(wallet.paths) &&
-                wallet.paths.length > 0 &&
-                typeof wallet.paths[0].path !== 'undefined')
-        ) {
-            // Pre-2.9.0 wallet, expected to be in localforage as-is
-            localforageWallets.push(wallet);
-        } else {
-            // Post-2.9.0 wallet, expected to be in localforage as JSON
-            localforageWallets.push(cashtabWalletToJSON(wallet));
-        }
+        // All wallets must be converted from JSON
+        // Historically, only pre-2.9.0 wallets required this
+        // But after 3.14.0, chronik-client types include bigint for sats and atoms,
+        // And these require JSON conversion
+        // In practice, anyone pulling this kind of wallet out of storage will not have bigints
+        // But such a wallet can still be revived (questionable value for Cashtab supporting this
+        // type of migration, edge case that a user's browser would have kept localforage
+        // intact for a year of never visiting cashtab.com)
+        localforageWallets.push(cashtabWalletToJSON(wallet));
     }
 
     await localforage.setItem('wallets', localforageWallets);
@@ -361,7 +355,7 @@ export const prepareMockedChronikCallsForWallet = (
                     },
                     inputScript:
                         '473044022055444db90f98b462ca29a6f51981da4015623ddc34dc1f575852426ccb785f0402206e786d4056be781ca1720a0a915b040e0a9e8716b8e4d30b0779852c191fdeb3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 6231556,
+                    sats: 6231556n,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -369,12 +363,12 @@ export const prepareMockedChronikCallsForWallet = (
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     outputScript:
                         '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
                 },
                 {
-                    value: 546,
+                    sats: 546n,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -385,7 +379,7 @@ export const prepareMockedChronikCallsForWallet = (
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '4444',
+                        atoms: 4444n,
                         isMintBaton: false,
                         entryIdx: 0,
                     },
@@ -395,7 +389,7 @@ export const prepareMockedChronikCallsForWallet = (
                     },
                 },
                 {
-                    value: 6230555,
+                    sats: 6230555n,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
@@ -421,8 +415,8 @@ export const prepareMockedChronikCallsForWallet = (
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                     burnsMintBatons: false,
                 },
             ],

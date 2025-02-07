@@ -482,7 +482,7 @@ mod tests {
     use bitcoinsuite_core::{net::Net, script::Script, tx::Tx};
     use bitcoinsuite_slp::{
         test_helpers::{
-            empty_entry, meta_alp, spent_amount, token_amount, TOKEN_ID1,
+            empty_entry, meta_alp, spent_atoms, token_atoms, TOKEN_ID1,
         },
         token_tx::{TokenTx, TokenTxEntry},
     };
@@ -618,7 +618,7 @@ class CounterPlugin(Plugin):
         ",
         )?;
 
-        // Plugin that sums up the input and output token amounts
+        // Plugin that sums up the input and output token atoms
         File::create(tempdir.path().join("summer.py"))?.write_all(
             b"
 from chronik_plugin.plugin import Plugin, PluginOutput
@@ -628,8 +628,8 @@ class SummerPlugin(Plugin):
     def version(self):
         return '0.0.0'
     def run(self, tx):
-        input_sum = sum(iput.output.token.amount for iput in tx.inputs)
-        output_sum = sum(output.token.amount for output in tx.outputs[1:])
+        input_sum = sum(iput.output.token.atoms for iput in tx.inputs)
+        output_sum = sum(output.token.atoms for output in tx.outputs[1:])
         return [PluginOutput(
             idx=1,
             data=[bytes([input_sum]), bytes([output_sum])],
@@ -852,8 +852,8 @@ class FailPlugin(Plugin):
                         }],
                         outputs: vec![
                             None,
-                            token_amount::<0>(50),
-                            token_amount::<0>(10),
+                            token_atoms::<0>(50),
+                            token_atoms::<0>(10),
                         ],
                         ..Default::default()
                     },
@@ -863,8 +863,8 @@ class FailPlugin(Plugin):
                 spent_tokens: vec![(
                     7,
                     vec![
-                        spent_amount(meta_alp(TOKEN_ID1), 20),
-                        spent_amount(meta_alp(TOKEN_ID1), 15),
+                        spent_atoms(meta_alp(TOKEN_ID1), 20),
+                        spent_atoms(meta_alp(TOKEN_ID1), 15),
                     ],
                 )]
                 .into_iter()

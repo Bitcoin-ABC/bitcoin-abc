@@ -21,7 +21,7 @@ import { AppAction, XecxAction, UnknownAction } from 'chronik';
  * Get targetOutput for a Cashtab Msg from user input string
  * @param cashtabMsg string
  * @throws if msg exceeds opReturnByteLimit of 223 or invalid input
- * @returns targetOutput, e.g. {value: 0, script: <encoded cashtab msg>}
+ * @returns targetOutput, e.g. {sats: 0n, script: <encoded cashtab msg>}
  */
 export const getCashtabMsgTargetOutput = (cashtabMsg: string): TxOutput => {
     if (typeof cashtabMsg !== 'string') {
@@ -49,7 +49,7 @@ export const getCashtabMsgTargetOutput = (cashtabMsg: string): TxOutput => {
     ]);
 
     // Create output
-    return { value: 0, script };
+    return { sats: 0n, script };
 };
 
 /**
@@ -213,7 +213,7 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
  * @param tokenId tokenId of the token receiving this airdrop tx
  * @param airdropMsg optional brief msg accompanying the airdrop
  * @throws if msg exceeds opReturnByteLimit of 223 or invalid input
- * @returns targetOutput, e.g. {value: 0, script: <encoded airdrop msg>}
+ * @returns targetOutput, e.g. {sats: 0n, script: <encoded airdrop msg>}
  */
 export const getAirdropTargetOutput = (
     tokenId: string,
@@ -250,7 +250,7 @@ export const getAirdropTargetOutput = (
     const script = Script.fromOps(scriptArray);
 
     // Create output
-    return { value: 0, script };
+    return { sats: 0n, script };
 };
 
 /**
@@ -260,7 +260,7 @@ export const getAirdropTargetOutput = (
  * human input into script
  * @param opreturnParam string
  * @throws if invalid input
- * @returns targetOutput, e.g. {value: 0, script: <encoded opparam>}
+ * @returns targetOutput, e.g. {sats: 0n, script: <encoded opparam>}
  */
 export const getOpreturnParamTargetOutput = (
     opreturnParam: string,
@@ -278,7 +278,7 @@ export const getOpreturnParamTargetOutput = (
     );
 
     // Create output
-    return { value: 0, script };
+    return { sats: 0n, script };
 };
 
 export const getEmppAppActions = (stackArray: string[]): AppAction[] => {

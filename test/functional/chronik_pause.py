@@ -157,7 +157,7 @@ class ChronikPauseTest(BitcoinTestFramework):
         # Check if spent coins are indexed correctly
         tx_proto = chronik.tx(conflict_tx.hash).ok()
         assert_equal(tx_proto.inputs[0].output_script, bytes(P2SH_OP_TRUE))
-        assert_equal(tx_proto.inputs[0].value, coinvalue)
+        assert_equal(tx_proto.inputs[0].sats, coinvalue)
 
 
 if __name__ == "__main__":

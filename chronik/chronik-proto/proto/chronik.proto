@@ -120,7 +120,7 @@ message ScriptUtxo {
     // Whether the UTXO has been created in a coinbase tx.
     bool is_coinbase = 3;
     // Value of the output, in satoshis.
-    int64 value = 5;
+    int64 sats = 5;
     // Whether the UTXO has been finalized by Avalanche.
     bool is_final = 10;
     // Token value attached to this UTXO
@@ -138,7 +138,7 @@ message Utxo {
     // Whether the UTXO has been created in a coinbase tx.
     bool is_coinbase = 3;
     // Value of the output, in satoshis.
-    int64 value = 4;
+    int64 sats = 4;
     // Bytecode of the script of the output
     bytes script = 5;
     // Whether the UTXO has been finalized by Avalanche.
@@ -174,7 +174,7 @@ message TxInput {
     // scriptPubKey, script of the output locking the coin.
     bytes output_script = 3;
     // value of the output being spent, in satoshis.
-    int64 value = 4;
+    int64 sats = 4;
     // nSequence of the input.
     uint32 sequence_no = 5;
     // Token value attached to this input
@@ -186,7 +186,7 @@ message TxInput {
 // CTxOut, creates a new coin.
 message TxOutput {
     // Value of the coin, in satoshis.
-    int64 value = 1;
+    int64 sats = 1;
     // scriptPubKey, script locking the output.
     bytes output_script = 2;
     // Which tx and input spent this output, if any.
@@ -300,11 +300,13 @@ message TokenEntry {
     string burn_summary = 6;
     // Human-readable error messages of why colorings failed
     repeated TokenFailedColoring failed_colorings = 7;
-    // Number of actually burned tokens (as decimal integer string, e.g. "2000").
-    // This is because burns can exceed the 64-bit range of values and protobuf doesn't have a nice type to encode this.
-    string actual_burn_amount = 8;
-    // Burn amount the user explicitly opted into
-    uint64 intentional_burn = 9;
+    // Number of actually burned tokens (as decimal integer 
+    // string, e.g. "2000"; in atoms aka base tokens).
+    // This is because burns can exceed the 64-bit range of 
+    // values and protobuf doesn't have a nice type to encode this.
+    string actual_burn_atoms = 8;
+    // Burn amount (in atoms aka base tokens) the user explicitly opted into
+    uint64 intentional_burn_atoms = 9;
     // Whether any mint batons have been burned of this token
     bool burns_mint_batons = 10;
 }
@@ -338,7 +340,7 @@ message Token {
     // Index into `token_entries` for `Tx`. -1 for UTXOs
     int32 entry_idx = 3;
     // Base token amount of the input/output
-    uint64 amount = 4;
+    uint64 atoms = 4;
     // Whether the token is a mint baton
     bool is_mint_baton = 5;
 }

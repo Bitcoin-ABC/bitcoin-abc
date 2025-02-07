@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{token_id::TokenId, token_type::TokenType};
 
-/// SLP or ALP amount
-pub type Amount = u64;
+/// SLP or ALP amount in atoms (base tokens)
+pub type Atoms = u64;
 
 /// Common token info identifying tokens, which are essential for verification.
 /// A token ID uniquely determines the protocol and token type, and bundling
@@ -50,11 +50,11 @@ pub enum TxType {
     UNKNOWN,
 }
 
-/// "Taint" of a UTXO, e.g a token amount or mint baton
+/// "Taint" of a UTXO, e.g a token amount in atoms or mint baton
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum TokenVariant {
-    /// UTXO has a token amount that can be transferred
-    Amount(Amount),
+    /// UTXO has a token atoms that can be transferred
+    Atoms(Atoms),
     /// UTXO can be used to mint new tokens
     MintBaton,
     /// UTXO has a new unknown token type.
@@ -70,7 +70,8 @@ pub enum TokenVariant {
 pub struct TokenOutput {
     /// Index of the token metadata in the tx.
     pub token_idx: usize,
-    /// Amount of the token, or whether it's a mint baton, or an unknown token.
+    /// Amount of the token in base tokens (aka atoms), or whether it's a mint
+    /// baton, or an unknown token.
     pub variant: TokenVariant,
 }
 
@@ -81,7 +82,8 @@ pub struct TokenOutput {
 pub struct Token {
     /// Which token ID etc. this token has.
     pub meta: TokenMeta,
-    /// Amount of the token, or whether it's a mint baton, or an unknown token.
+    /// Amount of the token in atoms aka base tokens, or whether it's a mint
+    /// baton, or an unknown token.
     pub variant: TokenVariant,
 }
 
@@ -117,9 +119,9 @@ pub struct GenesisInfo {
 
 impl TokenVariant {
     /// Amount associated with the token variant.
-    pub fn amount(&self) -> Amount {
+    pub fn atoms(&self) -> Atoms {
         match self {
-            &TokenVariant::Amount(amount) => amount,
+            &TokenVariant::Atoms(atoms) => atoms,
             TokenVariant::MintBaton => 0,
             TokenVariant::Unknown(_) => 0,
         }
@@ -134,7 +136,7 @@ impl TokenVariant {
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.variant {
-            TokenVariant::Amount(amount) => write!(f, "{amount}")?,
+            TokenVariant::Atoms(atoms) => write!(f, "{atoms}")?,
             TokenVariant::MintBaton => write!(f, "Mint baton")?,
             TokenVariant::Unknown(_) => {
                 return write!(f, "{}", self.meta.token_type)

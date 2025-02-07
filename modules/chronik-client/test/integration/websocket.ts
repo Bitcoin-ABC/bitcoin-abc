@@ -508,7 +508,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 scriptsig: coinbaseScriptsig,
                 outputs: [
                     {
-                        value: coinbaseOutValue,
+                        sats: BigInt(coinbaseOutValue),
                         outputScript: coinbaseOutScriptpubkey,
                     },
                 ],
@@ -585,7 +585,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 scriptsig: coinbaseScriptsig,
                 outputs: [
                     {
-                        value: coinbaseOutValue,
+                        sats: BigInt(coinbaseOutValue),
                         outputScript: coinbaseOutScriptpubkey,
                     },
                 ],
@@ -711,7 +711,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 scriptsig: coinbaseScriptsig,
                 outputs: [
                     {
-                        value: coinbaseOutValue,
+                        sats: BigInt(coinbaseOutValue),
                         outputScript: coinbaseOutScriptpubkey,
                     },
                 ],
@@ -747,7 +747,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 scriptsig: coinbaseScriptsig,
                 outputs: [
                     {
-                        value: coinbaseOutValue,
+                        sats: BigInt(coinbaseOutValue),
                         outputScript: coinbaseOutScriptpubkey,
                     },
                 ],

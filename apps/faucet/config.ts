@@ -7,7 +7,7 @@ export const config = {
     /// Delay between two legitimate requests in hours
     requestDelayHours: 24,
     /// The amount to send upon request, in satoshi
-    amount: 1000000,
+    amount: 1000000n,
     /// The wallet private key in hex format. Keep this secret !
     walletPrivateKey:
         '000102030405060708090a0b0c0d0e0f000102030405060708090a0b0c0d0e0f',
@@ -27,9 +27,9 @@ export const config = {
     /// The coin ticker, used for displaying the amounts
     ticker: 'tXEC',
     /// The faucet transaction fees in satoshi/kB
-    feeSatPerKB: 1000,
+    feeSatPerKB: 1000n,
     /// The dust transaction amount in satoshi
-    dust: 546,
+    dust: 546n,
 
     // *** Rate limiting options ***
     /// How many eCash addresses to store for rate limiting

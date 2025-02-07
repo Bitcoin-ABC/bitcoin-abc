@@ -40,7 +40,7 @@ void CheckTxsEqual(const chronik_bridge::Tx &left,
         BOOST_CHECK_EQUAL(inLeft.prev_out.out_idx, inRight.prev_out.out_idx);
         BOOST_CHECK_EQUAL(HexStr(inLeft.script), HexStr(inRight.script));
         BOOST_CHECK_EQUAL(inLeft.sequence, inRight.sequence);
-        BOOST_CHECK_EQUAL(inLeft.coin.output.value, inRight.coin.output.value);
+        BOOST_CHECK_EQUAL(inLeft.coin.output.sats, inRight.coin.output.sats);
         BOOST_CHECK_EQUAL(HexStr(inLeft.coin.output.script),
                           HexStr(inRight.coin.output.script));
         BOOST_CHECK_EQUAL(inLeft.coin.height, inRight.coin.height);
@@ -50,7 +50,7 @@ void CheckTxsEqual(const chronik_bridge::Tx &left,
     for (size_t outputIdx = 0; outputIdx < left.outputs.size(); ++outputIdx) {
         const chronik_bridge::TxOutput &outLeft = left.outputs[outputIdx];
         const chronik_bridge::TxOutput &outRight = right.outputs.at(outputIdx);
-        BOOST_CHECK_EQUAL(outLeft.value, outRight.value);
+        BOOST_CHECK_EQUAL(outLeft.sats, outRight.sats);
         BOOST_CHECK_EQUAL(HexStr(outLeft.script), HexStr(outRight.script));
     }
 }
@@ -100,7 +100,7 @@ static void CheckMatchesDisk(const BlockManager &blockman, const CBlock &block,
             const chronik_bridge::Coin &bridgeCoin =
                 blockTx.tx.inputs[inputIdx].coin;
             BOOST_CHECK_EQUAL(coin.GetTxOut().nValue / SATOSHI,
-                              bridgeCoin.output.value);
+                              bridgeCoin.output.sats);
             BOOST_CHECK_EQUAL(HexStr(coin.GetTxOut().scriptPubKey),
                               HexStr(bridgeCoin.output.script));
             BOOST_CHECK_EQUAL(coin.GetHeight(), bridgeCoin.height);
@@ -138,7 +138,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
             .coin = {}, // null coin
         }},
         .outputs = {{
-            .value = 5000000000,
+            .sats = 5000000000,
             .script =
                 ToRustVec<uint8_t>(genesisBlock.vtx[0]->vout[0].scriptPubKey),
         }},
@@ -235,7 +235,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
             .coin = {}, // null coin
         }},
         .outputs = {{
-            .value = 2500000000,
+            .sats = 2500000000,
             .script = {0x52},
         }},
         .locktime = 0,
@@ -261,47 +261,52 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
                     {0, ToRustVec<uint8_t>(scriptPad)}},
         .locktime = 123,
     };
-    chronik_bridge::Tx expectedTestTx2 = {
-        .txid = HashToArray(tx2.GetId()),
-        .version = 1,
-        .inputs = {chronik_bridge::TxInput({
-                       .prev_out = chronik_bridge::OutPoint({
-                           .txid = HashToArray(tx1.GetId()),
-                           .out_idx = 0,
-                       }),
-                       .script = {},
-                       .sequence = 0xffff'ffff,
-                       .coin =
-                           {
-                               .output = {4999990000, {0x53}},
-                               .height = 202,
-                               .is_coinbase = false,
-                           },
-                   }),
-                   chronik_bridge::TxInput({
-                       .prev_out = chronik_bridge::OutPoint({
-                           .txid = HashToArray(tx1.GetId()),
-                           .out_idx = 1,
-                       }),
-                       .script = {},
-                       .sequence = 0xffff'ffff,
-                       .coin =
-                           {
-                               .output = {1000, {0x54}},
-                               .height = 202,
-                               .is_coinbase = false,
-                           },
-                   })},
-        .outputs = {{
-                        .value = 4999970000,
-                        .script = {0x55},
-                    },
-                    {
-                        .value = 0,
-                        .script = ToRustVec<uint8_t>(scriptPad),
-                    }},
-        .locktime = 0,
-    };
+    chronik_bridge::Tx
+        expectedTestTx2 =
+            {
+                .txid = HashToArray(tx2.GetId()),
+                .version = 1,
+                .inputs = {chronik_bridge::TxInput(
+                               {
+                                   .prev_out = chronik_bridge::OutPoint({
+                                       .txid = HashToArray(tx1.GetId()),
+                                       .out_idx = 0,
+                                   }),
+                                   .script = {},
+                                   .sequence = 0xffff'ffff,
+                                   .coin =
+                                       {
+                                           .output = {4999990000, {0x53}},
+                                           .height = 202,
+                                           .is_coinbase = false,
+                                       },
+                               }),
+                           chronik_bridge::TxInput(
+                               {
+                                   .prev_out = chronik_bridge::OutPoint(
+                                       {
+                                           .txid = HashToArray(tx1.GetId()),
+                                           .out_idx = 1,
+                                       }),
+                                   .script = {},
+                                   .sequence = 0xffff'ffff,
+                                   .coin =
+                                       {
+                                           .output = {1000, {0x54}},
+                                           .height = 202,
+                                           .is_coinbase = false,
+                                       },
+                               })},
+                .outputs = {{
+                                .sats = 4999970000,
+                                .script = {0x55},
+                            },
+                            {
+                                .sats = 0,
+                                .script = ToRustVec<uint8_t>(scriptPad),
+                            }},
+                .locktime = 0,
+            };
     chronik_bridge::Block expectedBridgedTestBlock = {
         .hash = HashToArray(testBlock.GetHash()),
         .prev_hash = HashToArray(testBlock.hashPrevBlock),

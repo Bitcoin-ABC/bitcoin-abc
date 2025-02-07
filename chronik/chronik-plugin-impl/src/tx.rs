@@ -151,7 +151,7 @@ impl TxModule {
     ) -> PyResult<PyObject> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
-        kwargs.set_item("value", output.value)?;
+        kwargs.set_item("sats", output.sats)?;
         kwargs.set_item(
             "token",
             token_output
@@ -220,7 +220,7 @@ impl TxModule {
     ) -> PyResult<PyObject> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
-        kwargs.set_item("value", output.value)?;
+        kwargs.set_item("sats", output.sats)?;
         kwargs.set_item(
             "token",
             spent_token

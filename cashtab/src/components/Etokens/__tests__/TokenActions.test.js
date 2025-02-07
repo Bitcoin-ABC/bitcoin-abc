@@ -532,7 +532,7 @@ describe('<Token /> available actions rendered', () => {
                             },
                             blockHeight: 840012,
                             isCoinbase: false,
-                            value: 546,
+                            sats: 546n,
                             isFinal: true,
                             token: {
                                 tokenId:
@@ -542,7 +542,7 @@ describe('<Token /> available actions rendered', () => {
                                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                     number: 129,
                                 },
-                                amount: '1',
+                                atoms: 1n,
                                 isMintBaton: false,
                             },
                             path: 1899,
@@ -1620,7 +1620,7 @@ describe('<Token /> available actions rendered', () => {
                         },
                         blockHeight: 836452,
                         isCoinbase: false,
-                        value: 546,
+                        sats: 546n,
                         isFinal: true,
                         token: {
                             tokenId:
@@ -1630,7 +1630,7 @@ describe('<Token /> available actions rendered', () => {
                                 type: 'ALP_TOKEN_TYPE_STANDARD',
                                 number: 0,
                             },
-                            amount: '0',
+                            atoms: 0n,
                             isMintBaton: true,
                         },
                         path: 1899,

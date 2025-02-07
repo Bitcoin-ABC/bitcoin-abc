@@ -21,7 +21,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -31,10 +30,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '0',
                     isMintBaton: true,
+                    atoms: 0n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -43,7 +43,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -53,10 +52,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -65,7 +65,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -75,10 +74,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -87,7 +87,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -97,10 +96,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -109,7 +109,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -119,10 +118,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -131,7 +131,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -141,10 +140,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -153,7 +153,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -163,10 +162,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -175,7 +175,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -185,10 +184,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -197,7 +197,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -207,10 +206,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -219,7 +219,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -229,10 +228,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -241,7 +241,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -251,10 +250,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -263,7 +263,6 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -273,10 +272,11 @@ export const nftMarketWallet: CashtabWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
         ],
         nonSlpUtxos: [
@@ -287,9 +287,9 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 1754,
                 isFinal: true,
                 path: 1899,
+                sats: 1754n,
             },
             {
                 outpoint: {
@@ -298,9 +298,9 @@ export const nftMarketWallet: CashtabWallet = {
                 },
                 blockHeight: 853000,
                 isCoinbase: false,
-                value: 986111,
                 isFinal: true,
                 path: 1899,
+                sats: 986111n,
             },
         ],
         tokens: new Map([
@@ -321,7 +321,6 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '0441475230074f4e4553484f5441d42879bb92acb8d116974af33428cd712f45a265856454e4e4f25dc8653b822347969d887d0cc842513d759cfcd92103829ac67e3e02a356b51c3b6299a7a303414c562200e1f505000000001976a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac7521038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71dead074f4e4553484f5488044147523087',
-                        value: 3000,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -331,22 +330,22 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                                 number: 65,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         outputScript:
                             'a914288ba6fc83cb1705322d0e7f5e72bd709947992f87',
+                        sats: 3000n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001410453454e44209f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794080000000000000001',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             'a914a2db8028b3d490460c8df834d254b31d5283efb487',
                         token: {
@@ -357,15 +356,16 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                                 number: 65,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 1754,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 1754n,
                     },
                 ],
                 lockTime: 0,
@@ -386,11 +386,11 @@ export const nftMarketWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
                         groupTokenId:
                             '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -439,7 +439,6 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41910b732d613939a83220bae192564e85f4f8d595c340ecd8a4cb4db6369e1f40cbbab0c8c05eda5c068c8d4c7baf0974ed217cad9312afc8945b5145b136225e4121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -449,12 +448,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                                 number: 65,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -463,20 +463,19 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '419c31be3f9da26b5391fa8ff3d9eab63d773281f58a37cafcf50bddc178b5ed53b9e81c83392cd49e66e037df893c3820fd29cd2680e3aecb46c5bb3825bac8ff4121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 989414,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 989414n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001410453454e44209f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794080000000000000001',
+                        sats: 0n,
                     },
                     {
-                        value: 3000,
                         outputScript:
                             'a914288ba6fc83cb1705322d0e7f5e72bd709947992f87',
                         token: {
@@ -487,19 +486,20 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                                 number: 65,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         spentBy: {
                             txid: '0d029d72aa24838081385357738be213ef01693323dfecd090976b358be5cbb6',
                             outIdx: 0,
                         },
+                        sats: 3000n,
                     },
                     {
-                        value: 986111,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 986111n,
                     },
                 ],
                 lockTime: 0,
@@ -520,11 +520,11 @@ export const nftMarketWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
                         groupTokenId:
                             '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -573,7 +573,6 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '410fcaa044599c5b81e3e3183262307fb38373299cf5a815b35b517e2d82a42f318d116a445ca322ac724f4b16bbc090936bce955600e12c1523339841622eaf8d4121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -583,12 +582,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 1,
+                            atoms: 1n,
                         },
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -597,20 +597,19 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41fe365a742dd691ac847bd2919cc4e15a2d5fa7753c3e9091efe101e9c507ee209c8389999f3872a74181b3abd079601144b3c7d073a2c035f41cac2c95575b4f4121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 990397,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 990397n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001410747454e45534953063639463235300e3139363920466f7264204632353023656e2e77696b6970656469612e6f72672f77696b692f466f72645f462d53657269657320462840cc9a384225f46225ef5179a3cb1becbbf2920f7420ab37da4a5bcf8bb101004c00080000000000000001',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -621,23 +620,24 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                                 number: 65,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         spentBy: {
                             txid: '72b34a8e646f81d91dfab33747f7b9176fb4db94fef47d16a6a31709c79e373a',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 989414,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         spentBy: {
                             txid: '72b34a8e646f81d91dfab33747f7b9176fb4db94fef47d16a6a31709c79e373a',
                             outIdx: 1,
                         },
+                        sats: 989414n,
                     },
                 ],
                 lockTime: 0,
@@ -657,11 +657,11 @@ export const nftMarketWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
                         groupTokenId:
                             '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                     {
                         tokenId:
@@ -675,9 +675,9 @@ export const nftMarketWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -739,7 +739,6 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '417a7012cfac73041156964126ebb84eb8a8941b1661e3c0d1af893e6ca6c99e007af48c2af145936eec24c14868c807fdede002a66d82cf32fd3193eaeb9711fc4121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -749,12 +748,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '12',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 12n,
                         },
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -763,20 +763,19 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '4132d71a9e6e757b8952b627f0b52675af242f36065e704fda499c6b5265c2567abca501953636c5d7737af75e2d128f13e3c51880711808a13588ad992956419f4121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 998206,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 998206n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001810453454e4420631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -787,17 +786,17 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         spentBy: {
                             txid: '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -808,13 +807,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -825,13 +824,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -842,13 +841,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -859,13 +858,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -876,13 +875,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -893,13 +892,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -910,13 +909,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -927,13 +926,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -944,13 +943,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -961,13 +960,13 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -978,19 +977,20 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 990397,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         spentBy: {
                             txid: '9f0f14f88fc78f64394eee852bac2617a38fac577fdb8097b2f596b1dc25b794',
                             outIdx: 1,
                         },
+                        sats: 990397n,
                     },
                 ],
                 lockTime: 0,
@@ -1010,9 +1010,9 @@ export const nftMarketWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -1074,20 +1074,19 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '4120d5d5999c3e0ebe4396aa6057b351983dc7a670bbcc9ec9c4f28dda1be8dbec831ede7f150701bd303770db01bc0d960e3d266768d133cbbf5a521707537c304121038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                        value: 1000000,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
+                        sats: 1000000n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001810747454e4553495303434c5308436c6173736963730b636173687461622e636f6d20a6700396f7f7b6a49bf9517192d3264d3b22d7be37838a62cd5db77fd45865e00100010208000000000000000c',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -1098,17 +1097,17 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '12',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 12n,
                         },
                         spentBy: {
                             txid: '91b3c836bd5c654f4c71179798d61800e986376d767fc1dca8ea83f340b744bf',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         token: {
@@ -1119,19 +1118,20 @@ export const nftMarketWallet: CashtabWallet = {
                                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                                 number: 129,
                             },
-                            amount: '0',
                             isMintBaton: true,
                             entryIdx: 0,
+                            atoms: 0n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 998206,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         spentBy: {
                             txid: '91b3c836bd5c654f4c71179798d61800e986376d767fc1dca8ea83f340b744bf',
                             outIdx: 1,
                         },
+                        sats: 998206n,
                     },
                 ],
                 lockTime: 0,
@@ -1151,9 +1151,9 @@ export const nftMarketWallet: CashtabWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -1208,10 +1208,10 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '41ea2d035fdfc3b77791a80ccd401fb30f54fd70512d3df23ef3d94a94dcb835701b4d220894472e650ba520739ba9a59e6158e679fbdcbf60de22c803c563e682412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -1220,26 +1220,26 @@ export const nftMarketWallet: CashtabWallet = {
                         },
                         inputScript:
                             '412c425d632317ee99e4da76c5d6b611a36847628bb0de4e1ecdf8c0ff1e891e443e24fcf0a3c2a31021773a814c25476b4f9ed88fd78240bac41e978a14dcf63c412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 29321411,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 29321411n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1000000,
                         outputScript:
                             '76a9147ecc1fb4c9139badd227291299d0c58ad73f1f0888ac',
                         spentBy: {
                             txid: '631fd95d1c3016526f098f46fe8613b216cd1bdb4f8b8859b3ff8e9d7cadd2cc',
                             outIdx: 0,
                         },
+                        sats: 1000000n,
                     },
                     {
-                        value: 28321597,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 28321597n,
                     },
                 ],
                 lockTime: 0,
@@ -1301,7 +1301,7 @@ const nftMarketWalletPublicKey = new Uint8Array([
 // NFTs with necessary mock data
 const SLP_ONE_TOKEN_NUMBER = 65;
 const BASE_AGORA_OFFER_TOKEN = {
-    amount: '1',
+    atoms: 1n,
     isMintBaton: false,
     tokenId: '0000000000000000000000000000000000000000000000000000000000000000',
     tokenType: {
@@ -1369,14 +1369,14 @@ export const saturnFive = {
 
 const saturnFiveEnforcedOutputs = [
     {
-        value: BigInt(0),
+        sats: BigInt(0),
         script: slpSend(saturnFive.groupTokenId, SLP_ONE_TOKEN_NUMBER, [
-            0,
+            0n,
             BigInt(1),
         ]),
     },
     {
-        value: saturnFive.listPriceSatoshis,
+        sats: BigInt(saturnFive.listPriceSatoshis),
         script: Script.p2pkh(
             fromHex(decodeCashAddress(saturnFive.sellerAddress).hash),
         ),
@@ -1396,7 +1396,7 @@ export const saturnFiveAgoraOffer = new AgoraOffer({
     txBuilderInput: {
         prevOut: saturnFive.outpoint,
         signData: {
-            value: 546,
+            sats: 546n,
             redeemScript: saturnFiveOneshot.script(),
         },
     },
@@ -1460,14 +1460,14 @@ export const transvaal = {
 };
 const transvaalEnforcedOutputs = [
     {
-        value: BigInt(0),
+        sats: BigInt(0),
         script: slpSend(transvaal.groupTokenId, SLP_ONE_TOKEN_NUMBER, [
-            0,
+            0n,
             BigInt(1),
         ]),
     },
     {
-        value: transvaal.listPriceSatoshis,
+        sats: BigInt(transvaal.listPriceSatoshis),
         script: Script.p2pkh(
             fromHex(decodeCashAddress(transvaal.sellerAddress).hash),
         ),
@@ -1487,7 +1487,7 @@ export const transvaalAgoraOffer = new AgoraOffer({
     txBuilderInput: {
         prevOut: transvaal.outpoint,
         signData: {
-            value: 546,
+            sats: 546n,
             redeemScript: transvaalOneshot.script(),
         },
     },
@@ -1550,14 +1550,14 @@ export const argentina = {
 };
 const argentinaEnforcedOutputs = [
     {
-        value: BigInt(0),
+        sats: BigInt(0),
         script: slpSend(argentina.groupTokenId, SLP_ONE_TOKEN_NUMBER, [
-            0,
+            0n,
             BigInt(1),
         ]),
     },
     {
-        value: argentina.listPriceSatoshis,
+        sats: BigInt(argentina.listPriceSatoshis),
         script: Script.p2pkh(
             fromHex(decodeCashAddress(argentina.sellerAddress).hash),
         ),
@@ -1577,7 +1577,7 @@ export const argentinaAgoraOffer = new AgoraOffer({
     txBuilderInput: {
         prevOut: argentina.outpoint,
         signData: {
-            value: 546,
+            sats: 546n,
             redeemScript: argentinaOneshot.script(),
         },
     },
@@ -1678,7 +1678,7 @@ export const transvaalCacheMocks = {
                 },
                 inputScript:
                     '4138c4cff3f131d88c4e5fba05a167f6f97a407cf31a18db0d51edeff88f9cba335e9008f5e4fe7835a6f58b5026c3ecca324f3b0cb66cd4a18be33bc9497d661d41210303c463774d543f31cb8daedc2610e25f62f6e59868e01533a71765896de2c71d',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -1688,7 +1688,7 @@ export const transvaalCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 1,
                 },
@@ -1702,7 +1702,7 @@ export const transvaalCacheMocks = {
                 },
                 inputScript:
                     '415243db55d77bec4e135a67b020a30b00a82835f3a06f36f38f98c03f960d77fa56741685514687433602c23ad651580f6250236280fe2bc16023863886eb23e341210303c463774d543f31cb8daedc2610e25f62f6e59868e01533a71765896de2c71d',
-                value: 1239962,
+                sats: 1239962n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914ef9ed343e3e9ef97b589145625d69c26407ae09988ac',
@@ -1710,12 +1710,12 @@ export const transvaalCacheMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001410747454e4553495303545433105472616e737661616c2054616b6520333468747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f536f7574685f4166726963616e5f52657075626c69632077d7ee52d03d81a5b7b9acee2f7854a7f9fb287f94103c8fddb388742a24fe7c01004c00080000000000000001',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914ef9ed343e3e9ef97b589145625d69c26407ae09988ac',
                 token: {
@@ -1726,7 +1726,7 @@ export const transvaalCacheMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1736,7 +1736,7 @@ export const transvaalCacheMocks = {
                 },
             },
             {
-                value: 1238946,
+                sats: 1238946n,
                 outputScript:
                     '76a914ef9ed343e3e9ef97b589145625d69c26407ae09988ac',
                 spentBy: {
@@ -1762,8 +1762,8 @@ export const transvaalCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
                 groupTokenId:
                     '0fb781a98fffb980b1c9c609f62b29783c348e74aa7ea3908dcf7f46388ab316',
@@ -1780,8 +1780,8 @@ export const transvaalCacheMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],

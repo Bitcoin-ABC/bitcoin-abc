@@ -7,7 +7,7 @@ use bitcoinsuite_slp::{
     slp::genesis_opreturn,
     structs::{GenesisInfo, TxType},
     test_helpers::{
-        empty_entry, meta_alp, meta_slp as meta, spent_amount, token_amount,
+        empty_entry, meta_alp, meta_slp as meta, spent_atoms, token_atoms,
         token_baton, verify, INFO_SLP as INFO, TOKEN_ID1, TOKEN_ID2, TOKEN_ID3,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -42,7 +42,7 @@ fn test_verify_genesis_wrong_nft1_group() {
         assert_eq!(
             verify::<1>(
                 genesis_opreturn(&INFO, Nft1Child, None, 1),
-                &[spent_amount(meta(TOKEN_ID2, in_token_type), 1)],
+                &[spent_atoms(meta(TOKEN_ID2, in_token_type), 1)],
             ),
             TokenTx {
                 entries: vec![
@@ -56,7 +56,7 @@ fn test_verify_genesis_wrong_nft1_group() {
                     },
                     TokenTxEntry {
                         meta: meta(TOKEN_ID2, in_token_type),
-                        actual_burn_amount: 1,
+                        actual_burn_atoms: 1,
                         is_invalid: true,
                         ..empty_entry()
                     },
@@ -74,7 +74,7 @@ fn test_verify_genesis_wrong_nft1_group_input_position() {
         verify::<1>(
             genesis_opreturn(&INFO, Nft1Child, None, 1),
             // NFT1 Group must be at idx 0, is at idx 1
-            &[None, spent_amount(meta(TOKEN_ID2, Nft1Group), 1)],
+            &[None, spent_atoms(meta(TOKEN_ID2, Nft1Group), 1)],
         ),
         TokenTx {
             entries: vec![
@@ -88,7 +88,7 @@ fn test_verify_genesis_wrong_nft1_group_input_position() {
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2, Nft1Group),
-                    actual_burn_amount: 1,
+                    actual_burn_atoms: 1,
                     is_invalid: true,
                     ..empty_entry()
                 },
@@ -104,7 +104,7 @@ fn test_verify_genesis_success_nft1_child() {
     assert_eq!(
         verify::<1>(
             genesis_opreturn(&INFO, Nft1Child, None, 1),
-            &[spent_amount(meta(TOKEN_ID2, Nft1Group), 1)],
+            &[spent_atoms(meta(TOKEN_ID2, Nft1Group), 1)],
         ),
         TokenTx {
             entries: vec![
@@ -120,7 +120,7 @@ fn test_verify_genesis_success_nft1_child() {
                     ..empty_entry()
                 },
             ],
-            outputs: vec![None, token_amount::<0>(1)],
+            outputs: vec![None, token_atoms::<0>(1)],
             failed_parsings: vec![],
         },
     );
@@ -141,7 +141,7 @@ fn test_verify_genesis_success() {
                     genesis_info: Some(INFO.clone()),
                     ..empty_entry()
                 }],
-                outputs: vec![None, token_amount::<0>(99), token_baton::<0>()],
+                outputs: vec![None, token_atoms::<0>(99), token_baton::<0>()],
                 failed_parsings: vec![],
             },
         );
@@ -163,8 +163,8 @@ fn test_verify_genesis_success_with_burn() {
             verify::<3>(
                 genesis_opreturn(&genesis_info, out_token_type, Some(3), 55),
                 &[
-                    spent_amount(meta(TOKEN_ID2, Fungible), 77),
-                    spent_amount(meta_alp(TOKEN_ID3), 22),
+                    spent_atoms(meta(TOKEN_ID2, Fungible), 77),
+                    spent_atoms(meta_alp(TOKEN_ID3), 22),
                 ],
             ),
             TokenTx {
@@ -177,20 +177,20 @@ fn test_verify_genesis_success_with_burn() {
                     },
                     TokenTxEntry {
                         meta: meta(TOKEN_ID2, Fungible),
-                        actual_burn_amount: 77,
+                        actual_burn_atoms: 77,
                         is_invalid: true,
                         ..empty_entry()
                     },
                     TokenTxEntry {
                         meta: meta_alp(TOKEN_ID3),
-                        actual_burn_amount: 22,
+                        actual_burn_atoms: 22,
                         is_invalid: true,
                         ..empty_entry()
                     },
                 ],
                 outputs: vec![
                     None,
-                    token_amount::<0>(55),
+                    token_atoms::<0>(55),
                     None,
                     token_baton::<0>().filter(|_| out_token_type != MintVault),
                 ],
@@ -206,9 +206,9 @@ fn test_verify_genesis_success_nft1_child_with_burn() {
         verify::<1>(
             genesis_opreturn(&INFO, Nft1Child, None, 1),
             &[
-                spent_amount(meta(TOKEN_ID2, Nft1Group), 77),
-                spent_amount(meta(TOKEN_ID2, Nft1Group), 44),
-                spent_amount(meta_alp(TOKEN_ID3), 22),
+                spent_atoms(meta(TOKEN_ID2, Nft1Group), 77),
+                spent_atoms(meta(TOKEN_ID2, Nft1Group), 44),
+                spent_atoms(meta_alp(TOKEN_ID3), 22),
             ],
         ),
         TokenTx {
@@ -222,18 +222,18 @@ fn test_verify_genesis_success_nft1_child_with_burn() {
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2, Nft1Group),
-                    actual_burn_amount: 44,
+                    actual_burn_atoms: 44,
                     is_invalid: true,
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta_alp(TOKEN_ID3),
-                    actual_burn_amount: 22,
+                    actual_burn_atoms: 22,
                     is_invalid: true,
                     ..empty_entry()
                 },
             ],
-            outputs: vec![None, token_amount::<0>(1),],
+            outputs: vec![None, token_atoms::<0>(1),],
             failed_parsings: vec![],
         },
     );

@@ -284,7 +284,7 @@ describe('<Home />', () => {
                             },
                             blockHeight: 858113,
                             isCoinbase: false,
-                            value: 3000,
+                            sats: 3000n,
                             isFinal: true,
                             path: 1899,
                         },
@@ -301,7 +301,7 @@ describe('<Home />', () => {
                                     },
                                     inputScript:
                                         '4175a1b7b9be9cf11bf2cb1b0e8f88f3e7f73067d4914d115b9eaf7af0b9d0faa42e7c2f8d75395fe4b754119690f84758f61780c5c68dd570558839beea77a1c641210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                                    value: 68671048,
+                                    sats: 68671048n,
                                     sequenceNo: 4294967295,
                                     outputScript:
                                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
@@ -309,12 +309,12 @@ describe('<Home />', () => {
                             ],
                             outputs: [
                                 {
-                                    value: 3000,
+                                    sats: 3000n,
                                     outputScript:
                                         '76a914022c7284d51db6074fb2430f6c25cd16a58e082888ac',
                                 },
                                 {
-                                    value: 68667829,
+                                    sats: 68667829n,
                                     outputScript:
                                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                                 },

@@ -7,7 +7,7 @@ use bytes::Bytes;
 use crate::{
     parsed::{ParsedData, ParsedTxType},
     slp::{
-        common::{parse_amount, parse_token_id},
+        common::{parse_atoms, parse_token_id},
         ParseError,
     },
     structs::TokenMeta,
@@ -33,7 +33,7 @@ pub(crate) fn parse_burn_data(
     let token_burn_quantity = data_iter.next().unwrap();
 
     let token_burn_quantity =
-        parse_amount(&token_burn_quantity, "token_burn_quantity")?;
+        parse_atoms(&token_burn_quantity, "token_burn_quantity")?;
 
     Ok(ParsedData {
         meta: TokenMeta {

@@ -40,7 +40,7 @@ const TX = new Tx({
             script: new Script(),
             sequence: 0x87654321,
             signData: {
-                value: 0x123456789,
+                sats: 0x123456789n,
                 outputScript: new Script(fromHex('abacadaeafb0abac')),
             },
         },
@@ -52,22 +52,22 @@ const TX = new Tx({
             script: new Script(),
             sequence: 0x10605,
             signData: {
-                value: 0x9876,
+                sats: 0x9876n,
                 redeemScript: new Script(fromHex('ab778899ac55')),
             },
         },
     ],
     outputs: [
         {
-            value: 0x2134,
+            sats: 0x2134n,
             script: new Script(fromHex('1133557799')),
         },
         {
-            value: 0x8079685746352413n,
+            sats: 0x8079685746352413n,
             script: new Script(fromHex('564738291092837465')),
         },
         {
-            value: 0,
+            sats: 0n,
             script: new Script(fromHex('6a68656c6c6f')),
         },
     ],
@@ -801,7 +801,7 @@ describe('UnsignedTx', async () => {
                             prevOut: TX.inputs[0].prevOut,
                             script: new Script(),
                             sequence: 0,
-                            signData: { value: 0 },
+                            signData: { sats: 0n },
                         },
                     ],
                 }),
@@ -819,7 +819,7 @@ describe('UnsignedTx', async () => {
                             script: new Script(),
                             sequence: 0,
                             signData: {
-                                value: 0,
+                                sats: 0n,
                                 outputScript: Script.p2sh(new Uint8Array(20)),
                             },
                         },

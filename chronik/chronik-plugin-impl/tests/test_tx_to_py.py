@@ -8,13 +8,13 @@ from chronik_plugin.tx import OutPoint, PluginOutputEntry, Tx, TxInput, TxOutput
 from test_framework.util import assert_equal
 
 
-def slp_amount(token_id: str, token_type: int, amount: int, entry_idx=0) -> Token:
+def slp_atoms(token_id: str, token_type: int, atoms: int, entry_idx=0) -> Token:
     return Token(
         token_id=token_id,
         token_protocol="SLP",
         token_type=token_type,
         entry_idx=entry_idx,
-        amount=amount,
+        atoms=atoms,
         is_mint_baton=False,
     )
 
@@ -25,18 +25,18 @@ def slp_baton(token_id: str, token_type: int, entry_idx=0) -> Token:
         token_protocol="SLP",
         token_type=token_type,
         entry_idx=entry_idx,
-        amount=0,
+        atoms=0,
         is_mint_baton=True,
     )
 
 
-def alp_amount(token_id: str, token_type: int, amount: int, entry_idx=0) -> Token:
+def alp_atoms(token_id: str, token_type: int, atoms: int, entry_idx=0) -> Token:
     return Token(
         token_id=token_id,
         token_protocol="ALP",
         token_type=token_type,
         entry_idx=entry_idx,
-        amount=amount,
+        atoms=atoms,
         is_mint_baton=False,
     )
 
@@ -47,7 +47,7 @@ def alp_baton(token_id: str, token_type: int, entry_idx=0) -> Token:
         token_protocol="ALP",
         token_type=token_type,
         entry_idx=entry_idx,
-        amount=0,
+        atoms=0,
         is_mint_baton=True,
     )
 
@@ -65,7 +65,7 @@ def test_non_token_tx(tx: Tx):
                     script=CScript(
                         bytes.fromhex("a914020202020202020202020202020202020202020287")
                     ),
-                    value=50000,
+                    sats=50000,
                     token=None,
                 ),
                 sequence=0x12345678,
@@ -87,7 +87,7 @@ def test_non_token_tx(tx: Tx):
                 script=CScript(
                     bytes.fromhex("76a914060606060606060606060606060606060606060688ac")
                 ),
-                value=40000,
+                sats=40000,
                 token=None,
             ),
         ],
@@ -104,7 +104,7 @@ def test_slp_genesis_tx(tx: Tx):
         [output.token for output in tx.outputs],
         [
             None,
-            slp_amount("02" * 32, 1, 1234),
+            slp_atoms("02" * 32, 1, 1234),
             slp_baton("02" * 32, 1),
         ],
     )
@@ -139,7 +139,7 @@ def test_slp_mint_vault_genesis_tx(tx: Tx):
         [output.token for output in tx.outputs],
         [
             None,
-            slp_amount("02" * 32, 2, 1234),
+            slp_atoms("02" * 32, 2, 1234),
         ],
     )
     assert_equal(
@@ -171,14 +171,14 @@ def test_slp_nft1_child_genesis_tx(tx: Tx):
     assert_equal(
         [inpt.output.token for inpt in tx.inputs],
         [
-            slp_amount("03" * 32, 0x81, 1, entry_idx=1),
+            slp_atoms("03" * 32, 0x81, 1, entry_idx=1),
         ],
     )
     assert_equal(
         [output.token for output in tx.outputs],
         [
             None,
-            slp_amount("02" * 32, 0x41, 1),
+            slp_atoms("02" * 32, 0x41, 1),
         ],
     )
     assert_equal(
@@ -222,7 +222,7 @@ def test_slp_mint_tx(tx: Tx):
         [output.token for output in tx.outputs],
         [
             None,
-            slp_amount("03" * 32, 1, 1234),
+            slp_atoms("03" * 32, 1, 1234),
             slp_baton("03" * 32, 1),
         ],
     )
@@ -244,16 +244,16 @@ def test_slp_send_tx(tx: Tx):
     assert_equal(
         [inpt.output.token for inpt in tx.inputs],
         [
-            slp_amount("03" * 32, 1, 20),
+            slp_atoms("03" * 32, 1, 20),
         ],
     )
     assert_equal(
         [output.token for output in tx.outputs],
         [
             None,
-            slp_amount("03" * 32, 1, 5),
-            slp_amount("03" * 32, 1, 6),
-            slp_amount("03" * 32, 1, 7),
+            slp_atoms("03" * 32, 1, 5),
+            slp_atoms("03" * 32, 1, 6),
+            slp_atoms("03" * 32, 1, 7),
         ],
     )
     assert_equal(
@@ -264,7 +264,7 @@ def test_slp_send_tx(tx: Tx):
                 token_protocol="SLP",
                 token_type=1,
                 tx_type="SEND",
-                actual_burn_amount=2,
+                actual_burn_atoms=2,
             ),
         ],
     )
@@ -275,7 +275,7 @@ def test_slp_burn_tx(tx: Tx):
     assert_equal(
         [inpt.output.token for inpt in tx.inputs],
         [
-            slp_amount("03" * 32, 1, 600),
+            slp_atoms("03" * 32, 1, 600),
         ],
     )
     assert_equal(
@@ -292,8 +292,8 @@ def test_slp_burn_tx(tx: Tx):
                 token_protocol="SLP",
                 token_type=1,
                 tx_type="BURN",
-                actual_burn_amount=600,
-                intentional_burn_amount=500,
+                actual_burn_atoms=600,
+                intentional_burn_atoms=500,
             ),
         ],
     )
@@ -337,8 +337,8 @@ def test_alp_tx(tx: Tx):
             token_protocol="ALP",
             token_type=0,
             tx_type="SEND",
-            actual_burn_amount=500,
-            intentional_burn_amount=1000,
+            actual_burn_atoms=500,
+            intentional_burn_atoms=1000,
         ),
     )
     assert_equal(
@@ -385,7 +385,7 @@ def test_alp_tx(tx: Tx):
             token_protocol="SLP",
             token_type=1,
             is_invalid=True,
-            actual_burn_amount=30,
+            actual_burn_atoms=30,
         ),
     )
     assert_equal(
@@ -395,7 +395,7 @@ def test_alp_tx(tx: Tx):
             token_protocol="SLP",
             token_type=2,
             is_invalid=True,
-            actual_burn_amount=20,
+            actual_burn_atoms=20,
         ),
     )
     assert_equal(
@@ -405,7 +405,7 @@ def test_alp_tx(tx: Tx):
             token_protocol="SLP",
             token_type=0x81,
             is_invalid=True,
-            actual_burn_amount=20,
+            actual_burn_atoms=20,
         ),
     )
     assert_equal(
@@ -416,7 +416,7 @@ def test_alp_tx(tx: Tx):
             token_type=0x41,
             group_token_id="0606060606060606060606060606060606060606060606060606060606060606",
             is_invalid=True,
-            actual_burn_amount=1,
+            actual_burn_atoms=1,
         ),
     )
     assert_equal(
@@ -424,30 +424,30 @@ def test_alp_tx(tx: Tx):
         [
             alp_baton("02" * 32, 0, entry_idx=1),
             None,
-            alp_amount("03" * 32, 0, 2000, entry_idx=2),
-            alp_amount("03" * 32, 0, 5000, entry_idx=2),
-            slp_amount("04" * 32, 1, 30, entry_idx=7),
-            slp_amount("05" * 32, 2, 20, entry_idx=8),
-            slp_amount("06" * 32, 0x81, 20, entry_idx=9),
-            slp_amount("07" * 32, 0x41, 1, entry_idx=10),
-            alp_amount("00" * 32, 3, 0, entry_idx=6),
-            slp_amount("00" * 32, 3, 0, entry_idx=5),
+            alp_atoms("03" * 32, 0, 2000, entry_idx=2),
+            alp_atoms("03" * 32, 0, 5000, entry_idx=2),
+            slp_atoms("04" * 32, 1, 30, entry_idx=7),
+            slp_atoms("05" * 32, 2, 20, entry_idx=8),
+            slp_atoms("06" * 32, 0x81, 20, entry_idx=9),
+            slp_atoms("07" * 32, 0x41, 1, entry_idx=10),
+            alp_atoms("00" * 32, 3, 0, entry_idx=6),
+            slp_atoms("00" * 32, 3, 0, entry_idx=5),
         ],
     )
     assert_equal(
         [output.token for output in tx.outputs],
         [
             None,
-            alp_amount("02" * 32, 0, 1000, entry_idx=1),
-            alp_amount("03" * 32, 0, 500, entry_idx=2),
-            alp_amount("01" * 32, 0, 10, entry_idx=0),
+            alp_atoms("02" * 32, 0, 1000, entry_idx=1),
+            alp_atoms("03" * 32, 0, 500, entry_idx=2),
+            alp_atoms("01" * 32, 0, 10, entry_idx=0),
             alp_baton("02" * 32, 0, entry_idx=1),
             None,
             alp_baton("01" * 32, 0, entry_idx=0),
             alp_baton("01" * 32, 0, entry_idx=0),
-            alp_amount("00" * 32, 2, 0, entry_idx=4),
-            alp_amount("03" * 32, 0, 6000, entry_idx=2),
-            alp_amount("00" * 32, 2, 0, entry_idx=4),
+            alp_atoms("00" * 32, 2, 0, entry_idx=4),
+            alp_atoms("03" * 32, 0, 6000, entry_idx=2),
+            alp_atoms("00" * 32, 2, 0, entry_idx=4),
         ],
     )
 
@@ -461,13 +461,13 @@ def test_non_token_burn_tx(tx: Tx):
                 token_protocol="ALP",
                 token_type=0,
                 is_invalid=True,
-                actual_burn_amount=200,
+                actual_burn_atoms=200,
             )
         ],
     )
     assert_equal(
         [inpt.output.token for inpt in tx.inputs],
-        [alp_amount("02" * 32, 0, 200)],
+        [alp_atoms("02" * 32, 0, 200)],
     )
     assert_equal(
         [output.token for output in tx.outputs],

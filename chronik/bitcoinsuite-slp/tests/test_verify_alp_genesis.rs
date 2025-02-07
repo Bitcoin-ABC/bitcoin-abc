@@ -7,7 +7,7 @@ use bitcoinsuite_slp::{
     parsed::ParsedMintData,
     structs::{GenesisInfo, TxType},
     test_helpers::{
-        empty_entry, meta_alp as meta, spent_amount, token_amount, token_baton,
+        empty_entry, meta_alp as meta, spent_atoms, token_atoms, token_baton,
         verify, TOKEN_ID1, TOKEN_ID2, TOKEN_ID3,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -33,7 +33,7 @@ fn test_verify_alp_genesis() {
                 Standard,
                 &genesis_info,
                 &ParsedMintData {
-                    amounts: vec![200, 0, 300],
+                    atoms_vec: vec![200, 0, 300],
                     num_batons: 2,
                 },
             )]),
@@ -48,9 +48,9 @@ fn test_verify_alp_genesis() {
             }],
             outputs: vec![
                 None,
-                token_amount::<0>(200),
+                token_atoms::<0>(200),
                 None,
-                token_amount::<0>(300),
+                token_atoms::<0>(300),
                 token_baton::<0>(),
                 token_baton::<0>(),
             ],
@@ -67,13 +67,13 @@ fn test_verify_alp_genesis_with_burn() {
                 Standard,
                 &GenesisInfo::empty_alp(),
                 &ParsedMintData {
-                    amounts: vec![200, 0, 300],
+                    atoms_vec: vec![200, 0, 300],
                     num_batons: 2,
                 },
             )]),
             &[
-                spent_amount(meta(TOKEN_ID2), 100),
-                spent_amount(meta(TOKEN_ID3), 2000),
+                spent_atoms(meta(TOKEN_ID2), 100),
+                spent_atoms(meta(TOKEN_ID3), 2000),
             ],
         ),
         TokenTx {
@@ -87,21 +87,21 @@ fn test_verify_alp_genesis_with_burn() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2),
                     is_invalid: true,
-                    actual_burn_amount: 100,
+                    actual_burn_atoms: 100,
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID3),
                     is_invalid: true,
-                    actual_burn_amount: 2000,
+                    actual_burn_atoms: 2000,
                     ..empty_entry()
                 },
             ],
             outputs: vec![
                 None,
-                token_amount::<0>(200),
+                token_atoms::<0>(200),
                 None,
-                token_amount::<0>(300),
+                token_atoms::<0>(300),
                 token_baton::<0>(),
                 token_baton::<0>(),
             ],

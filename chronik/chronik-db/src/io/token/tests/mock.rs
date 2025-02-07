@@ -7,7 +7,7 @@ use bitcoinsuite_core::{
     script::Script,
     tx::{Coin, OutPoint, Tx, TxId, TxInput, TxMut, TxOutput},
 };
-use bitcoinsuite_slp::{structs::Amount, token_id::TokenId};
+use bitcoinsuite_slp::{structs::Atoms, token_id::TokenId};
 use rocksdb::WriteBatch;
 
 use crate::{
@@ -28,8 +28,8 @@ pub(crate) fn token_id(num: u8) -> TokenId {
     TokenId::new(TxId::new([num; 32]))
 }
 
-pub(crate) fn db_amount<const N: u32>(amount: Amount) -> DbToken {
-    DbToken::Amount(N, amount)
+pub(crate) fn db_atoms<const N: u32>(atoms: Atoms) -> DbToken {
+    DbToken::Atoms(N, atoms)
 }
 
 pub(crate) fn db_baton<const N: u32>() -> DbToken {
@@ -55,7 +55,7 @@ pub(crate) fn make_tx<const N: usize>(
                     },
                     coin: Some(Coin {
                         output: TxOutput {
-                            value: 0,
+                            sats: 0,
                             script: Script::EMPTY,
                         },
                         ..Default::default()
@@ -64,7 +64,7 @@ pub(crate) fn make_tx<const N: usize>(
                 })
                 .collect(),
             outputs: [TxOutput {
-                value: 0,
+                sats: 0,
                 script: op_return_script,
             }]
             .into_iter()
@@ -93,14 +93,14 @@ pub(crate) fn make_tx_with_scripts<const N: usize>(
                         out_idx,
                     },
                     coin: Some(Coin {
-                        output: TxOutput { value: 0, script },
+                        output: TxOutput { sats: 0, script },
                         ..Default::default()
                     }),
                     ..Default::default()
                 })
                 .collect(),
             outputs: [TxOutput {
-                value: 0,
+                sats: 0,
                 script: op_return_script,
             }]
             .into_iter()

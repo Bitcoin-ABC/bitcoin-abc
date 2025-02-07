@@ -58,7 +58,7 @@ export const mockIncomingTokenTxDetails = {
             },
             inputScript:
                 '483045022100df9dd02d4dc55cb55e57c9dfd4cb36f2ebb6917bd31370e06ac7f3060b8c527802204f7e43934aaadb7799c96a1bad6f42804dcfa5d24422dec3ffacde8d8df2059e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 546,
+            sats: 546n,
             sequenceNo: 4294967295,
             token: {
                 tokenId:
@@ -68,7 +68,7 @@ export const mockIncomingTokenTxDetails = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '6',
+                atoms: 6n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
@@ -81,19 +81,19 @@ export const mockIncomingTokenTxDetails = {
             },
             inputScript:
                 '473044022076f3399f433167b449c2007a4e838fc457102c2b236b7cd6428481fe7d38ef6d022063d9389f09a8dfd5cfb1f6b607aad3784de601280591c2c88ec5fb75482e9dfc412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 3300,
+            sats: 3300n,
             sequenceNo: 4294967295,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a04534c500001010453454e4420b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7080000000000000001080000000000000005',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
             token: {
                 tokenId:
@@ -103,13 +103,13 @@ export const mockIncomingTokenTxDetails = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1',
+                atoms: 1n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             token: {
                 tokenId:
@@ -119,13 +119,13 @@ export const mockIncomingTokenTxDetails = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '5',
+                atoms: 5n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
         },
         {
-            value: 1787,
+            sats: 1787n,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             spentBy: {
                 txid: '6f7e5f6035e31e9a17d1e3503f057eb58534d493076ba72a426cc29d020423d1',
@@ -150,8 +150,8 @@ export const mockIncomingTokenTxDetails = {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
             burnsMintBatons: false,
         },
     ],

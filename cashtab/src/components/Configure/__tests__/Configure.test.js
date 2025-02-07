@@ -164,9 +164,11 @@ describe('<Configure />', () => {
                         token: {
                             ...requiredUtxoThisToken.token,
                             tokenId: appConfig.vipTokens.cachet.tokenId,
-                            amount: undecimalizeTokenAmount(
-                                '999.99',
-                                CACHET_DECIMALS,
+                            atoms: BigInt(
+                                undecimalizeTokenAmount(
+                                    '999.99',
+                                    CACHET_DECIMALS,
+                                ),
                             ),
                         },
                     },
@@ -230,9 +232,11 @@ describe('<Configure />', () => {
                         token: {
                             ...requiredUtxoThisToken.token,
                             tokenId: appConfig.vipTokens.cachet.tokenId,
-                            amount: undecimalizeTokenAmount(
-                                appConfig.vipTokens.cachet.vipBalance,
-                                CACHET_DECIMALS,
+                            atoms: BigInt(
+                                undecimalizeTokenAmount(
+                                    appConfig.vipTokens.cachet.vipBalance,
+                                    CACHET_DECIMALS,
+                                ),
                             ),
                         },
                     },

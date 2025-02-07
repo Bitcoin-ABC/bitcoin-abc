@@ -81,7 +81,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
@@ -89,7 +89,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                 pb.Token(),
                 pb.Token(
                     token_id=tx.hash,
-                    amount=5000,
+                    atoms=5000,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 ),
                 pb.Token(
@@ -139,13 +139,13 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                     token_id=genesis.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.MINT,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[slp_token(token_id=genesis.txid, is_mint_baton=True)],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=genesis.txid, amount=20),
+                slp_token(token_id=genesis.txid, atoms=20),
                 pb.Token(),
                 slp_token(token_id=genesis.txid, is_mint_baton=True),
             ],
@@ -176,16 +176,16 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                     token_id=genesis.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.SEND,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[
-                slp_token(token_id=genesis.txid, amount=5000),
+                slp_token(token_id=genesis.txid, atoms=5000),
             ],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=genesis.txid, amount=1000),
-                slp_token(token_id=genesis.txid, amount=4000),
+                slp_token(token_id=genesis.txid, atoms=1000),
+                slp_token(token_id=genesis.txid, atoms=4000),
             ],
         )
         txs.append(send)
@@ -215,7 +215,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],

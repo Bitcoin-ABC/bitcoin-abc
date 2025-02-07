@@ -266,6 +266,12 @@ export const jsonReplacer = function (key: string, value: any) {
                         dataType: 'BigNumberReplacer',
                         value: thisKeyValue[1].toString(),
                     };
+                } else if (typeof thisKeyValue[1] === 'bigint') {
+                    // Replace it
+                    thisKeyValue[1] = {
+                        dataType: 'BigIntReplacer',
+                        value: thisKeyValue[1].toString(),
+                    };
                 }
             }
         }
@@ -278,6 +284,11 @@ export const jsonReplacer = function (key: string, value: any) {
         return {
             dataType: 'Set',
             value: Array.from(value.keys()),
+        };
+    } else if (typeof value === 'bigint') {
+        return {
+            dataType: 'BigIntReplacer',
+            value: value.toString(),
         };
     } else {
         return value;
@@ -302,16 +313,17 @@ export const jsonReviver = (key: string, value: any) => {
                 for (let i = 0; i < value.value.length; i += 1) {
                     const thisKeyValuePair = value.value[i]; // [key, value]
                     const thisValue = thisKeyValuePair[1];
-                    if (
-                        thisValue &&
-                        thisValue.dataType === 'BigNumberReplacer'
-                    ) {
-                        // If this is saved BigNumber, replace it with an actual BigNumber
-                        // note, you can't use thisValue = new BigNumber(thisValue.value)
-                        // Need to use this specific array entry
-                        value.value[i][1] = new BigNumber(
-                            value.value[i][1].value,
-                        );
+                    if (thisValue) {
+                        if (thisValue.dataType === 'BigNumberReplacer') {
+                            // If this is saved BigNumber, replace it with an actual BigNumber
+                            // note, you can't use thisValue = new BigNumber(thisValue.value)
+                            // Need to use this specific array entry
+                            value.value[i][1] = new BigNumber(
+                                value.value[i][1].value,
+                            );
+                        } else if (thisValue.dataType === 'BigIntReplacer') {
+                            value.value[i][1] = BigInt(value.value[i][1].value);
+                        }
                     }
                 }
             }
@@ -319,6 +331,9 @@ export const jsonReviver = (key: string, value: any) => {
         }
         if (value.dataType === 'Set') {
             return new Set(value.value);
+        }
+        if (value.dataType === 'BigIntReplacer') {
+            return BigInt(value.value);
         }
     }
     return value;
@@ -345,7 +360,7 @@ export const mapToKeyValueArray = (map: Map<any, any>): Array<[any, any]> => {
  * @param  balanceSats
  * @returns  emoji determined by thresholds set in config
  */
-export const getEmojiFromBalanceSats = (balanceSats: number): string => {
+export const getEmojiFromBalanceSats = (balanceSats: bigint): string => {
     const { whaleSats, emojis } = config;
     if (balanceSats >= whaleSats.bigWhale) {
         return emojis.bigWhale;

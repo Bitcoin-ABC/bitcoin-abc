@@ -337,9 +337,9 @@ mod tests {
         },
         structs::{GenesisInfo, TxType},
         test_helpers::{
-            empty_entry, meta_slp, spent_amount, spent_amount_group,
-            spent_baton, token_amount, token_baton, TOKEN_ID1, TOKEN_ID3,
-            TOKEN_ID4, TOKEN_ID5, TOKEN_ID8,
+            empty_entry, meta_slp, spent_atoms, spent_atoms_group, spent_baton,
+            token_atoms, token_baton, TOKEN_ID1, TOKEN_ID3, TOKEN_ID4,
+            TOKEN_ID5, TOKEN_ID8,
         },
         token_tx::{TokenTx, TokenTxEntry},
         token_type::SlpTokenType::*,
@@ -433,7 +433,7 @@ mod tests {
                 entries: vec![TokenTxEntry {
                     meta: meta_slp(TOKEN_ID1, Fungible),
                     tx_type: Some(TxType::BURN),
-                    intentional_burn_amount: Some(1000),
+                    intentional_burn_atoms: Some(1000),
                     ..empty_entry()
                 }],
                 outputs: vec![None, None],
@@ -495,8 +495,8 @@ mod tests {
                     ..empty_entry()
                 }],
                 outputs: vec![
-                    None,
-                    token_amount::<0>(1234),
+                    None, // OP_RETURN never has tokens
+                    token_atoms::<0>(1234),
                     token_baton::<0>(),
                 ],
                 failed_parsings: vec![],
@@ -505,7 +505,7 @@ mod tests {
         assert_eq!(mem_tokens().tx_token_inputs(&txid(3)), None);
         assert_eq!(
             mem_tokens().spent_token(&outpoint(3, 1))?,
-            spent_amount(meta_slp(TOKEN_ID3, Fungible), 1234),
+            spent_atoms(meta_slp(TOKEN_ID3, Fungible), 1234),
         );
         assert_eq!(
             mem_tokens().spent_token(&outpoint(3, 2))?,
@@ -539,7 +539,7 @@ mod tests {
                     genesis_info: Some(genesis_info),
                     ..empty_entry()
                 }],
-                outputs: vec![None, token_amount::<0>(1000)],
+                outputs: vec![None, token_atoms::<0>(1000)],
                 failed_parsings: vec![],
             }),
         );
@@ -565,7 +565,7 @@ mod tests {
                     genesis_info: Some(GenesisInfo::empty_slp()),
                     ..empty_entry()
                 }],
-                outputs: vec![None, token_amount::<0>(10), token_baton::<0>()],
+                outputs: vec![None, token_atoms::<0>(10), token_baton::<0>()],
                 failed_parsings: vec![],
             }),
         );
@@ -612,17 +612,17 @@ mod tests {
                 }],
                 outputs: vec![
                     None,
-                    token_amount::<0>(1),
-                    token_amount::<0>(2),
-                    token_amount::<0>(3),
-                    token_amount::<0>(4),
+                    token_atoms::<0>(1),
+                    token_atoms::<0>(2),
+                    token_atoms::<0>(3),
+                    token_atoms::<0>(4),
                 ],
                 failed_parsings: vec![],
             }),
         );
         assert_eq!(
             mem_tokens().tx_token_inputs(&txid(7)),
-            Some([spent_amount(meta_slp(TOKEN_ID5, Nft1Group), 10)].as_ref()),
+            Some([spent_atoms(meta_slp(TOKEN_ID5, Nft1Group), 10)].as_ref()),
         );
 
         // Tx 8: Valid NFT1 CHILD GENESIS using mempool SEND output, also burn
@@ -651,7 +651,7 @@ mod tests {
                     TokenTxEntry {
                         meta: meta_slp(TOKEN_ID4, MintVault),
                         is_invalid: true,
-                        actual_burn_amount: 1000,
+                        actual_burn_atoms: 1000,
                         ..empty_entry()
                     },
                     TokenTxEntry {
@@ -659,7 +659,7 @@ mod tests {
                         ..empty_entry()
                     },
                 ],
-                outputs: vec![None, token_amount::<0>(1)],
+                outputs: vec![None, token_atoms::<0>(1)],
                 failed_parsings: vec![],
             }),
         );
@@ -667,8 +667,8 @@ mod tests {
             mem_tokens().tx_token_inputs(&txid(8)),
             Some(
                 [
-                    spent_amount(meta_slp(TOKEN_ID5, Nft1Group), 1),
-                    spent_amount(meta_slp(TOKEN_ID4, MintVault), 1000),
+                    spent_atoms(meta_slp(TOKEN_ID5, Nft1Group), 1),
+                    spent_atoms(meta_slp(TOKEN_ID4, MintVault), 1000),
                 ]
                 .as_ref()
             ),
@@ -716,7 +716,7 @@ mod tests {
                     tx_type: Some(TxType::MINT),
                     ..empty_entry()
                 }],
-                outputs: vec![None, token_amount::<0>(123)],
+                outputs: vec![None, token_atoms::<0>(123)],
                 failed_parsings: vec![],
             }),
         );
@@ -736,29 +736,29 @@ mod tests {
                     TokenTxEntry {
                         meta: meta_slp(TOKEN_ID3, Fungible),
                         tx_type: Some(TxType::SEND),
-                        actual_burn_amount: 234,
+                        actual_burn_atoms: 234,
                         ..empty_entry()
                     },
                     TokenTxEntry {
                         meta: meta_slp(TOKEN_ID4, MintVault),
                         is_invalid: true,
-                        actual_burn_amount: 123,
+                        actual_burn_atoms: 123,
                         ..empty_entry()
                     },
                     TokenTxEntry {
                         meta: meta_slp(TOKEN_ID8, Nft1Child),
                         group_token_meta: Some(meta_slp(TOKEN_ID5, Nft1Group)),
                         is_invalid: true,
-                        actual_burn_amount: 1,
+                        actual_burn_atoms: 1,
                         ..empty_entry()
                     },
                 ],
                 outputs: vec![
                     None,
-                    token_amount::<0>(100),
-                    token_amount::<0>(200),
-                    token_amount::<0>(300),
-                    token_amount::<0>(400),
+                    token_atoms::<0>(100),
+                    token_atoms::<0>(200),
+                    token_atoms::<0>(300),
+                    token_atoms::<0>(400),
                 ],
                 failed_parsings: vec![],
             }),
@@ -767,13 +767,13 @@ mod tests {
             mem_tokens().tx_token_inputs(&txid(11)),
             Some(
                 [
-                    spent_amount(meta_slp(TOKEN_ID3, Fungible), 1234),
-                    spent_amount_group(
+                    spent_atoms(meta_slp(TOKEN_ID3, Fungible), 1234),
+                    spent_atoms_group(
                         meta_slp(TOKEN_ID8, Nft1Child),
                         1,
                         meta_slp(TOKEN_ID5, Nft1Group),
                     ),
-                    spent_amount(meta_slp(TOKEN_ID4, MintVault), 123),
+                    spent_atoms(meta_slp(TOKEN_ID4, MintVault), 123),
                 ]
                 .as_ref()
             ),
@@ -788,7 +788,7 @@ mod tests {
                     meta: meta_slp(TOKEN_ID3, Fungible),
                     tx_type: None,
                     is_invalid: true,
-                    actual_burn_amount: 200,
+                    actual_burn_atoms: 200,
                     ..empty_entry()
                 }],
                 outputs: vec![None; 3],
@@ -797,7 +797,7 @@ mod tests {
         );
         assert_eq!(
             mem_tokens().tx_token_inputs(&txid(12)),
-            Some([spent_amount(meta_slp(TOKEN_ID3, Fungible), 200)].as_ref()),
+            Some([spent_atoms(meta_slp(TOKEN_ID3, Fungible), 200)].as_ref()),
         );
 
         // Test fetch_tx_spent_tokens
@@ -869,7 +869,7 @@ mod tests {
                 &db,
                 is_mempool_tx,
             )?,
-            Ok(vec![spent_amount_group(
+            Ok(vec![spent_atoms_group(
                 meta_slp(TOKEN_ID8, Nft1Child),
                 1,
                 meta_slp(TOKEN_ID5, Nft1Group),

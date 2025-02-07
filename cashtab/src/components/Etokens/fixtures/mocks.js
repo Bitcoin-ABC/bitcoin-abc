@@ -25,7 +25,7 @@ const MOCK_TOKEN_UTXO = {
             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
             number: 1,
         },
-        amount: '2999998798000000000',
+        atoms: 2999998798000000000n,
         isMintBaton: false,
     },
 };
@@ -41,7 +41,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 836452,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -51,10 +50,11 @@ export const tokenTestWallet = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1000000',
                     isMintBaton: false,
+                    atoms: 1000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             // XECX
             {
@@ -64,7 +64,7 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 836452,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: true,
                 token: {
                     tokenId: tokenMockXecx.tokenId,
@@ -73,7 +73,7 @@ export const tokenTestWallet = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1000000',
+                    atoms: 1000000n,
                     isMintBaton: false,
                 },
                 path: 1899,
@@ -85,7 +85,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 836457,
                 isCoinbase: false,
-                value: 1000,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -95,10 +94,11 @@ export const tokenTestWallet = {
                         type: 'ALP_TOKEN_TYPE_UNKNOWN',
                         number: 255,
                     },
-                    amount: '0',
                     isMintBaton: false,
+                    atoms: 0n,
                 },
                 path: 1899,
+                sats: 1000n,
             },
             {
                 outpoint: {
@@ -107,7 +107,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 836700,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -117,10 +116,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100000',
                     isMintBaton: false,
+                    atoms: 100000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -129,7 +129,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 840233,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -139,10 +138,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '111000000000',
                     isMintBaton: false,
+                    atoms: 111000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -151,7 +151,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
                 isFinal: false,
                 token: {
                     tokenId:
@@ -161,10 +160,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
                     isMintBaton: false,
+                    atoms: 18446744073709551615n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -173,7 +173,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
                 isFinal: false,
                 token: {
                     tokenId:
@@ -183,10 +182,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
+                    atoms: 0n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -195,7 +195,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 840011,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -205,10 +204,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '100',
                     isMintBaton: false,
+                    atoms: 100n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -217,7 +217,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 840011,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -227,10 +226,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '0',
                     isMintBaton: true,
+                    atoms: 0n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -239,7 +239,6 @@ export const tokenTestWallet = {
                 },
                 blockHeight: 841509,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -249,10 +248,11 @@ export const tokenTestWallet = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
         ],
         nonSlpUtxos: [
@@ -263,9 +263,9 @@ export const tokenTestWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 997081,
                 isFinal: false,
                 path: 1899,
+                sats: 997081n,
             },
         ],
         tokens: new Map([
@@ -306,20 +306,19 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '4730440220350ea45bed94988b896e3b4fcf111cc433a3e851bf2bb43c84ef5a0a51f70adf02204fc1007f3840ab3ed278a3add81411249575caeb4b7416de1aed695b02bca2f94121020a725e4b7326b4af2b468ab95982d1393d062811a8f8204bf383bf3373dbc54f',
-                        value: 998857,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
+                        sats: 998857n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010747454e45534953034d53420e4d696e742053656e64204275726e1468747470733a2f2f636173687461622e636f6d2f4c000109010208ffffffffffffffff',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         token: {
@@ -330,13 +329,13 @@ export const tokenTestWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '18446744073709551615',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 18446744073709551615n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         token: {
@@ -347,15 +346,16 @@ export const tokenTestWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '0',
                             isMintBaton: true,
                             entryIdx: 0,
+                            atoms: 0n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 997081,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
+                        sats: 997081n,
                     },
                 ],
                 lockTime: 0,
@@ -375,9 +375,9 @@ export const tokenTestWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -411,7 +411,6 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100d5fc2c9824aa7ceb987dde5e32b17f1be000fa19480e59faaef6f5e7f235e5f7022039e8fa5e66c19c0a0e77b429a3056465db841a2b8e837552d01d38072edf0ed14121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -421,12 +420,13 @@ export const tokenTestWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '999867000000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 999867000000000n,
                         },
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -435,20 +435,19 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '473044022038387900857b7f33214deff1ffc45f108a5ac9c60dd4d41d85662b2116d5644502201a56911fa1b7c86d967d04fd3c35348714c0b5c69fec025c549c1641b1049d654121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                        value: 14846,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        sats: 14846n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d96000800038d45d53df800',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         token: {
@@ -459,13 +458,13 @@ export const tokenTestWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '111000000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 111000000000n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                         token: {
@@ -476,15 +475,16 @@ export const tokenTestWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '999756000000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 999756000000000n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 13333,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        sats: 13333n,
                     },
                 ],
                 lockTime: 0,
@@ -504,9 +504,9 @@ export const tokenTestWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -543,20 +543,19 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100b68ce47f60e254e0a980cf05f9ebc2a5bf943b3ffb57c567db6adce0e0aaf7c8022015813a924a50b310e2f9ab3d60db35b53e56d96eca6603e20a02ed7a4a623e0e4121020a725e4b7326b4af2b468ab95982d1393d062811a8f8204bf383bf3373dbc54f',
-                        value: 1000000,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
+                        sats: 1000000n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010747454e4553495301530753756c706875721468747470733a2f2f636173687461622e636f6d2f4c0001004c000800000000000186a0',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         token: {
@@ -567,19 +566,20 @@ export const tokenTestWallet = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100000n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 998857,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         spentBy: {
                             txid: '182679afdec6d93fe7243f3ec5d032838cf9f268cf9656c4959a227617d076ef',
                             outIdx: 0,
                         },
+                        sats: 998857n,
                     },
                 ],
                 lockTime: 0,
@@ -599,9 +599,9 @@ export const tokenTestWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -640,7 +640,6 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '41c9594e4dd7338ad9ec44a81ab75db2ccb737b961b00f2f8a51e0f581158b5c25ff41b26357f432821917a642cad0fd68371a75686bd3b7847dc6daae26e3eb6a4121037bc7f6ca0474be3edf7a2ce4e753855998273e9db618b135c20ee0e4b5e9fce8',
-                        value: 546,
                         sequenceNo: 4294967294,
                         token: {
                             tokenId:
@@ -650,12 +649,13 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_UNKNOWN',
                                 number: 200,
                             },
-                            amount: '0',
                             isMintBaton: false,
                             entryIdx: 1,
+                            atoms: 0n,
                         },
                         outputScript:
                             '76a914915132f6d7b707123b66ce4ac0a04a135c07a39988ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -664,7 +664,6 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '418aafb5e789fbc194ed7ecbad3bea728d00d9c089d3005bd6cf3487a8f196b2444e1552c5079805a790ab7339b4ef1932749f19ded730852cbc993dd80a04189d4121033b5a78b9d86813dd402f05cf0627dc4273090c70a9e52109204da0f272980633',
-                        value: 546,
                         sequenceNo: 4294967294,
                         token: {
                             tokenId:
@@ -674,12 +673,13 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_UNKNOWN',
                                 number: 200,
                             },
-                            amount: '0',
                             isMintBaton: false,
                             entryIdx: 1,
+                            atoms: 0n,
                         },
                         outputScript:
                             '76a914bd19517f5aa2f2286922d4c28f5dc4c89c49798488ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -688,19 +688,18 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '414d72085dfe8b9deb741c15e83822d778f5825e35c44dbd3753937b697538e502d71aae0215881f07bd8c66112abfe466b95cb8ebc0d7e9ca0c4fd063853ad73e412102637953859a84e61e87df221c91ac3a38c59fa7e652e43894adc4443a373bcd10',
-                        value: 600,
                         sequenceNo: 4294967294,
                         outputScript:
                             '76a91496345bfc72a63d798a7f1deace0be9edf209a24b88ac',
+                        sats: 600n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript: '6a5005534c5032ff',
+                        sats: 0n,
                     },
                     {
-                        value: 1000,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         token: {
@@ -711,10 +710,11 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_UNKNOWN',
                                 number: 255,
                             },
-                            amount: '0',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 0n,
                         },
+                        sats: 1000n,
                     },
                 ],
                 lockTime: 821417,
@@ -734,9 +734,9 @@ export const tokenTestWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                     {
                         tokenId:
@@ -750,9 +750,9 @@ export const tokenTestWallet = {
                         isInvalid: true,
                         burnSummary: 'Unexpected burn: ',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -780,7 +780,6 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '418c511d2a85d07f2d5313aeec82817321ee5c14212da7c44d0c4ab3799238c474065720a8ceb3329edaa2160f8f2948bbcfcc11203347f61dc7e58f46f70df972c12103ab36c95805dd2d9f40b5abde2e0a7c78858421c03383f0a138358eb514dc53dd',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -790,12 +789,13 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_STANDARD',
                                 number: 0,
                             },
-                            amount: '50000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 50000000n,
                         },
                         outputScript:
                             '76a914262261027093df1005f751174d87d780adfabbbf88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -804,10 +804,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '41f7d042e3288f923e1f540ed7ce43db91d1295951ca21ed4ab24ce95d9ca6826ad7e5497f117f802fe1c9fda902ab7bf97af8bba4d29cb267d110d23e221f8cc7412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                        value: 1000,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        sats: 1000n,
                     },
                     {
                         prevOut: {
@@ -816,20 +816,19 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '41d1e4f4970fea442cf46e71811eaf2f8271f2f1b3518fdb682bb0625160177adfa058707013453ed4c80887473238c7013007bf794a557fe6de449a51b4b4d06a412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                        value: 1000,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        sats: 1000n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a503d534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c0340420f000000dcadeb020000640000000000',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         token: {
@@ -840,13 +839,13 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_STANDARD',
                                 number: 0,
                             },
-                            amount: '1000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1000000n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a914262261027093df1005f751174d87d780adfabbbf88ac',
                         token: {
@@ -857,17 +856,17 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_STANDARD',
                                 number: 0,
                             },
-                            amount: '48999900',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 48999900n,
                         },
                         spentBy: {
                             txid: 'f784a99870650fddc57360db8f91035bde12e4c278eb4704caa1256b682d7bc5',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
                         token: {
@@ -878,10 +877,11 @@ export const tokenTestWallet = {
                                 type: 'ALP_TOKEN_TYPE_STANDARD',
                                 number: 0,
                             },
-                            amount: '100',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100n,
                         },
+                        sats: 546n,
                     },
                 ],
                 lockTime: 0,
@@ -901,9 +901,9 @@ export const tokenTestWallet = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -937,10 +937,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '4830450221008834c3f958b6de5c2d14385ef28c69671db6210f88b3dd80fb1c95edd03ecec9022079f16f8022e910a81570a86ce27f8b095553309a050028bb2ad43cd770d0a5a0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 463935,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 463935n,
                     },
                     {
                         prevOut: {
@@ -949,10 +949,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100fe262318853a2a7660b21f63be1e9e3542236e4993be03495f706497e46ad59a022066838c3875a0bfa6fafac4c29318ec78ebede7dd1f2a4b1419da7abac17453c9412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -961,10 +961,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100911a595d3b7f549d25cb2aeaebc105d4c7959ea85cf946b267c5af49cd48d87802200a6c09b691ec570f88e390e24aab1b715907bd58433fa133ea83f2936d807cec412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -973,10 +973,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '47304402202a2df4c242582503b800a3852afc68f46a5de8b9554e97fe00313e95c3430ee902203e534510bd9754f1279ccfccd524b8baa7d521823ca2b87c4b5be813a3da8920412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -985,10 +985,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '47304402204deff67ff4bd3d146c2780a4d29f4f4757af0df5e5f5cffb0a9c8541bd86a67202201f4b467a220b5a84b5d7c6dc398720c4b1b86d41870cf8cc3fc7968c93b6bb91412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 2200n,
                     },
                     {
                         prevOut: {
@@ -997,10 +997,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '473044022024894af3256a20173a10bb0195cd5d18edd54e7f78575fccb28306d824ef04b902201134383d62083011a1a90aae60e3899008c0894543e49bfc19db1bca639c2ca6412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -1009,10 +1009,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100cf855ef9fd533ae6de13a21850b2ed772819480083828ab599ce56a4fe0d5014022062846bb895f11b3af532a8407dc4b7ccf40e5c6d6e6f7baed6aa276d22e648ec412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 2200n,
                     },
                     {
                         prevOut: {
@@ -1021,10 +1021,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100828aa7fab0d9b3e8a7e84e9f9b058039010b7a7f339992357a820d6289239b3902206105c3174a82bad53310fcbf264dcb8ffdb5932006f528822671b07f9ba8f17b412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -1033,10 +1033,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '473044022015196c866fe452d1f55371ea4a2266c1e17738a941271063cc5a666d51bba7b502205dfba391e95fd3fe266a7619d8067de973631d3988b844af3b54f61cb29d6749412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -1045,10 +1045,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100dade26b499a7b8e7e14d4bf65dd0d959fc46343c1ad5b23956f2117afef81e0c022070177fc12d998e2f8e817423844bf122183d60964033766d4b58416f335c5ddf412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -1057,10 +1057,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '4830450221009c5499d0830d2ff8470c9c232c3ff8d984845a5e0a995f838c9def20413e48f6022003c96aa2453b48d045449564a8e591fbb1b098bb0ff25ca3b147fee0d2c9ddc2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -1069,10 +1069,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100869341ac1ca7f84ba5871f92444cf36a1c277e5e0bd3f084c3eac5674148bfda02200fc9c0a79de0937f8e71071e7f25518aa8cd8ef71a2260221dacd635d5de169a412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -1081,10 +1081,10 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '4830450221008b7f0701d441d4d365181f8113dc249d7628098658341e233e65559eebacd31602204f614a4100d7c3cf6921983db601806a281e3d9af2c531c27ebf2b84898d254c412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 2200n,
                     },
                     {
                         prevOut: {
@@ -1093,30 +1093,30 @@ export const tokenTestWallet = {
                         },
                         inputScript:
                             '483045022100f05296911f971330353398cfca9ba4e894285bd5d46c499bd7fb926ca6053ba002206f630b424989e876df0efc4055895abfcbb73bd7962512fe1deb1999fc1ec3f1412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4888538,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4888538n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1000000,
                         outputScript:
                             '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                         spentBy: {
                             txid: '6fb5525bf35ec6eb6a0608c8a3624891801cdf4c1079fc78462a24230bad27e2',
                             outIdx: 0,
                         },
+                        sats: 1000000n,
                     },
                     {
-                        value: 4364651,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '2bbcbf5e5e8c753991a37402f4ae60e49a0927c20927dba32862cf9c4af87f25',
                             outIdx: 0,
                         },
+                        sats: 4364651n,
                     },
                 ],
                 lockTime: 0,
@@ -1199,20 +1199,19 @@ export const slp1FixedMocks = {
                 },
                 inputScript:
                     '46304302200db47adc26bbb4ae4584ae455c5f078a4d2f624e898fab3159c74473677bc8b2021f371ea6c9acd051c96eaba2b229d06a0247dad2acf6cf0694792d22280dfe8e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1253,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1253n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e45534953035653500b56657370656e65204761733468747470733a2f2f73696d706c652e77696b6970656469612e6f72672f77696b692f5374617243726166742347616d65706c61794c0001094c000829a2241af62c0000',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1223,14 +1222,15 @@ export const slp1FixedMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3000000000000000000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 3000000000000000000n,
                 },
                 spentBy: {
                     txid: 'fc1ada187e9f5da7616f481c79cd0fa3aafa3d4094288db6806e7508f76b5fcd',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -1250,9 +1250,9 @@ export const slp1FixedMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1271,7 +1271,7 @@ export const slp1FixedMocks = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
-                amount: '2999998798000000000',
+                atoms: 2999998798000000000n,
             },
         },
     ],
@@ -1312,20 +1312,19 @@ export const slp1FixedBear = {
                 },
                 inputScript:
                     '473044022055444db90f98b462ca29a6f51981da4015623ddc34dc1f575852426ccb785f0402206e786d4056be781ca1720a0a915b040e0a9e8716b8e4d30b0779852c191fdeb3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 6231556,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 6231556n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1336,23 +1335,24 @@ export const slp1FixedBear = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '4444',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 4444n,
                 },
                 spentBy: {
                     txid: '9e7f91826cfd3adf9867c1b3d102594eff4743825fad9883c35d26fb3bdc1693',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 6230555,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '27a2471afab33d82b9404df12e1fa242488a9439a68e540dcf8f811ef39c11cf',
                     outIdx: 0,
                 },
+                sats: 6230555n,
             },
         ],
         lockTime: 0,
@@ -1372,9 +1372,9 @@ export const slp1FixedBear = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1393,7 +1393,7 @@ export const slp1FixedBear = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                amount: '4441',
+                atoms: 4441n,
             },
         },
     ],
@@ -1434,20 +1434,19 @@ export const slp1FixedCachet = {
                 },
                 inputScript:
                     '4830450221009bb1fb7d49d9ac64b79ea041be2e2efa5a8709a470930b04c27c9fc46ed1906302206a0a9daf5e64e934a3467951dd2da37405969d4434d4006ddfea3ed39ff4e0ae412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 2200n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e4553495306434143484554064361636865741468747470733a2f2f636173687461622e636f6d2f4c0001020102080000000000989680',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1458,13 +1457,13 @@ export const slp1FixedCachet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 10000000n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1475,23 +1474,24 @@ export const slp1FixedCachet = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
                 spentBy: {
                     txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 773,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '343356b9d4acd59065f90b1ace647c1f714f1fd4c411e2cf77081a0246c7416d',
                     outIdx: 3,
                 },
+                sats: 773n,
             },
         ],
         lockTime: 0,
@@ -1511,9 +1511,9 @@ export const slp1FixedCachet = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1531,7 +1531,7 @@ export const slp1FixedCachet = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
-                amount: '2999998798000000000',
+                atoms: 2999998798000000000n,
             },
         },
     ],
@@ -1568,20 +1568,19 @@ export const slp1VarMocks = {
                 },
                 inputScript:
                     '4730440220350ea45bed94988b896e3b4fcf111cc433a3e851bf2bb43c84ef5a0a51f70adf02204fc1007f3840ab3ed278a3add81411249575caeb4b7416de1aed695b02bca2f94121020a725e4b7326b4af2b468ab95982d1393d062811a8f8204bf383bf3373dbc54f',
-                value: 998857,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
+                sats: 998857n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e45534953034d53420e4d696e742053656e64204275726e1468747470733a2f2f636173687461622e636f6d2f4c000109010208ffffffffffffffff',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                 token: {
@@ -1592,13 +1591,13 @@ export const slp1VarMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 18446744073709551615n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
                 token: {
@@ -1609,15 +1608,16 @@ export const slp1VarMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
+                sats: 546n,
             },
             {
-                value: 997081,
                 outputScript:
                     '76a91400549451e5c22b18686cacdf34dce649e5ec3be288ac',
+                sats: 997081n,
             },
         ],
         lockTime: 0,
@@ -1637,9 +1637,9 @@ export const slp1VarMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1652,7 +1652,7 @@ export const slp1VarMocks = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '182679afdec6d93fe7243f3ec5d032838cf9f268cf9656c4959a227617d076ef',
-                amount: '18446744073709551615',
+                atoms: 18446744073709551615n,
             },
         },
         // Note that Cashtab will mark a token as fixed supply if there are no mint batons in its utxos by tokenId
@@ -1662,7 +1662,7 @@ export const slp1VarMocks = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '182679afdec6d93fe7243f3ec5d032838cf9f268cf9656c4959a227617d076ef',
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
             },
         },
@@ -1705,20 +1705,19 @@ export const slp1NftParentMocks = {
                 },
                 inputScript:
                     '483045022100b72455dac63bfd2ba70be566d217b6ae734775b20410b5b524784aef6e07d799022023b960eab42d459b532b2661018a2639803f365a5115c1ca2a09149a285bfe3b4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 2200n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001810747454e45534953034142430a41424320426c6f636b731668747470733a2f2f626974636f696e6162632e6f7267200a40beb8dbac1ff8938733a383d265fde5777da779135cab32e1720bd222c42c01000102080000000000000064',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -1729,13 +1728,13 @@ export const slp1NftParentMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '100',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 100n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -1746,10 +1745,11 @@ export const slp1NftParentMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -1769,9 +1769,9 @@ export const slp1NftParentMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1791,7 +1791,7 @@ export const slp1NftParentMocks = {
             blockHeight: 840011,
             isCoinbase: false,
             script: '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
-            value: 546,
+            sats: 546n,
             isFinal: true,
             token: {
                 tokenId:
@@ -1801,7 +1801,7 @@ export const slp1NftParentMocks = {
                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                     number: 129,
                 },
-                amount: '100',
+                atoms: 100n,
                 isMintBaton: false,
             },
         },
@@ -1813,7 +1813,7 @@ export const slp1NftParentMocks = {
             blockHeight: 840011,
             isCoinbase: false,
             script: '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
-            value: 546,
+            sats: 546n,
             isFinal: true,
             token: {
                 tokenId:
@@ -1823,7 +1823,7 @@ export const slp1NftParentMocks = {
                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                     number: 129,
                 },
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
             },
         },
@@ -1866,20 +1866,19 @@ export const slp1NftParentWithChildrenMocks = {
                 },
                 inputScript:
                     '483045022100b8fdd47dd19070801a6e5ef306463fa0b21e88405fcb381a7983f13b268128f102202434a3ca71f00b9d8a98c170679cd90cf0b81c9c416c8b24e957adfb9c6e3ec3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32773546,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32773546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001810747454e45534953033448431e54686520466f75722048616c662d436f696e73206f66204a696e2d71756125656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29202a6585a404fae1c33a43322b723b9dbd926cb07244ae9bea888add8f471511e001004c00080000000000000004',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1890,23 +1889,24 @@ export const slp1NftParentWithChildrenMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '4',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 4n,
                 },
                 spentBy: {
                     txid: 'faaba128601942a858abcce56d0da002c1f1d95e8c49ba4105c3d08aa76959d8',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 32772256,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '6ee862c41f8cf37bfd30b7a2e5ddf6bbad60b87753c6b810dd76527d97c10de4',
                     outIdx: 1,
                 },
+                sats: 32772256n,
             },
         ],
         lockTime: 0,
@@ -1926,9 +1926,9 @@ export const slp1NftParentWithChildrenMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1948,7 +1948,7 @@ export const slp1NftParentWithChildrenMocks = {
             },
             blockHeight: 841414,
             isCoinbase: false,
-            value: 546,
+            sats: 546n,
             isFinal: true,
             token: {
                 tokenId:
@@ -1958,7 +1958,7 @@ export const slp1NftParentWithChildrenMocks = {
                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                     number: 129,
                 },
-                amount: '1',
+                atoms: 1n,
                 isMintBaton: false,
             },
             path: 1899,
@@ -2002,7 +2002,6 @@ export const slp1NftChildMocks = {
                 },
                 inputScript:
                     '483045022100e394332d19812c6b78ac39484dd755473348cc11920ceaea00c9185dc36cac9302203f04fbb661cd9137d5536667f03f89f2096b487a95b7a9eddbf2a33c7fb12d93412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2012,12 +2011,13 @@ export const slp1NftChildMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 1,
+                    atoms: 1n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -2026,20 +2026,19 @@ export const slp1NftChildMocks = {
                 },
                 inputScript:
                     '47304402200dd2615f8545e57157d0cba016db42d4e25688a265155c7c332cf049eec4300202206cc96ee2f25141302f5e2aaade959ef9d972739f054585cf5dedb6bfec2f5928412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32767046,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32767046n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001410747454e455349530247430b476f72646f6e204368656e2d68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29208247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d7201004c00080000000000000001',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2050,15 +2049,16 @@ export const slp1NftChildMocks = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 32766028,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32766028n,
             },
         ],
         lockTime: 0,
@@ -2078,11 +2078,11 @@ export const slp1NftChildMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
                 groupTokenId:
                     '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
             {
                 tokenId:
@@ -2096,9 +2096,9 @@ export const slp1NftChildMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2117,7 +2117,7 @@ export const slp1NftChildMocks = {
             },
             blockHeight: 841509,
             isCoinbase: false,
-            value: 546,
+            sats: 546n,
             isFinal: true,
             token: {
                 tokenId:
@@ -2127,7 +2127,7 @@ export const slp1NftChildMocks = {
                     type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                     number: 65,
                 },
-                amount: '1',
+                atoms: 1n,
                 isMintBaton: false,
             },
             path: 1899,
@@ -2184,19 +2184,18 @@ export const alpMocks = {
                 },
                 inputScript:
                     '41a8814adcad71e619e25e6a175486c29896c1edc35fecc545280412374b1e6fe60ace588ecaf51db2bb1b3572d550796f7bc1bd4a3359c43100954277f56aec5241077de390000047182475210207447ce9b9e17ef1d8312ab3145a241f4d6f1a35eb4f381f324aa03e58913931ac',
-                value: 4000,
                 sequenceNo: 4294967295,
                 outputScript: 'a914c5a7353c6e99facb5c254cc28e882a3feac12daa87',
+                sats: 4000n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a504c63534c5032000747454e4553495304744352440854657374204352441868747470733a2f2f6372642e6e6574776f726b2f74637264090000000000000000002103d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420040001',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91459ca25ea25f4f89a79b55c1c775ae515eb25b1fe88ac',
                 token: {
@@ -2207,14 +2206,15 @@ export const alpMocks = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
                 spentBy: {
                     txid: '81ced8cfd5c69164a94cf50758f95750d3a589bfdd2cec6ee403f205cb29b5c3',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 777777,
@@ -2234,9 +2234,9 @@ export const alpMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2254,7 +2254,7 @@ export const alpMocks = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
-                amount: '1113670000',
+                atoms: 1113670000n,
             },
         },
         // Note that Cashtab will mark a token as fixed supply if there are no mint batons in its utxos by tokenId
@@ -2264,7 +2264,7 @@ export const alpMocks = {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId:
                     '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
             },
         },
@@ -2281,7 +2281,7 @@ export const xecxMocks = {
             token: {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId: tokenMockXecx.tokenId,
-                amount: '1781404606734',
+                atoms: 1781404606734n,
             },
         },
         // Include a mint baton as it is variable supply
@@ -2290,7 +2290,7 @@ export const xecxMocks = {
             token: {
                 ...MOCK_TOKEN_UTXO.token,
                 tokenId: tokenMockXecx.tokenId,
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
             },
         },
@@ -2322,7 +2322,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 680782,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2332,10 +2331,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2344,7 +2344,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 681191,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2354,10 +2353,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2366,7 +2366,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 685181,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2376,10 +2375,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2388,7 +2388,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 709251,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2398,10 +2397,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1000',
                     isMintBaton: false,
+                    atoms: 1000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2410,7 +2410,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 717055,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2420,10 +2419,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10',
                     isMintBaton: false,
+                    atoms: 10n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2432,7 +2432,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 741200,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2442,10 +2441,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100000000',
                     isMintBaton: false,
+                    atoms: 100000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2454,7 +2454,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 758209,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2464,10 +2463,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '311',
                     isMintBaton: false,
+                    atoms: 311n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2476,7 +2476,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 758645,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2486,10 +2485,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '4588000000',
                     isMintBaton: false,
+                    atoms: 4588000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2498,7 +2498,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 758887,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2508,10 +2507,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '229400000',
                     isMintBaton: false,
+                    atoms: 229400000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2520,7 +2520,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 759839,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2530,10 +2529,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '229400000',
                     isMintBaton: false,
+                    atoms: 229400000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2542,7 +2542,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 760076,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2552,10 +2551,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '123456789',
                     isMintBaton: false,
+                    atoms: 123456789n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2564,7 +2564,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 764737,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2574,10 +2573,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1699',
                     isMintBaton: false,
+                    atoms: 1699n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2586,7 +2586,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 767640,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2596,10 +2595,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '99999998',
                     isMintBaton: false,
+                    atoms: 99999998n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2608,7 +2608,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 767649,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2618,10 +2617,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100000000',
                     isMintBaton: false,
+                    atoms: 100000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2630,7 +2630,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 768787,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2640,10 +2639,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2652,7 +2652,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 769675,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2662,10 +2661,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '200',
                     isMintBaton: false,
+                    atoms: 200n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2674,7 +2674,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 770363,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2684,10 +2683,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9900',
                     isMintBaton: false,
+                    atoms: 9900n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2696,7 +2696,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 770363,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2706,10 +2705,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '82',
                     isMintBaton: false,
+                    atoms: 82n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2718,7 +2718,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 770387,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2728,10 +2727,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9989',
                     isMintBaton: false,
+                    atoms: 9989n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2740,7 +2740,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 772042,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2750,10 +2749,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '42300000000',
                     isMintBaton: false,
+                    atoms: 42300000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2762,7 +2762,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 774343,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2772,10 +2771,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999882000000000',
                     isMintBaton: false,
+                    atoms: 999882000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2784,7 +2784,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 776118,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2794,10 +2793,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999999878',
                     isMintBaton: false,
+                    atoms: 999999878n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2806,7 +2806,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 780736,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2816,10 +2815,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2',
                     isMintBaton: false,
+                    atoms: 2n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2828,7 +2828,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 780736,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2838,10 +2837,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '23',
                     isMintBaton: false,
+                    atoms: 23n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2850,7 +2850,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 780736,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2860,10 +2859,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '65',
                     isMintBaton: false,
+                    atoms: 65n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2872,7 +2872,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 782774,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2882,10 +2881,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3',
                     isMintBaton: false,
+                    atoms: 3n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2894,7 +2894,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 783389,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2904,10 +2903,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '123456844',
                     isMintBaton: false,
+                    atoms: 123456844n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2916,7 +2916,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 783638,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2926,10 +2925,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '995921',
                     isMintBaton: false,
+                    atoms: 995921n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2938,7 +2938,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 783693,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2948,10 +2947,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
                     isMintBaton: false,
+                    atoms: 100n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2960,7 +2960,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 783694,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2970,10 +2969,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
                     isMintBaton: false,
+                    atoms: 100n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -2982,7 +2982,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 783695,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -2992,10 +2991,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
                     isMintBaton: false,
+                    atoms: 100n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3004,7 +3004,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 784246,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3014,10 +3013,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999998999',
                     isMintBaton: false,
+                    atoms: 999998999n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3026,7 +3026,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 784262,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3036,10 +3035,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3048,7 +3048,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 784460,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3058,10 +3057,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2100',
                     isMintBaton: false,
+                    atoms: 2100n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3070,7 +3070,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 787547,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3080,10 +3079,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2998978719999999999',
                     isMintBaton: false,
+                    atoms: 2998978719999999999n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3092,7 +3092,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 792712,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3102,10 +3101,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999824',
                     isMintBaton: false,
+                    atoms: 999824n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3114,7 +3114,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 800716,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3124,10 +3123,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999977636',
                     isMintBaton: false,
+                    atoms: 999977636n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3136,7 +3136,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 800716,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3146,10 +3145,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5235120528888890',
                     isMintBaton: false,
+                    atoms: 5235120528888890n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3158,7 +3158,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 802851,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3168,10 +3167,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '75',
                     isMintBaton: false,
+                    atoms: 75n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3180,7 +3180,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 802851,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3190,10 +3189,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '652',
                     isMintBaton: false,
+                    atoms: 652n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3202,7 +3202,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 803616,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3212,10 +3211,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '78',
                     isMintBaton: false,
+                    atoms: 78n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3224,7 +3224,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 803741,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3234,10 +3233,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '43',
                     isMintBaton: false,
+                    atoms: 43n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3246,7 +3246,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 824524,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3256,10 +3255,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '330000000',
                     isMintBaton: false,
+                    atoms: 330000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3268,7 +3268,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 824524,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3278,10 +3277,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '24999698951',
                     isMintBaton: false,
+                    atoms: 24999698951n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3290,7 +3290,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 825739,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3300,10 +3299,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1000000000',
                     isMintBaton: false,
+                    atoms: 1000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3312,7 +3312,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 825842,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3322,10 +3321,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5344445',
                     isMintBaton: false,
+                    atoms: 5344445n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3334,7 +3334,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 832625,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3344,10 +3343,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1000',
                     isMintBaton: false,
+                    atoms: 1000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3356,7 +3356,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 832788,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3366,10 +3365,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000000000000000',
                     isMintBaton: false,
+                    atoms: 10000000000000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3378,7 +3378,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 833612,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3388,10 +3387,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000000',
                     isMintBaton: false,
+                    atoms: 10000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3400,7 +3400,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 834541,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3410,10 +3409,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9899',
                     isMintBaton: false,
+                    atoms: 9899n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3422,7 +3422,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 835482,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3432,10 +3431,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '21000000',
                     isMintBaton: false,
+                    atoms: 21000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3444,7 +3444,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 836041,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3454,10 +3453,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '94',
                     isMintBaton: false,
+                    atoms: 94n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3466,7 +3466,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 836041,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3476,10 +3475,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '4',
                     isMintBaton: false,
+                    atoms: 4n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3488,7 +3488,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 836456,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3498,10 +3497,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3510,7 +3510,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 836820,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3520,10 +3519,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '55000000000',
                     isMintBaton: false,
+                    atoms: 55000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3532,7 +3532,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 837493,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3542,10 +3541,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '844601876543211',
                     isMintBaton: false,
+                    atoms: 844601876543211n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3554,7 +3554,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 837847,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3564,10 +3563,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '7700000000',
                     isMintBaton: false,
+                    atoms: 7700000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3576,7 +3576,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 838089,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3586,10 +3585,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3598,7 +3598,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 838098,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3608,10 +3607,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8987',
                     isMintBaton: false,
+                    atoms: 8987n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3620,7 +3620,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 838183,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3630,10 +3629,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '4999',
                     isMintBaton: false,
+                    atoms: 4999n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3642,7 +3642,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 838312,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3652,10 +3651,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '112',
                     isMintBaton: false,
+                    atoms: 112n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3664,7 +3664,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 838367,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3674,10 +3673,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3686,7 +3686,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 838367,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3696,10 +3695,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
+                    atoms: 0n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3708,7 +3708,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 839510,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3718,10 +3717,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '33',
                     isMintBaton: false,
+                    atoms: 33n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3730,7 +3730,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 839792,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3740,10 +3739,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1000000000',
                     isMintBaton: false,
+                    atoms: 1000000000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3752,7 +3752,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 839792,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3762,10 +3761,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3774,7 +3774,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840030,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3784,10 +3783,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
                     isMintBaton: false,
+                    atoms: 18446744073709551615n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3796,7 +3796,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840030,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3806,10 +3805,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
                     isMintBaton: false,
+                    atoms: 18446744073709551615n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3818,7 +3818,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840030,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3828,10 +3827,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '18446744073709551615',
                     isMintBaton: false,
+                    atoms: 18446744073709551615n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3840,7 +3840,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840237,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3850,10 +3849,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3',
                     isMintBaton: false,
+                    atoms: 3n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3862,7 +3862,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840530,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3872,10 +3871,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10010000',
                     isMintBaton: false,
+                    atoms: 10010000n,
                 },
                 path: 1899,
+                sats: 546n,
             },
             {
                 outpoint: {
@@ -3884,7 +3884,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840530,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3894,12 +3893,12 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
+                    atoms: 0n,
                 },
                 path: 1899,
+                sats: 546n,
             },
-            // NFT Collection
             {
                 outpoint: {
                     txid: '1111111111111111111111111111111111111111111111111111111111111111',
@@ -3907,7 +3906,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840530,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3917,12 +3915,12 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
-            // NFT
             {
                 outpoint: {
                     txid: '1111111111111111111111111111111111111111111111111111111111111111',
@@ -3930,7 +3928,6 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840530,
                 isCoinbase: false,
-                value: 546,
                 isFinal: true,
                 token: {
                     tokenId:
@@ -3940,10 +3937,11 @@ export const EtokensWalletMock = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
+                    atoms: 1n,
                 },
                 path: 1899,
+                sats: 546n,
             },
         ],
         nonSlpUtxos: [
@@ -3954,7 +3952,7 @@ export const EtokensWalletMock = {
                 },
                 blockHeight: 840530,
                 isCoinbase: false,
-                value: 97511071,
+                sats: 97511071n,
                 isFinal: true,
                 path: 1899,
             },
@@ -4201,7 +4199,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '4830450221009a9c4098a8ed4b5931ff66ec5ecab91f877765dbc2098d181c2bd23b80624f4102204a557291fa03ce16b87f9c63adfa9a7bae01976c871e8ecb9cb599291992d701412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4211,12 +4208,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '8900',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 8900n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4225,7 +4223,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402203f6961f869a29932590309857947106f8c8743c9243ff6b9bbf42d263602e76d0220322df57c7f1e0e9ac9abf4380a4f9ec611fc0d2a41e13f89da169d70595f5fa4412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4235,12 +4232,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '1000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1000n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4249,7 +4247,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100c22c37e76fa9287a4f483ec6365d23ed7c183d57dbb34fbef1b85b5f853b03fc02206c512e08ae4c56b4d1e6bc793e36583bf4f6b18cda2c0d66796aa101ba4c24e8412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4259,12 +4256,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4273,7 +4271,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022016c50d564beb53141475b40f6f8a6d293d991d92ea2cfea63598a2a28c22bb7602202ed5d105e1eac1b4544cbef32ab16953414d782290b30304b3dab1fd4a4ab3c7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4283,12 +4280,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '9990000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 9990000n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4297,7 +4295,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100911e802166e1da86307a596eda6389f0b9b2aeeaaebda15dc4fbb90b2f5382d7022039b29d16cdc748094e8bb5f321e7c1a981cd9d764240f033282accb972621663412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4307,12 +4304,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4321,7 +4319,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402206ed93aed3cb97601f5d3c7fa61856393441b0c612fd36ab7c02694770963b4f102200184d69dbe32958163775975cdbbc5485245a07794a250229eec3d74216a56ff412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4331,12 +4328,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100000000n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4345,20 +4343,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402201532d4e8b70d074ccc996fb467febcb32dcfd64b88f97bba6607931fde979c4d02207dd94604b37b77e42552c348735aed7a8ea5f3d1c29e4751aa440f04f62dd768412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 97510108,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 97510108n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000005f5e10008000000000098bd90',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                         token: {
@@ -4369,17 +4366,17 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100000000n,
                         },
                         spentBy: {
                             txid: '93caf3748905f905f178238603a9595d68b2bf864f8dd3eb211d73d93cdbaa3d',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -4390,15 +4387,16 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10010000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10010000n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 97511071,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 97511071n,
                     },
                 ],
                 lockTime: 0,
@@ -4418,9 +4416,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -4457,7 +4455,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100bd25833e31e8e0949a52a2d12cf096e0a8cadd7be5dbfa21a3049a98a936e05f0220568df8a60747f94c74a4d492d6b442f65a5d0b63c154ad09079ad89c0a5e8a77412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4467,12 +4464,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '0',
                             isMintBaton: true,
                             entryIdx: 0,
+                            atoms: 0n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4481,20 +4479,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100c5704411451982cf6dfbe423c77d2be6ce3999681781344eaf00438b36cf88b1022002b1c4d6249170be38b691c2846c29e09dd15e6de489d72729ad84a2cc40e6d7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 97511128,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 97511128n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c50000101044d494e5420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10102080000000005f5e100',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -4505,17 +4502,17 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100000000n,
                         },
                         spentBy: {
                             txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
                             outIdx: 5,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -4526,19 +4523,20 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '0',
                             isMintBaton: true,
                             entryIdx: 0,
+                            atoms: 0n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 97510108,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
                             outIdx: 6,
                         },
+                        sats: 97510108n,
                     },
                 ],
                 lockTime: 0,
@@ -4558,9 +4556,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -4595,10 +4593,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100a38edd91b2a69b3f8724972b2fbb16a5e9ec5ddd6d5f5c709493bec2d0692d400220075b65ffd9cd61a1ee76c40e77ee85ff55d3a3e6ba0e84aa940c4e774b2434d2412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 2872,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 2872n,
                     },
                     {
                         prevOut: {
@@ -4607,30 +4605,30 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402201c148e93b1f610125cf1055af515a4d9895dada109c3ddbb4a64d35ee0be01c902200b9b4b3fd7a4db4a8125743f298fc96e1c83b7061cec83a20533b90c3d145b17412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 112409506,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 112409506n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 14900876,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                         spentBy: {
                             txid: 'b01def0a01ae29f905298af3f9e496dd630ed205d14d2b11f5bba0d50f9a9a08',
                             outIdx: 1,
                         },
+                        sats: 14900876n,
                     },
                     {
-                        value: 97511128,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '7d94a36482f6e8f5c6ed576212761a102ae4d106f06441fb8654e0ea6540f0b0',
                             outIdx: 1,
                         },
+                        sats: 97511128n,
                     },
                 ],
                 lockTime: 0,
@@ -4665,7 +4663,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402202af39ca462ee08a32e7984d629ebf704cfa6342deb5a85d4962cba040400d23302207a6f54568437e03ad786242bc4f8fbac825136f0f3f81acab16ba13ecfe303c5412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4675,12 +4672,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4689,7 +4687,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022073f20d5d3c4575b8b06e4a71e5e33ccf8cee8ccc4ae3b23552f7db0f9fc3cb4202200297d074d2d67c2b06c7243057951c46140c276edd538ab7a4d8665c00bf7efb412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4699,12 +4696,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4713,20 +4711,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100affdf4978adb42d4995114ea175aa4094e14f25f73bcbeb22689a2f25819ac3002202da51d160fb29abca76bbd0e70fc460ff072cf3f4d35d1617904817dd3ce46bd412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 112410135,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 112410135n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000000000064',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                         token: {
@@ -4737,17 +4734,17 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000n,
                         },
                         spentBy: {
                             txid: 'f35f1d584acdcef33ce86ae28925458ff792559c47857d425fe75fb0395db701',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -4758,23 +4755,24 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100n,
                         },
                         spentBy: {
                             txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
                             outIdx: 4,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 112409506,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'fb6086e1e98f88fdef7abab312dfb68449d1b43d511e1f15c488a8cb804f1c51',
                             outIdx: 1,
                         },
+                        sats: 112409506n,
                     },
                 ],
                 lockTime: 0,
@@ -4794,9 +4792,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -4833,7 +4831,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100b3d201ce34fce4807a0ab776db473c80e76b4f5fb800ee9c950a38434fe149fc0220694356ff2841b3d0ff14858dab5a97e3205ef9ef889833ee5120bfc71aef5afb41210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -4843,12 +4840,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000n,
                         },
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -4857,20 +4855,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100def98fe39629278379cd5d011b8ab896e8ff20af983a0ec3a04a1872fa8cfc1d02205c95f7474b78d3821e3104dce3e8b15af0b36452451eb85983313c573238f0a741210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                        value: 100000,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        sats: 100000n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -4881,23 +4878,24 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000n,
                         },
                         spentBy: {
                             txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
                             outIdx: 2,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 99562,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                         spentBy: {
                             txid: 'f35f1d584acdcef33ce86ae28925458ff792559c47857d425fe75fb0395db701',
                             outIdx: 1,
                         },
+                        sats: 99562n,
                     },
                 ],
                 lockTime: 0,
@@ -4917,9 +4915,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -4955,10 +4953,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022014504fa4841a91e50a3e48fd671b76133354a3f6c784b397984de3b72682cc280220287f9c61f9323da0e0e17e819c94b765c4a58f707d31e67baf0414f9550efc6d412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 2200n,
                     },
                     {
                         prevOut: {
@@ -4967,10 +4965,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402204c8f88e31740207c2cde15d8f62e5b9a2888d6cf4c745105d804a0ccc7bd321a0220091f177c1e190e543963213e4a442ecc5fa1737aa50a3c72f5a3c7f8c683b78b412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3300n,
                     },
                     {
                         prevOut: {
@@ -4979,10 +4977,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '4730440220583e29a8409e3e543e41706a4d7b20a8930dae28a94f5e0b88b7834fe47147a202201a2a4fc1f5d1c6b4e466d44e168d596ff9d55052c20e1d242ed09799bf426446412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3300n,
                     },
                     {
                         prevOut: {
@@ -4991,10 +4989,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '4730440220532fd0e44539838bbd461d81a9c22f3abbb069aa9ca031945ea660d31d49533f022059535b4da01d876910e79affe3c6924491959fba1948fe3c26b423d33cb2a144412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3300n,
                     },
                     {
                         prevOut: {
@@ -5003,10 +5001,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022015514f1729be1458981512d1c9d2ef627320d532ad8c0bc30600088fb0d567fd02202f09d9db49ba637e52eb30a42131fa5ed61b7eeb553baeeb9a6d0301bdc5be54412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -5015,10 +5013,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100a4515e9c6f5ee2330d8835f86d1104812d6f7496ed879e6d61d6118b5073cc1b02201b0aeab935ed7404813bca6a2cc3762062e13b778c8488b493c17f91d7c62ee9412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3300n,
                     },
                     {
                         prevOut: {
@@ -5027,10 +5025,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100e32fb5d3afef0aebe1f7547e284f953d14da3de49c86164b0fc85d6e4cb3ef4902201cac811ad621c99248b5154a3e4d25a55d1240e1ac8aa0dc7dcf1cde18ae9532412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3500,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3500n,
                     },
                     {
                         prevOut: {
@@ -5039,30 +5037,30 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100d720e9d5e91d3b601ac45f5d430c71a87630672adb501c48c060e5edf37079f002203309785c97f2788d1a72c54e052b2560e695f5a13460e1685b8c86ab45c70885412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 112491951,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 112491951n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 100000,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                         spentBy: {
                             txid: '80baab3dc64a3922c8d3ca11bacc6af4f05b103e15e18e9ea7592d926612c829',
                             outIdx: 1,
                         },
+                        sats: 100000n,
                     },
                     {
-                        value: 112410135,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '313a13c60491d6de89478a30379195b92591bff39e8f3184fd3a595842b8f2d6',
                             outIdx: 2,
                         },
+                        sats: 112410135n,
                     },
                 ],
                 lockTime: 0,
@@ -5097,7 +5095,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100f7f2eac186605f5d37a038b17367a4b6fc5458ca7485ce6b77baf19b4160bcd8022029b5ef41a2ebb4642e9802d32a1649d84c7daf2e978c32ebc7342b90e9427cc1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -5107,12 +5104,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000000n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -5121,20 +5119,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100b0404d5d553867df9ed190ce52ec13565aaf6e3c8986b712c150acac6d3853f70220727abe6d27a333f72249a08f3b40cd15346c6096466b6118248f92279201b5f7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3899,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3899n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000000986f70',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                         token: {
@@ -5145,17 +5142,17 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '10000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 10000n,
                         },
                         spentBy: {
                             txid: '80baab3dc64a3922c8d3ca11bacc6af4f05b103e15e18e9ea7592d926612c829',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -5166,23 +5163,24 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '9990000',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 9990000n,
                         },
                         spentBy: {
                             txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
                             outIdx: 3,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 2872,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'fb6086e1e98f88fdef7abab312dfb68449d1b43d511e1f15c488a8cb804f1c51',
                             outIdx: 0,
                         },
+                        sats: 2872n,
                     },
                 ],
                 lockTime: 0,
@@ -5202,9 +5200,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -5241,26 +5239,26 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402205c644dac10bbd0cc7b72a39f76803e49c4ef5b34a1e211e77bbad0b6fe79986f02204c562e4e567cd778b2cf5ce579a673846226fa20a1df32c2046ac80b4dcb83774121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                        value: 44081133,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        sats: 44081133n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 3500,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 6,
                         },
+                        sats: 3500n,
                     },
                     {
-                        value: 44077178,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        sats: 44077178n,
                     },
                 ],
                 lockTime: 0,
@@ -5295,26 +5293,26 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100db79043fdea632ea235b0310c145119c13ad20a18eaefa3e5ede437987b84d050220483e4069e9ddbd02e52b138e2bd317cb78c5d5cac53fb62e76d6fde91c6a2d08412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 112494377,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 112494377n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 2200,
                         outputScript:
                             '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                        sats: 2200n,
                     },
                     {
-                        value: 112491951,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 7,
                         },
+                        sats: 112491951n,
                     },
                 ],
                 lockTime: 0,
@@ -5349,26 +5347,26 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022001817a057685873e3a02cea695f4d13e9a7a4bbb1477da41d10e1ac6673ae81b022047339ed9b3b1d46d48a7186af023f99c02683be26cefb9a67b81b954f9045941412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4954677,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4954677n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 3300,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 5,
                         },
+                        sats: 3300n,
                     },
                     {
-                        value: 4950922,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4950922n,
                     },
                 ],
                 lockTime: 0,
@@ -5403,34 +5401,34 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022075c9fab550a514fb0acddf1b354099dcb58c803f3fc5d5d1be0949bf89320f0502204acfff31d5ceb1fe8fcc4a4e82218dea13d74422a7955e134a61a37e24885811412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4955730,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4955730n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript: '6a04007461620a66696e616c697a696e67',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 4,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 4954677,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '2c1b0dea56fb660ddfb9fd87734118437ec12bec6b884210724ced813ce66cc8',
                             outIdx: 0,
                         },
+                        sats: 4954677n,
                     },
                 ],
                 lockTime: 0,
@@ -5465,30 +5463,30 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402200be288a1814a0bc0751a8e443eb74d283e9f0baa135010a1e21b15e7ee58197c022047478418d5a48a064c4a3043aaeb2c008543776ef07355f2771c2e2e930f9a59412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4959485,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4959485n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 3300,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 3,
                         },
+                        sats: 3300n,
                     },
                     {
-                        value: 4955730,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'f67081fbc94ffe25c36f8ad007ee280a4d935489effd8ec60b7c8e9be57888d5',
                             outIdx: 0,
                         },
+                        sats: 4955730n,
                     },
                 ],
                 lockTime: 0,
@@ -5523,35 +5521,35 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402203393d6b9903aae9175ba9831e0197c8e96859034f9d5ac79bed49b6396cce79002203dac68c34b52e46034ccb187a73e8b08c28082cc78eaa13b6ec59fa473568521412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4963348,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4963348n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04007461622674657374696e67206176616c616e6368652066696e616c697a656420747820686973746f7279',
+                        sats: 0n,
                     },
                     {
-                        value: 3300,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 2,
                         },
+                        sats: 3300n,
                     },
                     {
-                        value: 4959485,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '228487a363d841c531feeb0a6ef7ed8825888d57f8e6c42bea911bfb192dd26d',
                             outIdx: 0,
                         },
+                        sats: 4959485n,
                     },
                 ],
                 lockTime: 0,
@@ -5589,10 +5587,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100b527adaa6310884771e286c3152e2942f584bf698c5ccdac9678c0f9dbec979f022077346d14477adc9891ea0c4e5701ff84274e366e4e64711a2b46d21f3699cc64412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 668,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 668n,
                     },
                     {
                         prevOut: {
@@ -5601,10 +5599,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022044b3ce9e8a443300b9e9c3d0739554b627eadb48c1cb47904b2f6545347970eb022002ea69d239498e09b9fe2d0c12c6179a54f120765bf874f986d12aa8a040ea81412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -5613,30 +5611,30 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100e9180af3b4a30a6b260ed934559e8fa7acea487907f607560ed22f07f4cd92a602203b874888634813a218bf358050759b26c12a48df4f64a8f1ba9034a484e5bb96412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4966484,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4966484n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 3300,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 1,
                         },
+                        sats: 3300n,
                     },
                     {
-                        value: 4963348,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '0073e74617e57959dbf114be355e83ea4401f25c6bc7aa550deae852788f7bfd',
                             outIdx: 0,
                         },
+                        sats: 4963348n,
                     },
                 ],
                 lockTime: 0,
@@ -5671,30 +5669,30 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100f194668e2d0c29742a1f959b1447de0604752cf6ad73569315b23e83c9450557022074001cdc88d6f21a0c3f1988515a2a04e417993e96c6dbc8dc205eed3b78442d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 4969139,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 4969139n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 2200,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '8b52c1b2bc9be9077ed2c73b17f11ce3ebb59b70e105234a720c1631eea286c8',
                             outIdx: 0,
                         },
+                        sats: 2200n,
                     },
                     {
-                        value: 4966484,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'b37d047060424681b914496e683c6c9f255b77eb09232368c28d55d560f3a324',
                             outIdx: 2,
                         },
+                        sats: 4966484n,
                     },
                 ],
                 lockTime: 0,
@@ -5729,10 +5727,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022040c2a7becb3f92d93d80e654a1a75dab014db97c9fd4a07d62eb33aea2ac96e8022039ce536f6beeb913e45f9bb66e73c0d58bea3e4a385138981f2ac3a5b10dd291412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 550,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 550n,
                     },
                     {
                         prevOut: {
@@ -5741,30 +5739,30 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100f9450b18a10ea812c3ffc364d30f09b11e8b29bff589b852b39499d55a32fc4002202332a4cd95b543838282ee0a3841f4e14dd9b58f8cf70048bb01718b616c6fe4412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 4269,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 4269n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 546,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'b37d047060424681b914496e683c6c9f255b77eb09232368c28d55d560f3a324',
                             outIdx: 1,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 3899,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517',
                             outIdx: 1,
                         },
+                        sats: 3899n,
                     },
                 ],
                 lockTime: 0,
@@ -5799,10 +5797,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '4730440220419ca5831e327778a182a29e74933eea793b5e29302a6fcf7df9aae90f2769fb0220012de904e74fa2b09cbd12e7983a1e3a952f16d1a28d14afb5442ecfed0e5c9d412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 550,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 550n,
                     },
                     {
                         prevOut: {
@@ -5811,10 +5809,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '47304402207035c52fafabfdb801f23864dbddc6d0fd8786d11f9bc043779734fc209f6656022078c118b885eefbb9577f5b5dc85390a6930336158813298fec760650fffd4693412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 550,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 550n,
                     },
                     {
                         prevOut: {
@@ -5823,10 +5821,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '4730440220130c5767c4a5fe03841b8382f00544e4d32b796de881d153f7a195277ee2a90c02203304a27609f5ea996917292c8ffcb8cbff1f6d77093f63430dd909ae4644ea5b412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -5835,10 +5833,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100c855f8cccf2aa2f94c93b0e11419090f0685484134e3cea6e36f692c3057526702206c9d77279873dc16069a01d48be902249a70265814f83133d6cb51db4cf2f9ac412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 3300n,
                     },
                     {
                         prevOut: {
@@ -5847,10 +5845,10 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100f8783e83fb1ba78ff2cb1bbc6a0032b7658c17f66a33610718726a0b0e462eac0220461749498d83bd8b19c800d3595fa64371a7f53f54ecf2fafad5f7f0932e92d7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 1354,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 1354n,
                     },
                     {
                         prevOut: {
@@ -5859,60 +5857,60 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022032709d0e9b5651e037ff4fbeea15a6ce6eef909b37585bfe7490536d6c5ae1c9022017954addf6e6305a6a60dbcbcfbcff96b7da386ccdc5355b391a7657510beed3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 112544758,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 112544758n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a0464726f702050d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                        sats: 0n,
                     },
                     {
-                        value: 12807,
                         outputScript:
                             '76a914a5417349420ec53b27522fed1a63b1672c0f28ff88ac',
+                        sats: 12807n,
                     },
                     {
-                        value: 4269,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'd8a081bed886b085194410fd879286393734f428c9f64d9ece1c0afffb2695a2',
                             outIdx: 1,
                         },
+                        sats: 4269n,
                     },
                     {
-                        value: 12807,
                         outputScript:
                             '76a914d4fa9121bcd065dd93e58831569cf51ef5a74f6188ac',
+                        sats: 12807n,
                     },
                     {
-                        value: 4269,
                         outputScript:
                             '76a914c1aadc99f96fcfcfe5642ca29a53e701f0b801c388ac',
+                        sats: 4269n,
                     },
                     {
-                        value: 17076,
                         outputScript:
                             '76a914a714013e6336a0378a1f71ade875b2138813a3ec88ac',
+                        sats: 17076n,
                     },
                     {
-                        value: 4269,
                         outputScript:
                             '76a914ee8cbaa5642d1c5d1af1503edda6a55044e8106e88ac',
+                        sats: 4269n,
                     },
                     {
-                        value: 112494377,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'c9d93d05dbb03ab054e85ff83f675b204660199327331c460cc4690d17e094e2',
                             outIdx: 0,
                         },
+                        sats: 112494377n,
                     },
                 ],
                 lockTime: 0,
@@ -5954,7 +5952,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100d4a2eeb012456186bfe22b7653664a1de29596c67e59b109ea9fe25af63b94ae0220288c31fbf49fc870c66011b784476bf7704b95e2d8ad47597173a4c14bb17fbf412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -5964,12 +5961,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -5978,7 +5976,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022034309ad3a4f18eb953a5d9b36e02bd4b85a6c8c885d8c3d83467c02b3999159802200c5ee31b15afc8ffc11b84169a95d571dae3b983d3ca7f578cda02abddefa1ad412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -5988,12 +5985,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -6002,7 +6000,6 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '483045022100e4a4cdb74a8c4950febd1609ad991a76e40700726f0229352c316af8f800333b0220442ab534fadf3dc874e0a0adf9e0dd4da06efa1d0ff190348928bcb3e7879514412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -6012,12 +6009,13 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 546n,
                     },
                     {
                         prevOut: {
@@ -6026,20 +6024,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '4830450221009ec6fca46fc588f61b2183a90bf77078b3203c2cb1bfa3bae55cffad1d42dbdf0220165989031ebaa54573bf7275c657e319822b714044d66927be060e61266d921b412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1052,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1052n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109080000000000000003',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -6050,19 +6047,20 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '3',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 3n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 668,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'b37d047060424681b914496e683c6c9f255b77eb09232368c28d55d560f3a324',
                             outIdx: 0,
                         },
+                        sats: 668n,
                     },
                 ],
                 lockTime: 0,
@@ -6082,9 +6080,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -6120,25 +6118,25 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022063a275d60a80f247d01061789adda57130c04a837285c145ec9653468ae14beb02202684d99dc0e33a371caa084b36a8cfa7c1695180664171deb5c04a6ed9468fb5412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1339,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1339n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript: '6a04636861740474657374',
+                        sats: 0n,
                     },
                     {
-                        value: 550,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'd8a081bed886b085194410fd879286393734f428c9f64d9ece1c0afffb2695a2',
                             outIdx: 0,
                         },
+                        sats: 550n,
                     },
                 ],
                 lockTime: 0,
@@ -6171,20 +6169,19 @@ export const EtokensWalletMock = {
                         },
                         inputScript:
                             '473044022015da9381d87b0954dd047882b440a1c9357109f5b6fd83abc93e226772a0331702206c50261655afb351c9ff3049171f705103717e7fe031391644fccf824d910269412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 2200n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010747454e45534953024d67094d61676e657369756d1468747470733a2f2f636173687461622e636f6d2f4c0001014c0008ffffffffffffffff',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -6195,19 +6192,20 @@ export const EtokensWalletMock = {
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '18446744073709551615',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 18446744073709551615n,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 1354,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '83df946b2adab3ca9bd3da4e406f5a5494738532fe4da2f8a55a775080ea3d31',
                             outIdx: 4,
                         },
+                        sats: 1354n,
                     },
                 ],
                 lockTime: 0,
@@ -6227,9 +6225,9 @@ export const EtokensWalletMock = {
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],

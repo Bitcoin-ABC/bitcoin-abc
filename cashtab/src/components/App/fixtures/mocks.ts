@@ -10,11 +10,15 @@ import {
     TokenUtxo,
     LegacyPathInfo_Pre_2_55_0,
     CashtabWalletPaths,
+    TokenUtxoJson,
+    NonTokenUtxoJson,
+    CashtabTxJson,
 } from 'wallet';
 import { XecTxType } from 'chronik';
 import { fromHex } from 'ecash-lib';
 import * as wif from 'wif';
 import { RenderedTokenType } from 'token-protocols';
+import { StoredCashtabWallet } from 'helpers';
 
 interface LegacyPathInfo_Pre_2_1_0 {
     publicKey: string;
@@ -45,10 +49,10 @@ interface LegacyCashtabUtx_Pre_2_1_0 extends ScriptUtxo {
 }
 interface LegacyCashtabWalletState_Pre_2_1_0 {
     balances: LegacyBalances;
-    slpUtxos: LegacyCashtabUtx_Pre_2_1_0[];
-    nonSlpUtxos: LegacyCashtabUtx_Pre_2_1_0[];
+    slpUtxos: LegacyCashtabUtx_Pre_2_1_0[] | TokenUtxoJson[];
+    nonSlpUtxos: LegacyCashtabUtx_Pre_2_1_0[] | NonTokenUtxoJson[];
     tokens: LegacyTokenState[];
-    parsedTxHistory: CashtabTx[];
+    parsedTxHistory: CashtabTx[] | CashtabTxJson[];
 }
 export interface LegacyCashtabWallet_Pre_2_1_0 {
     mnemonic: string;
@@ -96,7 +100,7 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
                 tokenId:
                     '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
@@ -109,7 +113,7 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                 },
             },
@@ -122,7 +126,7 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                 },
                 blockHeight: 815549,
                 isCoinbase: false,
-                value: 951312,
+                sats: 951312n,
                 address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
                 isFinal: true,
             },
@@ -140,6 +144,1155 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                     decimals: 0,
                     success: true,
                 },
+            },
+        ],
+        parsedTxHistory: [
+            {
+                txid: '3b0760858b0b20ff50d0db67793892d29d2466b86a0116f7e232792da0c22330',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '119310063bb553f02efc3112ea171b251aae968f25a91d42dcd855958134e3be',
+                            outIdx: 0,
+                        },
+                        inputScript:
+                            '483045022100b8699595913167f3abd5c6dde588fe9dd89e56e811436d0cc02e81a6623a93c1022043954f663eb37a4e0a7cb28bd8ff857d0913cc771832b0e7ccf2b2fbaa9f3ae0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        sats: 1100n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    },
+                    {
+                        prevOut: {
+                            txid: '30993d9a96b1ca91a7726450e6524c41c52cef1b75cb0b5b2e196dfa5b3bb1c6',
+                            outIdx: 0,
+                        },
+                        inputScript:
+                            '47304402205d3d1e7f83609498d7d7c18cfaa8f4c940c3e12608334b946744c423465cc9f002202199ac5b760c4eb27ee1bf28e94d8e42a6932709d73b387a760269ce2d73aa58412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        sats: 2200n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    },
+                    {
+                        prevOut: {
+                            txid: '9e7f91826cfd3adf9867c1b3d102594eff4743825fad9883c35d26fb3bdc1693',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '4730440220649bd38855be5a18bc3b373eec33d9420b9fde009548c79bcccd67a4bef37359022075f64385c0c40670bc03b268554dc7280f0b9dbffbf22c2cb4c76da4898ed1a0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        sats: 546n,
+                        sequenceNo: 4294967295,
+                        token: {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            atoms: 888n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109080000000000000001080000000000000377',
+                    },
+                    {
+                        sats: 546n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        token: {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            atoms: 1n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                    {
+                        sats: 546n,
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        token: {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            atoms: 887n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                        spentBy: {
+                            txid: '7004e450f904fc46c75e86deb48c57438e8efd8142e7bac7efe225d775c5f135',
+                            outIdx: 1,
+                        },
+                    },
+                    {
+                        sats: 1319n,
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        spentBy: {
+                            txid: '8f076ddab7bcbf37ec993e9b39e75ad1878e35654f380ea9f6f1ebd500711b27',
+                            outIdx: 25,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 627,
+                isCoinbase: false,
+                isFinal: false,
+                tokenEntries: [
+                    {
+                        tokenId:
+                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                        tokenType: {
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                            number: 1,
+                        },
+                        txType: 'SEND',
+                        isInvalid: false,
+                        burnSummary: '',
+                        failedColorings: [],
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
+                        burnsMintBatons: false,
+                    },
+                ],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NORMAL',
+                parsed: {
+                    recipients: [
+                        'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                    ],
+                    satoshisSent: 546,
+                    stackArray: [
+                        '534c5000',
+                        '01',
+                        '53454e44',
+                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                        '0000000000000001',
+                        '0000000000000377',
+                    ],
+                    xecTxType: 'Received' as XecTxType,
+                    appActions: [],
+                    parsedTokenEntries: [
+                        {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            renderedTxType: 'SEND',
+                            renderedTokenType: 'SLP' as RenderedTokenType,
+                            tokenSatoshis: '1',
+                        },
+                    ],
+                    replyAddress:
+                        'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                },
+            },
+            {
+                txid: '218a1e058ed0fda76573eabf43ad3ded7e7192e42621893a60aaa152ba7f66fe',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '9f25f4e161472920f624ed6579ccdaf8d096263ab31e157deaa9c987269ead8a',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '47304402201cfc6d40bb6a6ee8faae9a3d373742009fa30c6c02a0fcfe055079b62a65d582022013497e2ae6b417262680990ea5d03fe67ac25f7a2a79121fb9b0f633adf458274121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 952320n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e78656300066e6577746f6e15003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 553n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: '9cfd8cbe3235d04d6478f8b95f6206c7bf32029b36138a3cc28c3168042f602f',
+                            outIdx: 83,
+                        },
+                    },
+                    {
+                        sats: 951312n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '1898c151a8dc84edfbd8f254458226f13422220b5cd7f0ab4e956929218dd38a',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 268,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 815549,
+                    hash: '00000000000000000ea3601057ba423805f91d9d813a41a91ae908b68ff6cbce',
+                    timestamp: 1698187386,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 553,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '6e6577746f6e',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'newton',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: '9f25f4e161472920f624ed6579ccdaf8d096263ab31e157deaa9c987269ead8a',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '42c39baded510db31aebaf9172d307afa199dd734a6189ea4bc3530438d715ca',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '473044022040513dc15ce7601f937ea83a94a90fd55da07b6a2a95a344a3df63d34489985e022072bd23d71ab5502ee2f254cc58aa0bc2f499370f693f77b1bbb87fe3aaee66d44121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 953326n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e786563000d646f657374686973636c65617215003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 551n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: '4eb00ceabdebb4f6a4fd66d19f9f573c45fe5eb966cdd421eee07ba371771b6d',
+                            outIdx: 222,
+                        },
+                    },
+                    {
+                        sats: 952320n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '218a1e058ed0fda76573eabf43ad3ded7e7192e42621893a60aaa152ba7f66fe',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 275,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 814357,
+                    hash: '000000000000000009004fa50065ef6deb091f0d075cf1ef01811d0706c9a8c2',
+                    timestamp: 1697463218,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 551,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '646f657374686973636c656172',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'doesthisclear',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: '42c39baded510db31aebaf9172d307afa199dd734a6189ea4bc3530438d715ca',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '5aa64624e493502d083089f5a58069887bc99a6d5569b27df7c7570e024bbf20',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '47304402206feb284b4583db2ba6bd0a03cda7ac1571faec3f0f6ab996e4c8b2592726e626022066fe0a6d8887ba64ea7ac9a7472bc6e8ede63baeea3f7f7250e4aadfd9dfebf84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 954332n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e7865630008776f726b736e6f7715003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 551n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: 'c7c58e59639f29c726752c57f19403f3855f25b758640a96adae4710e27b2eae',
+                            outIdx: 17,
+                        },
+                    },
+                    {
+                        sats: 953326n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '9f25f4e161472920f624ed6579ccdaf8d096263ab31e157deaa9c987269ead8a',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 270,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 813934,
+                    hash: '00000000000000001533643253107df49b2291beb9d5cd5c7f4f51bf26572e53',
+                    timestamp: 1697216026,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 551,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '776f726b736e6f77',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'worksnow',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: '5aa64624e493502d083089f5a58069887bc99a6d5569b27df7c7570e024bbf20',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'b26c42ba0cc48f0d3af442b445f19c267189f84dbeb7e366ec7c921f5195aca7',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '47304402202bfc9d29d53f3e2a721472469d0c16726badb0534044e101b990b2413d6d37c80220321cfe15eeea3014012c082693f3ff49f6892b5fe96bc0b980195c7090af1d9a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 955341n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e7865630005746573743415003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 554n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: 'c7c58e59639f29c726752c57f19403f3855f25b758640a96adae4710e27b2eae',
+                            outIdx: 5,
+                        },
+                    },
+                    {
+                        sats: 954332n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '42c39baded510db31aebaf9172d307afa199dd734a6189ea4bc3530438d715ca',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 267,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 813923,
+                    hash: '0000000000000000166ee88a29775a1098813f4316a5afbe835d21e0d74fda24',
+                    timestamp: 1697211295,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 554,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '7465737434',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'test4',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: 'b26c42ba0cc48f0d3af442b445f19c267189f84dbeb7e366ec7c921f5195aca7',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'f86f20336955bca4e15588d81d029ad2c0dfa498b8be6aced2b63ba3bea1be0a',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '483045022100952173ce8b1a2f5cc30be77cd32c6b285ff3f96d36ba0296082ca551204c578502201afcad7d0b2426e1c168c1a1b4a98c637a4c808a6c8fd35c298e9cb7cf6cdc474121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 956351n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e78656300047465737415003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 555n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: 'c7c58e59639f29c726752c57f19403f3855f25b758640a96adae4710e27b2eae',
+                            outIdx: 2,
+                        },
+                    },
+                    {
+                        sats: 955341n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '5aa64624e493502d083089f5a58069887bc99a6d5569b27df7c7570e024bbf20',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 267,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 813922,
+                    hash: '00000000000000000a1807a17ebcda93947db968e9a112b54ec70237d1a76288',
+                    timestamp: 1697211196,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 555,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '74657374',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'test',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: 'f86f20336955bca4e15588d81d029ad2c0dfa498b8be6aced2b63ba3bea1be0a',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'f17814a75dad000557f19a3a3f6fcc124ab7880292c9fad4c64dc034d5e46551',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '473044022024d33fa299f1ce126fe5271e26c9fc9e60b10924e2f4aa5fda8bbd46547f0503022077bff168765403d1282f73b7cffd9643b9dd6854e7dbb3ba1f5897bd4a9f63304121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 957361n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e78656300047465737415003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 555n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: 'c7c58e59639f29c726752c57f19403f3855f25b758640a96adae4710e27b2eae',
+                            outIdx: 3,
+                        },
+                    },
+                    {
+                        sats: 956351n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: 'b26c42ba0cc48f0d3af442b445f19c267189f84dbeb7e366ec7c921f5195aca7',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 266,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 813922,
+                    hash: '00000000000000000a1807a17ebcda93947db968e9a112b54ec70237d1a76288',
+                    timestamp: 1697211196,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 555,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '74657374',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'test',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: 'f17814a75dad000557f19a3a3f6fcc124ab7880292c9fad4c64dc034d5e46551',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '7eacd3b752003fe761e359cac3d98b1faf4f1dd411150eabc89da8208a312b0e',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '483045022100e27a4f1c3521ae72c3b1970846616e3ac9f6048066e4566c2d03c1132fb414f50220750243534faa1603bade7c498d8e4390960a59451c858207f80f300f6a57c4534121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 958370n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e7865630005616c69617315003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 554n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: '8bda10d3e08120a0916c0bcc853d2ee0c0d8f7e03a45011d8cafb8fd0c400e50',
+                            outIdx: 145,
+                        },
+                    },
+                    {
+                        sats: 957361n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: 'f86f20336955bca4e15588d81d029ad2c0dfa498b8be6aced2b63ba3bea1be0a',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 268,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 813615,
+                    hash: '000000000000000006b8990c77dd7a0d3a850a052b6f0bd60b82d44d1ffa7a55',
+                    timestamp: 1697025138,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 554,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '616c696173',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'alias',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: '7eacd3b752003fe761e359cac3d98b1faf4f1dd411150eabc89da8208a312b0e',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '8b3cb0e6c38ee01f9e1e98d611895ff2cd09ad9b4fea73f76f951be815278c26',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '473044022076ae9639a9cfac3a4189c30eb1ac68daa75850407a2303cb297cc4b1a44a17db0220277681c0346c1b11eb312795c911619935aae6d50d4d03ef5e7dcc916fa28a3d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 959379n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript:
+                            '6a042e7865630005616c69617315003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    },
+                    {
+                        sats: 554n,
+                        outputScript:
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                        spentBy: {
+                            txid: '8bda10d3e08120a0916c0bcc853d2ee0c0d8f7e03a45011d8cafb8fd0c400e50',
+                            outIdx: 144,
+                        },
+                    },
+                    {
+                        sats: 958370n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: 'f17814a75dad000557f19a3a3f6fcc124ab7880292c9fad4c64dc034d5e46551',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 267,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 813615,
+                    hash: '000000000000000006b8990c77dd7a0d3a850a052b6f0bd60b82d44d1ffa7a55',
+                    timestamp: 1697025138,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ],
+                    satoshisSent: 554,
+                    stackArray: [
+                        '2e786563',
+                        '00',
+                        '616c696173',
+                        '003a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    ],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'alias',
+                            lokadId: '2e786563',
+                            isValid: true,
+                            action: {
+                                alias: 'alias',
+                                address:
+                                    'ecash:qqp6t7erdy6wcputg5ruxq7n4lvzqelclsuupr75tv',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+            {
+                txid: '8b3cb0e6c38ee01f9e1e98d611895ff2cd09ad9b4fea73f76f951be815278c26',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '727a08ebbaef244d136ffb4ab8db256475db8a83cb2acbdfafa42617019d7dc7',
+                            outIdx: 3,
+                        },
+                        inputScript:
+                            '473044022037e2b4ac09f71432e97d71938dac7b5f0abcd84a8ea995708b0d58c38fcc743302207570250fe9f8b98b8f7079aafb1c53e796584efd910ed9f7e1f75f491f95e7564121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        sats: 962056n,
+                        sequenceNo: 4294967295,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript: '6a04007461620b7374696c6c20776f726b73',
+                    },
+                    {
+                        sats: 2200n,
+                        outputScript:
+                            '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
+                        spentBy: {
+                            txid: 'ba69815ef87cb48585a40968d6ff7764cbef4f021fdd015c5eb25afe75feb0a1',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        sats: 959379n,
+                        outputScript:
+                            '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '7eacd3b752003fe761e359cac3d98b1faf4f1dd411150eabc89da8208a312b0e',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 0,
+                size: 252,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                block: {
+                    height: 812408,
+                    hash: '00000000000000000b2dfec91630d335b0233fb323a7acbb297b586d1d0d0678',
+                    timestamp: 1696282475,
+                },
+                parsed: {
+                    recipients: [
+                        'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
+                    ],
+                    satoshisSent: 2200,
+                    stackArray: ['00746162', '7374696c6c20776f726b73'],
+                    xecTxType: 'Sent' as XecTxType,
+                    appActions: [
+                        {
+                            app: 'Cashtab Msg',
+                            lokadId: '00746162',
+                            isValid: true,
+                            action: {
+                                msg: 'still works',
+                            },
+                        },
+                    ],
+                    parsedTokenEntries: [],
+                },
+            },
+        ],
+    },
+};
+
+interface LegacyPathInfo_Pre_2_9_0 {
+    path: number;
+    address: string;
+    hash: string;
+    wif: string;
+}
+interface LegacyCashtabWalletState_Pre_2_9_0 {
+    balanceSats: number;
+    slpUtxos: TokenUtxo[];
+    nonSlpUtxos: NonTokenUtxo[];
+    tokens: LegacyTokenState[];
+    parsedTxHistory: CashtabTx[];
+}
+export interface LegacyCashtabWallet_Pre_2_9_0 {
+    mnemonic: string;
+    name: string;
+    paths: LegacyPathInfo_Pre_2_9_0[];
+    state: LegacyCashtabWalletState_Pre_2_9_0;
+}
+export const walletWithXecAndTokens_pre_2_9_0: LegacyCashtabWallet_Pre_2_9_0 = {
+    mnemonic:
+        'beauty shoe decline spend still weird slot snack coach flee between paper',
+    name: 'Transaction Fixtures',
+    // New paths key instead of hardcoded Path145, Path245, Path1899 keys
+    paths: [
+        {
+            // New shape of path info
+            path: 1899,
+            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+        },
+        {
+            path: 145,
+            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+        },
+        {
+            path: 245,
+            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+        },
+    ],
+    state: {
+        // State for wallets after 2.2.0 expected to be in-node shape
+        // Note: the legacy wallet had to be adapted to this state to support setting mocks
+        balanceSats: 951312,
+        slpUtxos: [
+            {
+                ...walletWithXecAndTokens_pre_2_1_0.state.slpUtxos[0],
+                path: 1899,
+            } as TokenUtxo,
+        ],
+        nonSlpUtxos: [
+            {
+                ...walletWithXecAndTokens_pre_2_1_0.state.nonSlpUtxos[0],
+                path: 1899,
+            } as NonTokenUtxo,
+        ],
+        tokens: walletWithXecAndTokens_pre_2_1_0.state.tokens,
+        parsedTxHistory: walletWithXecAndTokens_pre_2_1_0.state
+            .parsedTxHistory as CashtabTx[],
+    },
+};
+
+export interface LegacyCashtabWallet_Pre_2_55_0
+    extends Omit<CashtabWallet, 'paths'> {
+    paths: Map<number, LegacyPathInfo_Pre_2_55_0>;
+}
+export const walletWithXecAndTokens_pre_2_55_0: LegacyCashtabWallet_Pre_2_55_0 =
+    {
+        ...walletWithXecAndTokens_pre_2_9_0,
+        paths: new Map([
+            [
+                1899,
+                {
+                    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                    hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                },
+            ],
+            [
+                145,
+                {
+                    address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                    hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                    wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+                },
+            ],
+            [
+                245,
+                {
+                    address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                    hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                    wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+                },
+            ],
+        ]),
+        state: {
+            ...walletWithXecAndTokens_pre_2_9_0.state,
+            tokens: new Map([
+                [
+                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                    '1',
+                ],
+            ]),
+        },
+    };
+export const walletWithXecAndTokens: CashtabWallet = {
+    ...walletWithXecAndTokens_pre_2_55_0,
+    paths: new Map([
+        [
+            1899,
+            {
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                sk: fromHex(
+                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+                ),
+                pk: fromHex(
+                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                ),
+            },
+        ],
+        [
+            145,
+            {
+                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+                sk: fromHex(
+                    '9747c0c6a6b4a1025b222a79ccad3df7330cbf3e6731de58500f865d0370b861',
+                ),
+                pk: fromHex(
+                    '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
+                ),
+            },
+        ],
+        [
+            245,
+            {
+                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+                sk: fromHex(
+                    'c3f637ba1e3cdd10cace41350058a3698c5bd413b69a358a2a2b955843ea043c',
+                ),
+                pk: fromHex(
+                    '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
+                ),
+            },
+        ],
+    ]) as CashtabWalletPaths,
+};
+export const legacyJsonWalletWithXecAndTokens: StoredCashtabWallet = {
+    ...walletWithXecAndTokens,
+    paths: [
+        [
+            1899,
+            {
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                sk: Array.from(
+                    fromHex(
+                        '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+                    ),
+                ),
+                pk: Array.from(
+                    fromHex(
+                        '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                    ),
+                ),
+            },
+        ],
+        [
+            145,
+            {
+                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+                sk: Array.from(
+                    fromHex(
+                        '9747c0c6a6b4a1025b222a79ccad3df7330cbf3e6731de58500f865d0370b861',
+                    ),
+                ),
+                pk: Array.from(
+                    fromHex(
+                        '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
+                    ),
+                ),
+            },
+        ],
+        [
+            245,
+            {
+                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+                sk: Array.from(
+                    fromHex(
+                        'c3f637ba1e3cdd10cace41350058a3698c5bd413b69a358a2a2b955843ea043c',
+                    ),
+                ),
+                pk: Array.from(
+                    fromHex(
+                        '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
+                    ),
+                ),
+            },
+        ],
+    ],
+    state: {
+        ...walletWithXecAndTokens.state,
+        slpUtxos: [
+            {
+                outpoint: {
+                    txid: '3b0760858b0b20ff50d0db67793892d29d2466b86a0116f7e232792da0c22330',
+                    outIdx: 1,
+                },
+                blockHeight: -1,
+                isCoinbase: false,
+                value: 546,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                },
+                path: 1899,
+            },
+        ],
+        nonSlpUtxos: [
+            {
+                outpoint: {
+                    txid: '218a1e058ed0fda76573eabf43ad3ded7e7192e42621893a60aaa152ba7f66fe',
+                    outIdx: 2,
+                },
+                blockHeight: 815549,
+                isCoinbase: false,
+                value: 951312,
+                isFinal: true,
+                path: 1899,
             },
         ],
         parsedTxHistory: [
@@ -1034,164 +2187,13 @@ export const walletWithXecAndTokens_pre_2_1_0: LegacyCashtabWallet_Pre_2_1_0 = {
                 },
             },
         ],
+        tokens: [
+            [
+                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                '1',
+            ],
+        ],
     },
-};
-
-interface LegacyPathInfo_Pre_2_9_0 {
-    path: number;
-    address: string;
-    hash: string;
-    wif: string;
-}
-interface LegacyCashtabWalletState_Pre_2_9_0 {
-    balanceSats: number;
-    slpUtxos: TokenUtxo[];
-    nonSlpUtxos: NonTokenUtxo[];
-    tokens: LegacyTokenState[];
-    parsedTxHistory: CashtabTx[];
-}
-export interface LegacyCashtabWallet_Pre_2_9_0 {
-    mnemonic: string;
-    name: string;
-    paths: LegacyPathInfo_Pre_2_9_0[];
-    state: LegacyCashtabWalletState_Pre_2_9_0;
-}
-export const walletWithXecAndTokens_pre_2_9_0: LegacyCashtabWallet_Pre_2_9_0 = {
-    mnemonic:
-        'beauty shoe decline spend still weird slot snack coach flee between paper',
-    name: 'Transaction Fixtures',
-    // New paths key instead of hardcoded Path145, Path245, Path1899 keys
-    paths: [
-        {
-            // New shape of path info
-            path: 1899,
-            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-        },
-        {
-            path: 145,
-            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-        },
-        {
-            path: 245,
-            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-        },
-    ],
-    state: {
-        // State for wallets after 2.2.0 expected to be in-node shape
-        // Note: the legacy wallet had to be adapted to this state to support setting mocks
-        balanceSats: 951312,
-        slpUtxos: [
-            {
-                ...walletWithXecAndTokens_pre_2_1_0.state.slpUtxos[0],
-                path: 1899,
-            } as TokenUtxo,
-        ],
-        nonSlpUtxos: [
-            {
-                ...walletWithXecAndTokens_pre_2_1_0.state.nonSlpUtxos[0],
-                path: 1899,
-            },
-        ],
-        tokens: walletWithXecAndTokens_pre_2_1_0.state.tokens,
-        parsedTxHistory: walletWithXecAndTokens_pre_2_1_0.state.parsedTxHistory,
-    },
-};
-
-export interface LegacyCashtabWallet_Pre_2_55_0
-    extends Omit<CashtabWallet, 'paths'> {
-    paths: Map<number, LegacyPathInfo_Pre_2_55_0>;
-}
-export const walletWithXecAndTokens_pre_2_55_0: LegacyCashtabWallet_Pre_2_55_0 =
-    {
-        ...walletWithXecAndTokens_pre_2_9_0,
-        paths: new Map([
-            [
-                1899,
-                {
-                    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                    hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                    wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                },
-            ],
-            [
-                145,
-                {
-                    address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-                    hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-                    wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-                },
-            ],
-            [
-                245,
-                {
-                    address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-                    hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-                    wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-                },
-            ],
-        ]),
-        state: {
-            ...walletWithXecAndTokens_pre_2_9_0.state,
-            tokens: new Map([
-                [
-                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                    '1',
-                ],
-            ]),
-        },
-    };
-export const walletWithXecAndTokens: CashtabWallet = {
-    ...walletWithXecAndTokens_pre_2_55_0,
-    paths: new Map([
-        [
-            1899,
-            {
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                sk: fromHex(
-                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                ),
-                pk: fromHex(
-                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                ),
-            },
-        ],
-        [
-            145,
-            {
-                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-                sk: fromHex(
-                    '9747c0c6a6b4a1025b222a79ccad3df7330cbf3e6731de58500f865d0370b861',
-                ),
-                pk: fromHex(
-                    '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
-                ),
-            },
-        ],
-        [
-            245,
-            {
-                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-                sk: fromHex(
-                    'c3f637ba1e3cdd10cace41350058a3698c5bd413b69a358a2a2b955843ea043c',
-                ),
-                pk: fromHex(
-                    '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
 };
 
 export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
@@ -1206,7 +2208,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100d8350abb126e2ff6c841dcfb3902b175d46b59f141a23c40deeb7dcac1f219e7022072ee779da16bf15a8032093f03693ea98f2bbc6557dca7b48cf1f308ffb8173a4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1218,7 +2220,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100989f2cd7b8994a0af144a5033d6959779bd7466226901656a35aac231ceb53f602202606fa0f2de1d82abcfac3180c7b111529792243eff23fc6455a29c92532552e4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1230,7 +2232,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100e09950e7c9a956dd3125f741164802ef7de74a4c8c3c617f1eacdeefd9527ae502202c0cb5f8839ddfb88bf11e5f337cb0220e0228a5a663eb10b22e5567bddb2e404121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 169505,
+                sats: 169505n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1242,7 +2244,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402204d2a2e8aec45ba90295fd09661d1504a8f3f0fe2be42b450c67be34212cfacb402201a438dbee9e1da4712885558925a5d49ce600da2ec25fc55240059e65ce193494121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 5500,
+                sats: 5500n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1254,7 +2256,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '473044022074585d51f69f3a1afd5df2de6c4d630b6d89861454274909373dfbf5f5a63bc0022010abb2dc05e79505dc054f87467a494c28320a2ae4338f30c10e8f645b06c3784121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1266,7 +2268,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402201bb538c5da8e8f4f5fbf5d98b4d8dc8f6870d05e93fed6eead7a535f6b59338302204e0b18a4136fe6842ee01a9439aa8e6b9a089e4116aa4381f0d0281bc853348f4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1278,7 +2280,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100a9c9c91b48f7fdd781cd132e36c84767541ef738e405ea04e71e2f2d4b54165f02206524b3cb82a2f738906dc91a367c994122dff98c1f187e32ec676989ab3a85874121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1290,7 +2292,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '473044022048e22c07d4f68235ca8e129c74fabbad7c9b5e17ce36d76d312f4fb08d1496c30220639024f26673e0b46247b419f1605ffea2a195eaa4123b2ab5e3360d926469164121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1302,7 +2304,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402200a629b21dbba359dfa5376bc0c64c984041389e2a64c248d4bfe06f3634143860220331d15a53b4313b19c9ad717c33d7f1a7fbb82768545fc225b9bef2d541685084121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 5500,
+                sats: 5500n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1314,7 +2316,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402204f6ac84bfb08b9d194c9cffaa1d28cf62d4003c4f2db08c8d9dc23cd2ba2d53b0220605658e5e00499894b74aa6de304c76a6906c66a687541f33f0205403967e04a4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1326,7 +2328,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402205126713ba8abf10b9ef384262dc808c23b072df9051b1bd266ead92571a32c7002201a20d649eec51d1f859bd843e3afee4bd15a52c42ae497bb161c34fef6301b174121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 600,
+                sats: 600n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1338,7 +2340,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100a4f9b2e2175b0bbae6c3de2f89b2585ac6c82b63ac55e2bebb6d9b70a72daf1102204c00d2a9b6ced89eadde34980444ffb755b494082c9b11fc6d21c821ee8ba0b04121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1200,
+                sats: 1200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1350,7 +2352,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '4730440220009194b5caf2d28216f69c0e98b1ee106779a6de485a1ba69dd5fd635d2a23e4022002cfb688783df6b4988309c55eaf31ce346b4b5db9330335f7a3acd3b6f85f514121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1362,7 +2364,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100c4654eada3fdde6a3a3e12c09f40ab30c587ed5daf533a550ac8adba5a3f3089022039c6d938474e81fff50f677a3444f87ef35140ce0d09e7a8ba02ee5b08c667174121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1700,
+                sats: 1700n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1374,7 +2376,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '4830450221008d98777056f9c8b1bb4e3f2fefdbeca1ac9d65d738276e271334ead8f088de060220606388b42a5e7c3eb590ad840e6596b5e48cf5b418bdfaee47c7b2b87b4082af4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1386,7 +2388,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '4730440220468ea9ee32fe1400fffcb6c1a934c3789213e46d16747dc8746f4b9465b11e7c022003192f77afec1bcecf7ad46ddde813301b383b07177440786e9b1bae9946fb3c4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1398,7 +2400,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100ed8bdeedb7decc83d0cf71212a4fe4c21cb4ec091040b27ef15ca716aeb66957022006d12aeb15fc76f15642853dde0b35ae2a5a3efe24cfa275e049fba17690a3914121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1410,7 +2412,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100a940abcc3bfd26eff3b6d254750ac19361d734a42282164c432d66b62139e8c502207a28c61e435ee42dae5b1964cc457aeeb316717b51ec0cf1af0e1b4e0a5b5a474121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1000,
+                sats: 1000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1422,7 +2424,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402204dd6870b836e9482a7b68decdc9447f50a2f9df4f9c4d0b6446e28878386f2c60220654b4131261d41fb5b931a89be777c2716d32b77f0b85ce662ce2cade32ac3264121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1434,7 +2436,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100f36c72b34d0350bf1bee5acea403981d41307e0da65a7405501c6631e24abc510220389ecf6b00d46e9af27d2e2463d74a2453d14da076ec94df83e2f63bbb430f0d4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1446,7 +2448,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '473044022070d354ca81b378bb1408102755ee19f112dc84e7c97dc44224ce0ec61cf9da5e02200e601eff33e36fc5e96aef74f28d6329201cb8670250fd09501221c67a5eeb034121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1458,7 +2460,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402205ae9a030a48fad096f465f9a2d564d5f88a83b2207e2bcf9f96522a4eeca3927022050fb4fb6ca418b3559dde7cf0f6412f82dbcee7710de2c895b5989fdca75a8f84121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 900,
+                sats: 900n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1470,7 +2472,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402207a47b86a75c91022a5f54f2f39d1d2952a8623b8cbdad40ca1d8d25e13f1027502204b5b021a65276886e4f31ce5dfab2eb7979595aecd2b244ca88047453f57e04e4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1482,7 +2484,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100bf4d11242dd28d5ec4de42388d8fafc6bcaa812a20a728f0e86e5b5e51c0005e022041b6bf9034412e9e2377ebf1ea61ef358c05be1a42829b08032bf03be28c9fa04121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 497990,
+                sats: 497990n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1494,7 +2496,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402204f6c5b9e7a8b610bce1eb32c2362fb428137f6797a0a8f463a1043eab51c3dfe02203f5f0c7816573ca5266fb4a5fddb2d29e76d8c79cde8ab8198acaab9ac206dbf4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 700,
+                sats: 700n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1506,7 +2508,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100b13a13af99fcb0946431f7407b35d2ec513c2fc100c6ea5b9c787cd21513461b02207a6549f50789f5027fbef437d7cd74785fbc01f6976eee5b99a60b0515a325ab4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1518,7 +2520,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '473044022029e166c7c52719ae6dd4b0e54102f796041c3dec3edb61a87d6cca8acb31b67302206696df121a4b71251c99c1ad9d80f4acb302d44be2ecd860e76f6241675c50264121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2500,
+                sats: 2500n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1530,7 +2532,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100cd99ca822e8cceedff64c67577c4ba55ae1db654c28b9982926269a7b2e1847c022020054e903352d1079c19513d990da774ab12d98860c241c50066bc4f6b37357f4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 5500,
+                sats: 5500n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1542,7 +2544,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '47304402200b570f4c81ef54cfc9d77d1fcd615b90063243f99aa665a53a4fa1b6204fb83802200d83088d8dc9690932d4a22e33556221ad1f44dc596b3d31cbff38b2c6a29c0a4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1554,7 +2556,7 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
                 },
                 inputScript:
                     '483045022100dc7147775fd80ccb6e75710ae2f226249d3a99017ddae7a0163900595967765f02205d84c411885d90a31b41360e8b0a8aa0a70be079c5c5a643db238a52d978835e4121024781b5971a20049fa211c364a868d2fa8f258c31bb3738e01957400067eeee0f',
-                value: 1000000,
+                sats: 1000000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
@@ -1562,17 +2564,17 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04007461623a6865726520697320612043617368746162204d736720666f722075736520696e204361736874616220696e746567726174696f6e207465737473',
             },
             {
-                value: 1000000,
+                sats: 1000000n,
                 outputScript:
                     '76a914d32616c8f849d159b0225f36966ccb85d425e68388ac',
             },
             {
-                value: 713065,
+                sats: 713065n,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                 spentBy: {
@@ -1667,7 +2669,7 @@ export const freshWalletWithOneIncomingCashtabMsg: CashtabWallet = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 1000000,
+                sats: 1000000n,
                 isFinal: false,
                 path: 1899,
             },
@@ -1684,7 +2686,7 @@ export const requiredUtxoThisToken: ScriptUtxo = {
     },
     blockHeight: 833612,
     isCoinbase: false,
-    value: 546,
+    sats: 546n,
     isFinal: true,
     token: {
         tokenId:
@@ -1694,7 +2696,7 @@ export const requiredUtxoThisToken: ScriptUtxo = {
             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
             number: 1,
         },
-        amount: '10000000000',
+        atoms: 10000000000n,
         isMintBaton: false,
     },
 };
@@ -1733,7 +2735,7 @@ export const vipTokenChronikTokenMocks = {
                 },
                 inputScript:
                     '47304402204db8555a3141e86b979257feadc41e903a779a61971e2e63a386f1084c52ff2a022010d7f7f9d41b474ff5c4bd979916e2cd29627a2d6194fcc6af6485a979091cbe412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1e',
-                value: 50000,
+                sats: 50000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
@@ -1741,12 +2743,12 @@ export const vipTokenChronikTokenMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e4553495303475250064752554d50591868747470733a2f2f6269742e6c792f4772756d7079446f634c0001024c0008000000e8d4a51000',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
                 token: {
@@ -1757,7 +2759,7 @@ export const vipTokenChronikTokenMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1000000000000',
+                    atoms: 1000000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1767,7 +2769,7 @@ export const vipTokenChronikTokenMocks = {
                 },
             },
             {
-                value: 48931,
+                sats: 48931n,
                 outputScript:
                     '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
                 spentBy: {
@@ -1793,8 +2795,8 @@ export const vipTokenChronikTokenMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1841,7 +2843,7 @@ export const cachetTokenAndTx = {
                 },
                 inputScript:
                     '4830450221009bb1fb7d49d9ac64b79ea041be2e2efa5a8709a470930b04c27c9fc46ed1906302206a0a9daf5e64e934a3467951dd2da37405969d4434d4006ddfea3ed39ff4e0ae412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2200,
+                sats: 2200n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -1849,12 +2851,12 @@ export const cachetTokenAndTx = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010747454e4553495306434143484554064361636865741468747470733a2f2f636173687461622e636f6d2f4c0001020102080000000000989680',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1865,7 +2867,7 @@ export const cachetTokenAndTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000000',
+                    atoms: 10000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -1875,7 +2877,7 @@ export const cachetTokenAndTx = {
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1886,7 +2888,7 @@ export const cachetTokenAndTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     entryIdx: 0,
                 },
@@ -1896,7 +2898,7 @@ export const cachetTokenAndTx = {
                 },
             },
             {
-                value: 773,
+                sats: 773n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
@@ -1922,8 +2924,8 @@ export const cachetTokenAndTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -1970,19 +2972,19 @@ export const easterEggTokenChronikGenesisTx = {
             },
             inputScript:
                 '483045022100e28006843eb071ec6d8dd105284f2ca625a28f4dc85418910b59a5ab13fc6c2002205921fb12b541d1cd1a63e7e012aca5735df3398525f64bac04337d21029413614121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-            value: 91048,
+            sats: 91048n,
             sequenceNo: 4294967295,
             outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
             token: {
                 tokenId:
@@ -1992,7 +2994,7 @@ export const easterEggTokenChronikGenesisTx = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '100',
+                atoms: 100n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
@@ -2002,7 +3004,7 @@ export const easterEggTokenChronikGenesisTx = {
             },
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
             token: {
                 tokenId:
@@ -2012,13 +3014,13 @@ export const easterEggTokenChronikGenesisTx = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '0',
+                atoms: 0n,
                 isMintBaton: true,
                 entryIdx: 0,
             },
         },
         {
-            value: 89406,
+            sats: 89406n,
             outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
             spentBy: {
                 txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
@@ -2043,8 +3045,8 @@ export const easterEggTokenChronikGenesisTx = {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
             burnsMintBatons: false,
         },
     ],
@@ -2507,19 +3509,19 @@ export const MOCK_CHRONIK_GENESIS_TX_CALL = {
             },
             inputScript:
                 '473044022009777275694aab45f8c5589308b8f525c4b9b7f0b0a4b80b01531988313e92fc02206e7f0afa725f407f59f85482f26ea20a70c5fe533c0592c95733a4418054c025412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 1497156989,
+            sats: 1497156989n,
             sequenceNo: 4294967295,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a04534c500001010747454e45534953044347454e0f436173687461622047656e657369731868747470733a2f2f626f6f6d657274616b65732e636f6d2f4c0001094c000800038d7ea4c68000',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             token: {
                 tokenId:
@@ -2529,7 +3531,7 @@ export const MOCK_CHRONIK_GENESIS_TX_CALL = {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1000000000000000',
+                atoms: 1000000000000000n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
@@ -2539,7 +3541,7 @@ export const MOCK_CHRONIK_GENESIS_TX_CALL = {
             },
         },
         {
-            value: 1497155685,
+            sats: 1497155685n,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             spentBy: {
                 txid: '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
@@ -2564,8 +3566,8 @@ export const MOCK_CHRONIK_GENESIS_TX_CALL = {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
             burnsMintBatons: false,
         },
     ],

@@ -74,12 +74,12 @@ const DUMMY_TOKEN_TYPE: TokenType = {
 const DUMMY_TOKEN: Token = {
     tokenType: DUMMY_TOKEN_TYPE,
     tokenId: MOCK_TOKEN_ID,
-    amount: '1000',
+    atoms: 1000n,
     isMintBaton: false,
 };
 const DUMMY_UTXO: CashtabUtxo = {
     outpoint: DUMMY_OUTPOINT,
-    value: 546,
+    sats: 546n,
     blockHeight: 800000,
     isCoinbase: false,
     isFinal: true,
@@ -96,18 +96,18 @@ const vectors: TokenProtocolsVectors = {
                         ...DUMMY_UTXO,
                         token: {
                             ...DUMMY_TOKEN,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
-                    { ...DUMMY_UTXO, value: 546 },
+                    { ...DUMMY_UTXO, sats: 546n },
                     {
                         ...DUMMY_UTXO,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
@@ -117,7 +117,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -127,12 +127,12 @@ const vectors: TokenProtocolsVectors = {
                 tokenUtxos: [
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -147,63 +147,63 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
-                    { ...DUMMY_UTXO, value: 546 },
+                    { ...DUMMY_UTXO, sats: 546n },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '4588000000',
+                            atoms: 4588000000n,
                             isMintBaton: false,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: false,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: false,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -213,34 +213,34 @@ const vectors: TokenProtocolsVectors = {
                 tokenUtxos: [
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '4588000000',
+                            atoms: 4588000000n,
                             isMintBaton: false,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: false,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                            amount: '229400000',
+                            atoms: 229400000n,
                             isMintBaton: false,
                         },
                     },
@@ -252,34 +252,34 @@ const vectors: TokenProtocolsVectors = {
                 utxos: [
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
-                    { ...DUMMY_UTXO, value: 546 },
+                    { ...DUMMY_UTXO, sats: 546n },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -293,34 +293,34 @@ const vectors: TokenProtocolsVectors = {
                 utxos: [
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
-                    { ...DUMMY_UTXO, value: 546 },
+                    { ...DUMMY_UTXO, sats: 546n },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: true,
                         },
                     },
                     {
                         ...DUMMY_UTXO,
-                        value: 546,
+                        sats: 546n,
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-                            amount: '1000',
+                            atoms: 1000n,
                             isMintBaton: false,
                         },
                     },
@@ -341,7 +341,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -350,7 +350,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -359,7 +359,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -373,7 +373,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -382,7 +382,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -390,7 +390,7 @@ const vectors: TokenProtocolsVectors = {
                 sendAmounts: [15n, 5n],
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000f080000000000000005',
@@ -398,11 +398,11 @@ const vectors: TokenProtocolsVectors = {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                         script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -414,7 +414,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -423,7 +423,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -432,7 +432,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -446,7 +446,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -455,7 +455,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -464,7 +464,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '10',
+                            atoms: 10n,
                             isMintBaton: false,
                         },
                     },
@@ -472,7 +472,7 @@ const vectors: TokenProtocolsVectors = {
                 sendAmounts: [30n],
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000001e',
@@ -480,7 +480,7 @@ const vectors: TokenProtocolsVectors = {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                         script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                     },
                 ],
@@ -493,7 +493,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -502,7 +502,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -511,7 +511,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -525,7 +525,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -534,7 +534,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -542,7 +542,7 @@ const vectors: TokenProtocolsVectors = {
                 sendAmounts: [150000000n, 50000000n],
                 targetOutputs: [
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(
                             fromHex(
                                 '6a04534c500001010453454e44201111111111111111111111111111111111111111111111111111111111111111080000000008f0d180080000000002faf080',
@@ -550,11 +550,11 @@ const vectors: TokenProtocolsVectors = {
                         ),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                         script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                     },
                     {
-                        value: appConfig.dustSats,
+                        sats: BigInt(appConfig.dustSats),
                     },
                 ],
             },
@@ -569,7 +569,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -578,7 +578,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -587,7 +587,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -606,7 +606,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -615,7 +615,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -624,7 +624,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -643,7 +643,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -652,7 +652,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -661,7 +661,7 @@ const vectors: TokenProtocolsVectors = {
                         token: {
                             ...DUMMY_TOKEN,
                             tokenId: MOCK_TOKEN_ID,
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -681,7 +681,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -691,7 +691,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -701,7 +701,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -721,7 +721,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -731,7 +731,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },
@@ -741,7 +741,7 @@ const vectors: TokenProtocolsVectors = {
                             ...DUMMY_TOKEN,
                             tokenId:
                                 '2222222222222222222222222222222222222222222222222222222222222222',
-                            amount: '100000000',
+                            atoms: 100000000n,
                             isMintBaton: false,
                         },
                     },

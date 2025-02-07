@@ -28,7 +28,7 @@ const DUMMY_SCRIPT_UTXO: ScriptUtxo = {
     outpoint: { txid: '00'.repeat(32), outIdx: 0 },
     blockHeight: 800000,
     isCoinbase: false,
-    value: 546,
+    sats: 546n,
     isFinal: true,
 };
 const DUMMY_UTXO: Utxo = {
@@ -36,7 +36,7 @@ const DUMMY_UTXO: Utxo = {
     script: `76a914${'00'.repeat(20)}88ac`,
     blockHeight: 800000,
     isCoinbase: false,
-    value: 546,
+    sats: 546n,
     isFinal: true,
 };
 const chronikMocks: ChronikMocks = {
@@ -55,10 +55,10 @@ const chronikMocks: ChronikMocks = {
             numTxs: 9,
             numInputs: 13,
             numOutputs: 26,
-            sumInputSats: 859760862,
-            sumCoinbaseOutputSats: 625005728,
-            sumNormalOutputSats: 859755134,
-            sumBurnedSats: 0,
+            sumInputSats: 859760862n,
+            sumCoinbaseOutputSats: 625005728n,
+            sumNormalOutputSats: 859755134n,
+            sumBurnedSats: 0n,
         },
     },
     blockchainInfo: {
@@ -78,7 +78,7 @@ const chronikMocks: ChronikMocks = {
                 },
                 inputScript:
                     '41ebe634094888c4215b8690546b74695a048a9c49c8a5c6efedd940591ec9039e91cf2a6f7836107afbc41bb6e13fb22d99739aeadf1a740f75efea177cfcd86641210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -88,7 +88,7 @@ const chronikMocks: ChronikMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '455320000',
+                    atoms: 455320000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -102,7 +102,7 @@ const chronikMocks: ChronikMocks = {
                 },
                 inputScript:
                     '412e7de41834aaf15d16347a59c954cb886d8ec00584bb566252e16f8e1779ce2e4d6ddd91782bd6ba2f695a28ce4115cd0561d27c1ae16b3d8bf77f8186235b1441210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
-                value: 94518653,
+                sats: 94518653n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
@@ -110,12 +110,12 @@ const chronikMocks: ChronikMocks = {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271008000000001b237ab0',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914a805a320360fa685f83605d8e56de6f9d8a7a99988ac',
                 token: {
@@ -126,13 +126,13 @@ const chronikMocks: ChronikMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '10000',
+                    atoms: 10000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                 token: {
@@ -143,7 +143,7 @@ const chronikMocks: ChronikMocks = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '455310000',
+                    atoms: 455310000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -153,7 +153,7 @@ const chronikMocks: ChronikMocks = {
                 },
             },
             {
-                value: 94517640,
+                sats: 94517640n,
                 outputScript:
                     '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                 spentBy: {
@@ -179,8 +179,8 @@ const chronikMocks: ChronikMocks = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],

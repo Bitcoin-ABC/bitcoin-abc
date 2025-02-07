@@ -94,11 +94,11 @@ fn test_parse_alp_mint_valid_amounts() {
     for size in 0..=127 {
         let mut pushdata = [SLP2, &[0], b"\x04MINT", &[0x76; 32]].concat();
         pushdata.push(size as u8);
-        let mut amounts = Vec::with_capacity(size);
+        let mut atoms_vec = Vec::with_capacity(size);
         for i in 0..size {
             pushdata.push(i as u8);
             pushdata.extend([0; 5]);
-            amounts.push(i as u64);
+            atoms_vec.push(i as u64);
         }
         pushdata.push(0);
         assert_eq!(
@@ -106,7 +106,7 @@ fn test_parse_alp_mint_valid_amounts() {
             Ok(ParsedData {
                 meta: META,
                 tx_type: ParsedTxType::Mint(ParsedMintData {
-                    amounts,
+                    atoms_vec,
                     num_batons: 0,
                 }),
             }),
@@ -125,7 +125,7 @@ fn test_parse_alp_mint_valid_num_batons() {
             Ok(ParsedData {
                 meta: META,
                 tx_type: ParsedTxType::Mint(ParsedMintData {
-                    amounts: vec![],
+                    atoms_vec: vec![],
                     num_batons: size as usize,
                 }),
             }),
@@ -150,7 +150,7 @@ fn test_parse_alp_mint_valid_example() {
         Ok(ParsedData {
             meta: META,
             tx_type: ParsedTxType::Mint(ParsedMintData {
-                amounts: vec![0x60504030201, 0x20100090807, 0x80706050403,],
+                atoms_vec: vec![0x60504030201, 0x20100090807, 0x80706050403,],
                 num_batons: 4,
             }),
         }),

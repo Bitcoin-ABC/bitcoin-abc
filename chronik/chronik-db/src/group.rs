@@ -133,24 +133,24 @@ pub trait UtxoData:
     fn from_output(output: &TxOutput) -> Self;
 }
 
-/// [`UtxoData`] that only stores the output value but not the script.
+/// [`UtxoData`] that only stores the output sats but not the script.
 /// This is useful where the member itself is the script so storing it would be
 /// redundant.
 pub type UtxoDataValue = i64;
 
 impl UtxoData for UtxoDataValue {
     fn from_output(output: &TxOutput) -> Self {
-        output.value
+        output.sats
     }
 }
 
-/// [`UtxoData`] that stores the full output, including value and script.
+/// [`UtxoData`] that stores the full output, including sats and script.
 /// This is useful where the member isn't the script, e.g. a token ID.
 pub type UtxoDataOutput = (i64, Bytes);
 
 impl UtxoData for UtxoDataOutput {
     fn from_output(output: &TxOutput) -> Self {
-        (output.value, output.script.bytecode().clone())
+        (output.sats, output.script.bytecode().clone())
     }
 }
 

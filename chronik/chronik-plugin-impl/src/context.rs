@@ -585,7 +585,7 @@ class Plg2Plugin(Plugin):
                     TXID,
                     TxMut {
                         version,
-                        outputs: vec![TxOutput { value: 0, script }]
+                        outputs: vec![TxOutput { sats: 0, script }]
                             .into_iter()
                             .chain(vec![TxOutput::default(); num_outputs])
                             .collect(),

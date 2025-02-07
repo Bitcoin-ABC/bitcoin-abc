@@ -10,7 +10,7 @@ use bitcoinsuite_slp::{
     alp::{parse_section, sections_opreturn, send_section},
     color::{ColorError, ColoredTx, ColoredTxSection, FailedColoring},
     parsed::ParsedData,
-    structs::{Amount, Token, TokenMeta, TokenOutput, TokenVariant, TxType},
+    structs::{Atoms, Token, TokenMeta, TokenOutput, TokenVariant, TxType},
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
 };
@@ -27,14 +27,14 @@ const TOKEN_ID4: TokenId = TokenId::new(TXID4);
 
 const STD: AlpTokenType = AlpTokenType::Standard;
 
-const MAX: Amount = 0xffff_ffff_ffff;
+const MAX: Atoms = 0xffff_ffff_ffff;
 
 fn make_tx<const N: usize>(script: Script) -> Tx {
     Tx::with_txid(
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),
@@ -70,15 +70,15 @@ fn colored_send_section(
 fn amount<const TOKENIDX: usize>(amount: u64) -> Option<TokenOutput> {
     Some(TokenOutput {
         token_idx: TOKENIDX,
-        variant: TokenVariant::Amount(amount),
+        variant: TokenVariant::Atoms(amount),
     })
 }
 
 fn make_send<const N: usize>(
     token_id: &TokenId,
-    amounts: [Amount; N],
+    atoms_vec: [Atoms; N],
 ) -> Bytes {
-    send_section(token_id, AlpTokenType::Standard, amounts)
+    send_section(token_id, AlpTokenType::Standard, atoms_vec)
 }
 
 #[test]
@@ -140,13 +140,13 @@ fn test_color_alp_send_overlapping_amount() {
             failed_colorings: vec![FailedColoring {
                 pushdata_idx: 1,
                 parsed: parse(make_send(&TOKEN_ID3, [3, 7, MAX])),
-                error: ColorError::OverlappingAmount {
+                error: ColorError::OverlappingAtoms {
                     prev_token: Token {
                         meta: meta(TOKEN_ID2),
-                        variant: TokenVariant::Amount(2),
+                        variant: TokenVariant::Atoms(2),
                     },
                     output_idx: 2,
-                    amount: 7,
+                    atoms: 7,
                 },
             }],
             ..Default::default()

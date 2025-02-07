@@ -29,7 +29,7 @@ import { P2PKHSignatory, TxBuilder } from '../src/txBuilder.js';
 import '../src/initNodeJs.js';
 
 const NUM_COINS = 500;
-const COIN_VALUE = 100000;
+const COIN_VALUE = 100000n;
 
 const SLP_TOKEN_TYPE_FUNGIBLE = {
     number: 1,
@@ -91,7 +91,7 @@ describe('SLP Integration Test', () => {
         const pkh4 = shaRmd160(pk4);
         const p2pkh4 = Script.p2pkh(pkh4);
 
-        await runner.sendToScript(50000, p2pkh1);
+        await runner.sendToScript(50000n, p2pkh1);
 
         const utxos = await chronik.script('p2pkh', toHex(pkh1)).utxos();
         expect(utxos.utxos.length).to.equal(1);
@@ -103,7 +103,7 @@ describe('SLP Integration Test', () => {
                     input: {
                         prevOut: utxo.outpoint,
                         signData: {
-                            value: utxo.value,
+                            sats: utxo.sats,
                             outputScript: p2pkh1,
                         },
                     },
@@ -112,7 +112,7 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     script: slpGenesis(
                         SLP_FUNGIBLE,
                         {
@@ -122,12 +122,12 @@ describe('SLP Integration Test', () => {
                             hash: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
                             decimals: 4,
                         },
-                        2000,
+                        2000n,
                         2,
                     ),
                 },
-                { value: 10000, script: p2pkh2 },
-                { value: 10000, script: p2pkh1 },
+                { sats: 10000n, script: p2pkh2 },
+                { sats: 10000n, script: p2pkh1 },
             ],
         });
         const genesisTx = txBuildGenesis.sign();
@@ -156,10 +156,10 @@ describe('SLP Integration Test', () => {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 10000,
+                sats: 10000n,
                 isFinal: false,
                 token: {
-                    amount: '2000',
+                    atoms: 2000n,
                     isMintBaton: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
@@ -176,7 +176,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 2,
                         },
                         signData: {
-                            value: 10000,
+                            sats: 10000n,
                             outputScript: p2pkh1,
                         },
                     },
@@ -185,11 +185,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpMint(tokenId, SLP_FUNGIBLE, 500, 2),
+                    sats: 0n,
+                    script: slpMint(tokenId, SLP_FUNGIBLE, 500n, 2),
                 },
-                { value: 546, script: p2pkh1 },
-                { value: 546, script: p2pkh3 },
+                { sats: 546n, script: p2pkh1 },
+                { sats: 546n, script: p2pkh3 },
             ],
         });
         const mintTx = txBuildMint.sign();
@@ -204,10 +204,10 @@ describe('SLP Integration Test', () => {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: false,
                 token: {
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
@@ -224,7 +224,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 546,
+                            sats: 546n,
                             outputScript: p2pkh1,
                         },
                     },
@@ -237,7 +237,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 10000,
+                            sats: 10000n,
                             outputScript: p2pkh2,
                         },
                     },
@@ -246,11 +246,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpSend(tokenId, SLP_FUNGIBLE, [1000, 1500]),
+                    sats: 0n,
+                    script: slpSend(tokenId, SLP_FUNGIBLE, [1000n, 1500n]),
                 },
-                { value: 546, script: p2pkh2 },
-                { value: 546, script: p2pkh4 },
+                { sats: 546n, script: p2pkh2 },
+                { sats: 546n, script: p2pkh4 },
             ],
         });
         const sendTx = txBuildSend.sign();
@@ -267,13 +267,13 @@ describe('SLP Integration Test', () => {
                     prevOut: sendTx.inputs[0].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '500',
+                        atoms: 500n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
                 {
                     inputScript: toHex(sendTx.inputs[1].script!.bytecode),
@@ -281,41 +281,41 @@ describe('SLP Integration Test', () => {
                     prevOut: sendTx.inputs[1].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '2000',
+                        atoms: 2000n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                     },
-                    value: 10000,
+                    sats: 10000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     outputScript: toHex(sendTx.outputs[0].script.bytecode),
                 },
                 {
                     outputScript: toHex(p2pkh2.bytecode),
                     token: {
-                        amount: '1000',
+                        atoms: 1000n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
                 {
                     outputScript: toHex(p2pkh4.bytecode),
                     token: {
-                        amount: '1500',
+                        atoms: 1500n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -325,11 +325,11 @@ describe('SLP Integration Test', () => {
             isFinal: false,
             tokenEntries: [
                 {
-                    actualBurnAmount: '0',
+                    actualBurnAtoms: 0n,
                     burnSummary: '',
                     burnsMintBatons: false,
                     failedColorings: [],
-                    intentionalBurn: '0',
+                    intentionalBurnAtoms: 0n,
                     isInvalid: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
@@ -349,7 +349,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 546,
+                            sats: 546n,
                             outputScript: p2pkh2,
                         },
                     },
@@ -358,8 +358,8 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpBurn(tokenId, SLP_FUNGIBLE, 1000),
+                    sats: 0n,
+                    script: slpBurn(tokenId, SLP_FUNGIBLE, 1000n),
                 },
             ],
         });
@@ -376,18 +376,18 @@ describe('SLP Integration Test', () => {
                     prevOut: burnTx.inputs[0].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '1000',
+                        atoms: 1000n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     outputScript: toHex(burnTx.outputs[0].script.bytecode),
                 },
             ],
@@ -398,11 +398,11 @@ describe('SLP Integration Test', () => {
             isFinal: false,
             tokenEntries: [
                 {
-                    actualBurnAmount: '1000',
+                    actualBurnAtoms: 1000n,
                     burnSummary: '',
                     burnsMintBatons: false,
                     failedColorings: [],
-                    intentionalBurn: '1000',
+                    intentionalBurnAtoms: 1000n,
                     isInvalid: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
@@ -450,7 +450,7 @@ describe('SLP Integration Test', () => {
         await ws.waitForOpen();
         ws.subscribeToBlocks();
 
-        await runner.sendToScript(50000, p2pkh1);
+        await runner.sendToScript(50000n, p2pkh1);
 
         const utxos = await chronik.script('p2pkh', toHex(pkh1)).utxos();
         expect(utxos.utxos.length).to.equal(1);
@@ -462,7 +462,7 @@ describe('SLP Integration Test', () => {
                     input: {
                         prevOut: utxo.outpoint,
                         signData: {
-                            value: utxo.value,
+                            sats: utxo.sats,
                             outputScript: p2pkh1,
                         },
                     },
@@ -471,7 +471,7 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     script: slpGenesis(
                         SLP_MINT_VAULT,
                         {
@@ -482,10 +482,10 @@ describe('SLP Integration Test', () => {
                             mintVaultScripthash: toHex(mintVaultScripthash),
                             decimals: 4,
                         },
-                        2000,
+                        2000n,
                     ),
                 },
-                { value: 10000, script: p2pkh2 },
+                { sats: 10000n, script: p2pkh2 },
             ],
         });
         const genesisTx = txBuildGenesis.sign();
@@ -515,10 +515,10 @@ describe('SLP Integration Test', () => {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 10000,
+                sats: 10000n,
                 isFinal: false,
                 token: {
-                    amount: '2000',
+                    atoms: 2000n,
                     isMintBaton: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
@@ -530,7 +530,7 @@ describe('SLP Integration Test', () => {
         runner.generate();
         await once(wsBlocks, 'BLK_CONNECTED');
 
-        const mintVaultTxid = await runner.sendToScript(50000, mintVaultP2sh);
+        const mintVaultTxid = await runner.sendToScript(50000n, mintVaultP2sh);
 
         const txBuildMint = new TxBuilder({
             inputs: [
@@ -548,11 +548,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpMintVault(tokenId, [500, 600]),
+                    sats: 0n,
+                    script: slpMintVault(tokenId, [500n, 600n]),
                 },
-                { value: 546, script: p2pkh1 },
-                { value: 546, script: p2pkh3 },
+                { sats: 546n, script: p2pkh1 },
+                { sats: 546n, script: p2pkh3 },
             ],
         });
         const mintTx = txBuildMint.sign();
@@ -567,10 +567,10 @@ describe('SLP Integration Test', () => {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: false,
                 token: {
-                    amount: '600',
+                    atoms: 600n,
                     isMintBaton: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
@@ -587,7 +587,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 546,
+                            sats: 546n,
                             outputScript: p2pkh1,
                         },
                     },
@@ -600,7 +600,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 10000,
+                            sats: 10000n,
                             outputScript: p2pkh2,
                         },
                     },
@@ -609,11 +609,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpSend(tokenId, SLP_MINT_VAULT, [1000, 1500]),
+                    sats: 0n,
+                    script: slpSend(tokenId, SLP_MINT_VAULT, [1000n, 1500n]),
                 },
-                { value: 546, script: p2pkh2 },
-                { value: 546, script: p2pkh4 },
+                { sats: 546n, script: p2pkh2 },
+                { sats: 546n, script: p2pkh4 },
             ],
         });
         const sendTx = txBuildSend.sign();
@@ -630,13 +630,13 @@ describe('SLP Integration Test', () => {
                     prevOut: sendTx.inputs[0].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '500',
+                        atoms: 500n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
                 {
                     inputScript: toHex(sendTx.inputs[1].script!.bytecode),
@@ -644,41 +644,41 @@ describe('SLP Integration Test', () => {
                     prevOut: sendTx.inputs[1].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '2000',
+                        atoms: 2000n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
                     },
-                    value: 10000,
+                    sats: 10000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     outputScript: toHex(sendTx.outputs[0].script.bytecode),
                 },
                 {
                     outputScript: toHex(p2pkh2.bytecode),
                     token: {
-                        amount: '1000',
+                        atoms: 1000n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
                 {
                     outputScript: toHex(p2pkh4.bytecode),
                     token: {
-                        amount: '1500',
+                        atoms: 1500n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -688,11 +688,11 @@ describe('SLP Integration Test', () => {
             isFinal: false,
             tokenEntries: [
                 {
-                    actualBurnAmount: '0',
+                    actualBurnAtoms: 0n,
                     burnSummary: '',
                     burnsMintBatons: false,
                     failedColorings: [],
-                    intentionalBurn: '0',
+                    intentionalBurnAtoms: 0n,
                     isInvalid: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
@@ -725,7 +725,7 @@ describe('SLP Integration Test', () => {
         const pkh4 = shaRmd160(pk4);
         const p2pkh4 = Script.p2pkh(pkh4);
 
-        await runner.sendToScript(50000, p2pkh1);
+        await runner.sendToScript(50000n, p2pkh1);
 
         const utxos = await chronik.script('p2pkh', toHex(pkh1)).utxos();
         expect(utxos.utxos.length).to.equal(1);
@@ -737,7 +737,7 @@ describe('SLP Integration Test', () => {
                     input: {
                         prevOut: utxo.outpoint,
                         signData: {
-                            value: utxo.value,
+                            sats: utxo.sats,
                             outputScript: p2pkh1,
                         },
                     },
@@ -746,7 +746,7 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     script: slpGenesis(
                         SLP_NFT1_GROUP,
                         {
@@ -756,12 +756,12 @@ describe('SLP Integration Test', () => {
                             hash: '000111222333444555666777888999aaabbbcccdddeeefff0001112223334444',
                             decimals: 4,
                         },
-                        2000,
+                        2000n,
                         2,
                     ),
                 },
-                { value: 10000, script: p2pkh2 },
-                { value: 10000, script: p2pkh1 },
+                { sats: 10000n, script: p2pkh2 },
+                { sats: 10000n, script: p2pkh1 },
             ],
         });
         const genesisTx = txBuildGenesisGroup.sign();
@@ -790,10 +790,10 @@ describe('SLP Integration Test', () => {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 10000,
+                sats: 10000n,
                 isFinal: false,
                 token: {
-                    amount: '2000',
+                    atoms: 2000n,
                     isMintBaton: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
@@ -810,7 +810,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 2,
                         },
                         signData: {
-                            value: 10000,
+                            sats: 10000n,
                             outputScript: p2pkh1,
                         },
                     },
@@ -819,11 +819,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpMint(tokenId, SLP_NFT1_GROUP, 500, 2),
+                    sats: 0n,
+                    script: slpMint(tokenId, SLP_NFT1_GROUP, 500n, 2),
                 },
-                { value: 546, script: p2pkh1 },
-                { value: 546, script: p2pkh3 },
+                { sats: 546n, script: p2pkh1 },
+                { sats: 546n, script: p2pkh3 },
             ],
         });
         const mintTx = txBuildMint.sign();
@@ -838,10 +838,10 @@ describe('SLP Integration Test', () => {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 546,
+                sats: 546n,
                 isFinal: false,
                 token: {
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
@@ -858,7 +858,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 546,
+                            sats: 546n,
                             outputScript: p2pkh1,
                         },
                     },
@@ -871,7 +871,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 10000,
+                            sats: 10000n,
                             outputScript: p2pkh2,
                         },
                     },
@@ -880,11 +880,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpSend(tokenId, SLP_NFT1_GROUP, [1, 2499]),
+                    sats: 0n,
+                    script: slpSend(tokenId, SLP_NFT1_GROUP, [1n, 2499n]),
                 },
-                { value: 8000, script: p2pkh2 },
-                { value: 546, script: p2pkh4 },
+                { sats: 8000n, script: p2pkh2 },
+                { sats: 546n, script: p2pkh4 },
             ],
         });
         const sendTx = txBuildSend.sign();
@@ -901,13 +901,13 @@ describe('SLP Integration Test', () => {
                     prevOut: sendTx.inputs[0].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '500',
+                        atoms: 500n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
                 {
                     inputScript: toHex(sendTx.inputs[1].script!.bytecode),
@@ -915,41 +915,41 @@ describe('SLP Integration Test', () => {
                     prevOut: sendTx.inputs[1].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '2000',
+                        atoms: 2000n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
                     },
-                    value: 10000,
+                    sats: 10000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     outputScript: toHex(sendTx.outputs[0].script.bytecode),
                 },
                 {
                     outputScript: toHex(p2pkh2.bytecode),
                     token: {
-                        amount: '1',
+                        atoms: 1n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
                     },
-                    value: 8000,
+                    sats: 8000n,
                 },
                 {
                     outputScript: toHex(p2pkh4.bytecode),
                     token: {
-                        amount: '2499',
+                        atoms: 2499n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: tokenId,
                         tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -959,11 +959,11 @@ describe('SLP Integration Test', () => {
             isFinal: false,
             tokenEntries: [
                 {
-                    actualBurnAmount: '0',
+                    actualBurnAtoms: 0n,
                     burnSummary: '',
                     burnsMintBatons: false,
                     failedColorings: [],
-                    intentionalBurn: '0',
+                    intentionalBurnAtoms: 0n,
                     isInvalid: false,
                     tokenId: tokenId,
                     tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
@@ -983,7 +983,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 8000,
+                            sats: 8000n,
                             outputScript: p2pkh2,
                         },
                     },
@@ -992,7 +992,7 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     script: slpGenesis(
                         SLP_NFT1_CHILD,
                         {
@@ -1002,10 +1002,10 @@ describe('SLP Integration Test', () => {
                             hash: '0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff',
                             decimals: 0,
                         },
-                        1,
+                        1n,
                     ),
                 },
-                { value: 6000, script: p2pkh1 },
+                { sats: 6000n, script: p2pkh1 },
             ],
         });
         const genesisChildTx = txBuildGenesisChild.sign();
@@ -1036,7 +1036,7 @@ describe('SLP Integration Test', () => {
                             outIdx: 1,
                         },
                         signData: {
-                            value: 6000,
+                            sats: 6000n,
                             outputScript: p2pkh1,
                         },
                     },
@@ -1045,11 +1045,11 @@ describe('SLP Integration Test', () => {
             ],
             outputs: [
                 {
-                    value: 0,
-                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [0, 1]),
+                    sats: 0n,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [0n, 1n]),
                 },
-                { value: 546, script: p2pkh2 },
-                { value: 546, script: p2pkh4 },
+                { sats: 546n, script: p2pkh2 },
+                { sats: 546n, script: p2pkh4 },
             ],
         });
         const childSendTx = txBuildChildSend.sign();
@@ -1067,34 +1067,34 @@ describe('SLP Integration Test', () => {
                     prevOut: childSendTx.inputs[0].prevOut,
                     sequenceNo: 0xffffffff,
                     token: {
-                        amount: '1',
+                        atoms: 1n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: childTokenId,
                         tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
                     },
-                    value: 6000,
+                    sats: 6000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
+                    sats: 0n,
                     outputScript: toHex(childSendTx.outputs[0].script.bytecode),
                 },
                 {
                     outputScript: toHex(p2pkh2.bytecode),
-                    value: 546,
+                    sats: 546n,
                 },
                 {
                     outputScript: toHex(p2pkh4.bytecode),
                     token: {
-                        amount: '1',
+                        atoms: 1n,
                         entryIdx: 0,
                         isMintBaton: false,
                         tokenId: childTokenId,
                         tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
                     },
-                    value: 546,
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -1104,11 +1104,11 @@ describe('SLP Integration Test', () => {
             isFinal: false,
             tokenEntries: [
                 {
-                    actualBurnAmount: '0',
+                    actualBurnAtoms: 0n,
                     burnSummary: '',
                     burnsMintBatons: false,
                     failedColorings: [],
-                    intentionalBurn: '0',
+                    intentionalBurnAtoms: 0n,
                     isInvalid: false,
                     tokenId: childTokenId,
                     tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,

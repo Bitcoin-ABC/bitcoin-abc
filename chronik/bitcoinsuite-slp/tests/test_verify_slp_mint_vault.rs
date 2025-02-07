@@ -12,8 +12,8 @@ use bitcoinsuite_slp::{
     slp::mint_vault_opreturn,
     structs::{GenesisInfo, TxType},
     test_helpers::{
-        empty_entry, meta_alp, meta_slp as meta, spent_amount, spent_baton,
-        token_amount, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4, TXID,
+        empty_entry, meta_alp, meta_slp as meta, spent_atoms, spent_baton,
+        token_atoms, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4, TXID,
     },
     token_tx::{TokenTx, TokenTxEntry},
     token_type::SlpTokenType::*,
@@ -31,7 +31,7 @@ fn verify<const N: usize>(
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),
@@ -137,9 +137,9 @@ fn test_verify_mint_vault_success_simple() {
             }],
             outputs: vec![
                 None,
-                token_amount::<0>(30),
+                token_atoms::<0>(30),
                 None,
-                token_amount::<0>(50),
+                token_atoms::<0>(50),
             ],
             failed_parsings: vec![],
         },
@@ -167,9 +167,9 @@ fn test_verify_mint_vault_success_multiple_scripts() {
             }],
             outputs: vec![
                 None,
-                token_amount::<0>(30),
+                token_atoms::<0>(30),
                 None,
-                token_amount::<0>(50),
+                token_atoms::<0>(50),
             ],
             failed_parsings: vec![],
         },
@@ -182,9 +182,9 @@ fn test_verify_mint_vault_success_with_burns() {
         verify::<3>(
             mint_vault_opreturn(&TOKEN_ID2, [10, 0, 20]),
             &[
-                spent_amount(meta(TOKEN_ID2, MintVault), 80),
+                spent_atoms(meta(TOKEN_ID2, MintVault), 80),
                 spent_baton(meta(TOKEN_ID3, Fungible)),
-                spent_amount(meta(TOKEN_ID3, Fungible), 800),
+                spent_atoms(meta(TOKEN_ID3, Fungible), 800),
                 spent_baton(meta_alp(TOKEN_ID4)),
             ],
             &[
@@ -199,14 +199,14 @@ fn test_verify_mint_vault_success_with_burns() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2, MintVault),
                     tx_type: Some(TxType::MINT),
-                    actual_burn_amount: 80,
+                    actual_burn_atoms: 80,
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID3, Fungible),
                     tx_type: None,
                     is_invalid: true,
-                    actual_burn_amount: 800,
+                    actual_burn_atoms: 800,
                     burns_mint_batons: true,
                     ..empty_entry()
                 },
@@ -220,9 +220,9 @@ fn test_verify_mint_vault_success_with_burns() {
             ],
             outputs: vec![
                 None,
-                token_amount::<0>(10),
+                token_atoms::<0>(10),
                 None,
-                token_amount::<0>(20),
+                token_atoms::<0>(20),
             ],
             failed_parsings: vec![],
         },

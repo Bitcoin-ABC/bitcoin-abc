@@ -29,19 +29,19 @@ mockTxCalls.set(bearNipTokenId, {
             },
             inputScript:
                 '473044022055444db90f98b462ca29a6f51981da4015623ddc34dc1f575852426ccb785f0402206e786d4056be781ca1720a0a915b040e0a9e8716b8e4d30b0779852c191fdeb3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 6231556,
+            sats: 6231556n,
             sequenceNo: 4294967294,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             token: {
                 tokenId:
@@ -51,7 +51,7 @@ mockTxCalls.set(bearNipTokenId, {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '4444',
+                atoms: 4444n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
@@ -61,7 +61,7 @@ mockTxCalls.set(bearNipTokenId, {
             },
         },
         {
-            value: 6230555,
+            sats: 6230555n,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             spentBy: {
                 txid: '27a2471afab33d82b9404df12e1fa242488a9439a68e540dcf8f811ef39c11cf',
@@ -87,8 +87,8 @@ mockTxCalls.set(bearNipTokenId, {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
             burnsMintBatons: false,
         },
     ],
@@ -111,7 +111,7 @@ mockTxCalls.set(alitaTokenId, {
             },
             inputScript:
                 '473044022075166617aa473e86c72f34a5576029eb8766a035b481864ebc75759155efcce00220147e2d7e662123bd728fac700f109a245a0278959f65fc402a1e912e0a5732004121034cdb43b7a1277c4d818dc177aaea4e0bed5d464d240839d5488a278b716facd5',
-            value: 1000,
+            sats: 1000n,
             sequenceNo: 4294967295,
             outputScript: '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
         },
@@ -122,19 +122,19 @@ mockTxCalls.set(alitaTokenId, {
             },
             inputScript:
                 '4830450221009e98db4b91441190bb7e4745b9f249201d0b54c81c0a816af5f3491ffb21a7e902205a4d1347a5a9133c14e4f55319af00f1df836eba6552f30b44640e9373f4cabf4121034cdb43b7a1277c4d818dc177aaea4e0bed5d464d240839d5488a278b716facd5',
-            value: 750918004,
+            sats: 750918004n,
             sequenceNo: 4294967295,
             outputScript: '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a04534c500001010747454e4553495305416c69746105416c6974610a616c6974612e636173684c0001044c00080000befe6f672000',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
             token: {
                 tokenId:
@@ -144,7 +144,7 @@ mockTxCalls.set(alitaTokenId, {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '210000000000000',
+                atoms: 210000000000000n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
@@ -154,7 +154,7 @@ mockTxCalls.set(alitaTokenId, {
             },
         },
         {
-            value: 750917637,
+            sats: 750917637n,
             outputScript: '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
             spentBy: {
                 txid: 'ca70157d5cf6275e0a36adbc3fabf671e3987f343cb35ec4ee7ed5c8d37b3233',
@@ -180,8 +180,8 @@ mockTxCalls.set(alitaTokenId, {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
             burnsMintBatons: false,
         },
     ],
@@ -204,19 +204,19 @@ mockTxCalls.set(powTokenId, {
             },
             inputScript:
                 '483045022100dad1d237b541b4a4d29197dbb01fa9755c2e17bbafb42855f38442b428f0df6b02205772d3fb00b7a053b07169e1534770c091fce42b9e1d63199f46ff89856b3fc6412102ceb4a6eca1eec20ff8e7780326932e8d8295489628c7f2ec9acf8f37f639235e',
-            value: 49998867,
+            sats: 49998867n,
             sequenceNo: 4294967295,
             outputScript: '76a91485bab3680833cd9b3cc60953344fa740a2235bbd88ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a04534c500001010747454e4553495303504f571850726f6f666f6657726974696e672e636f6d20546f6b656e2168747470733a2f2f7777772e70726f6f666f6677726974696e672e636f6d2f32364c0001004c000800000000000f4240',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a91485bab3680833cd9b3cc60953344fa740a2235bbd88ac',
             token: {
                 tokenId:
@@ -226,7 +226,7 @@ mockTxCalls.set(powTokenId, {
                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                     number: 1,
                 },
-                amount: '1000000',
+                atoms: 1000000n,
                 isMintBaton: false,
                 entryIdx: 0,
             },
@@ -236,7 +236,7 @@ mockTxCalls.set(powTokenId, {
             },
         },
         {
-            value: 49997563,
+            sats: 49997563n,
             outputScript: '76a91485bab3680833cd9b3cc60953344fa740a2235bbd88ac',
             spentBy: {
                 txid: '3c665488929f852d93a5dfb6e4b4df7bc8f7a25fb4a2480d39e3de7a30437f69',
@@ -262,8 +262,8 @@ mockTxCalls.set(powTokenId, {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
             burnsMintBatons: false,
         },
     ],
@@ -286,19 +286,19 @@ mockTxCalls.set(swapTxid, {
             },
             inputScript:
                 '4132271505f7bc271e30983bb9f42f634fcc7b83b35efd1465e70fe3192b395099fed6ce943cb21ed742022ceffcc64502f0101e669dc68fbee2dd8d54a8e50e1e4121034474f1431c4401ba1cd22e003c614deaf108695f85b0e7ea357ee3c5c0b3b549',
-            value: 599417,
+            sats: 599417n,
             sequenceNo: 4294967295,
             outputScript: '76a9148f348f00f7eeb9238b028f5dd14cb9be14395cab88ac',
         },
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             outputScript:
                 '6a045357500001020101206350c611819b7e84a2afd9611d33a98de5b3426c33561f516d49147dc1c4106b',
         },
         {
-            value: 546,
+            sats: 546n,
             outputScript: '76a91483630e8c91571121a32f57c8c2b58371df7b84e188ac',
             spentBy: {
                 txid: '805ff68b48739b6ec531e3b8de9369579bdac3be8f625127d1fbc145d35dd386',
@@ -306,7 +306,7 @@ mockTxCalls.set(swapTxid, {
             },
         },
         {
-            value: 598592,
+            sats: 598592n,
             outputScript: '76a91483630e8c91571121a32f57c8c2b58371df7b84e188ac',
             spentBy: {
                 txid: '805ff68b48739b6ec531e3b8de9369579bdac3be8f625127d1fbc145d35dd386',

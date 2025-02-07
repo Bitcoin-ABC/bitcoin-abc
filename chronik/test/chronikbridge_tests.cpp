@@ -154,10 +154,10 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
     // lookup_spent_coins mutates our query_tx to set the queried coins
     const rust::Vec<uint8_t> &script0 = query_tx.inputs[0].coin.output.script;
     const rust::Vec<uint8_t> &script1 = query_tx.inputs[1].coin.output.script;
-    BOOST_CHECK_EQUAL(query_tx.inputs[0].coin.output.value, 1000);
+    BOOST_CHECK_EQUAL(query_tx.inputs[0].coin.output.sats, 1000);
     BOOST_CHECK(CScript(script0.data(), script0.data() + script0.size()) ==
                 anyoneP2sh);
-    BOOST_CHECK_EQUAL(query_tx.inputs[1].coin.output.value,
+    BOOST_CHECK_EQUAL(query_tx.inputs[1].coin.output.sats,
                       coinTx->vout[0].nValue / SATOSHI - 10000);
     BOOST_CHECK(CScript(script1.data(), script1.data() + script1.size()) ==
                 anyoneP2sh);

@@ -19,7 +19,7 @@ use crate::{
     lokad_id::LokadId,
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
     slp::consts::SLP_LOKAD_ID,
-    structs::{Amount, GenesisInfo, TokenMeta},
+    structs::{Atoms, GenesisInfo, TokenMeta},
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
 };
@@ -221,7 +221,7 @@ fn parse_send(
     pushdata: &mut Bytes,
 ) -> Result<ParsedData, ParseError> {
     let token_id = read_token_id(pushdata)?;
-    let output_amounts = read_amounts(pushdata).named("send_amount")?;
+    let output_amounts = read_atoms_vec(pushdata).named("send_amount")?;
     Ok(ParsedData {
         meta: TokenMeta {
             token_id,
@@ -236,7 +236,7 @@ fn parse_burn(
     pushdata: &mut Bytes,
 ) -> Result<ParsedData, ParseError> {
     let token_id = read_token_id(pushdata)?;
-    let amount = read_amount(pushdata).named("burn_amount")?;
+    let amount = read_atoms(pushdata).named("burn_amount")?;
     Ok(ParsedData {
         meta: TokenMeta {
             token_id,
@@ -255,10 +255,10 @@ fn parse_token_type(pushdata: &mut Bytes) -> Result<AlpTokenType, ParseError> {
 }
 
 fn parse_mint_data(pushdata: &mut Bytes) -> Result<ParsedMintData, ParseError> {
-    let amounts = read_amounts(pushdata).named("mint_amount")?;
+    let atoms_vec = read_atoms_vec(pushdata).named("mint_amount")?;
     let num_batons = read_size(pushdata).named("num_batons")?;
     Ok(ParsedMintData {
-        amounts,
+        atoms_vec,
         num_batons,
     })
 }
@@ -283,18 +283,18 @@ fn read_size(pushdata: &mut Bytes) -> Result<usize, ParseError> {
     Ok(size.into())
 }
 
-fn read_amount(pushdata: &mut Bytes) -> Result<Amount, ParseError> {
+fn read_atoms(pushdata: &mut Bytes) -> Result<Atoms, ParseError> {
     let amount6: [u8; 6] = read_array(pushdata)?;
     let mut amount = [0u8; 8];
     amount[..6].copy_from_slice(&amount6);
-    Ok(Amount::from_le_bytes(amount))
+    Ok(Atoms::from_le_bytes(amount))
 }
 
-fn read_amounts(pushdata: &mut Bytes) -> Result<Vec<Amount>, ParseError> {
+fn read_atoms_vec(pushdata: &mut Bytes) -> Result<Vec<Atoms>, ParseError> {
     let size = read_size(pushdata)?;
     let mut amounts = Vec::with_capacity(size);
     for _ in 0..size {
-        amounts.push(read_amount(pushdata)?);
+        amounts.push(read_atoms(pushdata)?);
     }
     Ok(amounts)
 }

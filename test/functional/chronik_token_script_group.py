@@ -87,13 +87,13 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=tx.hash, amount=5000),
+                slp_token(token_id=tx.hash, atoms=5000),
                 slp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -131,16 +131,16 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                     token_id=genesis_slp.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.SEND,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
-            inputs=[slp_token(token_id=genesis_slp.txid, amount=5000)],
+            inputs=[slp_token(token_id=genesis_slp.txid, atoms=5000)],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=genesis_slp.txid, amount=1000),
-                slp_token(token_id=genesis_slp.txid, amount=2000),
-                slp_token(token_id=genesis_slp.txid, amount=1500),
-                slp_token(token_id=genesis_slp.txid, amount=500),
+                slp_token(token_id=genesis_slp.txid, atoms=1000),
+                slp_token(token_id=genesis_slp.txid, atoms=2000),
+                slp_token(token_id=genesis_slp.txid, atoms=1500),
+                slp_token(token_id=genesis_slp.txid, atoms=500),
             ],
         )
         txs.append(send_slp)
@@ -170,14 +170,14 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, amount=10),
-                alp_token(token_id=tx.hash, amount=20),
+                alp_token(token_id=tx.hash, atoms=10),
+                alp_token(token_id=tx.hash, atoms=20),
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -208,7 +208,7 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                     txid=bytes.fromhex(genesis_slp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=546,
+                sats=546,
                 token=slp_token(
                     token_id=genesis_slp.txid, is_mint_baton=True, entry_idx=-1
                 ),
@@ -218,39 +218,39 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                     txid=bytes.fromhex(send_slp.txid)[::-1], out_idx=1
                 ),
                 block_height=-1,
-                value=546,
-                token=slp_token(token_id=genesis_slp.txid, amount=1000, entry_idx=-1),
+                sats=546,
+                token=slp_token(token_id=genesis_slp.txid, atoms=1000, entry_idx=-1),
             ),
             pb.ScriptUtxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(send_slp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=546,
-                token=slp_token(token_id=genesis_slp.txid, amount=2000, entry_idx=-1),
+                sats=546,
+                token=slp_token(token_id=genesis_slp.txid, atoms=2000, entry_idx=-1),
             ),
             pb.ScriptUtxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(genesis_alp.txid)[::-1], out_idx=1
                 ),
                 block_height=-1,
-                value=546,
-                token=alp_token(token_id=genesis_alp.txid, amount=10, entry_idx=-1),
+                sats=546,
+                token=alp_token(token_id=genesis_alp.txid, atoms=10, entry_idx=-1),
             ),
             pb.ScriptUtxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(genesis_alp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=546,
-                token=alp_token(token_id=genesis_alp.txid, amount=20, entry_idx=-1),
+                sats=546,
+                token=alp_token(token_id=genesis_alp.txid, atoms=20, entry_idx=-1),
             ),
             pb.ScriptUtxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(genesis_alp.txid)[::-1], out_idx=3
                 ),
                 block_height=-1,
-                value=546,
+                sats=546,
                 token=alp_token(
                     token_id=genesis_alp.txid, is_mint_baton=True, entry_idx=-1
                 ),
@@ -267,16 +267,16 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                     txid=bytes.fromhex(send_slp.txid)[::-1], out_idx=3
                 ),
                 block_height=-1,
-                value=546,
-                token=slp_token(token_id=genesis_slp.txid, amount=1500, entry_idx=-1),
+                sats=546,
+                token=slp_token(token_id=genesis_slp.txid, atoms=1500, entry_idx=-1),
             ),
             pb.ScriptUtxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(send_slp.txid)[::-1], out_idx=4
                 ),
                 block_height=-1,
-                value=546,
-                token=slp_token(token_id=genesis_slp.txid, amount=500, entry_idx=-1),
+                sats=546,
+                token=slp_token(token_id=genesis_slp.txid, atoms=500, entry_idx=-1),
             ),
         ]
         script2_utxos = sorted(script2_utxos, key=lambda o: o.outpoint.txid[::-1])

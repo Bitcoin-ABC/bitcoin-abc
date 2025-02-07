@@ -31,7 +31,7 @@ fn make_tx(script: Script, n_extra_outputs: usize) -> Tx {
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); n_extra_outputs],
             ]
             .concat(),
@@ -47,10 +47,10 @@ fn meta(token_id: TokenId, token_type: SlpTokenType) -> TokenMeta {
     }
 }
 
-fn amount(amount: u64) -> Option<TokenOutput> {
+fn atoms(atoms: u64) -> Option<TokenOutput> {
     Some(TokenOutput {
         token_idx: 0,
-        variant: TokenVariant::Amount(amount),
+        variant: TokenVariant::Atoms(atoms),
     })
 }
 
@@ -112,7 +112,7 @@ fn test_color_slp_genesis_no_baton() {
                 4,
             )),
             Some(ColoredTx {
-                outputs: vec![None, amount(amt), None, None, None],
+                outputs: vec![None, atoms(amt), None, None, None],
                 sections: vec![ColoredTxSection {
                     meta: meta(TOKEN_ID, token_type),
                     tx_type: TxType::GENESIS,
@@ -131,7 +131,7 @@ fn test_color_slp_genesis_mint_baton_out_idx() {
     for token_type in [SlpTokenType::Fungible, SlpTokenType::Nft1Group] {
         for out_idx in 2..=255 {
             let mut outputs = vec![None; out_idx + 1];
-            outputs[1] = amount(1234567);
+            outputs[1] = atoms(1234567);
             outputs[out_idx] = MINT_BATON;
             assert_eq!(
                 ColoredTx::color_tx(&make_tx(
@@ -211,7 +211,7 @@ fn test_color_slp_genesis_has_colored_out_of_range() {
                     1,
                 )),
                 Some(ColoredTx {
-                    outputs: vec![None, amount(7777)],
+                    outputs: vec![None, atoms(7777)],
                     sections: vec![ColoredTxSection {
                         has_colored_out_of_range: true,
                         ..section.clone()
@@ -236,7 +236,7 @@ fn test_color_slp_mint_no_baton() {
                 4,
             )),
             Some(ColoredTx {
-                outputs: vec![None, amount(amt), None, None, None],
+                outputs: vec![None, atoms(amt), None, None, None],
                 sections: vec![ColoredTxSection {
                     meta: meta(TOKEN_ID1, token_type),
                     tx_type: TxType::MINT,
@@ -257,7 +257,7 @@ fn test_color_slp_mint_vault() {
         // Zero amounts are colored as None
         let outputs = [None, None]
             .into_iter()
-            .chain((1..num_amounts).map(amount))
+            .chain((1..num_amounts).map(atoms))
             .collect::<Vec<_>>();
         assert_eq!(
             ColoredTx::color_tx(&make_tx(
@@ -331,7 +331,7 @@ fn test_color_slp_mint_has_colored_out_of_range() {
                     1,
                 )),
                 Some(ColoredTx {
-                    outputs: vec![None, amount(7777)],
+                    outputs: vec![None, atoms(7777)],
                     sections: vec![ColoredTxSection {
                         has_colored_out_of_range: true,
                         ..section.clone()
@@ -402,7 +402,7 @@ fn test_color_slp_send() {
                 2,
             )),
             Some(ColoredTx {
-                outputs: vec![None, amount(4444), None],
+                outputs: vec![None, atoms(4444), None],
                 sections: vec![ColoredTxSection {
                     meta: meta(TOKEN_ID1, token_type),
                     tx_type: TxType::SEND,
@@ -421,7 +421,7 @@ fn test_color_slp_send() {
             // Zero amounts are colored as None
             let outputs = [None, None]
                 .into_iter()
-                .chain((1..num_amounts).map(amount))
+                .chain((1..num_amounts).map(atoms))
                 .collect::<Vec<_>>();
             assert_eq!(
                 ColoredTx::color_tx(&make_tx(
@@ -517,7 +517,7 @@ fn test_color_slp_burn() {
                 sections: vec![],
                 intentional_burns: vec![IntentionalBurn {
                     meta: meta(TOKEN_ID1, token_type),
-                    amount: 3333,
+                    atoms: 3333,
                 }],
                 ..Default::default()
             }),

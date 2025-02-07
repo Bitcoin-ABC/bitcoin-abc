@@ -50,7 +50,7 @@ pub enum BurnError {
     InsufficientInputSum {
         /// Required minimum inputs as specified in the outputs
         required: u128,
-        /// Actual supplied token amount
+        /// Actual supplied token amount in atoms (aka base tokens)
         actual: u128,
     },
 }
@@ -80,7 +80,7 @@ pub struct VerifyContext<'a> {
 }
 
 struct BareBurn {
-    burn_amount: u128,
+    burn_atoms: u128,
     burns_mint_batons: bool,
     group_token_meta: Option<TokenMeta>,
     is_invalid: bool,
@@ -107,8 +107,8 @@ impl VerifyContext<'_> {
                     genesis_info: None,
                     group_token_meta: None,
                     is_invalid: false,
-                    intentional_burn_amount: Some(intentional_burn.amount),
-                    actual_burn_amount: 0,
+                    intentional_burn_atoms: Some(intentional_burn.atoms),
+                    actual_burn_atoms: 0,
                     burns_mint_batons: false,
                     burn_error: None,
                     has_colored_out_of_range: false,
@@ -139,8 +139,8 @@ impl VerifyContext<'_> {
                 },
                 group_token_meta: None,
                 is_invalid: true,
-                intentional_burn_amount: None,
-                actual_burn_amount: 0,
+                intentional_burn_atoms: None,
+                actual_burn_atoms: 0,
                 burns_mint_batons: false,
                 burn_error: None,
                 has_colored_out_of_range: false,
@@ -156,7 +156,7 @@ impl VerifyContext<'_> {
                 if bare_burn.burns_mint_batons {
                     entry.is_invalid = true;
                 }
-                entry.actual_burn_amount = bare_burn.burn_amount;
+                entry.actual_burn_atoms = bare_burn.burn_atoms;
                 entry.burns_mint_batons = bare_burn.burns_mint_batons;
                 entry.group_token_meta = bare_burn.group_token_meta;
                 continue;
@@ -167,8 +167,8 @@ impl VerifyContext<'_> {
                 genesis_info: None,
                 group_token_meta: bare_burn.group_token_meta,
                 is_invalid: bare_burn.is_invalid,
-                intentional_burn_amount: None,
-                actual_burn_amount: bare_burn.burn_amount,
+                intentional_burn_atoms: None,
+                actual_burn_atoms: bare_burn.burn_atoms,
                 burns_mint_batons: bare_burn.burns_mint_batons,
                 burn_error: None,
                 has_colored_out_of_range: false,
@@ -209,9 +209,9 @@ impl VerifyContext<'_> {
             genesis_info: section.genesis_info.clone(),
             group_token_meta: self.inherited_group_token_meta(&section.meta),
             is_invalid: false,
-            intentional_burn_amount: self
-                .intentional_burn_amount(tx, &section.meta),
-            actual_burn_amount: 0,
+            intentional_burn_atoms: self
+                .intentional_burn_atoms(tx, &section.meta),
+            actual_burn_atoms: 0,
             burns_mint_batons: false,
             burn_error: None,
             has_colored_out_of_range: section.has_colored_out_of_range,
@@ -224,7 +224,7 @@ impl VerifyContext<'_> {
         {
             return TokenTxEntry {
                 is_invalid: true,
-                actual_burn_amount: input_sum,
+                actual_burn_atoms: input_sum,
                 burns_mint_batons: self.has_mint_baton(&section.meta),
                 burn_error: Some(TooManyTxInputs(self.spent_tokens.len())),
                 ..entry
@@ -241,7 +241,7 @@ impl VerifyContext<'_> {
                     Some(Some(spent_token))
                         if spent_token.token.meta.token_type
                             == TokenType::Slp(SlpTokenType::Nft1Group)
-                            && spent_token.token.variant.amount() > 0 =>
+                            && spent_token.token.variant.atoms() > 0 =>
                     {
                         TokenTxEntry {
                             group_token_meta: Some(spent_token.token.meta),
@@ -263,13 +263,13 @@ impl VerifyContext<'_> {
             TxType::MINT if section.is_mint_vault_mint() => {
                 if self.has_mint_vault() {
                     return TokenTxEntry {
-                        actual_burn_amount: input_sum,
+                        actual_burn_atoms: input_sum,
                         ..entry
                     };
                 }
                 TokenTxEntry {
                     is_invalid: true,
-                    actual_burn_amount: input_sum,
+                    actual_burn_atoms: input_sum,
                     burn_error: Some(MissingMintVault),
                     ..entry
                 }
@@ -279,13 +279,13 @@ impl VerifyContext<'_> {
             TxType::MINT => {
                 if self.has_mint_baton(&section.meta) {
                     return TokenTxEntry {
-                        actual_burn_amount: input_sum,
+                        actual_burn_atoms: input_sum,
                         ..entry
                     };
                 }
                 TokenTxEntry {
                     is_invalid: true,
-                    actual_burn_amount: input_sum,
+                    actual_burn_atoms: input_sum,
                     burn_error: Some(MissingMintBaton),
                     ..entry
                 }
@@ -295,7 +295,7 @@ impl VerifyContext<'_> {
             TxType::SEND if input_sum < section.required_input_sum => {
                 TokenTxEntry {
                     is_invalid: true,
-                    actual_burn_amount: input_sum,
+                    actual_burn_atoms: input_sum,
                     burns_mint_batons: self.has_mint_baton(&section.meta),
                     burn_error: Some(InsufficientInputSum {
                         required: section.required_input_sum,
@@ -308,9 +308,9 @@ impl VerifyContext<'_> {
             // Valid SEND
             TxType::SEND => {
                 let output_sum = self.calc_output_sum(tx, &section.meta);
-                let actual_burn_amount = input_sum - output_sum;
+                let actual_burn_atoms = input_sum - output_sum;
                 TokenTxEntry {
-                    actual_burn_amount,
+                    actual_burn_atoms,
                     burns_mint_batons: self.has_mint_baton(&section.meta),
                     ..entry
                 }
@@ -359,7 +359,7 @@ impl VerifyContext<'_> {
             .iter()
             .flatten()
             .filter(|token| &token.token.meta == meta)
-            .map(|token| token.token.variant.amount() as u128)
+            .map(|token| token.token.variant.atoms() as u128)
             .sum()
     }
 
@@ -368,7 +368,7 @@ impl VerifyContext<'_> {
             .iter()
             .flatten()
             .filter(|token| &tx.sections[token.token_idx].meta == meta)
-            .map(|token| token.variant.amount() as u128)
+            .map(|token| token.variant.atoms() as u128)
             .sum()
     }
 
@@ -383,7 +383,7 @@ impl VerifyContext<'_> {
             .and_then(|token| token.group_token_meta)
     }
 
-    fn intentional_burn_amount(
+    fn intentional_burn_atoms(
         &self,
         tx: &ColoredTx,
         meta: &TokenMeta,
@@ -391,7 +391,7 @@ impl VerifyContext<'_> {
         tx.intentional_burns
             .iter()
             .find(|burn| &burn.meta == meta)
-            .map(|burn| burn.amount)
+            .map(|burn| burn.atoms)
     }
 
     // Bare burns: spent tokens without a corresponding section
@@ -415,7 +415,7 @@ impl VerifyContext<'_> {
 
             let bare_burn =
                 bare_burns.entry(&input.token.meta).or_insert(BareBurn {
-                    burn_amount: 0,
+                    burn_atoms: 0,
                     burns_mint_batons: false,
                     group_token_meta: input.group_token_meta,
                     is_invalid: false,
@@ -442,8 +442,8 @@ impl VerifyContext<'_> {
             // All other bare burns are invalid
             bare_burn.is_invalid = true;
             match input.token.variant {
-                TokenVariant::Amount(amount) => {
-                    bare_burn.burn_amount += u128::from(amount)
+                TokenVariant::Atoms(atoms) => {
+                    bare_burn.burn_atoms += u128::from(atoms)
                 }
                 TokenVariant::MintBaton => bare_burn.burns_mint_batons = true,
                 TokenVariant::Unknown(_) => {}

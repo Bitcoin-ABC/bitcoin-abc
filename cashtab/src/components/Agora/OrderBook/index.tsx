@@ -283,7 +283,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                         outIdx: fuelUtxo.outpoint.outIdx,
                     },
                     signData: {
-                        value: fuelUtxo.value,
+                        sats: fuelUtxo.sats,
                         // Send the tokens back to the same address as the fuelUtxo
                         outputScript: Script.p2pkh(fromHex(hash)),
                     },
@@ -414,7 +414,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                         outIdx: fuelUtxo.outpoint.outIdx,
                     },
                     signData: {
-                        value: fuelUtxo.value,
+                        sats: fuelUtxo.sats,
                         outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
@@ -441,7 +441,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // Accept at default path, 1899
                 recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
                 feePerKb: satsPerKb,
-                acceptedTokens: preparedTokenSatoshis,
+                acceptedAtoms: preparedTokenSatoshis,
             })
             .ser();
 
@@ -619,15 +619,15 @@ const OrderBook: React.FC<OrderBookProps> = ({
     let isMaker;
     if (Array.isArray(activeOffers) && activeOffers.length > 0) {
         selectedOffer = activeOffers[selectedIndex];
-        tokenSatoshisMax = BigInt(selectedOffer.token.amount);
+        tokenSatoshisMax = selectedOffer.token.atoms;
         const { params } = selectedOffer.variant;
-        const { truncTokens, makerPk } = params;
+        const { truncAtoms, makerPk } = params;
 
-        tokenSatoshisMin = params.minAcceptedTokens();
+        tokenSatoshisMin = params.minAcceptedAtoms();
 
         // Agora Partial offers may only be accepted in discrete amounts
         // We configure the slider to render only these amounts
-        tokenSatoshisStep = BigInt(tokenSatoshisMax) / truncTokens;
+        tokenSatoshisStep = tokenSatoshisMax / truncAtoms;
 
         try {
             isMaker = toHex(activePk as Uint8Array) === toHex(makerPk);
@@ -701,10 +701,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
             let totalOfferedTokenSatoshis = 0n;
             const renderedActiveOffers: PartialOffer[] = [];
             for (const activeOffer of activeOffers) {
-                const maxOfferTokens = BigInt(activeOffer.token.amount);
+                const maxOfferTokens = activeOffer.token.atoms;
 
                 const minOfferTokens =
-                    activeOffer.variant.params.minAcceptedTokens();
+                    activeOffer.variant.params.minAcceptedAtoms();
 
                 // If the active pk made this offer, flag is as unacceptable
                 // Otherwise exclude it entirely
@@ -755,10 +755,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 if (spotPriceDiff !== 0) {
                     return spotPriceDiff;
                 }
-                // If spot prices are equal, sort by minAcceptedTokens
+                // If spot prices are equal, sort by minAcceptedAtoms
                 return (
-                    Number(a.variant.params.minAcceptedTokens()) -
-                    Number(b.variant.params.minAcceptedTokens())
+                    Number(a.variant.params.minAcceptedAtoms()) -
+                    Number(b.variant.params.minAcceptedAtoms())
                 );
             });
 
@@ -766,10 +766,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // The most expensive offer will be at 1
             let cumulativeOfferedTokenSatoshis = 0n;
             for (const offer of renderedActiveOffers) {
-                const thisOfferAmountTokenSatoshis = offer.token.amount;
-                cumulativeOfferedTokenSatoshis += BigInt(
-                    thisOfferAmountTokenSatoshis,
-                );
+                const thisOfferAmountTokenSatoshis = offer.token.atoms;
+                cumulativeOfferedTokenSatoshis += thisOfferAmountTokenSatoshis;
 
                 offer.cumulativeBaseTokens = cumulativeOfferedTokenSatoshis;
 
@@ -912,7 +910,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Get token satoshis amount closest to user input that is acceptable for this AgoraPartial
         const preparedTokenSatoshis = (
             selectedOffer as PartialOffer
-        ).variant.params.prepareAcceptedTokens(tokenSatoshis);
+        ).variant.params.prepareAcceptedAtoms(tokenSatoshis);
 
         // Set this separately to state. This is the value we must use for our accept calculations
         // This is also the "actual" value we must present to the user for review
@@ -946,7 +944,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             setTakeTokenDecimalizedQty(
                 decimalizeTokenAmount(
                     activeOffers[selectedIndex].variant.params
-                        .minAcceptedTokens()
+                        .minAcceptedAtoms()
                         .toString(),
                     decimals as SlpDecimals,
                 ),
@@ -1246,7 +1244,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     const tooltipAvailableTokensThisOffer =
                                         decimalizedTokenQtyToLocaleFormat(
                                             decimalizeTokenAmount(
-                                                activeOffer.token.amount,
+                                                activeOffer.token.atoms.toString(),
                                                 decimals as SlpDecimals,
                                             ),
                                             userLocale,

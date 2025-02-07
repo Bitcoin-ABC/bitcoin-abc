@@ -15,7 +15,7 @@ use bitcoinsuite_slp::{
 use pretty_assertions::assert_eq;
 
 use crate::io::token::{
-    tests::mock::{db_amount, db_baton, make_tx, token_id, MockTokenDb},
+    tests::mock::{db_atoms, db_baton, make_tx, token_id, MockTokenDb},
     DbToken::NoToken,
     DbTokenTx, TokenReader,
 };
@@ -53,7 +53,7 @@ fn test_batch_genesis_slp_fungible() -> Result<()> {
             inputs: vec![],
             outputs: vec![
                 NoToken,
-                db_amount::<0>(1000),
+                db_atoms::<0>(1000),
                 NoToken,
                 db_baton::<0>(),
             ],
@@ -95,7 +95,7 @@ fn test_batch_genesis_alp() -> Result<()> {
                 Standard,
                 &genesis_info,
                 &ParsedMintData {
-                    amounts: vec![100, 0, 200],
+                    atoms_vec: vec![100, 0, 200],
                     num_batons: 2,
                 },
             )]),
@@ -109,9 +109,9 @@ fn test_batch_genesis_alp() -> Result<()> {
             inputs: vec![],
             outputs: vec![
                 NoToken,
-                db_amount::<0>(100),
+                db_atoms::<0>(100),
                 NoToken,
-                db_amount::<0>(200),
+                db_atoms::<0>(200),
                 db_baton::<0>(),
                 db_baton::<0>(),
             ],

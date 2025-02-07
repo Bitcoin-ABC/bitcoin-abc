@@ -177,7 +177,7 @@ fn test_parse_valid_mint_baton_simple() {
                     token_type: TokenType::Slp(token_type),
                 },
                 tx_type: ParsedTxType::Mint(ParsedMintData {
-                    amounts: vec![additional_quantity, 0, 0],
+                    atoms_vec: vec![additional_quantity, 0, 0],
                     num_batons: 1,
                 }),
             })),
@@ -240,7 +240,7 @@ fn test_parse_valid_mint_baton() {
                     token_type: TokenType::Slp(token_type),
                 },
                 tx_type: ParsedTxType::Mint(ParsedMintData {
-                    amounts: {
+                    atoms_vec: {
                         [0x987654321abcdef2]
                             .into_iter()
                             .chain(amounts_pad.iter().cloned())
@@ -357,7 +357,7 @@ fn test_parse_valid_mint_vault_simple() {
                 token_type: TokenType::Slp(SlpTokenType::MintVault),
             },
             tx_type: ParsedTxType::Mint(ParsedMintData {
-                amounts: additional_quantities.to_vec(),
+                atoms_vec: additional_quantities.to_vec(),
                 num_batons: 0,
             }),
         })),
@@ -379,12 +379,12 @@ fn test_parse_valid_mint_vault() {
     .concat();
     for num_amounts in 1..=19 {
         let mut script = script_intro.clone();
-        let mut amounts = Vec::with_capacity(num_amounts);
+        let mut atoms_vec = Vec::with_capacity(num_amounts);
         for idx in 0..num_amounts {
             let amount = idx as u64;
             script.push(0x08);
             script.extend(amount.to_be_bytes());
-            amounts.push(amount);
+            atoms_vec.push(amount);
         }
         assert_eq!(
             parse(&TxId::from([0; 32]), &Script::new(script.into()),),
@@ -394,7 +394,7 @@ fn test_parse_valid_mint_vault() {
                     token_type: TokenType::Slp(SlpTokenType::MintVault),
                 },
                 tx_type: ParsedTxType::Mint(ParsedMintData {
-                    amounts,
+                    atoms_vec,
                     num_batons: 0,
                 }),
             })),

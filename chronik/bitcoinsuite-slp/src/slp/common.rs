@@ -2,17 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use crate::{slp::ParseError, structs::Amount, token_id::TokenId};
+use crate::{slp::ParseError, structs::Atoms, token_id::TokenId};
 
-pub(crate) fn parse_amount(
-    amount_bytes: &[u8],
+pub(crate) fn parse_atoms(
+    atoms_bytes: &[u8],
     field_name: &'static str,
-) -> Result<Amount, ParseError> {
-    Ok(Amount::from_be_bytes(amount_bytes.try_into().map_err(
+) -> Result<Atoms, ParseError> {
+    Ok(Atoms::from_be_bytes(atoms_bytes.try_into().map_err(
         |_| ParseError::InvalidFieldSize {
             field_name,
             expected: &[8],
-            actual: amount_bytes.len(),
+            actual: atoms_bytes.len(),
         },
     )?))
 }

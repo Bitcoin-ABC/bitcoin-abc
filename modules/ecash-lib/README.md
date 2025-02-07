@@ -52,7 +52,7 @@ const txBuild = new TxBuilder({
             input: {
                 prevOut: walletUtxo,
                 signData: {
-                    value: 1000,
+                    sats: 1000n,
                     outputScript: walletP2pkh,
                 },
             },
@@ -61,13 +61,13 @@ const txBuild = new TxBuilder({
     ],
     outputs: [
         {
-            value: 0,
+            sats: 0n,
             script: new Script(fromHex('6a68656c6c6f')),
         },
         walletP2pkh,
     ],
 });
-const tx = txBuild.sign({ feePerKb: 1000, dustLimit: 546 });
+const tx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
 const rawTx = tx.ser();
 console.log(toHex(rawTx));
 ```
@@ -91,3 +91,4 @@ console.log(toHex(rawTx));
 -   1.5.1 - `Address.withPrefix()` returns same prefix if unchanged (instead of throwing an error) [D17623](https://reviews.bitcoinabc.org/D17623)
 -   2.0.0 - Remove `initWasm`, auto-load the WebAssembly instead. Remove unneeded `ecc` parameters, esp. in `TxBuilder.sign` and `HdNode.fromSeed` [D17639](https://reviews.bitcoinabc.org/D17639) [D17640](https://reviews.bitcoinabc.org/D17640)
 -   2.1.0 - Add `signRecoverable` and `recoverSig` to `Ecc` [D17667](https://reviews.bitcoinabc.org/D17667)
+-   3.0.0 - Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)

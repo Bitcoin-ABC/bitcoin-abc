@@ -4,7 +4,7 @@
 
 import { expect } from 'chai';
 import {
-    DEFAULT_DUST_LIMIT,
+    DEFAULT_DUST_SATS,
     fromHex,
     SLP_FUNGIBLE,
     SLP_MINT_VAULT,
@@ -23,18 +23,18 @@ const BASE_PARAMS_SLP = {
     tokenId,
     tokenProtocol: 'SLP' as const,
     enforcedLockTime: 500000001,
-    dustAmount: DEFAULT_DUST_LIMIT,
+    dustSats: DEFAULT_DUST_SATS,
 };
 
 describe('AgoraPartial.script SLP', () => {
     it('AgoraPartial.script SLP 0,0 1000', () => {
         const agoraPartial = new AgoraPartial({
-            truncTokens: 1000n,
-            numTokenTruncBytes: 0,
-            tokenScaleFactor: 1000000n,
-            scaledTruncTokensPerTruncSat: 1000000n,
+            truncAtoms: 1000n,
+            numAtomsTruncBytes: 0,
+            atomsScaleFactor: 1000000n,
+            scaledTruncAtomsPerTruncSat: 1000000n,
             numSatsTruncBytes: 0,
-            minAcceptedScaledTruncTokens: 1000000n,
+            minAcceptedScaledTruncAtoms: 1000000n,
             ...BASE_PARAMS_SLP,
             tokenType: SLP_FUNGIBLE,
             scriptLen: 0x7f,
@@ -58,12 +58,12 @@ describe('AgoraPartial.script SLP', () => {
 
     it('AgoraPartial.script SLP 1,1 10000', () => {
         const agoraPartial = new AgoraPartial({
-            truncTokens: 10000n,
-            numTokenTruncBytes: 1,
-            tokenScaleFactor: 2000n,
-            scaledTruncTokensPerTruncSat: 2000n,
+            truncAtoms: 10000n,
+            numAtomsTruncBytes: 1,
+            atomsScaleFactor: 2000n,
+            scaledTruncAtomsPerTruncSat: 2000n,
             numSatsTruncBytes: 1,
-            minAcceptedScaledTruncTokens: 2000n,
+            minAcceptedScaledTruncAtoms: 2000n,
             ...BASE_PARAMS_SLP,
             tokenType: SLP_MINT_VAULT,
             scriptLen: 0x7f,
@@ -87,12 +87,12 @@ describe('AgoraPartial.script SLP', () => {
 
     it('AgoraPartial.script SLP 2,2 0x30313233', () => {
         const agoraPartial = new AgoraPartial({
-            truncTokens: 0x30313233n,
-            numTokenTruncBytes: 2,
-            tokenScaleFactor: 0x12345678n,
-            scaledTruncTokensPerTruncSat: 0x98765432n,
+            truncAtoms: 0x30313233n,
+            numAtomsTruncBytes: 2,
+            atomsScaleFactor: 0x12345678n,
+            scaledTruncAtomsPerTruncSat: 0x98765432n,
             numSatsTruncBytes: 2,
-            minAcceptedScaledTruncTokens: 0x454647n,
+            minAcceptedScaledTruncAtoms: 0x454647n,
             ...BASE_PARAMS_SLP,
             tokenType: SLP_NFT1_GROUP,
             scriptLen: 0x7f,
@@ -117,12 +117,12 @@ describe('AgoraPartial.script SLP', () => {
 
     it('AgoraPartial.script SLP 3,3 0x7fffffff', () => {
         const agoraPartial = new AgoraPartial({
-            truncTokens: 0x7fffffffn,
-            numTokenTruncBytes: 3,
-            tokenScaleFactor: 0x7fffffffn,
-            scaledTruncTokensPerTruncSat: 0x7fffffffn,
+            truncAtoms: 0x7fffffffn,
+            numAtomsTruncBytes: 3,
+            atomsScaleFactor: 0x7fffffffn,
+            scaledTruncAtomsPerTruncSat: 0x7fffffffn,
             numSatsTruncBytes: 3,
-            minAcceptedScaledTruncTokens: 0x7fffffffn,
+            minAcceptedScaledTruncAtoms: 0x7fffffffn,
             ...BASE_PARAMS_SLP,
             tokenType: SLP_FUNGIBLE,
             scriptLen: 0x7f,
@@ -147,12 +147,12 @@ describe('AgoraPartial.script SLP', () => {
 
     it('AgoraPartial.script SLP 4,4 0x7fff', () => {
         const agoraPartial = new AgoraPartial({
-            truncTokens: 0x7fffn,
-            numTokenTruncBytes: 4,
-            tokenScaleFactor: 0x6fffn,
-            scaledTruncTokensPerTruncSat: 0x5fffn,
+            truncAtoms: 0x7fffn,
+            numAtomsTruncBytes: 4,
+            atomsScaleFactor: 0x6fffn,
+            scaledTruncAtomsPerTruncSat: 0x5fffn,
             numSatsTruncBytes: 4,
-            minAcceptedScaledTruncTokens: 0x4fffn,
+            minAcceptedScaledTruncAtoms: 0x4fffn,
             ...BASE_PARAMS_SLP,
             tokenType: SLP_MINT_VAULT,
             scriptLen: 0x7f,
@@ -176,12 +176,12 @@ describe('AgoraPartial.script SLP', () => {
 
     it('AgoraPartial.script SLP 5,4 0x7fff', () => {
         const agoraPartial = new AgoraPartial({
-            truncTokens: 0xffffffn,
-            numTokenTruncBytes: 5,
-            tokenScaleFactor: 0x8123fffn,
-            scaledTruncTokensPerTruncSat: 0x4123fffn,
+            truncAtoms: 0xffffffn,
+            numAtomsTruncBytes: 5,
+            atomsScaleFactor: 0x8123fffn,
+            scaledTruncAtomsPerTruncSat: 0x4123fffn,
             numSatsTruncBytes: 4,
-            minAcceptedScaledTruncTokens: 0x2123fffn,
+            minAcceptedScaledTruncAtoms: 0x2123fffn,
             ...BASE_PARAMS_SLP,
             tokenType: SLP_FUNGIBLE,
             scriptLen: 0x7f,

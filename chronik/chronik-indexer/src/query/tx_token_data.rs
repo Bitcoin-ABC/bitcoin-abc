@@ -208,7 +208,7 @@ impl<'m> TxTokenData<'m> {
             token_id: token.meta.token_id.to_string(),
             token_type: Some(make_token_type_proto(token.meta.token_type)),
             entry_idx,
-            amount: token.variant.amount(),
+            atoms: token.variant.atoms(),
             is_mint_baton: token.variant.is_mint_baton(),
         })
     }
@@ -225,7 +225,7 @@ impl<'m> TxTokenData<'m> {
             token_id: token.meta.token_id.to_string(),
             token_type: Some(make_token_type_proto(token.meta.token_type)),
             entry_idx: token_output.token_idx as _,
-            amount: token.variant.amount() as _,
+            atoms: token.variant.atoms() as _,
             is_mint_baton: token.variant.is_mint_baton(),
         })
     }
@@ -264,9 +264,9 @@ impl<'m> TxTokenData<'m> {
                         error: failed_coloring.error.to_string(),
                     })
                     .collect(),
-                actual_burn_amount: entry.actual_burn_amount.to_string(),
-                intentional_burn: entry
-                    .intentional_burn_amount
+                actual_burn_atoms: entry.actual_burn_atoms.to_string(),
+                intentional_burn_atoms: entry
+                    .intentional_burn_atoms
                     .unwrap_or_default(),
                 burns_mint_batons: entry.burns_mint_batons,
             })
@@ -353,7 +353,7 @@ pub fn make_utxo_token_proto(token: &Token) -> proto::Token {
         token_id: token.meta.token_id.to_string(),
         token_type: Some(make_token_type_proto(token.meta.token_type)),
         entry_idx: -1,
-        amount: token.variant.amount(),
+        atoms: token.variant.atoms(),
         is_mint_baton: token.variant.is_mint_baton(),
     }
 }

@@ -324,6 +324,17 @@ describe('ecash-telegram-bot utils.js functions', function () {
 
         assert.deepEqual(bigNumberMap, roundTrip);
     });
+    it('jsonReplacer and jsonReviver can encode and decode Map containing a bigint', function () {
+        const bigintMap = new Map([
+            ['76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac', 36n],
+            ['76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac', 72n],
+        ]);
+
+        const jsonText = JSON.stringify(bigintMap, jsonReplacer);
+        const roundTrip = JSON.parse(jsonText, jsonReviver);
+
+        assert.deepEqual(bigintMap, roundTrip);
+    });
     it('jsonReplacer and jsonReviver can encode and decode a Set to and from JSON', function () {
         const set = new Set(['one', 'two', 'three']);
 
@@ -331,6 +342,14 @@ describe('ecash-telegram-bot utils.js functions', function () {
         const roundTrip = JSON.parse(jsonText, jsonReviver);
 
         assert.deepEqual(set, roundTrip);
+    });
+    it('jsonReplacer and jsonReviver can encode and decode a bigint to and from JSON', function () {
+        const test = 17n;
+
+        const jsonText = JSON.stringify(test, jsonReplacer);
+        const roundTrip = JSON.parse(jsonText, jsonReviver);
+
+        assert.deepEqual(test, roundTrip);
     });
     it('jsonReplacer and jsonReviver can encode and decode an object including a Set and a Map to and from JSON', async function () {
         const map = new Map([

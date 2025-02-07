@@ -9,8 +9,8 @@ use bitcoinsuite_slp::{
     empp,
     structs::TxType,
     test_helpers::{
-        alp_mint, empty_entry, meta_alp as meta, parse_alp, spent_amount,
-        token_amount, verify, TOKEN_ID2,
+        alp_mint, empty_entry, meta_alp as meta, parse_alp, spent_atoms,
+        token_atoms, verify, TOKEN_ID2,
     },
     token_tx::{TokenTx, TokenTxEntry},
     token_type::AlpTokenType::*,
@@ -84,7 +84,7 @@ fn test_verify_alp_color_error() {
 fn test_verify_alp_more_than_32767_inputs_invalid() {
     // More than 32767 inputs disallowed in ALP
     let spent_tokens = vec![
-        spent_amount(meta(TOKEN_ID2), 0xffff_ffff_ffff);
+        spent_atoms(meta(TOKEN_ID2), 0xffff_ffff_ffff);
         alp::consts::MAX_TX_INPUTS + 1
     ];
     assert_eq!(
@@ -100,7 +100,7 @@ fn test_verify_alp_more_than_32767_inputs_invalid() {
             entries: vec![TokenTxEntry {
                 meta: meta(TOKEN_ID2),
                 tx_type: Some(TxType::SEND),
-                actual_burn_amount: 32768 * 0xffff_ffff_ffff,
+                actual_burn_atoms: 32768 * 0xffff_ffff_ffff,
                 is_invalid: true,
                 burn_error: Some(BurnError::TooManyTxInputs(32768)),
                 ..empty_entry()
@@ -115,7 +115,7 @@ fn test_verify_alp_more_than_32767_inputs_invalid() {
 fn test_verify_alp_32767_inputs_valid() {
     // 32767 inputs allowed in ALP
     let spent_tokens = vec![
-        spent_amount(meta(TOKEN_ID2), 0xffff_ffff_ffff);
+        spent_atoms(meta(TOKEN_ID2), 0xffff_ffff_ffff);
         alp::consts::MAX_TX_INPUTS
     ];
     assert_eq!(
@@ -131,10 +131,10 @@ fn test_verify_alp_32767_inputs_valid() {
             entries: vec![TokenTxEntry {
                 meta: meta(TOKEN_ID2),
                 tx_type: Some(TxType::SEND),
-                actual_burn_amount: 32766 * 0xffff_ffff_ffff,
+                actual_burn_atoms: 32766 * 0xffff_ffff_ffff,
                 ..empty_entry()
             }],
-            outputs: vec![None, token_amount::<0>(0xffff_ffff_ffff)],
+            outputs: vec![None, token_atoms::<0>(0xffff_ffff_ffff)],
             failed_parsings: vec![],
         },
     );

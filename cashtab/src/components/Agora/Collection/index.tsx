@@ -43,13 +43,7 @@ import { getFormattedFiatPrice } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
-import {
-    toHex,
-    Script,
-    fromHex,
-    P2PKHSignatory,
-    ALL_BIP143,
-} from 'ecash-lib';
+import { toHex, Script, fromHex, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
 import {
     CashtabWallet,
     toXec,
@@ -229,7 +223,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         outIdx: fuelUtxo.outpoint.outIdx,
                     },
                     signData: {
-                        value: fuelUtxo.value,
+                        sats: fuelUtxo.sats,
                         outputScript: recipientScript,
                     },
                 },
@@ -352,7 +346,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         outIdx: fuelUtxo.outpoint.outIdx,
                     },
                     signData: {
-                        value: fuelUtxo.value,
+                        sats: fuelUtxo.sats,
                         outputScript: recipientScript,
                     },
                 },
@@ -443,7 +437,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         }
         // We know this is a ONESHOT offer but type safety
         const isMaker = toHex(activePk) === toHex(params.cancelPk);
-        const priceSatoshis = params.enforcedOutputs[1].value;
+        const priceSatoshis = params.enforcedOutputs[1].sats;
         const priceXec = toXec(priceSatoshis);
         const formattedPrice = getFormattedFiatPrice(
             settings.fiatCurrency,
@@ -505,7 +499,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         toHex(activePk) ===
                         toHex(offer.variant.params.cancelPk);
                     const priceSatoshis =
-                        offer.variant.params.enforcedOutputs[1].value;
+                        offer.variant.params.enforcedOutputs[1].sats;
                     const priceXec = toXec(priceSatoshis);
                     const formattedPrice = getFormattedFiatPrice(
                         settings.fiatCurrency,

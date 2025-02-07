@@ -6,7 +6,7 @@ use bitcoinsuite_slp::{
     alp::{burn_section, sections_opreturn, send_section},
     structs::TxType,
     test_helpers::{
-        empty_entry, meta_alp as meta, spent_amount, spent_baton, token_amount,
+        empty_entry, meta_alp as meta, spent_atoms, spent_baton, token_atoms,
         verify, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4, TOKEN_ID5,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -26,7 +26,7 @@ fn test_verify_alp_burn_standalone() {
             entries: vec![TokenTxEntry {
                 meta: meta(TOKEN_ID2),
                 tx_type: Some(TxType::BURN),
-                intentional_burn_amount: Some(400),
+                intentional_burn_atoms: Some(400),
                 ..empty_entry()
             }],
             outputs: vec![None],
@@ -49,7 +49,7 @@ fn test_verify_alp_burn_with_send() {
             entries: vec![TokenTxEntry {
                 meta: meta(TOKEN_ID2),
                 tx_type: Some(TxType::SEND),
-                intentional_burn_amount: Some(400),
+                intentional_burn_atoms: Some(400),
                 is_invalid: true,
                 burn_error: Some(BurnError::InsufficientInputSum {
                     required: 200,
@@ -77,7 +77,7 @@ fn test_verify_alp_send_with_burn() {
             entries: vec![TokenTxEntry {
                 meta: meta(TOKEN_ID2),
                 tx_type: Some(TxType::SEND),
-                intentional_burn_amount: Some(400),
+                intentional_burn_atoms: Some(400),
                 is_invalid: true,
                 burn_error: Some(BurnError::InsufficientInputSum {
                     required: 200,
@@ -99,17 +99,17 @@ fn test_verify_alp_burn_success() {
                 send_section(&TOKEN_ID2, Standard, [80, 20]),
                 burn_section(&TOKEN_ID2, Standard, 400),
             ]),
-            &[spent_amount(meta(TOKEN_ID2), 500)],
+            &[spent_atoms(meta(TOKEN_ID2), 500)],
         ),
         TokenTx {
             entries: vec![TokenTxEntry {
                 meta: meta(TOKEN_ID2),
                 tx_type: Some(TxType::SEND),
-                actual_burn_amount: 400,
-                intentional_burn_amount: Some(400),
+                actual_burn_atoms: 400,
+                intentional_burn_atoms: Some(400),
                 ..empty_entry()
             }],
-            outputs: vec![None, token_amount::<0>(80), token_amount::<0>(20)],
+            outputs: vec![None, token_atoms::<0>(80), token_atoms::<0>(20)],
             failed_parsings: vec![],
         },
     );
@@ -127,11 +127,11 @@ fn test_verify_alp_burn_big() {
                 burn_section(&TOKEN_ID4, Standard, 3000),
             ]),
             &[
-                spent_amount(meta(TOKEN_ID2), 500),
-                spent_amount(meta(TOKEN_ID3), 7000),
-                spent_amount(meta(TOKEN_ID4), 2000),
+                spent_atoms(meta(TOKEN_ID2), 500),
+                spent_atoms(meta(TOKEN_ID3), 7000),
+                spent_atoms(meta(TOKEN_ID4), 2000),
                 spent_baton(meta(TOKEN_ID4)),
-                spent_amount(meta(TOKEN_ID5), 500),
+                spent_atoms(meta(TOKEN_ID5), 500),
             ],
         ),
         TokenTx {
@@ -139,39 +139,39 @@ fn test_verify_alp_burn_big() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 400,
-                    intentional_burn_amount: Some(400),
+                    actual_burn_atoms: 400,
+                    intentional_burn_atoms: Some(400),
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID3),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 1000,
-                    intentional_burn_amount: Some(1000),
+                    actual_burn_atoms: 1000,
+                    intentional_burn_atoms: Some(1000),
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID4),
                     tx_type: Some(TxType::BURN),
-                    actual_burn_amount: 2000,
-                    intentional_burn_amount: Some(3000),
+                    actual_burn_atoms: 2000,
+                    intentional_burn_atoms: Some(3000),
                     is_invalid: true,
                     burns_mint_batons: true,
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID5),
-                    actual_burn_amount: 500,
+                    actual_burn_atoms: 500,
                     is_invalid: true,
                     ..empty_entry()
                 },
             ],
             outputs: vec![
                 None,
-                token_amount::<0>(80),
-                token_amount::<0>(20),
-                token_amount::<1>(5000),
-                token_amount::<1>(1000),
+                token_atoms::<0>(80),
+                token_atoms::<0>(20),
+                token_atoms::<1>(5000),
+                token_atoms::<1>(1000),
             ],
             failed_parsings: vec![],
         },
@@ -188,9 +188,9 @@ fn test_verify_alp_send_success_big() {
                 send_section(&TOKEN_ID4, Standard, [0, 0, 0, 0, 500]),
             ]),
             &[
-                spent_amount(meta(TOKEN_ID2), 150),
-                spent_amount(meta(TOKEN_ID3), 14000),
-                spent_amount(meta(TOKEN_ID5), 700),
+                spent_atoms(meta(TOKEN_ID2), 150),
+                spent_atoms(meta(TOKEN_ID3), 14000),
+                spent_atoms(meta(TOKEN_ID5), 700),
             ],
         ),
         TokenTx {
@@ -198,13 +198,13 @@ fn test_verify_alp_send_success_big() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 50,
+                    actual_burn_atoms: 50,
                     ..empty_entry()
                 },
                 TokenTxEntry {
                     meta: meta(TOKEN_ID3),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 4000,
+                    actual_burn_atoms: 4000,
                     ..empty_entry()
                 },
                 TokenTxEntry {
@@ -220,16 +220,16 @@ fn test_verify_alp_send_success_big() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID5),
                     is_invalid: true,
-                    actual_burn_amount: 700,
+                    actual_burn_atoms: 700,
                     ..empty_entry()
                 },
             ],
             outputs: vec![
                 None,
-                token_amount::<0>(80),
-                token_amount::<1>(8000),
-                token_amount::<0>(20),
-                token_amount::<1>(2000),
+                token_atoms::<0>(80),
+                token_atoms::<1>(8000),
+                token_atoms::<0>(20),
+                token_atoms::<1>(2000),
                 None,
             ],
             failed_parsings: vec![],

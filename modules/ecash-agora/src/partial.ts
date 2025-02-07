@@ -6,7 +6,7 @@ import {
     ALL_ANYONECANPAY_BIP143,
     ALL_BIP143,
     alpSend,
-    DEFAULT_DUST_LIMIT,
+    DEFAULT_DUST_SATS,
     Ecc,
     emppScript,
     flagSignature,
@@ -81,20 +81,20 @@ import { AGORA_LOKAD_ID } from './consts.js';
 export interface AgoraPartialParams {
     /**
      * Offered tokens in base tokens. After param approximation, this may differ
-     * from `AgoraPartial`.offeredTokens(), so make sure to use that when
+     * from `AgoraPartial`.offeredAtoms(), so make sure to use that when
      * preparing the offer!
      *
      * For SLP, the maximum allowed value here is 0xffffffffffffffff, for ALP it
      * is 0xffffffffffff.
      **/
-    offeredTokens: bigint;
+    offeredAtoms: bigint;
     /**
-     * Price in nano sats per (base) token.
+     * Price in nano sats per atom (aka base token).
      * Using nsats allows users to specify a very large range of prices, from
      * tokens where billions of them cost a single sat, to offers where single
      * tokens can cost millions of XEC.
      **/
-    priceNanoSatsPerToken: bigint;
+    priceNanoSatsPerAtom: bigint;
     /**
      * Public key of the offering party.
      * This is the public key of the wallet, and it serves both as the pubkey to
@@ -103,7 +103,7 @@ export interface AgoraPartialParams {
      **/
     makerPk: Uint8Array;
     /**
-     * Minimum number of tokens that can be accepted.
+     * Minimum number of atoms that can be accepted.
      * Can be used to avoid spam and prevent exploits with really small
      * accept amounts.
      * Also, small amounts can have very bad precision, and raising the minimum
@@ -112,7 +112,7 @@ export interface AgoraPartialParams {
      * available.
      * It is recommended to set this to 0.1% of the offered amount.
      **/
-    minAcceptedTokens: bigint;
+    minAcceptedAtoms: bigint;
     /** Token ID of the offered token, in big-endian hex. */
     tokenId: string;
     /** Token type of the offered token. */
@@ -131,19 +131,19 @@ export interface AgoraPartialParams {
      **/
     enforcedLockTime: number;
     /** Dust amount to be used by the script. */
-    dustAmount?: number;
+    dustSats?: bigint;
     /**
-     * Minimum tokenScaleFactor when approximating numTokenTruncBytes.
+     * Minimum atomsScaleFactor when approximating numAtomsTruncBytes.
      * It is recommended to leave this at the default (1000), but it is exposed
      * to either increase price precision and granularity of token amounts (by
      * raising the limit), or to lower price precision but allow more fine-
      * grained token amounts (by lowering the limit).
      **/
-    minTokenScaleFactor?: bigint;
+    minAtomsScaleFactor?: bigint;
     /**
      * Minimum integer when representing the price
-     * (scaledTruncTokensPerTruncSat), the approximation will truncate
-     * additional sats bytes in order to make scaledTruncTokensPerTruncSat
+     * (scaledTruncAtomsPerTruncSat), the approximation will truncate
+     * additional sats bytes in order to make scaledTruncAtomsPerTruncSat
      * bigger.
      * It is recommended to leave this at the default (1000), but it is exposed
      * for cases where a small number of tokens are offered for a big price,
@@ -151,7 +151,7 @@ export interface AgoraPartialParams {
      **/
     minPriceInteger?: bigint;
     /**
-     * Minimum ratio tokenScaleFactor / scaledTruncTokensPerTruncSat, this can
+     * Minimum ratio atomsScaleFactor / scaledTruncAtomsPerTruncSat, this can
      * be used to limit the additional truncation introduced by minPriceInteger.
      * It is recommended to leave this at the default (1000), but it is exposed
      * for cases where the askedSats for small accept amounts are very
@@ -181,18 +181,18 @@ export interface AgoraPartialParams {
  * We employ two strategies to increase precision and range:
  * - "Scaling": We scale up values to the maximum representable, such that we
  *   make full use of the 31 bits available. Values that have been scaled up
- *   have the prefix "scaled", and the scale factor is "tokenScaleFactor". We
+ *   have the prefix "scaled", and the scale factor is "atomsScaleFactor". We
  *   only scale token amounts.
  * - "Truncation": We cut off bytes at the "end" of numbers, essentially
  *   dividing them by 256 for each truncation, until they fit in 31 bits, so we
  *   can use arithmetic opcodes. Later we "un-truncate" values again by adding
  *   the bytes back. We use OP_CAT to un-truncate values, which doesn't care
  *   about the 31-bit limit. Values that have been truncated have the "trunc"
- *   prefix. We truncate both token amounts (by numTokenTruncBytes bytes) and
+ *   prefix. We truncate both token amounts (by numAtomsTruncBytes bytes) and
  *   sats amounts (by numSatsTruncBytes).
  *
  * Scaling and truncation can be combined, such that the token price is in
- * "scaledTruncTokensPerTruncSat".
+ * "scaledTruncAtomsPerTruncSat".
  * Together, they give us a very large range of representable values, while
  * keeping a decent precision.
  *
@@ -205,33 +205,33 @@ export class AgoraPartial {
 
     /**
      * Truncated amount that's offered.
-     * The last numTokenTruncBytes bytes are truncated to allow representing it
+     * The last numAtomsTruncBytes bytes are truncated to allow representing it
      * in Script or to increase precision.
      * This means that tokens can only be accepted at a granularity of
-     * 2^(8*numTokenTruncBytes).
-     * offeredTokens = truncTokens * 2^(8*numTokenTruncBytes).
+     * 2^(8*numAtomsTruncBytes).
+     * offeredAtoms = truncAtoms * 2^(8*numAtomsTruncBytes).
      **/
-    public truncTokens: bigint;
+    public truncAtoms: bigint;
     /**
      * How many bytes are truncated from the real token amount, so it fits into
      * 31-bit ints, or to increase precision.
      **/
-    public numTokenTruncBytes: number;
+    public numAtomsTruncBytes: number;
     /**
      * Factor token amounts will be multiplied with in the Script to improve
      * precision.
      **/
-    public tokenScaleFactor: bigint;
+    public atomsScaleFactor: bigint;
     /**
      * Price in scaled trunc tokens per truncated sat.
      * This unit may seem a bit bizzare, but it is exactly what is needed in the
-     * Script calculation: The "acceptedTokens" coming from the taker is both
-     * scaled by tokenScaleFactor and also truncated by numTokenTruncBytes
-     * bytes, so we only have to divide the acceptedTokens by this number to get
+     * Script calculation: The "acceptedAtoms" coming from the taker is both
+     * scaled by atomsScaleFactor and also truncated by numAtomsTruncBytes
+     * bytes, so we only have to divide the acceptedAtoms by this number to get
      * the required (truncated) sats. So we only have to un-truncate that and we
      * have the asked sats.
      **/
-    public scaledTruncTokensPerTruncSat: bigint;
+    public scaledTruncAtomsPerTruncSat: bigint;
     /**
      * How many bytes are truncated from the real sats amount, so it fits into
      * 31-bit ints or to improve precision.
@@ -244,7 +244,7 @@ export class AgoraPartial {
     /**
      * How many tokens (scaled and truncated) at minimum have to be accepted.
      **/
-    public minAcceptedScaledTruncTokens: bigint;
+    public minAcceptedScaledTruncAtoms: bigint;
     /** Token of the contract, in big-endian hex. */
     public tokenId: string;
     /** Token type offered */
@@ -268,36 +268,36 @@ export class AgoraPartial {
      * Dust amount of the network, the Script will enforce token outputs to have
      * this amount.
      **/
-    public dustAmount: number;
+    public dustSats: bigint;
 
     public constructor(params: {
-        truncTokens: bigint;
-        numTokenTruncBytes: number;
-        tokenScaleFactor: bigint;
-        scaledTruncTokensPerTruncSat: bigint;
+        truncAtoms: bigint;
+        numAtomsTruncBytes: number;
+        atomsScaleFactor: bigint;
+        scaledTruncAtomsPerTruncSat: bigint;
         numSatsTruncBytes: number;
         makerPk: Uint8Array;
-        minAcceptedScaledTruncTokens: bigint;
+        minAcceptedScaledTruncAtoms: bigint;
         tokenId: string;
         tokenType: number;
         tokenProtocol: 'SLP' | 'ALP';
         scriptLen: number;
         enforcedLockTime: number;
-        dustAmount: number;
+        dustSats: bigint;
     }) {
-        this.truncTokens = params.truncTokens;
-        this.numTokenTruncBytes = params.numTokenTruncBytes;
-        this.tokenScaleFactor = params.tokenScaleFactor;
-        this.scaledTruncTokensPerTruncSat = params.scaledTruncTokensPerTruncSat;
+        this.truncAtoms = params.truncAtoms;
+        this.numAtomsTruncBytes = params.numAtomsTruncBytes;
+        this.atomsScaleFactor = params.atomsScaleFactor;
+        this.scaledTruncAtomsPerTruncSat = params.scaledTruncAtomsPerTruncSat;
         this.numSatsTruncBytes = params.numSatsTruncBytes;
         this.makerPk = params.makerPk;
-        this.minAcceptedScaledTruncTokens = params.minAcceptedScaledTruncTokens;
+        this.minAcceptedScaledTruncAtoms = params.minAcceptedScaledTruncAtoms;
         this.tokenId = params.tokenId;
         this.tokenType = params.tokenType;
         this.tokenProtocol = params.tokenProtocol;
         this.scriptLen = params.scriptLen;
         this.enforcedLockTime = params.enforcedLockTime;
-        this.dustAmount = params.dustAmount;
+        this.dustSats = params.dustSats;
     }
 
     /**
@@ -315,35 +315,35 @@ export class AgoraPartial {
         params: AgoraPartialParams,
         scriptIntegerBits: bigint = 32n,
     ): AgoraPartial {
-        if (params.offeredTokens < 1n) {
-            throw new Error('offeredTokens must be at least 1');
+        if (params.offeredAtoms < 1n) {
+            throw new Error('offeredAtoms must be at least 1');
         }
-        if (params.priceNanoSatsPerToken < 1n) {
-            throw new Error('priceNanoSatsPerToken must be at least 1');
+        if (params.priceNanoSatsPerAtom < 1n) {
+            throw new Error('priceNanoSatsPerAtom must be at least 1');
         }
-        if (params.minAcceptedTokens < 1n) {
-            throw new Error('minAcceptedTokens must be at least 1');
+        if (params.minAcceptedAtoms < 1n) {
+            throw new Error('minAcceptedAtoms must be at least 1');
         }
         if (
             params.tokenProtocol === 'SLP' &&
-            params.offeredTokens > 0xffffffffffffffffn
+            params.offeredAtoms > 0xffffffffffffffffn
         ) {
             throw new Error(
-                'For SLP, offeredTokens can be at most 0xffffffffffffffff',
+                'For SLP, offeredAtoms can be at most 0xffffffffffffffff',
             );
         }
         if (
             params.tokenProtocol === 'ALP' &&
-            params.offeredTokens > 0xffffffffffffn
+            params.offeredAtoms > 0xffffffffffffn
         ) {
             throw new Error(
-                'For ALP, offeredTokens can be at most 0xffffffffffff',
+                'For ALP, offeredAtoms can be at most 0xffffffffffff',
             );
         }
 
-        if (params.offeredTokens < params.minAcceptedTokens) {
+        if (params.offeredAtoms < params.minAcceptedAtoms) {
             throw new Error(
-                'offeredTokens must be greater than minAcceptedTokens',
+                'offeredAtoms must be greater than minAcceptedAtoms',
             );
         }
 
@@ -354,30 +354,29 @@ export class AgoraPartial {
 
         // Edge case where price can be represented exactly,
         // no need to introduce extra approximation.
-        const isPrecisePrice =
-            1000000000n % params.priceNanoSatsPerToken === 0n;
+        const isPrecisePrice = 1000000000n % params.priceNanoSatsPerAtom === 0n;
         // The Script can only handle a maximum level of truncation
         const maxTokenTruncBytes = params.tokenProtocol === 'SLP' ? 5 : 3;
 
-        const minTokenScaleFactor = isPrecisePrice
+        const minAtomsScaleFactor = isPrecisePrice
             ? 1n
-            : params.minTokenScaleFactor ?? 10000n;
+            : params.minAtomsScaleFactor ?? 10000n;
 
         // If we can't represent the offered tokens in a script int, we truncate 8
         // bits at a time until it fits.
-        let truncTokens = params.offeredTokens;
-        let numTokenTruncBytes = 0n;
+        let truncAtoms = params.offeredAtoms;
+        let numAtomsTruncBytes = 0n;
         while (
-            truncTokens * minTokenScaleFactor > maxScriptInt &&
-            numTokenTruncBytes < maxTokenTruncBytes
+            truncAtoms * minAtomsScaleFactor > maxScriptInt &&
+            numAtomsTruncBytes < maxTokenTruncBytes
         ) {
-            truncTokens >>= 8n;
-            numTokenTruncBytes++;
+            truncAtoms >>= 8n;
+            numAtomsTruncBytes++;
         }
 
         // Required sats to fully accept the trade (rounded down)
         const requiredSats =
-            (params.offeredTokens * params.priceNanoSatsPerToken) / 1000000000n;
+            (params.offeredAtoms * params.priceNanoSatsPerAtom) / 1000000000n;
 
         // For bigger trades (>=2^31 sats), we need also to truncate sats
         let requiredTruncSats = requiredSats;
@@ -388,94 +387,90 @@ export class AgoraPartial {
         }
 
         // We scale up the token values to get some extra precision
-        let tokenScaleFactor = maxScriptInt / truncTokens;
+        let atomsScaleFactor = maxScriptInt / truncAtoms;
 
         // How many scaled trunc tokens can be gotten for each trunc sat.
         // It is the inverse of the price specified by the user, and truncated +
         // scaled as required by the Script.
-        const calcScaledTruncTokensPerTruncSat = () =>
+        const calcScaledTruncAtomsPerTruncSat = () =>
             ((1n << (8n * numSatsTruncBytes)) *
-                tokenScaleFactor *
+                atomsScaleFactor *
                 1000000000n) /
-            ((1n << (8n * numTokenTruncBytes)) * params.priceNanoSatsPerToken);
+            ((1n << (8n * numAtomsTruncBytes)) * params.priceNanoSatsPerAtom);
 
         // For trades offering a few tokens for many sats, truncate the sats
         // amounts some more to increase precision.
         const minPriceInteger = params.minPriceInteger ?? 1000n;
-        // However, only truncate sats if tokenScaleFactor is well above
-        // scaledTruncTokensPerTruncSat, otherwise we lose precision because
+        // However, only truncate sats if atomsScaleFactor is well above
+        // scaledTruncAtomsPerTruncSat, otherwise we lose precision because
         // we're rounding up for the sats calculation in the Script.
         const minScaleRatio = params.minScaleRatio ?? 1000n;
-        let scaledTruncTokensPerTruncSat = calcScaledTruncTokensPerTruncSat();
+        let scaledTruncAtomsPerTruncSat = calcScaledTruncAtomsPerTruncSat();
         while (
-            scaledTruncTokensPerTruncSat < minPriceInteger &&
-            scaledTruncTokensPerTruncSat * minScaleRatio < tokenScaleFactor
+            scaledTruncAtomsPerTruncSat < minPriceInteger &&
+            scaledTruncAtomsPerTruncSat * minScaleRatio < atomsScaleFactor
         ) {
             numSatsTruncBytes++;
-            scaledTruncTokensPerTruncSat = calcScaledTruncTokensPerTruncSat();
+            scaledTruncAtomsPerTruncSat = calcScaledTruncAtomsPerTruncSat();
         }
 
         // Edge case where the sats calculation can go above the integer limit
         if (
-            truncTokens * tokenScaleFactor + scaledTruncTokensPerTruncSat - 1n >
+            truncAtoms * atomsScaleFactor + scaledTruncAtomsPerTruncSat - 1n >
             maxScriptInt
         ) {
-            if (
-                truncTokens * tokenScaleFactor <=
-                scaledTruncTokensPerTruncSat
-            ) {
-                // Case where we just overshot the tokenScaleFactor
-                tokenScaleFactor /= 2n;
-                scaledTruncTokensPerTruncSat =
-                    calcScaledTruncTokensPerTruncSat();
+            if (truncAtoms * atomsScaleFactor <= scaledTruncAtomsPerTruncSat) {
+                // Case where we just overshot the atomsScaleFactor
+                atomsScaleFactor /= 2n;
+                scaledTruncAtomsPerTruncSat = calcScaledTruncAtomsPerTruncSat();
             }
-            const maxTruncTokens =
-                maxScriptInt - scaledTruncTokensPerTruncSat + 1n;
-            if (maxTruncTokens < 0n) {
+            const maxTruncAtoms =
+                maxScriptInt - scaledTruncAtomsPerTruncSat + 1n;
+            if (maxTruncAtoms < 0n) {
                 throw new Error('Parameters cannot be represented in Script');
             }
-            if (truncTokens > maxTruncTokens) {
-                // Case where truncTokens itself is close to maxScriptInt
-                tokenScaleFactor = 1n;
-                truncTokens = maxTruncTokens;
+            if (truncAtoms > maxTruncAtoms) {
+                // Case where truncAtoms itself is close to maxScriptInt
+                atomsScaleFactor = 1n;
+                truncAtoms = maxTruncAtoms;
             } else {
                 // Case where scaled tokens would exceed maxScriptInt
-                tokenScaleFactor = maxTruncTokens / truncTokens;
+                atomsScaleFactor = maxTruncAtoms / truncAtoms;
             }
             // Recalculate price
-            scaledTruncTokensPerTruncSat = calcScaledTruncTokensPerTruncSat();
+            scaledTruncAtomsPerTruncSat = calcScaledTruncAtomsPerTruncSat();
         }
 
         // Scale + truncate the minimum accepted tokens
-        const minAcceptedScaledTruncTokens =
-            (params.minAcceptedTokens * tokenScaleFactor) >>
-            (8n * numTokenTruncBytes);
+        const minAcceptedScaledTruncAtoms =
+            (params.minAcceptedAtoms * atomsScaleFactor) >>
+            (8n * numAtomsTruncBytes);
 
-        const dustAmount = params.dustAmount ?? DEFAULT_DUST_LIMIT;
+        const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
         const agoraPartial = new AgoraPartial({
-            truncTokens,
-            numTokenTruncBytes: Number(numTokenTruncBytes),
-            tokenScaleFactor,
-            scaledTruncTokensPerTruncSat,
+            truncAtoms,
+            numAtomsTruncBytes: Number(numAtomsTruncBytes),
+            atomsScaleFactor,
+            scaledTruncAtomsPerTruncSat,
             numSatsTruncBytes: Number(numSatsTruncBytes),
             makerPk: params.makerPk,
-            minAcceptedScaledTruncTokens,
+            minAcceptedScaledTruncAtoms,
             tokenId: params.tokenId,
             tokenType: params.tokenType,
             tokenProtocol: params.tokenProtocol,
             scriptLen: 0x7f,
             enforcedLockTime: params.enforcedLockTime,
-            dustAmount,
+            dustSats,
         });
-        const minAcceptedTokens = agoraPartial.minAcceptedTokens();
-        if (minAcceptedTokens < 1n) {
-            throw new Error('minAcceptedTokens too small, got truncated to 0');
+        const minAcceptedAtoms = agoraPartial.minAcceptedAtoms();
+        if (minAcceptedAtoms < 1n) {
+            throw new Error('minAcceptedAtoms too small, got truncated to 0');
         }
 
-        const minAskedSats = agoraPartial.askedSats(minAcceptedTokens);
-        if (minAskedSats < dustAmount) {
+        const minAskedSats = agoraPartial.askedSats(minAcceptedAtoms);
+        if (minAskedSats < dustSats) {
             throw new Error(
-                'minAcceptedTokens would cost less than dust at this price',
+                'minAcceptedAtoms would cost less than dust at this price',
             );
         }
 
@@ -494,61 +489,61 @@ export class AgoraPartial {
 
     /**
      * How many tokens are accually offered by the Script.
-     * This may differ from the offeredTokens in the AgoraPartialParams used to
+     * This may differ from the offeredAtoms in the AgoraPartialParams used to
      * approximate this AgoraPartial.
      **/
-    public offeredTokens(): bigint {
-        return this.truncTokens << BigInt(8 * this.numTokenTruncBytes);
+    public offeredAtoms(): bigint {
+        return this.truncAtoms << BigInt(8 * this.numAtomsTruncBytes);
     }
 
     /**
      * Actual minimum acceptable tokens of this Script.
-     * This may differ from the minAcceptedTokens in the AgoraPartialParams used
+     * This may differ from the minAcceptedAtoms in the AgoraPartialParams used
      * to approximate this AgoraPartial.
      **/
-    public minAcceptedTokens(): bigint {
-        const minAcceptedTokens =
-            (this.minAcceptedScaledTruncTokens <<
-                BigInt(8 * this.numTokenTruncBytes)) /
-            this.tokenScaleFactor;
+    public minAcceptedAtoms(): bigint {
+        const minAcceptedAtoms =
+            (this.minAcceptedScaledTruncAtoms <<
+                BigInt(8 * this.numAtomsTruncBytes)) /
+            this.atomsScaleFactor;
 
-        let preparedMinAcceptedTokens =
-            this.prepareAcceptedTokens(minAcceptedTokens);
-        if (preparedMinAcceptedTokens < minAcceptedTokens) {
+        let preparedMinAcceptedAtoms =
+            this.prepareAcceptedAtoms(minAcceptedAtoms);
+        if (preparedMinAcceptedAtoms < minAcceptedAtoms) {
             // It's possible that, after adjusting for acceptable discrete intervals,
-            // minAcceptedTokens becomes less than the script minimum
+            // minAcceptedAtoms becomes less than the script minimum
             // In this case, we "round up" to the true min accepted tokens
             const tickSize =
-                (this.tokenScaleFactor << BigInt(8 * this.numTokenTruncBytes)) /
-                this.tokenScaleFactor;
-            preparedMinAcceptedTokens += tickSize;
+                (this.atomsScaleFactor << BigInt(8 * this.numAtomsTruncBytes)) /
+                this.atomsScaleFactor;
+            preparedMinAcceptedAtoms += tickSize;
         }
-        return preparedMinAcceptedTokens;
+        return preparedMinAcceptedAtoms;
     }
 
     /**
      * Calculate the actually asked satoshi amount for the given accepted number of tokens.
      * This is the exact amount that has to be sent to makerPk's P2PKH address
      * to accept the offer.
-     * `acceptedTokens` must have the lowest numTokenTruncBytes bytes set to 0,
-     * use prepareAcceptedTokens to do so.
+     * `acceptedAtoms` must have the lowest numAtomsTruncBytes bytes set to 0,
+     * use prepareAcceptedAtoms to do so.
      **/
-    public askedSats(acceptedTokens: bigint): bigint {
+    public askedSats(acceptedAtoms: bigint): bigint {
         const numSatsTruncBits = BigInt(8 * this.numSatsTruncBytes);
-        const numTokenTruncBits = BigInt(8 * this.numTokenTruncBytes);
-        const acceptedTruncTokens = acceptedTokens >> numTokenTruncBits;
-        if (acceptedTruncTokens << numTokenTruncBits != acceptedTokens) {
+        const numTokenTruncBits = BigInt(8 * this.numAtomsTruncBytes);
+        const acceptedTruncAtoms = acceptedAtoms >> numTokenTruncBits;
+        if (acceptedTruncAtoms << numTokenTruncBits != acceptedAtoms) {
             throw new Error(
-                `acceptedTokens must have the last ${numTokenTruncBits} bits ` +
-                    'set to zero, use prepareAcceptedTokens to get a valid amount',
+                `acceptedAtoms must have the last ${numTokenTruncBits} bits ` +
+                    'set to zero, use prepareAcceptedAtoms to get a valid amount',
             );
         }
         // Divide rounding up
         const askedTruncSats =
-            (acceptedTruncTokens * this.tokenScaleFactor +
-                this.scaledTruncTokensPerTruncSat -
+            (acceptedTruncAtoms * this.atomsScaleFactor +
+                this.scaledTruncAtomsPerTruncSat -
                 1n) /
-            this.scaledTruncTokensPerTruncSat;
+            this.scaledTruncAtomsPerTruncSat;
         // Un-truncate sats
         return askedTruncSats << numSatsTruncBits;
     }
@@ -556,9 +551,9 @@ export class AgoraPartial {
     /**
      * Throw an error if accept amount is invalid
      * Note we do not prepare amounts in this function
-     * @param acceptedTokens
+     * @param acceptedAtoms
      */
-    public preventUnacceptableRemainder(acceptedTokens: bigint) {
+    public preventUnacceptableRemainder(acceptedAtoms: bigint) {
         // Validation to avoid creating an offer that cannot be accepted
         //
         // 1 - confirm the remaining offer amount is more than the
@@ -566,7 +561,7 @@ export class AgoraPartial {
         //
         // 2 - Confirm the cost of accepting the (full) remainder is
         //     at least dust. This is already confirmed...for offers
-        //     created by this lib... as minAcceptedTokens() must
+        //     created by this lib... as minAcceptedAtoms() must
         //     cost more than dust
         //
         //
@@ -574,47 +569,47 @@ export class AgoraPartial {
         // that is impossible to accept; can only be canceld by its maker
 
         // Get the token qty that would remain after this accept
-        const offeredTokens = this.offeredTokens();
-        const remainingTokens = offeredTokens - acceptedTokens;
+        const offeredAtoms = this.offeredAtoms();
+        const remainingTokens = offeredAtoms - acceptedAtoms;
         if (remainingTokens <= 0n) {
             return;
         }
         // Full accepts are always ok
 
-        const minAcceptedTokens = this.minAcceptedTokens();
+        const minAcceptedAtoms = this.minAcceptedAtoms();
         const priceOfRemainingTokens = this.askedSats(remainingTokens);
-        if (remainingTokens < minAcceptedTokens) {
+        if (remainingTokens < minAcceptedAtoms) {
             throw new Error(
-                `Accepting ${acceptedTokens} token satoshis would leave an amount lower than the min acceptable by the terms of this contract, and hence unacceptable. Accept fewer tokens or the full offer.`,
+                `Accepting ${acceptedAtoms} token satoshis would leave an amount lower than the min acceptable by the terms of this contract, and hence unacceptable. Accept fewer tokens or the full offer.`,
             );
         }
-        if (priceOfRemainingTokens < this.dustAmount) {
+        if (priceOfRemainingTokens < this.dustSats) {
             throw new Error(
-                `Accepting ${acceptedTokens} token satoshis would leave an amount priced lower than dust. Accept fewer tokens or the full offer.`,
+                `Accepting ${acceptedAtoms} token satoshis would leave an amount priced lower than dust. Accept fewer tokens or the full offer.`,
             );
         }
     }
 
     /**
-     * Prepare the given acceptedTokens amount for the Script; `acceptedTokens`
-     * must have the lowest numTokenTruncBytes bytes set to 0 and this function
+     * Prepare the given acceptedAtoms amount for the Script; `acceptedAtoms`
+     * must have the lowest numAtomsTruncBytes bytes set to 0 and this function
      * does this for us.
      **/
-    public prepareAcceptedTokens(acceptedTokens: bigint): bigint {
-        const numTokenTruncBits = BigInt(8 * this.numTokenTruncBytes);
-        return (acceptedTokens >> numTokenTruncBits) << numTokenTruncBits;
+    public prepareAcceptedAtoms(acceptedAtoms: bigint): bigint {
+        const numTokenTruncBits = BigInt(8 * this.numAtomsTruncBytes);
+        return (acceptedAtoms >> numTokenTruncBits) << numTokenTruncBits;
     }
 
     /**
-     * Calculate the actual priceNanoSatsPerToken of this offer, factoring in
+     * Calculate the actual priceNanoSatsPerAtom of this offer, factoring in
      * all approximation inacurracies.
      * Due to the rounding, the price can change based on the accepted token
      * amount. By default it calculates the price per token for accepting the
      * entire offer.
      **/
-    public priceNanoSatsPerToken(acceptedTokens?: bigint): bigint {
-        acceptedTokens ??= this.offeredTokens();
-        const prepared = this.prepareAcceptedTokens(acceptedTokens);
+    public priceNanoSatsPerAtom(acceptedAtoms?: bigint): bigint {
+        acceptedAtoms ??= this.offeredAtoms();
+        const prepared = this.prepareAcceptedAtoms(acceptedAtoms);
         const sats = this.askedSats(prepared);
         return (sats * 1000000000n) / prepared;
     }
@@ -627,11 +622,11 @@ export class AgoraPartial {
                 writer.putU8(AgoraPartial.COVENANT_VARIANT.length);
                 writer.putBytes(strToBytes(AgoraPartial.COVENANT_VARIANT));
             }
-            writer.putU8(this.numTokenTruncBytes);
+            writer.putU8(this.numAtomsTruncBytes);
             writer.putU8(this.numSatsTruncBytes);
-            writer.putU64(this.tokenScaleFactor);
-            writer.putU64(this.scaledTruncTokensPerTruncSat);
-            writer.putU64(this.minAcceptedScaledTruncTokens);
+            writer.putU64(this.atomsScaleFactor);
+            writer.putU64(this.scaledTruncAtomsPerTruncSat);
+            writer.putU64(this.minAcceptedScaledTruncAtoms);
             writer.putU32(this.enforcedLockTime);
             writer.putBytes(this.makerPk);
         };
@@ -648,7 +643,7 @@ export class AgoraPartial {
         // protocol intros.
         if (this.tokenProtocol === 'SLP') {
             const slpSendIntro = slpSend(this.tokenId, this.tokenType, [
-                0,
+                0n,
             ]).bytecode;
             const covenantConstsWriter = new WriterBytes(
                 slpSendIntro.length + adPushdata.length,
@@ -683,11 +678,11 @@ export class AgoraPartial {
         // Even though Script currently doesn't support 64-bit integers,
         // this allows us to eventually upgrade to 64-bit without changing this
         // Script at all.
-        const scaledTruncTokens8LeWriter = new WriterBytes(8);
-        scaledTruncTokens8LeWriter.putU64(
-            this.truncTokens * this.tokenScaleFactor,
+        const scaledTruncAtoms8LeWriter = new WriterBytes(8);
+        scaledTruncAtoms8LeWriter.putU64(
+            this.truncAtoms * this.atomsScaleFactor,
         );
-        const scaledTruncTokens8Le = scaledTruncTokens8LeWriter.data;
+        const scaledTruncAtoms8Le = scaledTruncAtoms8LeWriter.data;
 
         const enforcedLockTime4LeWriter = new WriterBytes(4);
         enforcedLockTime4LeWriter.putU32(this.enforcedLockTime);
@@ -697,7 +692,7 @@ export class AgoraPartial {
             // # Push consts
             pushBytesOp(covenantConsts),
             // # Push offered token amount as scaled trunc tokens, as u64 LE
-            pushBytesOp(scaledTruncTokens8Le),
+            pushBytesOp(scaledTruncAtoms8Le),
             // # Use OP_CODESEPERATOR to remove the above two (large) pushops
             // # from the sighash preimage (tx size optimization)
             OP_CODESEPARATOR,
@@ -705,49 +700,49 @@ export class AgoraPartial {
             OP_ROT,
             // OP_IF(isPurchase)
             OP_IF,
-            // scaledTruncTokens = OP_BIN2NUM(scaledTruncTokens8Le)
+            // scaledTruncAtoms = OP_BIN2NUM(scaledTruncAtoms8Le)
             OP_BIN2NUM,
-            // OP_ROT(acceptedScaledTruncTokens, _, _)
+            // OP_ROT(acceptedScaledTruncAtoms, _, _)
             OP_ROT,
 
             // # Verify accepted amount doesn't exceed available amount
-            // OP_2DUP(scaledTruncTokens, acceptedScaledTruncTokens)
+            // OP_2DUP(scaledTruncAtoms, acceptedScaledTruncAtoms)
             OP_2DUP,
-            // isNotExcessive = OP_GREATERTHANOREQUAL(scaledTruncTokens,
-            //                                        acceptedScaledTruncTokens)
+            // isNotExcessive = OP_GREATERTHANOREQUAL(scaledTruncAtoms,
+            //                                        acceptedScaledTruncAtoms)
             OP_GREATERTHANOREQUAL,
             // OP_VERIFY(isNotExcessive)
             OP_VERIFY,
 
             // # Verify accepted amount is above a required minimum
-            // OP_DUP(acceptedScaledTruncTokens)
+            // OP_DUP(acceptedScaledTruncAtoms)
             OP_DUP,
             // # Ensure minimum accepted amount is not violated
-            pushNumberOp(this.minAcceptedScaledTruncTokens),
-            // isEnough = OP_GREATERTHANOREQUAL(acceptedScaledTruncTokens,
-            //                                  minAcceptedScaledTruncTokens)
+            pushNumberOp(this.minAcceptedScaledTruncAtoms),
+            // isEnough = OP_GREATERTHANOREQUAL(acceptedScaledTruncAtoms,
+            //                                  minAcceptedScaledTruncAtoms)
             OP_GREATERTHANOREQUAL,
             // OP_VERIFY(isEnough)
             OP_VERIFY,
 
             // # Verify accepted amount is scaled correctly, must be a
-            // # multiple of tokenScaleFactor.
-            // OP_DUP(acceptedScaledTruncTokens)
+            // # multiple of atomsScaleFactor.
+            // OP_DUP(acceptedScaledTruncAtoms)
             OP_DUP,
-            pushNumberOp(this.tokenScaleFactor),
-            // scaleRemainder = OP_MOD(acceptedScaledTruncTokens,
-            //                         tokenScaleFactor)
+            pushNumberOp(this.atomsScaleFactor),
+            // scaleRemainder = OP_MOD(acceptedScaledTruncAtoms,
+            //                         atomsScaleFactor)
             OP_MOD,
             OP_0,
             // OP_EQUALVERIFY(scaleRemainder, 0)
             OP_EQUALVERIFY,
 
-            // OP_TUCK(_, acceptedScaledTruncTokens);
+            // OP_TUCK(_, acceptedScaledTruncAtoms);
             OP_TUCK,
 
             // # Calculate tokens left over after purchase
-            // leftoverScaledTruncTokens = OP_SUB(scaledTruncTokens,
-            //                                    acceptedScaledTruncTokens)
+            // leftoverScaledTruncAtoms = OP_SUB(scaledTruncAtoms,
+            //                                    acceptedScaledTruncAtoms)
             OP_SUB,
 
             // # Get token intro from consts
@@ -763,10 +758,10 @@ export class AgoraPartial {
             // OP_DROP(agoraIntro)
             OP_DROP,
 
-            // OP_OVER(leftoverScaledTruncTokens, _)
+            // OP_OVER(leftoverScaledTruncAtoms, _)
             OP_OVER,
 
-            // hasLeftover = OP_0NOTEQUAL(leftoverScaledTruncTokens)
+            // hasLeftover = OP_0NOTEQUAL(leftoverScaledTruncAtoms)
             // # (SCRIPT_VERIFY_MINIMALIF is not on eCash, but better be safe)
             OP_0NOTEQUAL,
 
@@ -779,19 +774,19 @@ export class AgoraPartial {
             // outputsOpreturnPad = OP_CAT(opreturnOutput, truncPaddingSats)
             OP_CAT,
 
-            // OP_ROT(acceptedScaledTruncTokens, _, _)
+            // OP_ROT(acceptedScaledTruncAtoms, _, _)
             OP_ROT,
 
             // # We divide rounding up when we calc sats, so add divisor - 1
-            pushNumberOp(this.scaledTruncTokensPerTruncSat - 1n),
+            pushNumberOp(this.scaledTruncAtomsPerTruncSat - 1n),
             OP_ADD,
 
             // # Price (scaled + truncated)
-            pushNumberOp(this.scaledTruncTokensPerTruncSat),
+            pushNumberOp(this.scaledTruncAtomsPerTruncSat),
 
             // # Calculate how many (truncated) sats the user has to pay
-            // requiredTruncSats = OP_DIV(acceptedScaledTruncTokens,
-            //                            scaledTruncTokensPerTruncSat)
+            // requiredTruncSats = OP_DIV(acceptedScaledTruncAtoms,
+            //                            scaledTruncAtomsPerTruncSat)
             OP_DIV,
 
             // # Build the required sats with the correct byte length
@@ -809,9 +804,9 @@ export class AgoraPartial {
             // # Build maker's P2PKH script
             // p2pkhIntro = [25, OP_DUP, OP_HASH160, 20]
             pushBytesOp(new Uint8Array([25, OP_DUP, OP_HASH160, 20])),
-            // OP_2OVER(consts, leftoverScaledTruncTokens, _, _);
+            // OP_2OVER(consts, leftoverScaledTruncAtoms, _, _);
             OP_2OVER,
-            // OP_DROP(leftoverScaledTruncTokens);
+            // OP_DROP(leftoverScaledTruncAtoms);
             OP_DROP,
             // # Slice out pubkey from the consts (always the last 33 bytes)
             // pubkeyIdx = consts.length - 33
@@ -838,20 +833,20 @@ export class AgoraPartial {
 
             // # Build loopback P2SH, will receive the leftover tokens with
             // # a Script with the same terms.
-            // OP_TUCK(_, leftoverScaledTruncTokens);
+            // OP_TUCK(_, leftoverScaledTruncAtoms);
             OP_TUCK,
             // P2SH has dust sats
-            pushNumberOp(this.dustAmount),
+            pushNumberOp(this.dustSats),
             OP_8,
-            // dustAmount8le = OP_NUM2BIN(dustAmount, 8)
+            // dustSats8le = OP_NUM2BIN(dustSats, 8)
             OP_NUM2BIN,
             // p2shIntro = [23, OP_HASH160, 20]
             pushBytesOp(new Uint8Array([23, OP_HASH160, 20])),
-            // loopbackOutputIntro = OP_CAT(dustAmount8le, p2shIntro);
+            // loopbackOutputIntro = OP_CAT(dustSats8le, p2shIntro);
             OP_CAT,
 
             // # Build the new redeem script; same terms but different
-            // # scaledTruncTokens8Le.
+            // # scaledTruncAtoms8Le.
 
             // # Build opcode to push consts. Sometimes they get long and we
             // # need OP_PUSHDATA1.
@@ -868,19 +863,19 @@ export class AgoraPartial {
                 ),
             ),
 
-            // OP_2SWAP(consts, leftoverScaledTruncTokens, _, _)
+            // OP_2SWAP(consts, leftoverScaledTruncAtoms, _, _)
             OP_2SWAP,
             OP_8,
             // OP_TUCK(_, 8)
             OP_TUCK,
-            // leftoverScaledTruncTokens8le =
-            //     OP_NUM2BIN(leftoverScaledTruncTokens, 8)
+            // leftoverScaledTruncAtoms8le =
+            //     OP_NUM2BIN(leftoverScaledTruncAtoms, 8)
             OP_NUM2BIN,
-            // pushLeftoverScaledTruncTokens8le =
-            //     OP_CAT(8, leftoverScaledTruncTokens8le)
+            // pushLeftoverScaledTruncAtoms8le =
+            //     OP_CAT(8, leftoverScaledTruncAtoms8le)
             OP_CAT,
             // constsPushLeftover =
-            //     OP_CAT(consts, pushLeftoverScaledTruncTokens8le)
+            //     OP_CAT(consts, pushLeftoverScaledTruncAtoms8le)
             OP_CAT,
             // # The two ops that push consts plus amount
             // pushState = OP_CAT(pushConstsOpcode, constsPushLeftover)
@@ -944,9 +939,9 @@ export class AgoraPartial {
             // # Check if we have tokens left over and send them back
             // # It is cheaper (in bytes) to build the loopback output and then
             // # throw it away if needed than to not build it at all.
-            // OP_SWAP(leftoverScaledTruncTokens, _)
+            // OP_SWAP(leftoverScaledTruncAtoms, _)
             OP_SWAP,
-            // hasLeftover = OP_0NOTEQUAL(leftoverScaledTruncTokens)
+            // hasLeftover = OP_0NOTEQUAL(leftoverScaledTruncAtoms)
             OP_0NOTEQUAL,
             // OP_NOTIF(hasLeftover)
             OP_NOTIF,
@@ -1025,7 +1020,7 @@ export class AgoraPartial {
 
             // # "Cancel" branch, split out the maker pubkey and verify sig
             // # is for the maker pubkey.
-            // OP_DROP(scaledTruncTokens8le);
+            // OP_DROP(scaledTruncAtoms8le);
             OP_DROP,
             // pubkeyIdx = consts.length - 33
             pushNumberOp(covenantConsts.length - 33),
@@ -1062,20 +1057,20 @@ export class AgoraPartial {
             OP_8,
             // tokenIntro8 = OP_CAT(tokenIntro, 8);
             OP_CAT,
-            // OP_OVER(leftoverScaledTruncTokens, _)
+            // OP_OVER(leftoverScaledTruncAtoms, _)
             OP_OVER,
             // # Scale down the scaled leftover amount
-            pushNumberOp(this.tokenScaleFactor),
-            // leftoverTokensTrunc = OP_DIV(leftoverScaledTruncTokens,
-            //                              tokenScaleFactor)
+            pushNumberOp(this.atomsScaleFactor),
+            // leftoverTokensTrunc = OP_DIV(leftoverScaledTruncAtoms,
+            //                              atomsScaleFactor)
             OP_DIV,
             // # Serialize the leftover trunc tokens (overflow-safe)
-            ...this._scriptSerTruncTokens(8),
+            ...this._scriptSerTruncAtoms(8),
             // # SLP uses big-endian, so we have to use OP_REVERSEBYTES
             // leftoverTokenTruncBe = OP_REVERSEBYTES(leftoverTokenTruncLe)
             OP_REVERSEBYTES,
             // # Bytes to un-truncate the leftover tokens
-            pushBytesOp(new Uint8Array(this.numTokenTruncBytes)),
+            pushBytesOp(new Uint8Array(this.numAtomsTruncBytes)),
             // # Build the actual 8 byte big-endian leftover
             // leftoverToken8be = OP_CAT(leftoverTokenTruncBe, untruncatePad);
             OP_CAT,
@@ -1091,29 +1086,29 @@ export class AgoraPartial {
             // tokenScript = OP_CAT(tokenScript, 8)
             OP_CAT,
             // # Get the accepted token amount
-            // depthAcceptedScaledTruncTokens =
-            //     depth_of(acceptedScaledTruncTokens)
+            // depthAcceptedScaledTruncAtoms =
+            //     depth_of(acceptedScaledTruncAtoms)
             pushNumberOp(2),
-            // acceptedScaledTruncTokens =
-            //     OP_PICK(depthAcceptedScaledTruncTokens)
+            // acceptedScaledTruncAtoms =
+            //     OP_PICK(depthAcceptedScaledTruncAtoms)
             OP_PICK,
             // # Scale down the accepted token amount
-            pushNumberOp(this.tokenScaleFactor),
-            // acceptedTokensTrunc = OP_DIV(acceptedScaledTruncTokens,
-            //                              tokenScaleFactor)
+            pushNumberOp(this.atomsScaleFactor),
+            // acceptedAtomsTrunc = OP_DIV(acceptedScaledTruncAtoms,
+            //                              atomsScaleFactor)
             OP_DIV,
             // # Serialize the accepted token amount (overflow-safe)
-            ...this._scriptSerTruncTokens(8),
+            ...this._scriptSerTruncAtoms(8),
             // # SLP uses big-endian, so we have to use OP_REVERSEBYTES
-            // acceptedTokensTruncBe = OP_REVERSEBYTES(acceptedTokensTruncLe);
+            // acceptedAtomsTruncBe = OP_REVERSEBYTES(acceptedAtomsTruncLe);
             OP_REVERSEBYTES,
             // # Bytes to un-truncate the leftover tokens
-            pushBytesOp(new Uint8Array(this.numTokenTruncBytes)),
-            // acceptedTokens8be = OP_CAT(acceptedTokensTruncBe, untruncatePad);
+            pushBytesOp(new Uint8Array(this.numAtomsTruncBytes)),
+            // acceptedAtoms8be = OP_CAT(acceptedAtomsTruncBe, untruncatePad);
             OP_CAT,
 
             // # Finished SLP token script
-            // tokenScript = OP_CAT(tokenScript, acceptedTokens8be);
+            // tokenScript = OP_CAT(tokenScript, acceptedAtoms8be);
             OP_CAT,
 
             // # Build OP_RETURN script with 0u64 and size prepended
@@ -1154,27 +1149,27 @@ export class AgoraPartial {
             // # Append the number of token amounts + the first 0 amount +
             // # un-truncate padding for the 2nd output.
             // # We meld these three ops into one by using OP_NUM2BIN using
-            // # 7 + numTokenTruncBytes bytes, which gives us the number of
+            // # 7 + numAtomsTruncBytes bytes, which gives us the number of
             // # amounts in the first byte, followed by 6 zero bytes for the
-            // # first output, and then numTokenTruncBytes bytes for the
+            // # first output, and then numAtomsTruncBytes bytes for the
             // # un-truncate padding.
-            pushNumberOp(7 + this.numTokenTruncBytes),
+            pushNumberOp(7 + this.numAtomsTruncBytes),
             // tokenAmounts1 = OP_NUM2BIN(numTokenAmounts, size)
             OP_NUM2BIN,
             // tokenIntro = OP_CAT(tokenIntro, tokenAmounts1)
             OP_CAT,
-            // OP_OVER(leftoverScaledTruncTokens, __)
+            // OP_OVER(leftoverScaledTruncAtoms, __)
             OP_OVER,
             // # Scale down the scaled leftover amount
-            pushNumberOp(this.tokenScaleFactor),
-            // nextSerValue = OP_DIV(leftoverScaledTruncTokens,
-            //                       tokenScaleFactor)
+            pushNumberOp(this.atomsScaleFactor),
+            // nextSerValue = OP_DIV(leftoverScaledTruncAtoms,
+            //                       atomsScaleFactor)
             OP_DIV,
 
             // # Serialize size for leftoverTokensTrunc, and also already add the un-truncate padding for the 3rd amount
             // # Combining these two ops also doesn't require us to serialize overflow-aware
             pushNumberOp(
-                6 /*- this.numTokenTruncBytes + this.numTokenTruncBytes*/,
+                6 /*- this.numAtomsTruncBytes + this.numAtomsTruncBytes*/,
             ),
 
             OP_ELSE,
@@ -1183,8 +1178,8 @@ export class AgoraPartial {
             // # un-truncate padding for the 3rd output.
             // nextSerValue = 2
             OP_2,
-            // serializeSize = 7 + numTokenTruncBytes
-            pushNumberOp(7 + this.numTokenTruncBytes),
+            // serializeSize = 7 + numAtomsTruncBytes
+            pushNumberOp(7 + this.numAtomsTruncBytes),
 
             OP_ENDIF,
 
@@ -1198,23 +1193,23 @@ export class AgoraPartial {
             // tokenSection1Pad = OP_CAT(tokenIntro, tokenAmounts2)
             OP_CAT,
 
-            // depthAcceptedScaledTruncTokens =
-            //     depth_of(acceptedScaledTruncTokens)
+            // depthAcceptedScaledTruncAtoms =
+            //     depth_of(acceptedScaledTruncAtoms)
             pushNumberOp(2),
-            // acceptedScaledTruncTokens =
-            //     OP_PICK(depthAcceptedScaledTruncTokens)
+            // acceptedScaledTruncAtoms =
+            //     OP_PICK(depthAcceptedScaledTruncAtoms)
             OP_PICK,
 
             // # Scale down the accepted token amount
-            pushNumberOp(this.tokenScaleFactor),
-            // acceptedTokensTrunc = OP_DIV(acceptedScaledTruncTokens,
-            //                              tokenScaleFactor)
+            pushNumberOp(this.atomsScaleFactor),
+            // acceptedAtomsTrunc = OP_DIV(acceptedScaledTruncAtoms,
+            //                              atomsScaleFactor)
             OP_DIV,
             // # Serialize accepted token amount (overflow-safe)
-            ...this._scriptSerTruncTokens(6),
+            ...this._scriptSerTruncAtoms(6),
 
             // # Finished token section
-            // tokenSection = OP_CAT(tokenSection1Pad, acceptedTokensTruncLe);
+            // tokenSection = OP_CAT(tokenSection1Pad, acceptedAtomsTruncLe);
             OP_CAT,
 
             // Turn token section into a pushdata op
@@ -1259,9 +1254,9 @@ export class AgoraPartial {
         ];
     }
 
-    private _scriptSerTruncTokens(numSerBytes: number): Op[] {
+    private _scriptSerTruncAtoms(numSerBytes: number): Op[] {
         // Serialize the number on the stack using the configured truncation
-        if (this.numTokenTruncBytes === numSerBytes - 3) {
+        if (this.numAtomsTruncBytes === numSerBytes - 3) {
             // Edge case where we only have 3 bytes space to serialize the
             // number, but if the MSB of the number is set, OP_NUM2BIN will
             // serialize using 4 bytes (with the last byte being just 0x00),
@@ -1278,7 +1273,7 @@ export class AgoraPartial {
             // If we have 4 or more bytes space, we can always serialize
             // just using normal OP_NUM2BIN.
             return [
-                pushNumberOp(numSerBytes - this.numTokenTruncBytes),
+                pushNumberOp(numSerBytes - this.numAtomsTruncBytes),
                 OP_NUM2BIN,
             ];
         }
@@ -1345,7 +1340,7 @@ function makeScriptSigIntro(tokenProtocol: 'SLP' | 'ALP'): Op[] {
 
 export const AgoraPartialSignatory = (
     params: AgoraPartial,
-    acceptedTruncTokens: bigint,
+    acceptedTruncAtoms: bigint,
     covenantSk: Uint8Array,
     covenantPk: Uint8Array,
 ): Signatory => {
@@ -1353,7 +1348,7 @@ export const AgoraPartialSignatory = (
         const preimage = input.sigHashPreimage(ALL_ANYONECANPAY_BIP143, 0);
         const sighash = sha256d(preimage.bytes);
         const covenantSig = ecc.schnorrSign(covenantSk, sighash);
-        const hasLeftover = params.truncTokens > acceptedTruncTokens;
+        const hasLeftover = params.truncAtoms > acceptedTruncAtoms;
         const buyerOutputIdx = hasLeftover ? 3 : 2;
         const buyerOutputs = input.unsignedTx.tx.outputs.slice(buyerOutputIdx);
 
@@ -1374,7 +1369,7 @@ export const AgoraPartialSignatory = (
             pushBytesOp(covenantSig),
             pushBytesOp(buyerOutputsSer),
             pushBytesOp(preimage.bytes.slice(4 + 32 + 32)), // preimage_4_10
-            pushNumberOp(acceptedTruncTokens * params.tokenScaleFactor),
+            pushNumberOp(acceptedTruncAtoms * params.atomsScaleFactor),
             OP_1, // is_purchase = true
             pushBytesOp(preimage.redeemScript.bytecode),
         ]);

@@ -96,13 +96,13 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=tx.hash, amount=5000),
+                slp_token(token_id=tx.hash, atoms=5000),
                 slp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -141,14 +141,14 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, amount=1000),
-                alp_token(token_id=tx.hash, amount=2000),
+                alp_token(token_id=tx.hash, atoms=1000),
+                alp_token(token_id=tx.hash, atoms=2000),
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -186,14 +186,14 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, amount=10),
-                alp_token(token_id=tx.hash, amount=20),
+                alp_token(token_id=tx.hash, atoms=10),
+                alp_token(token_id=tx.hash, atoms=20),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
@@ -232,39 +232,39 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=genesis_alp.txid,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.SEND,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
                 pb.TokenEntry(
                     token_id=genesis2_alp.txid,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.SEND,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
                 pb.TokenEntry(
                     token_id=genesis_slp.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     is_invalid=True,
-                    burn_summary="Unexpected burn: Burns 5000 base tokens",
-                    actual_burn_amount="5000",
+                    burn_summary="Unexpected burn: Burns 5000 atoms",
+                    actual_burn_atoms="5000",
                 ),
             ],
             inputs=[
-                slp_token(token_id=genesis_slp.txid, amount=5000, entry_idx=2),
-                alp_token(token_id=genesis_alp.txid, amount=1000),
-                alp_token(token_id=genesis2_alp.txid, amount=10, entry_idx=1),
+                slp_token(token_id=genesis_slp.txid, atoms=5000, entry_idx=2),
+                alp_token(token_id=genesis_alp.txid, atoms=1000),
+                alp_token(token_id=genesis2_alp.txid, atoms=10, entry_idx=1),
             ],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=genesis_alp.txid, amount=400),
-                alp_token(token_id=genesis_alp.txid, amount=600),
-                alp_token(token_id=genesis2_alp.txid, amount=3, entry_idx=1),
-                alp_token(token_id=genesis2_alp.txid, amount=7, entry_idx=1),
+                alp_token(token_id=genesis_alp.txid, atoms=400),
+                alp_token(token_id=genesis_alp.txid, atoms=600),
+                alp_token(token_id=genesis2_alp.txid, atoms=3, entry_idx=1),
+                alp_token(token_id=genesis2_alp.txid, atoms=7, entry_idx=1),
             ],
         )
         txs.append(send_alp)
         send_alp.send(
             chronik,
-            error=f"400: Tx {send_alp.txid} failed token checks: Unexpected burn: Burns 5000 base tokens.",
+            error=f"400: Tx {send_alp.txid} failed token checks: Unexpected burn: Burns 5000 atoms.",
         )
         send_alp.test(chronik)
         expected_msg = ws_msg(send_alp.txid, pb.TX_ADDED_TO_MEMPOOL)
@@ -292,7 +292,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     txid=bytes.fromhex(genesis_slp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=10000,
+                sats=10000,
                 script=bytes(P2SH_OP_TRUE),
                 token=slp_token(
                     token_id=genesis_slp.txid, is_mint_baton=True, entry_idx=-1
@@ -309,16 +309,16 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     txid=bytes.fromhex(genesis_alp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=10000,
+                sats=10000,
                 script=bytes(P2SH_OP_TRUE),
-                token=alp_token(token_id=genesis_alp.txid, amount=2000, entry_idx=-1),
+                token=alp_token(token_id=genesis_alp.txid, atoms=2000, entry_idx=-1),
             ),
             pb.Utxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(genesis_alp.txid)[::-1], out_idx=3
                 ),
                 block_height=-1,
-                value=10000,
+                sats=10000,
                 script=bytes(P2SH_OP_TRUE),
                 token=alp_token(
                     token_id=genesis_alp.txid, is_mint_baton=True, entry_idx=-1
@@ -329,18 +329,18 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     txid=bytes.fromhex(send_alp.txid)[::-1], out_idx=1
                 ),
                 block_height=-1,
-                value=546,
+                sats=546,
                 script=bytes(P2SH_OP_TRUE),
-                token=alp_token(token_id=genesis_alp.txid, amount=400, entry_idx=-1),
+                token=alp_token(token_id=genesis_alp.txid, atoms=400, entry_idx=-1),
             ),
             pb.Utxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(send_alp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=546,
+                sats=546,
                 script=bytes(P2SH_OP_TRUE),
-                token=alp_token(token_id=genesis_alp.txid, amount=600, entry_idx=-1),
+                token=alp_token(token_id=genesis_alp.txid, atoms=600, entry_idx=-1),
             ),
         ]
         alp_utxos = sorted(alp_utxos, key=lambda o: o.outpoint.txid[::-1])
@@ -354,27 +354,27 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     txid=bytes.fromhex(genesis2_alp.txid)[::-1], out_idx=2
                 ),
                 block_height=-1,
-                value=10000,
+                sats=10000,
                 script=bytes(P2SH_OP_TRUE),
-                token=alp_token(token_id=genesis2_alp.txid, amount=20, entry_idx=-1),
+                token=alp_token(token_id=genesis2_alp.txid, atoms=20, entry_idx=-1),
             ),
             pb.Utxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(send_alp.txid)[::-1], out_idx=3
                 ),
                 block_height=-1,
-                value=546,
+                sats=546,
                 script=bytes(P2SH_OP_TRUE),
-                token=alp_token(token_id=genesis2_alp.txid, amount=3, entry_idx=-1),
+                token=alp_token(token_id=genesis2_alp.txid, atoms=3, entry_idx=-1),
             ),
             pb.Utxo(
                 outpoint=pb.OutPoint(
                     txid=bytes.fromhex(send_alp.txid)[::-1], out_idx=4
                 ),
                 block_height=-1,
-                value=546,
+                sats=546,
                 script=bytes(P2SH_OP_TRUE),
-                token=alp_token(token_id=genesis2_alp.txid, amount=7, entry_idx=-1),
+                token=alp_token(token_id=genesis2_alp.txid, atoms=7, entry_idx=-1),
             ),
         ]
         alp2_utxos = sorted(alp2_utxos, key=lambda o: o.outpoint.txid[::-1])

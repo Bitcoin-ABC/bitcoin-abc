@@ -85,7 +85,7 @@ describe('routes.js', async function () {
     ]);
 
     mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, [
-        { ...MOCK_SCRIPT_UTXO, value: 10000 },
+        { ...MOCK_SCRIPT_UTXO, sats: 10000n },
         {
             ...MOCK_SPENDABLE_TOKEN_UTXO,
             outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
@@ -96,7 +96,7 @@ describe('routes.js', async function () {
                 // to test behavior of server if it is out of tokens
                 // Bad ROI on adding this test outright as we need lots of scripting
                 // to overcome the need for multiple mocked server wallets
-                amount: config.rewardAmountTokenSats,
+                atoms: config.rewardAmountTokenSats,
             },
         },
     ] as ScriptUtxo[]);

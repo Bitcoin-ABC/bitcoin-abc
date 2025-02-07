@@ -21,7 +21,7 @@ fn make_tx(script: Script) -> Tx {
     Tx::with_txid(
         TxId::new([4; 32]),
         TxMut {
-            outputs: vec![TxOutput { value: 0, script }],
+            outputs: vec![TxOutput { sats: 0, script }],
             ..Default::default()
         },
     )

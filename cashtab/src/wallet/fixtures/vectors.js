@@ -16,18 +16,18 @@ export default {
             {
                 description: 'Kind of a normal balance calculation',
                 nonSlpUtxos: [
-                    { value: 546 },
-                    { value: 150000000 },
-                    { value: 62500000 },
+                    { sats: 546n },
+                    { sats: 150000000n },
+                    { sats: 62500000n },
                 ],
                 balanceSats: 212500546,
             },
             {
                 description: 'Wallet balance of total XEC supply',
                 nonSlpUtxos: [
-                    { value: 700000000000000 },
-                    { value: 700000000000000 },
-                    { value: 700000000000000 },
+                    { sats: 700000000000000n },
+                    { sats: 700000000000000n },
+                    { sats: 700000000000000n },
                 ],
                 balanceSats: 2100000000000000,
             },

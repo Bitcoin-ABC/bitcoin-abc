@@ -95,7 +95,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
                         ),
                         block_height=0,
                         is_coinbase=True,
-                        value=coinvalue,
+                        sats=coinvalue,
                         is_final=False,
                     )
                 ],
@@ -122,7 +122,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
                         ),
                         block_height=1,
                         is_coinbase=True,
-                        value=coinvalue,
+                        sats=coinvalue,
                         is_final=False,
                     )
                 ],
@@ -148,7 +148,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
                 ),
                 block_height=-1,
                 is_coinbase=False,
-                value=value,
+                sats=value,
                 is_final=False,
             )
             for i, value in enumerate(send_values)
@@ -187,7 +187,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
                 ),
                 block_height=-1,
                 is_coinbase=False,
-                value=2500,
+                sats=2500,
                 is_final=False,
             )
         )

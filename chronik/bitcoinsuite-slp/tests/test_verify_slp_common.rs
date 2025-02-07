@@ -9,7 +9,7 @@ use bitcoinsuite_slp::{
     slp::{self, send_opreturn},
     structs::TxType,
     test_helpers::{
-        empty_entry, meta_slp as meta, spent_amount, token_amount, verify,
+        empty_entry, meta_slp as meta, spent_atoms, token_atoms, verify,
         TOKEN_ID2,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -39,7 +39,7 @@ fn test_verify_slp_more_than_32767_inputs() {
         // More than 32767 inputs allowed in SLP
         let spent_tokens =
             vec![
-                spent_amount(meta(TOKEN_ID2, token_type), u64::MAX);
+                spent_atoms(meta(TOKEN_ID2, token_type), u64::MAX);
                 alp::consts::MAX_TX_INPUTS + 1
             ];
         assert_eq!(
@@ -51,10 +51,10 @@ fn test_verify_slp_more_than_32767_inputs() {
                 entries: vec![TokenTxEntry {
                     meta: meta(TOKEN_ID2, token_type),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 32767 * u64::MAX as u128,
+                    actual_burn_atoms: 32767 * u64::MAX as u128,
                     ..empty_entry()
                 }],
-                outputs: vec![None, token_amount::<0>(u64::MAX)],
+                outputs: vec![None, token_atoms::<0>(u64::MAX)],
                 failed_parsings: vec![],
             },
         );
@@ -67,17 +67,17 @@ fn test_verify_slp_colored_out_of_range() {
         assert_eq!(
             verify::<1>(
                 send_opreturn(&TOKEN_ID2, token_type, &[100, 200, 300]),
-                &[spent_amount(meta(TOKEN_ID2, token_type), 600)],
+                &[spent_atoms(meta(TOKEN_ID2, token_type), 600)],
             ),
             TokenTx {
                 entries: vec![TokenTxEntry {
                     meta: meta(TOKEN_ID2, token_type),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 500,
+                    actual_burn_atoms: 500,
                     has_colored_out_of_range: true,
                     ..empty_entry()
                 }],
-                outputs: vec![None, token_amount::<0>(100)],
+                outputs: vec![None, token_atoms::<0>(100)],
                 failed_parsings: vec![],
             },
         );

@@ -447,14 +447,14 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     }
 
     // Parse outputs
-    let change = 0;
-    let outputSatoshis = 0;
-    let receivedSatoshis = 0;
+    let change = 0n;
+    let outputSatoshis = 0n;
+    let receivedSatoshis = 0n;
     let selfSendTx = true;
 
     for (const output of outputs) {
-        const { outputScript, value } = output;
-        outputSatoshis += value;
+        const { outputScript, sats } = output;
+        outputSatoshis += sats;
         if (outputScript.startsWith(opreturnConfig.opReturnPrefixHex)) {
             stackArray = getStackArray(outputScript);
             continue;
@@ -463,8 +463,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         for (const hash of hashes) {
             if (outputScript.includes(hash)) {
                 walletIncludesThisOutputScript = true;
-                change += value;
-                receivedSatoshis += value;
+                change += sats;
+                receivedSatoshis += sats;
             }
         }
         if (!walletIncludesThisOutputScript) {
@@ -846,12 +846,12 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             satoshisSent >=
                 Math.floor(
                     (STAKING_REWARDS_FACTOR - STAKING_REWARDS_PADDING) *
-                        outputSatoshis,
+                        Number(outputSatoshis),
                 ) &&
             satoshisSent <=
                 Math.floor(
                     (STAKING_REWARDS_FACTOR + STAKING_REWARDS_PADDING) *
-                        outputSatoshis,
+                        Number(outputSatoshis),
                 )
         ) {
             xecTxType = XecTxType.Staking;
@@ -867,8 +867,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             tokenType,
             txType,
             burnSummary,
-            actualBurnAmount,
-            intentionalBurn,
+            actualBurnAtoms,
+            intentionalBurnAtoms,
         } = entry;
 
         const renderedTokenType = getRenderedTokenType(tokenType);
@@ -901,8 +901,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         }
 
         const isUnintentionalBurn =
-            burnSummary !== '' && actualBurnAmount !== '0';
-        const isIntentionalBurn = intentionalBurn !== '0';
+            burnSummary !== '' && actualBurnAtoms !== 0n;
+        const isIntentionalBurn = intentionalBurnAtoms !== 0n;
 
         let agoraSaleTokenSatoshis = 0n;
         let tokenSatoshisTotal = 0n;
@@ -914,7 +914,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 // Get the amount associated with this token entry
                 // Per ChronikClient, we will always have amount as a string in
                 // the token key of an output, see type Token
-                tokenSatoshisTotal += BigInt(output.token.amount);
+                tokenSatoshisTotal += output.token.atoms;
 
                 // For sales of agora partial txs, we assume the amount sold
                 // goes to a p2pkh address
@@ -923,14 +923,14 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         output.outputScript,
                     );
                     if (type === 'p2pkh') {
-                        agoraSaleTokenSatoshis += BigInt(output.token.amount);
+                        agoraSaleTokenSatoshis += output.token.atoms;
                     }
                 }
                 for (const hash of hashes) {
                     if (output.outputScript.includes(hash)) {
-                        tokenSatoshisReceived += BigInt(output.token.amount);
+                        tokenSatoshisReceived += output.token.atoms;
 
-                        if (output.token.amount === '1') {
+                        if (output.token.atoms === 1n) {
                             // Note that we increment this for all qty 1 outputs we see
                             // But only tx of type fan input will use this var
                             nftFanInputsCreated += 1;
@@ -968,7 +968,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         break;
                     }
                     case 'BURN': {
-                        tokenSatoshis = BigInt(actualBurnAmount);
+                        tokenSatoshis = actualBurnAtoms;
                     }
                 }
             }
@@ -978,7 +978,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             renderedTxType = 'BURN';
             // Maybe this is a SEND tx, but if it burns unintentionally,
             // that is the more important info
-            tokenSatoshis = BigInt(actualBurnAmount);
+            tokenSatoshis = actualBurnAtoms;
         }
         const parsedTokenEntry: ParsedTokenEntry = {
             tokenId,
@@ -1003,7 +1003,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
 
     const parsedTx: ParsedTx = {
         recipients: Array.from(destinationAddresses),
-        satoshisSent,
+        satoshisSent: Number(satoshisSent),
         stackArray,
         xecTxType,
         appActions,
@@ -1406,7 +1406,8 @@ export const getTokenGenesisInfo = async (
             // Add its outputScript to genesisOutputScripts
             genesisOutputScripts.add(outputScript);
 
-            const { isMintBaton, amount } = token;
+            const { isMintBaton, atoms } = token;
+
             if (isMintBaton) {
                 // If it is a mintBaton, increment genesisMintBatons
                 genesisMintBatons += 1;
@@ -1423,7 +1424,7 @@ export const getTokenGenesisInfo = async (
                             genesisSupply,
                             decimals as SlpDecimals,
                         ),
-                    ) + BigInt(amount)
+                    ) + atoms
                 ).toString(),
                 decimals as SlpDecimals,
             );
@@ -1479,7 +1480,7 @@ export const getTokenBalances = async (
     for (const utxo of slpUtxos) {
         // Every utxo in slpUtxos will have a tokenId
         const { token } = utxo;
-        const { tokenId, amount } = token;
+        const { tokenId, atoms } = token;
         // Is this token cached?
         let cachedTokenInfo = tokenCache.get(tokenId);
         if (typeof cachedTokenInfo === 'undefined') {
@@ -1496,7 +1497,10 @@ export const getTokenBalances = async (
         walletStateTokens.set(
             tokenId,
             typeof tokenBalanceInMap === 'undefined'
-                ? decimalizeTokenAmount(amount, decimals as SlpDecimals)
+                ? decimalizeTokenAmount(
+                      atoms.toString(),
+                      decimals as SlpDecimals,
+                  )
                 : decimalizeTokenAmount(
                       (
                           BigInt(
@@ -1504,7 +1508,7 @@ export const getTokenBalances = async (
                                   tokenBalanceInMap,
                                   decimals as SlpDecimals,
                               ),
-                          ) + BigInt(amount)
+                          ) + atoms
                       ).toString(),
                       decimals as SlpDecimals,
                   ),

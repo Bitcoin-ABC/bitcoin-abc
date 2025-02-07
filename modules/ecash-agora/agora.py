@@ -321,7 +321,7 @@ class AgoraOneshot:
         op_return_script = slp_send(
             token_type=self.token.token_type,
             token_id=self.token.token_id,
-            amounts=[0, self.token.amount],
+            amounts=[0, self.token.atoms],
         )
         return (
             bytes(8)
@@ -744,11 +744,11 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
     token_trunc_factor = 1 << (8 * num_token_trunc_bytes)
 
     # Offers must have a losslessly truncatable token amount
-    if token.amount % token_trunc_factor != 0:
+    if token.atoms % token_trunc_factor != 0:
         return None
 
     partial_alp = AgoraPartial(
-        trunc_tokens=token.amount // token_trunc_factor,
+        trunc_tokens=token.atoms // token_trunc_factor,
         num_token_trunc_bytes=num_token_trunc_bytes,
         token_scale_factor=token_scale_factor,
         scaled_trunc_tokens_per_trunc_sat=scaled_trunc_tokens_per_trunc_sat,

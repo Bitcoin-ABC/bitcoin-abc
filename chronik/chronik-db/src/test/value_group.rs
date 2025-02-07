@@ -11,7 +11,7 @@ use crate::{
     io::{GroupHistoryConf, GroupUtxoConf},
 };
 
-/// Index by output/input value. While useless in pactice, this makes
+/// Index by output/input sats. While useless in practice, this makes
 /// writing tests very convenient and showcases how Group can be used.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub(crate) struct ValueGroup;
@@ -34,7 +34,7 @@ impl Group for ValueGroup {
                 if let Some(coin) = &input.coin {
                     inputs.push(MemberItem {
                         idx,
-                        member: coin.output.value,
+                        member: coin.output.sats,
                     });
                 }
             }
@@ -51,14 +51,14 @@ impl Group for ValueGroup {
         for (idx, output) in query.tx.outputs.iter().enumerate() {
             outputs.push(MemberItem {
                 idx,
-                member: output.value,
+                member: output.sats,
             });
         }
         outputs
     }
 
-    fn ser_member(&self, value: &i64) -> Self::MemberSer {
-        ser_value(*value)
+    fn ser_member(&self, sats: &i64) -> Self::MemberSer {
+        ser_value(*sats)
     }
 
     fn ser_hash_member(&self, _member: &Self::Member<'_>) -> [u8; 32] {
@@ -81,9 +81,9 @@ impl Group for ValueGroup {
     }
 }
 
-/// Serialize the value as array
-pub(crate) fn ser_value(value: i64) -> [u8; 8] {
-    value.to_be_bytes()
+/// Serialize the sats as array
+pub(crate) fn ser_value(sats: i64) -> [u8; 8] {
+    sats.to_be_bytes()
 }
 
 /// Make a tx with inputs and outputs having the given values.
@@ -96,7 +96,7 @@ pub(crate) fn make_value_tx<const N: usize, const M: usize>(
 ) -> Tx {
     make_inputs_tx(
         txid_num,
-        input_values.map(|value| (0, 0, value)),
+        input_values.map(|sats| (0, 0, sats)),
         output_values,
     )
 }
@@ -112,14 +112,14 @@ pub(crate) fn make_inputs_tx<const N: usize, const M: usize>(
             version: 0,
             inputs: input_values
                 .into_iter()
-                .map(|(input_txid_num, out_idx, value)| TxInput {
+                .map(|(input_txid_num, out_idx, sats)| TxInput {
                     prev_out: OutPoint {
                         txid: TxId::from([input_txid_num; 32]),
                         out_idx,
                     },
                     coin: Some(Coin {
                         output: TxOutput {
-                            value,
+                            sats,
                             ..Default::default()
                         },
                         ..Default::default()
@@ -129,8 +129,8 @@ pub(crate) fn make_inputs_tx<const N: usize, const M: usize>(
                 .collect(),
             outputs: output_values
                 .into_iter()
-                .map(|value| TxOutput {
-                    value,
+                .map(|sats| TxOutput {
+                    sats,
                     ..Default::default()
                 })
                 .collect(),

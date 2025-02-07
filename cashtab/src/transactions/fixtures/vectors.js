@@ -23,13 +23,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: '5e72d1e46769ff1c9b8f1bcbfead4a3947a08ea30aa0f6b915cd51e75ad3b1ec',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441a3d98bb6fa7f8285ab8733623e8a9aeafeb78a4a95e8f63e8eaae4c0c56f73cf281312d3f1b49e58f93da3810bf4b8d7a6244afd67ba85ca7ebee00f7aeeab974121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ace55c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -40,13 +40,13 @@ export const sendXecVectors = {
             wallet: walletWithCoinbaseUtxos,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800100,
             txid: '5e72d1e46769ff1c9b8f1bcbfead4a3947a08ea30aa0f6b915cd51e75ad3b1ec',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441a3d98bb6fa7f8285ab8733623e8a9aeafeb78a4a95e8f63e8eaae4c0c56f73cf281312d3f1b49e58f93da3810bf4b8d7a6244afd67ba85ca7ebee00f7aeeab974121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ace55c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -57,14 +57,14 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
                 OP_RETURN_CASHTAB_MSG_TEST,
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: 'c3133cad336c6c36c4efa65be65f708e199745c8a0e4d2dffe04d88e5e0d6bf0',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064412344401941ff34548502ce5c4a68a58a2904fdf3c0098a0955b1db1b7fe61126ecafae490f57cfd4f46fa9ab69f4caa4b62ca45731c3c3106d1934e9f20b2e614121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000000000000b6a04007461620474657374d15c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -76,13 +76,13 @@ export const sendXecVectors = {
             targetOutputs: [
                 OP_RETURN_CASHTAB_MSG_TEST,
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: '6728c6beaa67701ddf0c4d22907ef2dd154abc2f2f0369de80e9aa6a725d4634',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064413d261c7c3d123de27819765b9fc1636fc4f52d9090cddd5943f5b6e27a03ff04e45ac8064bf42b02aa54d5e84f00c758d43f3e1b5c9b14abfd9c1bd3eab0a2f74121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000000b6a04007461620474657374e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acd15c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -93,13 +93,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: '21b5c037e12ad2222385840d43469463c56ee883ed09d630f08d18dd9a402c7d',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441e0b9c604d3a856f46c4a159dc0a98b899e0224ae3f94d8fd856a6697f57c71d4f3f314e8842c9b1e9c05468044285e3a1447d9fa4657f20d2db87648189d90a94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e80300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087e75c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -109,13 +109,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 10000,
+            satsPerKb: 10000n,
             chaintipBlockheight: 800000,
             txid: '6a4b7427f34ff1c392f61e20fe9d808185c8b5c653e83c005f10d976ba91edeb',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441cf16b61d32d874d07217318955e361665a234dca918fff263efeae67b114aeb53a0a02ae95708579d58f3648f041a91852f66b3197c0e0d3b455410aca55933f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac32550000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -125,13 +125,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 24808,
+                    sats: 24808n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: 'b597af156365293c2775c9227315fdd504fcf5685e127ceffeef3e280fbe5a08',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064419d87399cc0165e0d882dddb66b42ed6b450d44114085207753efde09fbb3406f8343a2b20dfe9bf85ba410c9dcd615d266cc52d1f626c3bdfefb5168478a8fe64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff01e8600000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000',
@@ -142,13 +142,13 @@ export const sendXecVectors = {
             wallet: utxosAtManyAddressesWallet,
             targetOutputs: [
                 {
-                    value: 24808,
+                    sats: 24808n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: 'a3aa4561e61c9cd134c576efa835d3cd912aa61bbe9ed1b209e4b1d3aa6db41e',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef1546800000000644181ca26c0945e7641eb8e6cf6a5e37b55784b690c18875ee44c35009c36a4257c36c131ddcb134ca129410a6613477c086ebe377e9819b0abc4c4be5fe1283f4e412103939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5ffffffff01e8600000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000',
@@ -159,13 +159,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 88800,
+                    sats: 88800n,
                     script: Script.fromAddress(
                         'ecash:qzr03ye2jhrxmw97g9hv4s05364qgsdqzsjre4krry',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: 'c598079e46bbd4d9aaca79762072f1d45d51603d1426bf6fa87f7fb329a139b2',
             hex: '0200000002c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064415a67dec1ddcb824d6a3e440a24316240be134a34117e637ce777f8bb0e1c30628a91c3876674bdb0c152252b43c9ed59161f6fb60c9c7f915a1d51dda741be0b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff09fb259435ad29ff0a032d6fe5063d0e0172f68ce48a38756a3a2935ff0614900000000064414c6e8a4ad4b509bd66b32fe2ead291bfac74810b7cea68745e5bd350b6b6e0d5dce17a1a91afa78a34e61347911d941204b6033df2f36d935e5144157ba074374121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e05a0100000000001976a91486f8932a95c66db8be416ecac1f48eaa0441a01488ac008c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -176,13 +176,13 @@ export const sendXecVectors = {
             wallet: allTheXecWallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: '36bed0059f52716820614716821aac224f5b3f85b43d474bdfb3e1ade208b479',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441446ab6df166ddd7ffee75fabfba006a58ee3be394e2c53c8bad70f20df5f9a5ce612cac4269cd4122f723b64d2dc80e08dfe4feb39592f9ff7530ff16ebada964121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac3d3b075af07507001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -193,37 +193,37 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
                 {
-                    value: 2000,
+                    sats: 2000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
                 {
-                    value: 3000,
+                    sats: 3000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
                 {
-                    value: 4000,
+                    sats: 4000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
                 {
-                    value: 5000,
+                    sats: 5000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: '8941b76669444bad98499ccb8549483237c648f85c694e96c57ca80dce521d57',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064410dc35e14f820a5870dbb791ee494f73de749b3ff8e20bf5d4d3b8a21118432eda47c4b5a6f2a92093b367402d35d31a12537de4a224e4af34d0c45259827523f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff06e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acd0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acb80b0000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88aca00f0000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac88130000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acad250000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -234,37 +234,37 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                     ),
                 },
                 {
-                    value: 2000,
+                    sats: 2000n,
                     script: Script.fromAddress(
                         'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                     ),
                 },
                 {
-                    value: 3000,
+                    sats: 3000n,
                     script: Script.fromAddress(
                         'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                     ),
                 },
                 {
-                    value: 4000,
+                    sats: 4000n,
                     script: Script.fromAddress(
                         'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                     ),
                 },
                 {
-                    value: 5000,
+                    sats: 5000n,
                     script: Script.fromAddress(
                         'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             txid: 'eb3f211e3ac485fd82271ceae4ad715cb625f25560e13a00e5e7caf912d49458',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441456c92b6ce2d253d687b7a8650a9558af0a9385799754efa61a52462bb745f7e1c6965e54fc64477f04c9095ea70654193708eab23add2301bfffa782dc3861b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff06e80300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087d00700000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087b80b00000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087a00f00000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087881300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087b7250000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -276,13 +276,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 545,
+                    sats: 545n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             msg: 'Transaction output amount must be at least the dust threshold of 546 satoshis',
             hex: undefined,
@@ -292,13 +292,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: wallet.state.balanceSats + 1,
+                    sats: BigInt(wallet.state.balanceSats + 1),
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             msg: 'Insufficient funds',
             hex: undefined,
@@ -309,13 +309,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: wallet.state.balanceSats - 50,
+                    sats: BigInt(wallet.state.balanceSats - 50),
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             msg: 'Insufficient funds',
             hex: undefined,
@@ -325,13 +325,13 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             msg: 'txn-mempool-conflict (code 18)',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441a3d98bb6fa7f8285ab8733623e8a9aeafeb78a4a95e8f63e8eaae4c0c56f73cf281312d3f1b49e58f93da3810bf4b8d7a6244afd67ba85ca7ebee00f7aeeab974121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ace55c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
@@ -341,13 +341,13 @@ export const sendXecVectors = {
             wallet: walletWithCoinbaseUtxos,
             targetOutputs: [
                 {
-                    value: 1000,
+                    sats: 1000n,
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
                 },
             ],
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800099,
             msg: 'Insufficient funds',
             hex: 'deadbeef', // error is thrown before the rawtx is built
@@ -365,37 +365,37 @@ export const getMultisendTargetOutputsVectors = {
                     script: Script.fromAddress(
                         'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
                     ),
-                    value: 15000,
+                    sats: 15000n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
-                    value: 5000,
+                    sats: 5000n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
                     ),
-                    value: 15000,
+                    sats: 15000n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
                     ),
-                    value: 440000,
+                    sats: 440000n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
                     ),
-                    value: 5000,
+                    sats: 5000n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
                     ),
-                    value: 20000,
+                    sats: 20000n,
                 },
             ],
         },
@@ -408,13 +408,13 @@ export const getMultisendTargetOutputsVectors = {
                     script: Script.fromAddress(
                         'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
                     ),
-                    value: 15000,
+                    sats: 15000n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                     ),
-                    value: 5000,
+                    sats: 5000n,
                 },
             ],
         },
@@ -426,7 +426,7 @@ export const getMultisendTargetOutputsVectors = {
                     script: Script.fromAddress(
                         'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
                     ),
-                    value: 15000,
+                    sats: 15000n,
                 },
             ],
         },
@@ -438,31 +438,31 @@ export const getMultisendTargetOutputsVectors = {
                     script: Script.fromAddress(
                         'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
                     ),
-                    value: 15152,
+                    sats: 15152n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
                     ),
-                    value: 15152,
+                    sats: 15152n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
                     ),
-                    value: 444444,
+                    sats: 444444n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
                     ),
-                    value: 5051,
+                    sats: 5051n,
                 },
                 {
                     script: Script.fromAddress(
                         'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
                     ),
-                    value: 20202,
+                    sats: 20202n,
                 },
             ],
         },
@@ -571,7 +571,7 @@ export const sendSlp = {
             decimals: 9,
             destinationAddress:
                 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             tokenInputs: [
                 {
@@ -579,7 +579,7 @@ export const sendSlp = {
                         txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
                         outIdx: 1,
                     },
-                    value: 546,
+                    sats: 546n,
                     token: {
                         tokenType: {
                             number: 1,
@@ -588,7 +588,7 @@ export const sendSlp = {
                         },
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
-                        amount: '1000000000',
+                        atoms: 1000000000n,
                         isMintBaton: false,
                     },
                     isCoinbase: false,
@@ -601,7 +601,7 @@ export const sendSlp = {
                         txid: '51bc5da566c85b486b37f1c4d3c0220b7bc11ad992c1b92f99233cf35a8794c1',
                         outIdx: 1,
                     },
-                    value: 546,
+                    sats: 546n,
                     token: {
                         tokenType: {
                             number: 1,
@@ -610,7 +610,7 @@ export const sendSlp = {
                         },
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
-                        amount: '9999996998999999999',
+                        atoms: 9999996998999999999n,
                         isMintBaton: false,
                     },
                     isCoinbase: false,
@@ -636,7 +636,7 @@ export const sendSlp = {
             decimals: 9,
             destinationAddress:
                 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             tokenInputs: [
                 {
@@ -644,7 +644,7 @@ export const sendSlp = {
                         txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
                         outIdx: 1,
                     },
-                    value: 546,
+                    sats: 546n,
                     token: {
                         tokenType: {
                             number: 1,
@@ -653,7 +653,7 @@ export const sendSlp = {
                         },
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
-                        amount: '1000000000',
+                        atoms: 1000000000n,
                         isMintBaton: false,
                     },
                     isCoinbase: false,
@@ -679,7 +679,7 @@ export const sendSlp = {
             decimals: 9,
             destinationAddress:
                 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-            satsPerKb: 1000,
+            satsPerKb: 1000n,
             chaintipBlockheight: 800000,
             tokenInputs: walletWithTokensInNode.state.slpUtxos,
             sendAmounts: [10000000000000000000n],
@@ -716,7 +716,7 @@ export default {
                         txid: '1111111111111111111111111111111111111111111111111111111111111111',
                     },
                     path: 1899,
-                    value: 10000,
+                    sats: 10000n,
                 },
                 returned: false,
             },
@@ -733,7 +733,7 @@ export default {
                     },
                     path: 1899,
                     token: {
-                        amount: '1000',
+                        atoms: 1000n,
                         isMintBaton: false,
                         tokenId:
                             '2222222222222222222222222222222222222222222222222222222222222222',
@@ -743,7 +743,7 @@ export default {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         },
                     },
-                    value: 546,
+                    sats: 546n,
                 },
                 returned: false,
             },

@@ -86,18 +86,18 @@ impl<'a> BlockStatsWriter<'a> {
         for tx in txs {
             for output in &tx.tx.outputs {
                 if output.script.is_opreturn() {
-                    sum_burned_sats += output.value;
+                    sum_burned_sats += output.sats;
                 }
             }
             let tx_output_sats =
-                tx.tx.outputs.iter().map(|output| output.value).sum::<i64>();
+                tx.tx.outputs.iter().map(|output| output.sats).sum::<i64>();
             if tx.is_coinbase {
                 sum_coinbase_output_sats += tx_output_sats;
             } else {
                 sum_normal_output_sats += tx_output_sats;
                 for input in &tx.tx.inputs {
                     if let Some(coin) = input.coin.as_ref() {
-                        sum_input_sats += coin.output.value;
+                        sum_input_sats += coin.output.sats;
                     }
                 }
             }
@@ -216,7 +216,7 @@ mod tests {
                         .inputs
                         .clone(),
                     outputs: vec![TxOutput {
-                        value: 60,
+                        sats: 60,
                         script: {
                             let mut script = ScriptMut::default();
                             script.put_opcodes([OP_RETURN, OP_1]);

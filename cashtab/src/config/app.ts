@@ -13,8 +13,8 @@ interface AppConfig {
     prefix: string;
     coingeckoId: string;
     fiatUpdateIntervalMs: number;
-    defaultFee: number;
-    minFee: number;
+    defaultFee: bigint;
+    minFee: bigint;
     dustSats: number;
     cashDecimals: number;
     fiatDecimals: number;
@@ -51,8 +51,8 @@ const appConfig: AppConfig = {
     prefix: process.env.REACT_APP_TESTNET === 'true' ? 'ectest' : 'ecash',
     coingeckoId: 'ecash',
     fiatUpdateIntervalMs: 90000,
-    defaultFee: 2010, // satoshis per kb
-    minFee: 1000, // satoshis per kb
+    defaultFee: 2010n, // satoshis per kb
+    minFee: 1000n, // satoshis per kb
     dustSats: 546,
     cashDecimals: 2,
     fiatDecimals: 2,

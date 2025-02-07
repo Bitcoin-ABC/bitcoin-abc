@@ -146,7 +146,7 @@ function writeLegacyPreimage(
             idx != inputIdx
         ) {
             // Do not lock-in the txout payee at other indices as txin
-            writeTxOutput({ value: 0, script: new Script() }, writer);
+            writeTxOutput({ sats: 0n, script: new Script() }, writer);
         } else {
             writeTxOutput(tx.outputs[idx], writer);
         }
@@ -288,7 +288,7 @@ export class UnsignedTxInput {
             }
             writeOutPoint(input.prevOut, writer);
             scriptCode.writeWithSize(writer);
-            writer.putU64(signData.value);
+            writer.putU64(signData.sats);
             writer.putU32(input.sequence ?? DEFAULT_SEQUENCE);
             writer.putBytes(hashOutputs);
             writer.putU32(tx.locktime);

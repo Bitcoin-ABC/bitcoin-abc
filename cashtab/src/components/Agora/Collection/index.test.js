@@ -406,14 +406,14 @@ describe('<Collection />', () => {
         mockedChronik.setBroadcastTx(mockBuyHex, mockBuyTxid);
 
         // Need to juice the wallet with a big utxo as this NFT is $$$
-        const affordItUTxo = {
+        const affordItUtxo = {
             outpoint: {
                 txid: '4711d244d0f540e6fcd69c01a8095f692da2a66ae7a7da8990627ecf12f727f3',
                 outIdx: 0,
             },
             blockHeight: -1,
             isCoinbase: false,
-            value: 5000001488,
+            sats: 5000001488n,
             isFinal: false,
             path: 1899,
         };
@@ -446,7 +446,7 @@ describe('<Collection />', () => {
                         ...agoraPartialBetaWallet,
                         state: {
                             ...agoraPartialBetaWallet.state,
-                            nonSlpUtxos: [affordItUTxo],
+                            nonSlpUtxos: [affordItUtxo],
                         },
                     }}
                     activePk={agoraPartialBetaKeypair.pk}

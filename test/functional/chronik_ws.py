@@ -108,7 +108,7 @@ class ChronikWsTest(BitcoinTestFramework):
             coinbase_scriptsig = bytes.fromhex(coinbase["vin"][0]["coinbase"])
             coinbase_outputs = [
                 {
-                    "value": int(txout["value"] * XEC),
+                    "sats": int(txout["value"] * XEC),
                     "output_script": bytes.fromhex(txout["scriptPubKey"]["hex"]),
                 }
                 for txout in coinbase["vout"]

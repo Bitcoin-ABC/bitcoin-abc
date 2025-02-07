@@ -80,15 +80,15 @@ describe('Tx', () => {
                 ],
                 outputs: [
                     {
-                        value: 0x2134,
+                        sats: 0x2134n,
                         script: new Script(fromHex('1133557799')),
                     },
                     {
-                        value: 0x8079685746352413n,
+                        sats: 0x8079685746352413n,
                         script: new Script(fromHex('564738291092837465')),
                     },
                     {
-                        value: 0,
+                        sats: 0n,
                         script: new Script(fromHex('6a68656c6c6f')),
                     },
                 ],

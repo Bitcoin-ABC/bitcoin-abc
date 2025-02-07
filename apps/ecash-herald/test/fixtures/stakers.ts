@@ -7,21 +7,21 @@ const stakerTestFixtures = [
         coinbaseTx: {
             outputs: [
                 {
-                    value: 362501148,
+                    sats: 362501148n,
                     outputScript:
                         '76a9141b1bbcb888b4440a573427f526cb221f657318cf88ac',
                     slpToken: undefined,
                     spentBy: undefined,
                 },
                 {
-                    value: 200000632,
+                    sats: 200000632n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                     slpToken: undefined,
                     spentBy: undefined,
                 },
                 {
-                    value: 62500197,
+                    sats: 62500197n,
                     outputScript:
                         '76a914066f83c9a49e2639b5f0fb03f4da1b387c7e8ad188ac',
                     slpToken: undefined,
@@ -36,21 +36,21 @@ const stakerTestFixtures = [
         },
         staker: {
             staker: '76a914066f83c9a49e2639b5f0fb03f4da1b387c7e8ad188ac',
-            reward: 62500197,
+            reward: 62500197n,
         },
     },
     {
         coinbaseTx: {
             outputs: [
                 {
-                    value: 575000000,
+                    sats: 575000000n,
                     outputScript:
                         '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac',
                     slpToken: undefined,
                     spentBy: undefined,
                 },
                 {
-                    value: 50000000,
+                    sats: 50000000n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                     slpToken: undefined,
@@ -71,21 +71,21 @@ const stakerTestFixtures = [
         coinbaseTx: {
             outputs: [
                 {
-                    value: '268750850',
+                    sats: 268750850n,
                     outputScript:
                         '76a9141b1bbcb888b4440a573427f526cb221f657318cf88ac',
                     slpToken: undefined,
                     spentBy: undefined,
                 },
                 {
-                    value: '200000632',
+                    sats: 200000632n,
                     outputScript:
                         'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                     slpToken: undefined,
                     spentBy: undefined,
                 },
                 {
-                    value: '156250494',
+                    sats: 156250494n,
                     outputScript:
                         '76a914066f83c9a49e2639b5f0fb03f4da1b387c7e8ad188ac',
                     slpToken: undefined,

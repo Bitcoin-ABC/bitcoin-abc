@@ -32,8 +32,8 @@ class GenesisInfo(NamedTuple):
     auth_pubkey: Optional[bytes]
 
     # How many decimal places to use when displaying the token.
-    # Token amounts are stored in their "base" form, but should be displayed
-    # as `base_amount * 10^-decimals`. E.g. a base amount of 12345 and
+    # Token amounts are stored in atoms (base units), but should be displayed
+    # as `atoms * 10^-decimals`. E.g. `atoms` of 12345 and
     # decimals of 4 should be displayed as "1.2345".
     decimals: int
 
@@ -60,10 +60,10 @@ class TokenTxEntry(NamedTuple):
     is_invalid: bool = False
 
     # Number of actually burned tokens
-    actual_burn_amount: int = 0
+    actual_burn_atoms: int = 0
 
     # Number of burned tokens the user explicitly opted into
-    intentional_burn_amount: Optional[int] = None
+    intentional_burn_atoms: Optional[int] = None
 
     # Whether any mint batons of this token are burned in this tx
     burns_mint_batons: bool = False
@@ -86,8 +86,8 @@ class Token(NamedTuple):
     # Index into `token_entries` of a `Tx` object
     entry_idx: int
 
-    # Base token amount of the input/output
-    amount: int
+    # Token amount (in atoms) of the input/output
+    atoms: int
 
     # Whether the token is a mint baton
     is_mint_baton: bool

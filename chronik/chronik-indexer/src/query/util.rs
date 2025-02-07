@@ -69,16 +69,14 @@ pub(crate) fn make_tx_proto(params: MakeTxProtoParams<'_>) -> proto::Tx {
             .enumerate()
             .map(|(input_idx, input)| {
                 let coin = input.coin.as_ref();
-                let (output_script, value) = coin
-                    .map(|coin| {
-                        (coin.output.script.to_vec(), coin.output.value)
-                    })
+                let (output_script, sats) = coin
+                    .map(|coin| (coin.output.script.to_vec(), coin.output.sats))
                     .unwrap_or_default();
                 proto::TxInput {
                     prev_out: Some(make_outpoint_proto(&input.prev_out)),
                     input_script: input.script.to_vec(),
                     output_script,
-                    value,
+                    sats,
                     sequence_no: input.sequence,
                     token: params
                         .token
@@ -101,7 +99,7 @@ pub(crate) fn make_tx_proto(params: MakeTxProtoParams<'_>) -> proto::Tx {
             .iter()
             .enumerate()
             .map(|(output_idx, output)| proto::TxOutput {
-                value: output.value,
+                sats: output.sats,
                 output_script: output.script.to_vec(),
                 spent_by: params
                     .outputs_spent

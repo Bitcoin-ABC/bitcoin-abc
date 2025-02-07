@@ -10,7 +10,7 @@ use bitcoinsuite_slp::{
     alp::{mint_section, parse_section, sections_opreturn},
     color::{ColorError, ColoredTx, ColoredTxSection, FailedColoring},
     parsed::{ParsedData, ParsedMintData},
-    structs::{Amount, Token, TokenMeta, TokenOutput, TokenVariant, TxType},
+    structs::{Atoms, Token, TokenMeta, TokenOutput, TokenVariant, TxType},
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
 };
@@ -29,14 +29,14 @@ const EMPTY_TXID: TxId = TxId::new([0; 32]);
 const EMPTY_TOKEN_ID: TokenId = TokenId::new(EMPTY_TXID);
 
 const STD: AlpTokenType = AlpTokenType::Standard;
-const MAX: Amount = 0xffff_ffff_ffff;
+const MAX: Atoms = 0xffff_ffff_ffff;
 
 fn make_tx<const N: usize>(script: Script) -> Tx {
     Tx::with_txid(
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),
@@ -69,7 +69,7 @@ fn colored_mint_section(token_id: TokenId) -> ColoredTxSection {
 fn amount<const TOKENIDX: usize>(amount: u64) -> Option<TokenOutput> {
     Some(TokenOutput {
         token_idx: TOKENIDX,
-        variant: TokenVariant::Amount(amount),
+        variant: TokenVariant::Atoms(amount),
     })
 }
 
@@ -89,14 +89,14 @@ fn unknown<const TOKENIDX: usize>(token_type: u8) -> Option<TokenOutput> {
 
 fn make_mint<const N: usize>(
     token_id: &TokenId,
-    amounts: [Amount; N],
+    atoms_vec: [Atoms; N],
     num_batons: usize,
 ) -> Bytes {
     mint_section(
         token_id,
         AlpTokenType::Standard,
         &ParsedMintData {
-            amounts: amounts.into_iter().collect(),
+            atoms_vec: atoms_vec.into_iter().collect(),
             num_batons,
         },
     )
@@ -240,13 +240,13 @@ fn test_color_alp_mint_overlapping_amount() {
             failed_colorings: vec![FailedColoring {
                 pushdata_idx: 1,
                 parsed: parse(make_mint(&TOKEN_ID3, [0, 777, 1], 0)),
-                error: ColorError::OverlappingAmount {
+                error: ColorError::OverlappingAtoms {
                     prev_token: Token {
                         meta: meta(TOKEN_ID2),
                         variant: TokenVariant::MintBaton,
                     },
                     output_idx: 2,
-                    amount: 777,
+                    atoms: 777,
                 },
             }],
             ..Default::default()
@@ -270,7 +270,7 @@ fn test_color_alp_mint_overlapping_mint_baton() {
                 error: ColorError::OverlappingMintBaton {
                     prev_token: Token {
                         meta: meta(TOKEN_ID2),
-                        variant: TokenVariant::Amount(9),
+                        variant: TokenVariant::Atoms(9),
                     },
                     output_idx: 3,
                 },

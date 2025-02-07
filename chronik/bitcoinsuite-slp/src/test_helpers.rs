@@ -15,7 +15,7 @@ use crate::{
     color::ColoredTx,
     parsed::{ParsedData, ParsedMintData},
     structs::{
-        Amount, GenesisInfo, Token, TokenMeta, TokenOutput, TokenVariant,
+        Atoms, GenesisInfo, Token, TokenMeta, TokenOutput, TokenVariant,
     },
     token_id::TokenId,
     token_tx::{TokenTx, TokenTxEntry},
@@ -74,27 +74,27 @@ pub fn meta_alp_unknown(token_id: TokenId, token_type: u8) -> TokenMeta {
     }
 }
 
-/// Shortcut for a SpentToken amount
-pub fn spent_amount(meta: TokenMeta, amount: u64) -> Option<SpentToken> {
+/// Shortcut for a SpentToken atoms
+pub fn spent_atoms(meta: TokenMeta, atoms: u64) -> Option<SpentToken> {
     Some(SpentToken {
         token: Token {
             meta,
-            variant: TokenVariant::Amount(amount),
+            variant: TokenVariant::Atoms(atoms),
         },
         group_token_meta: None,
     })
 }
 
-/// Shortcut for a SpentToken amount with a group
-pub fn spent_amount_group(
+/// Shortcut for a SpentToken atoms with a group
+pub fn spent_atoms_group(
     meta: TokenMeta,
-    amount: u64,
+    atoms: u64,
     group_token_meta: TokenMeta,
 ) -> Option<SpentToken> {
     Some(SpentToken {
         token: Token {
             meta,
-            variant: TokenVariant::Amount(amount),
+            variant: TokenVariant::Atoms(atoms),
         },
         group_token_meta: Some(group_token_meta),
     })
@@ -111,11 +111,11 @@ pub fn spent_baton(meta: TokenMeta) -> Option<SpentToken> {
     })
 }
 
-/// Shortcut for a TokenOutput amount
-pub fn token_amount<const N: usize>(amount: u64) -> Option<TokenOutput> {
+/// Shortcut for a TokenOutput atoms
+pub fn token_atoms<const N: usize>(atoms: u64) -> Option<TokenOutput> {
     Some(TokenOutput {
         token_idx: N,
-        variant: TokenVariant::Amount(amount),
+        variant: TokenVariant::Atoms(atoms),
     })
 }
 
@@ -147,8 +147,8 @@ pub fn empty_entry() -> TokenTxEntry {
         tx_type: None,
         genesis_info: None,
         group_token_meta: None,
-        intentional_burn_amount: None,
-        actual_burn_amount: 0,
+        intentional_burn_atoms: None,
+        actual_burn_atoms: 0,
         is_invalid: false,
         burns_mint_batons: false,
         burn_error: None,
@@ -160,14 +160,14 @@ pub fn empty_entry() -> TokenTxEntry {
 /// Shortcut to make an ALP MINT section
 pub fn alp_mint<const N: usize>(
     token_id: &TokenId,
-    amounts: [Amount; N],
+    atoms: [Atoms; N],
     num_batons: usize,
 ) -> Bytes {
     mint_section(
         token_id,
         AlpTokenType::Standard,
         &ParsedMintData {
-            amounts: amounts.into_iter().collect(),
+            atoms_vec: atoms.into_iter().collect(),
             num_batons,
         },
     )
@@ -182,7 +182,7 @@ pub fn verify<const N: usize>(
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),

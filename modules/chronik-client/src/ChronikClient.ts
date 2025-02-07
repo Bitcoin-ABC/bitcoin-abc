@@ -982,7 +982,7 @@ export class WsEndpoint {
                 msgType: convertToBlockMsgType(msg.block.msgType),
                 blockHash: toHexRev(msg.block.blockHash),
                 blockHeight: msg.block.blockHeight,
-                blockTimestamp: parseInt(msg.block.blockTimestamp),
+                blockTimestamp: Number(msg.block.blockTimestamp),
             };
             if (typeof msg.block.coinbaseData !== 'undefined') {
                 msgBlock.coinbaseData = convertToCoinbaseData(
@@ -1044,15 +1044,15 @@ function convertToBlockInfo(block: proto.BlockInfo): BlockInfo {
         ...block,
         hash: toHexRev(block.hash),
         prevHash: toHexRev(block.prevHash),
-        timestamp: parseInt(block.timestamp),
-        blockSize: parseInt(block.blockSize),
-        numTxs: parseInt(block.numTxs),
-        numInputs: parseInt(block.numInputs),
-        numOutputs: parseInt(block.numOutputs),
-        sumInputSats: parseInt(block.sumInputSats),
-        sumCoinbaseOutputSats: parseInt(block.sumCoinbaseOutputSats),
-        sumNormalOutputSats: parseInt(block.sumNormalOutputSats),
-        sumBurnedSats: parseInt(block.sumBurnedSats),
+        timestamp: Number(block.timestamp),
+        blockSize: Number(block.blockSize),
+        numTxs: Number(block.numTxs),
+        numInputs: Number(block.numInputs),
+        numOutputs: Number(block.numOutputs),
+        sumInputSats: block.sumInputSats,
+        sumCoinbaseOutputSats: block.sumCoinbaseOutputSats,
+        sumNormalOutputSats: block.sumNormalOutputSats,
+        sumBurnedSats: block.sumBurnedSats,
     };
 }
 
@@ -1063,7 +1063,7 @@ function convertToTx(tx: proto.Tx): Tx {
         inputs: tx.inputs.map(convertToTxInput),
         outputs: tx.outputs.map(convertToTxOutput),
         lockTime: tx.lockTime,
-        timeFirstSeen: parseInt(tx.timeFirstSeen),
+        timeFirstSeen: Number(tx.timeFirstSeen),
         size: tx.size,
         isCoinbase: tx.isCoinbase,
         tokenEntries: tx.tokenEntries.map(convertToTokenEntry),
@@ -1090,7 +1090,7 @@ function convertToTxInput(input: proto.TxInput): TxInput {
             outIdx: input.prevOut.outIdx,
         },
         inputScript: toHex(input.inputScript),
-        value: parseInt(input.value),
+        sats: input.sats,
         sequenceNo: input.sequenceNo,
     };
     if (typeof input.token !== 'undefined') {
@@ -1113,7 +1113,7 @@ function convertToTxInput(input: proto.TxInput): TxInput {
 
 function convertToTxOutput(output: proto.TxOutput): TxOutput {
     const txOutput: TxOutput = {
-        value: parseInt(output.value),
+        sats: BigInt(output.sats),
         outputScript: toHex(output.outputScript),
     };
     if (Object.keys(output.plugins).length > 0) {
@@ -1167,7 +1167,7 @@ function convertToBlockMeta(block: proto.BlockMetadata): BlockMetadata {
     return {
         height: block.height,
         hash: toHexRev(block.hash),
-        timestamp: parseInt(block.timestamp),
+        timestamp: Number(block.timestamp),
     };
 }
 
@@ -1188,7 +1188,7 @@ function convertToScriptUtxo(utxo: proto.ScriptUtxo): ScriptUtxo {
         },
         blockHeight: utxo.blockHeight,
         isCoinbase: utxo.isCoinbase,
-        value: parseInt(utxo.value),
+        sats: BigInt(utxo.sats),
         isFinal: utxo.isFinal,
     };
     if (typeof utxo.token !== 'undefined') {
@@ -1214,7 +1214,7 @@ function convertToUtxo(utxo: proto.Utxo): Utxo {
         blockHeight: utxo.blockHeight,
         isCoinbase: utxo.isCoinbase,
         script: toHex(utxo.script),
-        value: parseInt(utxo.value),
+        sats: BigInt(utxo.sats),
         isFinal: utxo.isFinal,
     };
     if (typeof utxo.token !== 'undefined') {
@@ -1242,8 +1242,8 @@ function convertToTokenEntry(tokenEntry: proto.TokenEntry): TokenEntry {
         isInvalid: tokenEntry.isInvalid,
         burnSummary: tokenEntry.burnSummary,
         failedColorings: tokenEntry.failedColorings,
-        actualBurnAmount: tokenEntry.actualBurnAmount,
-        intentionalBurn: tokenEntry.intentionalBurn,
+        actualBurnAtoms: BigInt(tokenEntry.actualBurnAtoms),
+        intentionalBurnAtoms: tokenEntry.intentionalBurnAtoms,
         burnsMintBatons: tokenEntry.burnsMintBatons,
     };
     if (tokenEntry.groupTokenId !== '') {
@@ -1341,7 +1341,7 @@ function convertToToken(token: proto.Token): Token {
     const convertedToken: Token = {
         tokenId: token.tokenId,
         tokenType: convertToTokenType(token.tokenType),
-        amount: token.amount,
+        atoms: BigInt(token.atoms),
         isMintBaton: token.isMintBaton,
     };
 
@@ -1393,7 +1393,7 @@ function convertToTokenInfo(tokenInfo: proto.TokenInfo): TokenInfo {
     const returnedTokenInfo: TokenInfo = {
         tokenId: tokenInfo.tokenId,
         tokenType,
-        timeFirstSeen: parseInt(tokenInfo.timeFirstSeen),
+        timeFirstSeen: Number(tokenInfo.timeFirstSeen),
         genesisInfo: convertToGenesisInfo(tokenInfo.genesisInfo, tokenType),
     };
 
@@ -1482,13 +1482,13 @@ export interface BlockInfo {
     /** Total number of tx output in block (including coinbase). */
     numOutputs: number;
     /** Total number of satoshis spent by tx inputs. */
-    sumInputSats: number;
+    sumInputSats: bigint;
     /** Total block reward for this block. */
-    sumCoinbaseOutputSats: number;
+    sumCoinbaseOutputSats: bigint;
     /** Total number of satoshis in non-coinbase tx outputs. */
-    sumNormalOutputSats: number;
+    sumNormalOutputSats: bigint;
     /** Total number of satoshis burned using OP_RETURN. */
-    sumBurnedSats: number;
+    sumBurnedSats: bigint;
 }
 
 /** Block interface for in-node chronik */
@@ -1586,7 +1586,7 @@ export interface TxInput {
      */
     outputScript?: string;
     /** Value of the output spent by this input, in satoshis. */
-    value: number;
+    sats: bigint;
     /** `sequence` field of the input; can be used for relative time locking. */
     sequenceNo: number;
     /** Token value attached to this input */
@@ -1598,7 +1598,7 @@ export interface TxInput {
 /** Output of a tx, creates new UTXOs. */
 export interface TxOutput {
     /** Value of the output, in satoshis. */
-    value: number;
+    sats: bigint;
     /**
      * Script of this output, locking the coins.
      * Aka. `scriptPubKey` in bitcoind parlance.
@@ -1629,7 +1629,7 @@ export interface BlockMetadata {
 }
 
 /** Token involved in a transaction */
-interface TokenEntry {
+export interface TokenEntry {
     /**
      * Hex token_id (in big-endian, like usually displayed to users) of the token.
      * This is not `bytes` because SLP and ALP use different endiannes, so to avoid
@@ -1651,13 +1651,10 @@ interface TokenEntry {
     burnSummary: string;
     /** Human-readable error messages of why colorings failed */
     failedColorings: TokenFailedColoring[];
-    /**
-     * Number of actually burned tokens (as decimal integer string, e.g. "2000").
-     * This is because burns can exceed the 64-bit range of values and protobuf doesn't have a nice type to encode this.
-     */
-    actualBurnAmount: string;
-    /** Burn amount the user explicitly opted into (as decimal integer string) */
-    intentionalBurn: string;
+    /** Number of actually burned tokens (in atoms, aka base tokens). */
+    actualBurnAtoms: bigint;
+    /** Burn amount the user explicitly opted into (in atoms, aka base tokens) */
+    intentionalBurnAtoms: bigint;
     /** Whether any mint batons have been burned of this token */
     burnsMintBatons: boolean;
 }
@@ -1806,7 +1803,7 @@ export interface ScriptUtxo {
      * (make sure it's buried 100 blocks before spending!) */
     isCoinbase: boolean;
     /** Value of the UTXO in satoshis. */
-    value: number;
+    sats: bigint;
     /** Is this utxo avalanche finalized */
     isFinal: boolean;
     /** Token value attached to this utxo */
@@ -1828,7 +1825,7 @@ export interface Utxo {
      * (make sure it's buried 100 blocks before spending!) */
     isCoinbase: boolean;
     /** Value of the UTXO in satoshis. */
-    value: number;
+    sats: bigint;
     /** Bytecode of the script of the output */
     script: string;
     /** Is this utxo avalanche finalized */
@@ -1851,8 +1848,8 @@ export interface Token {
      * passes no entryIdx key for UTXOS
      */
     entryIdx?: number;
-    /** Base token amount of the input/output */
-    amount: string;
+    /** Amount in atoms (aka base tokens) of the input/output */
+    atoms: bigint;
     /** Whether the token is a mint baton */
     isMintBaton: boolean;
 }

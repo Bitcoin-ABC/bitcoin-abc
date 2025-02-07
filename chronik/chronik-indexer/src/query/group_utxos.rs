@@ -105,7 +105,7 @@ impl UtxoProtobuf for UtxoProtobufValue {
             outpoint: Some(make_outpoint_proto(&extra.outpoint)),
             block_height: extra.block_height,
             is_coinbase: extra.is_coinbase,
-            value: data,
+            sats: data,
             is_final: extra.is_final,
             token: extra
                 .token
@@ -129,7 +129,7 @@ impl UtxoProtobuf for UtxoProtobufOutput {
             outpoint: Some(make_outpoint_proto(&extra.outpoint)),
             block_height: extra.block_height,
             is_coinbase: extra.is_coinbase,
-            value: data.0,
+            sats: data.0,
             script: data.1.to_vec(),
             is_final: extra.is_final,
             token: extra

@@ -256,12 +256,12 @@ mod tests {
                 outputs: vec![
                     TxOutput {
                         script: script(b"\x6a\x046789\x04yyyy"),
-                        value: 0,
+                        sats: 0,
                     },
                     // Ignored: OP_RETURN must be first
                     TxOutput {
                         script: script(b"\x6a\x04zzzz"),
-                        value: 0,
+                        sats: 0,
                     },
                 ],
                 locktime: 0,
@@ -278,7 +278,7 @@ mod tests {
                 }],
                 outputs: vec![TxOutput {
                     script: script(b"\x6a\x50\x046789\x044321"),
-                    value: 0,
+                    sats: 0,
                 }],
                 locktime: 0,
             })

@@ -181,7 +181,7 @@ export class AgoraOneshot {
         const outputsSerBytes = new Bytes(outputsSerOp.data);
         const enforcedOutputs: TxOutput[] = [
             {
-                value: BigInt(0),
+                sats: 0n,
                 script: opreturnScript,
             },
         ];
@@ -220,7 +220,7 @@ export class AgoraOneshot {
 
     public askedSats(): bigint {
         return this.enforcedOutputs.reduce(
-            (prev, output) => prev + BigInt(output.value),
+            (prev, output) => prev + output.sats,
             0n,
         );
     }

@@ -95,7 +95,7 @@ pub struct TxInput {
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct TxOutput {
     /// Value of the output.
-    pub value: i64,
+    pub sats: i64,
     /// Script locking the output.
     pub script: Script,
 }
@@ -238,13 +238,13 @@ impl BitcoinSer for TxInput {
 
 impl BitcoinSer for TxOutput {
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
-        self.value.ser_to(bytes);
+        self.sats.ser_to(bytes);
         self.script.ser_to(bytes);
     }
 
     fn deser(data: &mut bytes::Bytes) -> Result<Self, DataError> {
         Ok(TxOutput {
-            value: BitcoinSer::deser(data)?,
+            sats: BitcoinSer::deser(data)?,
             script: BitcoinSer::deser(data)?,
         })
     }
@@ -304,7 +304,7 @@ mod tests {
                 coin: None,
             }],
             outputs: vec![TxOutput {
-                value: 5000000000,
+                sats: 5000000000,
                 script: Script::new(
                     hex::decode(
                         "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a679\

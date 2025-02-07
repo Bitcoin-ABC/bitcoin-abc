@@ -7,7 +7,7 @@ import {
     P2PKHSignatory,
     ALL_BIP143,
     fromHex,
-    DEFAULT_FEE_PER_KB,
+    DEFAULT_FEE_SATS_PER_KB,
 } from 'ecash-lib';
 import { ScriptUtxo } from 'chronik-client';
 
@@ -16,7 +16,7 @@ import { AgoraOffer } from './agora';
 const DUMMY_TXID =
     '1111111111111111111111111111111111111111111111111111111111111111';
 const DUMMY_WALLET_HASH = fromHex('12'.repeat(20));
-const DUMMY_SUFFICIENT_CANCEL_VALUE = 10000;
+const DUMMY_SUFFICIENT_CANCEL_VALUE = 10000n;
 const DUMMY_SCRIPT = Script.p2pkh(DUMMY_WALLET_HASH);
 export const DUMMY_KEYPAIR = {
     sk: fromHex('33'.repeat(32)),
@@ -33,7 +33,7 @@ const DUMMY_INPUT = {
             outIdx: 1,
         },
         signData: {
-            value: DUMMY_SUFFICIENT_CANCEL_VALUE,
+            sats: DUMMY_SUFFICIENT_CANCEL_VALUE,
             outputScript: DUMMY_SCRIPT,
         },
     },
@@ -46,8 +46,8 @@ const DUMMY_INPUT = {
 export const getAgoraPartialAcceptFuelInputs = (
     agoraOffer: AgoraOffer,
     utxos: ScriptUtxo[],
-    acceptedTokens: bigint,
-    feePerKb = DEFAULT_FEE_PER_KB,
+    acceptedAtoms: bigint,
+    feePerKb = DEFAULT_FEE_SATS_PER_KB,
 ): ScriptUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
@@ -57,15 +57,15 @@ export const getAgoraPartialAcceptFuelInputs = (
         fuelInputs.push(utxo);
         // Match our fuelInput count with dummyInputs
         dummyInputs.push(DUMMY_INPUT);
-        inputSatoshis += BigInt(utxo.value);
+        inputSatoshis += utxo.sats;
 
-        const askedSats = agoraOffer.askedSats(BigInt(acceptedTokens));
+        const askedSats = agoraOffer.askedSats(BigInt(acceptedAtoms));
 
         // Get the tx fee for this tx
         const acceptFeeSats = agoraOffer.acceptFeeSats({
             recipientScript: DUMMY_SCRIPT,
             extraInputs: dummyInputs,
-            acceptedTokens,
+            acceptedAtoms,
             feePerKb,
         });
 
@@ -82,13 +82,13 @@ export const getAgoraPartialAcceptFuelInputs = (
 /**
  * Determine input utxos to cover an Agora ONESHOT accept offer
  * Note: we could refactor getAgoraPartialAcceptFuelInputs to work with ONESHOT offers
- * However there is some ambiguity involved with the acceptedTokens param
+ * However there is some ambiguity involved with the acceptedAtoms param
  * Cleaner to keep distinct functions
  */
 export const getAgoraOneshotAcceptFuelInputs = (
     agoraOffer: AgoraOffer,
     utxos: ScriptUtxo[],
-    feePerKb = DEFAULT_FEE_PER_KB,
+    feePerKb = DEFAULT_FEE_SATS_PER_KB,
 ): ScriptUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
@@ -98,7 +98,7 @@ export const getAgoraOneshotAcceptFuelInputs = (
         fuelInputs.push(utxo);
         // Match our fuelInput count with dummyInputs
         dummyInputs.push(DUMMY_INPUT);
-        inputSatoshis += BigInt(utxo.value);
+        inputSatoshis += utxo.sats;
 
         const askedSats = agoraOffer.askedSats();
 
@@ -125,7 +125,7 @@ export const getAgoraOneshotAcceptFuelInputs = (
 export const getAgoraCancelFuelInputs = (
     agoraOffer: AgoraOffer,
     utxos: ScriptUtxo[],
-    feePerKb = DEFAULT_FEE_PER_KB,
+    feePerKb = DEFAULT_FEE_SATS_PER_KB,
 ): ScriptUtxo[] => {
     const fuelInputs = [];
     const dummyInputs = [];
@@ -135,7 +135,7 @@ export const getAgoraCancelFuelInputs = (
         fuelInputs.push(utxo);
         // Match our fuelInput count with dummyInputs
         dummyInputs.push(DUMMY_INPUT);
-        inputSatoshis += BigInt(utxo.value);
+        inputSatoshis += utxo.sats;
 
         // Get the tx fee for this tx
         // In practice, this is always bigger than dust

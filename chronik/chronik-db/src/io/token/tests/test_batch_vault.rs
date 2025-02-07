@@ -14,7 +14,7 @@ use pretty_assertions::assert_eq;
 
 use crate::io::token::{
     tests::mock::{
-        db_amount, make_tx, make_tx_with_scripts, token_id, MockTokenDb,
+        db_atoms, make_tx, make_tx_with_scripts, token_id, MockTokenDb,
     },
     DbToken::NoToken,
     DbTokenTx, TokenReader, FLAGS_HAS_MINT_VAULT,
@@ -68,7 +68,7 @@ fn test_batch_vault() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![2],
             inputs: vec![NoToken],
-            outputs: vec![NoToken, db_amount::<0>(2000)],
+            outputs: vec![NoToken, db_atoms::<0>(2000)],
             ..Default::default()
         }),
     );
@@ -106,7 +106,7 @@ fn test_batch_vault() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![2],
             inputs: vec![NoToken],
-            outputs: vec![NoToken, db_amount::<0>(3000), db_amount::<0>(4000)],
+            outputs: vec![NoToken, db_atoms::<0>(3000), db_atoms::<0>(4000)],
             flags: FLAGS_HAS_MINT_VAULT,
             ..Default::default()
         }),
@@ -116,8 +116,8 @@ fn test_batch_vault() -> Result<()> {
         token_reader.token_tx(7)?,
         Some(DbTokenTx {
             token_tx_nums: vec![2],
-            inputs: vec![db_amount::<0>(2000), db_amount::<0>(3000)],
-            outputs: vec![NoToken, db_amount::<0>(4500), db_amount::<0>(500)],
+            inputs: vec![db_atoms::<0>(2000), db_atoms::<0>(3000)],
+            outputs: vec![NoToken, db_atoms::<0>(4500), db_atoms::<0>(500)],
             flags: 0,
             ..Default::default()
         }),

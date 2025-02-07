@@ -25,7 +25,7 @@ def genesis_cb_tx():
         ],
         outputs=[
             pb.TxOutput(
-                value=5000000000,
+                sats=5000000000,
                 output_script=bytes(GENESIS_CB_SCRIPT_PUBKEY),
             )
         ],

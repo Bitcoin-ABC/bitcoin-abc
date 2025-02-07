@@ -171,15 +171,15 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
         const sameInvalidTx = await chronik.validateRawTx(fromHex(BAD_RAW_TX));
         expect(sameInvalidTx.txid).to.eql(invalidTx.txid);
         const invalidTxSumInputs = invalidTx.inputs
-            .map(input => input.value)
-            .reduce((prev, curr) => prev + curr, 0);
+            .map(input => input.sats)
+            .reduce((prev, curr) => prev + curr, 0n);
         const invalidTxSumOutputs = invalidTx.outputs
-            .map(output => output.value)
-            .reduce((prev, curr) => prev + curr, 0);
+            .map(output => output.sats)
+            .reduce((prev, curr) => prev + curr, 0n);
 
         // Indeed, the outputs are greater than the inputs, and such that the tx is invalid
-        expect(invalidTxSumInputs).to.eql(BAD_VALUE_IN_SATS);
-        expect(invalidTxSumOutputs).to.eql(BAD_VALUE_OUT_SATS);
+        expect(invalidTxSumInputs).to.eql(BigInt(BAD_VALUE_IN_SATS));
+        expect(invalidTxSumOutputs).to.eql(BigInt(BAD_VALUE_OUT_SATS));
 
         // We cannot call validateRawTx to get a tx from a rawtx of a normal token send tx if its inputs are not in the mempool or db
         // txid in blockchain but not regtest, 423e24bf0715cfb80727e5e7a6ff7b9e37cb2f555c537ab06fdc7fd9b3a0ba3a
@@ -213,7 +213,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
         // We can't broadcast an ALP burn tx without setting skipTokenChecks
         await expect(chronik.broadcastTx(alpBurnRawTx)).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
+            `Failed getting /broadcast-tx: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 atoms.`,
         );
 
         // We also can't broadcast an array of txs if one tx is a burn
@@ -224,7 +224,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
             chronik.broadcastTxs([okRawTx, alpBurnRawTx]),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-txs: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
+            `Failed getting /broadcast-txs: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 atoms.`,
         );
 
         // We can't broadcast an array of txs if one tx is invalid
@@ -346,7 +346,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
                 {
                     ...alpGenesisAfterMined.inputs[0],
                     outputScript: alpGenesisPreview.inputs[0].outputScript,
-                    value: alpGenesisPreview.inputs[0].value,
+                    sats: alpGenesisPreview.inputs[0].sats,
                 },
             ],
         });

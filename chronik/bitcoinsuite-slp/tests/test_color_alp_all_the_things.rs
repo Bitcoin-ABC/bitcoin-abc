@@ -17,8 +17,7 @@ use bitcoinsuite_slp::{
     },
     parsed::{ParsedData, ParsedMintData},
     structs::{
-        Amount, GenesisInfo, Token, TokenMeta, TokenOutput, TokenVariant,
-        TxType,
+        Atoms, GenesisInfo, Token, TokenMeta, TokenOutput, TokenVariant, TxType,
     },
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
@@ -39,14 +38,14 @@ const EMPTY_TXID: TxId = TxId::new([0; 32]);
 const EMPTY_TOKEN_ID: TokenId = TokenId::new(EMPTY_TXID);
 
 const STD: AlpTokenType = AlpTokenType::Standard;
-const MAX: Amount = 0xffff_ffff_ffff;
+const MAX: Atoms = 0xffff_ffff_ffff;
 
 fn make_tx<const N: usize>(script: Script) -> Tx {
     Tx::with_txid(
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),
@@ -69,7 +68,7 @@ fn parse(pushdata: Bytes) -> ParsedData {
 fn amount<const TOKENIDX: usize>(amount: u64) -> Option<TokenOutput> {
     Some(TokenOutput {
         token_idx: TOKENIDX,
-        variant: TokenVariant::Amount(amount),
+        variant: TokenVariant::Atoms(amount),
     })
 }
 
@@ -88,14 +87,14 @@ fn unknown<const TOKENIDX: usize>(token_type: u8) -> Option<TokenOutput> {
 }
 
 fn make_genesis<const N: usize>(
-    amounts: [Amount; N],
+    atoms_vec: [Atoms; N],
     num_batons: usize,
 ) -> Bytes {
     genesis_section(
         AlpTokenType::Standard,
         &GenesisInfo::default(),
         &ParsedMintData {
-            amounts: amounts.into_iter().collect(),
+            atoms_vec: atoms_vec.into_iter().collect(),
             num_batons,
         },
     )
@@ -103,14 +102,14 @@ fn make_genesis<const N: usize>(
 
 fn make_mint<const N: usize>(
     token_id: &TokenId,
-    amounts: [Amount; N],
+    atoms_vec: [Atoms; N],
     num_batons: usize,
 ) -> Bytes {
     mint_section(
         token_id,
         AlpTokenType::Standard,
         &ParsedMintData {
-            amounts: amounts.into_iter().collect(),
+            atoms_vec: atoms_vec.into_iter().collect(),
             num_batons,
         },
     )
@@ -118,13 +117,13 @@ fn make_mint<const N: usize>(
 
 fn make_send<const N: usize>(
     token_id: &TokenId,
-    amounts: [Amount; N],
+    atoms_vec: [Atoms; N],
 ) -> Bytes {
-    send_section(token_id, AlpTokenType::Standard, amounts)
+    send_section(token_id, AlpTokenType::Standard, atoms_vec)
 }
 
-fn make_burn(token_id: &TokenId, amount: Amount) -> Bytes {
-    burn_section(token_id, AlpTokenType::Standard, amount)
+fn make_burn(token_id: &TokenId, atoms_vec: Atoms) -> Bytes {
+    burn_section(token_id, AlpTokenType::Standard, atoms_vec)
 }
 
 #[test]
@@ -137,7 +136,7 @@ fn test_color_alp_all_the_things() {
             make_genesis([], 0),
             // fail MINT: Too few outputs
             make_mint(&TOKEN_ID2, [0; 7], 99),
-            // fail MINT: Overlapping amounts
+            // fail MINT: Overlapping atoms
             make_mint(&TOKEN_ID2, [0, MAX], 0),
             // fail MINT: Overlapping batons
             make_mint(&TOKEN_ID2, [0], 1),
@@ -219,7 +218,7 @@ fn test_color_alp_all_the_things() {
             ],
             intentional_burns: vec![IntentionalBurn {
                 meta: meta(TOKEN_ID2),
-                amount: 2,
+                atoms: 2,
             }],
             outputs: vec![
                 None,
@@ -260,17 +259,17 @@ fn test_color_alp_all_the_things() {
                         actual: 11,
                     },
                 },
-                // fail MINT: Overlapping amounts
+                // fail MINT: Overlapping atoms
                 FailedColoring {
                     pushdata_idx: 3,
                     parsed: parse(make_mint(&TOKEN_ID2, [0, MAX], 0)),
-                    error: ColorError::OverlappingAmount {
+                    error: ColorError::OverlappingAtoms {
                         prev_token: Token {
                             meta: meta(TOKEN_ID),
-                            variant: TokenVariant::Amount(7),
+                            variant: TokenVariant::Atoms(7),
                         },
                         output_idx: 2,
-                        amount: MAX,
+                        atoms: MAX,
                     },
                 },
                 // fail MINT: Overlapping batons
@@ -280,7 +279,7 @@ fn test_color_alp_all_the_things() {
                     error: ColorError::OverlappingMintBaton {
                         prev_token: Token {
                             meta: meta(TOKEN_ID),
-                            variant: TokenVariant::Amount(7),
+                            variant: TokenVariant::Atoms(7),
                         },
                         output_idx: 2,
                     },

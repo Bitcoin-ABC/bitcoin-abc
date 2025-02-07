@@ -6,7 +6,7 @@ use bitcoinsuite_slp::{
     slp::burn_opreturn,
     structs::TxType,
     test_helpers::{
-        empty_entry, meta_slp as meta, spent_amount, spent_baton, verify,
+        empty_entry, meta_slp as meta, spent_atoms, spent_baton, verify,
         TOKEN_ID2, TOKEN_ID3,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -20,20 +20,20 @@ fn test_verify_burn_wrong_token_id() {
         assert_eq!(
             verify::<1>(
                 burn_opreturn(&TOKEN_ID2, token_type, 10),
-                &[spent_amount(meta(TOKEN_ID3, token_type), 10)],
+                &[spent_atoms(meta(TOKEN_ID3, token_type), 10)],
             ),
             TokenTx {
                 entries: vec![
                     TokenTxEntry {
                         meta: meta(TOKEN_ID2, token_type),
                         tx_type: Some(TxType::BURN),
-                        intentional_burn_amount: Some(10),
+                        intentional_burn_atoms: Some(10),
                         ..empty_entry()
                     },
                     TokenTxEntry {
                         meta: meta(TOKEN_ID3, token_type),
                         is_invalid: true,
-                        actual_burn_amount: 10,
+                        actual_burn_atoms: 10,
                         ..empty_entry()
                     },
                 ],
@@ -54,20 +54,20 @@ fn test_verify_burn_wrong_token_type() {
             assert_eq!(
                 verify::<1>(
                     burn_opreturn(&TOKEN_ID2, wrong_token_type, 10),
-                    &[spent_amount(meta(TOKEN_ID3, token_type), 10)],
+                    &[spent_atoms(meta(TOKEN_ID3, token_type), 10)],
                 ),
                 TokenTx {
                     entries: vec![
                         TokenTxEntry {
                             meta: meta(TOKEN_ID2, wrong_token_type),
                             tx_type: Some(TxType::BURN),
-                            intentional_burn_amount: Some(10),
+                            intentional_burn_atoms: Some(10),
                             ..empty_entry()
                         },
                         TokenTxEntry {
                             meta: meta(TOKEN_ID3, token_type),
                             is_invalid: true,
-                            actual_burn_amount: 10,
+                            actual_burn_atoms: 10,
                             ..empty_entry()
                         },
                     ],
@@ -91,7 +91,7 @@ fn test_verify_burn_mint_baton() {
                 entries: vec![TokenTxEntry {
                     meta: meta(TOKEN_ID2, token_type),
                     tx_type: Some(TxType::BURN),
-                    intentional_burn_amount: Some(10),
+                    intentional_burn_atoms: Some(10),
                     is_invalid: true,
                     burns_mint_batons: true,
                     ..empty_entry()
@@ -109,14 +109,14 @@ fn test_verify_burn_wrong_amount() {
         assert_eq!(
             verify::<1>(
                 burn_opreturn(&TOKEN_ID2, token_type, 10),
-                &[spent_amount(meta(TOKEN_ID2, token_type), 9)],
+                &[spent_atoms(meta(TOKEN_ID2, token_type), 9)],
             ),
             TokenTx {
                 entries: vec![TokenTxEntry {
                     meta: meta(TOKEN_ID2, token_type),
                     tx_type: Some(TxType::BURN),
-                    intentional_burn_amount: Some(10),
-                    actual_burn_amount: 9,
+                    intentional_burn_atoms: Some(10),
+                    actual_burn_atoms: 9,
                     ..empty_entry()
                 },],
                 outputs: vec![None, None],
@@ -132,14 +132,14 @@ fn test_verify_burn_success() {
         assert_eq!(
             verify::<1>(
                 burn_opreturn(&TOKEN_ID2, token_type, 10),
-                &[spent_amount(meta(TOKEN_ID2, token_type), 10)],
+                &[spent_atoms(meta(TOKEN_ID2, token_type), 10)],
             ),
             TokenTx {
                 entries: vec![TokenTxEntry {
                     meta: meta(TOKEN_ID2, token_type),
                     tx_type: Some(TxType::BURN),
-                    intentional_burn_amount: Some(10),
-                    actual_burn_amount: 10,
+                    intentional_burn_atoms: Some(10),
+                    actual_burn_atoms: 10,
                     ..empty_entry()
                 },],
                 outputs: vec![None, None],

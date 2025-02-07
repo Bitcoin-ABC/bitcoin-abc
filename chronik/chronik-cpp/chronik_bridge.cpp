@@ -35,7 +35,7 @@ chronik_bridge::OutPoint BridgeOutPoint(const COutPoint &outpoint) {
 
 chronik_bridge::TxOutput BridgeTxOutput(const CTxOut &output) {
     return {
-        .value = output.nValue / Amount::satoshi(),
+        .sats = output.nValue / Amount::satoshi(),
         .script = chronik::util::ToRustVec<uint8_t>(output.scriptPubKey),
     };
 }

@@ -11,7 +11,7 @@ use bitcoinsuite_slp::{
 use pretty_assertions::assert_eq;
 
 use crate::io::token::{
-    tests::mock::{db_amount, make_tx, MockTokenDb},
+    tests::mock::{db_atoms, make_tx, MockTokenDb},
     DbToken::{NoToken, UnknownAlp, UnknownSlp},
     DbTokenTx, TokenReader,
 };
@@ -58,7 +58,7 @@ fn test_batch_unknown() -> Result<()> {
         token_reader.token_tx(3)?,
         Some(DbTokenTx {
             token_tx_nums: vec![1],
-            inputs: vec![db_amount::<0>(1000)],
+            inputs: vec![db_atoms::<0>(1000)],
             outputs: vec![NoToken, UnknownAlp(0x22), UnknownAlp(0x22)],
             ..Default::default()
         }),

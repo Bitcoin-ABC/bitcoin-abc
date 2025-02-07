@@ -29,8 +29,7 @@ export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 // Note we have to specify the numbers here and not the constants for ts lint reasons
 export type SUPPORTED_MINT_TYPES = 1 | 129;
 
-// 0xffffffffffffffff
-export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+export const MAX_OUTPUT_AMOUNT_SLP_ATOMS = 0xffffffffffffffffn;
 
 const DUMMY_TXID =
     '1111111111111111111111111111111111111111111111111111111111111111';
@@ -48,7 +47,7 @@ const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
 
 // To mint NFTs in a Collection (i.e. NFT Child from NFT Parent), you must spend this qty of NFT Parent
 // This is a spec value
-export const SLP1_NFT_CHILD_GENESIS_AMOUNT = '1';
+export const SLP1_NFT_CHILD_GENESIS_AMOUNT = 1n;
 
 /**
  * Get targetOutput for a SLP v1 genesis tx
@@ -79,7 +78,7 @@ export const getSlpGenesisTargetOutput = (
 
     // Per SLP v1 spec, OP_RETURN must be at index 0
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#genesis---token-genesis-transaction
-    targetOutputs.push({ value: 0, script });
+    targetOutputs.push({ sats: 0n, script });
 
     // Per SLP v1 spec, genesis tx is minted to output at index 1
     // In Cashtab, we mint genesis txs to our own Path1899 address
@@ -91,7 +90,7 @@ export const getSlpGenesisTargetOutput = (
     // Note: Cashtab only supports the creation of one mint baton at index 2
     if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx === 2) {
         targetOutputs.push({
-            value: appConfig.dustSats,
+            sats: BigInt(appConfig.dustSats),
         });
     }
 
@@ -103,8 +102,8 @@ export const getSlpGenesisTargetOutput = (
  * @param tokenInputInfo of getSendTokenInputs
  * @param destinationAddress address where the tokens are being sent
  * @throws if invalid input params are passed to TokenType1.send
- * @returns targetOutput(s), e.g. [{value: 0, script: <encoded slp send script>}]
- * or [{value: 0, script: <encoded slp send script>}, {value: 546}]
+ * @returns targetOutput(s), e.g. [{sats: 0n, script: <encoded slp send script>}]
+ * or [{sats: 0n, script: <encoded slp send script>}, {sats: 546n}]
  * if token change
  * Change output has no address key
  */
@@ -124,11 +123,11 @@ export const getSlpSendTargetOutputs = (
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
 
     // Initialize with OP_RETURN at 0 index, per spec
-    const targetOutputs: TokenTargetOutput[] = [{ value: 0, script }];
+    const targetOutputs: TokenTargetOutput[] = [{ sats: 0n, script }];
 
     // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
     targetOutputs.push({
-        value: appConfig.dustSats,
+        sats: BigInt(appConfig.dustSats),
         script: Script.fromAddress(destinationAddress),
     });
 
@@ -149,7 +148,7 @@ export const getSlpSendTargetOutputs = (
  * @param tokenInputInfo
  * @throws if invalid input params are passed to TokenType1.send
  * @returns targetOutputs with a change output, even if all utxos are consumed
- * [{value: 0, script: <encoded slp burn script>}, {value: 546}]
+ * [{sats: 0n, script: <encoded slp burn script>}, {sats: 546n}]
  */
 export const getSlpBurnTargetOutputs = (
     tokenInputInfo: TokenInputInfo,
@@ -174,7 +173,7 @@ export const getSlpBurnTargetOutputs = (
     // burn tx logic separate from ecash tx creation logic
     // But lets just add the min output
 
-    return [{ value: 0, script }, TOKEN_DUST_CHANGE_OUTPUT];
+    return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
 };
 
 /**
@@ -202,7 +201,7 @@ export const getMintBatons = (
  * @param decimals decimals for this tokenId
  * @param mintQty decimalized string for token qty
  * @throws if invalid input params are passed to TokenType1.mint
- * @returns targetOutput(s), e.g. [{value: 0, script: <encoded slp send script>}, {value: 546}, {value: 546}]
+ * @returns targetOutput(s), e.g. [{sats: 0n, script: <encoded slp send script>}, {sats: 546n}, {sats: 546n}]
  * Note: we always return minted qty at index 1
  * Note we always return a mint baton at index 2
  */
@@ -230,7 +229,7 @@ export const getMintTargetOutputs = (
 
     return [
         // SLP 1 script
-        { value: 0, script },
+        { sats: 0n, script },
         // Dust output for mint qty
         TOKEN_DUST_CHANGE_OUTPUT,
         // Dust output for mint baton
@@ -245,17 +244,20 @@ export const getMintTargetOutputs = (
  * @returns decimalized max amount
  */
 export const getMaxDecimalizedSlpQty = (decimals: SlpDecimals): string => {
+    // Convert to string so we can get decimalized values
+    const MAX_OUTPUT_AMOUNT_SLP_ATOMS_STRING =
+        MAX_OUTPUT_AMOUNT_SLP_ATOMS.toString();
     // The max amount depends on token decimals
     // e.g. if decimals are 0, it's the same
     // if decimals are 9, it's 18446744073.709551615
     if (decimals === 0) {
-        return MAX_MINT_AMOUNT_TOKEN_SATOSHIS;
+        return MAX_OUTPUT_AMOUNT_SLP_ATOMS_STRING;
     }
-    const stringBeforeDecimalPoint = MAX_MINT_AMOUNT_TOKEN_SATOSHIS.slice(
+    const stringBeforeDecimalPoint = MAX_OUTPUT_AMOUNT_SLP_ATOMS_STRING.slice(
         0,
-        MAX_MINT_AMOUNT_TOKEN_SATOSHIS.length - decimals,
+        MAX_OUTPUT_AMOUNT_SLP_ATOMS_STRING.length - decimals,
     );
-    const stringAfterDecimalPoint = MAX_MINT_AMOUNT_TOKEN_SATOSHIS.slice(
+    const stringAfterDecimalPoint = MAX_OUTPUT_AMOUNT_SLP_ATOMS_STRING.slice(
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
@@ -291,7 +293,7 @@ export const getNftParentGenesisTargetOutputs = (
 
     // Per SLP v1 spec, OP_RETURN must be at index 0
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#genesis---token-genesis-transaction
-    targetOutputs.push({ value: 0, script });
+    targetOutputs.push({ sats: 0n, script });
 
     // Per SLP v1 spec, genesis tx is minted to output at index 1
     // In Cashtab, we mint genesis txs to our own Path1899 address
@@ -315,7 +317,7 @@ export const getNftParentGenesisTargetOutputs = (
  * @param tokenId
  * @param mintQty
  * @throws if invalid input params are passed to TokenType1.mint
- * @returns targetOutput(s), e.g. [{value: 0, script: <encoded slp send script>}, {value: 546}, {value: 546}]
+ * @returns targetOutput(s), e.g. [{sats: 0n, script: <encoded slp send script>}, {sats: 546n}, {sats: 546n}]
  * Note: we always return minted qty at index 1
  * Note we always return a mint baton at index 2
  */
@@ -332,7 +334,7 @@ export const getNftParentMintTargetOutputs = (
 
     return [
         // SLP Script
-        { value: 0, script },
+        { sats: 0n, script },
         // Dust output to hold mint qty
         TOKEN_DUST_CHANGE_OUTPUT,
         // Dust output to hold mint baton
@@ -361,7 +363,7 @@ export const getNftParentFanInputs = (
             // Note: not expected to ever have this amount be '0' unless we have a mint baton
             // If we do (somehow) get a 0 amount, no harm using it as an input...should
             // consolidate it away anyhow
-            utxo.token?.amount !== SLP1_NFT_CHILD_GENESIS_AMOUNT &&
+            utxo.token?.atoms !== SLP1_NFT_CHILD_GENESIS_AMOUNT &&
             // UTXO is not a minting baton
             utxo.token?.isMintBaton === false
         );
@@ -388,8 +390,8 @@ export const getNftParentFanTxTargetOutputs = (
     let maxOutputs = false;
     for (const input of fanInputs) {
         fanInputsThisTx.push(input);
-        // Note that all fanInputs have token.amount
-        totalInputAmount = totalInputAmount + BigInt(input.token.amount);
+        // Note that all fanInputs have token.atoms
+        totalInputAmount = totalInputAmount + BigInt(input.token.atoms);
         if (totalInputAmount >= SLP1_SEND_MAX_OUTPUTS) {
             maxOutputs = true;
             // We have enough inputs to create max outputs
@@ -430,7 +432,7 @@ export const getNftParentFanTxTargetOutputs = (
     );
 
     // Add OP_RETURN output at index 0
-    targetOutputs.push({ value: 0, script });
+    targetOutputs.push({ sats: 0n, script });
 
     // Add dust outputs
     // Note that Cashtab will add the creating wallet's change address
@@ -450,7 +452,7 @@ export const getNftParentFanTxTargetOutputs = (
  * This is handled by a separate function
  * @param tokenId tokenId of the parent aka Group
  * @param slpUtxos What Cashtab stores at the wallet.state.slpUtxos key
- * @returns Array of ONLY ONE cashtab utxo where tokenId === tokenId and token.amount === 1, if it exists
+ * @returns Array of ONLY ONE cashtab utxo where tokenId === tokenId and token.atoms === 1n, if it exists
  * Otherwise an empty array
  */
 export const getNftChildGenesisInput = (
@@ -463,7 +465,7 @@ export const getNftChildGenesisInput = (
         if (
             utxo.token?.tokenId === tokenId &&
             utxo.token?.isMintBaton === false &&
-            utxo.token?.amount === SLP1_NFT_CHILD_GENESIS_AMOUNT
+            utxo.token?.atoms === SLP1_NFT_CHILD_GENESIS_AMOUNT
         ) {
             return [utxo];
         }
@@ -486,12 +488,12 @@ export const getNftChildGenesisTargetOutputs = (
     const script = slpGenesis(
         SLP_1_NFT_PROTOCOL_NUMBER,
         genesisInfo,
-        1, // We always mint exactly 1 NFT
+        1n, // We always mint exactly 1 NFT
         undefined, // We never mint an NFT with a child mint baton
     );
     // We always mint exactly 1 NFT per child genesis tx, so no change is expected
     // Will always have exactly 1 dust utxo at index 1 to hold this NFT
-    return [{ value: 0, script }, TOKEN_DUST_CHANGE_OUTPUT];
+    return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
 };
 
 /**
@@ -545,10 +547,10 @@ export const getNftChildSendTargetOutputs = (
     // - All NFT Child inputs will have amount of 1
     // Therefore, we will have no change, and every send tx will have only one token utxo output
     return [
-        { value: 0, script },
+        { sats: 0n, script },
         {
             script: Script.fromAddress(destinationAddress),
-            value: appConfig.dustSats,
+            sats: BigInt(appConfig.dustSats),
         },
     ];
 };
@@ -565,9 +567,9 @@ export const isTokenDustChangeOutput = (
         // We have only one key
         Object.keys(targetOutput).length === 1 &&
         // It's "value"
-        'value' in targetOutput &&
-        // it's equal to 546
-        targetOutput.value === appConfig.dustSats
+        'sats' in targetOutput &&
+        // it's equal to 546n
+        targetOutput.sats === BigInt(appConfig.dustSats)
     );
 };
 
@@ -585,7 +587,7 @@ export const getAgoraAdFuelSats = (
     redeemScript: Script,
     signatory: Signatory,
     offerOutputs: TxBuilderOutput[],
-    satsPerKb: number,
+    satsPerKb: bigint,
 ) => {
     // First, get the size of the listing tx
     const dummyOfferTx = new TxBuilder({
@@ -602,7 +604,7 @@ export const getAgoraAdFuelSats = (
                     signData: {
                         // Arbitrary value that we know will cover the fee for this tx,
                         // which will always have only one input in Cashtab
-                        value: 10000,
+                        sats: 100000n,
                         redeemScript,
                     },
                 },
@@ -614,7 +616,7 @@ export const getAgoraAdFuelSats = (
     const measureTx = dummyOfferTx.sign({ ecc: new EccDummy() });
 
     const dummyOfferTxSats = Math.ceil(
-        (measureTx.serSize() * satsPerKb) / 1000,
+        (measureTx.serSize() * Number(satsPerKb)) / 1000,
     );
 
     return dummyOfferTxSats;

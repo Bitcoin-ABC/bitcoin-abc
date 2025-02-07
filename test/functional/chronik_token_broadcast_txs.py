@@ -77,18 +77,18 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, amount=1000),
-                alp_token(token_id=tx.hash, amount=2000),
-                alp_token(token_id=tx.hash, amount=3000),
-                alp_token(token_id=tx.hash, amount=4000),
-                alp_token(token_id=tx.hash, amount=5000),
-                alp_token(token_id=tx.hash, amount=6000),
+                alp_token(token_id=tx.hash, atoms=1000),
+                alp_token(token_id=tx.hash, atoms=2000),
+                alp_token(token_id=tx.hash, atoms=3000),
+                alp_token(token_id=tx.hash, atoms=4000),
+                alp_token(token_id=tx.hash, atoms=5000),
+                alp_token(token_id=tx.hash, atoms=6000),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
@@ -161,8 +161,8 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
         assert_equal(
             error.msg,
             f"""\
-400: Tx {burn_tx.hash} failed token checks: Unexpected burn: Burns 1 base tokens. Tx \
-{burn2_tx.hash} failed token checks: Unexpected burn: Burns 3000 base tokens. \
+400: Tx {burn_tx.hash} failed token checks: Unexpected burn: Burns 1 atoms. Tx \
+{burn2_tx.hash} failed token checks: Unexpected burn: Burns 3000 atoms. \
 Reason(s): Insufficient token input output sum: 3000 < 3001.""",
         )
 

@@ -353,25 +353,25 @@ export interface BlockInfo {
     /** nBits field encoding the target */
     nBits: number;
     /** Timestamp field of the block */
-    timestamp: string;
+    timestamp: bigint;
     /** Whether the block has been finalized by Avalanche */
     isFinal: boolean;
     /** Block size of this block in bytes (including headers etc.) */
-    blockSize: string;
+    blockSize: bigint;
     /** Number of txs in this block */
-    numTxs: string;
+    numTxs: bigint;
     /** Total number of tx inputs in block (including coinbase) */
-    numInputs: string;
+    numInputs: bigint;
     /** Total number of tx output in block (including coinbase) */
-    numOutputs: string;
+    numOutputs: bigint;
     /** Total number of satoshis spent by tx inputs */
-    sumInputSats: string;
+    sumInputSats: bigint;
     /** Block reward for this block */
-    sumCoinbaseOutputSats: string;
+    sumCoinbaseOutputSats: bigint;
     /** Total number of satoshis in non-coinbase tx outputs */
-    sumNormalOutputSats: string;
+    sumNormalOutputSats: bigint;
     /** Total number of satoshis burned using OP_RETURN */
-    sumBurnedSats: string;
+    sumBurnedSats: bigint;
 }
 
 /** Details about a transaction */
@@ -389,7 +389,7 @@ export interface Tx {
     /** Which block this tx is in, or None, if in the mempool */
     block: BlockMetadata | undefined;
     /** Time this tx has first been added to the mempool, or 0 if unknown */
-    timeFirstSeen: string;
+    timeFirstSeen: bigint;
     /** Serialized size of the tx */
     size: number;
     /** Whether this tx is a coinbase tx */
@@ -416,7 +416,7 @@ export interface ScriptUtxo {
     /** Whether the UTXO has been created in a coinbase tx. */
     isCoinbase: boolean;
     /** Value of the output, in satoshis. */
-    value: string;
+    sats: bigint;
     /** Whether the UTXO has been finalized by Avalanche. */
     isFinal: boolean;
     /** Token value attached to this UTXO */
@@ -439,7 +439,7 @@ export interface Utxo {
     /** Whether the UTXO has been created in a coinbase tx. */
     isCoinbase: boolean;
     /** Value of the output, in satoshis. */
-    value: string;
+    sats: bigint;
     /** Bytecode of the script of the output */
     script: Uint8Array;
     /** Whether the UTXO has been finalized by Avalanche. */
@@ -480,7 +480,7 @@ export interface TxInput {
     /** scriptPubKey, script of the output locking the coin. */
     outputScript: Uint8Array;
     /** value of the output being spent, in satoshis. */
-    value: string;
+    sats: bigint;
     /** nSequence of the input. */
     sequenceNo: number;
     /** Token value attached to this input */
@@ -497,7 +497,7 @@ export interface TxInput_PluginsEntry {
 /** CTxOut, creates a new coin. */
 export interface TxOutput {
     /** Value of the coin, in satoshis. */
-    value: string;
+    sats: bigint;
     /** scriptPubKey, script locking the output. */
     outputScript: Uint8Array;
     /** Which tx and input spent this output, if any. */
@@ -520,7 +520,7 @@ export interface BlockMetadata {
     /** Hash of the block the tx is in. */
     hash: Uint8Array;
     /** nTime of the block the tx is in. */
-    timestamp: string;
+    timestamp: bigint;
     /** Whether the block has been finalized by Avalanche. */
     isFinal: boolean;
 }
@@ -547,7 +547,7 @@ export interface TokenInfo {
     /** Block of the GENESIS tx, if it's mined already */
     block: BlockMetadata | undefined;
     /** Time the GENESIS tx has first been seen by the indexer */
-    timeFirstSeen: string;
+    timeFirstSeen: bigint;
 }
 
 /** Token involved in a transaction */
@@ -571,12 +571,14 @@ export interface TokenEntry {
     /** Human-readable error messages of why colorings failed */
     failedColorings: TokenFailedColoring[];
     /**
-     * Number of actually burned tokens (as decimal integer string, e.g. "2000").
-     * This is because burns can exceed the 64-bit range of values and protobuf doesn't have a nice type to encode this.
+     * Number of actually burned tokens (as decimal integer
+     * string, e.g. "2000"; in atoms aka base tokens).
+     * This is because burns can exceed the 64-bit range of
+     * values and protobuf doesn't have a nice type to encode this.
      */
-    actualBurnAmount: string;
-    /** Burn amount the user explicitly opted into */
-    intentionalBurn: string;
+    actualBurnAtoms: string;
+    /** Burn amount (in atoms aka base tokens) the user explicitly opted into */
+    intentionalBurnAtoms: bigint;
     /** Whether any mint batons have been burned of this token */
     burnsMintBatons: boolean;
 }
@@ -610,7 +612,7 @@ export interface Token {
     /** Index into `token_entries` for `Tx`. -1 for UTXOs */
     entryIdx: number;
     /** Base token amount of the input/output */
-    amount: string;
+    atoms: bigint;
     /** Whether the token is a mint baton */
     isMintBaton: boolean;
 }
@@ -819,7 +821,7 @@ export interface MsgBlock {
     /** Height of the block */
     blockHeight: number;
     /** Timestamp field of the block */
-    blockTimestamp: string;
+    blockTimestamp: bigint;
     /**
      * The coinbase data, only available if the block is disconnected or
      * invalidated
@@ -1326,16 +1328,16 @@ function createBaseBlockInfo(): BlockInfo {
         prevHash: new Uint8Array(0),
         height: 0,
         nBits: 0,
-        timestamp: '0',
+        timestamp: BigInt('0'),
         isFinal: false,
-        blockSize: '0',
-        numTxs: '0',
-        numInputs: '0',
-        numOutputs: '0',
-        sumInputSats: '0',
-        sumCoinbaseOutputSats: '0',
-        sumNormalOutputSats: '0',
-        sumBurnedSats: '0',
+        blockSize: BigInt('0'),
+        numTxs: BigInt('0'),
+        numInputs: BigInt('0'),
+        numOutputs: BigInt('0'),
+        sumInputSats: BigInt('0'),
+        sumCoinbaseOutputSats: BigInt('0'),
+        sumNormalOutputSats: BigInt('0'),
+        sumBurnedSats: BigInt('0'),
     };
 }
 
@@ -1356,35 +1358,91 @@ export const BlockInfo = {
         if (message.nBits !== 0) {
             writer.uint32(32).uint32(message.nBits);
         }
-        if (message.timestamp !== '0') {
-            writer.uint32(40).int64(message.timestamp);
+        if (message.timestamp !== BigInt('0')) {
+            if (BigInt.asIntN(64, message.timestamp) !== message.timestamp) {
+                throw new globalThis.Error(
+                    'value provided for field message.timestamp of type int64 too large',
+                );
+            }
+            writer.uint32(40).int64(message.timestamp.toString());
         }
         if (message.isFinal === true) {
             writer.uint32(112).bool(message.isFinal);
         }
-        if (message.blockSize !== '0') {
-            writer.uint32(48).uint64(message.blockSize);
+        if (message.blockSize !== BigInt('0')) {
+            if (BigInt.asUintN(64, message.blockSize) !== message.blockSize) {
+                throw new globalThis.Error(
+                    'value provided for field message.blockSize of type uint64 too large',
+                );
+            }
+            writer.uint32(48).uint64(message.blockSize.toString());
         }
-        if (message.numTxs !== '0') {
-            writer.uint32(56).uint64(message.numTxs);
+        if (message.numTxs !== BigInt('0')) {
+            if (BigInt.asUintN(64, message.numTxs) !== message.numTxs) {
+                throw new globalThis.Error(
+                    'value provided for field message.numTxs of type uint64 too large',
+                );
+            }
+            writer.uint32(56).uint64(message.numTxs.toString());
         }
-        if (message.numInputs !== '0') {
-            writer.uint32(64).uint64(message.numInputs);
+        if (message.numInputs !== BigInt('0')) {
+            if (BigInt.asUintN(64, message.numInputs) !== message.numInputs) {
+                throw new globalThis.Error(
+                    'value provided for field message.numInputs of type uint64 too large',
+                );
+            }
+            writer.uint32(64).uint64(message.numInputs.toString());
         }
-        if (message.numOutputs !== '0') {
-            writer.uint32(72).uint64(message.numOutputs);
+        if (message.numOutputs !== BigInt('0')) {
+            if (BigInt.asUintN(64, message.numOutputs) !== message.numOutputs) {
+                throw new globalThis.Error(
+                    'value provided for field message.numOutputs of type uint64 too large',
+                );
+            }
+            writer.uint32(72).uint64(message.numOutputs.toString());
         }
-        if (message.sumInputSats !== '0') {
-            writer.uint32(80).int64(message.sumInputSats);
+        if (message.sumInputSats !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.sumInputSats) !== message.sumInputSats
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.sumInputSats of type int64 too large',
+                );
+            }
+            writer.uint32(80).int64(message.sumInputSats.toString());
         }
-        if (message.sumCoinbaseOutputSats !== '0') {
-            writer.uint32(88).int64(message.sumCoinbaseOutputSats);
+        if (message.sumCoinbaseOutputSats !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.sumCoinbaseOutputSats) !==
+                message.sumCoinbaseOutputSats
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.sumCoinbaseOutputSats of type int64 too large',
+                );
+            }
+            writer.uint32(88).int64(message.sumCoinbaseOutputSats.toString());
         }
-        if (message.sumNormalOutputSats !== '0') {
-            writer.uint32(96).int64(message.sumNormalOutputSats);
+        if (message.sumNormalOutputSats !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.sumNormalOutputSats) !==
+                message.sumNormalOutputSats
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.sumNormalOutputSats of type int64 too large',
+                );
+            }
+            writer.uint32(96).int64(message.sumNormalOutputSats.toString());
         }
-        if (message.sumBurnedSats !== '0') {
-            writer.uint32(104).int64(message.sumBurnedSats);
+        if (message.sumBurnedSats !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.sumBurnedSats) !==
+                message.sumBurnedSats
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.sumBurnedSats of type int64 too large',
+                );
+            }
+            writer.uint32(104).int64(message.sumBurnedSats.toString());
         }
         return writer;
     },
@@ -1430,7 +1488,7 @@ export const BlockInfo = {
                         break;
                     }
 
-                    message.timestamp = longToString(reader.int64() as Long);
+                    message.timestamp = longToBigint(reader.int64() as Long);
                     continue;
                 case 14:
                     if (tag !== 112) {
@@ -1444,42 +1502,42 @@ export const BlockInfo = {
                         break;
                     }
 
-                    message.blockSize = longToString(reader.uint64() as Long);
+                    message.blockSize = longToBigint(reader.uint64() as Long);
                     continue;
                 case 7:
                     if (tag !== 56) {
                         break;
                     }
 
-                    message.numTxs = longToString(reader.uint64() as Long);
+                    message.numTxs = longToBigint(reader.uint64() as Long);
                     continue;
                 case 8:
                     if (tag !== 64) {
                         break;
                     }
 
-                    message.numInputs = longToString(reader.uint64() as Long);
+                    message.numInputs = longToBigint(reader.uint64() as Long);
                     continue;
                 case 9:
                     if (tag !== 72) {
                         break;
                     }
 
-                    message.numOutputs = longToString(reader.uint64() as Long);
+                    message.numOutputs = longToBigint(reader.uint64() as Long);
                     continue;
                 case 10:
                     if (tag !== 80) {
                         break;
                     }
 
-                    message.sumInputSats = longToString(reader.int64() as Long);
+                    message.sumInputSats = longToBigint(reader.int64() as Long);
                     continue;
                 case 11:
                     if (tag !== 88) {
                         break;
                     }
 
-                    message.sumCoinbaseOutputSats = longToString(
+                    message.sumCoinbaseOutputSats = longToBigint(
                         reader.int64() as Long,
                     );
                     continue;
@@ -1488,7 +1546,7 @@ export const BlockInfo = {
                         break;
                     }
 
-                    message.sumNormalOutputSats = longToString(
+                    message.sumNormalOutputSats = longToBigint(
                         reader.int64() as Long,
                     );
                     continue;
@@ -1497,7 +1555,7 @@ export const BlockInfo = {
                         break;
                     }
 
-                    message.sumBurnedSats = longToString(
+                    message.sumBurnedSats = longToBigint(
                         reader.int64() as Long,
                     );
                     continue;
@@ -1521,35 +1579,33 @@ export const BlockInfo = {
             height: isSet(object.height) ? globalThis.Number(object.height) : 0,
             nBits: isSet(object.nBits) ? globalThis.Number(object.nBits) : 0,
             timestamp: isSet(object.timestamp)
-                ? globalThis.String(object.timestamp)
-                : '0',
+                ? BigInt(object.timestamp)
+                : BigInt('0'),
             isFinal: isSet(object.isFinal)
                 ? globalThis.Boolean(object.isFinal)
                 : false,
             blockSize: isSet(object.blockSize)
-                ? globalThis.String(object.blockSize)
-                : '0',
-            numTxs: isSet(object.numTxs)
-                ? globalThis.String(object.numTxs)
-                : '0',
+                ? BigInt(object.blockSize)
+                : BigInt('0'),
+            numTxs: isSet(object.numTxs) ? BigInt(object.numTxs) : BigInt('0'),
             numInputs: isSet(object.numInputs)
-                ? globalThis.String(object.numInputs)
-                : '0',
+                ? BigInt(object.numInputs)
+                : BigInt('0'),
             numOutputs: isSet(object.numOutputs)
-                ? globalThis.String(object.numOutputs)
-                : '0',
+                ? BigInt(object.numOutputs)
+                : BigInt('0'),
             sumInputSats: isSet(object.sumInputSats)
-                ? globalThis.String(object.sumInputSats)
-                : '0',
+                ? BigInt(object.sumInputSats)
+                : BigInt('0'),
             sumCoinbaseOutputSats: isSet(object.sumCoinbaseOutputSats)
-                ? globalThis.String(object.sumCoinbaseOutputSats)
-                : '0',
+                ? BigInt(object.sumCoinbaseOutputSats)
+                : BigInt('0'),
             sumNormalOutputSats: isSet(object.sumNormalOutputSats)
-                ? globalThis.String(object.sumNormalOutputSats)
-                : '0',
+                ? BigInt(object.sumNormalOutputSats)
+                : BigInt('0'),
             sumBurnedSats: isSet(object.sumBurnedSats)
-                ? globalThis.String(object.sumBurnedSats)
-                : '0',
+                ? BigInt(object.sumBurnedSats)
+                : BigInt('0'),
         };
     },
 
@@ -1567,35 +1623,36 @@ export const BlockInfo = {
         if (message.nBits !== 0) {
             obj.nBits = Math.round(message.nBits);
         }
-        if (message.timestamp !== '0') {
-            obj.timestamp = message.timestamp;
+        if (message.timestamp !== BigInt('0')) {
+            obj.timestamp = message.timestamp.toString();
         }
         if (message.isFinal === true) {
             obj.isFinal = message.isFinal;
         }
-        if (message.blockSize !== '0') {
-            obj.blockSize = message.blockSize;
+        if (message.blockSize !== BigInt('0')) {
+            obj.blockSize = message.blockSize.toString();
         }
-        if (message.numTxs !== '0') {
-            obj.numTxs = message.numTxs;
+        if (message.numTxs !== BigInt('0')) {
+            obj.numTxs = message.numTxs.toString();
         }
-        if (message.numInputs !== '0') {
-            obj.numInputs = message.numInputs;
+        if (message.numInputs !== BigInt('0')) {
+            obj.numInputs = message.numInputs.toString();
         }
-        if (message.numOutputs !== '0') {
-            obj.numOutputs = message.numOutputs;
+        if (message.numOutputs !== BigInt('0')) {
+            obj.numOutputs = message.numOutputs.toString();
         }
-        if (message.sumInputSats !== '0') {
-            obj.sumInputSats = message.sumInputSats;
+        if (message.sumInputSats !== BigInt('0')) {
+            obj.sumInputSats = message.sumInputSats.toString();
         }
-        if (message.sumCoinbaseOutputSats !== '0') {
-            obj.sumCoinbaseOutputSats = message.sumCoinbaseOutputSats;
+        if (message.sumCoinbaseOutputSats !== BigInt('0')) {
+            obj.sumCoinbaseOutputSats =
+                message.sumCoinbaseOutputSats.toString();
         }
-        if (message.sumNormalOutputSats !== '0') {
-            obj.sumNormalOutputSats = message.sumNormalOutputSats;
+        if (message.sumNormalOutputSats !== BigInt('0')) {
+            obj.sumNormalOutputSats = message.sumNormalOutputSats.toString();
         }
-        if (message.sumBurnedSats !== '0') {
-            obj.sumBurnedSats = message.sumBurnedSats;
+        if (message.sumBurnedSats !== BigInt('0')) {
+            obj.sumBurnedSats = message.sumBurnedSats.toString();
         }
         return obj;
     },
@@ -1611,16 +1668,17 @@ export const BlockInfo = {
         message.prevHash = object.prevHash ?? new Uint8Array(0);
         message.height = object.height ?? 0;
         message.nBits = object.nBits ?? 0;
-        message.timestamp = object.timestamp ?? '0';
+        message.timestamp = object.timestamp ?? BigInt('0');
         message.isFinal = object.isFinal ?? false;
-        message.blockSize = object.blockSize ?? '0';
-        message.numTxs = object.numTxs ?? '0';
-        message.numInputs = object.numInputs ?? '0';
-        message.numOutputs = object.numOutputs ?? '0';
-        message.sumInputSats = object.sumInputSats ?? '0';
-        message.sumCoinbaseOutputSats = object.sumCoinbaseOutputSats ?? '0';
-        message.sumNormalOutputSats = object.sumNormalOutputSats ?? '0';
-        message.sumBurnedSats = object.sumBurnedSats ?? '0';
+        message.blockSize = object.blockSize ?? BigInt('0');
+        message.numTxs = object.numTxs ?? BigInt('0');
+        message.numInputs = object.numInputs ?? BigInt('0');
+        message.numOutputs = object.numOutputs ?? BigInt('0');
+        message.sumInputSats = object.sumInputSats ?? BigInt('0');
+        message.sumCoinbaseOutputSats =
+            object.sumCoinbaseOutputSats ?? BigInt('0');
+        message.sumNormalOutputSats = object.sumNormalOutputSats ?? BigInt('0');
+        message.sumBurnedSats = object.sumBurnedSats ?? BigInt('0');
         return message;
     },
 };
@@ -1633,7 +1691,7 @@ function createBaseTx(): Tx {
         outputs: [],
         lockTime: 0,
         block: undefined,
-        timeFirstSeen: '0',
+        timeFirstSeen: BigInt('0'),
         size: 0,
         isCoinbase: false,
         tokenEntries: [],
@@ -1666,8 +1724,16 @@ export const Tx = {
                 writer.uint32(66).fork(),
             ).ldelim();
         }
-        if (message.timeFirstSeen !== '0') {
-            writer.uint32(72).int64(message.timeFirstSeen);
+        if (message.timeFirstSeen !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.timeFirstSeen) !==
+                message.timeFirstSeen
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.timeFirstSeen of type int64 too large',
+                );
+            }
+            writer.uint32(72).int64(message.timeFirstSeen.toString());
         }
         if (message.size !== 0) {
             writer.uint32(88).uint32(message.size);
@@ -1752,7 +1818,7 @@ export const Tx = {
                         break;
                     }
 
-                    message.timeFirstSeen = longToString(
+                    message.timeFirstSeen = longToBigint(
                         reader.int64() as Long,
                     );
                     continue;
@@ -1832,8 +1898,8 @@ export const Tx = {
                 ? BlockMetadata.fromJSON(object.block)
                 : undefined,
             timeFirstSeen: isSet(object.timeFirstSeen)
-                ? globalThis.String(object.timeFirstSeen)
-                : '0',
+                ? BigInt(object.timeFirstSeen)
+                : BigInt('0'),
             size: isSet(object.size) ? globalThis.Number(object.size) : 0,
             isCoinbase: isSet(object.isCoinbase)
                 ? globalThis.Boolean(object.isCoinbase)
@@ -1877,8 +1943,8 @@ export const Tx = {
         if (message.block !== undefined) {
             obj.block = BlockMetadata.toJSON(message.block);
         }
-        if (message.timeFirstSeen !== '0') {
-            obj.timeFirstSeen = message.timeFirstSeen;
+        if (message.timeFirstSeen !== BigInt('0')) {
+            obj.timeFirstSeen = message.timeFirstSeen.toString();
         }
         if (message.size !== 0) {
             obj.size = Math.round(message.size);
@@ -1920,7 +1986,7 @@ export const Tx = {
             object.block !== undefined && object.block !== null
                 ? BlockMetadata.fromPartial(object.block)
                 : undefined;
-        message.timeFirstSeen = object.timeFirstSeen ?? '0';
+        message.timeFirstSeen = object.timeFirstSeen ?? BigInt('0');
         message.size = object.size ?? 0;
         message.isCoinbase = object.isCoinbase ?? false;
         message.tokenEntries =
@@ -1940,7 +2006,7 @@ function createBaseScriptUtxo(): ScriptUtxo {
         outpoint: undefined,
         blockHeight: 0,
         isCoinbase: false,
-        value: '0',
+        sats: BigInt('0'),
         isFinal: false,
         token: undefined,
         plugins: {},
@@ -1964,8 +2030,13 @@ export const ScriptUtxo = {
         if (message.isCoinbase === true) {
             writer.uint32(24).bool(message.isCoinbase);
         }
-        if (message.value !== '0') {
-            writer.uint32(40).int64(message.value);
+        if (message.sats !== BigInt('0')) {
+            if (BigInt.asIntN(64, message.sats) !== message.sats) {
+                throw new globalThis.Error(
+                    'value provided for field message.sats of type int64 too large',
+                );
+            }
+            writer.uint32(40).int64(message.sats.toString());
         }
         if (message.isFinal === true) {
             writer.uint32(80).bool(message.isFinal);
@@ -2016,7 +2087,7 @@ export const ScriptUtxo = {
                         break;
                     }
 
-                    message.value = longToString(reader.int64() as Long);
+                    message.sats = longToBigint(reader.int64() as Long);
                     continue;
                 case 10:
                     if (tag !== 80) {
@@ -2065,7 +2136,7 @@ export const ScriptUtxo = {
             isCoinbase: isSet(object.isCoinbase)
                 ? globalThis.Boolean(object.isCoinbase)
                 : false,
-            value: isSet(object.value) ? globalThis.String(object.value) : '0',
+            sats: isSet(object.sats) ? BigInt(object.sats) : BigInt('0'),
             isFinal: isSet(object.isFinal)
                 ? globalThis.Boolean(object.isFinal)
                 : false,
@@ -2094,8 +2165,8 @@ export const ScriptUtxo = {
         if (message.isCoinbase === true) {
             obj.isCoinbase = message.isCoinbase;
         }
-        if (message.value !== '0') {
-            obj.value = message.value;
+        if (message.sats !== BigInt('0')) {
+            obj.sats = message.sats.toString();
         }
         if (message.isFinal === true) {
             obj.isFinal = message.isFinal;
@@ -2128,7 +2199,7 @@ export const ScriptUtxo = {
                 : undefined;
         message.blockHeight = object.blockHeight ?? 0;
         message.isCoinbase = object.isCoinbase ?? false;
-        message.value = object.value ?? '0';
+        message.sats = object.sats ?? BigInt('0');
         message.isFinal = object.isFinal ?? false;
         message.token =
             object.token !== undefined && object.token !== null
@@ -2244,7 +2315,7 @@ function createBaseUtxo(): Utxo {
         outpoint: undefined,
         blockHeight: 0,
         isCoinbase: false,
-        value: '0',
+        sats: BigInt('0'),
         script: new Uint8Array(0),
         isFinal: false,
         token: undefined,
@@ -2269,8 +2340,13 @@ export const Utxo = {
         if (message.isCoinbase === true) {
             writer.uint32(24).bool(message.isCoinbase);
         }
-        if (message.value !== '0') {
-            writer.uint32(32).int64(message.value);
+        if (message.sats !== BigInt('0')) {
+            if (BigInt.asIntN(64, message.sats) !== message.sats) {
+                throw new globalThis.Error(
+                    'value provided for field message.sats of type int64 too large',
+                );
+            }
+            writer.uint32(32).int64(message.sats.toString());
         }
         if (message.script.length !== 0) {
             writer.uint32(42).bytes(message.script);
@@ -2324,7 +2400,7 @@ export const Utxo = {
                         break;
                     }
 
-                    message.value = longToString(reader.int64() as Long);
+                    message.sats = longToBigint(reader.int64() as Long);
                     continue;
                 case 5:
                     if (tag !== 42) {
@@ -2380,7 +2456,7 @@ export const Utxo = {
             isCoinbase: isSet(object.isCoinbase)
                 ? globalThis.Boolean(object.isCoinbase)
                 : false,
-            value: isSet(object.value) ? globalThis.String(object.value) : '0',
+            sats: isSet(object.sats) ? BigInt(object.sats) : BigInt('0'),
             script: isSet(object.script)
                 ? bytesFromBase64(object.script)
                 : new Uint8Array(0),
@@ -2412,8 +2488,8 @@ export const Utxo = {
         if (message.isCoinbase === true) {
             obj.isCoinbase = message.isCoinbase;
         }
-        if (message.value !== '0') {
-            obj.value = message.value;
+        if (message.sats !== BigInt('0')) {
+            obj.sats = message.sats.toString();
         }
         if (message.script.length !== 0) {
             obj.script = base64FromBytes(message.script);
@@ -2447,7 +2523,7 @@ export const Utxo = {
                 : undefined;
         message.blockHeight = object.blockHeight ?? 0;
         message.isCoinbase = object.isCoinbase ?? false;
-        message.value = object.value ?? '0';
+        message.sats = object.sats ?? BigInt('0');
         message.script = object.script ?? new Uint8Array(0);
         message.isFinal = object.isFinal ?? false;
         message.token =
@@ -2725,7 +2801,7 @@ function createBaseTxInput(): TxInput {
         prevOut: undefined,
         inputScript: new Uint8Array(0),
         outputScript: new Uint8Array(0),
-        value: '0',
+        sats: BigInt('0'),
         sequenceNo: 0,
         token: undefined,
         plugins: {},
@@ -2746,8 +2822,13 @@ export const TxInput = {
         if (message.outputScript.length !== 0) {
             writer.uint32(26).bytes(message.outputScript);
         }
-        if (message.value !== '0') {
-            writer.uint32(32).int64(message.value);
+        if (message.sats !== BigInt('0')) {
+            if (BigInt.asIntN(64, message.sats) !== message.sats) {
+                throw new globalThis.Error(
+                    'value provided for field message.sats of type int64 too large',
+                );
+            }
+            writer.uint32(32).int64(message.sats.toString());
         }
         if (message.sequenceNo !== 0) {
             writer.uint32(40).uint32(message.sequenceNo);
@@ -2798,7 +2879,7 @@ export const TxInput = {
                         break;
                     }
 
-                    message.value = longToString(reader.int64() as Long);
+                    message.sats = longToBigint(reader.int64() as Long);
                     continue;
                 case 5:
                     if (tag !== 40) {
@@ -2847,7 +2928,7 @@ export const TxInput = {
             outputScript: isSet(object.outputScript)
                 ? bytesFromBase64(object.outputScript)
                 : new Uint8Array(0),
-            value: isSet(object.value) ? globalThis.String(object.value) : '0',
+            sats: isSet(object.sats) ? BigInt(object.sats) : BigInt('0'),
             sequenceNo: isSet(object.sequenceNo)
                 ? globalThis.Number(object.sequenceNo)
                 : 0,
@@ -2876,8 +2957,8 @@ export const TxInput = {
         if (message.outputScript.length !== 0) {
             obj.outputScript = base64FromBytes(message.outputScript);
         }
-        if (message.value !== '0') {
-            obj.value = message.value;
+        if (message.sats !== BigInt('0')) {
+            obj.sats = message.sats.toString();
         }
         if (message.sequenceNo !== 0) {
             obj.sequenceNo = Math.round(message.sequenceNo);
@@ -2908,7 +2989,7 @@ export const TxInput = {
                 : undefined;
         message.inputScript = object.inputScript ?? new Uint8Array(0);
         message.outputScript = object.outputScript ?? new Uint8Array(0);
-        message.value = object.value ?? '0';
+        message.sats = object.sats ?? BigInt('0');
         message.sequenceNo = object.sequenceNo ?? 0;
         message.token =
             object.token !== undefined && object.token !== null
@@ -3021,7 +3102,7 @@ export const TxInput_PluginsEntry = {
 
 function createBaseTxOutput(): TxOutput {
     return {
-        value: '0',
+        sats: BigInt('0'),
         outputScript: new Uint8Array(0),
         spentBy: undefined,
         token: undefined,
@@ -3034,8 +3115,13 @@ export const TxOutput = {
         message: TxOutput,
         writer: _m0.Writer = _m0.Writer.create(),
     ): _m0.Writer {
-        if (message.value !== '0') {
-            writer.uint32(8).int64(message.value);
+        if (message.sats !== BigInt('0')) {
+            if (BigInt.asIntN(64, message.sats) !== message.sats) {
+                throw new globalThis.Error(
+                    'value provided for field message.sats of type int64 too large',
+                );
+            }
+            writer.uint32(8).int64(message.sats.toString());
         }
         if (message.outputScript.length !== 0) {
             writer.uint32(18).bytes(message.outputScript);
@@ -3068,7 +3154,7 @@ export const TxOutput = {
                         break;
                     }
 
-                    message.value = longToString(reader.int64() as Long);
+                    message.sats = longToBigint(reader.int64() as Long);
                     continue;
                 case 2:
                     if (tag !== 18) {
@@ -3115,7 +3201,7 @@ export const TxOutput = {
 
     fromJSON(object: any): TxOutput {
         return {
-            value: isSet(object.value) ? globalThis.String(object.value) : '0',
+            sats: isSet(object.sats) ? BigInt(object.sats) : BigInt('0'),
             outputScript: isSet(object.outputScript)
                 ? bytesFromBase64(object.outputScript)
                 : new Uint8Array(0),
@@ -3138,8 +3224,8 @@ export const TxOutput = {
 
     toJSON(message: TxOutput): unknown {
         const obj: any = {};
-        if (message.value !== '0') {
-            obj.value = message.value;
+        if (message.sats !== BigInt('0')) {
+            obj.sats = message.sats.toString();
         }
         if (message.outputScript.length !== 0) {
             obj.outputScript = base64FromBytes(message.outputScript);
@@ -3169,7 +3255,7 @@ export const TxOutput = {
         object: I,
     ): TxOutput {
         const message = createBaseTxOutput();
-        message.value = object.value ?? '0';
+        message.sats = object.sats ?? BigInt('0');
         message.outputScript = object.outputScript ?? new Uint8Array(0);
         message.spentBy =
             object.spentBy !== undefined && object.spentBy !== null
@@ -3288,7 +3374,7 @@ function createBaseBlockMetadata(): BlockMetadata {
     return {
         height: 0,
         hash: new Uint8Array(0),
-        timestamp: '0',
+        timestamp: BigInt('0'),
         isFinal: false,
     };
 }
@@ -3304,8 +3390,13 @@ export const BlockMetadata = {
         if (message.hash.length !== 0) {
             writer.uint32(18).bytes(message.hash);
         }
-        if (message.timestamp !== '0') {
-            writer.uint32(24).int64(message.timestamp);
+        if (message.timestamp !== BigInt('0')) {
+            if (BigInt.asIntN(64, message.timestamp) !== message.timestamp) {
+                throw new globalThis.Error(
+                    'value provided for field message.timestamp of type int64 too large',
+                );
+            }
+            writer.uint32(24).int64(message.timestamp.toString());
         }
         if (message.isFinal === true) {
             writer.uint32(32).bool(message.isFinal);
@@ -3340,7 +3431,7 @@ export const BlockMetadata = {
                         break;
                     }
 
-                    message.timestamp = longToString(reader.int64() as Long);
+                    message.timestamp = longToBigint(reader.int64() as Long);
                     continue;
                 case 4:
                     if (tag !== 32) {
@@ -3365,8 +3456,8 @@ export const BlockMetadata = {
                 ? bytesFromBase64(object.hash)
                 : new Uint8Array(0),
             timestamp: isSet(object.timestamp)
-                ? globalThis.String(object.timestamp)
-                : '0',
+                ? BigInt(object.timestamp)
+                : BigInt('0'),
             isFinal: isSet(object.isFinal)
                 ? globalThis.Boolean(object.isFinal)
                 : false,
@@ -3381,8 +3472,8 @@ export const BlockMetadata = {
         if (message.hash.length !== 0) {
             obj.hash = base64FromBytes(message.hash);
         }
-        if (message.timestamp !== '0') {
-            obj.timestamp = message.timestamp;
+        if (message.timestamp !== BigInt('0')) {
+            obj.timestamp = message.timestamp.toString();
         }
         if (message.isFinal === true) {
             obj.isFinal = message.isFinal;
@@ -3401,7 +3492,7 @@ export const BlockMetadata = {
         const message = createBaseBlockMetadata();
         message.height = object.height ?? 0;
         message.hash = object.hash ?? new Uint8Array(0);
-        message.timestamp = object.timestamp ?? '0';
+        message.timestamp = object.timestamp ?? BigInt('0');
         message.isFinal = object.isFinal ?? false;
         return message;
     },
@@ -3497,7 +3588,7 @@ function createBaseTokenInfo(): TokenInfo {
         tokenType: undefined,
         genesisInfo: undefined,
         block: undefined,
-        timeFirstSeen: '0',
+        timeFirstSeen: BigInt('0'),
     };
 }
 
@@ -3527,8 +3618,16 @@ export const TokenInfo = {
                 writer.uint32(34).fork(),
             ).ldelim();
         }
-        if (message.timeFirstSeen !== '0') {
-            writer.uint32(40).int64(message.timeFirstSeen);
+        if (message.timeFirstSeen !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.timeFirstSeen) !==
+                message.timeFirstSeen
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.timeFirstSeen of type int64 too large',
+                );
+            }
+            writer.uint32(40).int64(message.timeFirstSeen.toString());
         }
         return writer;
     },
@@ -3583,7 +3682,7 @@ export const TokenInfo = {
                         break;
                     }
 
-                    message.timeFirstSeen = longToString(
+                    message.timeFirstSeen = longToBigint(
                         reader.int64() as Long,
                     );
                     continue;
@@ -3611,8 +3710,8 @@ export const TokenInfo = {
                 ? BlockMetadata.fromJSON(object.block)
                 : undefined,
             timeFirstSeen: isSet(object.timeFirstSeen)
-                ? globalThis.String(object.timeFirstSeen)
-                : '0',
+                ? BigInt(object.timeFirstSeen)
+                : BigInt('0'),
         };
     },
 
@@ -3630,8 +3729,8 @@ export const TokenInfo = {
         if (message.block !== undefined) {
             obj.block = BlockMetadata.toJSON(message.block);
         }
-        if (message.timeFirstSeen !== '0') {
-            obj.timeFirstSeen = message.timeFirstSeen;
+        if (message.timeFirstSeen !== BigInt('0')) {
+            obj.timeFirstSeen = message.timeFirstSeen.toString();
         }
         return obj;
     },
@@ -3656,7 +3755,7 @@ export const TokenInfo = {
             object.block !== undefined && object.block !== null
                 ? BlockMetadata.fromPartial(object.block)
                 : undefined;
-        message.timeFirstSeen = object.timeFirstSeen ?? '0';
+        message.timeFirstSeen = object.timeFirstSeen ?? BigInt('0');
         return message;
     },
 };
@@ -3670,8 +3769,8 @@ function createBaseTokenEntry(): TokenEntry {
         isInvalid: false,
         burnSummary: '',
         failedColorings: [],
-        actualBurnAmount: '',
-        intentionalBurn: '0',
+        actualBurnAtoms: '',
+        intentionalBurnAtoms: BigInt('0'),
         burnsMintBatons: false,
     };
 }
@@ -3705,11 +3804,19 @@ export const TokenEntry = {
         for (const v of message.failedColorings) {
             TokenFailedColoring.encode(v!, writer.uint32(58).fork()).ldelim();
         }
-        if (message.actualBurnAmount !== '') {
-            writer.uint32(66).string(message.actualBurnAmount);
+        if (message.actualBurnAtoms !== '') {
+            writer.uint32(66).string(message.actualBurnAtoms);
         }
-        if (message.intentionalBurn !== '0') {
-            writer.uint32(72).uint64(message.intentionalBurn);
+        if (message.intentionalBurnAtoms !== BigInt('0')) {
+            if (
+                BigInt.asUintN(64, message.intentionalBurnAtoms) !==
+                message.intentionalBurnAtoms
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.intentionalBurnAtoms of type uint64 too large',
+                );
+            }
+            writer.uint32(72).uint64(message.intentionalBurnAtoms.toString());
         }
         if (message.burnsMintBatons === true) {
             writer.uint32(80).bool(message.burnsMintBatons);
@@ -3784,14 +3891,14 @@ export const TokenEntry = {
                         break;
                     }
 
-                    message.actualBurnAmount = reader.string();
+                    message.actualBurnAtoms = reader.string();
                     continue;
                 case 9:
                     if (tag !== 72) {
                         break;
                     }
 
-                    message.intentionalBurn = longToString(
+                    message.intentionalBurnAtoms = longToBigint(
                         reader.uint64() as Long,
                     );
                     continue;
@@ -3836,12 +3943,12 @@ export const TokenEntry = {
                       TokenFailedColoring.fromJSON(e),
                   )
                 : [],
-            actualBurnAmount: isSet(object.actualBurnAmount)
-                ? globalThis.String(object.actualBurnAmount)
+            actualBurnAtoms: isSet(object.actualBurnAtoms)
+                ? globalThis.String(object.actualBurnAtoms)
                 : '',
-            intentionalBurn: isSet(object.intentionalBurn)
-                ? globalThis.String(object.intentionalBurn)
-                : '0',
+            intentionalBurnAtoms: isSet(object.intentionalBurnAtoms)
+                ? BigInt(object.intentionalBurnAtoms)
+                : BigInt('0'),
             burnsMintBatons: isSet(object.burnsMintBatons)
                 ? globalThis.Boolean(object.burnsMintBatons)
                 : false,
@@ -3873,11 +3980,11 @@ export const TokenEntry = {
                 TokenFailedColoring.toJSON(e),
             );
         }
-        if (message.actualBurnAmount !== '') {
-            obj.actualBurnAmount = message.actualBurnAmount;
+        if (message.actualBurnAtoms !== '') {
+            obj.actualBurnAtoms = message.actualBurnAtoms;
         }
-        if (message.intentionalBurn !== '0') {
-            obj.intentionalBurn = message.intentionalBurn;
+        if (message.intentionalBurnAtoms !== BigInt('0')) {
+            obj.intentionalBurnAtoms = message.intentionalBurnAtoms.toString();
         }
         if (message.burnsMintBatons === true) {
             obj.burnsMintBatons = message.burnsMintBatons;
@@ -3905,8 +4012,9 @@ export const TokenEntry = {
             object.failedColorings?.map(e =>
                 TokenFailedColoring.fromPartial(e),
             ) || [];
-        message.actualBurnAmount = object.actualBurnAmount ?? '';
-        message.intentionalBurn = object.intentionalBurn ?? '0';
+        message.actualBurnAtoms = object.actualBurnAtoms ?? '';
+        message.intentionalBurnAtoms =
+            object.intentionalBurnAtoms ?? BigInt('0');
         message.burnsMintBatons = object.burnsMintBatons ?? false;
         return message;
     },
@@ -4117,7 +4225,7 @@ function createBaseToken(): Token {
         tokenId: '',
         tokenType: undefined,
         entryIdx: 0,
-        amount: '0',
+        atoms: BigInt('0'),
         isMintBaton: false,
     };
 }
@@ -4139,8 +4247,13 @@ export const Token = {
         if (message.entryIdx !== 0) {
             writer.uint32(24).int32(message.entryIdx);
         }
-        if (message.amount !== '0') {
-            writer.uint32(32).uint64(message.amount);
+        if (message.atoms !== BigInt('0')) {
+            if (BigInt.asUintN(64, message.atoms) !== message.atoms) {
+                throw new globalThis.Error(
+                    'value provided for field message.atoms of type uint64 too large',
+                );
+            }
+            writer.uint32(32).uint64(message.atoms.toString());
         }
         if (message.isMintBaton === true) {
             writer.uint32(40).bool(message.isMintBaton);
@@ -4185,7 +4298,7 @@ export const Token = {
                         break;
                     }
 
-                    message.amount = longToString(reader.uint64() as Long);
+                    message.atoms = longToBigint(reader.uint64() as Long);
                     continue;
                 case 5:
                     if (tag !== 40) {
@@ -4214,9 +4327,7 @@ export const Token = {
             entryIdx: isSet(object.entryIdx)
                 ? globalThis.Number(object.entryIdx)
                 : 0,
-            amount: isSet(object.amount)
-                ? globalThis.String(object.amount)
-                : '0',
+            atoms: isSet(object.atoms) ? BigInt(object.atoms) : BigInt('0'),
             isMintBaton: isSet(object.isMintBaton)
                 ? globalThis.Boolean(object.isMintBaton)
                 : false,
@@ -4234,8 +4345,8 @@ export const Token = {
         if (message.entryIdx !== 0) {
             obj.entryIdx = Math.round(message.entryIdx);
         }
-        if (message.amount !== '0') {
-            obj.amount = message.amount;
+        if (message.atoms !== BigInt('0')) {
+            obj.atoms = message.atoms.toString();
         }
         if (message.isMintBaton === true) {
             obj.isMintBaton = message.isMintBaton;
@@ -4254,7 +4365,7 @@ export const Token = {
                 ? TokenType.fromPartial(object.tokenType)
                 : undefined;
         message.entryIdx = object.entryIdx ?? 0;
-        message.amount = object.amount ?? '0';
+        message.atoms = object.atoms ?? BigInt('0');
         message.isMintBaton = object.isMintBaton ?? false;
         return message;
     },
@@ -6094,7 +6205,7 @@ function createBaseMsgBlock(): MsgBlock {
         msgType: 0,
         blockHash: new Uint8Array(0),
         blockHeight: 0,
-        blockTimestamp: '0',
+        blockTimestamp: BigInt('0'),
         coinbaseData: undefined,
     };
 }
@@ -6113,8 +6224,16 @@ export const MsgBlock = {
         if (message.blockHeight !== 0) {
             writer.uint32(24).int32(message.blockHeight);
         }
-        if (message.blockTimestamp !== '0') {
-            writer.uint32(32).int64(message.blockTimestamp);
+        if (message.blockTimestamp !== BigInt('0')) {
+            if (
+                BigInt.asIntN(64, message.blockTimestamp) !==
+                message.blockTimestamp
+            ) {
+                throw new globalThis.Error(
+                    'value provided for field message.blockTimestamp of type int64 too large',
+                );
+            }
+            writer.uint32(32).int64(message.blockTimestamp.toString());
         }
         if (message.coinbaseData !== undefined) {
             CoinbaseData.encode(
@@ -6159,7 +6278,7 @@ export const MsgBlock = {
                         break;
                     }
 
-                    message.blockTimestamp = longToString(
+                    message.blockTimestamp = longToBigint(
                         reader.int64() as Long,
                     );
                     continue;
@@ -6194,8 +6313,8 @@ export const MsgBlock = {
                 ? globalThis.Number(object.blockHeight)
                 : 0,
             blockTimestamp: isSet(object.blockTimestamp)
-                ? globalThis.String(object.blockTimestamp)
-                : '0',
+                ? BigInt(object.blockTimestamp)
+                : BigInt('0'),
             coinbaseData: isSet(object.coinbaseData)
                 ? CoinbaseData.fromJSON(object.coinbaseData)
                 : undefined,
@@ -6213,8 +6332,8 @@ export const MsgBlock = {
         if (message.blockHeight !== 0) {
             obj.blockHeight = Math.round(message.blockHeight);
         }
-        if (message.blockTimestamp !== '0') {
-            obj.blockTimestamp = message.blockTimestamp;
+        if (message.blockTimestamp !== BigInt('0')) {
+            obj.blockTimestamp = message.blockTimestamp.toString();
         }
         if (message.coinbaseData !== undefined) {
             obj.coinbaseData = CoinbaseData.toJSON(message.coinbaseData);
@@ -6232,7 +6351,7 @@ export const MsgBlock = {
         message.msgType = object.msgType ?? 0;
         message.blockHash = object.blockHash ?? new Uint8Array(0);
         message.blockHeight = object.blockHeight ?? 0;
-        message.blockTimestamp = object.blockTimestamp ?? '0';
+        message.blockTimestamp = object.blockTimestamp ?? BigInt('0');
         message.coinbaseData =
             object.coinbaseData !== undefined && object.coinbaseData !== null
                 ? CoinbaseData.fromPartial(object.coinbaseData)
@@ -6460,6 +6579,7 @@ type Builtin =
     | string
     | number
     | boolean
+    | bigint
     | undefined;
 
 export type DeepPartial<T> = T extends Builtin
@@ -6479,8 +6599,8 @@ export type Exact<P, I extends P> = P extends Builtin
           [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
       };
 
-function longToString(long: Long) {
-    return long.toString();
+function longToBigint(long: Long) {
+    return BigInt(long.toString());
 }
 
 if (_m0.util.Long !== Long) {

@@ -30,22 +30,22 @@ export async function makeSlpOffer(params: {
     const makerPkh = shaRmd160(makerPk);
     const makerP2pkh = Script.p2pkh(makerPkh);
 
-    const genesisOutputSats = 2000;
+    const genesisOutputSats = 2000n;
     const txBuildGenesisGroup = new TxBuilder({
         inputs: [fuelInput],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 script: slpGenesis(
                     agoraPartial.tokenType,
                     {
                         tokenTicker: `SLP token type ${agoraPartial.tokenType}`,
                         decimals: 4,
                     },
-                    agoraPartial.offeredTokens(),
+                    agoraPartial.offeredAtoms(),
                 ),
             },
-            { value: genesisOutputSats, script: makerP2pkh },
+            { sats: genesisOutputSats, script: makerP2pkh },
         ],
     });
     const genesisTx = txBuildGenesisGroup.sign();
@@ -69,7 +69,7 @@ export async function makeSlpOffer(params: {
                         outIdx: 1,
                     },
                     signData: {
-                        value: genesisOutputSats,
+                        sats: genesisOutputSats,
                         outputScript: makerP2pkh,
                     },
                 },
@@ -78,12 +78,12 @@ export async function makeSlpOffer(params: {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 script: slpSend(tokenId, agoraPartial.tokenType, [
-                    agoraPartial.offeredTokens(),
+                    agoraPartial.offeredAtoms(),
                 ]),
             },
-            { value: adSetupSats, script: agoraAdP2sh },
+            { sats: adSetupSats, script: agoraAdP2sh },
         ],
     });
     const adSetupTx = txBuildAdSetup.sign();
@@ -100,7 +100,7 @@ export async function makeSlpOffer(params: {
                         outIdx: 1,
                     },
                     signData: {
-                        value: adSetupSats,
+                        sats: adSetupSats,
                         redeemScript: agoraAdScript,
                     },
                 },
@@ -109,12 +109,12 @@ export async function makeSlpOffer(params: {
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 script: slpSend(tokenId, agoraPartial.tokenType, [
-                    agoraPartial.offeredTokens(),
+                    agoraPartial.offeredAtoms(),
                 ]),
             },
-            { value: 546, script: agoraP2sh },
+            { sats: 546n, script: agoraP2sh },
         ],
     });
     const offerTx = txBuildOffer.sign();
@@ -133,7 +133,7 @@ export async function takeSlpOffer(params: {
     offer: AgoraOffer;
     takerSk: Uint8Array;
     takerInput: TxBuilderInput;
-    acceptedTokens: bigint;
+    acceptedAtoms: bigint;
     allowUnspendable?: boolean;
 }) {
     const takerSk = params.takerSk;
@@ -145,7 +145,7 @@ export async function takeSlpOffer(params: {
         covenantPk: takerPk,
         fuelInputs: [params.takerInput],
         recipientScript: takerP2pkh,
-        acceptedTokens: params.acceptedTokens,
+        acceptedAtoms: params.acceptedAtoms,
         allowUnspendable: params.allowUnspendable,
     });
     const acceptTxid = (await params.chronik.broadcastTx(acceptTx.ser())).txid;

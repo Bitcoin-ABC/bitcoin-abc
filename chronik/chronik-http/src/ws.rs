@@ -345,7 +345,7 @@ fn sub_block_msg_action(
                 .outputs
                 .iter()
                 .map(|output| proto::TxOutput {
-                    value: output.value,
+                    sats: output.sats,
                     output_script: output.script.to_vec(),
                     ..Default::default()
                 })

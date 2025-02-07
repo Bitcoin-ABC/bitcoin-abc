@@ -33,7 +33,7 @@ export type CashtabAlpGenesisInfo = GenesisInfo & {
     authPubkey: string;
 };
 
-export const MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS = '281474976710655';
+export const MAX_OUTPUT_AMOUNT_ALP_ATOMS = 0xffffffffffffn;
 /**
  * Get the maximum (decimalized) qty of ALP tokens that can be
  * represented in a single ALP output (mint, send, burn, or agora partial list)
@@ -41,17 +41,19 @@ export const MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS = '281474976710655';
  * @returns decimalized max amount
  */
 export const getMaxDecimalizedAlpQty = (decimals: SlpDecimals): string => {
+    const MAX_OUTPUT_AMOUNT_ALP_ATOMS_STRING =
+        MAX_OUTPUT_AMOUNT_ALP_ATOMS.toString();
     // The max amount depends on token decimals
     // e.g. if decimals are 0, it's 281474976710655
     // if decimals are 9, it's 281474.976710655
     if (decimals === 0) {
-        return MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS;
+        return MAX_OUTPUT_AMOUNT_ALP_ATOMS_STRING;
     }
-    const stringBeforeDecimalPoint = MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS.slice(
+    const stringBeforeDecimalPoint = MAX_OUTPUT_AMOUNT_ALP_ATOMS_STRING.slice(
         0,
-        MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS.length - decimals,
+        MAX_OUTPUT_AMOUNT_ALP_ATOMS_STRING.length - decimals,
     );
-    const stringAfterDecimalPoint = MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS.slice(
+    const stringAfterDecimalPoint = MAX_OUTPUT_AMOUNT_ALP_ATOMS_STRING.slice(
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
@@ -69,12 +71,12 @@ export const getAlpGenesisTargetOutputs = (
 
     const script = emppScript([
         alpGenesis(ALP_STANDARD, genesisInfo, {
-            amounts: [initialQuantity],
+            atomsArray: [initialQuantity],
             numBatons: includeMintBaton ? 1 : 0,
         }),
     ]);
 
-    targetOutputs.push({ value: 0, script });
+    targetOutputs.push({ sats: 0n, script });
 
     // Per ALP spec, mint batons are minted at earlier outputs, then qty
     // Cashtab only supports ALP genesis with 1 output qty or ALP genesis with
@@ -114,11 +116,11 @@ export const getAlpSendTargetOutputs = (
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
 
     // Initialize with OP_RETURN at 0 index, per spec
-    const targetOutputs: TokenTargetOutput[] = [{ value: 0, script }];
+    const targetOutputs: TokenTargetOutput[] = [{ sats: 0n, script }];
 
     // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
     targetOutputs.push({
-        value: appConfig.dustSats,
+        sats: BigInt(appConfig.dustSats),
         script: Script.fromAddress(destinationAddress),
     });
 
@@ -159,7 +161,7 @@ export const getAlpBurnTargetOutputs = (
     // If we are burning a full utxo and we do not need a token change output,
     // We still need to ensure the tx has at least one output of dust satoshis to be valid
     // Using the token dust utxo is a convenient way of doing this
-    return [{ value: 0, script }, TOKEN_DUST_CHANGE_OUTPUT];
+    return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
 };
 
 /**
@@ -172,7 +174,7 @@ export const getAlpMintTargetOutputs = (
 ): TokenTargetOutput[] => {
     const script = emppScript([
         alpMint(tokenId as string, ALP_STANDARD, {
-            amounts: [mintQty],
+            atomsArray: [mintQty],
             // Mint baton is consumed and reborn
             numBatons: 1,
         }),
@@ -180,7 +182,7 @@ export const getAlpMintTargetOutputs = (
 
     return [
         // SLP 1 script
-        { value: 0, script },
+        { sats: 0n, script },
         // Dust output for mint qty
         TOKEN_DUST_CHANGE_OUTPUT,
         // Dust output for mint baton
@@ -203,7 +205,7 @@ export const getAlpAgoraListTargetOutputs = (
 
     const offerTargetOutputs: TokenTargetOutput[] = [
         {
-            value: 0,
+            sats: 0n,
             // Note, unlike SLP
             // We will possibly have token change for the tx that creates the offer
             script: emppScript([
@@ -212,7 +214,7 @@ export const getAlpAgoraListTargetOutputs = (
             ]),
         },
         // Token utxo we are offering for sale
-        { value: appConfig.dustSats, script: agoraP2sh },
+        { sats: BigInt(appConfig.dustSats), script: agoraP2sh },
     ];
     if (sendAmounts.length > 1) {
         offerTargetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);

@@ -9,7 +9,7 @@ use bytes::Bytes;
 use crate::{
     parsed::{ParsedData, ParsedMintData, ParsedTxType},
     slp::{
-        common::{parse_amount, parse_token_id},
+        common::{parse_atoms, parse_token_id},
         ParseError,
     },
     structs::TokenMeta,
@@ -62,10 +62,10 @@ pub(crate) fn parse_mint_data_mint_vault(
     let token_id_bytes = data_iter.next().unwrap();
     let token_id = parse_token_id(&token_id_bytes)?;
 
-    let amounts = data_iter
+    let atoms_vec = data_iter
         .enumerate()
         .map(|(idx, quantity)| {
-            parse_amount(&quantity, ADDITIONAL_QUANTITY_FIELD_NAMES[idx])
+            parse_atoms(&quantity, ADDITIONAL_QUANTITY_FIELD_NAMES[idx])
         })
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -75,7 +75,7 @@ pub(crate) fn parse_mint_data_mint_vault(
             token_type: TokenType::Slp(SlpTokenType::MintVault),
         },
         tx_type: ParsedTxType::Mint(ParsedMintData {
-            amounts,
+            atoms_vec,
             num_batons: 0,
         }),
     })

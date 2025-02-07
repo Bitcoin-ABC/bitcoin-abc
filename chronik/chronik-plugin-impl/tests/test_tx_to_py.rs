@@ -20,7 +20,7 @@ use bitcoinsuite_slp::{
     slp::{burn_opreturn, genesis_opreturn, mint_opreturn, send_opreturn},
     structs::{GenesisInfo, Token, TokenVariant},
     test_helpers::{
-        meta_alp, meta_alp_unknown, meta_slp, spent_amount, spent_amount_group,
+        meta_alp, meta_alp_unknown, meta_slp, spent_atoms, spent_atoms_group,
         spent_baton, EMPTY_TOKEN_ID, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4,
         TOKEN_ID5, TOKEN_ID6, TOKEN_ID7, TOKEN_ID8,
     },
@@ -72,7 +72,7 @@ fn make_py_tx(
                 })
                 .collect(),
             outputs: [TxOutput {
-                value: 0,
+                sats: 0,
                 script: params.op_return_script.clone(),
             }]
             .into_iter()
@@ -131,7 +131,7 @@ fn test_tx_to_py() -> Result<()> {
                     coin: Some(Coin {
                         output: TxOutput {
                             script: Script::p2sh(&ShaRmd160([2; 20])),
-                            value: 50000,
+                            sats: 50000,
                         },
                         height: 0,
                         is_coinbase: false,
@@ -146,7 +146,7 @@ fn test_tx_to_py() -> Result<()> {
                 },
             ],
             outputs: vec![TxOutput {
-                value: 40000,
+                sats: 40000,
                 script: Script::p2pkh(&ShaRmd160([6; 20])),
             }],
             locktime: 0x87654321,
@@ -253,7 +253,7 @@ fn test_tx_to_py() -> Result<()> {
                     None,
                     1,
                 ),
-                spent_tokens: &[spent_amount(
+                spent_tokens: &[spent_atoms(
                     meta_slp(TOKEN_ID3, SlpTokenType::Nft1Group),
                     1,
                 )],
@@ -300,7 +300,7 @@ fn test_tx_to_py() -> Result<()> {
                     SlpTokenType::Fungible,
                     &[5, 6, 7],
                 ),
-                spent_tokens: &[spent_amount(
+                spent_tokens: &[spent_atoms(
                     meta_slp(TOKEN_ID3, SlpTokenType::Fungible),
                     20,
                 )],
@@ -323,7 +323,7 @@ fn test_tx_to_py() -> Result<()> {
                     SlpTokenType::Fungible,
                     500,
                 ),
-                spent_tokens: &[spent_amount(
+                spent_tokens: &[spent_atoms(
                     meta_slp(TOKEN_ID3, SlpTokenType::Fungible),
                     600,
                 )],
@@ -355,7 +355,7 @@ fn test_tx_to_py() -> Result<()> {
                             decimals: 2,
                         },
                         &ParsedMintData {
-                            amounts: vec![0, 0, 10, 0, 0],
+                            atoms_vec: vec![0, 0, 10, 0, 0],
                             num_batons: 2,
                         },
                     ),
@@ -363,7 +363,7 @@ fn test_tx_to_py() -> Result<()> {
                         &TOKEN_ID2,
                         AlpTokenType::Standard,
                         &ParsedMintData {
-                            amounts: vec![1000, 0, 0],
+                            atoms_vec: vec![1000, 0, 0],
                             num_batons: 1,
                         },
                     ),
@@ -383,21 +383,21 @@ fn test_tx_to_py() -> Result<()> {
                 spent_tokens: &[
                     spent_baton(meta_alp(TOKEN_ID2)),
                     None,
-                    spent_amount(meta_alp(TOKEN_ID3), 2000),
-                    spent_amount(meta_alp(TOKEN_ID3), 5000),
-                    spent_amount(
+                    spent_atoms(meta_alp(TOKEN_ID3), 2000),
+                    spent_atoms(meta_alp(TOKEN_ID3), 5000),
+                    spent_atoms(
                         meta_slp(TOKEN_ID4, SlpTokenType::Fungible),
                         30,
                     ),
-                    spent_amount(
+                    spent_atoms(
                         meta_slp(TOKEN_ID5, SlpTokenType::MintVault),
                         20,
                     ),
-                    spent_amount(
+                    spent_atoms(
                         meta_slp(TOKEN_ID6, SlpTokenType::Nft1Group),
                         20,
                     ),
-                    spent_amount_group(
+                    spent_atoms_group(
                         meta_slp(TOKEN_ID7, SlpTokenType::Nft1Child),
                         1,
                         meta_slp(TOKEN_ID6, SlpTokenType::Nft1Group),
@@ -435,7 +435,7 @@ fn test_tx_to_py() -> Result<()> {
                 txid_num: 1,
                 num_outputs: 1,
                 op_return_script: Script::default(),
-                spent_tokens: &[spent_amount(meta_alp(TOKEN_ID2), 200)],
+                spent_tokens: &[spent_atoms(meta_alp(TOKEN_ID2), 200)],
                 ..Default::default()
             },
         )?;

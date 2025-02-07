@@ -746,7 +746,7 @@ const SendXec: React.FC = () => {
 
             targetOutputs.push({
                 script: Script.fromAddress(cleanAddress),
-                value: satoshisToSend,
+                sats: BigInt(satoshisToSend),
             });
 
             if (isBip21MultipleOutputsSafe(parsedAddressInput)) {
@@ -754,7 +754,7 @@ const SendXec: React.FC = () => {
                     ([addr, amount]) => {
                         targetOutputs.push({
                             script: Script.fromAddress(addr),
-                            value: toSatoshis(parseFloat(amount)),
+                            sats: BigInt(toSatoshis(parseFloat(amount))),
                         });
                     },
                 );

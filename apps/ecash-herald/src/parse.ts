@@ -67,7 +67,7 @@ interface PriceInfo {
 }
 interface HeraldStaker {
     staker: string;
-    reward: number;
+    reward: bigint;
 }
 interface HeraldOpReturnInfo {
     app: string;
@@ -89,14 +89,14 @@ interface HeraldParsedTx {
     opReturnInfo: false | HeraldOpReturnInfo;
     txFee: number;
     xecSendingOutputScripts: Set<string>;
-    xecReceivingOutputs: Map<string, number>;
-    totalSatsSent: number;
+    xecReceivingOutputs: Map<string, bigint>;
+    totalSatsSent: bigint;
     tokenSendInfo: false | TokenSendInfo;
     tokenBurnInfo:
         | false
         | {
               tokenId: string;
-              undecimalizedTokenBurnAmount: string;
+              actualBurnAtoms: bigint;
           };
 }
 export interface HeraldParsedBlock {
@@ -124,7 +124,7 @@ interface TokenAction {
     count: number;
 }
 interface AgoraAction extends TokenAction {
-    volume: number;
+    volume: bigint;
 }
 interface TokenActions {
     actionCount: number;
@@ -137,7 +137,7 @@ interface TokenActions {
     cancel?: TokenAction;
     genesis?:
         | TokenAction
-        | { hasBaton: boolean; amount: string; count?: number };
+        | { hasBaton: boolean; atoms: bigint; count?: number };
 }
 
 export const getStakerFromCoinbaseTx = (
@@ -149,23 +149,21 @@ export const getStakerFromCoinbaseTx = (
         // Do not parse for staking rwds if they are not expected to exist
         return false;
     }
-    const STAKING_REWARDS_PERCENT = 10;
+    const STAKING_REWARDS_PERCENT = 10n;
     const totalCoinbaseSats = coinbaseOutputs
-        .map(output => output.value)
-        .reduce((prev, curr) => prev + curr, 0);
+        .map(output => output.sats)
+        .reduce((prev, curr) => prev + curr, 0n);
     for (const output of coinbaseOutputs) {
-        const thisValue = output.value;
-        const minStakerValue = Math.floor(
-            totalCoinbaseSats * STAKING_REWARDS_PERCENT * 0.01,
-        );
+        const thisValue = output.sats;
+        const minStakerValue =
+            (totalCoinbaseSats * STAKING_REWARDS_PERCENT) / 100n;
         // In practice, the staking reward will almost always be the one that is exactly 10% of totalCoinbaseSats
         // Use a STAKER_PERCENT_PADDING range to exclude miner and ifp outputs
-        const STAKER_PERCENT_PADDING = 1;
-        const assumedMaxStakerValue = Math.floor(
-            totalCoinbaseSats *
-                (STAKING_REWARDS_PERCENT + STAKER_PERCENT_PADDING) *
-                0.01,
-        );
+        const STAKER_PERCENT_PADDING = 1n;
+        const assumedMaxStakerValue =
+            (totalCoinbaseSats *
+                (STAKING_REWARDS_PERCENT + STAKER_PERCENT_PADDING)) /
+            100n;
         if (thisValue >= minStakerValue && thisValue <= assumedMaxStakerValue) {
             return {
                 // Return the script, there is no guarantee that we can use
@@ -922,7 +920,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
         | false
         | {
               tokenId: string;
-              undecimalizedTokenBurnAmount: string;
+              actualBurnAtoms: bigint;
           } = false;
 
     /* Collect xecSendInfo for all txs, since all txs are XEC sends
@@ -932,11 +930,11 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
 
     // xecSend parsing variables
     const xecSendingOutputScripts: Set<string> = new Set();
-    const xecReceivingOutputs = new Map();
-    let xecInputAmountSats = 0;
-    let xecOutputAmountSats = 0;
-    let totalSatsSent = 0;
-    let changeAmountSats = 0;
+    const xecReceivingOutputs: Map<string, bigint> = new Map();
+    let xecInputAmountSats = 0n;
+    let xecOutputAmountSats = 0n;
+    let totalSatsSent = 0n;
+    let changeAmountSats = 0n;
 
     if (
         tx.tokenStatus !== 'TOKEN_STATUS_NON_TOKEN' &&
@@ -951,11 +949,11 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
         // TODO handle txs with multiple tokenEntries
         const parsedTokenAction = tx.tokenEntries[0];
 
-        const { tokenId, tokenType, txType, burnSummary, actualBurnAmount } =
+        const { tokenId, tokenType, txType, burnSummary, actualBurnAtoms } =
             parsedTokenAction;
         const { protocol, number } = tokenType;
         const isUnintentionalBurn =
-            burnSummary !== '' && actualBurnAmount !== '0';
+            burnSummary !== '' && actualBurnAtoms !== 0n;
 
         // Get token type
         // TODO present the token type in msgs
@@ -993,7 +991,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
                 if (isUnintentionalBurn) {
                     tokenBurnInfo = {
                         tokenId,
-                        undecimalizedTokenBurnAmount: actualBurnAmount,
+                        actualBurnAtoms,
                     };
                 } else {
                     tokenSendInfo = {
@@ -1016,7 +1014,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
             xecSendingOutputScripts.add(input.outputScript);
         }
 
-        xecInputAmountSats += input.value;
+        xecInputAmountSats += input.sats;
         // The input that sent the token utxos will have key 'slpToken'
         if (typeof input.token !== 'undefined') {
             // Add amount to undecimalizedTokenInputAmount
@@ -1024,7 +1022,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
             // Could have mistakes in parsing ALP txs otherwise
             // For now, this is outside the scope of migration
             undecimalizedTokenInputAmount = undecimalizedTokenInputAmount.plus(
-                input.token.amount,
+                input.token.atoms.toString(),
             );
             // Collect the input outputScripts to identify change output
             if (typeof input.outputScript !== 'undefined') {
@@ -1035,12 +1033,12 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
 
     // Iterate over outputs to check for OP_RETURN msgs
     for (const output of outputs) {
-        const { value, outputScript } = output;
-        xecOutputAmountSats += value;
+        const { sats, outputScript } = output;
+        xecOutputAmountSats += sats;
         // If this output script is the same as one of the sendingOutputScripts
         if (xecSendingOutputScripts.has(outputScript)) {
             // Then this XEC amount is change
-            changeAmountSats += value;
+            changeAmountSats += sats;
         } else {
             // Add an xecReceivingOutput
 
@@ -1048,11 +1046,11 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
             // If this outputScript is already in xecReceivingOutputs, increment its value
             xecReceivingOutputs.set(
                 outputScript,
-                (xecReceivingOutputs.get(outputScript) ?? 0) + value,
+                (xecReceivingOutputs.get(outputScript) ?? 0n) + sats,
             );
 
             // Increment totalSatsSent
-            totalSatsSent += value;
+            totalSatsSent += sats;
         }
         // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
         if (outputScript.startsWith(opReturn.opReturnPrefix) && !isTokenTx) {
@@ -1068,7 +1066,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
                     outputScript,
                     (
                         tokenChangeOutputs.get(outputScript) ?? new BigNumber(0)
-                    ).plus(output.token.amount),
+                    ).plus(output.token.atoms.toString()),
                 );
             } else {
                 /* This is the sent token qty
@@ -1083,14 +1081,14 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
                     (
                         tokenReceivingOutputs.get(outputScript) ??
                         new BigNumber(0)
-                    ).plus(output.token.amount),
+                    ).plus(output.token.atoms.toString()),
                 );
             }
         }
     }
 
     // Determine tx fee
-    const txFee = xecInputAmountSats - xecOutputAmountSats;
+    const txFee = Number(xecInputAmountSats - xecOutputAmountSats);
 
     // If this is a token send tx, return token send parsing info and not 'false' for tokenSendInfo
     if (tokenSendInfo) {
@@ -1153,7 +1151,7 @@ export const parseBlockTxs = (
 
     // Sort parsedTxs by totalSatsSent, highest to lowest
     parsedTxs = parsedTxs.sort((a, b) => {
-        return b.totalSatsSent - a.totalSatsSent;
+        return Number(b.totalSatsSent - a.totalSatsSent);
     });
 
     // Collect token info needed to parse token send txs
@@ -1220,8 +1218,8 @@ export const parseBlockTxs = (
  */
 export const getEncryptedCashtabMsg = (
     sendingAddress: string,
-    xecReceivingOutputs: Map<string, number>,
-    totalSatsSent: number,
+    xecReceivingOutputs: Map<string, bigint>,
+    totalSatsSent: bigint,
     xecPrice?: number,
 ): string => {
     const displayedSentQtyString = satsToFormattedValue(
@@ -1263,8 +1261,8 @@ export const getEncryptedCashtabMsg = (
 export const getAirdropTgMsg = (
     stackArray: string[],
     airdropSendingAddress: string,
-    airdropRecipientsMap: Map<string, number>,
-    totalSatsAirdropped: number,
+    airdropRecipientsMap: Map<string, bigint>,
+    totalSatsAirdropped: bigint,
     tokenInfo: false | GenesisInfo,
     xecPrice?: number,
 ): string => {
@@ -1516,7 +1514,7 @@ export const getBlockTgMessage = (
     const genesisTxTgMsgLines = [];
     let cashtabTokenRewards = 0;
     let cashtabXecRewardTxs = 0;
-    let cashtabXecRewardsTotalXec = 0;
+    let cashtabXecRewardsTotalSats = 0n;
     const tokenSendTxTgMsgLines: string[] = [];
     const tokenBurnTxTgMsgLines = [];
     const opReturnTxTgMsgLines = [];
@@ -1752,7 +1750,7 @@ export const getBlockTgMessage = (
 
         if (tokenBurnInfo && tokenInfoMap) {
             // If this is a token burn tx and you have tokenInfoMap
-            const { tokenId, undecimalizedTokenBurnAmount } = tokenBurnInfo;
+            const { tokenId, actualBurnAtoms } = tokenBurnInfo;
 
             if (typeof tokenId !== 'undefined' && tokenInfoMap.has(tokenId)) {
                 // Some txs may have tokenBurnInfo, but did not get tokenSendInfo
@@ -1772,7 +1770,7 @@ export const getBlockTgMessage = (
                 // Use decimals to calculate the burned amount as string
                 const decimalizedTokenBurnAmount =
                     bigNumberAmountToLocaleString(
-                        undecimalizedTokenBurnAmount,
+                        actualBurnAtoms.toString(),
                         decimals,
                     );
 
@@ -1823,7 +1821,7 @@ export const getBlockTgMessage = (
 
             if (firstXecSendingOutputScript === TOKEN_SERVER_OUTPUTSCRIPT) {
                 cashtabXecRewardTxs += 1;
-                cashtabXecRewardsTotalXec += totalSatsSent;
+                cashtabXecRewardsTotalSats += totalSatsSent;
                 continue;
             }
 
@@ -2014,7 +2012,7 @@ export const getBlockTgMessage = (
                 `<b>${cashtabXecRewardTxs}</b> new user${
                     cashtabXecRewardTxs > 1 ? `s` : ''
                 } received <b>${satsToFormattedValue(
-                    cashtabXecRewardsTotalXec,
+                    cashtabXecRewardsTotalSats,
                 )}</b>`,
             );
         }
@@ -2229,7 +2227,7 @@ export const guessRejectReason = async (
 };
 
 interface AdditionalActionParams {
-    volume: number;
+    volume: bigint;
 }
 
 /**
@@ -2351,7 +2349,7 @@ export const summarizeTxHistory = (
     const viabtcMinerMap = new Map();
 
     // stakerOutputScript => {count, reward}
-    const stakerMap: Map<string, { count: number; reward: number }> = new Map();
+    const stakerMap: Map<string, { count: number; reward: bigint }> = new Map();
 
     // TODO more info about send txs
     // inputs[0].outputScript => {count, satoshisSent}
@@ -2360,12 +2358,12 @@ export const summarizeTxHistory = (
     // lokad name => count
     const appTxMap = new Map();
 
-    let totalStakingRewardSats = 0;
+    let totalStakingRewardSats = 0n;
     let cashtabXecRewardCount = 0;
-    let cashtabXecRewardSats = 0;
+    let cashtabXecRewardSats = 0n;
     let cashtabCachetRewardCount = 0;
     let binanceWithdrawalCount = 0;
-    let binanceWithdrawalSats = 0;
+    let binanceWithdrawalSats = 0n;
 
     let fungibleTokenTxs = 0;
     let appTxs = 0;
@@ -2391,8 +2389,8 @@ export const summarizeTxHistory = (
     // Agora vars
     let agoraTxs = 0;
     const agoraActions: Map<string, TokenActions> = new Map();
-    let oneshotVolumeSatoshis = 0;
-    let partialVolumeSatoshis = 0;
+    let oneshotVolumeSatoshis = 0n;
+    let partialVolumeSatoshis = 0n;
 
     // Token reference
     // We have this in tokenInfoMap, but it's easier to set and access here
@@ -2461,9 +2459,9 @@ export const summarizeTxHistory = (
                 // XEC rwd
                 cashtabXecRewardCount += 1;
                 for (const output of outputs) {
-                    const { value, outputScript } = output;
+                    const { sats, outputScript } = output;
                     if (outputScript !== TOKEN_SERVER_OUTPUTSCRIPT) {
-                        cashtabXecRewardSats += value;
+                        cashtabXecRewardSats += sats;
                     }
                 }
             }
@@ -2474,11 +2472,11 @@ export const summarizeTxHistory = (
             // Tx sent by Binance
             // Make sure it's not just a utxo consolidation
             for (const output of outputs) {
-                const { value, outputScript } = output;
+                const { sats, outputScript } = output;
                 if (outputScript !== BINANCE_OUTPUTSCRIPT) {
                     // If we have an output that is not sending to the binance hot wallet
                     // Increment total value amount withdrawn
-                    binanceWithdrawalSats += value;
+                    binanceWithdrawalSats += sats;
                     // We also call this a withdrawal
                     // Note that 1 tx from the hot wallet may include more than 1 withdrawal
                     binanceWithdrawalCount += 1;
@@ -2497,7 +2495,7 @@ export const summarizeTxHistory = (
                     txType,
                     groupTokenId,
                     isInvalid,
-                    actualBurnAmount,
+                    actualBurnAtoms,
                 } = tokenEntry;
                 const { type } = tokenType;
                 tokenTypeMap.set(tokenId, type);
@@ -2654,10 +2652,10 @@ export const summarizeTxHistory = (
 
                                                 // ONESHOT purchases include the purchase price at the
                                                 // 1-indexed output
-                                                let volumeSatoshisThisBuy = 0;
+                                                let volumeSatoshisThisBuy = 0n;
                                                 if (tx.outputs.length >= 2) {
                                                     volumeSatoshisThisBuy =
-                                                        tx.outputs[1].value;
+                                                        tx.outputs[1].sats;
                                                     oneshotVolumeSatoshis +=
                                                         volumeSatoshisThisBuy;
                                                 } else {
@@ -2739,7 +2737,7 @@ export const summarizeTxHistory = (
                                 continue;
                             }
 
-                            if (actualBurnAmount !== '0') {
+                            if (actualBurnAtoms !== 0n) {
                                 nftNonAgoraTokenEntries += 1;
                                 // Parse as burn
                                 // Note this is not currently supported in Cashtab
@@ -2838,7 +2836,7 @@ export const summarizeTxHistory = (
                         }
                         case 'GENESIS': {
                             const genesis = {
-                                amount: '0',
+                                atoms: 0n,
                                 hasBaton: false,
                             };
                             // See if we already have tokenActions at this tokenId
@@ -2850,12 +2848,12 @@ export const summarizeTxHistory = (
                                         // But we iterate over all outputs to check for mint batons
                                         // ALP spec includes mint batons first and qty after, so makes sense
                                         // to check them all
-                                        const { amount, isMintBaton } =
+                                        const { atoms, isMintBaton } =
                                             output.token;
                                         if (isMintBaton) {
                                             genesis.hasBaton = true;
                                         } else {
-                                            genesis.amount = amount;
+                                            genesis.atoms = atoms;
                                         }
                                     }
                                     // We do not use initializeOrIncrementTokenData here
@@ -2969,12 +2967,13 @@ export const summarizeTxHistory = (
 
                                                     // Partial purchases include the purchase price at the
                                                     // 1-indexed output
-                                                    let volumeSatoshisThisBuy = 0;
+                                                    let volumeSatoshisThisBuy =
+                                                        0n;
                                                     if (
                                                         tx.outputs.length >= 2
                                                     ) {
                                                         volumeSatoshisThisBuy =
-                                                            tx.outputs[1].value;
+                                                            tx.outputs[1].sats;
                                                         partialVolumeSatoshis +=
                                                             volumeSatoshisThisBuy;
                                                     } else {
@@ -3110,7 +3109,7 @@ export const summarizeTxHistory = (
                             }
 
                             // Parse as burn
-                            if (actualBurnAmount !== '0') {
+                            if (actualBurnAtoms !== 0n) {
                                 initializeOrIncrementTokenData(
                                     tokenActions,
                                     existingTokenActions,
@@ -3426,8 +3425,8 @@ export const summarizeTxHistory = (
         const sortedAgoraActions = new Map(
             [...agoraActions.entries()].sort(
                 (keyValueArrayA, keyValueArrayB) => {
-                    const volA = keyValueArrayA[1].buy?.volume ?? 0;
-                    const volB = keyValueArrayB[1].buy?.volume ?? 0;
+                    const volA = Number(keyValueArrayA[1].buy?.volume ?? 0n);
+                    const volB = Number(keyValueArrayB[1].buy?.volume ?? 0n);
                     return volB - volA;
                 },
             ),

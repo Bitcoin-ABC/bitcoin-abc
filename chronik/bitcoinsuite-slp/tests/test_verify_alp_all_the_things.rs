@@ -11,7 +11,7 @@ use bitcoinsuite_slp::{
     structs::{GenesisInfo, TxType},
     test_helpers::{
         alp_mint, empty_entry, meta_alp as meta, meta_alp_unknown, parse_alp,
-        spent_amount, spent_baton, token_amount, token_baton, token_unknown,
+        spent_atoms, spent_baton, token_atoms, token_baton, token_unknown,
         verify, EMPTY_TOKEN_ID, TOKEN_ID1, TOKEN_ID2, TOKEN_ID3, TOKEN_ID4,
     },
     token_tx::{TokenTx, TokenTxEntry},
@@ -29,7 +29,7 @@ fn test_color_slpv2_all_the_things() {
                     Standard,
                     &GenesisInfo::empty_alp(),
                     &ParsedMintData {
-                        amounts: vec![0, 7, 0, 0, 1],
+                        atoms_vec: vec![0, 7, 0, 0, 1],
                         num_batons: 2,
                     }
                 ),
@@ -71,8 +71,8 @@ fn test_color_slpv2_all_the_things() {
             &[
                 spent_baton(meta(TOKEN_ID3)),
                 spent_baton(meta(TOKEN_ID2)),
-                spent_amount(meta(TOKEN_ID4), 0xffff_ffff_ffff - 2),
-                spent_amount(meta(TOKEN_ID4), 7),
+                spent_atoms(meta(TOKEN_ID4), 0xffff_ffff_ffff - 2),
+                spent_atoms(meta(TOKEN_ID4), 7),
             ],
         ),
         TokenTx {
@@ -100,7 +100,7 @@ fn test_color_slpv2_all_the_things() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID2),
                     tx_type: Some(TxType::MINT),
-                    intentional_burn_amount: Some(2),
+                    intentional_burn_atoms: Some(2),
                     failed_colorings: vec![
                         FailedColoring {
                             pushdata_idx: 2,
@@ -146,7 +146,7 @@ fn test_color_slpv2_all_the_things() {
                 TokenTxEntry {
                     meta: meta(TOKEN_ID4),
                     tx_type: Some(TxType::SEND),
-                    actual_burn_amount: 5,
+                    actual_burn_atoms: 5,
                     failed_colorings: vec![FailedColoring {
                         pushdata_idx: 9,
                         parsed: parse_alp(alp_mint(&TOKEN_ID4, [], 0)),
@@ -170,16 +170,16 @@ fn test_color_slpv2_all_the_things() {
             ],
             outputs: vec![
                 None,
-                token_amount::<1>(3),
-                token_amount::<0>(7),
+                token_atoms::<1>(3),
+                token_atoms::<0>(7),
                 token_baton::<1>(),
-                token_amount::<2>(2),
-                token_amount::<0>(1),
+                token_atoms::<2>(2),
+                token_atoms::<0>(1),
                 token_baton::<0>(),
                 token_baton::<0>(),
                 token_baton::<2>(),
                 token_unknown::<4>(0x89),
-                token_amount::<3>(0xffff_ffff_ffff),
+                token_atoms::<3>(0xffff_ffff_ffff),
             ],
             failed_parsings: vec![FailedParsing {
                 pushdata_idx: Some(12),

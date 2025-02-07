@@ -445,9 +445,9 @@ fn get_scripthash_balance(
                 continue;
             }
             if is_mempool {
-                unconfirmed += outp.value;
+                unconfirmed += outp.sats;
             } else {
-                confirmed += outp.value;
+                confirmed += outp.sats;
             }
         }
         for inp in tx.inputs.iter() {
@@ -455,9 +455,9 @@ fn get_scripthash_balance(
                 continue;
             }
             if is_mempool {
-                unconfirmed -= inp.value;
+                unconfirmed -= inp.sats;
             } else {
-                confirmed -= inp.value;
+                confirmed -= inp.sats;
             }
         }
     }
@@ -467,10 +467,10 @@ fn get_scripthash_balance(
 fn get_tx_fee(tx: &Tx) -> i64 {
     let mut fee: i64 = 0;
     for inp in tx.inputs.iter() {
-        fee += inp.value;
+        fee += inp.sats;
     }
     for outp in tx.outputs.iter() {
-        fee -= outp.value;
+        fee -= outp.sats;
     }
     fee
 }
@@ -1019,7 +1019,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 "height": height,
                 "tx_hash": hex::encode(be_txid),
                 "tx_pos": outpoint.out_idx,
-                "value": &utxo.value,
+                "value": &utxo.sats,
             }));
         }
 

@@ -27,23 +27,23 @@ export interface HeraldConfig {
     ifpAddress: string;
     tgMsgOptions: SendMessageOptions;
     whaleSats: {
-        bigWhale: number;
+        bigWhale: bigint;
         // 10 billion xec
-        modestWhale: number;
+        modestWhale: bigint;
         // 5 billion xec
-        shark: number;
+        shark: bigint;
         // 1 billion xec
-        swordfish: number;
+        swordfish: bigint;
         // 700 million xec
-        barracuda: number;
+        barracuda: bigint;
         // 500 million xec
-        octopus: number;
+        octopus: bigint;
         // 250 million xec
-        piranha: number;
+        piranha: bigint;
         // 100 million xec
-        crab: number;
+        crab: bigint;
         // anything under 100 million xec
-        shrimp: number;
+        shrimp: bigint;
     };
     emojis: {
         capacityLow: string;
@@ -131,23 +131,23 @@ const config: HeraldConfig = {
     },
     whaleSats: {
         // 20 billion xec
-        bigWhale: 2000000000000,
+        bigWhale: 2000000000000n,
         // 10 billion xec
-        modestWhale: 1000000000000,
+        modestWhale: 1000000000000n,
         // 5 billion xec
-        shark: 500000000000,
+        shark: 500000000000n,
         // 1 billion xec
-        swordfish: 100000000000,
+        swordfish: 100000000000n,
         // 700 million xec
-        barracuda: 70000000000,
+        barracuda: 70000000000n,
         // 500 million xec
-        octopus: 50000000000,
+        octopus: 50000000000n,
         // 250 million xec
-        piranha: 25000000000,
+        piranha: 25000000000n,
         // 100 million xec
-        crab: 10000000000,
+        crab: 10000000000n,
         // anything under 100 million xec
-        shrimp: 0,
+        shrimp: 0n,
     },
     emojis: {
         capacityLow: '💧',

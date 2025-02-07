@@ -93,13 +93,13 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=tx.hash, amount=5000),
+                slp_token(token_id=tx.hash, atoms=5000),
                 slp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -133,11 +133,11 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=genesis_slp.txid,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.BURN,
-                    actual_burn_amount="5000",
-                    intentional_burn=5000,
+                    actual_burn_atoms="5000",
+                    intentional_burn_atoms=5000,
                 ),
             ],
-            inputs=[slp_token(token_id=genesis_slp.txid, amount=5000)],
+            inputs=[slp_token(token_id=genesis_slp.txid, atoms=5000)],
             outputs=[pb.Token()],
         )
         txs.append(burn_slp)
@@ -166,13 +166,13 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=tx.hash,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                 ),
             ],
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, amount=1000),
+                alp_token(token_id=tx.hash, atoms=1000),
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
@@ -203,21 +203,21 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_id=genesis_alp.txid,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.SEND,
-                    burn_summary="Unexpected burn: Burns 600 base tokens, but intended to burn 500; burned 100 too many",
-                    actual_burn_amount="600",
-                    intentional_burn=500,
+                    burn_summary="Unexpected burn: Burns 600 atoms, but intended to burn 500; burned 100 too many",
+                    actual_burn_atoms="600",
+                    intentional_burn_atoms=500,
                 ),
             ],
-            inputs=[alp_token(token_id=genesis_alp.txid, amount=1000)],
+            inputs=[alp_token(token_id=genesis_alp.txid, atoms=1000)],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=genesis_alp.txid, amount=400),
+                alp_token(token_id=genesis_alp.txid, atoms=400),
             ],
         )
         txs.append(burn_alp)
         burn_alp.send(
             chronik,
-            error=f"400: Tx {burn_alp.txid} failed token checks: Unexpected burn: Burns 600 base tokens, but intended to burn 500; burned 100 too many.",
+            error=f"400: Tx {burn_alp.txid} failed token checks: Unexpected burn: Burns 600 atoms, but intended to burn 500; burned 100 too many.",
         )
         burn_alp.test(chronik)
 
@@ -240,21 +240,21 @@ class ChronikTokenBurn(BitcoinTestFramework):
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     is_invalid=True,
                     burn_summary="Unexpected burn: Burns mint baton(s)",
-                    actual_burn_amount="0",
+                    actual_burn_atoms="0",
                     burns_mint_batons=True,
                 ),
                 pb.TokenEntry(
                     token_id=genesis_alp.txid,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     is_invalid=True,
-                    burn_summary="Unexpected burn: Burns 400 base tokens",
-                    actual_burn_amount="400",
+                    burn_summary="Unexpected burn: Burns 400 atoms",
+                    actual_burn_atoms="400",
                 ),
             ],
             inputs=[
                 pb.Token(),
                 slp_token(token_id=genesis_slp.txid, is_mint_baton=True),
-                alp_token(token_id=genesis_alp.txid, amount=400, entry_idx=1),
+                alp_token(token_id=genesis_alp.txid, atoms=400, entry_idx=1),
             ],
             outputs=[
                 pb.Token(),
@@ -263,7 +263,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
         txs.append(bare_burn)
         bare_burn.send(
             chronik,
-            error=f"400: Tx {bare_burn.txid} failed token checks: Unexpected burn: Burns mint baton(s). Unexpected burn: Burns 400 base tokens.",
+            error=f"400: Tx {bare_burn.txid} failed token checks: Unexpected burn: Burns mint baton(s). Unexpected burn: Burns 400 atoms.",
         )
         bare_burn.test(chronik)
 

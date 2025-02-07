@@ -13,7 +13,7 @@ use crate::{
         SLP_LOKAD_ID, TOKEN_TYPE_V1, TOKEN_TYPE_V1_NFT1_CHILD,
         TOKEN_TYPE_V1_NFT1_GROUP, TOKEN_TYPE_V2,
     },
-    structs::{Amount, GenesisInfo},
+    structs::{Atoms, GenesisInfo},
     token_id::TokenId,
     token_type::SlpTokenType,
 };
@@ -35,7 +35,7 @@ pub fn genesis_opreturn(
     genesis_info: &GenesisInfo,
     token_type: SlpTokenType,
     mint_baton_out_idx: Option<u8>,
-    initial_quantity: Amount,
+    initial_quantity: Atoms,
 ) -> Script {
     let mut script = ScriptMut::with_capacity(64);
     script.put_opcodes([OP_RETURN]);
@@ -71,7 +71,7 @@ pub fn mint_opreturn(
     token_id: &TokenId,
     token_type: SlpTokenType,
     mint_baton_out_idx: Option<u8>,
-    additional_quantity: Amount,
+    additional_quantity: Atoms,
 ) -> Script {
     let mut script = ScriptMut::with_capacity(64);
     script.put_opcodes([OP_RETURN]);
@@ -90,7 +90,7 @@ pub fn mint_opreturn(
 /// Build an SLP OP_RETURN MINT script for V2 MintVault
 pub fn mint_vault_opreturn(
     token_id: &TokenId,
-    additional_quantites: impl IntoIterator<Item = Amount>,
+    additional_quantites: impl IntoIterator<Item = Atoms>,
 ) -> Script {
     let mut script = ScriptMut::with_capacity(64);
     script.put_opcodes([OP_RETURN]);
@@ -108,7 +108,7 @@ pub fn mint_vault_opreturn(
 pub fn send_opreturn(
     token_id: &TokenId,
     token_type: SlpTokenType,
-    send_amounts: &[Amount],
+    send_atoms: &[Atoms],
 ) -> Script {
     let mut script = ScriptMut::with_capacity(64);
     script.put_opcodes([OP_RETURN]);
@@ -116,8 +116,8 @@ pub fn send_opreturn(
     script.put_slp_pushdata(token_type_bytes(token_type));
     script.put_slp_pushdata(SEND);
     script.put_slp_pushdata(&token_id.to_be_bytes());
-    for &amount in send_amounts {
-        script.put_slp_pushdata(&amount.to_be_bytes());
+    for &atoms in send_atoms {
+        script.put_slp_pushdata(&atoms.to_be_bytes());
     }
     script.freeze()
 }
@@ -126,7 +126,7 @@ pub fn send_opreturn(
 pub fn burn_opreturn(
     token_id: &TokenId,
     token_type: SlpTokenType,
-    burn_amount: Amount,
+    burn_atoms: Atoms,
 ) -> Script {
     let mut script = ScriptMut::with_capacity(1 + 5 + 2 + 5 + 33 + 9);
     script.put_opcodes([OP_RETURN]);
@@ -134,6 +134,6 @@ pub fn burn_opreturn(
     script.put_slp_pushdata(token_type_bytes(token_type));
     script.put_slp_pushdata(BURN);
     script.put_slp_pushdata(&token_id.to_be_bytes());
-    script.put_slp_pushdata(&burn_amount.to_be_bytes());
+    script.put_slp_pushdata(&burn_atoms.to_be_bytes());
     script.freeze()
 }

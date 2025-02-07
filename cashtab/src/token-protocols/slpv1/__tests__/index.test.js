@@ -49,21 +49,20 @@ const BASE_PARAMS_SLP_PARTIAL = {
     tokenId: MOCK_TOKEN_ID,
     tokenProtocol: 'SLP',
     enforcedLockTime: 500000001,
-    dustAmount: 546,
+    dustSats: 546n,
 };
 
 describe('slpv1 methods', () => {
     let MOCK_AGORA_P2SH, MOCK_ONESHOT, MOCK_PARTIAL, MOCK_PARTIAL_P2SH;
     beforeAll(async () => {
-
         MOCK_ONESHOT = new AgoraOneshot({
             enforcedOutputs: [
                 {
-                    value: 0,
-                    script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [0, 1]),
+                    sats: 0n,
+                    script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [0n, 1n]),
                 },
                 {
-                    value: 10000, // list price satoshis
+                    sats: 10000n, // list price satoshis
                     script: Script.p2pkh(MOCK_WALLET_HASH),
                 },
             ],
@@ -73,12 +72,12 @@ describe('slpv1 methods', () => {
             shaRmd160(MOCK_ONESHOT.script().bytecode),
         );
         MOCK_PARTIAL = new AgoraPartial({
-            truncTokens: 1000n,
-            numTokenTruncBytes: 0,
-            tokenScaleFactor: 1000000n,
-            scaledTruncTokensPerTruncSat: 1000000n,
+            truncAtoms: 1000n,
+            numAtomsTruncBytes: 0,
+            atomsScaleFactor: 1000000n,
+            scaledTruncAtomsPerTruncSat: 1000000n,
             numSatsTruncBytes: 0,
-            minAcceptedScaledTruncTokens: 1000000n,
+            minAcceptedScaledTruncAtoms: 1000000n,
             ...BASE_PARAMS_SLP_PARTIAL,
             tokenType: SLP_FUNGIBLE,
             scriptLen: 0x7f,
@@ -422,8 +421,8 @@ describe('slpv1 methods', () => {
     });
     describe('getAgoraAdFuelSats correctly determines one-input fee for an agora offer tx', () => {
         const MOCK_WALLET_SK = fromHex('33'.repeat(32));
-        const SATS_PER_KB_MIN = 1000;
-        const SATS_PER_KB_ALT = 2000;
+        const SATS_PER_KB_MIN = 1000n;
+        const SATS_PER_KB_ALT = 2000n;
 
         it(`getAgoraAdFuelSats for minimum eCash fee NFT listing`, () => {
             expect(
@@ -432,11 +431,13 @@ describe('slpv1 methods', () => {
                     AgoraOneshotAdSignatory(MOCK_WALLET_SK),
                     [
                         {
-                            value: 0,
-                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [1]),
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [
+                                1n,
+                            ]),
                         },
                         {
-                            value: appConfig.dustSats,
+                            sats: BigInt(appConfig.dustSats),
                             script: MOCK_AGORA_P2SH,
                         },
                     ],
@@ -459,11 +460,13 @@ describe('slpv1 methods', () => {
                     // of the way ecash-lib copies objects and jest not liking it
                     [
                         {
-                            value: 0,
-                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [1]),
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [
+                                1n,
+                            ]),
                         },
                         {
-                            value: appConfig.dustSats,
+                            sats: BigInt(appConfig.dustSats),
                             script: MOCK_AGORA_P2SH,
                         },
                     ],
@@ -472,20 +475,20 @@ describe('slpv1 methods', () => {
             ).toEqual(628);
         });
         it(`getAgoraAdFuelSats for minimum eCash fee SLP partial listing and no token change`, () => {
-            const tokenSendAmount = 10000;
+            const tokenSendAmount = 10000n;
             expect(
                 getAgoraAdFuelSats(
                     MOCK_PARTIAL.adScript(),
                     AgoraPartialAdSignatory(MOCK_WALLET_SK),
                     [
                         {
-                            value: 0,
+                            sats: 0n,
                             script: slpSend(MOCK_TOKEN_ID, SLP_FUNGIBLE, [
                                 tokenSendAmount,
                             ]),
                         },
                         {
-                            value: appConfig.dustSats,
+                            sats: BigInt(appConfig.dustSats),
                             script: MOCK_PARTIAL_P2SH,
                         },
                     ],
@@ -496,26 +499,26 @@ describe('slpv1 methods', () => {
         it(`getAgoraAdFuelSats for minimum eCash fee SLP partial listing and a token change output`, () => {
             // Not expected for this use case to come up in Cashtab, but we demonstrate that the fee
             // increases with an additional output as expected
-            const tokenSendAmount = 9900;
-            const tokenChangeAmount = 100;
+            const tokenSendAmount = 9900n;
+            const tokenChangeAmount = 100n;
             expect(
                 getAgoraAdFuelSats(
                     MOCK_PARTIAL.adScript(),
                     AgoraPartialAdSignatory(MOCK_WALLET_SK),
                     [
                         {
-                            value: 0,
+                            sats: 0n,
                             script: slpSend(MOCK_TOKEN_ID, SLP_FUNGIBLE, [
                                 tokenSendAmount,
                                 tokenChangeAmount,
                             ]),
                         },
                         {
-                            value: appConfig.dustSats,
+                            sats: BigInt(appConfig.dustSats),
                             script: MOCK_PARTIAL_P2SH,
                         },
                         {
-                            value: appConfig.dustSats,
+                            sats: BigInt(appConfig.dustSats),
                             script: Script.fromAddress(
                                 SEND_DESTINATION_ADDRESS,
                             ),
@@ -526,20 +529,20 @@ describe('slpv1 methods', () => {
             ).toEqual(411);
         });
         it(`getAgoraAdFuelSats for alternate eCash fee SLP partial listing and no token change`, () => {
-            const tokenSendAmount = 10000;
+            const tokenSendAmount = 10000n;
             expect(
                 getAgoraAdFuelSats(
                     MOCK_PARTIAL.adScript(),
                     AgoraPartialAdSignatory(MOCK_WALLET_SK),
                     [
                         {
-                            value: 0,
+                            sats: 0n,
                             script: slpSend(MOCK_TOKEN_ID, SLP_FUNGIBLE, [
                                 tokenSendAmount,
                             ]),
                         },
                         {
-                            value: appConfig.dustSats,
+                            sats: BigInt(appConfig.dustSats),
                             script: MOCK_PARTIAL_P2SH,
                         },
                     ],

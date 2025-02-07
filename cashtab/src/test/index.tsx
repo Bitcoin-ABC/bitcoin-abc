@@ -61,10 +61,10 @@ const CASHTAB_TESTS_BLOCK: Block = {
         numTxs: 9,
         numInputs: 13,
         numOutputs: 26,
-        sumInputSats: 859760862,
-        sumCoinbaseOutputSats: 625005728,
-        sumNormalOutputSats: 859755134,
-        sumBurnedSats: 0,
+        sumInputSats: 859760862n,
+        sumCoinbaseOutputSats: 625005728n,
+        sumNormalOutputSats: 859755134n,
+        sumBurnedSats: 0n,
     },
 };
 

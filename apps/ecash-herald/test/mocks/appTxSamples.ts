@@ -14,7 +14,7 @@ interface SwapMock {
     tokenInfo: false | GenesisInfo;
 }
 
-type RecipientEntry = [string, number];
+type RecipientEntry = [string, bigint];
 
 // Define the type for the entire array
 type RecipientsArray = RecipientEntry[];
@@ -303,19 +303,19 @@ const appTxSamples: AppTxSamples = {
             airdropRecipientsKeyValueArray: [
                 [
                     '6a0464726f70207c06091e745037b46c5ea60def8ad526274c2caabb1fae6c4ac89fad02fedf9a04007461624643736f6e676f72206261627920686173206265656e20626f726e2e2054616b652074686973206c6974746c6520676966742066726f6d20612070726f75642066617468657221',
-                    0,
+                    0n,
                 ],
-                ['76a9142ec5281864fc989dab543b054631c9703809689e88ac', 892857],
-                ['76a914efa3a87fc4022378a5f7e8e0a5c112094f3fb9be88ac', 892857],
-                ['76a9142a6572780193dbcb3422773c2e353048805c2cb888ac', 892857],
-                ['76a914ce9650c2d64f487739798d2815ab9e0a38fe8f9b88ac', 89286],
-                ['76a91473ef17c5b9f551eae3f3b4fadf61f93cae5e6aea88ac', 89286],
-                ['76a9143efd4899993b5c6e554238187577b81ed1f6bb4188ac', 89286],
-                ['76a914198d8c7a32b750cbdbe1f97103d404f5e6a9465788ac', 892857],
-                ['76a91457499920b99c483d745f9925adf9eecbe46c583d88ac', 535714],
-                ['76a9140d17fb5b181b676fc5ed2825c0b2b25cc578f3ea88ac', 89286],
-                ['76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac', 446429],
-                ['76a91469003998c2c32ac81951b88416a9a15df3a1992988ac', 89286],
+                ['76a9142ec5281864fc989dab543b054631c9703809689e88ac', 892857n],
+                ['76a914efa3a87fc4022378a5f7e8e0a5c112094f3fb9be88ac', 892857n],
+                ['76a9142a6572780193dbcb3422773c2e353048805c2cb888ac', 892857n],
+                ['76a914ce9650c2d64f487739798d2815ab9e0a38fe8f9b88ac', 89286n],
+                ['76a91473ef17c5b9f551eae3f3b4fadf61f93cae5e6aea88ac', 89286n],
+                ['76a9143efd4899993b5c6e554238187577b81ed1f6bb4188ac', 89286n],
+                ['76a914198d8c7a32b750cbdbe1f97103d404f5e6a9465788ac', 892857n],
+                ['76a91457499920b99c483d745f9925adf9eecbe46c583d88ac', 535714n],
+                ['76a9140d17fb5b181b676fc5ed2825c0b2b25cc578f3ea88ac', 89286n],
+                ['76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac', 446429n],
+                ['76a91469003998c2c32ac81951b88416a9a15df3a1992988ac', 89286n],
             ],
             tokenId:
                 '7c06091e745037b46c5ea60def8ad526274c2caabb1fae6c4ac89fad02fedf9a',
@@ -349,11 +349,11 @@ const appTxSamples: AppTxSamples = {
             airdropRecipientsKeyValueArray: [
                 [
                     '6a0464726f70201c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e0400746162',
-                    0,
+                    0n,
                 ],
-                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000],
-                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000],
-                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000],
+                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000n],
+                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000n],
+                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000n],
             ],
             tokenId:
                 '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
@@ -387,11 +387,11 @@ const appTxSamples: AppTxSamples = {
             airdropRecipientsKeyValueArray: [
                 [
                     '6a0464726f701f6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e0400746162',
-                    0,
+                    0n,
                 ],
-                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000],
-                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000],
-                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000],
+                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000n],
+                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000n],
+                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000n],
             ],
             tokenId: false,
             tokenInfo: false,
@@ -411,10 +411,10 @@ const appTxSamples: AppTxSamples = {
             airdropSendingAddress:
                 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
             airdropRecipientsKeyValueArray: [
-                ['6a0464726f70', 0],
-                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000],
-                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000],
-                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000],
+                ['6a0464726f70', 0n],
+                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000n],
+                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000n],
+                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000n],
             ],
             tokenId: false,
             tokenInfo: false,
@@ -453,11 +453,11 @@ const appTxSamples: AppTxSamples = {
             xecReceivingOutputsKeyValueArray: [
                 [
                     '6a04657461624c810281d8b3db5585bf24903022d9c5f3b8cafed757f254840c0f7bc872fda070745cb6cef3d645fc7e4403e2bc212e616db6691ab415cd1f7e9abcebdd8738e775a05ebeb14fadbdbf5941e0e4804e0c075239d0906ca5d5c00a93ebae11df7770c4aeeaef5b804abca08c10520fa47a6dc3df018378334a15f7ea3075bc9b8840a8',
-                    0,
+                    0n,
                 ],
                 [
                     '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
-                    24242424,
+                    24242424n,
                 ],
             ],
             stackArray: [
@@ -480,11 +480,11 @@ const appTxSamples: AppTxSamples = {
             xecReceivingOutputsKeyValueArray: [
                 [
                     '6a04657461624cd1026d3ebca7776500d72ee640e56509cefcedee044b25584f0cc32d15c54766bc8960b179d07838f6ffb221c49c7f74d9a9bf4101cdb4a78d5507620ca020eab052d24995bcca37e9dd5b1baa210045b2942438e31a43062ef35c019250cef35dff2fd4b6999b98a103344d05c70847aa5124ac76d8528f737f4a504e96b46dbbe05b8a80bdc4b98bb0bb0f12ad12a3271550e79524ebae01dece0a231bfd546dab7714167bc73989613b73d94a5b48fbeda4913dbf42daedd52a3239a1654e4d3ded120b714eecffc3f3b1a37aed9e2d3b',
-                    0,
+                    0n,
                 ],
-                ['76a914f627e51001a51a1a92d8927808701373cf29267f88ac', 600],
+                ['76a914f627e51001a51a1a92d8927808701373cf29267f88ac', 600n],
                 // manually give it another output to test
-                ['76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac', 100],
+                ['76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac', 100n],
             ],
             stackArray: [
                 '65746162',

@@ -148,11 +148,11 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     const BASE_TX_INPUT = {
         inputScript: '0151',
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
-        value: 5000,
+        sats: 5000n,
         sequenceNo: 0,
     };
     const BASE_TX_OUTPUT = {
-        value: 546,
+        sats: 546n,
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
     };
     const BASE_TX_TOKEN_INFO_ALP = {
@@ -162,7 +162,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             number: 0,
         },
         entryIdx: 0,
-        amount: '0',
+        atoms: 0n,
         isMintBaton: false,
     };
     const BASE_TOKEN_ENTRY = {
@@ -170,8 +170,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         isInvalid: false,
         burnSummary: '',
         failedColorings: [],
-        actualBurnAmount: '0',
-        intentionalBurn: '0',
+        actualBurnAtoms: 0n,
+        intentionalBurnAtoms: 0n,
         burnsMintBatons: false,
     };
     let alpGenesisTxid = '';
@@ -283,7 +283,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     txid: '3fa435fca55edf447ef7539ecba141a6585fa71ac4062cdcc61f1235c40f4613',
                     outIdx: 0,
                 },
-                value: 5000000000,
+                sats: 5000000000n,
             },
         ]);
 
@@ -291,17 +291,17 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         const expectedOutputs = [
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a504c63534c5032000747454e4553495304544553540a5465737420546f6b656e12687474703a2f2f6578616d706c652e636f6d0a546f6b656e20446174610c546f6b656e205075626b657904040a00000000001400000000001e000000000000000000000002',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '10',
+                    atoms: 10n,
                 },
             },
             {
@@ -309,7 +309,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '20',
+                    atoms: 20n,
                 },
             },
             {
@@ -317,16 +317,16 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '30',
+                    atoms: 30n,
                 },
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4999900000,
+                sats: 4999900000n,
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 5000,
+                sats: 5000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
@@ -382,8 +382,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             if ('token' in output) {
                 const { token } = output;
                 // Remove the entryIdx key from these outputs, as we do not expect to see it in tokenId.utxos() output
-                delete (token as Token).entryIdx;
-                utxoTokenKeysFromOutputs.push(output.token as Token);
+                delete (token as unknown as Token).entryIdx;
+                utxoTokenKeysFromOutputs.push(output.token as unknown as Token);
             }
         }
 
@@ -471,7 +471,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                 },
             },
@@ -481,7 +481,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpMint.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5038534c503200044d494e54e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb0205000000000000000000000001',
             },
@@ -490,7 +490,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '5',
+                    atoms: 5n,
                 },
             },
             {
@@ -501,7 +501,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '0',
+                    atoms: 0n,
                     isMintBaton: true,
                 },
             },
@@ -555,11 +555,11 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     txid: alpGenesisTxid,
                     outIdx: 1,
                 },
-                value: 10000,
+                sats: 10000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '10',
+                    atoms: 10n,
                 },
             },
             {
@@ -568,11 +568,11 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     txid: '0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f',
                     outIdx: 1,
                 },
-                value: 546,
+                sats: 546n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '5',
+                    atoms: 5n,
                 },
             },
         ]);
@@ -581,17 +581,17 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpSend.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5037534c5032000453454e44e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb020300000000000c0000000000',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 5000,
+                sats: 5000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '3',
+                    atoms: 3n,
                 },
             },
             {
@@ -599,7 +599,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
-                    amount: '12',
+                    atoms: 12n,
                 },
             },
         ]);
@@ -643,7 +643,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     txid: alpGenesisTxid,
                     outIdx: 4,
                 },
-                value: 4999900000,
+                sats: 4999900000n,
             },
         ]);
 
@@ -651,31 +651,22 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpNextGenesis.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a501b534c5032000747454e455349530000000000000164000000000002',
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 5000,
+                sats: 5000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpNextGenesisTxid,
-                    amount: '100',
+                    atoms: 100n,
                 },
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 5000,
-                token: {
-                    ...BASE_TX_TOKEN_INFO_ALP,
-                    tokenId: alpNextGenesisTxid,
-                    isMintBaton: true,
-                },
-            },
-            {
-                ...BASE_TX_OUTPUT,
-                value: 5000,
+                sats: 5000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpNextGenesisTxid,
@@ -684,7 +675,16 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 4999800000,
+                sats: 5000n,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_ALP,
+                    tokenId: alpNextGenesisTxid,
+                    isMintBaton: true,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                sats: 4999800000n,
             },
         ]);
 
@@ -734,7 +734,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
                     entryIdx: 2,
-                    amount: '3',
+                    atoms: 3n,
                 },
             },
             {
@@ -756,7 +756,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpMulti.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5026534c5032000747454e45534953054d554c5449000000000002ffffffffffff0000000000000138534c503200044d494e542c787e508ba86115c7fb13cc582d97a6f3b7d60dad070dcf49e19d0aec12df72020000000000000500000000000030534c503200044255524ee2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb01000000000049534c5032000453454e44e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb05000000000000000000000000000000000000000000000000020000000000',
             },
@@ -765,7 +765,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpMultiTxid,
-                    amount: '281474976710655',
+                    atoms: 281474976710655n,
                 },
             },
             {
@@ -774,7 +774,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpNextGenesisTxid,
                     entryIdx: 1,
-                    amount: '5',
+                    atoms: 5n,
                 },
             },
             {
@@ -794,7 +794,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
                     entryIdx: 2,
-                    amount: '2',
+                    atoms: 2n,
                 },
             },
             {
@@ -829,8 +829,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 ...BASE_TOKEN_ENTRY,
                 tokenId: alpGenesisTxid,
                 txType: 'SEND',
-                actualBurnAmount: '1',
-                intentionalBurn: '1',
+                actualBurnAtoms: 1n,
+                intentionalBurnAtoms: 1n,
                 tokenType: {
                     number: 0,
                     protocol: 'ALP',
@@ -925,7 +925,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     txid: alpGenesisTxid,
                     outIdx: 6,
                 },
-                value: 546,
+                sats: 546n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
@@ -939,12 +939,12 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     txid: alpMultiTxid,
                     outIdx: 1,
                 },
-                value: 546,
+                sats: 546n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpMultiTxid,
                     entryIdx: 3,
-                    amount: '281474976710655',
+                    atoms: 281474976710655n,
                 },
             },
         ]);
@@ -953,7 +953,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpMega.outputs).to.deep.equal([
             {
                 ...BASE_TX_OUTPUT,
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a5036534c5032000747454e4553495303414c4c0000000000050000000000000700000000000000000000000000000000000100000000000215534c5032000747454e4553495300000000000000004c56534c503200044d494e54e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb070000000000000000000000000000000000000000000000000000000000000000000000000000000000006338534c503200044d494e54e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb02000000000000ffffffffffff0032534c503200044d494e54e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb010000000000000130534c503200044255524ee2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb02000000000038534c503200044d494e542c787e508ba86115c7fb13cc582d97a6f3b7d60dad070dcf49e19d0aec12df7202030000000000000000000000014c56534c503200044d494e54e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb07000000000000000000000000000000000000020000000000000000000000000000000000000000000000012c534c503200044d494e54e2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb000030534c503200044255524ee2c68fa87324d048fbb0b72ca7d386ad757967f20244854f14920a6caa714dbb0000000000004c73534c5032000453454e44ba2ea53336d07ab7bab5eb95f53a6dd041acfca80f2af3a6b93abad7147fc4e30c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b00000000004c67534c5032000453454e44ba2ea53336d07ab7bab5eb95f53a6dd041acfca80f2af3a6b93abad7147fc4e30a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff2c534c503200044d494e54ba2ea53336d07ab7bab5eb95f53a6dd041acfca80f2af3a6b93abad7147fc4e3000005534c50328930534c503200044255524eba2ea53336d07ab7bab5eb95f53a6dd041acfca80f2af3a6b93abad7147fc4e300000000000005534c50329a',
             },
@@ -963,7 +963,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpNextGenesisTxid,
                     entryIdx: 1,
-                    amount: '3',
+                    atoms: 3n,
                 },
             },
             {
@@ -971,7 +971,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpMegaTxid,
-                    amount: '7',
+                    atoms: 7n,
                 },
             },
             {
@@ -985,12 +985,12 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             },
             {
                 ...BASE_TX_OUTPUT,
-                value: 1000,
+                sats: 1000n,
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpGenesisTxid,
                     entryIdx: 2,
-                    amount: '2',
+                    atoms: 2n,
                 },
             },
             {
@@ -998,7 +998,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 token: {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpMegaTxid,
-                    amount: '1',
+                    atoms: 1n,
                 },
             },
             {
@@ -1046,7 +1046,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     ...BASE_TX_TOKEN_INFO_ALP,
                     tokenId: alpMultiTxid,
                     entryIdx: 3,
-                    amount: '281474976710655',
+                    atoms: 281474976710655n,
                 },
             },
         ]);
@@ -1089,7 +1089,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     'bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2',
                 txType: 'MINT',
                 burnSummary:
-                    'Invalid coloring at pushdata idx 2: Too few outputs, expected 107 but got 11. Invalid coloring at pushdata idx 3: Overlapping amount when trying to color 281474976710655 at index 2, output is already colored with 7 of 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565 (ALP STANDARD (V0)). Invalid coloring at pushdata idx 4: Overlapping mint baton when trying to color mint baton at index 2, output is already colored with 7 of 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565 (ALP STANDARD (V0)). Invalid coloring at pushdata idx 8: Duplicate token_id bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2, found in section 2. Invalid coloring at pushdata idx 9: Duplicate intentional burn token_id bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2, found in burn #0 and #1',
+                    'Invalid coloring at pushdata idx 2: Too few outputs, expected 107 but got 11. Invalid coloring at pushdata idx 3: Overlapping atoms when trying to color 281474976710655 at index 2, output is already colored with 7 of 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565 (ALP STANDARD (V0)). Invalid coloring at pushdata idx 4: Overlapping mint baton when trying to color mint baton at index 2, output is already colored with 7 of 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565 (ALP STANDARD (V0)). Invalid coloring at pushdata idx 8: Duplicate token_id bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2, found in section 2. Invalid coloring at pushdata idx 9: Duplicate intentional burn token_id bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2, found in burn #0 and #1',
                 failedColorings: [
                     {
                         pushdataIdx: 2,
@@ -1097,7 +1097,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     },
                     {
                         pushdataIdx: 3,
-                        error: 'Overlapping amount when trying to color 281474976710655 at index 2, output is already colored with 7 of 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565 (ALP STANDARD (V0))',
+                        error: 'Overlapping atoms when trying to color 281474976710655 at index 2, output is already colored with 7 of 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565 (ALP STANDARD (V0))',
                     },
                     {
                         pushdataIdx: 4,
@@ -1112,7 +1112,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                         error: 'Duplicate intentional burn token_id bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2, found in burn #0 and #1',
                     },
                 ],
-                intentionalBurn: '2',
+                intentionalBurnAtoms: 2n,
                 tokenType: {
                     number: 0,
                     protocol: 'ALP',
@@ -1172,7 +1172,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         const blockTxs = await chronik.blockTxs(CHAIN_INIT_HEIGHT + 2);
 
         // Clone as we will use blockTxs.txs later
-        const txsFromBlock = JSON.parse(JSON.stringify(blockTxs.txs));
+        const txsFromBlock = [...blockTxs.txs];
 
         // The first tx is the coinbase tx, which is not a token
         const coinbaseTx = txsFromBlock.shift()!;

@@ -6,7 +6,7 @@
 
 use crate::{
     color::{FailedColoring, FailedParsing},
-    structs::{Amount, GenesisInfo, Token, TokenMeta, TokenOutput, TxType},
+    structs::{Atoms, GenesisInfo, Token, TokenMeta, TokenOutput, TxType},
     verify::{BurnError, SpentToken},
 };
 
@@ -51,11 +51,12 @@ pub struct TokenTxEntry {
     /// Whether all input tokens have been burned because of some rule
     /// violation. This includes bare burns.
     pub is_invalid: bool,
-    /// How many tokens of this token were intentionally burned (using a BURN)
-    pub intentional_burn_amount: Option<Amount>,
-    /// How many tokens were actually burned, independent of the intentional
-    /// amount.
-    pub actual_burn_amount: u128,
+    /// How many atoms (aka base tokens) of this token were intentionally
+    /// burned (using a BURN)
+    pub intentional_burn_atoms: Option<Atoms>,
+    /// How many atoms (aka base tokens) were actually burned, independent of
+    /// the intentional amount.
+    pub actual_burn_atoms: u128,
     /// Whether any mint batons have been burned of this token.
     pub burns_mint_batons: bool,
     /// Burn message that may have caused the tokens to be burned.

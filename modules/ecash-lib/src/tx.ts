@@ -49,7 +49,7 @@ export interface TxInput {
 /** CTxOut, creating a new output. */
 export interface TxOutput {
     /** Value in satoshis of the output (1 XEC = 100 satoshis) */
-    value: number | bigint;
+    sats: bigint;
     /** Script locking the output */
     script: Script;
 }
@@ -57,7 +57,7 @@ export interface TxOutput {
 /** All the data required to sign an input (using BIP143). */
 export interface SignData {
     /** Value of the output being spent */
-    value: number | bigint;
+    sats: bigint;
     /** Script of the output being spent (not for P2SH) */
     outputScript?: Script;
     /**
@@ -120,10 +120,10 @@ export class Tx {
 }
 
 export function readTxOutput(bytes: Bytes): TxOutput {
-    const value = bytes.readU64();
+    const sats = bytes.readU64();
     const script = Script.readWithSize(bytes);
     return {
-        value,
+        sats,
         script,
     };
 }
@@ -147,7 +147,7 @@ export function writeTxInput(input: TxInput, writer: Writer): void {
 
 /** Write a TxOutput to a Writer */
 export function writeTxOutput(output: TxOutput, writer: Writer): void {
-    writer.putU64(output.value);
+    writer.putU64(output.sats);
     output.script.writeWithSize(writer);
 }
 
@@ -164,7 +164,7 @@ export function copyTxInput(input: TxInput): TxInput {
         script: input.script?.copy(),
         sequence: input.sequence,
         signData: input.signData && {
-            value: input.signData.value,
+            sats: input.signData.sats,
             outputScript: input.signData.outputScript?.copy(),
             redeemScript: input.signData.redeemScript?.copy(),
         },
@@ -174,7 +174,7 @@ export function copyTxInput(input: TxInput): TxInput {
 /** Create a deep copy of the TxOutput */
 export function copyTxOutput(output: TxOutput): TxOutput {
     return {
-        value: output.value,
+        sats: output.sats,
         script: output.script.copy(),
     };
 }

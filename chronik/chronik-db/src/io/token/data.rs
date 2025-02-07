@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use bitcoinsuite_slp::{
-    structs::{Amount, Token, TokenMeta, TokenVariant},
+    structs::{Atoms, Token, TokenMeta, TokenVariant},
     token_id::TokenId,
     token_type::{AlpTokenType, SlpTokenType, TokenType},
     verify::SpentToken,
@@ -49,8 +49,8 @@ pub struct DbTokenTx {
 pub enum DbToken {
     /// No token value
     NoToken,
-    /// Token amount
-    Amount(TokenIdx, Amount),
+    /// Token amount in atoms (base tokens)
+    Atoms(TokenIdx, Atoms),
     /// Mint baton
     MintBaton(TokenIdx),
     /// Unknown SLP token
@@ -84,7 +84,7 @@ impl DbTokenTx {
     ) -> Result<Option<SpentToken>, E> {
         let (token_num_idx, variant) = match *db_token {
             DbToken::NoToken => return Ok(None),
-            DbToken::Amount(idx, amount) => (idx, TokenVariant::Amount(amount)),
+            DbToken::Atoms(idx, atoms) => (idx, TokenVariant::Atoms(atoms)),
             DbToken::MintBaton(idx) => (idx, TokenVariant::MintBaton),
             DbToken::UnknownSlp(byte) | DbToken::UnknownAlp(byte) => {
                 let token_type = match *db_token {
@@ -135,7 +135,7 @@ impl DbToken {
     /// Create a new [`DbToken`] but with a different index.
     pub fn with_idx(&self, idx: TokenIdx) -> Self {
         match *self {
-            DbToken::Amount(_, amount) => DbToken::Amount(idx, amount),
+            DbToken::Atoms(_, atoms) => DbToken::Atoms(idx, atoms),
             DbToken::MintBaton(_) => DbToken::MintBaton(idx),
             _ => *self,
         }
@@ -146,7 +146,7 @@ impl DbToken {
     pub fn token_num_idx(&self) -> Option<TokenIdx> {
         match *self {
             DbToken::NoToken => None,
-            DbToken::Amount(idx, _) => Some(idx),
+            DbToken::Atoms(idx, _) => Some(idx),
             DbToken::MintBaton(idx) => Some(idx),
             DbToken::UnknownSlp(_) => None,
             DbToken::UnknownAlp(_) => None,

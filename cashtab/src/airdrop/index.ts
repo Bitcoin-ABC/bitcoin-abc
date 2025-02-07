@@ -39,7 +39,7 @@ export const getAgoraHolders = async (
     const agoraHolders = new Map();
     for (const offer of activeOffers) {
         const offerInfo = offer.variant.params;
-        const offeredTokens = BigInt(offer.token.amount);
+        const offeredTokens = offer.token.atoms;
         const pk =
             offerInfo instanceof AgoraPartial
                 ? offerInfo.makerPk
@@ -92,9 +92,9 @@ export const getP2pkhHolders = async (
             continue;
         }
 
-        const tokenSatoshis = utxo.token.amount;
+        const tokenSatoshis = utxo.token.atoms;
 
-        if (tokenSatoshis === '0') {
+        if (tokenSatoshis === 0n) {
             // We do not add a 0-qty holder
             // this happens for a holder who e.g. only holds a mint baton
             continue;
@@ -104,10 +104,10 @@ export const getP2pkhHolders = async (
         const thisHolderBalance = p2pkhHolders.get(script);
         if (typeof thisHolderBalance === 'undefined') {
             // Initialize a p2pkh holder
-            p2pkhHolders.set(script, BigInt(tokenSatoshis));
+            p2pkhHolders.set(script, tokenSatoshis);
         } else {
             // Increment an agora holder
-            p2pkhHolders.set(script, thisHolderBalance + BigInt(tokenSatoshis));
+            p2pkhHolders.set(script, thisHolderBalance + tokenSatoshis);
         }
     }
     return p2pkhHolders;

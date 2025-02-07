@@ -13,7 +13,7 @@ use bitcoinsuite_slp::{
 use pretty_assertions::assert_eq;
 
 use crate::io::token::{
-    tests::mock::{db_amount, db_baton, make_tx, token_id, MockTokenDb},
+    tests::mock::{db_atoms, db_baton, make_tx, token_id, MockTokenDb},
     DbToken::NoToken,
     DbTokenTx, TokenReader,
 };
@@ -69,7 +69,7 @@ fn test_batch_slp_nft1() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![1],
             inputs: vec![],
-            outputs: vec![NoToken, db_amount::<0>(1000), db_baton::<0>()],
+            outputs: vec![NoToken, db_atoms::<0>(1000), db_baton::<0>()],
             ..Default::default()
         }),
     );
@@ -83,14 +83,14 @@ fn test_batch_slp_nft1() -> Result<()> {
         token_reader.token_tx(2)?,
         Some(DbTokenTx {
             token_tx_nums: vec![1],
-            inputs: vec![db_amount::<0>(1000)],
+            inputs: vec![db_atoms::<0>(1000)],
             outputs: vec![
                 NoToken,
-                db_amount::<0>(1),
-                db_amount::<0>(1),
-                db_amount::<0>(1),
-                db_amount::<0>(1),
-                db_amount::<0>(996),
+                db_atoms::<0>(1),
+                db_atoms::<0>(1),
+                db_atoms::<0>(1),
+                db_atoms::<0>(1),
+                db_atoms::<0>(996),
             ],
             ..Default::default()
         }),
@@ -103,8 +103,8 @@ fn test_batch_slp_nft1() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![3, 1],
             group_token_indices: vec![(0, 1)].into_iter().collect(),
-            inputs: vec![db_amount::<1>(1)],
-            outputs: vec![NoToken, db_amount::<0>(1)],
+            inputs: vec![db_atoms::<1>(1)],
+            outputs: vec![NoToken, db_atoms::<0>(1)],
             ..Default::default()
         }),
     );
@@ -119,8 +119,8 @@ fn test_batch_slp_nft1() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![4, 1],
             group_token_indices: vec![(0, 1)].into_iter().collect(),
-            inputs: vec![db_amount::<1>(1)],
-            outputs: vec![NoToken, db_amount::<0>(1)],
+            inputs: vec![db_atoms::<1>(1)],
+            outputs: vec![NoToken, db_atoms::<0>(1)],
             ..Default::default()
         }),
     );
@@ -158,8 +158,8 @@ fn test_batch_slp_nft1() -> Result<()> {
         Some(DbTokenTx {
             token_tx_nums: vec![7, 1],
             group_token_indices: vec![(0, 1)].into_iter().collect(),
-            inputs: vec![db_amount::<1>(1)],
-            outputs: vec![NoToken, db_amount::<0>(1)],
+            inputs: vec![db_atoms::<1>(1)],
+            outputs: vec![NoToken, db_atoms::<0>(1)],
             ..Default::default()
         }),
     );
@@ -175,10 +175,10 @@ fn test_batch_slp_nft1() -> Result<()> {
             token_tx_nums: vec![1, 3, 7],
             group_token_indices: vec![(1, 0), (2, 0)].into_iter().collect(),
             inputs: vec![
-                db_amount::<0>(1),
-                db_amount::<1>(1),
+                db_atoms::<0>(1),
+                db_atoms::<1>(1),
                 NoToken,
-                db_amount::<2>(1)
+                db_atoms::<2>(1)
             ],
             outputs: vec![NoToken, NoToken],
             ..Default::default()

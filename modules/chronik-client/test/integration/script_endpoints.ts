@@ -404,7 +404,7 @@ describe('Get script().history and script().utxos()', () => {
             // within history txs, confirmed txs are sorted in block order, unconfirmed txs are sorted by timeFirstSeen
             // i.e., history.txs[0] will have the highest timeFirstSeen
             // For txs with the same timeFirstSeen, the alphabetically-last txs appears first
-            const historyClone: Tx[] = JSON.parse(JSON.stringify(history.txs));
+            const historyClone: Tx[] = [...history.txs];
 
             // Sort historyClone by timeFirstSeen and then by txid
             historyClone.sort(
@@ -618,7 +618,7 @@ describe('Get script().history and script().utxos()', () => {
                 broadcastTxids.length,
             );
             // Clone history.txs to test sorting
-            const historyClone: Tx[] = JSON.parse(JSON.stringify(history.txs));
+            const historyClone: Tx[] = [...history.txs];
 
             // history txs within blocks sorting
             // The history endpoint returns confirmed txs sorted by timeFirstSeen (high to low) and then by txid (alphabetical last to first)

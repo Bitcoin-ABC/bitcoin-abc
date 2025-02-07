@@ -19,20 +19,19 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '473044022024a187f6dc32082e765eeb37e1a6726e99871b3df0c385ad135ddcf73df0e79102203b81d7eb112a193e23147974432bb12116d75e995aa8c3b6a51943cc4dbd8694412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12214100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12214100n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010747454e4553495303434b410d4368726f6e696b20416c7068611468747470733a2f2f636173687461622e636f6d2f4c0001084c000800000014b230ce38',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -43,23 +42,24 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '88888888888',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 88888888888n,
                         },
                         spentBy: {
                             txid: 'a83257b2facf7c6d4f8df9a307dee9cc79af9323b8bb803994d5c967bf916569',
                             outIdx: 1,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 12213031,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '5fc6f53ef0f94e66d5f6983402441cfdece1dbd35bd500b6e15881d1b37aa93f',
                             outIdx: 67,
                         },
+                        sats: 12213031n,
                     },
                 ],
                 lockTime: 0,
@@ -79,9 +79,9 @@ export const mockTxHistoryOfAllAddresses = [
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -103,31 +103,31 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402201623de13a2cd38d379a08dbee1cb2239571b6166bf9923ffe44ae108fd21931c022030dcd5b08a997dcaa7af505a5e513985317b2da91d2f4d4879ee941e3b8931ad412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12218055,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12218055n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04657461624c910458f886baf61daf6fa1909aab79e30bca8d35d634c6c5e969b2157b87e67fa010252a9fd1eebeed00075d0fb7bcc0dcb73b41cc73adacdae2be18d31643ad3f33d95f9a97e7cf00b2231fd0a7d37f36d082c86a392bde59eac693c002f861082d7d3cbc23eafd4511afe3619bfc0f0c028454038dee71a6e7796395574b9a06b9bf7aaf0cd607e59f4ad641393d746f88',
+                        sats: 0n,
                     },
                     {
-                        value: 3500,
                         outputScript:
                             '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                        sats: 3500n,
                     },
                     {
-                        value: 12214100,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55',
                             outIdx: 0,
                         },
+                        sats: 12214100n,
                     },
                 ],
                 lockTime: 0,
@@ -154,40 +154,40 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402202267233e578abb21efa28bc606501f582f94915d3b07ceedff39750877c7211d02206cfec78f41fe58723938c199fa908f4e13ebb298cc989be30faa1e6838c22af1412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12224078,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12224078n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04007461621c54657374696e67206d756c74692d73656e642077697468206e6f7465',
+                        sats: 0n,
                     },
                     {
-                        value: 2200,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                         spentBy: {
                             txid: '10df437f64451165ac1eb371cef97aab8602d6d61c57eb97811fe724fe7371c3',
                             outIdx: 0,
                         },
+                        sats: 2200n,
                     },
                     {
-                        value: 3300,
                         outputScript:
                             '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                        sats: 3300n,
                     },
                     {
-                        value: 12218055,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: 'd27609956b0e4313f807fd58b82cc77f9b2bba1a792eac02707462a3d6863958',
                             outIdx: 0,
                         },
+                        sats: 12218055n,
                     },
                 ],
                 lockTime: 0,
@@ -214,35 +214,35 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100f3e4140c8f1614612c07ffe4d35e697d5ffd0931d7b18b9360f5f431c6704d11022002b5fd03e7f9b849fec1c0374dc3df2f1f2dae333980bd02aaa3710b66d1eb0e412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12230101,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12230101n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 3300,
                         outputScript:
                             '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                        sats: 3300n,
                     },
                     {
-                        value: 2200,
                         outputScript:
                             '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                         spentBy: {
                             txid: 'ff40dc28bd694b45d782be8c1726417b8db51fd466e429cf3ee906c9dab0b650',
                             outIdx: 0,
                         },
+                        sats: 2200n,
                     },
                     {
-                        value: 12224078,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: 'd0470ea0b1e0d5cc6a20085ca1436e8c4752415a450a981ef2dd23105bbe2550',
                             outIdx: 0,
                         },
+                        sats: 12224078n,
                     },
                 ],
                 lockTime: 0,
@@ -269,26 +269,26 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '4830450221008f8052c8b78a4d250f4596b3a14c85fb2d253ce20d972422829dc4a68a87320702202b7d272a96996bab1914f693939dfc6300184f5f3db0acc5acfc155ba19d7642412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12233856,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12233856n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 3300,
                         outputScript:
                             '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                        sats: 3300n,
                     },
                     {
-                        value: 12230101,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: 'a5f2a143eeec451c0714e430dd5553cbee26f6f05571a316dfb784b3454855d9',
                             outIdx: 0,
                         },
+                        sats: 12230101n,
                     },
                 ],
                 lockTime: 0,
@@ -315,30 +315,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '473044022038c75f93d7abe8e6e63c0981203acd48c7e6df92ba52cc9399df84b0b367ee200220356508913a5f8ad94d126891fea372bb2bf66a249bdb63332a4625cb359865f8412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12235011,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12235011n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript: '6a04007461620454657374',
+                        sats: 0n,
                     },
                     {
-                        value: 700,
                         outputScript:
                             '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                        sats: 700n,
                     },
                     {
-                        value: 12233856,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: 'bdd18f49a557c57b79da4b8a3165be6202fb48809486ec04424de99f52abeee8',
                             outIdx: 0,
                         },
+                        sats: 12233856n,
                     },
                 ],
                 lockTime: 0,
@@ -365,30 +365,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100f288e71276e2389744ecb3c98bdf0c119d19966ac086c5f5908f8c3a878aa7e402203c07905536720391f472457f52f5cf6aaeb4fa02fdf59722f25768a36fd6157f412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 12243166,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 12243166n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 7700,
                         outputScript:
                             '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                         spentBy: {
                             txid: '04eedd3f4b4dc9727e393ad3e774f2dc0c6acf9e920dc6fcbcbf95ed9b98477c',
                             outIdx: 3,
                         },
+                        sats: 7700n,
                     },
                     {
-                        value: 12235011,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: '71c0f2d76c81bb91c6bf4de69693d95e8f043af9e055e949616443090f961d80',
                             outIdx: 0,
                         },
+                        sats: 12235011n,
                     },
                 ],
                 lockTime: 0,
@@ -415,30 +415,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100d541ef12cc57c3b3cc95b338aec21775b27441d12eda662dcff23a46d07cc9450220467d2aae0dadcae787db33dab6adc86ec47aafea0133cc2130a62bb8247491d6412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 14743621,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 14743621n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 2500000,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '55388f67ab1b23d2e6c146472b836c1ba1df33dd9b7685bed34c6c9ce6fe5c0e',
                             outIdx: 0,
                         },
+                        sats: 2500000n,
                     },
                     {
-                        value: 12243166,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: '3f7cbb380b2ad014fc6e95f2d4c10eda2f37c5686f6739af562e6e855c457b3b',
                             outIdx: 0,
                         },
+                        sats: 12243166n,
                     },
                 ],
                 lockTime: 0,
@@ -465,35 +465,35 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '473044022046faa2cc8efc0a06b2cfa8b80b658d4dc09bc1524cba1cb4ab456f8bc9ebf37902205074d7975824a06d6cba90dc91503f29801d9c180253bbe4ecefb42ddc82da6d412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 14746276,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 14746276n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04657461624c810406fe30e60d38c4408043ca5b43cd515db4b10af477007962db6d019eeb9c3f6734c495574368da107bb00b32a27d096069706a0fb91fe18d0d8281c1b826fdd862a1955dd0d28b4e0245c862085f172d3947ca202953095ed014258f069c4d3fc36706e842b6643061e4ce70b91fb5b5b206de4d3b81a621ad9d4456c3f0cf6b',
+                        sats: 0n,
                     },
                     {
-                        value: 2200,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '31e5bf25b892e173483c7b100a5b0fcda03cac9337c335fda3b3a5cf17b64759',
                             outIdx: 0,
                         },
+                        sats: 2200n,
                     },
                     {
-                        value: 14743621,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: 'bd0101c9389c5e1fada4662ea9ba7c8d71f949743e42f2db563cb0ec96bd10a3',
                             outIdx: 0,
                         },
+                        sats: 14743621n,
                     },
                 ],
                 lockTime: 0,
@@ -520,30 +520,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402204c6140c524e40653e85440aff615af47a481accc9dc8b45548d59a3ae91d3a0802200aa1667d00b16d3a80c5d4d1b4cabeee415289ef6818496f92abf9ec2db8262c412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                        value: 14748931,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                        sats: 14748931n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 2200,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '46158de814d73ded1a8f91221c85d9c91c696eaf14f0bd10e6fa7215bacf7852',
                             outIdx: 1,
                         },
+                        sats: 2200n,
                     },
                     {
-                        value: 14746276,
                         outputScript:
                             '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                         spentBy: {
                             txid: '20230f564987e644070e35fa4a809b8d697c725023a903c638194231ddf9cfd3',
                             outIdx: 0,
                         },
+                        sats: 14746276n,
                     },
                 ],
                 lockTime: 0,
@@ -579,30 +579,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100f50735a67538602ec240725f9160bdfc96b4ae443fff2cebaf25485e8f98f5720220584ab745222cc7a0cd33d6f287885781b8009bc1e819b9b97436ecdb31abeff2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 49545,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 49545n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1300,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                             outIdx: 1,
                         },
+                        sats: 1300n,
                     },
                     {
-                        value: 47790,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                             outIdx: 1,
                         },
+                        sats: 47790n,
                     },
                 ],
                 lockTime: 0,
@@ -629,30 +629,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100ac91ae0c612165e500605ae41080a30be891ef757c378733bfe5533f331d0e97022020babc7d6a267fc5fbab8ba9740968732978abf4cf63e049721c008532204bf8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 47562,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 47562n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1200,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                             outIdx: 1,
                         },
+                        sats: 1200n,
                     },
                     {
-                        value: 45907,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                             outIdx: 1,
                         },
+                        sats: 45907n,
                     },
                 ],
                 lockTime: 0,
@@ -679,30 +679,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '48304502210086a6072eaabb3502c73cbb6701c04edca374de60d62b888614d76b352203e9d602205721cec95da5a0ceda4cf54bf4bf8f54bec3d07b1caa75e1d65a87d8b5572f0f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 3300n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1100,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                             outIdx: 0,
                         },
+                        sats: 1100n,
                     },
                     {
-                        value: 1745,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                             outIdx: 0,
                         },
+                        sats: 1745n,
                     },
                 ],
                 lockTime: 0,
@@ -729,10 +729,10 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402207031eafbfb4f762f1eb719defa8cb890f55085c593244eecce57082b7013fd4f02205178c40c57903baa3d9ebf554d2f3892859599b6e358e10725db81c14de4c80f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 2200n,
                     },
                     {
                         prevOut: {
@@ -741,7 +741,6 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '473044022058d957ffc312b4f9eefd71fb2c708e0a82bf72e56fdb322d75b4201453e413c402200df9176569cb2523f541dcff39f27c116926b214de37109775f3e5015e050604412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -751,22 +750,22 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '34',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 34n,
                         },
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 546n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000508000000000000001d',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -777,17 +776,17 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '5',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 5n,
                         },
                         spentBy: {
                             txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                             outIdx: 2,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         token: {
@@ -798,10 +797,11 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '29',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 29n,
                         },
+                        sats: 546n,
                     },
                 ],
                 lockTime: 0,
@@ -821,9 +821,9 @@ export const mockTxHistoryOfAllAddresses = [
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -845,10 +845,10 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100f4734cb1a5e7a64013b5408b9d0d6bc59560b08b9e7284f8bbba217f777f772c02204625fab8a1356f96f00a463be8aa64e90f663744554df60807d1aa1e00d19c5e412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1100,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1100n,
                     },
                     {
                         prevOut: {
@@ -857,10 +857,10 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100892a72b025cd5cd667bace86dfc605169018d9b46fa9ba2ef963e4dbe26a471702201283b63ebe679be3c27edc7b37aff829ba34503430147e203661d4d4ec4f14a5412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 7700,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 7700n,
                     },
                     {
                         prevOut: {
@@ -869,7 +869,6 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402203bcfcdbd76587aaa0b525edec82a5078daef892a98ae76d39accf1d874bd526d02202e2eba394d27b82c54fd3605ebafe7d6c9d2e7fa5dc769a4dc113dfbf5025a9d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -879,22 +878,22 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '126',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 126n,
                         },
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 546n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000108000000000000007d',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -905,17 +904,17 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '1',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 1n,
                         },
                         spentBy: {
                             txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                             outIdx: 1,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         token: {
@@ -926,23 +925,24 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '125',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 125n,
                         },
                         spentBy: {
                             txid: 'e94ba6040350284311a6409267c7c1193d6c5f19a9dd76975bbf7355f0c7ed1a',
                             outIdx: 2,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 6655,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'b24bc776a3414479f31835e26c17713cd655dd51c30351a26d3900a126b6275e',
                             outIdx: 0,
                         },
+                        sats: 6655n,
                     },
                 ],
                 lockTime: 0,
@@ -962,9 +962,9 @@ export const mockTxHistoryOfAllAddresses = [
                         isInvalid: false,
                         burnSummary: '',
                         failedColorings: [],
-                        actualBurnAmount: '0',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 0n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -986,30 +986,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '4730440220606efba360bf0843f8c3fe9fab7d1cdc34852395b9045a4c3cf8f27b91d414f2022054fb11ce6e4fd2ee50ba467e94460c63e45fb563e330fc35c5caa8eea71e93b7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 3300n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1900,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                             outIdx: 0,
                         },
+                        sats: 1900n,
                     },
                     {
-                        value: 945,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                             outIdx: 0,
                         },
+                        sats: 945n,
                     },
                 ],
                 lockTime: 0,
@@ -1036,10 +1036,10 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402204569cce381885918e300caef1e8a5388b86be871ff3e8f8f52917c26df9dde760220474e3ce3f6363a826d2772e347c296773ea838f493882e15fdc6a5181286a92c412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 1700,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 1700n,
                     },
                     {
                         prevOut: {
@@ -1048,30 +1048,30 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402206355208bd3eae6d3468a062a6cc33340cd82e0e5def4dad1efa7caee652b21b40220619f05019e5014f1154659bbf5a46f4abbf93e04eecca8c509d231eb2a495f41412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 3300,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 3300n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1800,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'f6afd5aa9d891919f8b412136107bebc970863ea24b23c76b96cee5b3577ccd5',
                             outIdx: 0,
                         },
+                        sats: 1800n,
                     },
                     {
-                        value: 2448,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: '8af4664ffc7f23d64f0ddf76a6881d6a9c3bcf1b3f3e6562e8ed70ab5f58f4e6',
                             outIdx: 0,
                         },
+                        sats: 2448n,
                     },
                 ],
                 lockTime: 0,
@@ -1098,21 +1098,21 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '4730440220665f4bf3d94204649f8a1731285eb6e94940e38a3601504612374ec0a06ff27f02206276844772b498726e3e56145d42f2316da5646619d8288598f18e828426881f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        value: 2200,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        sats: 2200n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 1700,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'f6afd5aa9d891919f8b412136107bebc970863ea24b23c76b96cee5b3577ccd5',
                             outIdx: 1,
                         },
+                        sats: 1700n,
                     },
                 ],
                 lockTime: 0,
@@ -1139,10 +1139,10 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '47304402204b4de25ffee112642136a6d1ad74394c7bfb984a08703d5362500a5521d346dc022053c3e887d7bb27a2525140789a7f450b0995781787ce28750dca1421b746721f412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 43783281,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 43783281n,
                     },
                     {
                         prevOut: {
@@ -1151,7 +1151,6 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100d4d1566db73386cd9580ff6f2c60e1536993b459fb3b199d7514fbd6fb5042ca0220590e88aa183ed6a756fbb8d8ba4bf5133f578746a917fab1e1b8e712543c5861412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 546,
                         sequenceNo: 4294967295,
                         token: {
                             tokenId:
@@ -1161,22 +1160,22 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '100',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 100n,
                         },
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 546n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e44203515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9080000000000000063',
+                        sats: 0n,
                     },
                     {
-                        value: 546,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         token: {
@@ -1187,23 +1186,24 @@ export const mockTxHistoryOfAllAddresses = [
                                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                 number: 1,
                             },
-                            amount: '99',
                             isMintBaton: false,
                             entryIdx: 0,
+                            atoms: 99n,
                         },
                         spentBy: {
                             txid: 'a39c15bc372916359d79196a67f4edbacc515b0a9b8b9a9395e4eb13a9ef2a07',
                             outIdx: 0,
                         },
+                        sats: 546n,
                     },
                     {
-                        value: 43781463,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: 'fcf45f6f12a4442bf206f85c87dfb7cfccdf438927fabbfe314a2c780545dcf9',
                             outIdx: 0,
                         },
+                        sats: 43781463n,
                     },
                 ],
                 lockTime: 0,
@@ -1223,9 +1223,9 @@ export const mockTxHistoryOfAllAddresses = [
                         isInvalid: false,
                         burnSummary: 'Unexpected burn: Burns 1 base tokens',
                         failedColorings: [],
-                        actualBurnAmount: '1',
-                        intentionalBurn: '0',
                         burnsMintBatons: false,
+                        actualBurnAtoms: 1n,
+                        intentionalBurnAtoms: 0n,
                     },
                 ],
                 tokenFailedParsings: [],
@@ -1247,35 +1247,35 @@ export const mockTxHistoryOfAllAddresses = [
                         },
                         inputScript:
                             '483045022100e43086bb67006f6d5140a3329001bc53dabe2da4dbe7feae34dd5f10311b15ad022045da448bc99003af6cf6d4c74ec9891c60932013dde7451abca4a6bc40b6138d412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                        value: 10409988,
                         sequenceNo: 4294967295,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        sats: 10409988n,
                     },
                 ],
                 outputs: [
                     {
-                        value: 0,
                         outputScript:
                             '6a04657461624ca104acd46779fb7a9a8e24656ba7ffcbc066bb78701630b0a3fd1c36a3e2b605d78e1d995ea990096a3f76077985d2194fd1a87369921545a544992c86414ed859247ab8f9c2979ed9b8fecb2cfaa7ff74f1daf6f7c00f3d97a5b942aecba54bf155d464606b6faa6f5efcbdf3f525b3283acf6867d11cfc30623c3107a87b499f68ca00602492c9cdca9b481c7f2b65a6ecd481bfdd244954b32a45c658592182ad',
+                        sats: 0n,
                     },
                     {
-                        value: 1200,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                         spentBy: {
                             txid: 'b142b79dbda8ae4aa580220bec76ae5ee78ff2c206a39ce20138c4f371c22aca',
                             outIdx: 1,
                         },
+                        sats: 1200n,
                     },
                     {
-                        value: 10408333,
                         outputScript:
                             '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                         spentBy: {
                             txid: '4263f3ceb04ec33a7cdb4d076caa4f2311fbdbb50b4330693e91d4ceb2e2fd5d',
                             outIdx: 0,
                         },
+                        sats: 10408333n,
                     },
                 ],
                 lockTime: 0,
@@ -1308,20 +1308,19 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '473044022024a187f6dc32082e765eeb37e1a6726e99871b3df0c385ad135ddcf73df0e79102203b81d7eb112a193e23147974432bb12116d75e995aa8c3b6a51943cc4dbd8694412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12214100,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12214100n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e4553495303434b410d4368726f6e696b20416c7068611468747470733a2f2f636173687461622e636f6d2f4c0001084c000800000014b230ce38',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -1332,23 +1331,24 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '88888888888',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 88888888888n,
                 },
                 spentBy: {
                     txid: 'a83257b2facf7c6d4f8df9a307dee9cc79af9323b8bb803994d5c967bf916569',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 12213031,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '5fc6f53ef0f94e66d5f6983402441cfdece1dbd35bd500b6e15881d1b37aa93f',
                     outIdx: 67,
                 },
+                sats: 12213031n,
             },
         ],
         lockTime: 0,
@@ -1368,9 +1368,9 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -1392,31 +1392,31 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402201623de13a2cd38d379a08dbee1cb2239571b6166bf9923ffe44ae108fd21931c022030dcd5b08a997dcaa7af505a5e513985317b2da91d2f4d4879ee941e3b8931ad412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12218055,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12218055n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624c910458f886baf61daf6fa1909aab79e30bca8d35d634c6c5e969b2157b87e67fa010252a9fd1eebeed00075d0fb7bcc0dcb73b41cc73adacdae2be18d31643ad3f33d95f9a97e7cf00b2231fd0a7d37f36d082c86a392bde59eac693c002f861082d7d3cbc23eafd4511afe3619bfc0f0c028454038dee71a6e7796395574b9a06b9bf7aaf0cd607e59f4ad641393d746f88',
+                sats: 0n,
             },
             {
-                value: 3500,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3500n,
             },
             {
-                value: 12214100,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55',
                     outIdx: 0,
                 },
+                sats: 12214100n,
             },
         ],
         lockTime: 0,
@@ -1443,40 +1443,40 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402202267233e578abb21efa28bc606501f582f94915d3b07ceedff39750877c7211d02206cfec78f41fe58723938c199fa908f4e13ebb298cc989be30faa1e6838c22af1412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12224078,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12224078n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04007461621c54657374696e67206d756c74692d73656e642077697468206e6f7465',
+                sats: 0n,
             },
             {
-                value: 2200,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '10df437f64451165ac1eb371cef97aab8602d6d61c57eb97811fe724fe7371c3',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 3300,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3300n,
             },
             {
-                value: 12218055,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'd27609956b0e4313f807fd58b82cc77f9b2bba1a792eac02707462a3d6863958',
                     outIdx: 0,
                 },
+                sats: 12218055n,
             },
         ],
         lockTime: 0,
@@ -1503,35 +1503,35 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f3e4140c8f1614612c07ffe4d35e697d5ffd0931d7b18b9360f5f431c6704d11022002b5fd03e7f9b849fec1c0374dc3df2f1f2dae333980bd02aaa3710b66d1eb0e412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12230101,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12230101n,
             },
         ],
         outputs: [
             {
-                value: 3300,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3300n,
             },
             {
-                value: 2200,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: 'ff40dc28bd694b45d782be8c1726417b8db51fd466e429cf3ee906c9dab0b650',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 12224078,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'd0470ea0b1e0d5cc6a20085ca1436e8c4752415a450a981ef2dd23105bbe2550',
                     outIdx: 0,
                 },
+                sats: 12224078n,
             },
         ],
         lockTime: 0,
@@ -1558,26 +1558,26 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '4830450221008f8052c8b78a4d250f4596b3a14c85fb2d253ce20d972422829dc4a68a87320702202b7d272a96996bab1914f693939dfc6300184f5f3db0acc5acfc155ba19d7642412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12233856,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12233856n,
             },
         ],
         outputs: [
             {
-                value: 3300,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3300n,
             },
             {
-                value: 12230101,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'a5f2a143eeec451c0714e430dd5553cbee26f6f05571a316dfb784b3454855d9',
                     outIdx: 0,
                 },
+                sats: 12230101n,
             },
         ],
         lockTime: 0,
@@ -1604,30 +1604,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '473044022038c75f93d7abe8e6e63c0981203acd48c7e6df92ba52cc9399df84b0b367ee200220356508913a5f8ad94d126891fea372bb2bf66a249bdb63332a4625cb359865f8412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12235011,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12235011n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript: '6a04007461620454657374',
+                sats: 0n,
             },
             {
-                value: 700,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 700n,
             },
             {
-                value: 12233856,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'bdd18f49a557c57b79da4b8a3165be6202fb48809486ec04424de99f52abeee8',
                     outIdx: 0,
                 },
+                sats: 12233856n,
             },
         ],
         lockTime: 0,
@@ -1654,30 +1654,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f288e71276e2389744ecb3c98bdf0c119d19966ac086c5f5908f8c3a878aa7e402203c07905536720391f472457f52f5cf6aaeb4fa02fdf59722f25768a36fd6157f412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12243166,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12243166n,
             },
         ],
         outputs: [
             {
-                value: 7700,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                 spentBy: {
                     txid: '04eedd3f4b4dc9727e393ad3e774f2dc0c6acf9e920dc6fcbcbf95ed9b98477c',
                     outIdx: 3,
                 },
+                sats: 7700n,
             },
             {
-                value: 12235011,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '71c0f2d76c81bb91c6bf4de69693d95e8f043af9e055e949616443090f961d80',
                     outIdx: 0,
                 },
+                sats: 12235011n,
             },
         ],
         lockTime: 0,
@@ -1704,30 +1704,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100d541ef12cc57c3b3cc95b338aec21775b27441d12eda662dcff23a46d07cc9450220467d2aae0dadcae787db33dab6adc86ec47aafea0133cc2130a62bb8247491d6412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 14743621,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 14743621n,
             },
         ],
         outputs: [
             {
-                value: 2500000,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '55388f67ab1b23d2e6c146472b836c1ba1df33dd9b7685bed34c6c9ce6fe5c0e',
                     outIdx: 0,
                 },
+                sats: 2500000n,
             },
             {
-                value: 12243166,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '3f7cbb380b2ad014fc6e95f2d4c10eda2f37c5686f6739af562e6e855c457b3b',
                     outIdx: 0,
                 },
+                sats: 12243166n,
             },
         ],
         lockTime: 0,
@@ -1754,35 +1754,35 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '473044022046faa2cc8efc0a06b2cfa8b80b658d4dc09bc1524cba1cb4ab456f8bc9ebf37902205074d7975824a06d6cba90dc91503f29801d9c180253bbe4ecefb42ddc82da6d412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 14746276,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 14746276n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624c810406fe30e60d38c4408043ca5b43cd515db4b10af477007962db6d019eeb9c3f6734c495574368da107bb00b32a27d096069706a0fb91fe18d0d8281c1b826fdd862a1955dd0d28b4e0245c862085f172d3947ca202953095ed014258f069c4d3fc36706e842b6643061e4ce70b91fb5b5b206de4d3b81a621ad9d4456c3f0cf6b',
+                sats: 0n,
             },
             {
-                value: 2200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '31e5bf25b892e173483c7b100a5b0fcda03cac9337c335fda3b3a5cf17b64759',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 14743621,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'bd0101c9389c5e1fada4662ea9ba7c8d71f949743e42f2db563cb0ec96bd10a3',
                     outIdx: 0,
                 },
+                sats: 14743621n,
             },
         ],
         lockTime: 0,
@@ -1809,30 +1809,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402204c6140c524e40653e85440aff615af47a481accc9dc8b45548d59a3ae91d3a0802200aa1667d00b16d3a80c5d4d1b4cabeee415289ef6818496f92abf9ec2db8262c412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 14748931,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 14748931n,
             },
         ],
         outputs: [
             {
-                value: 2200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '46158de814d73ded1a8f91221c85d9c91c696eaf14f0bd10e6fa7215bacf7852',
                     outIdx: 1,
                 },
+                sats: 2200n,
             },
             {
-                value: 14746276,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '20230f564987e644070e35fa4a809b8d697c725023a903c638194231ddf9cfd3',
                     outIdx: 0,
                 },
+                sats: 14746276n,
             },
         ],
         lockTime: 0,
@@ -1859,30 +1859,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f50735a67538602ec240725f9160bdfc96b4ae443fff2cebaf25485e8f98f5720220584ab745222cc7a0cd33d6f287885781b8009bc1e819b9b97436ecdb31abeff2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 49545,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 49545n,
             },
         ],
         outputs: [
             {
-                value: 1300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 1,
                 },
+                sats: 1300n,
             },
             {
-                value: 47790,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 1,
                 },
+                sats: 47790n,
             },
         ],
         lockTime: 0,
@@ -1909,30 +1909,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ac91ae0c612165e500605ae41080a30be891ef757c378733bfe5533f331d0e97022020babc7d6a267fc5fbab8ba9740968732978abf4cf63e049721c008532204bf8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 47562,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 47562n,
             },
         ],
         outputs: [
             {
-                value: 1200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 1,
                 },
+                sats: 1200n,
             },
             {
-                value: 45907,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 1,
                 },
+                sats: 45907n,
             },
         ],
         lockTime: 0,
@@ -1959,30 +1959,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '48304502210086a6072eaabb3502c73cbb6701c04edca374de60d62b888614d76b352203e9d602205721cec95da5a0ceda4cf54bf4bf8f54bec3d07b1caa75e1d65a87d8b5572f0f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 0,
                 },
+                sats: 1100n,
             },
             {
-                value: 1745,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 0,
                 },
+                sats: 1745n,
             },
         ],
         lockTime: 0,
@@ -2009,10 +2009,10 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402207031eafbfb4f762f1eb719defa8cb890f55085c593244eecce57082b7013fd4f02205178c40c57903baa3d9ebf554d2f3892859599b6e358e10725db81c14de4c80f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -2021,7 +2021,6 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '473044022058d957ffc312b4f9eefd71fb2c708e0a82bf72e56fdb322d75b4201453e413c402200df9176569cb2523f541dcff39f27c116926b214de37109775f3e5015e050604412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2031,22 +2030,22 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '34',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 34n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000508000000000000001d',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2057,17 +2056,17 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -2078,10 +2077,11 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '29',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 29n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -2101,9 +2101,9 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2125,10 +2125,10 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f4734cb1a5e7a64013b5408b9d0d6bc59560b08b9e7284f8bbba217f777f772c02204625fab8a1356f96f00a463be8aa64e90f663744554df60807d1aa1e00d19c5e412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1100,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1100n,
             },
             {
                 prevOut: {
@@ -2137,10 +2137,10 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100892a72b025cd5cd667bace86dfc605169018d9b46fa9ba2ef963e4dbe26a471702201283b63ebe679be3c27edc7b37aff829ba34503430147e203661d4d4ec4f14a5412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 7700,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 7700n,
             },
             {
                 prevOut: {
@@ -2149,7 +2149,6 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402203bcfcdbd76587aaa0b525edec82a5078daef892a98ae76d39accf1d874bd526d02202e2eba394d27b82c54fd3605ebafe7d6c9d2e7fa5dc769a4dc113dfbf5025a9d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2159,22 +2158,22 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '126',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 126n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000108000000000000007d',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2185,17 +2184,17 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -2206,23 +2205,24 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '125',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 125n,
                 },
                 spentBy: {
                     txid: 'e94ba6040350284311a6409267c7c1193d6c5f19a9dd76975bbf7355f0c7ed1a',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 6655,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'b24bc776a3414479f31835e26c17713cd655dd51c30351a26d3900a126b6275e',
                     outIdx: 0,
                 },
+                sats: 6655n,
             },
         ],
         lockTime: 0,
@@ -2242,9 +2242,9 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2266,30 +2266,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '4730440220606efba360bf0843f8c3fe9fab7d1cdc34852395b9045a4c3cf8f27b91d414f2022054fb11ce6e4fd2ee50ba467e94460c63e45fb563e330fc35c5caa8eea71e93b7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1900,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 0,
                 },
+                sats: 1900n,
             },
             {
-                value: 945,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 0,
                 },
+                sats: 945n,
             },
         ],
         lockTime: 0,
@@ -2316,10 +2316,10 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402204569cce381885918e300caef1e8a5388b86be871ff3e8f8f52917c26df9dde760220474e3ce3f6363a826d2772e347c296773ea838f493882e15fdc6a5181286a92c412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1700,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1700n,
             },
             {
                 prevOut: {
@@ -2328,30 +2328,30 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402206355208bd3eae6d3468a062a6cc33340cd82e0e5def4dad1efa7caee652b21b40220619f05019e5014f1154659bbf5a46f4abbf93e04eecca8c509d231eb2a495f41412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1800,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'f6afd5aa9d891919f8b412136107bebc970863ea24b23c76b96cee5b3577ccd5',
                     outIdx: 0,
                 },
+                sats: 1800n,
             },
             {
-                value: 2448,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '8af4664ffc7f23d64f0ddf76a6881d6a9c3bcf1b3f3e6562e8ed70ab5f58f4e6',
                     outIdx: 0,
                 },
+                sats: 2448n,
             },
         ],
         lockTime: 0,
@@ -2378,21 +2378,21 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '4730440220665f4bf3d94204649f8a1731285eb6e94940e38a3601504612374ec0a06ff27f02206276844772b498726e3e56145d42f2316da5646619d8288598f18e828426881f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
         ],
         outputs: [
             {
-                value: 1700,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'f6afd5aa9d891919f8b412136107bebc970863ea24b23c76b96cee5b3577ccd5',
                     outIdx: 1,
                 },
+                sats: 1700n,
             },
         ],
         lockTime: 0,
@@ -2419,10 +2419,10 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402204b4de25ffee112642136a6d1ad74394c7bfb984a08703d5362500a5521d346dc022053c3e887d7bb27a2525140789a7f450b0995781787ce28750dca1421b746721f412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 43783281,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 43783281n,
             },
             {
                 prevOut: {
@@ -2431,7 +2431,6 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100d4d1566db73386cd9580ff6f2c60e1536993b459fb3b199d7514fbd6fb5042ca0220590e88aa183ed6a756fbb8d8ba4bf5133f578746a917fab1e1b8e712543c5861412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2441,22 +2440,22 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 100n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44203515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9080000000000000063',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2467,23 +2466,24 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '99',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 99n,
                 },
                 spentBy: {
                     txid: 'a39c15bc372916359d79196a67f4edbacc515b0a9b8b9a9395e4eb13a9ef2a07',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 43781463,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'fcf45f6f12a4442bf206f85c87dfb7cfccdf438927fabbfe314a2c780545dcf9',
                     outIdx: 0,
                 },
+                sats: 43781463n,
             },
         ],
         lockTime: 0,
@@ -2503,9 +2503,9 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: 'Unexpected burn: Burns 1 base tokens',
                 failedColorings: [],
-                actualBurnAmount: '1',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 1n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2527,35 +2527,35 @@ export const mockFlatTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100e43086bb67006f6d5140a3329001bc53dabe2da4dbe7feae34dd5f10311b15ad022045da448bc99003af6cf6d4c74ec9891c60932013dde7451abca4a6bc40b6138d412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 10409988,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 10409988n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624ca104acd46779fb7a9a8e24656ba7ffcbc066bb78701630b0a3fd1c36a3e2b605d78e1d995ea990096a3f76077985d2194fd1a87369921545a544992c86414ed859247ab8f9c2979ed9b8fecb2cfaa7ff74f1daf6f7c00f3d97a5b942aecba54bf155d464606b6faa6f5efcbdf3f525b3283acf6867d11cfc30623c3107a87b499f68ca00602492c9cdca9b481c7f2b65a6ecd481bfdd244954b32a45c658592182ad',
+                sats: 0n,
             },
             {
-                value: 1200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'b142b79dbda8ae4aa580220bec76ae5ee78ff2c206a39ce20138c4f371c22aca',
                     outIdx: 1,
                 },
+                sats: 1200n,
             },
             {
-                value: 10408333,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '4263f3ceb04ec33a7cdb4d076caa4f2311fbdbb50b4330693e91d4ceb2e2fd5d',
                     outIdx: 0,
                 },
+                sats: 10408333n,
             },
         ],
         lockTime: 0,
@@ -2585,30 +2585,30 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f50735a67538602ec240725f9160bdfc96b4ae443fff2cebaf25485e8f98f5720220584ab745222cc7a0cd33d6f287885781b8009bc1e819b9b97436ecdb31abeff2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 49545,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 49545n,
             },
         ],
         outputs: [
             {
-                value: 1300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 1,
                 },
+                sats: 1300n,
             },
             {
-                value: 47790,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 1,
                 },
+                sats: 47790n,
             },
         ],
         lockTime: 0,
@@ -2635,30 +2635,30 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ac91ae0c612165e500605ae41080a30be891ef757c378733bfe5533f331d0e97022020babc7d6a267fc5fbab8ba9740968732978abf4cf63e049721c008532204bf8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 47562,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 47562n,
             },
         ],
         outputs: [
             {
-                value: 1200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 1,
                 },
+                sats: 1200n,
             },
             {
-                value: 45907,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 1,
                 },
+                sats: 45907n,
             },
         ],
         lockTime: 0,
@@ -2685,30 +2685,30 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '48304502210086a6072eaabb3502c73cbb6701c04edca374de60d62b888614d76b352203e9d602205721cec95da5a0ceda4cf54bf4bf8f54bec3d07b1caa75e1d65a87d8b5572f0f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 0,
                 },
+                sats: 1100n,
             },
             {
-                value: 1745,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 0,
                 },
+                sats: 1745n,
             },
         ],
         lockTime: 0,
@@ -2735,10 +2735,10 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402207031eafbfb4f762f1eb719defa8cb890f55085c593244eecce57082b7013fd4f02205178c40c57903baa3d9ebf554d2f3892859599b6e358e10725db81c14de4c80f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -2747,7 +2747,6 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '473044022058d957ffc312b4f9eefd71fb2c708e0a82bf72e56fdb322d75b4201453e413c402200df9176569cb2523f541dcff39f27c116926b214de37109775f3e5015e050604412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2757,22 +2756,22 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '34',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 34n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000508000000000000001d',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2783,17 +2782,17 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -2804,10 +2803,11 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '29',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 29n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -2827,9 +2827,9 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2851,10 +2851,10 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f4734cb1a5e7a64013b5408b9d0d6bc59560b08b9e7284f8bbba217f777f772c02204625fab8a1356f96f00a463be8aa64e90f663744554df60807d1aa1e00d19c5e412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1100,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1100n,
             },
             {
                 prevOut: {
@@ -2863,10 +2863,10 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100892a72b025cd5cd667bace86dfc605169018d9b46fa9ba2ef963e4dbe26a471702201283b63ebe679be3c27edc7b37aff829ba34503430147e203661d4d4ec4f14a5412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 7700,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 7700n,
             },
             {
                 prevOut: {
@@ -2875,7 +2875,6 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402203bcfcdbd76587aaa0b525edec82a5078daef892a98ae76d39accf1d874bd526d02202e2eba394d27b82c54fd3605ebafe7d6c9d2e7fa5dc769a4dc113dfbf5025a9d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -2885,22 +2884,22 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '126',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 126n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000108000000000000007d',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -2911,17 +2910,17 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -2932,23 +2931,24 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '125',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 125n,
                 },
                 spentBy: {
                     txid: 'e94ba6040350284311a6409267c7c1193d6c5f19a9dd76975bbf7355f0c7ed1a',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 6655,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'b24bc776a3414479f31835e26c17713cd655dd51c30351a26d3900a126b6275e',
                     outIdx: 0,
                 },
+                sats: 6655n,
             },
         ],
         lockTime: 0,
@@ -2968,9 +2968,9 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -2992,30 +2992,30 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '4730440220606efba360bf0843f8c3fe9fab7d1cdc34852395b9045a4c3cf8f27b91d414f2022054fb11ce6e4fd2ee50ba467e94460c63e45fb563e330fc35c5caa8eea71e93b7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1900,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 0,
                 },
+                sats: 1900n,
             },
             {
-                value: 945,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 0,
                 },
+                sats: 945n,
             },
         ],
         lockTime: 0,
@@ -3042,10 +3042,10 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402204569cce381885918e300caef1e8a5388b86be871ff3e8f8f52917c26df9dde760220474e3ce3f6363a826d2772e347c296773ea838f493882e15fdc6a5181286a92c412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1700,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1700n,
             },
             {
                 prevOut: {
@@ -3054,30 +3054,30 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402206355208bd3eae6d3468a062a6cc33340cd82e0e5def4dad1efa7caee652b21b40220619f05019e5014f1154659bbf5a46f4abbf93e04eecca8c509d231eb2a495f41412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1800,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'f6afd5aa9d891919f8b412136107bebc970863ea24b23c76b96cee5b3577ccd5',
                     outIdx: 0,
                 },
+                sats: 1800n,
             },
             {
-                value: 2448,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '8af4664ffc7f23d64f0ddf76a6881d6a9c3bcf1b3f3e6562e8ed70ab5f58f4e6',
                     outIdx: 0,
                 },
+                sats: 2448n,
             },
         ],
         lockTime: 0,
@@ -3104,21 +3104,21 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '4730440220665f4bf3d94204649f8a1731285eb6e94940e38a3601504612374ec0a06ff27f02206276844772b498726e3e56145d42f2316da5646619d8288598f18e828426881f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
         ],
         outputs: [
             {
-                value: 1700,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'f6afd5aa9d891919f8b412136107bebc970863ea24b23c76b96cee5b3577ccd5',
                     outIdx: 1,
                 },
+                sats: 1700n,
             },
         ],
         lockTime: 0,
@@ -3145,10 +3145,10 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '47304402204b4de25ffee112642136a6d1ad74394c7bfb984a08703d5362500a5521d346dc022053c3e887d7bb27a2525140789a7f450b0995781787ce28750dca1421b746721f412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 43783281,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 43783281n,
             },
             {
                 prevOut: {
@@ -3157,7 +3157,6 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100d4d1566db73386cd9580ff6f2c60e1536993b459fb3b199d7514fbd6fb5042ca0220590e88aa183ed6a756fbb8d8ba4bf5133f578746a917fab1e1b8e712543c5861412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -3167,22 +3166,22 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 100n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44203515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9080000000000000063',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -3193,23 +3192,24 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '99',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 99n,
                 },
                 spentBy: {
                     txid: 'a39c15bc372916359d79196a67f4edbacc515b0a9b8b9a9395e4eb13a9ef2a07',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 43781463,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'fcf45f6f12a4442bf206f85c87dfb7cfccdf438927fabbfe314a2c780545dcf9',
                     outIdx: 0,
                 },
+                sats: 43781463n,
             },
         ],
         lockTime: 0,
@@ -3229,9 +3229,9 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 isInvalid: false,
                 burnSummary: 'Unexpected burn: Burns 1 base tokens',
                 failedColorings: [],
-                actualBurnAmount: '1',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 1n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -3253,35 +3253,35 @@ export const mockSortedTxHistoryNoUnconfirmed = [
                 },
                 inputScript:
                     '483045022100e43086bb67006f6d5140a3329001bc53dabe2da4dbe7feae34dd5f10311b15ad022045da448bc99003af6cf6d4c74ec9891c60932013dde7451abca4a6bc40b6138d412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 10409988,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 10409988n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624ca104acd46779fb7a9a8e24656ba7ffcbc066bb78701630b0a3fd1c36a3e2b605d78e1d995ea990096a3f76077985d2194fd1a87369921545a544992c86414ed859247ab8f9c2979ed9b8fecb2cfaa7ff74f1daf6f7c00f3d97a5b942aecba54bf155d464606b6faa6f5efcbdf3f525b3283acf6867d11cfc30623c3107a87b499f68ca00602492c9cdca9b481c7f2b65a6ecd481bfdd244954b32a45c658592182ad',
+                sats: 0n,
             },
             {
-                value: 1200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'b142b79dbda8ae4aa580220bec76ae5ee78ff2c206a39ce20138c4f371c22aca',
                     outIdx: 1,
                 },
+                sats: 1200n,
             },
             {
-                value: 10408333,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '4263f3ceb04ec33a7cdb4d076caa4f2311fbdbb50b4330693e91d4ceb2e2fd5d',
                     outIdx: 0,
                 },
+                sats: 10408333n,
             },
         ],
         lockTime: 0,
@@ -3311,20 +3311,19 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022024a187f6dc32082e765eeb37e1a6726e99871b3df0c385ad135ddcf73df0e79102203b81d7eb112a193e23147974432bb12116d75e995aa8c3b6a51943cc4dbd8694412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12214100,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12214100n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e4553495303434b410d4368726f6e696b20416c7068611468747470733a2f2f636173687461622e636f6d2f4c0001084c000800000014b230ce38',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -3335,23 +3334,24 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '88888888888',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 88888888888n,
                 },
                 spentBy: {
                     txid: 'a83257b2facf7c6d4f8df9a307dee9cc79af9323b8bb803994d5c967bf916569',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 12213031,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '5fc6f53ef0f94e66d5f6983402441cfdece1dbd35bd500b6e15881d1b37aa93f',
                     outIdx: 67,
                 },
+                sats: 12213031n,
             },
         ],
         lockTime: 0,
@@ -3371,9 +3371,9 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -3395,31 +3395,31 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402201623de13a2cd38d379a08dbee1cb2239571b6166bf9923ffe44ae108fd21931c022030dcd5b08a997dcaa7af505a5e513985317b2da91d2f4d4879ee941e3b8931ad412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12218055,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12218055n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624c910458f886baf61daf6fa1909aab79e30bca8d35d634c6c5e969b2157b87e67fa010252a9fd1eebeed00075d0fb7bcc0dcb73b41cc73adacdae2be18d31643ad3f33d95f9a97e7cf00b2231fd0a7d37f36d082c86a392bde59eac693c002f861082d7d3cbc23eafd4511afe3619bfc0f0c028454038dee71a6e7796395574b9a06b9bf7aaf0cd607e59f4ad641393d746f88',
+                sats: 0n,
             },
             {
-                value: 3500,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3500n,
             },
             {
-                value: 12214100,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55',
                     outIdx: 0,
                 },
+                sats: 12214100n,
             },
         ],
         lockTime: 0,
@@ -3446,40 +3446,40 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402202267233e578abb21efa28bc606501f582f94915d3b07ceedff39750877c7211d02206cfec78f41fe58723938c199fa908f4e13ebb298cc989be30faa1e6838c22af1412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12224078,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12224078n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04007461621c54657374696e67206d756c74692d73656e642077697468206e6f7465',
+                sats: 0n,
             },
             {
-                value: 2200,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '10df437f64451165ac1eb371cef97aab8602d6d61c57eb97811fe724fe7371c3',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 3300,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3300n,
             },
             {
-                value: 12218055,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'd27609956b0e4313f807fd58b82cc77f9b2bba1a792eac02707462a3d6863958',
                     outIdx: 0,
                 },
+                sats: 12218055n,
             },
         ],
         lockTime: 0,
@@ -3506,35 +3506,35 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f3e4140c8f1614612c07ffe4d35e697d5ffd0931d7b18b9360f5f431c6704d11022002b5fd03e7f9b849fec1c0374dc3df2f1f2dae333980bd02aaa3710b66d1eb0e412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12230101,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12230101n,
             },
         ],
         outputs: [
             {
-                value: 3300,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3300n,
             },
             {
-                value: 2200,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: 'ff40dc28bd694b45d782be8c1726417b8db51fd466e429cf3ee906c9dab0b650',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 12224078,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'd0470ea0b1e0d5cc6a20085ca1436e8c4752415a450a981ef2dd23105bbe2550',
                     outIdx: 0,
                 },
+                sats: 12224078n,
             },
         ],
         lockTime: 0,
@@ -3561,26 +3561,26 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '4830450221008f8052c8b78a4d250f4596b3a14c85fb2d253ce20d972422829dc4a68a87320702202b7d272a96996bab1914f693939dfc6300184f5f3db0acc5acfc155ba19d7642412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12233856,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12233856n,
             },
         ],
         outputs: [
             {
-                value: 3300,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 3300n,
             },
             {
-                value: 12230101,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'a5f2a143eeec451c0714e430dd5553cbee26f6f05571a316dfb784b3454855d9',
                     outIdx: 0,
                 },
+                sats: 12230101n,
             },
         ],
         lockTime: 0,
@@ -3607,30 +3607,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022038c75f93d7abe8e6e63c0981203acd48c7e6df92ba52cc9399df84b0b367ee200220356508913a5f8ad94d126891fea372bb2bf66a249bdb63332a4625cb359865f8412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12235011,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12235011n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript: '6a04007461620454657374',
+                sats: 0n,
             },
             {
-                value: 700,
                 outputScript:
                     '76a9149ee95bbfbdd2cf0eb6005bd75f717e4193b5913488ac',
+                sats: 700n,
             },
             {
-                value: 12233856,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'bdd18f49a557c57b79da4b8a3165be6202fb48809486ec04424de99f52abeee8',
                     outIdx: 0,
                 },
+                sats: 12233856n,
             },
         ],
         lockTime: 0,
@@ -3657,30 +3657,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f288e71276e2389744ecb3c98bdf0c119d19966ac086c5f5908f8c3a878aa7e402203c07905536720391f472457f52f5cf6aaeb4fa02fdf59722f25768a36fd6157f412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 12243166,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 12243166n,
             },
         ],
         outputs: [
             {
-                value: 7700,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                 spentBy: {
                     txid: '04eedd3f4b4dc9727e393ad3e774f2dc0c6acf9e920dc6fcbcbf95ed9b98477c',
                     outIdx: 3,
                 },
+                sats: 7700n,
             },
             {
-                value: 12235011,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '71c0f2d76c81bb91c6bf4de69693d95e8f043af9e055e949616443090f961d80',
                     outIdx: 0,
                 },
+                sats: 12235011n,
             },
         ],
         lockTime: 0,
@@ -3707,30 +3707,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100d541ef12cc57c3b3cc95b338aec21775b27441d12eda662dcff23a46d07cc9450220467d2aae0dadcae787db33dab6adc86ec47aafea0133cc2130a62bb8247491d6412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 14743621,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 14743621n,
             },
         ],
         outputs: [
             {
-                value: 2500000,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '55388f67ab1b23d2e6c146472b836c1ba1df33dd9b7685bed34c6c9ce6fe5c0e',
                     outIdx: 0,
                 },
+                sats: 2500000n,
             },
             {
-                value: 12243166,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '3f7cbb380b2ad014fc6e95f2d4c10eda2f37c5686f6739af562e6e855c457b3b',
                     outIdx: 0,
                 },
+                sats: 12243166n,
             },
         ],
         lockTime: 0,
@@ -3757,35 +3757,35 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022046faa2cc8efc0a06b2cfa8b80b658d4dc09bc1524cba1cb4ab456f8bc9ebf37902205074d7975824a06d6cba90dc91503f29801d9c180253bbe4ecefb42ddc82da6d412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 14746276,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 14746276n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624c810406fe30e60d38c4408043ca5b43cd515db4b10af477007962db6d019eeb9c3f6734c495574368da107bb00b32a27d096069706a0fb91fe18d0d8281c1b826fdd862a1955dd0d28b4e0245c862085f172d3947ca202953095ed014258f069c4d3fc36706e842b6643061e4ce70b91fb5b5b206de4d3b81a621ad9d4456c3f0cf6b',
+                sats: 0n,
             },
             {
-                value: 2200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '31e5bf25b892e173483c7b100a5b0fcda03cac9337c335fda3b3a5cf17b64759',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 14743621,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: 'bd0101c9389c5e1fada4662ea9ba7c8d71f949743e42f2db563cb0ec96bd10a3',
                     outIdx: 0,
                 },
+                sats: 14743621n,
             },
         ],
         lockTime: 0,
@@ -3812,30 +3812,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402204c6140c524e40653e85440aff615af47a481accc9dc8b45548d59a3ae91d3a0802200aa1667d00b16d3a80c5d4d1b4cabeee415289ef6818496f92abf9ec2db8262c412102c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-                value: 14748931,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
+                sats: 14748931n,
             },
         ],
         outputs: [
             {
-                value: 2200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '46158de814d73ded1a8f91221c85d9c91c696eaf14f0bd10e6fa7215bacf7852',
                     outIdx: 1,
                 },
+                sats: 2200n,
             },
             {
-                value: 14746276,
                 outputScript:
                     '76a914a9f494266e4b3c823712f27dedcb83e30b2fe59f88ac',
                 spentBy: {
                     txid: '20230f564987e644070e35fa4a809b8d697c725023a903c638194231ddf9cfd3',
                     outIdx: 0,
                 },
+                sats: 14746276n,
             },
         ],
         lockTime: 0,
@@ -3862,10 +3862,10 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100920a6f8696b0fadd7b82f3450090cd7f198d7287551bb8f08065951c7e5f9455022004d5d8304b056f2f4a6474392665cf8dfd897ea02f18506aced86b552482e404412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
             {
                 prevOut: {
@@ -3874,7 +3874,6 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '4830450221008461ccf6961f300a0f8c7ec5526813b531aea5033cacef6d15ab7e033f50130102206d22a9a7bd0ec2f04ace2c0642f233fea3bbed7ee677e53416845a0bfd367044412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -3884,22 +3883,22 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '17',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 17n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000e080000000000000003',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -3910,17 +3909,17 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '14',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 14n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 4,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -3931,19 +3930,20 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 3n,
                 },
+                sats: 546n,
             },
             {
-                value: 1482,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0e8940542ea369db5a9828c5b382ab59e9b33b93ae17dc9c2fabc50ea77dcbea',
                     outIdx: 2,
                 },
+                sats: 1482n,
             },
         ],
         lockTime: 0,
@@ -3963,9 +3963,9 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -3982,10 +3982,10 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022064c39d8fa6b89fcd0961d06ee7c6976c798b2de6f33bdd58b6db56a2c45b235102204444a625e5328eee7139110c03100bdc062292f28d6de8e2b36536a39d2466df412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1200n,
             },
             {
                 prevOut: {
@@ -3994,10 +3994,10 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100cff4ca28b0bd320f4aa7bd3029b0c1e48c392b42c56b7dfdca292bbb14302e5f02206bc74177a98481e49c937a6229ebd8191f653a363c95cd37b69f1300f05f6d3a412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -4006,7 +4006,6 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ad48dd7d1196b108e3ee0412edcbe468031dcf48244b9b4b57f6cc9e710c836602202e5a00a2c9e1e6fc8937af70fcb8018e299dd007235229e6e3d87f6af9f8761c412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -4016,22 +4015,22 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '228',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 228n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000d0800000000000000d7',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -4042,17 +4041,17 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '13',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 13n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 3,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -4063,19 +4062,20 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '215',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 215n,
                 },
+                sats: 546n,
             },
             {
-                value: 1255,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0e8940542ea369db5a9828c5b382ab59e9b33b93ae17dc9c2fabc50ea77dcbea',
                     outIdx: 0,
                 },
+                sats: 1255n,
             },
         ],
         lockTime: 0,
@@ -4095,9 +4095,9 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -4114,21 +4114,21 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100c30541783609812c5a4066e6395488f3bcabc0cd5a21444d79868c31016b5c9f02200d1c7709f414411a3e3cd9dbf606648339fb2c309b016e490d52aa565510e151412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1700,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1700n,
             },
         ],
         outputs: [
             {
-                value: 1200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'c8ff3624364c59b0243f8bd341295d9afd6f12b95a2cd7e2630a206120e60bf8',
                     outIdx: 0,
                 },
+                sats: 1200n,
             },
         ],
         lockTime: 0,
@@ -4150,30 +4150,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402202608525692251d17e680b7856da6abda3e92b51fbfc4fc852586355bde4fe6d30220737203dc6832383b5cc1edc45bbc972a7c18e6b3de69fd8f0cc93b0a0fbd3fa5412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 5500,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 5500n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 2,
                 },
+                sats: 1100n,
             },
             {
-                value: 3945,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '44898363021248564c3e3b83e1852b1e764e3c9898170ea4a421ac950f5bdd4f',
                     outIdx: 0,
                 },
+                sats: 3945n,
             },
         ],
         lockTime: 0,
@@ -4195,30 +4195,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ed4f81298d98a4d9c16749cd50ed050dcbbba30266e7c1605f08142ca3f8b9390220298f5290847be114fa33eb931985ea9dd61c39043112db3fcdfcf1efad508247412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
         ],
         outputs: [
             {
-                value: 1000,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'c8ff3624364c59b0243f8bd341295d9afd6f12b95a2cd7e2630a206120e60bf8',
                     outIdx: 1,
                 },
+                sats: 1000n,
             },
             {
-                value: 745,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0e8940542ea369db5a9828c5b382ab59e9b33b93ae17dc9c2fabc50ea77dcbea',
                     outIdx: 1,
                 },
+                sats: 745n,
             },
         ],
         lockTime: 0,
@@ -4240,30 +4240,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f50735a67538602ec240725f9160bdfc96b4ae443fff2cebaf25485e8f98f5720220584ab745222cc7a0cd33d6f287885781b8009bc1e819b9b97436ecdb31abeff2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 49545,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 49545n,
             },
         ],
         outputs: [
             {
-                value: 1300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 1,
                 },
+                sats: 1300n,
             },
             {
-                value: 47790,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 1,
                 },
+                sats: 47790n,
             },
         ],
         lockTime: 0,
@@ -4290,30 +4290,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ac91ae0c612165e500605ae41080a30be891ef757c378733bfe5533f331d0e97022020babc7d6a267fc5fbab8ba9740968732978abf4cf63e049721c008532204bf8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 47562,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 47562n,
             },
         ],
         outputs: [
             {
-                value: 1200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 1,
                 },
+                sats: 1200n,
             },
             {
-                value: 45907,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 1,
                 },
+                sats: 45907n,
             },
         ],
         lockTime: 0,
@@ -4340,30 +4340,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '48304502210086a6072eaabb3502c73cbb6701c04edca374de60d62b888614d76b352203e9d602205721cec95da5a0ceda4cf54bf4bf8f54bec3d07b1caa75e1d65a87d8b5572f0f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 0,
                 },
+                sats: 1100n,
             },
             {
-                value: 1745,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 0,
                 },
+                sats: 1745n,
             },
         ],
         lockTime: 0,
@@ -4390,10 +4390,10 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402207031eafbfb4f762f1eb719defa8cb890f55085c593244eecce57082b7013fd4f02205178c40c57903baa3d9ebf554d2f3892859599b6e358e10725db81c14de4c80f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -4402,7 +4402,6 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022058d957ffc312b4f9eefd71fb2c708e0a82bf72e56fdb322d75b4201453e413c402200df9176569cb2523f541dcff39f27c116926b214de37109775f3e5015e050604412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -4412,22 +4411,22 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '34',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 34n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000508000000000000001d',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -4438,17 +4437,17 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -4459,10 +4458,11 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '29',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 29n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -4482,9 +4482,9 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -4506,30 +4506,30 @@ export const mockFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '4730440220606efba360bf0843f8c3fe9fab7d1cdc34852395b9045a4c3cf8f27b91d414f2022054fb11ce6e4fd2ee50ba467e94460c63e45fb563e330fc35c5caa8eea71e93b7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1900,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 0,
                 },
+                sats: 1900n,
             },
             {
-                value: 945,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 0,
                 },
+                sats: 945n,
             },
         ],
         lockTime: 0,
@@ -4559,10 +4559,10 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100920a6f8696b0fadd7b82f3450090cd7f198d7287551bb8f08065951c7e5f9455022004d5d8304b056f2f4a6474392665cf8dfd897ea02f18506aced86b552482e404412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
             {
                 prevOut: {
@@ -4571,7 +4571,6 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '4830450221008461ccf6961f300a0f8c7ec5526813b531aea5033cacef6d15ab7e033f50130102206d22a9a7bd0ec2f04ace2c0642f233fea3bbed7ee677e53416845a0bfd367044412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -4581,22 +4580,22 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '17',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 17n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000e080000000000000003',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -4607,17 +4606,17 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '14',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 14n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 4,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -4628,19 +4627,20 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 3n,
                 },
+                sats: 546n,
             },
             {
-                value: 1482,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0e8940542ea369db5a9828c5b382ab59e9b33b93ae17dc9c2fabc50ea77dcbea',
                     outIdx: 2,
                 },
+                sats: 1482n,
             },
         ],
         lockTime: 0,
@@ -4660,9 +4660,9 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -4679,10 +4679,10 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022064c39d8fa6b89fcd0961d06ee7c6976c798b2de6f33bdd58b6db56a2c45b235102204444a625e5328eee7139110c03100bdc062292f28d6de8e2b36536a39d2466df412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1200n,
             },
             {
                 prevOut: {
@@ -4691,10 +4691,10 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100cff4ca28b0bd320f4aa7bd3029b0c1e48c392b42c56b7dfdca292bbb14302e5f02206bc74177a98481e49c937a6229ebd8191f653a363c95cd37b69f1300f05f6d3a412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -4703,7 +4703,6 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ad48dd7d1196b108e3ee0412edcbe468031dcf48244b9b4b57f6cc9e710c836602202e5a00a2c9e1e6fc8937af70fcb8018e299dd007235229e6e3d87f6af9f8761c412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -4713,22 +4712,22 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '228',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 228n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000d0800000000000000d7',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -4739,17 +4738,17 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '13',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 13n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 3,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -4760,19 +4759,20 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '215',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 215n,
                 },
+                sats: 546n,
             },
             {
-                value: 1255,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0e8940542ea369db5a9828c5b382ab59e9b33b93ae17dc9c2fabc50ea77dcbea',
                     outIdx: 0,
                 },
+                sats: 1255n,
             },
         ],
         lockTime: 0,
@@ -4792,9 +4792,9 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -4811,21 +4811,21 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100c30541783609812c5a4066e6395488f3bcabc0cd5a21444d79868c31016b5c9f02200d1c7709f414411a3e3cd9dbf606648339fb2c309b016e490d52aa565510e151412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1700,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1700n,
             },
         ],
         outputs: [
             {
-                value: 1200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'c8ff3624364c59b0243f8bd341295d9afd6f12b95a2cd7e2630a206120e60bf8',
                     outIdx: 0,
                 },
+                sats: 1200n,
             },
         ],
         lockTime: 0,
@@ -4847,30 +4847,30 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402202608525692251d17e680b7856da6abda3e92b51fbfc4fc852586355bde4fe6d30220737203dc6832383b5cc1edc45bbc972a7c18e6b3de69fd8f0cc93b0a0fbd3fa5412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 5500,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 5500n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 2,
                 },
+                sats: 1100n,
             },
             {
-                value: 3945,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '44898363021248564c3e3b83e1852b1e764e3c9898170ea4a421ac950f5bdd4f',
                     outIdx: 0,
                 },
+                sats: 3945n,
             },
         ],
         lockTime: 0,
@@ -4892,30 +4892,30 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ed4f81298d98a4d9c16749cd50ed050dcbbba30266e7c1605f08142ca3f8b9390220298f5290847be114fa33eb931985ea9dd61c39043112db3fcdfcf1efad508247412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
         ],
         outputs: [
             {
-                value: 1000,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'c8ff3624364c59b0243f8bd341295d9afd6f12b95a2cd7e2630a206120e60bf8',
                     outIdx: 1,
                 },
+                sats: 1000n,
             },
             {
-                value: 745,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0e8940542ea369db5a9828c5b382ab59e9b33b93ae17dc9c2fabc50ea77dcbea',
                     outIdx: 1,
                 },
+                sats: 745n,
             },
         ],
         lockTime: 0,
@@ -4937,30 +4937,30 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f50735a67538602ec240725f9160bdfc96b4ae443fff2cebaf25485e8f98f5720220584ab745222cc7a0cd33d6f287885781b8009bc1e819b9b97436ecdb31abeff2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 49545,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 49545n,
             },
         ],
         outputs: [
             {
-                value: 1300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 1,
                 },
+                sats: 1300n,
             },
             {
-                value: 47790,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 1,
                 },
+                sats: 47790n,
             },
         ],
         lockTime: 0,
@@ -4987,30 +4987,30 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '483045022100ac91ae0c612165e500605ae41080a30be891ef757c378733bfe5533f331d0e97022020babc7d6a267fc5fbab8ba9740968732978abf4cf63e049721c008532204bf8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 47562,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 47562n,
             },
         ],
         outputs: [
             {
-                value: 1200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 1,
                 },
+                sats: 1200n,
             },
             {
-                value: 45907,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 1,
                 },
+                sats: 45907n,
             },
         ],
         lockTime: 0,
@@ -5037,30 +5037,30 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '48304502210086a6072eaabb3502c73cbb6701c04edca374de60d62b888614d76b352203e9d602205721cec95da5a0ceda4cf54bf4bf8f54bec3d07b1caa75e1d65a87d8b5572f0f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '96e8fe9856fd14994ce02fda65344d2929cfc37db3a56636379b6cd2ec9f5090',
                     outIdx: 0,
                 },
+                sats: 1100n,
             },
             {
-                value: 1745,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'c5628a5ebac844a6e62bff2319558711c0d61423b2c222761945414b1f604c68',
                     outIdx: 0,
                 },
+                sats: 1745n,
             },
         ],
         lockTime: 0,
@@ -5087,10 +5087,10 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '47304402207031eafbfb4f762f1eb719defa8cb890f55085c593244eecce57082b7013fd4f02205178c40c57903baa3d9ebf554d2f3892859599b6e358e10725db81c14de4c80f412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -5099,7 +5099,6 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '473044022058d957ffc312b4f9eefd71fb2c708e0a82bf72e56fdb322d75b4201453e413c402200df9176569cb2523f541dcff39f27c116926b214de37109775f3e5015e050604412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -5109,22 +5108,22 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '34',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 34n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000508000000000000001d',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -5135,17 +5134,17 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5n,
                 },
                 spentBy: {
                     txid: '1258f779801fcb0095ba69e7956ba3a375d695af5799923bfe409bc2887ab1e8',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -5156,10 +5155,11 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '29',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 29n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -5179,9 +5179,9 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -5203,30 +5203,30 @@ export const mockSortedFlatTxHistoryWithUnconfirmed = [
                 },
                 inputScript:
                     '4730440220606efba360bf0843f8c3fe9fab7d1cdc34852395b9045a4c3cf8f27b91d414f2022054fb11ce6e4fd2ee50ba467e94460c63e45fb563e330fc35c5caa8eea71e93b7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 1900,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '98c11ba510f0870c8c9fba69827e712c8dca3695edb6893b41588322496afa18',
                     outIdx: 0,
                 },
+                sats: 1900n,
             },
             {
-                value: 945,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'd11d964010240aceb9cab32c200a87d2f44330852cc1f16a5e9daeed00d3a465',
                     outIdx: 0,
                 },
+                sats: 945n,
             },
         ],
         lockTime: 0,
@@ -5256,30 +5256,30 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '4730440220724f1f261ad1e2b6b21e065632c6da0ebe3701693205f5485b395d747645fdf502207062fda8367c20b3e090391994176bf5b40877c1b60e450d73a37255d6ee10dd412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 39162,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 39162n,
             },
         ],
         outputs: [
             {
-                value: 2500,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'b1e65a60daf031915bf3aebcf500e14a2d86f4e77c5fa043364f8a9e5698979c',
                     outIdx: 0,
                 },
+                sats: 2500n,
             },
             {
-                value: 36207,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
                     outIdx: 0,
                 },
+                sats: 36207n,
             },
         ],
         lockTime: 0,
@@ -5301,30 +5301,30 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '48304502210084dcee7aefac851d47e1a8dbadc4a6263fe87a661ed37541d611c8765510501f022001e606d50a8c784b0295dd7e4e5fe58f89592cf9d81f4de6daf7bdf6ee2a32a8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 42017,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 42017n,
             },
         ],
         outputs: [
             {
-                value: 2400,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '3b994d17cb7e7b0adcb4b680ec1197c7cafa659bb565db61ada359352a40bcdc',
                     outIdx: 2,
                 },
+                sats: 2400n,
             },
             {
-                value: 39162,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'fec829a1ff34a9f84058cdd8bf795c114a8fcb3bcc6c3ca9ea8b9ae68420dd9a',
                     outIdx: 0,
                 },
+                sats: 39162n,
             },
         ],
         lockTime: 0,
@@ -5346,30 +5346,30 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '473044022036cd1605ab5122e9769549cf953d5638022c99dcb6c838c77eeaa958e14ba5180220466cced2c01885f83e38e26821238dd0b9697c5029e232cfe6cb5356742ebe58412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 44772,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 44772n,
             },
         ],
         outputs: [
             {
-                value: 2300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '312553668f596bfd61287aec1b7f0f035afb5ddadf40b6f9d1ffcec5b7d4b684',
                     outIdx: 0,
                 },
+                sats: 2300n,
             },
             {
-                value: 42017,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '66ce76f8ebcd0ac83702c4a71e259cee9fceedf9cfdb2b08e8ebe15483e50f56',
                     outIdx: 0,
                 },
+                sats: 42017n,
             },
         ],
         lockTime: 0,
@@ -5391,30 +5391,30 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402206be85d81c79a53dc6a598e08091ad6aededdc4a710601c9fb477cff9dab24c7402200ec9bf7b1f0ce605916b8308ebea3d8024280659229db43d53be05ed5a0be5f0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1825562,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1825562n,
             },
         ],
         outputs: [
             {
-                value: 2200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'dacd4bacb46caa3af4a57ac0449b2cb82c8a32c64645cd6a64041287d1ced556',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 1822907,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '60c6ad832e8f44ea59bb15166959b45828d8aec5554a2f70491dddf82dcda837',
                     outIdx: 0,
                 },
+                sats: 1822907n,
             },
         ],
         lockTime: 0,
@@ -5436,30 +5436,30 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100b6a6027d41170d2bb917b632a4a30df60ef3b51e90a27eb701f18a63a99a4313022029ccbace732ee942f8ee5773bbc4a3e3dd046af7e9ccf5889d8c333d27e302d8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1190050,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1190050n,
             },
         ],
         outputs: [
             {
-                value: 2100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'd6e5e1511b25e984f2d0850ab47ff1e9fdf8cab546fbd5f5ae36299423a9dde3',
                     outIdx: 0,
                 },
+                sats: 2100n,
             },
             {
-                value: 1187495,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '3b40671157eaa30e277819d6bc93acf76377616edbe818d475acbd2cc4b07479',
                     outIdx: 0,
                 },
+                sats: 1187495n,
             },
         ],
         lockTime: 0,
@@ -5481,10 +5481,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '48304502210092f2508a5f19b67be121dc5d8fd70569d9275a11f2c1724db8c714ad4d06b14e02206e8a3101f8ceecc19b5508455e1542c65847951456cf884444e951d6e0cfb5ef412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 46590,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 46590n,
             },
             {
                 prevOut: {
@@ -5493,7 +5493,6 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402200e225ab4c7d20aef968d95fbf6f881f313c9b35aef891edd4192c5320f147f2502205794732b6242c3a445ee1340ca03950e2044321b9c99bf7d5805ea36cac756dc412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -5503,22 +5502,22 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8832',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8832n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f4808000000000000000508000000000000227b',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -5529,17 +5528,17 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 8,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -5550,23 +5549,24 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8827',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8827n,
                 },
                 spentBy: {
                     txid: '328df7f6a976c67875035acb051747c443cdac55173aef11ab1c17184162e2e9',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 44772,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '842dd09e723d664d7647bc49f911c88b60f0450e646fedb461f319dadb867934',
                     outIdx: 0,
                 },
+                sats: 44772n,
             },
         ],
         lockTime: 0,
@@ -5586,9 +5586,9 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -5605,10 +5605,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402206a807dad013e5bbb5a78bc12349c550f1867be0ec46ebe4a18ca0ffb45b84cf802206345b92bdec24663bc4fb168d6e1601781969393e93fbcad5279fa72bde08774412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1827380,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1827380n,
             },
             {
                 prevOut: {
@@ -5617,7 +5617,6 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402200fdb134c8a13fbd1b95ef118c247a8a911e9d52ecaafc86ebb80cc179d69c1e002200bd4dc809c998a511e09f939a3270f7a2f9babae9d75919d2fef83ed66cf7dde412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -5627,22 +5626,22 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8836',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8836n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000004080000000000002280',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -5653,17 +5652,17 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '4',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 4n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 7,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -5674,23 +5673,24 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8832',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8832n,
                 },
                 spentBy: {
                     txid: '6bfdfbb71b71d0b1c024c777e5cc6a6b81806dbb673d4f5e65ab30476035f269',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 1825562,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'eb79e90e3b5a0b6766cbfab3efd9c52f831bef62f9f27c2aa925ee81e43b843f',
                     outIdx: 0,
                 },
+                sats: 1825562n,
             },
         ],
         lockTime: 0,
@@ -5710,9 +5710,9 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -5729,10 +5729,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100860067702a7ec139379913db22f4aaaca611e1d5cfd89df1c335bc9b72ee36d0022063892a87d269db12a7be0b24e721900b1f287ce9d1fb18431b2cc508ecebfdf7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 45507,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 45507n,
             },
             {
                 prevOut: {
@@ -5741,7 +5741,6 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100c96c70b94f5386efff2a8873d35d7b4c29fafe11555cf2a3daea8f905fb0f73502203751a29b351cca9c337345388237b98312873f44976f08667ae6540423a8d012412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -5751,22 +5750,22 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8839',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8839n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000003080000000000002284',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -5777,17 +5776,17 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 3n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 10,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -5798,23 +5797,24 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8836',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8836n,
                 },
                 spentBy: {
                     txid: '5944386e40a401ff31940f9d41e7983bec3b617d83efba0033eba28926a2fb9e',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 43689,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '7d1929454c7e83707006e9f70000b47fc68805c3e42de6545498f39c6f96d34e',
                     outIdx: 0,
                 },
+                sats: 43689n,
             },
         ],
         lockTime: 0,
@@ -5834,9 +5834,9 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -5853,10 +5853,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '4730440220219fdd01482905c336ef8345973339ebe6f540fb7ff7f04d808357fd73c137b302207cb8af146cdf3ec643d85f71c9b95bc6b4fa4e0c19d5f76baf0329f4e315ab4d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 848,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 848n,
             },
             {
                 prevOut: {
@@ -5865,10 +5865,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f8df9b24dc337b5c7b0b41f454fb535a181aa95814d01e3e2246908fda3a5d800220417d4bd3c10d59f9655ddae4229813222abd9a5b148db1a456fde4719ea8dc56412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 4800,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 4800n,
             },
             {
                 prevOut: {
@@ -5877,7 +5877,6 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100dcc45ddcb243a56ddee5d050dd961d553f4f93704378ce517ad47a161c6f768b022000ef68375269494caa36c9f063ecd6181dfb77b8c4e0e09fdb0433d5a484974e412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -5887,22 +5886,22 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8841',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8841n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000002080000000000002287',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -5913,17 +5912,17 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 2n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 9,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -5934,23 +5933,24 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8839',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8839n,
                 },
                 spentBy: {
                     txid: 'd1a286475ac63df6ae51ffe69be5324b848ddf4a0acf8510d9ec266cb4e10454',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 3503,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'b808f6a831dcdfda2bd4c5f857f94e1a746a4effeda6a5ad742be6137884a4fb',
                     outIdx: 0,
                 },
+                sats: 3503n,
             },
         ],
         lockTime: 0,
@@ -5970,9 +5970,9 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -5989,10 +5989,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100c1717019de60065cae38519a85a80723fc3ee73573739381ee02fcaaa34a15fd022063059a69397ad3108c2f955c92d195a90e8f1f616e23df132abb6675ac5800c2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 992,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 992n,
             },
             {
                 prevOut: {
@@ -6001,10 +6001,10 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '4830450221009b897d907bda2da570c5c273ab277b73c60d8fd39ba605829d0ec4b796fb7c20022011cc67871bf5df4693904fcdee80ac1adba332b14a4cdc9113b15f28e288adad412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1191203,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1191203n,
             },
             {
                 prevOut: {
@@ -6013,7 +6013,6 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100be82f7c67c73ecf068905a44ca2147d89b8041e54a432386b25137f7bea0d0aa0220416607e30a8d8d8c08237032eeb7728f938650a70215f6615939cd2455569539412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -6023,22 +6022,22 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8842',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8842n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000001080000000000002289',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -6049,17 +6048,17 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 6,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -6070,23 +6069,24 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8841',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8841n,
                 },
                 spentBy: {
                     txid: 'c638754cb7707edd4faad89bdfee899aa7acbbc61f66e21f8faf60bdbb34fd65',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 1190050,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'f051b152f13004c18b5aab3b615d88af8175fa5416426fb73e3731fa530f064d',
                     outIdx: 0,
                 },
+                sats: 1190050n,
             },
         ],
         lockTime: 0,
@@ -6106,9 +6106,9 @@ export const mockFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -6128,30 +6128,30 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '4730440220724f1f261ad1e2b6b21e065632c6da0ebe3701693205f5485b395d747645fdf502207062fda8367c20b3e090391994176bf5b40877c1b60e450d73a37255d6ee10dd412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 39162,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 39162n,
             },
         ],
         outputs: [
             {
-                value: 2500,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'b1e65a60daf031915bf3aebcf500e14a2d86f4e77c5fa043364f8a9e5698979c',
                     outIdx: 0,
                 },
+                sats: 2500n,
             },
             {
-                value: 36207,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
                     outIdx: 0,
                 },
+                sats: 36207n,
             },
         ],
         lockTime: 0,
@@ -6173,30 +6173,30 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '48304502210084dcee7aefac851d47e1a8dbadc4a6263fe87a661ed37541d611c8765510501f022001e606d50a8c784b0295dd7e4e5fe58f89592cf9d81f4de6daf7bdf6ee2a32a8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 42017,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 42017n,
             },
         ],
         outputs: [
             {
-                value: 2400,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '3b994d17cb7e7b0adcb4b680ec1197c7cafa659bb565db61ada359352a40bcdc',
                     outIdx: 2,
                 },
+                sats: 2400n,
             },
             {
-                value: 39162,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'fec829a1ff34a9f84058cdd8bf795c114a8fcb3bcc6c3ca9ea8b9ae68420dd9a',
                     outIdx: 0,
                 },
+                sats: 39162n,
             },
         ],
         lockTime: 0,
@@ -6218,30 +6218,30 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '473044022036cd1605ab5122e9769549cf953d5638022c99dcb6c838c77eeaa958e14ba5180220466cced2c01885f83e38e26821238dd0b9697c5029e232cfe6cb5356742ebe58412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 44772,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 44772n,
             },
         ],
         outputs: [
             {
-                value: 2300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '312553668f596bfd61287aec1b7f0f035afb5ddadf40b6f9d1ffcec5b7d4b684',
                     outIdx: 0,
                 },
+                sats: 2300n,
             },
             {
-                value: 42017,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '66ce76f8ebcd0ac83702c4a71e259cee9fceedf9cfdb2b08e8ebe15483e50f56',
                     outIdx: 0,
                 },
+                sats: 42017n,
             },
         ],
         lockTime: 0,
@@ -6263,30 +6263,30 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402206be85d81c79a53dc6a598e08091ad6aededdc4a710601c9fb477cff9dab24c7402200ec9bf7b1f0ce605916b8308ebea3d8024280659229db43d53be05ed5a0be5f0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1825562,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1825562n,
             },
         ],
         outputs: [
             {
-                value: 2200,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'dacd4bacb46caa3af4a57ac0449b2cb82c8a32c64645cd6a64041287d1ced556',
                     outIdx: 0,
                 },
+                sats: 2200n,
             },
             {
-                value: 1822907,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '60c6ad832e8f44ea59bb15166959b45828d8aec5554a2f70491dddf82dcda837',
                     outIdx: 0,
                 },
+                sats: 1822907n,
             },
         ],
         lockTime: 0,
@@ -6308,30 +6308,30 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100b6a6027d41170d2bb917b632a4a30df60ef3b51e90a27eb701f18a63a99a4313022029ccbace732ee942f8ee5773bbc4a3e3dd046af7e9ccf5889d8c333d27e302d8412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1190050,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1190050n,
             },
         ],
         outputs: [
             {
-                value: 2100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'd6e5e1511b25e984f2d0850ab47ff1e9fdf8cab546fbd5f5ae36299423a9dde3',
                     outIdx: 0,
                 },
+                sats: 2100n,
             },
             {
-                value: 1187495,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '3b40671157eaa30e277819d6bc93acf76377616edbe818d475acbd2cc4b07479',
                     outIdx: 0,
                 },
+                sats: 1187495n,
             },
         ],
         lockTime: 0,
@@ -6353,10 +6353,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '48304502210092f2508a5f19b67be121dc5d8fd70569d9275a11f2c1724db8c714ad4d06b14e02206e8a3101f8ceecc19b5508455e1542c65847951456cf884444e951d6e0cfb5ef412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 46590,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 46590n,
             },
             {
                 prevOut: {
@@ -6365,7 +6365,6 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402200e225ab4c7d20aef968d95fbf6f881f313c9b35aef891edd4192c5320f147f2502205794732b6242c3a445ee1340ca03950e2044321b9c99bf7d5805ea36cac756dc412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -6375,22 +6374,22 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8832',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8832n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f4808000000000000000508000000000000227b',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -6401,17 +6400,17 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 8,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -6422,23 +6421,24 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8827',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8827n,
                 },
                 spentBy: {
                     txid: '328df7f6a976c67875035acb051747c443cdac55173aef11ab1c17184162e2e9',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 44772,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '842dd09e723d664d7647bc49f911c88b60f0450e646fedb461f319dadb867934',
                     outIdx: 0,
                 },
+                sats: 44772n,
             },
         ],
         lockTime: 0,
@@ -6458,9 +6458,9 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -6477,10 +6477,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402206a807dad013e5bbb5a78bc12349c550f1867be0ec46ebe4a18ca0ffb45b84cf802206345b92bdec24663bc4fb168d6e1601781969393e93fbcad5279fa72bde08774412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1827380,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1827380n,
             },
             {
                 prevOut: {
@@ -6489,7 +6489,6 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '47304402200fdb134c8a13fbd1b95ef118c247a8a911e9d52ecaafc86ebb80cc179d69c1e002200bd4dc809c998a511e09f939a3270f7a2f9babae9d75919d2fef83ed66cf7dde412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -6499,22 +6498,22 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8836',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8836n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000004080000000000002280',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -6525,17 +6524,17 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '4',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 4n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 7,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -6546,23 +6545,24 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8832',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8832n,
                 },
                 spentBy: {
                     txid: '6bfdfbb71b71d0b1c024c777e5cc6a6b81806dbb673d4f5e65ab30476035f269',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 1825562,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'eb79e90e3b5a0b6766cbfab3efd9c52f831bef62f9f27c2aa925ee81e43b843f',
                     outIdx: 0,
                 },
+                sats: 1825562n,
             },
         ],
         lockTime: 0,
@@ -6582,9 +6582,9 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -6601,10 +6601,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100860067702a7ec139379913db22f4aaaca611e1d5cfd89df1c335bc9b72ee36d0022063892a87d269db12a7be0b24e721900b1f287ce9d1fb18431b2cc508ecebfdf7412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 45507,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 45507n,
             },
             {
                 prevOut: {
@@ -6613,7 +6613,6 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100c96c70b94f5386efff2a8873d35d7b4c29fafe11555cf2a3daea8f905fb0f73502203751a29b351cca9c337345388237b98312873f44976f08667ae6540423a8d012412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -6623,22 +6622,22 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8839',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8839n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000003080000000000002284',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -6649,17 +6648,17 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '3',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 3n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 10,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -6670,23 +6669,24 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8836',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8836n,
                 },
                 spentBy: {
                     txid: '5944386e40a401ff31940f9d41e7983bec3b617d83efba0033eba28926a2fb9e',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 43689,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '7d1929454c7e83707006e9f70000b47fc68805c3e42de6545498f39c6f96d34e',
                     outIdx: 0,
                 },
+                sats: 43689n,
             },
         ],
         lockTime: 0,
@@ -6706,9 +6706,9 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -6725,10 +6725,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '4730440220219fdd01482905c336ef8345973339ebe6f540fb7ff7f04d808357fd73c137b302207cb8af146cdf3ec643d85f71c9b95bc6b4fa4e0c19d5f76baf0329f4e315ab4d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 848,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 848n,
             },
             {
                 prevOut: {
@@ -6737,10 +6737,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100f8df9b24dc337b5c7b0b41f454fb535a181aa95814d01e3e2246908fda3a5d800220417d4bd3c10d59f9655ddae4229813222abd9a5b148db1a456fde4719ea8dc56412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 4800,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 4800n,
             },
             {
                 prevOut: {
@@ -6749,7 +6749,6 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100dcc45ddcb243a56ddee5d050dd961d553f4f93704378ce517ad47a161c6f768b022000ef68375269494caa36c9f063ecd6181dfb77b8c4e0e09fdb0433d5a484974e412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -6759,22 +6758,22 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8841',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8841n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000002080000000000002287',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -6785,17 +6784,17 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 2n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 9,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -6806,23 +6805,24 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8839',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8839n,
                 },
                 spentBy: {
                     txid: 'd1a286475ac63df6ae51ffe69be5324b848ddf4a0acf8510d9ec266cb4e10454',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 3503,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'b808f6a831dcdfda2bd4c5f857f94e1a746a4effeda6a5ad742be6137884a4fb',
                     outIdx: 0,
                 },
+                sats: 3503n,
             },
         ],
         lockTime: 0,
@@ -6842,9 +6842,9 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -6861,10 +6861,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100c1717019de60065cae38519a85a80723fc3ee73573739381ee02fcaaa34a15fd022063059a69397ad3108c2f955c92d195a90e8f1f616e23df132abb6675ac5800c2412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 992,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 992n,
             },
             {
                 prevOut: {
@@ -6873,10 +6873,10 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '4830450221009b897d907bda2da570c5c273ab277b73c60d8fd39ba605829d0ec4b796fb7c20022011cc67871bf5df4693904fcdee80ac1adba332b14a4cdc9113b15f28e288adad412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 1191203,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 1191203n,
             },
             {
                 prevOut: {
@@ -6885,7 +6885,6 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 },
                 inputScript:
                     '483045022100be82f7c67c73ecf068905a44ca2147d89b8041e54a432386b25137f7bea0d0aa0220416607e30a8d8d8c08237032eeb7728f938650a70215f6615939cd2455569539412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -6895,22 +6894,22 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8842',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8842n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48080000000000000001080000000000002289',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -6921,17 +6920,17 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 spentBy: {
                     txid: 'dcb6f31598fc406a2c1c1aeee86e9e1ae4c98f7ad82c7ca1341a68e92c31816c',
                     outIdx: 6,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -6942,23 +6941,24 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8841',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8841n,
                 },
                 spentBy: {
                     txid: 'c638754cb7707edd4faad89bdfee899aa7acbbc61f66e21f8faf60bdbb34fd65',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 1190050,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'f051b152f13004c18b5aab3b615d88af8175fa5416426fb73e3731fa530f064d',
                     outIdx: 0,
                 },
+                sats: 1190050n,
             },
         ],
         lockTime: 0,
@@ -6978,9 +6978,9 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -7225,37 +7225,36 @@ export const stakingRwd = {
                 },
                 inputScript:
                     '03f07d0c0439e5546508edc754ac9b2939000c736f6c6f706f6f6c2e6f7267',
-                value: 0,
                 sequenceNo: 0,
+                sats: 0n,
             },
         ],
         outputs: [
             {
-                value: 362505204,
                 outputScript:
                     '76a914f4728f398bb962656803346fb4ac45d776041a2e88ac',
                 spentBy: {
                     txid: '6a26b853ba356cdc4a927c43afe33f03d30ef2367bd1f2c190a8c2e15f77fb6d',
                     outIdx: 1,
                 },
+                sats: 362505204n,
             },
             {
-                value: 200002871,
                 outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 spentBy: {
                     txid: 'c5621e2312eaabcfa53af46b62384f1751c509b9ff50d1bf218f92723be01bc7',
                     outIdx: 2,
                 },
+                sats: 200002871n,
             },
             {
-                value: 62500897,
                 outputScript:
-                    // Manually set for unit test
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '98e47dda8c20facafff11fec7c6453f9d8afdd24281eb6129b76bfef90dd6bab',
                     outIdx: 0,
                 },
+                sats: 62500897n,
             },
         ],
         lockTime: 0,
@@ -7296,30 +7295,30 @@ export const incomingXec = {
                 },
                 inputScript:
                     '48304502210094c497d6a0ce9ca6d79819467a1bb3953084b2e003ac7edac3b4f0634800baab02205729e229bd96d3a35cece712e3e9ec2d3f610a43d7712928f806983f209fbd72412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 517521,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 517521n,
             },
         ],
         outputs: [
             {
-                value: 4200,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '23b4ac14065f0b8bb594e35a366cb707b52c4630398439d79c4cd179d005a298',
                     outIdx: 2,
                 },
+                sats: 4200n,
             },
             {
-                value: 512866,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '0f4e0e3ad405a5b40a3f0cef78d55093729aa6504e420dc5ceaf1445beecbded',
                     outIdx: 0,
                 },
+                sats: 512866n,
             },
         ],
         lockTime: 0,
@@ -7358,30 +7357,30 @@ export const outgoingXec = {
                 },
                 inputScript:
                     '473044022054a6b2065a0b0bbe70048e782aa9be048cc8bee0a241d08d0b98fcd74505a90202201ed5224f34c9ff73dc0c581390247686af521476a977a58e55ed33c4afd177c2412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 4400000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 4400000n,
             },
         ],
         outputs: [
             {
-                value: 22200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '692a900ae6607d2b798df2cc1e8856aa812b158880c99295041d8a8b70c88d01',
                     outIdx: 1,
                 },
+                sats: 22200n,
             },
             {
-                value: 4377345,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '69b060294e7b49fdf45f0a6eb500a03a881a2f54c86238b54718880470629cee',
                     outIdx: 0,
                 },
+                sats: 4377345n,
             },
         ],
         lockTime: 0,
@@ -7419,34 +7418,34 @@ export const aliasRegistration = {
                 },
                 inputScript:
                     '48304502210087cd61371447a4e8426b86ea9c8643a94a378701c436e7d88b46eb64886a2c9d02201943c4b17eed65e37153659edff07aede69c1695254fe811180d616809daacf74121028bd858b877988795ed097c6e6230363450a3ceda58b15b0a76f0113d933c10a6',
-                value: 20105,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914dc1147663948f0dcfb00cc407eda41b121713ad388ac',
+                sats: 20105n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a042e7865630004627567321500dc1147663948f0dcfb00cc407eda41b121713ad3',
+                sats: 0n,
             },
             {
-                value: 555,
                 outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                 spentBy: {
                     txid: 'fabf82bda2c0d460bade2bcd0d9845ecb12508f31074ddcc4db4928fda44f3ec',
                     outIdx: 154,
                 },
+                sats: 555n,
             },
             {
-                value: 19095,
                 outputScript:
                     '76a914dc1147663948f0dcfb00cc407eda41b121713ad388ac',
                 spentBy: {
                     txid: '8684205e5bc1ae154886f1701d2a492b67ad0ffc5e372087fcc981d69a67d407',
                     outIdx: 0,
                 },
+                sats: 19095n,
             },
         ],
         lockTime: 0,
@@ -7486,6 +7485,7 @@ export const aliasRegistration = {
         parsedTokenEntries: [],
     },
 };
+
 export const invalidAliasRegistration = {
     tx: {
         ...aliasRegistration.tx,
@@ -7525,10 +7525,10 @@ export const incomingEtoken = {
                 },
                 inputScript:
                     '473044022004db23a179194d5e2d8446159859a3e55521239c807f14d4666c772d1493a7d402206d6ea22a4fb8ef20cd6159d200a7292a3ff0181c8d596e7a3e1b9027e6912103412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3891539,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3891539n,
             },
             {
                 prevOut: {
@@ -7537,7 +7537,6 @@ export const incomingEtoken = {
                 },
                 inputScript:
                     '483045022100c45951e15402b907c419f8a80bd76d374521faf885327ba3e55021345c2eb41902204cdb84e0190a5f671dd049b6b656f6b9e8b57254ec0123308345d5a634802acd412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -7547,22 +7546,22 @@ export const incomingEtoken = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '240',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 240n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c308000000000000000c0800000000000000e4',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -7573,17 +7572,17 @@ export const incomingEtoken = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '12',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 12n,
                 },
                 spentBy: {
                     txid: '96ddf598c00edd493a020fea6ac382b708753cc8b7690f673685af64916089dd',
                     outIdx: 7,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -7594,23 +7593,24 @@ export const incomingEtoken = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '228',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 228n,
                 },
                 spentBy: {
                     txid: 'cd4b0008e90b2a872dc92e19cdd87f52466b801f037641193196e75ff10f6990',
                     outIdx: 2,
                 },
+                sats: 546n,
             },
             {
-                value: 3889721,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '648b9f3a7e9c52f7654b6bba0e00c73bcf58aeed2a9381c4ab45ee32d214284b',
                     outIdx: 0,
                 },
+                sats: 3889721n,
             },
         ],
         lockTime: 0,
@@ -7630,9 +7630,9 @@ export const incomingEtoken = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -7681,10 +7681,10 @@ export const outgoingEtoken = {
                 },
                 inputScript:
                     '473044022047077b516d8554aba4deb36c66b789b5136bf16657bf1675ae866fd8a62834f5022035a7bd45422e0d0c343ac832a5efb0c05269ebe591ea400a33c23849cfa7c3a0412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 450747149,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 450747149n,
             },
             {
                 prevOut: {
@@ -7693,7 +7693,6 @@ export const outgoingEtoken = {
                 },
                 inputScript:
                     '47304402203ba0eff663f253805a4ae75fecf5886d7dbaf6369c9e6f0bbf5c114184223fa202207992c5f1a8cb69b552b1af54a75bbab341bfcf90591e535282bd9409981d8464412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -7703,22 +7702,22 @@ export const outgoingEtoken = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '69',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 69n,
                 },
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3080000000000000011080000000000000034',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -7729,17 +7728,17 @@ export const outgoingEtoken = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '17',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 17n,
                 },
                 spentBy: {
                     txid: 'fa2e8951ee2ba44bab33e38c5b903bf77657363cffe268e8ae9f4728e14b04d8',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -7750,23 +7749,24 @@ export const outgoingEtoken = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '52',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 52n,
                 },
                 spentBy: {
                     txid: 'fb12358a18b6d6e563b7790f8e08ca9c9260df747c5e9113901fed04094be03d',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
             {
-                value: 450745331,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '23b4ac14065f0b8bb594e35a366cb707b52c4630398439d79c4cd179d005a298',
                     outIdx: 3,
                 },
+                sats: 450745331n,
             },
         ],
         lockTime: 0,
@@ -7786,9 +7786,9 @@ export const outgoingEtoken = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -7836,20 +7836,19 @@ export const genesisTx = {
                 },
                 inputScript:
                     '483045022100ab2a1e04a156e9cc5204e11e77ba399347f3b7ea3e05d45897c7fb7c6854a7ff022065c7e096e0526a0af223ce32e5e162aa577c42f7da231c13e28ebc3532396f20412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1300n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010747454e45534953035544540a557064617465546573741468747470733a2f2f636173687461622e636f6d2f4c0001074c000800000001cf977871',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -7860,10 +7859,11 @@ export const genesisTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '7777777777',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 7777777777n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -7883,9 +7883,9 @@ export const genesisTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -7937,10 +7937,10 @@ export const incomingEtokenNineDecimals = {
                 },
                 inputScript:
                     '4830450221009d649476ad963306a5210d9df2dfd7e2bb604be43d6cdfe359638d96239973eb02200ac6e71575f0f111dad2fbbeb2712490cc709ffe03eda7de33acc8614b2c0979412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3503,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 3503n,
             },
             {
                 prevOut: {
@@ -7949,7 +7949,6 @@ export const incomingEtokenNineDecimals = {
                 },
                 inputScript:
                     '483045022100b7bec6d09e71bc4c124886e5953f6e7a7845c920f66feac2e9e5d16fc58a649a0220689d617c11ef0bd63dbb7ea0fa5c0d3419d6500535bda8f7a7fc3e27f27c3de6412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -7959,22 +7958,22 @@ export const incomingEtokenNineDecimals = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9876543156',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 9876543156n,
                 },
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e4420acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f550800000000075bcd1508000000024554499f',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -7985,13 +7984,13 @@ export const incomingEtokenNineDecimals = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '123456789',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 123456789n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 token: {
@@ -8002,19 +8001,20 @@ export const incomingEtokenNineDecimals = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9753086367',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 9753086367n,
                 },
+                sats: 546n,
             },
             {
-                value: 1685,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '04b16fa516fbdd64d51b8aa1a752855beb4250d99199322d89d9c4c6172a1b9f',
                     outIdx: 4,
                 },
+                sats: 1685n,
             },
         ],
         lockTime: 0,
@@ -8034,9 +8034,9 @@ export const incomingEtokenNineDecimals = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -8085,10 +8085,10 @@ export const legacyAirdropTx = {
                 },
                 inputScript:
                     '47304402207acf2b13eb099b42edf2d985afc4da3123a76e3120a66cd2e915fdd93b9ce243022055529f4f4db28c2d3b3ce98fd55dd539c92f0790d36cf8a63a4fbb89eb602b2a412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                value: 1595,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 1595n,
             },
             {
                 prevOut: {
@@ -8097,10 +8097,10 @@ export const legacyAirdropTx = {
                 },
                 inputScript:
                     '47304402205f670a5afb2b6cb10ae86818f50c0dd9a9bc639e979a3325ab8834c5631ac81b022078ce9092a5ded4afe261f1b311e5619f1f8673ace9de5dae3441f33834ecb33a412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                value: 22600,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 22600n,
             },
             {
                 prevOut: {
@@ -8109,10 +8109,10 @@ export const legacyAirdropTx = {
                 },
                 inputScript:
                     '483045022100cca98ffbd5034f1f07c459a2f7b694d0bfc8cd9c0f33fe0b45d5914a10b034610220592d50dd5f1fea5c1d689909e61d1d1bfad21ea6a42a01ba7d4e9428baedca06412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                value: 170214,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 170214n,
             },
             {
                 prevOut: {
@@ -8121,10 +8121,10 @@ export const legacyAirdropTx = {
                 },
                 inputScript:
                     '483045022100fefd74866d212ff97b54fb4d6e588754b13d073b06200f255d891195fc57cb0502201948da90078778ab195c8adec213cc09972a1c89f8a35d10294894bcbf313941412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                value: 22583,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 22583n,
             },
             {
                 prevOut: {
@@ -8133,10 +8133,10 @@ export const legacyAirdropTx = {
                 },
                 inputScript:
                     '483045022100e4dde7a7d227f0631d042a1953e55400b00386050eff672832e557a4438f0f0b022060fd64cb142723578a4fd25c703d7afa0db045d981c75f770cb66b3b87ccc72a412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                value: 16250,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 16250n,
             },
             {
                 prevOut: {
@@ -8145,436 +8145,436 @@ export const legacyAirdropTx = {
                 },
                 inputScript:
                     '483045022100f057b22cbc643d6aa839d64c96eede889782e4738104dde84c5980089c75c9e702200449b7ad1e88141def532e3cd2943dfa29a9ede8a6d0b3283531dee085b867b1412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                value: 23567578,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 23567578n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a0464726f7020bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c04007461624565766320746f6b656e207365727669636520686f6c64657273206169722064726f70f09fa587f09f8c90f09fa587e29da4f09f918cf09f9bacf09f9bacf09f8d97f09fa4b4',
+                sats: 0n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a9140352e2c246fa38fe57f6504dcff628a2ab85c9a888ac',
+                sats: 550n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a9147d2acc561f417bf3265d465fbd76b7976cd35add88ac',
+                sats: 550n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a91478a291a19347161a532f31cae95d492cc57965e888ac',
                 spentBy: {
                     txid: 'dc5bbe05a2a0e22d4c7bd241498213208610cf56868d72268913491c3c099507',
                     outIdx: 47,
                 },
+                sats: 550n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a91478cc64d09c2c558e2c7f1baf463f4e2a6246559888ac',
+                sats: 584n,
             },
             {
-                value: 10027,
                 outputScript:
                     '76a91471536340a5ad319f24ae433d7caa4475dd69faec88ac',
+                sats: 10027n,
             },
             {
-                value: 10427,
                 outputScript:
                     '76a914649be1781f962c54f47273d58e31439fb452b92988ac',
+                sats: 10427n,
             },
             {
-                value: 560,
                 outputScript:
                     '76a914be3ce499e31ebe80c7aabf673acd854c8969ddc488ac',
+                sats: 560n,
             },
             {
-                value: 551,
                 outputScript:
                     '76a914e88f39383c4d264410f30d2b28cdae775c67ea8e88ac',
                 spentBy: {
                     txid: '739fda27cd573dcfe22086463263c96232990473fc017ce83da7c996058e63fb',
                     outIdx: 0,
                 },
+                sats: 551n,
             },
             {
-                value: 557,
                 outputScript:
                     '76a9145fbce9959ce7b712393138aef20b013d5a2802e688ac',
+                sats: 557n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a91450f35e3861d60945efcd2b05f562eff14d28db1088ac',
                 spentBy: {
                     txid: '558a3526d3bbc29ba8a2eb5466a7b4d6d5d544e7e83c1c15346fa03bdec1c6c1',
                     outIdx: 0,
                 },
+                sats: 550n,
             },
             {
-                value: 10027,
                 outputScript:
                     '76a914866ed8973e444d1f6533eb1858ca284ad589bc1988ac',
+                sats: 10027n,
             },
             {
-                value: 555,
                 outputScript:
                     '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                sats: 555n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a9149750cdddb976b8466668a73b58c0a1afbd6f4db888ac',
+                sats: 550n,
             },
             {
-                value: 560,
                 outputScript:
                     '76a9148ee151bf0f1637cdd2e1b41ed2cd32b0df0a932588ac',
+                sats: 560n,
             },
             {
-                value: 590,
                 outputScript:
                     '76a914be792ef52fb6bc5adcabeb8eb604fbbb3dc4693488ac',
+                sats: 590n,
             },
             {
-                value: 551,
                 outputScript:
                     '76a9142ad96e467f9354f86e0c11acfde351194a183dc888ac',
                 spentBy: {
                     txid: 'a900d93eea490d121bb9cb11457ee0f86edb53d5b7a26984567b8cf1b282adbc',
                     outIdx: 10,
                 },
+                sats: 551n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a914afd2470f264252f1359d7b8093fff4fdd120c5f988ac',
+                sats: 550n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a9148a8e920239fb5cc647855c1d634b0bbe4c4b670188ac',
                 spentBy: {
                     txid: '9bd869aff043b96ea03274abf6183bcb521c1949177ed948792636c68050283c',
                     outIdx: 71,
                 },
+                sats: 584n,
             },
             {
-                value: 569,
                 outputScript:
                     '76a91412f84f54fad4695321f61c313d2e32a0a8f8086488ac',
+                sats: 569n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914842b152a0bbd4647afaeceec8a6afaa90668e7c788ac',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914fe971eb2960defce93503c5641d54eaad2ab6a0588ac',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914685e825961b67456f440caaaaab0f94cb3354b7288ac',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a91476b4447a3617e918d03261353e179a583f85d2c688ac',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript: 'a91418bb4f7d8881c1d1457c33a6af8e5937f7f776a887',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914b366ef7c1ffd4ef452d72556634720cc8741e1dc88ac',
                 spentBy: {
                     txid: 'bf41ebe360b6990ca60ab9b5fa24d9acde29b07b924d885ccd8d71e9aa1e5dc9',
                     outIdx: 0,
                 },
+                sats: 584n,
             },
             {
-                value: 553,
                 outputScript:
                     '76a914f5e82dc01170d99a16bf9610da873df47f82aa7a88ac',
+                sats: 553n,
             },
             {
-                value: 569,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '04dfbdc61976ed57e65f2d02e2d55994ae6e963c9baea4f2c4b13c278b6fe981',
                     outIdx: 2,
                 },
+                sats: 569n,
             },
             {
-                value: 553,
                 outputScript:
                     '76a9142ed681dc5421dd4a052f49bda55a9c345fb025e088ac',
+                sats: 553n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914b87d445b2dbba65c5a5bb79959b44c24593518f888ac',
+                sats: 584n,
             },
             {
-                value: 553,
                 outputScript: 'a9147d91dc783fb1c5b7f24befd92eedc8dabfa8ab7e87',
+                sats: 553n,
             },
             {
-                value: 584,
                 outputScript: 'a914f722fc8e23c5c23663aa3273f445b784b223aab587',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914940840311cbe6013e59aff729ffc1d902fd74d1988ac',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914d394d084607bce97fa4e661b6f2c7d2f237c89ee88ac',
+                sats: 584n,
             },
             {
-                value: 558,
                 outputScript:
                     '76a91470e1b34c51cd5319c5ca54da978a6422605e6b3e88ac',
+                sats: 558n,
             },
             {
-                value: 556,
                 outputScript:
                     '76a91440eeb036d9d6bc71cd65b91eb5bbfa5d808805ca88ac',
                 spentBy: {
                     txid: '52fe7794f3aba1b6a7e50e8f65aa46c84b13d4c389e1beaba97fc49d096fe678',
                     outIdx: 4,
                 },
+                sats: 556n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a9144d55f769ce14fd44e2b63500d95016838a5d130d88ac',
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914a17ee8562ede98dfe9cd00f7f84d74c4c9c58ee788ac',
                 spentBy: {
                     txid: '12de87fc94b76324b2ef4f8f8cbf22318146097b330904097131b56d386eee22',
                     outIdx: 11,
                 },
+                sats: 584n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a914a13fc3642d1e7293eb4b9f17ec1b6f6d7ea4aaeb88ac',
                 spentBy: {
                     txid: '68ff340f746736b20d0015d3a63140bbd53dc982ce592e2bd503a7c3c32f88b9',
                     outIdx: 10,
                 },
+                sats: 584n,
             },
             {
-                value: 576,
                 outputScript:
                     '76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac',
+                sats: 576n,
             },
             {
-                value: 10427,
                 outputScript:
                     '76a91486a911e65753b379774448230e7e8f7aeab8fa5e88ac',
+                sats: 10427n,
             },
             {
-                value: 552,
                 outputScript:
                     '76a914e9364c577078f16ee2b27f2c570a4e450dd52e7a88ac',
+                sats: 552n,
             },
             {
-                value: 1428,
                 outputScript:
                     '76a914ed917afa96833c1fea678e23374c557ed83ff6ff88ac',
+                sats: 1428n,
             },
             {
-                value: 1427,
                 outputScript:
                     '76a91482cf48aefcd80072ef21e4a61dee8c2d70d0bcb388ac',
+                sats: 1427n,
             },
             {
-                value: 9135,
                 outputScript:
                     '76a91444e8388bdd64c1f67905279066f044638d0e166988ac',
+                sats: 9135n,
             },
             {
-                value: 1427,
                 outputScript:
                     '76a914d62e68453b75938616b75309c3381d14d61cb9a488ac',
+                sats: 1427n,
             },
             {
-                value: 1427,
                 outputScript:
                     '76a91425b1d2b4610b6deed8e3d2ac76f4f112883126e488ac',
+                sats: 1427n,
             },
             {
-                value: 921,
                 outputScript:
                     '76a91456423795dc2fa85fa3931cdf9e58f4f8661c2b2488ac',
+                sats: 921n,
             },
             {
-                value: 1843,
                 outputScript:
                     '76a914e03d94e59bb300b965ac234a274b1cf41c3cadd788ac',
+                sats: 1843n,
             },
             {
-                value: 1584,
                 outputScript:
                     '76a9141e0d6a8ef2c8a0f6ceace8656059ea9dbeb11bda88ac',
+                sats: 1584n,
             },
             {
-                value: 1843,
                 outputScript:
                     '76a914f6cd6ef1bd7add314fd9b115c3ad0dce7844930c88ac',
+                sats: 1843n,
             },
             {
-                value: 560,
                 outputScript:
                     '76a91488fb294f87b0f05bf6eddc1d6bfde2ba3a87bcdd88ac',
+                sats: 560n,
             },
             {
-                value: 560,
                 outputScript:
                     '76a914a154f00227476ec9741a416e96b69677fddf4b1d88ac',
+                sats: 560n,
             },
             {
-                value: 1427,
                 outputScript:
                     '76a914362a3773f5685c89e4b800e4c4f9925db2ec1b5c88ac',
+                sats: 1427n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a9146770958588049a3f39828e1ddc57f3dd77227a1188ac',
+                sats: 584n,
             },
             {
-                value: 1708,
                 outputScript:
                     '76a914b0313745d5f7c850c9682c2711b6a14f2db9276b88ac',
+                sats: 1708n,
             },
             {
-                value: 679,
                 outputScript:
                     '76a914fe729aa40779f822a8c4988f49a115c8aabc0cc788ac',
+                sats: 679n,
             },
             {
-                value: 1511,
                 outputScript:
                     '76a914ecef001f3c137c880f828d843f754a082eb5396b88ac',
                 spentBy: {
                     txid: 'e3ac978ea422497972c1583687806c17c686c2be1986605b36839277d7b36cb8',
                     outIdx: 1,
                 },
+                sats: 1511n,
             },
             {
-                value: 560,
                 outputScript:
                     '76a91463e79addfc3ad33d04ce064ade02d3c8caca8afd88ac',
                 spentBy: {
                     txid: '2ba8a04167ea13f80aba2b232cdf899fd218c978b54264e5a829f96a3ce1e912',
                     outIdx: 0,
                 },
+                sats: 560n,
             },
             {
-                value: 552,
                 outputScript:
                     '76a91489a6da1ed86c8967f03691ad9af8d93c6259137388ac',
+                sats: 552n,
             },
             {
-                value: 919,
                 outputScript:
                     '76a9149fa178360cab170f9423223a5b166171f54d5bc188ac',
+                sats: 919n,
             },
             {
-                value: 15000,
                 outputScript:
                     '76a914bc37eb24817a8442b23ae9a06cc405c8fdf1e7c488ac',
+                sats: 15000n,
             },
             {
-                value: 560,
                 outputScript:
                     '76a914e78d304632489ba240b29986fe6afd32c77aa16388ac',
+                sats: 560n,
             },
             {
-                value: 570,
                 outputScript:
                     '76a914993e6beef74f4ed0c3fe51af895e476ce37c362b88ac',
                 spentBy: {
                     txid: '57fcd13171861f19e68068aa6deb759126bef68a6dc0c4969870e54546931999',
                     outIdx: 1,
                 },
+                sats: 570n,
             },
             {
-                value: 921329,
                 outputScript:
                     '76a914b8820ca6b9ceb0f546e142ddd857a4974483719a88ac',
                 spentBy: {
                     txid: '0acb7723b751727996b03323841c37dd03ceb2aba83e75b39af98d0cc6eb9086',
                     outIdx: 1,
                 },
+                sats: 921329n,
             },
             {
-                value: 5100,
                 outputScript:
                     '76a914ca989ff4d3df17fe4dc6eb330b469bd6d5d4814e88ac',
+                sats: 5100n,
             },
             {
-                value: 5200,
                 outputScript:
                     '76a914ad29cdce2237f71e95fee551f04425f70b7e4c9d88ac',
                 spentBy: {
                     txid: '636e0a8685063d5fdb3b9fe9c9795c5ceb25fdbb237aedab4bf346dd8520a2b9',
                     outIdx: 0,
                 },
+                sats: 5200n,
             },
             {
-                value: 584,
                 outputScript:
                     '76a9140f57872e06e15593c8a288fcb761b13ca571d78888ac',
                 spentBy: {
                     txid: 'dd02287fdadaf1b7377ec0121c00bc44563683c26eed49d31ade52a1abb63bc0',
                     outIdx: 0,
                 },
+                sats: 584n,
             },
             {
-                value: 10266,
                 outputScript:
                     '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
                 spentBy: {
                     txid: '978538d26607b5b6371038006c9ad8e2862d935a8375f3a8a68108e8270f7335',
                     outIdx: 2,
                 },
+                sats: 10266n,
             },
             {
-                value: 580,
                 outputScript:
                     '76a9141e37634e6693e228801c194c45701d49a1d12e2c88ac',
+                sats: 580n,
             },
             {
-                value: 22743016,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
                 spentBy: {
                     txid: '7242d84b3db853262c53f4b068c57e5a52b67a8b6fea313e0a6f7f58df16e413',
                     outIdx: 0,
                 },
+                sats: 22743016n,
             },
         ],
         lockTime: 0,
@@ -8699,577 +8699,577 @@ export const onSpecAirdropTxNoMsg = {
                 },
                 inputScript:
                     '483045022100a6886a347a977b31fb3cf4a0b0ef85e58bd60d7af9db27d4d260f71c9b5f22c30220436ceaca789bc8ab631633434eb0b64b93ae6ebeac94d3ddbd12d3916a57fc8441210343b0a63fb80795016f064481f0380836adf7cde6ad32a662ddf551876b303a93',
-                value: 16194930,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
+                sats: 16194930n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a0464726f7020fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa4cad415454454e54494f4e204752554d50592050454f504c452120f09f98be20596f752063616e206e6f77206465706f736974202447525020746f207468652065546f6b656e20626f7420617420742e6d652f6543617368506c617920746f20746f7020757020796f757220436173696e6f20437265646974732120316d2024475250203d2031204372656469742e20506c617920436173696e6f2067616d657320616e642077696e205845432120',
+                sats: 0n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9145561e7d054bb4d81d862fdc674525c2dc337ac6d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91417b83cbad4814a5c6400e418ec69f29963a2805888ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9142e153c4fc63dcabf0e8949b20ddab2c3df7704ed88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9149966d31280b53f1c2b85f975918eb3023b281f8688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914bfd3a8b912a7988809090de56651d47451528ba188ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9147ff46e0807b0d3a5797dd65beae6cfcc2d01e56e88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914585ecb807269977bc21a1a2cd5d7c4ff1150e94988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9140db07d6b795f5fe5f47e53aab25aac078d229f8188ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9143f23e265a57078ac8e675f78bd552a95943ca7e888ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914a33b3460d43b9e27a165185b2863b1f64d418d8288ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914e006de0508dcbf24ae0455ca3b5665ed0545553c88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9145f1ec6dd2d02c1fa32b184818be5611ae674df0388ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914445c0c740419357dd03c93a351c69eedf433be4688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914eafcfdecd98cde993e3be01a9ad1158fd3eb773988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914023a7087ee9bfabc77548fc5f0a359ae9bacf7bc88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914eded3588169234400f7556a40baf808e1ec8ebf588ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9141a33684209d978e8bc143c6fcdb7f56e3243dcee88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914486cbf0bfba3b7d0aae10bec7f0d4226e6e10f9688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91480c72defab2c99cf19341cc0e2992c659d42198788ac',
                 spentBy: {
                     txid: '46eed31f3d61c5a0a7023c4626c061afc158de9d3855ab304abefd7bb4f7de0d',
                     outIdx: 109,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914a15db8a24f9b3740383927a1d787ba77b34b63a888ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91423a1340dbbe6dedf1cd31cdf11f85b3442cfd82888ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9141e464c8d283976ddc13fa6756736f8f3a0069f7888ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914f2d85c4f3fb78c1d9727dea73690c72815756e2b88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914d8723ad3becc44356267e8d0313692c493fe2bdf88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914161cae938ec121bd9970304766865991fe80a63088ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91490ec469ca54ce9616282dea980a39f0e4b9a6ab988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914b386b1f59b5f03b45471df214d47f7ab5d48003088ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914d2ea9ba1a091c2adf0116da4d2c3ddc3cf7124a988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91451379ab611287658c9e1c0f98f0929addd5a2f1d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91432fc3341b83f902a360cbbf91a08ea99c293733d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91459f93839ba24abd6996b75a39486691dd40660be88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91473ef17c5b9f551eae3f3b4fadf61f93cae5e6aea88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91469003998c2c32ac81951b88416a9a15df3a1992988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9145dd0411fa601ab82fcd68894c95934619a49920688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914534c4407eeea7e4b8c3ed7dae5cb4a2539beed9988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91447f86f44721c8d0bac263602717fc10b0da49b9f88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91485149cd55457401ad4645c54b86caa0ce0d4f05f88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914f0af3a1411ed4989bf5c44641c3a86d473afe45188ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914973d953e15d62383b24ebe3d73d01e7b83bd989788ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9144de2fb39f09d14492f4d40e0fb670a42af505c6b88ac',
                 spentBy: {
                     txid: '11a58a92afc39a6d7bd413a11864d0d34f21ab72b63028293d1004ff76e74950',
                     outIdx: 0,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914fd7f54f496cadb0b6d3cc206ee098bab29bd5bbf88ac',
                 spentBy: {
                     txid: '51518eb20ca45eaa07925e6d502da8b5be5ad411272863be9a2280e46d6505f7',
                     outIdx: 11,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914b55d27e509500af85243622343ca9e3d54a0438a88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914547abbaaa1c5e92ecde551c1bfdb9a2e5454b83088ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9140f69a9314698156aee8bdb96a36f1e08f1ba168d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91468506abb4ce69c0e596c80bebe456f3be7f904fd88ac',
                 spentBy: {
                     txid: '39ef9f76d052d4b3fa5f4aa19b5597b1b55ab71e361c665eef371a501a1282be',
                     outIdx: 9,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91447ab6772a47d55b7649b83f105fd5cdc3eaa22a988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914b74cc1418fad22fe0eb0bef57082d9836a29340c88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914e33f7fa6b1c03d68a28758c1ef3a5fa7322cafbb88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914a30153ad73ba57b6f37c210435e407bb7a368a5d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9141404dc7b54ab7768837729e2efe052105a4c405988ac',
                 spentBy: {
                     txid: '6ab45eb0770ca387bcd76e3ffc0439958dc2bb7b87437234c722a3c615ca2071',
                     outIdx: 0,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91496cdae0c820426ae831216d629383dda7ee5adab88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91412c4c82aac6896d96ede38eb916b5819a46c803a88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9147bdf4e819215ccfe937a633ae28ae2e9d3aadc0688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9146e2b68c87b86ed79b86a09c62c4762d7e431bcca88ac',
                 spentBy: {
                     txid: 'c95c7f6f4baa7d91fd3aa24f9b73b4e04ef840ac970ae82e2d386f81eeec2cf0',
                     outIdx: 22,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914e7a5f062e50a35d639fc1773738839119e61475d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914a34960963da7e02e1f0357325985475bda969def88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9149d8689dc0813da4f520225eebb8b80c8352ec4a588ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914bd4cdb9bc9dbe21e2b9bdd3395be350d8abbe16d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9142d755595516b0f625c51d223bc84a5adfc77b20688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914dd01dbc55b0fe9e33ceb700b4c4452010bdb5a1688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9140839c285a8d5b52934c28d4a45a1835dd45f0a5388ac',
                 spentBy: {
                     txid: 'cd68979654b1ecee37a33c321b6cb7f2966be6af02232855f46c2aef231463cb',
                     outIdx: 1,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9143dd8ebcdf0e4d65712a723f2235675316687716388ac',
                 spentBy: {
                     txid: 'f8123bf1175047b9d5ebd5d7cacbb378aaa8f58a55ed400893f192f28606a0d3',
                     outIdx: 3,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914974a7bb26ac2f62bf60a675f5f0024a689c03d7d88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
                 spentBy: {
                     txid: '27f2d0454f78b90be92eea7d557486ebc07d7ea1004fa7dbc0e7f89e835a4c6e',
                     outIdx: 3,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914dceb306a73582e52c43025f7eed5827a6d9e92e088ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
                 spentBy: {
                     txid: 'c62c16c68df7d69d5d1524ac250e30473dacdbf13c131fb1978911674f045665',
                     outIdx: 17,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9140620a7df2e0637bc8d3dfa663c979c15a671dfe488ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914837604effd470faaba3e044e0a7c4e6a8a7ee8c688ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91482b15f681a94fe9f6ac29ddee214d3dd88f55bfc88ac',
                 spentBy: {
                     txid: '920853c238299614bc03270839f1b815c9763385485e04be18a861039c07b606',
                     outIdx: 14,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91478f43ee6b1e577329c0fc9cb47f7435954eae81f88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914c1a7d12dddc6a3072df09cf5e0a00ece198cc8c188ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914bccecb7e3e5d3fccbee3211494ad3214f91cc74f88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914fbc9461beec0d783052c20c994ffb44e46041d5188ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914a94b8176d28cb5b5c301f10bb45bdb3d6e0c277d88ac',
                 spentBy: {
                     txid: 'b2c0183a724aa141568e9c116b684eb94e8be326c92cf588d83296916974017f',
                     outIdx: 1,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914993e6beef74f4ed0c3fe51af895e476ce37c362b88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9142ec5281864fc989dab543b054631c9703809689e88ac',
                 spentBy: {
                     txid: '962f5149fbca6c739886cb839901b0de5926119430ce268b7aa1be0c073ad84c',
                     outIdx: 6,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914581bd5bc835cc788bd90a4f6f0c9c21eb173572e88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91428cabb69be3e20707574d7a0ddc65a801b6ae59988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914b8b3c22d82784c27e0224fd8a8ff549a67e955a388ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914b8af3f36894ee7e6563c672714f9eb47cc83a9e188ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914fa49f98fb25e8b84ce210d06f052aed88c2c4f9888ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9146134463df4436bf8c662b64917610f63fa5d89ef88ac',
                 spentBy: {
                     txid: 'd8a9729473589d3c30d26e672c2c49e1a58fc380765ddbcde8628ab93293af11',
                     outIdx: 3,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '3c844ed9f76207027a47dd2170a590a1f8d8a8ff9b797da4f050ad6394adf52a',
                     outIdx: 1,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914b3f80c88220f138201702a4d0c033b248059fcdc88ac',
                 spentBy: {
                     txid: '7d5cf7814e3225587e522e03da0589b806de0498a779e8b0d1cb273c9f257b87',
                     outIdx: 0,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914ad7eb2c8b88fa2e3f5158b398a49bf277401984e88ac',
                 spentBy: {
                     txid: '50974e99e87dec3b575497b9592a89d9ae0f2dc129f26d567582e4d0aaf27741',
                     outIdx: 0,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9146b475c3b68ff8411e5c43271edc4e4f26dfc802a88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a914ee8cbaa5642d1c5d1af1503edda6a55044e8106e88ac',
                 spentBy: {
                     txid: 'ca0229e4287f534526e811545e43c01bc011d2451acebd18aacbb74fe8d055ea',
                     outIdx: 2,
                 },
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9147e3f074aae3cc99a6f48b928008eb9458615b6a988ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a9140816fa82ce5021871afb6fbdc9470714fbf7c7ed88ac',
+                sats: 2105n,
             },
             {
-                value: 2105,
                 outputScript:
                     '76a91412e01685eea02225ae3d3d528b184ae0db52314388ac',
                 spentBy: {
                     txid: 'fc4013c0a37cde3de2238f61c5212a7d115382aae5e0cb28b80c1d935e9233f5',
                     outIdx: 0,
                 },
+                sats: 2105n,
             },
             {
-                value: 15987628,
                 outputScript:
                     '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
                 spentBy: {
                     txid: '96f072b8db666b8eb59c0f43373b65c50fd5ac5042ea1e7d822161b45c2219a1',
                     outIdx: 0,
                 },
+                sats: 15987628n,
             },
         ],
         lockTime: 0,
@@ -9547,35 +9547,35 @@ export const outgoingEncryptedMsg = {
                 },
                 inputScript:
                     '483045022100d4a93c615a7af48f422c273a530ac7f2b78d31a2d4515f11b2f416fce4f4f380022075c22c73190a7de805f219ca8d294777440b558551fea6b59c6c84ec529b16f94121038c4c26730d97cdeb18e69dff6c47cebb23e6f305c950923cd6110f35ab9006d0',
-                value: 48445,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+                sats: 48445n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624ca1040f3cc3bc507126c239cde840befd974bdac054f9b9f2bfd4ff32b5f59ca554c4f3fb2d11d30eae3e5d3f61625ff7812ba14f8c901c30ee7e03dea57681a8f7ab8c64d42ce505921b4d67507452537cbe7525281714857c75d7a441b65030b7ea646b59ed0c34adc9f739661620cf7678963db3cac78afd7f49ad0d63aad404b07730255ded82ea3a939c63ee040ae9fac9336bb8d84d7b3380665ffa514a45f4',
+                sats: 0n,
             },
             {
-                value: 1200,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'aca8ec27a6fc4dc45b1c2e2a6175e84d81ffdd54c7f97711654a100ade4e80bc',
                     outIdx: 0,
                 },
+                sats: 1200n,
             },
             {
-                value: 46790,
                 outputScript:
                     '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
                 spentBy: {
                     txid: '610f8a6f8e7266af18feda7a5672d379314eb05cb7ce6690a1f1d5bff1051dad',
                     outIdx: 1,
                 },
+                sats: 46790n,
             },
         ],
         lockTime: 0,
@@ -9618,35 +9618,35 @@ export const incomingEncryptedMsg = {
                 },
                 inputScript:
                     '483045022100e9fce8984a9f0cb76642c6df63a83150aa31d1071b62debe89ecadd4d45e727e02205a87fcaad0dd188860db8053caf7d6a21ed7807dbcd1560c251f9a91a4f36815412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 36207,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                sats: 36207n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04657461624c9104eaa5cbe6e13db7d91f35dca5d270c944a9a3e8c7738c56d12069312f589c7f193e67ea3d2f6d1f300f404c33c19e48dc3ac35145c8152624b7a8e22278e9133862425da2cc44f7297c8618ffa78dd09054a4a5490afd2b62139f19fa7b8516cbae692488fa50e79101d55e7582b3a662c3a5cc737044ef392f8c1fde63b8385886aed37d1b68e887284262f298fe74c0',
+                sats: 0n,
             },
             {
-                value: 1100,
                 outputScript:
                     '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
                 spentBy: {
                     txid: '610f8a6f8e7266af18feda7a5672d379314eb05cb7ce6690a1f1d5bff1051dad',
                     outIdx: 0,
                 },
+                sats: 1100n,
             },
             {
-                value: 34652,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: '3efa1835682ecc60d2476f1c608eb6f5ae9040610193111a2c312453cd7db4ef',
                     outIdx: 0,
                 },
+                sats: 34652n,
             },
         ],
         lockTime: 0,
@@ -9690,10 +9690,10 @@ export const tokenBurn = {
                 },
                 inputScript:
                     '473044022025c68cf0ab9c1a4d6b35b2b58f7e397722f469412841eb09d38d1973dc5ef7120220712e1f3c8740fff2af75c1062a773eef167550ee008deaef9089537cd17c35f0412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 2300n,
             },
             {
                 prevOut: {
@@ -9702,7 +9702,6 @@ export const tokenBurn = {
                 },
                 inputScript:
                     '47304402206a2f53497eb734ea94ca158951aa005f6569c184675a497d33d061b78c66c25b02201f826fa71be5943ce63740d92a278123974e44846c3766c5cb58ef5ad307ba36412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -9712,12 +9711,13 @@ export const tokenBurn = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 2n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -9726,7 +9726,6 @@ export const tokenBurn = {
                 },
                 inputScript:
                     '483045022100efa3c767b749abb2dc958932348e2b19b845964e581c9f6de706cd43dac3f087022059afad6ff3c1e49cc0320499381e78eab922f18b00e0409228ad417e0220bf5d412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -9736,22 +9735,22 @@ export const tokenBurn = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999875',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 999875n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44204db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c8750800000000000f41b9',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -9762,14 +9761,15 @@ export const tokenBurn = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999865',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 999865n,
                 },
                 spentBy: {
                     txid: '657646f7a4e7237fca4ed8231c27d95afc8086f678244d5560be2230d920ff70',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -9789,9 +9789,9 @@ export const tokenBurn = {
                 isInvalid: false,
                 burnSummary: 'Unexpected burn: Burns 12 base tokens',
                 failedColorings: [],
-                actualBurnAmount: '12',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 12n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -9838,10 +9838,10 @@ export const tokenBurnDecimals = {
                 },
                 inputScript:
                     '47304402207122751937862fad68c3e293982cf7afb91967d20da63a0c23bf0565b625b775022054f39f41a43438a0df7fbe6a78521f572613bc08d6a43b6d248bcb6a434e2b52412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2200,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 2200n,
             },
             {
                 prevOut: {
@@ -9850,7 +9850,6 @@ export const tokenBurnDecimals = {
                 },
                 inputScript:
                     '483045022100dce5b3b516bfebd40bd8d4b4ff9c43c685d3c9dde1def0cc0667389ac522cf2502202651f95638e48c210a04082e6053457a539aef0f65a2e9c2f61e3faf96c1dfd8412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -9860,22 +9859,22 @@ export const tokenBurnDecimals = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5235120760000000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5235120760000000n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44207443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d0800129950892eb779',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -9886,14 +9885,15 @@ export const tokenBurnDecimals = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '5235120758765433',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 5235120758765433n,
                 },
                 spentBy: {
                     txid: '9c0c01c1e8cc3c6d816a3b41d09d65fda69de082b74b6ede7832ed05527ec744',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -9913,9 +9913,9 @@ export const tokenBurnDecimals = {
                 isInvalid: false,
                 burnSummary: 'Unexpected burn: Burns 1234567 base tokens',
                 failedColorings: [],
-                actualBurnAmount: '1234567',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 1234567n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -9962,10 +9962,10 @@ export const swapTx = {
                 },
                 inputScript:
                     '41256f3c091df7dea2bb9d74241b47116364d7b0035dfe1c5d1d398d8e92e99f4d5f3dd747f8e81ca99ddaf5630399ef18e26b6a3bf9b763cdd25225e68f7bbd2d41210304222c88e9936a195762fc4ee41a082e906a0e8434df43a03bfcdf1f9d2c1b8d',
-                value: 546,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91493472d56ba91581ed473225a765dd14a2db5d9d888ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -9974,26 +9974,26 @@ export const swapTx = {
                 },
                 inputScript:
                     '418ab02f08273afd67c4db840f09429d7c76c0a71b28dbaef5c63f277944a168819d72bedd14e78b327a237f6070b0519ef8456efbfe206bae0c60d3b5f328faea412103df543832906a1f5fc8f201bb99454f350b1906375d522f735bd357cbda11ab5b',
-                value: 2565,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9149ea00e6c2ef24026719421e4790e1a694c94381b88ac',
+                sats: 2565n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a045357500001010101209e0a9d4720782cf661beaea6c5513f1972e0f3b1541ba4c83f4c87ef65f843dc0453454c4c0631323831323301002039c6db26912f34352d50fdfd8d75d1c16cb8a669f3ae05000a6c8c74d14839a50101063132383132330437383035',
+                sats: 0n,
             },
             {
-                value: 2656,
                 outputScript:
                     '76a91493472d56ba91581ed473225a765dd14a2db5d9d888ac',
                 spentBy: {
                     txid: '47f7a2189eb65e9a2288f81640351cc80ada49288b09973bcaa7aef1e423faa8',
                     outIdx: 1,
                 },
+                sats: 2656n,
             },
         ],
         lockTime: 0,
@@ -10044,30 +10044,30 @@ export const PayButtonNoDataYesNonce = {
                 },
                 inputScript:
                     '411b57cfa0bcc8e1f1c02f0dfed248688bf1e337e75d9c2775324e55b5d6d2085260303c3f77437d7bc0f1533ea816e7c8e4b77175ff3c9e61ce2e21b5e1dc95014121027a70b0f8b59cbb83a64cacbf4fca79e5c9a4f655f325d0936ed4eebced3cb8aa',
-                value: 7146,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a91403c63d3a52cde136da8858e9d0ffaa810cb6639288ac',
+                sats: 7146n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript: '6a0450415900000008d980190d13019567',
+                sats: 0n,
             },
             {
-                value: 1800,
                 outputScript:
                     '76a914f66d2760b20dc7a47d9cf1a2b2f49749bf7093f688ac',
+                sats: 1800n,
             },
             {
-                value: 3876,
                 outputScript:
                     '76a91401bfce4ff373b108bd65b4da08de621ade85adb588ac',
                 spentBy: {
                     txid: '566a7c12364e3f362fbc738bf209527d3074ce0a2d19b797d3ca34a3482e3386',
                     outIdx: 0,
                 },
+                sats: 3876n,
             },
         ],
         lockTime: 0,
@@ -10113,35 +10113,35 @@ export const PayButtonYesDataYesNonce = {
                 },
                 inputScript:
                     '41fc1401150778a0d47d5279ccdaa13298cfa43e25d8d37d37570291207a92098beefa8fb25b8fb9cb2c4d7b5f98b7ff377c54932e0e67f4db2fc127ed86e01b1a4121024b60abfca9302b9bf5731faca03fd4f0b06391621a4cd1d57fffd6f1179bb9ba',
-                value: 3403110,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a914e628f12f1e911c9f20ec2eeb1847e3a2ffad5fcc88ac',
+                sats: 3403110n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04504159000008f09f9882f09f918d0869860643e4dc4c88',
+                sats: 0n,
             },
             {
-                value: 3392102,
                 outputScript:
                     '76a914e573dd89a61f8daeb56bf5b5fb5d7cd86e31ab2e88ac',
                 spentBy: {
                     txid: '8b2a86aabae90c0f9e8a111e220c85b52fc54b15c6d46cbbbca89020318714a4',
                     outIdx: 0,
                 },
+                sats: 3392102n,
             },
             {
-                value: 9490,
                 outputScript:
                     '76a914697ae72b062557fa69f9d4d09182529da368ab6988ac',
                 spentBy: {
                     txid: '1b3165e7edef19369880f032d8f4d19cc41e9ebf2bfb657518ae99075aa2b471',
                     outIdx: 0,
                 },
+                sats: 9490n,
             },
         ],
         lockTime: 0,
@@ -10181,9 +10181,7 @@ export const PayButtonYesDataYesNonce = {
 };
 
 // No data no payment id
-const PayButtonEmptyTx = JSON.parse(
-    JSON.stringify(PayButtonYesDataYesNonce.tx),
-);
+const PayButtonEmptyTx = structuredClone(PayButtonYesDataYesNonce.tx);
 // Create a tx with 00 in paymentId and nonce spaces
 PayButtonEmptyTx.outputs[0].outputScript = '6a0450415900000000';
 export const PayButtonEmpty = {
@@ -10211,9 +10209,7 @@ export const PayButtonEmpty = {
     },
 };
 // data and no payment id
-const PayButtonYesDataNoNonceTx = JSON.parse(
-    JSON.stringify(PayButtonYesDataYesNonce.tx),
-);
+const PayButtonYesDataNoNonceTx = structuredClone(PayButtonYesDataYesNonce.tx);
 // Create a tx with 00 in paymentId and nonce spaces
 PayButtonYesDataNoNonceTx.outputs[0].outputScript =
     '6a0450415900000e6f6e6c792064617461206865726500';
@@ -10243,9 +10239,7 @@ export const PayButtonYesDataNoNonce = {
 };
 
 // Off spec paybutton tx
-const PayButtonOffSpecTx = JSON.parse(
-    JSON.stringify(PayButtonYesDataYesNonce.tx),
-);
+const PayButtonOffSpecTx = structuredClone(PayButtonYesDataYesNonce.tx);
 // Create a tx with 3 pushes instead of expected 4
 PayButtonOffSpecTx.outputs[0].outputScript = '6a04504159000008f09f9882f09f918d';
 export const PayButtonOffSpec = {
@@ -10270,9 +10264,7 @@ export const PayButtonOffSpec = {
 };
 
 // Unsupported version paybutton tx
-const PayButtonBadVersionTx = JSON.parse(
-    JSON.stringify(PayButtonYesDataYesNonce.tx),
-);
+const PayButtonBadVersionTx = structuredClone(PayButtonYesDataYesNonce.tx);
 // Force a version 1 tx
 PayButtonBadVersionTx.outputs[0].outputScript =
     '6a0450415900010108f09f9882f09f918d0869860643e4dc4c88';
@@ -10309,35 +10301,35 @@ export const MsgFromElectrum = {
                 },
                 inputScript:
                     '416d2f67c38b81b6fdd13f4cb2c2d0a9194800e98b80a1054ca83b1ea3d739e70f9c4e2c8a61050b40161a0d741db9a6e71d155cf61623b9279739b50446d3ec6a4121026769c23182aaa572c16c82121caff660a7c13befd0d20c263e577ca01c4f029e',
-                value: 81319,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a914eff9a0ba847ae97697a9f97c05887aba2b41060e88ac',
+                sats: 81319n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a1774657374696e672061206d736720666f72206572726f72',
+                sats: 0n,
             },
             {
-                value: 80213,
                 outputScript:
                     '76a914731fbd873b3603e8dafd62923b954d38571e10fc88ac',
                 spentBy: {
                     txid: 'b817870c8ae5ec94d639089e37763daee271f412ab478705a29b036ba0b00f3d',
                     outIdx: 55,
                 },
+                sats: 80213n,
             },
             {
-                value: 600,
                 outputScript:
                     '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                 spentBy: {
                     txid: 'dc06ab36c9a7e365f319c0e918324af9778cb29b82c07ff87e2ec80eb6e4e6fe',
                     outIdx: 9,
                 },
+                sats: 600n,
             },
         ],
         lockTime: 0,
@@ -10385,26 +10377,26 @@ export const unknownAppTx = {
                 },
                 inputScript:
                     '483045022100b50fac4b810ac6b10ce35f25fcc1a6b1f87b1209e8ee5973732d983395199de102204f860238b12ba3e7adfc432e331405f751fef1aa494c2d0122b7aaa522158933412102188904278ebf33059093f596a2697cf3668b3bec9a3a0c6408a455147ab3db93',
-                value: 3725,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914d18b7b500f17c5db64303fec630f9dbb85aa959688ac',
+                sats: 3725n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a4cd43336616533642d4d45524f4e2d57494e227d2c7b226e616d65223a2277616c61222c226d657373616765223a223635396661313133373065333136663265613336616533642d57414c412d57494e227d5d2c227465726d73223a5b7b226e616d65223a22726566657265655075624b6579222c2274797065223a226279746573222c2276616c7565223a22303231383839303432373865626633333035393039336635393661323639376366333636386233626563396133613063363430386134353531343761623364623933227d5d7d7d7d7d',
+                sats: 0n,
             },
             {
-                value: 3308,
                 outputScript:
                     '76a914d18b7b500f17c5db64303fec630f9dbb85aa959688ac',
                 spentBy: {
                     txid: 'e5b4912fa19d93db9b6b9586ad9ab3a7f9bc3514325c71e36816e4b047a9f6b8',
                     outIdx: 0,
                 },
+                sats: 3308n,
             },
         ],
         lockTime: 0,
@@ -10454,7 +10446,6 @@ export const AlpTx = {
                 },
                 inputScript:
                     '41482340e636feab0d15efb309e72eac0f559d0b85eb1799e0a1419430e95448a6a5c1e3961c92861e653dde4428e6e3a79c90d10911b045e7469f7beeae62fc56c1210378d370d2cd269a77ac2f37c28d98b392e5b9892f3b3406bfec8794c82244b039',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -10464,12 +10455,13 @@ export const AlpTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '49756',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 49756n,
                 },
                 outputScript:
                     '76a914575116c8adf5817c99fc5bdac8db18d10c25703d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -10478,10 +10470,10 @@ export const AlpTx = {
                 },
                 inputScript:
                     '4152ed9a66a0c40759e400a1484df1a1d2b152c9d6917abf3beaf974f21a935d60853490ae5a07c237531016ceae6c1f01cce9cf2a1417b2b2bcbbc4737ea2fe35412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                sats: 1000n,
             },
             {
                 prevOut: {
@@ -10490,10 +10482,10 @@ export const AlpTx = {
                 },
                 inputScript:
                     '412a65517b4df68bb03ba2b7cd85e70af662503bbc8be209e7fbf18bb0950ff7e0d589f0b3e8119b5e67314fbedd856968890556593d97db58c78e86d2417f27d7412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                sats: 1000n,
             },
             {
                 prevOut: {
@@ -10502,10 +10494,10 @@ export const AlpTx = {
                 },
                 inputScript:
                     '412c9a66d04d341b1f0c3a15689265729a18f5605269909ad9f7b842ea03d96f8540e1b5b272ddc9db5f2d392a8e0569428a7ba4b5d99bbc707168898399f00da7412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                sats: 1000n,
             },
             {
                 prevOut: {
@@ -10514,20 +10506,19 @@ export const AlpTx = {
                 },
                 inputScript:
                     '41f2ffdbd5f3694669d448899d3f6d939a8165d70cba6be2eaa8416847d56d4630a7b3ac8a35641705e4eb583b391a46c204920641dd85e2b7e04dd18553422651412102f49a7fd4e0c6cea6401aed57b76b2fb358e1ebbb65fc5782e3c2165c9e850b31',
-                value: 1000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                sats: 1000n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a503d534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd038a02000000003e3000000000948f00000000',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
                 token: {
@@ -10538,13 +10529,13 @@ export const AlpTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '650',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 650n,
                 },
+                sats: 546n,
             },
             {
-                value: 1960,
                 outputScript: 'a914b0bfb87508e5203803490c2f3891d040f772ba0f87',
                 token: {
                     tokenId:
@@ -10554,13 +10545,13 @@ export const AlpTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '12350',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 12350n,
                 },
+                sats: 1960n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a914575116c8adf5817c99fc5bdac8db18d10c25703d88ac',
                 token: {
@@ -10571,10 +10562,11 @@ export const AlpTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '36756',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 36756n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -10594,9 +10586,9 @@ export const AlpTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -10644,7 +10636,6 @@ export const SlpNftParentFanTx = {
                 },
                 inputScript:
                     '483045022100a5e4824f76bad8f224412fca2442c11598d6dd29848b67ae0e8c6f74a5a80b2c022049ee636ac6b951eba8273f300bcab8ffc31525f4d96ca738cfbb62e73769bf3a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -10654,12 +10645,13 @@ export const SlpNftParentFanTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '4',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 4n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -10668,20 +10660,19 @@ export const SlpNftParentFanTx = {
                 },
                 inputScript:
                     '483045022100dfe70b028211bf747a9d634f03f6f024264f75ef37f9dd4b40c8d8dfddfeff9702205ccb832e674c5c865353707fc46c5b4206dd807797d6b64f146441fa2d85bf94412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32771801,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32771801n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001810453454e442012a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3080000000000000001080000000000000001080000000000000001080000000000000001',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -10692,17 +10683,17 @@ export const SlpNftParentFanTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 spentBy: {
                     txid: 'fcab9a929a15ef91b5c5ca38b638e4d3f5fc49deb36fbc5c63de1fa900c8bcda',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -10713,13 +10704,13 @@ export const SlpNftParentFanTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -10730,13 +10721,13 @@ export const SlpNftParentFanTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -10747,19 +10738,20 @@ export const SlpNftParentFanTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 32769023,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: 'fcab9a929a15ef91b5c5ca38b638e4d3f5fc49deb36fbc5c63de1fa900c8bcda',
                     outIdx: 1,
                 },
+                sats: 32769023n,
             },
         ],
         lockTime: 0,
@@ -10779,9 +10771,9 @@ export const SlpNftParentFanTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -10863,7 +10855,6 @@ export const SlpNftMint = {
                 },
                 inputScript:
                     '483045022100939d517c889174bdcaf9755390165ce1e2ba7f47d1490dbf48bbf2f4146c84360220172aeb2fe8eca8a0c59e68ca6b2ab1a8fd0bdded8410212c5d34d936cadcf734412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -10873,12 +10864,13 @@ export const SlpNftMint = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 1,
+                    atoms: 1n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -10887,20 +10879,19 @@ export const SlpNftMint = {
                 },
                 inputScript:
                     '483045022100da6101ab8d02141d6745b3985d4c1ba5481cb2c470acff8d40e66fa654e3f14402200906d6a511dda0c5bc243f82217a03fe40c3cfc0a407b2d1e6f971de1ae70316412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32769023,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32769023n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001410747454e45534953035746430c57752046616e672043686f690b636173687461622e636f6d20ec7ed5da3ed751a80a3ab857c50dce405f8e8f7a083fafea158a3a297308385501004c00080000000000000001',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -10911,15 +10902,16 @@ export const SlpNftMint = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 32768070,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32768070n,
             },
         ],
         lockTime: 0,
@@ -10939,11 +10931,11 @@ export const SlpNftMint = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
                 groupTokenId:
                     '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
             {
                 tokenId:
@@ -10957,9 +10949,9 @@ export const SlpNftMint = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -11044,20 +11036,19 @@ export const SlpParentGenesisTxMock = {
                 },
                 inputScript:
                     '483045022100eb2e68c7d02eda2dd64c22a079d832c5c85f34f1ced264cd3b37658d4cd0b89e02203e204cd625a05c8ba59291567bc14d0bfa193a9a37cbc00aec804a224dc910d1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 32766028,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 32766028n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001810747454e455349530348534d0b54686520486569736d616e2c68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f486569736d616e5f54726f7068792073229094743335d380cd7ce479fb38c9dfe77cdd97668aa0c4d9183855fcb97601004c00080000000000000059',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -11068,23 +11059,24 @@ export const SlpParentGenesisTxMock = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '89',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 89n,
                 },
                 spentBy: {
                     txid: '1f2f9a37767586320a8af6afadda56bdf5446034910e27d537f26777ad95e0d5',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 32764762,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '1f2f9a37767586320a8af6afadda56bdf5446034910e27d537f26777ad95e0d5',
                     outIdx: 1,
                 },
+                sats: 32764762n,
             },
         ],
         lockTime: 0,
@@ -11104,9 +11096,9 @@ export const SlpParentGenesisTxMock = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -11188,10 +11180,10 @@ export const oneOutputReceivedTx = {
                 },
                 inputScript:
                     '41246058dcfab4114536db638d064612e12e0cfff613b568535c278e544ec68ec3e02ffc94d09a0ffe0f4e6fd9ff9608b01aad46cad3765059c3fe45ea09898abe4121029bd5d9d9565b734188493dfd3b0fe985ccd55bb6bc1544cf6ed25a46076f045f',
-                value: 45553900000,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a914bb3f3669824acaf67902cbc8477f75ae5b139a0f88ac',
+                sats: 45553900000n,
             },
             {
                 prevOut: {
@@ -11200,21 +11192,21 @@ export const oneOutputReceivedTx = {
                 },
                 inputScript:
                     '415d1ee0074f11a0adf5c35039167a731d008656eb0a33b5eec9144dd8614419e88866779cce3da0de8c9f839ddbb8d8ee8d24c82526a8900730ea8af8ef102c6d4121020b5c467c0276678df5f50cc932e81abf259f40477f815ed11f4d0fecab39f2d6',
-                value: 100000000,
                 sequenceNo: 4294967294,
                 outputScript:
                     '76a91409c388abff6922c7e97ef8ea58e9697b6637910c88ac',
+                sats: 100000000n,
             },
         ],
         outputs: [
             {
-                value: 45653899320,
                 outputScript:
                     '76a914601efc2aa406fe9eaedd41d2b5d95d1f4db9041d88ac',
                 spentBy: {
                     txid: 'b9aab1e26381457b390ad689c7577962cef1ec48de3a83d87db68968afb7e4cf',
                     outIdx: 54,
                 },
+                sats: 45653899320n,
             },
         ],
         lockTime: 0,
@@ -11253,27 +11245,27 @@ export const eCashChatAuthenticationTx = {
                 },
                 inputScript:
                     '413fb023c886471d0f7eefcd3e5bf2cdbc0f537edd20b9f515d32da7c80b519b7cdc2da3e6696220addd232ebd8c10d53c092965d6bcce262b1a8745a61a18f3a54121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
-                value: 3377,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                sats: 3377n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a0461757468140644ad85a538657c033e36ce5a3c8cf26076591f',
+                sats: 0n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a914b20298c1b5d6a82a61f6c8cd708fa87a1ce1a97a88ac',
+                sats: 550n,
             },
             {
-                value: 2314,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                sats: 2314n,
             },
         ],
         lockTime: 0,
@@ -11321,27 +11313,27 @@ export const MsgFromEcashChat = {
                 },
                 inputScript:
                     '483045022100b7af7b05bb2fd4c743724175ddb4ed00030954f35adabe5e4dd77c1cb3125a7e02204186b77fcb0ce296a2ece2a0aa942933401bc269ea19f85434cdffe21bfea85d412103def4b1f77431c9825632ac5da7433b6eaa5281a90aabd9b597af4f16f6cccf51',
-                value: 3000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140536f99c447acb2ab26b91db741975b6e0bd981788ac',
+                sats: 3000n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04636861741a68656c6c6f2066726f6d206543617368204368617420f09f918d',
+                sats: 0n,
             },
             {
-                value: 1000,
                 outputScript:
                     '76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac',
+                sats: 1000n,
             },
             {
-                value: 1461,
                 outputScript:
                     '76a9140536f99c447acb2ab26b91db741975b6e0bd981788ac',
+                sats: 1461n,
             },
         ],
         lockTime: 0,
@@ -11408,7 +11400,6 @@ export const SlpV1Mint = {
                 },
                 inputScript:
                     '473044022038242777df76cf81fea627fad7c8a4f67ddb2dd68defcdb8d45dbc7e0f90c62102206f5c9a5b79f10cb6ac93d46a084666b810d12871c02182f9097b1ac72643dab6412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -11418,12 +11409,13 @@ export const SlpV1Mint = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -11432,20 +11424,19 @@ export const SlpV1Mint = {
                 },
                 inputScript:
                     '47304402206d2c4bada7e705e12f7e8e21b2bfb7a6cf0b02dcb7ffc6b21f1a866dc0e7c7a10220667c1d970506cdae180a78888cf10cf9ada6800b4db22f06a8f4ae5c40aeea16412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 3300n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c50000101044d494e5420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10102080000000000000064',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -11456,13 +11447,13 @@ export const SlpV1Mint = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '100',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 100n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -11473,19 +11464,20 @@ export const SlpV1Mint = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
                 spentBy: {
                     txid: 'dd9018d0037fee4094c2445b23ed9eef65d456db3f2b9c053ad39ee6505fca44',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 2280,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 2280n,
             },
         ],
         lockTime: 0,
@@ -11505,9 +11497,9 @@ export const SlpV1Mint = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -11555,7 +11547,6 @@ export const agoraAdSetupTxSlpNft = {
                 },
                 inputScript:
                     '419d3ac0b32abebc181c55e5a45c25d5050f73ba1269348829f4d5677131e3c627f73a552bf003de5d86423ce3f47fd4fd116eba837be72a3cef6f002158b0482a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -11565,12 +11556,13 @@ export const agoraAdSetupTxSlpNft = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -11579,20 +11571,19 @@ export const agoraAdSetupTxSlpNft = {
                 },
                 inputScript:
                     '41f444904158cb70106321dc09161d7bf3dde584e541c73d21f46a19c176c10e1c3ea79252e52878a0f11f5c6b896d8adc5c75d1c6039e750c31ab07114d2f3bca412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1748,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1748n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3080000000000000001',
+                sats: 0n,
             },
             {
-                value: 860,
                 outputScript: 'a91463b7313157fb1d054919364c837d8af927fa569987',
                 token: {
                     tokenId:
@@ -11602,19 +11593,20 @@ export const agoraAdSetupTxSlpNft = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 spentBy: {
                     txid: 'c7fe7ac1f29c34e0795786b609622f6439cfde52246f31cba89aa0b28c8542ee',
                     outIdx: 0,
                 },
+                sats: 860n,
             },
             {
-                value: 1012,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1012n,
             },
         ],
         lockTime: 0,
@@ -11634,11 +11626,11 @@ export const agoraAdSetupTxSlpNft = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
                 groupTokenId:
                     'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -11719,7 +11711,6 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '2102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd879540c4da30dce1304b58ad7e2b8f87729d2b7c5f7c2390e8bbc33bebcc7c80503c992801df01dad963adb737892e0d3499875b99477f65786c45e9146610a219fe104c5aee42858cb2a09aa8cb316f2452decf39642f6209b6865779e0349cf2c17afec70100000001ac2202000000000000ffffffffc996989ea840ccd9e2f0324dc0accbe26a32c3c8bd5d710ce18f68acaafdb3d300000000c10000004422020000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac7a3d160c000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac514cb0634c6b0000000000000000406a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df30800000000000000000800000000000000013ea74b04000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac7c7eaa7801327f7701207f7588520144807c7ea86f7bbb7501c17e7c672103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba668abac',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -11729,11 +11720,12 @@ export const agoraOneshotBuyTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 outputScript: 'a914dec4855b83573e56312d9f3852697a48c09ee6b087',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -11742,10 +11734,10 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '414964793d1de39477192d9ee1491c49973303b18b594b249cfb0b9b752826f0ccc9da5ebf1dde9de63f5e5825b3e7257f48e1310920e30e28e83beada1f21be58412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 19360,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 19360n,
             },
             {
                 prevOut: {
@@ -11754,10 +11746,10 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '41c60f1f0f70dd45780f5b5a48e7e8e823ab04ae5f2b652c68d36856d7999e65423c88f4315bde6eeebe1c263e27b5275453a52c33962eddd704ec63330482cbde412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 11007,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 11007n,
             },
             {
                 prevOut: {
@@ -11766,10 +11758,10 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '418a65da44dc054c90c718cafe5a8eb1a58a40f1c2864a356152eadb6ad439f66f7e457f09821fb53b07bd50d68baa64abed6134f98d18c2da4050496c54341a4c412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 5235,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 5235n,
             },
             {
                 prevOut: {
@@ -11778,10 +11770,10 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '41db37e18dda29041f7f931bb895777ec8bea1f6341dc48a144a2deac2545519892c19c050bfe8eb32143a5860ef4343079cb0b6705f2b72e8555f3b96badd3e82412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 4201,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 4201n,
             },
             {
                 prevOut: {
@@ -11790,10 +11782,10 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '41f5ad3937e27b09550dfac33838bb0acfe61bf69378c3fbd6fb145ce48cf0cd9fc7e2b4abfcb17616dedecd33e84a860c5f2ceea50ea0e59a59e7fa4e87b478ce412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 19901,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 19901n,
             },
             {
                 prevOut: {
@@ -11802,10 +11794,10 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '41346e924f1a559129de3bb6f8bfb9358aae0401ab6dcc49c9e974bed7b94b246f001ec19ed7c682d945426882abce9f5bebdd984845b2c127c0f2549fcee5aec9412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 12964,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 12964n,
             },
             {
                 prevOut: {
@@ -11814,25 +11806,24 @@ export const agoraOneshotBuyTx = {
                 },
                 inputScript:
                     '41f5295566cdf6a64102474a4cf1a90c0be1f734a01a7c553d28d79543de93991633b67473c7cd859f14f4682942ea08b8f399abc3d9aba4d3017931ae61f677d4412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 274781657,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 274781657n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3080000000000000000080000000000000001',
+                sats: 0n,
             },
             {
-                value: 72066878,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 72066878n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -11843,15 +11834,16 @@ export const agoraOneshotBuyTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 202784122,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 202784122n,
             },
         ],
         lockTime: 0,
@@ -11871,11 +11863,11 @@ export const agoraOneshotBuyTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
                 groupTokenId:
                     'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -11950,12 +11942,11 @@ export const agoraPartialCancelTx = {
                 },
                 inputScript:
                     '41fd18138ab17386e9599e54d9d5f1994d1c4add3af860b1ece44b71d04bc7e7cd799e1234e2959236cd38558713d7fdb797a894c527906b0235a38519ad63fbea4121024f624d04900c2e3b7ea6014cb257f525b6d229db274bceeadbb1f06c07776e82',
-                value: 975251,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+                sats: 975251n,
             },
-            // Note that the p2sh is not necessarily input 0 for an agora partial cancel tx
             {
                 prevOut: {
                     txid: '0c580a7dbfb7f160f0e4623faa24eb0475b2220704c8c46f279a479a477433f8',
@@ -11963,7 +11954,6 @@ export const agoraPartialCancelTx = {
                 },
                 inputScript:
                     '0441475230075041525449414c4113bb98283dc7a2f69957940bb3a45f4ec6050b61bcc1b1134d786727e379c8793107bf0d0b0e051665ab3eed2cca34901646cf564a1ab52cb32668da229eef0b41004d5f014c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8080000000000000000030276a4000000000000e815000000000000a24a2600000000004b4a343a024f624d04900c2e3b7ea6014cb257f525b6d229db274bceeadbb1f06c07776e8208948eff7f00000000ab7b63817b6ea2697603a24a26a269760376a4009700887d94527901377f75789263587e780376a400965580bc030000007e7e68587e52790376a400965580bc030000007e7e825980bc7c7e0200007e7b02e7159302e8159656807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702dd007f5c7f7701207f547f75044b4a343a886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -11973,21 +11963,21 @@ export const agoraPartialCancelTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '855738679296',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 855738679296n,
                 },
                 outputScript: 'a914cb61d733f8e99b1b40d40a53a59aca8a08368a6f87',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f808000000c73e000000',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
                 token: {
@@ -11998,15 +11988,16 @@ export const agoraPartialCancelTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '855738679296',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 855738679296n,
                 },
+                sats: 546n,
             },
             {
-                value: 973723,
                 outputScript:
                     '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+                sats: 973723n,
             },
         ],
         lockTime: 0,
@@ -12026,9 +12017,9 @@ export const agoraPartialCancelTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -12106,7 +12097,6 @@ export const partialBuyBull = {
                 },
                 inputScript:
                     '0441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1404799ed59b763768b8e7385a35c0a357e624e1725154d4c3240f38edc021527b267881f2078be11f89221f6c8036c156274742dae00ce8a88bb6ee527bc18dc744422020000000000001976a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac4d420100000000001976a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac4d32018cb148920f4d8ce041b784ad0a6c542f3f66d67306ad99ea0f6e5016439a462001000000d97b63817b6ea26976046de4ff17a26976033b62109700887d94527901377f75789263587e78033b6210965880bc007e7e68587e5279033b6210965880bc007e7e825980bc7c7e01007e7b03288f009303298f009657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d9007f5c7f7701207f547f7504f3282c4e886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffffca3033eea929796cc020b87c909e38d37943502aa69486f2d97d56daa454e28df3282c4ec1000000046de4ff17514d5b014c766a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f89608000000000000000000013b62100000000000298f0000000000006de4ff1700000000f3282c4e03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba608f06cff7f00000000ab7b63817b6ea26976046de4ff17a26976033b62109700887d94527901377f75789263587e78033b6210965880bc007e7e68587e5279033b6210965880bc007e7e825980bc7c7e01007e7b03288f009303298f009657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d9007f5c7f7701207f547f7504f3282c4e886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -12116,9 +12106,9 @@ export const partialBuyBull = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '2000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 2000n,
                 },
                 plugins: {
                     agora: {
@@ -12139,6 +12129,7 @@ export const partialBuyBull = {
                     },
                 },
                 outputScript: 'a914563178ea073228709397a2c98baf10677e683e6687',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -12147,29 +12138,28 @@ export const partialBuyBull = {
                 },
                 inputScript:
                     '41866f21d34e5b061cf7cb9ce4a6ce4df037628b72765db893675eae909ddad9d7ea7593d1a510fee1d80887699410b4330e9214efd5668dd51644d7ffce498ac94121039f0061726e4fed07061f705d34707b7f9c2f175bfa2ca7fe7df0a81e9efe1e8b',
-                value: 2898252,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
+                sats: 2898252n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442001d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896080000000000000000080000000000000659080000000000000177',
+                sats: 0n,
             },
             {
-                value: 2812672,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 spentBy: {
                     txid: '5d934ade992707fe126bcd393ad4358b2c10118b635df4b97e3e3f30ca7cc781',
                     outIdx: 1,
                 },
+                sats: 2812672n,
             },
             {
-                value: 546,
                 outputScript: 'a91451d609999740085f16cfbee2f9791d6ae6ac678d87',
                 plugins: {
                     agora: {
@@ -12197,13 +12187,13 @@ export const partialBuyBull = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1625',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1625n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
                 token: {
@@ -12214,23 +12204,24 @@ export const partialBuyBull = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '375',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 375n,
                 },
                 spentBy: {
                     txid: 'f0e450b41d1c15b32478efb668bc562fa341a40fa799db7747228350295f84d4',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 82509,
                 outputScript:
                     '76a9142aba37d6365d3e570cadf3ed65e58ae4ad751a3088ac',
                 spentBy: {
                     txid: '3a7a8971392e74fd542498c055509ace4f4853b981d87d73ba045f77100dad1e',
                     outIdx: 1,
                 },
+                sats: 82509n,
             },
         ],
         lockTime: 1311516915,
@@ -12250,9 +12241,9 @@ export const partialBuyBull = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -12370,10 +12361,10 @@ export const agoraPartialCancelTwo = {
                 },
                 inputScript:
                     '415ece5326f001de92ce37d34b6ada073c3f60b52231b8291e1d4900c4813b93379dfc3e11ed417c58fce9fc1ead27b5754d4d2c8ff3d6949e694a9529afea0f4c412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 661543961,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 661543961n,
             },
             {
                 prevOut: {
@@ -12382,7 +12373,6 @@ export const agoraPartialCancelTwo = {
                 },
                 inputScript:
                     '0441475230075041525449414c4195484212249b53096fa43b1dc39559f9671cd305b4715c063c486b2fc30eec194685f027c560742da8746b61aacfb05dd039d8e519fa7ca065d7fe3188fa63df41004d5a014c766a04534c500001010453454e4420b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc0800000000000000000001f588410000000000f980000000000000f588410000000000bbbcb84f03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba608bbd1b77e00000000ab7b63817b6ea2697603f58841a2697603f588419700887d94527901377f75789263587e7803f58841965880bc007e7e68587e527903f58841965880bc007e7e825980bc7c7e01007e7b03f880009303f980009657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d8007f5c7f7701207f547f7504bbbcb84f886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -12392,21 +12382,21 @@ export const agoraPartialCancelTwo = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '495',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 495n,
                 },
                 outputScript: 'a914b069fa99f084a259a6a31cc8cf33edb8a853fbb587',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e4420b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc0800000000000001ef',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -12417,15 +12407,16 @@ export const agoraPartialCancelTwo = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '495',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 495n,
                 },
+                sats: 546n,
             },
             {
-                value: 661543206,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 661543206n,
             },
         ],
         lockTime: 0,
@@ -12445,9 +12436,9 @@ export const agoraPartialCancelTwo = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -12523,7 +12514,6 @@ export const AgoraOneshotCancelTx = {
                 },
                 inputScript:
                     '419b8ec92ca5701691d9f5e75d525532cbec6ed9d9ed81f8f982b5af76090289d001ce2022ec82ba096c99beb00b0d9b0a92f2ef8da269a7967e6856170796beac41004cb0634c6b0000000000000000406a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df308000000000000000008000000000000000164594e05000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac7c7eaa7801327f7701207f7588520144807c7ea86f7bbb7501c17e7c672102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd879568abac',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -12533,11 +12523,12 @@ export const AgoraOneshotCancelTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
                 outputScript: 'a91451a5d608ff31c1585d7aba3a2afcd2ae02898abd87',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -12546,20 +12537,19 @@ export const AgoraOneshotCancelTx = {
                 },
                 inputScript:
                     '41ccbca2638a68145ecc38c8a96c058dff2619b8d495360e0b5866de555f1c6b621ef147df1a9e0f5bee006d1db94e1e2670915265d38f3ba801114037ed0d441d412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 1153,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 1153n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001410453454e4420f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3080000000000000001',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -12570,10 +12560,11 @@ export const AgoraOneshotCancelTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                         number: 65,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -12593,11 +12584,11 @@ export const AgoraOneshotCancelTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
                 groupTokenId:
                     'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -12642,7 +12633,6 @@ export const agoraPartialBuxBuyTx = {
                 },
                 inputScript:
                     '0441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1400c2c91f9168505022957e651ce0d876ec90a483dec8eb83f9a2897cd0b1640962dcab03e0df52f086db75351d10c01386ff2dcf4e774ee09b5dcf6b96ced6b254422020000000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688acc5728209000000001976a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac4d280117240f7baf3a635f82d991d68de9922c31a6a1ab98fcf153727f2dfb69ae96f601000000cf7b63817b6ea269760460368f02a2697602c6109700887d94527901377f75789263587e7802c610965880bc007e7e68587e527902c610965880bc007e7e825980bc7c7e007e7b5d935e9658807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702cf007f5c7f7701207f547f750443840647886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffffb0f7a847759b44cb4dd22554924cf5dae4d946b5aa04372b20eb218d43210b4243840647c10000000422ad0024514d51014c766a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000000000000000c6100000000000000e0000000000000060368f020000000043840647037f1729ee682b22da2b5dd8a11779ec7b80739c4b5d4b48f83c35d83fbb40a21208c09ef87f00000000ab7b63817b6ea269760460368f02a2697602c6109700887d94527901377f75789263587e7802c610965880bc007e7e68587e527902c610965880bc007e7e825980bc7c7e007e7b5d935e9658807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702cf007f5c7f7701207f547f750443840647886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -12652,11 +12642,12 @@ export const agoraPartialBuxBuyTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '500000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 500000n,
                 },
                 outputScript: 'a9149c2c40a0a571b35e2e6cca5c224d0c948096a36b87',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -12665,10 +12656,10 @@ export const agoraPartialBuxBuyTx = {
                 },
                 inputScript:
                     '41fb428d1c14340d4ef10c55202db803232018f0ae41777503c4a9cb78b4659fad4540f27314c74b9247a1c88937c5594ef908f5e916dddd5b054f290c5a8807a4412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 32055,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 32055n,
             },
             {
                 prevOut: {
@@ -12677,10 +12668,10 @@ export const agoraPartialBuxBuyTx = {
                 },
                 inputScript:
                     '4102e2c50dc6e3c3d8151c950075bc997dbe4762b1c59bcbe3cdd124566d1925bcecb466d21d32133b68fb8579b79e538f4b8dd61832374f2f713f328c3fc850ab412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 3300,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 3300n,
             },
             {
                 prevOut: {
@@ -12689,25 +12680,24 @@ export const agoraPartialBuxBuyTx = {
                 },
                 inputScript:
                     '412f68bc4b72f9df1435d4046719b793556295fbe02d80c8752acf587afac49d09f160ba04f2dfd5c1fa9ae5e294e31d5b8efc331074cefa08bfe7e2106e46b34a412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 202656827,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 202656827n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000000080000000000057ba508000000000002257b',
+                sats: 0n,
             },
             {
-                value: 43144579,
                 outputScript:
                     '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
+                sats: 43144579n,
             },
             {
-                value: 546,
                 outputScript: 'a914502ed21ca74bde03d7fb672ed9c996eab92e72fd87',
                 token: {
                     tokenId:
@@ -12717,13 +12707,13 @@ export const agoraPartialBuxBuyTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '359333',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 359333n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -12734,19 +12724,20 @@ export const agoraPartialBuxBuyTx = {
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '140667',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 140667n,
                 },
+                sats: 546n,
             },
             {
-                value: 159544005,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '40c5a257a9797bf9cb44f0f1fe7ee08d732a151c70f1a038487bac4a431b7787',
                     outIdx: 1,
                 },
+                sats: 159544005n,
             },
         ],
         lockTime: 1191609411,
@@ -12766,9 +12757,9 @@ export const agoraPartialBuxBuyTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -12885,7 +12876,6 @@ export const SlpNftParentMintTx = {
                 },
                 inputScript:
                     '413bcbae418f71ecbc9b5a2ecbe9d7d7bd61a7473399ccfe4176e62fe51fe4cdba2dc8cb42088207ee4daf8c4a618e7e4a9773f969e681c8e2b552b13fc8ddc8e8412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -12895,12 +12885,13 @@ export const SlpNftParentMintTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -12909,20 +12900,19 @@ export const SlpNftParentMintTx = {
                 },
                 inputScript:
                     '41f5fe8b075e9f9ab3b3c69b8e5621c9de49c4daffb698097149bdb57f4d472e0d1a9692df4d07ec64d4102c10a76bdc6bc6ef9df630061b34a1d19f50f1e97ef4412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 71580707,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 71580707n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c50000181044d494e54205a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f86200102080000000000000001',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -12933,13 +12923,13 @@ export const SlpNftParentMintTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -12950,19 +12940,20 @@ export const SlpNftParentMintTx = {
                         type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                         number: 129,
                     },
-                    amount: '0',
                     isMintBaton: true,
                     entryIdx: 0,
+                    atoms: 0n,
                 },
                 spentBy: {
                     txid: '5d934ade992707fe126bcd393ad4358b2c10118b635df4b97e3e3f30ca7cc781',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 71579701,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 71579701n,
             },
         ],
         lockTime: 0,
@@ -12982,9 +12973,9 @@ export const SlpNftParentMintTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -13064,7 +13055,6 @@ export const alpBurnTx = {
                 },
                 inputScript:
                     '41eed3688821e81f77edcf70e877d6b270acbd1714b82ea9b58fe0239e3dfccd73da5a1dd5d2906a40624d172e1a4273eda5e2feb902d74b73e264f9ef469c0a99412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -13074,12 +13064,13 @@ export const alpBurnTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99999',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 99999n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -13088,20 +13079,19 @@ export const alpBurnTx = {
                 },
                 inputScript:
                     '41bfbaae1e96b3a3d7fbbe24c2cd9ac07e48b7340e24635a8005be1b94563bc0e020d073d8a88e9af4a5a067ff9dcd6601f35611399d70f2958ff7ce22770792a7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 2812672,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 2812672n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a5030534c503200044255524e3f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1101000000000031534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e11019e8601000000',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -13112,15 +13102,16 @@ export const alpBurnTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99998',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 99998n,
                 },
+                sats: 546n,
             },
             {
-                value: 2812202,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 2812202n,
             },
         ],
         lockTime: 0,
@@ -13140,9 +13131,9 @@ export const alpBurnTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '1',
-                intentionalBurn: '1',
                 burnsMintBatons: false,
+                actualBurnAtoms: 1n,
+                intentionalBurnAtoms: 1n,
             },
         ],
         tokenFailedParsings: [],
@@ -13220,7 +13211,6 @@ export const alpAgoraListingTx = {
                 },
                 inputScript:
                     '41063618b40515cc62f4c2802f4f76ae729cfe31351f419634560bff37fbb8fa3dce1efb084e12a5e983beb893e945854470f409c1ec1c8c48b2baf7f5d80cb5e1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -13230,12 +13220,13 @@ export const alpAgoraListingTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '98082',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 98082n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -13244,7 +13235,6 @@ export const alpAgoraListingTx = {
                 },
                 inputScript:
                     '41c143430106e44093436317fb23c3eb96e453ea500e47ea4d1952fdb917c4423abc52a51f0163e193704c6879fd0ff005423ae60ff4f75c7ff234cb6d45ef0391412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -13254,22 +13244,22 @@ export const alpAgoraListingTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '1024',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1024n,
                 },
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 546n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a504b41475230075041525449414c0001a4540000000000009006000000000000a4540000000000006f67825703771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba631534c5032000453454e443f93ce4cbff80c9cfc7647fe0c6d99b61248dce720a27f3723cd4737d35b6e1101228301000000',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript: 'a91410596364db3336ec723ce7eaa296e7fa7dbe070687',
                 plugins: {
                     agora: {
@@ -13297,14 +13287,15 @@ export const alpAgoraListingTx = {
                         type: 'ALP_TOKEN_TYPE_STANDARD',
                         number: 0,
                     },
-                    amount: '99106',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 99106n,
                 },
                 spentBy: {
                     txid: 'a6d65d619bbb03c4490498f7fe1d5413e92df064915a3533a09e8a4ba1762255',
                     outIdx: 1,
                 },
+                sats: 546n,
             },
         ],
         lockTime: 0,
@@ -13324,9 +13315,9 @@ export const alpAgoraListingTx = {
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -13404,10 +13395,10 @@ export const paywallPaymentTx = {
                 },
                 inputScript:
                     '483045022100a58e1087f128d676d4b5839c795df15b88b87b47b0c8f382d39811ee5df21cf6022022727ede00178347e0ab0dd3df91959378c25a29f902a4f8b4f1c79ddd7cf15241210216794b896521c52b0b156d886652859d1e4e03a9cd8f3894f4b1e1853092a3c7',
-                value: 550,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac',
+                sats: 550n,
             },
             {
                 prevOut: {
@@ -13416,31 +13407,31 @@ export const paywallPaymentTx = {
                 },
                 inputScript:
                     '483045022100856c2d015d7384a094d0c17dde0ec29ee37ddf64c914a6c1d12c9bd92724bc52022027d9f6525c49786e5454615e605d1af0aa4fa0860eea39e927316042ba3557f141210216794b896521c52b0b156d886652859d1e4e03a9cd8f3894f4b1e1853092a3c7',
-                value: 27419,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac',
+                sats: 27419n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a0470617977204d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4',
+                sats: 0n,
             },
             {
-                value: 15000,
                 outputScript:
                     '76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac',
                 spentBy: {
                     txid: '84d75fe93ab918e74e58c1a12a982d0cc8d1db1bb102f02068772723891711b3',
                     outIdx: 0,
                 },
+                sats: 15000n,
             },
             {
-                value: 12056,
                 outputScript:
                     '76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac',
+                sats: 12056n,
             },
         ],
         lockTime: 0,
@@ -13535,15 +13526,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 680782,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13552,15 +13543,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 681191,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13569,15 +13560,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 685181,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13586,15 +13577,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 709251,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
-            tokenType: [Object],
-            amount: '1000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13603,15 +13594,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 717055,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'e859eeb52e7afca6217fb36784b3b6d3c7386a52f391dd0d00f2ec03a5e8e77b',
-            tokenType: [Object],
-            amount: '10',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 10n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13620,15 +13611,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '44929ff3b1fc634f982fede112cf12b21199a2ebbcf718412a38de9177d77168',
-            tokenType: [Object],
-            amount: '2',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13637,15 +13628,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 727176,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b40d1f6acdb6ee68d7eca0167fe2753c076bc309b2e3b1af8bff70ca34b945b0',
-            tokenType: [Object],
-            amount: '5000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 5000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13654,15 +13645,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '8ead21ce4b3b9e7b57607b97b65b5013496dc6e3dfdea162c08ce7265a66ebc8',
-            tokenType: [Object],
-            amount: '100000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 100000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13671,15 +13662,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 757311,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
-            tokenType: [Object],
-            amount: '116',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 116n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13688,15 +13679,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 758209,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'da9460ce4b1c92b4f6ef4e4a6bc2d05539f49d02b17681389d9ce22b8dca50f0',
-            tokenType: [Object],
-            amount: '311',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 311n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13705,15 +13696,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 758645,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-            tokenType: [Object],
-            amount: '4588000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 4588000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13722,15 +13713,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 758887,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-            tokenType: [Object],
-            amount: '229400000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 229400000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13739,15 +13730,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 759037,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
-            tokenType: [Object],
-            amount: '7777777777',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 7777777777n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13756,15 +13747,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 759839,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-            tokenType: [Object],
-            amount: '229400000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 229400000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13773,15 +13764,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 760076,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-            tokenType: [Object],
-            amount: '123456789',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 123456789n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13790,15 +13781,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 764737,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
-            tokenType: [Object],
-            amount: '1699',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1699n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13807,15 +13798,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 767640,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
-            tokenType: [Object],
-            amount: '99999998',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 99999998n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13824,15 +13815,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 767649,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
-            tokenType: [Object],
-            amount: '100000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 100000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13841,15 +13832,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 768787,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13858,15 +13849,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 769675,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
-            tokenType: [Object],
-            amount: '200',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 200n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13875,15 +13866,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 770363,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
-            tokenType: [Object],
-            amount: '9900',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 9900n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13892,15 +13883,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 770363,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '157e0cdef5d5c51bdea00eac9ab821d809bb9d03cf98da85833614bedb129be6',
-            tokenType: [Object],
-            amount: '82',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 82n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13909,15 +13900,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 770387,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
-            tokenType: [Object],
-            amount: '9989',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 9989n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13926,15 +13917,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 772042,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
-            tokenType: [Object],
-            amount: '42300000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 42300000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13943,15 +13934,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 774343,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
-            tokenType: [Object],
-            amount: '999882000000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 999882000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13960,15 +13951,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 776118,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '6e24e89b6d5284138c69777527760500b99614631bca7f2a5c38f4648dae9524',
-            tokenType: [Object],
-            amount: '999999878',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 999999878n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13977,15 +13968,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 780736,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-            tokenType: [Object],
-            amount: '2',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 2n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -13994,15 +13985,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 780736,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-            tokenType: [Object],
-            amount: '23',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 23n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14011,15 +14002,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 780736,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-            tokenType: [Object],
-            amount: '65',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 65n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14028,15 +14019,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 782774,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7',
-            tokenType: [Object],
-            amount: '3',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 3n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14045,15 +14036,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 783389,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-            tokenType: [Object],
-            amount: '123456844',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 123456844n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14062,15 +14053,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 783638,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
-            tokenType: [Object],
-            amount: '8988',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 8988n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14079,15 +14070,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 783638,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-            tokenType: [Object],
-            amount: '995921',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 995921n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14096,15 +14087,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 783693,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '70ead4d94c43fe8c5576bb2528fd54380d8356f632ac962b1e03fb287607dfd4',
-            tokenType: [Object],
-            amount: '100',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14113,15 +14104,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 783694,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'ff9aa6eebcd1331f8684d53b441cfa3060a4ffc403b417d5728de8ab231f5516',
-            tokenType: [Object],
-            amount: '100',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14130,15 +14121,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 783695,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'f077f207fc8a8557e5f0ffc6021685ab4b357e9b92d2b5c4192dcb7760ee6e29',
-            tokenType: [Object],
-            amount: '100',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14147,15 +14138,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 784246,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3adbf501e21c711d20118e003711168eb39f560c01f4c6d6736fa3f3fceaa577',
-            tokenType: [Object],
-            amount: '999998999',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 999998999n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14164,15 +14155,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 784262,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14181,15 +14172,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 784460,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3de671a7107d3803d78f7f4a4e5c794d0903a8d28d16076445c084943c1e2db8',
-            tokenType: [Object],
-            amount: '2100',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 2100n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14198,15 +14189,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 787547,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
-            tokenType: [Object],
-            amount: '2998978719999999999',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 2998978719999999999n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14215,15 +14206,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 792712,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
-            tokenType: [Object],
-            amount: '999824',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 999824n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14232,15 +14223,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 800716,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
-            tokenType: [Object],
-            amount: '999977636',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 999977636n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14249,15 +14240,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 800716,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
-            tokenType: [Object],
-            amount: '5235120528888890',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 5235120528888890n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14266,15 +14257,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 802851,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b977630ae1b4a0fe3ab12385fdaaffd974e5bd352f2a817ce135c1ee6005a35d',
-            tokenType: [Object],
-            amount: '75',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 75n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14283,15 +14274,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 802851,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b977630ae1b4a0fe3ab12385fdaaffd974e5bd352f2a817ce135c1ee6005a35d',
-            tokenType: [Object],
-            amount: '652',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 652n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14300,15 +14291,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 803616,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc',
-            tokenType: [Object],
-            amount: '78',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 78n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14317,15 +14308,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 803741,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc',
-            tokenType: [Object],
-            amount: '43',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 43n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14334,15 +14325,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 824524,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
-            tokenType: [Object],
-            amount: '330000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 330000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14351,15 +14342,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 824524,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
-            tokenType: [Object],
-            amount: '24999698951',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 24999698951n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14368,15 +14359,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 825739,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '639a8dba34788ff3ebd3977d4ac045825394285ee648bb1d159e1c12b787ff25',
-            tokenType: [Object],
-            amount: '1000000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14385,15 +14376,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 825842,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
-            tokenType: [Object],
-            amount: '5344445',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 5344445n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14402,15 +14393,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 832625,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
-            tokenType: [Object],
-            amount: '1000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14419,15 +14410,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 832788,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
-            tokenType: [Object],
-            amount: '10000000000000000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 10000000000000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14436,15 +14427,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 833612,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-            tokenType: [Object],
-            amount: '10000000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 10000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14453,15 +14444,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 834541,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823',
-            tokenType: [Object],
-            amount: '9899',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 9899n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14470,15 +14461,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 835070,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenType: [Object],
-            amount: '3325',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 3325n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14487,15 +14478,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 835482,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '01d63c4f4cb496829a6743f7b1805d086ea3877a1dd34b3f92ffba2c9c99f896',
-            tokenType: [Object],
-            amount: '21000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 21000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14504,15 +14495,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 835635,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenType: [Object],
-            amount: '39',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 39n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14521,15 +14512,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836041,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '666c4318d1f7fef5f2c698262492c519018d4e9130f95d05f6be9f0fb7149e96',
-            tokenType: [Object],
-            amount: '94',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 94n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14538,15 +14529,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836041,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
-            tokenType: [Object],
-            amount: '4',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 4n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14555,15 +14546,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836444,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenType: [Object],
-            amount: '22',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 22n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14572,15 +14563,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836456,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14589,15 +14580,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836457,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenType: [Object],
-            amount: '11',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 11n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14606,15 +14597,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836458,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenType: [Object],
-            amount: '1',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 1n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14623,15 +14614,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 836820,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '9404761d1a01cca11c29eb8ed9ddc63966526d0eaa54f148e8862ab3e884132f',
-            tokenType: [Object],
-            amount: '55000000000',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 55000000000n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14640,15 +14631,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 837493,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
-            tokenType: [Object],
-            amount: '844601876543211',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 844601876543211n,
         },
+        sats: 546n,
     },
     {
         outpoint: {
@@ -14657,15 +14648,15 @@ export const chronikSlpUtxos = [
         },
         blockHeight: 837494,
         isCoinbase: false,
-        value: 546,
         isFinal: true,
         token: {
             tokenId:
                 '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenType: [Object],
-            amount: '885',
+            tokenType: [],
             isMintBaton: false,
+            atoms: 885n,
         },
+        sats: 546n,
     },
 ];
 export const chronikTokenMocks = {
@@ -14703,20 +14694,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100da06aaec82dccaea628d08909b01820382f6d746970e31716c9cd14d191dd54902204ad630ec7727d6b2ad183dfa6585baa1fd2fe6fed642d8adabfa3eda495969cc412103317bf85b65f7443e4c0308064a2104a617bfe0467b4e8b6f3b01a8f4e78aaa7d',
-                    value: 7055848,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91459b025ac71f8d6efc7e08fcad47cfab7c063c23a88ac',
+                    sats: 7055848n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495302535402535415646576656c6f7065722e626974636f696e2e636f6d4c000100010208000000000000018f',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a9142ba1f72161a53720df933ea9b2116351c4162abd88ac',
                     token: {
@@ -14727,17 +14717,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '399',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 399n,
                     },
                     spentBy: {
                         txid: '634ddf7468ff8fb493dcd1324f47452c0f668507863058182f861dce85a0dd1a',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a9142ba1f72161a53720df933ea9b2116351c4162abd88ac',
                     token: {
@@ -14748,23 +14738,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
                     spentBy: {
                         txid: '691b1af9b93a91f6c1974269d3167bfe440f304c610e099ca5ce4d24da60afa1',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 7054427,
                     outputScript:
                         '76a91459b025ac71f8d6efc7e08fcad47cfab7c063c23a88ac',
                     spentBy: {
                         txid: '634ddf7468ff8fb493dcd1324f47452c0f668507863058182f861dce85a0dd1a',
                         outIdx: 0,
                     },
+                    sats: 7054427n,
                 },
             ],
             lockTime: 0,
@@ -14784,9 +14775,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -14839,20 +14830,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220790564ba25ea20d058d7175b36659d8635fd9df0e6b025cabebbe63a6b1ff93102200e31ed7c18b594cd4a141b7e44bca5374eb1d357139aebeeccc1317c2666f8e3412102975d8bd9f427a3af5391d701e7eeb39087e9b2be70c166c84864b3ac5bc72ab4',
-                    value: 314238,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a9148b416c67003eb796880cbc0ad08d5130774974bc88ac',
+                    sats: 314238n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953035441501454686f756768747320616e6420507261796572734c004c00010001020800000000000f4240',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914458ea8631f32b296df9ab677b6e8a7e422e7161e88ac',
                     token: {
@@ -14863,17 +14853,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000n,
                     },
                     spentBy: {
                         txid: '29f125b70e67a336078e1e5ed87934da07d92a15e3a5884bc3efdee861327dc9',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914458ea8631f32b296df9ab677b6e8a7e422e7161e88ac',
                     token: {
@@ -14884,19 +14874,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 312819,
                     outputScript:
                         '76a914d74575d2af329d25f44863d6c50675d26ad440ac88ac',
                     spentBy: {
                         txid: '29f125b70e67a336078e1e5ed87934da07d92a15e3a5884bc3efdee861327dc9',
                         outIdx: 0,
                     },
+                    sats: 312819n,
                 },
             ],
             lockTime: 580702,
@@ -14916,9 +14907,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -14971,20 +14962,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100e28006843eb071ec6d8dd105284f2ca625a28f4dc85418910b59a5ab13fc6c2002205921fb12b541d1cd1a63e7e012aca5735df3398525f64bac04337d21029413614121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-                    value: 91048,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+                    sats: 91048n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -14995,17 +14985,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100n,
                     },
                     spentBy: {
                         txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -15016,19 +15006,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 89406,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     spentBy: {
                         txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
                         outIdx: 0,
                     },
+                    sats: 89406n,
                 },
             ],
             lockTime: 0,
@@ -15048,9 +15039,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15103,20 +15094,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100dad1d237b541b4a4d29197dbb01fa9755c2e17bbafb42855f38442b428f0df6b02205772d3fb00b7a053b07169e1534770c091fce42b9e1d63199f46ff89856b3fc6412102ceb4a6eca1eec20ff8e7780326932e8d8295489628c7f2ec9acf8f37f639235e',
-                    value: 49998867,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91485bab3680833cd9b3cc60953344fa740a2235bbd88ac',
+                    sats: 49998867n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303504f571850726f6f666f6657726974696e672e636f6d20546f6b656e2168747470733a2f2f7777772e70726f6f666f6677726974696e672e636f6d2f32364c0001004c000800000000000f4240',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91485bab3680833cd9b3cc60953344fa740a2235bbd88ac',
                     token: {
@@ -15127,23 +15117,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000n,
                     },
                     spentBy: {
                         txid: '69238630eb9e6a9864bf6970ff5d326800cea41a819feebecfe1a6f0ed651f5c',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 49997563,
                     outputScript:
                         '76a91485bab3680833cd9b3cc60953344fa740a2235bbd88ac',
                     spentBy: {
                         txid: '3c665488929f852d93a5dfb6e4b4df7bc8f7a25fb4a2480d39e3de7a30437f69',
                         outIdx: 0,
                     },
+                    sats: 49997563n,
                 },
             ],
             lockTime: 0,
@@ -15163,9 +15154,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15218,20 +15209,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220633ab93a41745a538c85f71adf934f32b5db2304df9b29af72808ac4f4951b7b022003dc12649727b2c9897c32eadc25255ca9aad1035a24156ae13834dd8c8c557a4121034cdb43b7a1277c4d818dc177aaea4e0bed5d464d240839d5488a278b716facd5',
-                    value: 998991395,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
+                    sats: 998991395n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953047465737404746573741468747470733a2f2f636173687461622e636f6d2f4c0001014c0008000000000000000a',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
                     token: {
@@ -15242,23 +15232,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10n,
                     },
                     spentBy: {
                         txid: '01e95bbde7013640637b4862812fece434bcfd7a97de852f30ef545add22498b',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 998990326,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
                     spentBy: {
                         txid: '0cfd62634b11ef341fc760bd9ede68f51ed4dfeef5b4b6a42a70620104d5bdaf',
                         outIdx: 0,
                     },
+                    sats: 998990326n,
                 },
             ],
             lockTime: 0,
@@ -15278,9 +15269,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15333,20 +15324,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402206eaea3002652d5aabec115ed05277034afb2f145e290edaba04ea21f08decc5402205ffcf324eb8d224db589609f51223f426c67e469687fb569dac8e16a0fd2b6c541210235fc1c027cad5ad3972fe9f23b1cc6fb35e68155a9b4eacb0da7ccce7abb8231',
-                    value: 9622,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914a76859a9ce3fdbe80cdc306f71074f08d9e4822f88ac',
+                    sats: 9622n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495304636f696e086a6f686e636f696e1468747470733a2f2f636173687461622e636f6d2f4c0001004c000800000000000000c3',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914c1aadc99f96fcfcfe5642ca29a53e701f0b801c388ac',
                     token: {
@@ -15357,19 +15347,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '195',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 195n,
                     },
                     spentBy: {
                         txid: '0bd0c49135b94b99989ec3b0396020a96fcbe2925bb25c40120dc047c0a097ec',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 8553,
                     outputScript:
                         '76a914c1aadc99f96fcfcfe5642ca29a53e701f0b801c388ac',
+                    sats: 8553n,
                 },
             ],
             lockTime: 0,
@@ -15389,9 +15380,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15444,20 +15435,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022020a2a23fd89f4b4d5e4869cb46a760cb577f61d18f895318f2f125bcdc550d1202203bbe0471194c64d33964eddf601fcfbb58b1c5553b2acbade9dc08394c4ad5b841210303329ad4e5b324a95fb05f4e4d6dbcb36b90ef87dc958bd3af49de1b016ed9da',
-                    value: 110000,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914a528a001f9f027aae05085928d0b23172fd4b5a188ac',
+                    sats: 110000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034b4154074b415f546573741468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000005f5e100',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914a528a001f9f027aae05085928d0b23172fd4b5a188ac',
                     token: {
@@ -15468,23 +15458,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100000000n,
                     },
                     spentBy: {
                         txid: '8f645ce7b231a3ea81168229c1b6a1157e8a58fb8a8a127a80efc2ed39c4f72e',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 108931,
                     outputScript:
                         '76a914a528a001f9f027aae05085928d0b23172fd4b5a188ac',
                     spentBy: {
                         txid: '8f645ce7b231a3ea81168229c1b6a1157e8a58fb8a8a127a80efc2ed39c4f72e',
                         outIdx: 0,
                     },
+                    sats: 108931n,
                 },
             ],
             lockTime: 0,
@@ -15504,9 +15495,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15559,20 +15550,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '48304502210083c37da94557747a11ff069a68cde4b3859fc22ab56dbfef0dbf28a6af805999022063e8041b9a42bd8f68b474d124f797e879855282347ed13e04f3ad18129ce33f412102bfc0d9d71891a7bd89b4a89f4675fd341a054561438f186e6bfd1007d818666a',
-                    value: 551610,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91462e332f00918c58c3d8e9c66e6d47b33c549203f88ac',
+                    sats: 551610n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530349465025496e6672617374727563747572652046756e64696e672050726f706f73616c20546f6b656e086966702e6361736820b1674191a88ec5cdd733e4240a81803105dc412d6c6708d53ab94fc248f4f55301084c0008000775f05a074000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a9146e68110cc00a5d5f1c6c796c1a54f26b364cf06988ac',
                     token: {
@@ -15583,23 +15573,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '2100000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 2100000000000000n,
                     },
                     spentBy: {
                         txid: 'a00c5a27f07ed26b116f219d6e666ad171e1420d27f108417a51ac6fa9b03c03',
                         outIdx: 0,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 550715,
                     outputScript:
                         '76a91462e332f00918c58c3d8e9c66e6d47b33c549203f88ac',
                     spentBy: {
                         txid: 'fadf79b051e33dcfeea92f497a60c6ce36cd2a8ad230f879fb135eae08c1a0c4',
                         outIdx: 15,
                     },
+                    sats: 550715n,
                 },
             ],
             lockTime: 0,
@@ -15619,9 +15610,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15674,20 +15665,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100888814e0ea95c9513fe58293b8e71ee34bb321b8502075168428d7aa1ec5c4b80220200da569892cd8514c2c20d0d914cb24fd09ea23fe186d56c691aa5e1ad3800f412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1497154381,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1497154381n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530543544c7633244361736874616220546f6b656e204c61756e6368204c61756e636820546f6b656e2076330a636f696e65782e636f6d4c0001004c0008000000000000014d',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -15698,23 +15688,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '333',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 333n,
                     },
                     spentBy: {
                         txid: '34caddbb70b152f555366d6719d7fcc7c263a2c77b8981819c1a0bfd7cce8e98',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 1497153077,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'e0d6d7d46d5fc6aaa4512a7aca9223c6d7ca30b8253dee1b40b8978fe7dc501e',
                         outIdx: 1,
                     },
+                    sats: 1497153077n,
                 },
             ],
             lockTime: 0,
@@ -15734,9 +15725,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15789,20 +15780,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100d1f85f02b397b6b5646449d797da19506d49cb6e80670e01ad82a213db97464402204a5b5d5e422f63a967959913417b996839b5ff6c56a7ced882cb10fb16e1ff1f412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 3491579877,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 3491579877n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530253410d5370696e6e657220416c7068611768747470733a2f2f636173687461626170702e636f6d2f4c0001004c0008000000000000014d',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -15813,23 +15803,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '333',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 333n,
                     },
                     spentBy: {
                         txid: '696265ced15b8fdbacfa1a4f5e779575ff5faaf3ff4ad09e5691b2ed4cf50a84',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 3491578808,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '562d7f91e21f124c3aaa826e08f6a59f49343a7c0411ff077f5aacfd858f0ec4',
                         outIdx: 0,
                     },
+                    sats: 3491578808n,
                 },
             ],
             lockTime: 0,
@@ -15849,9 +15840,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -15904,10 +15895,10 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022075166617aa473e86c72f34a5576029eb8766a035b481864ebc75759155efcce00220147e2d7e662123bd728fac700f109a245a0278959f65fc402a1e912e0a5732004121034cdb43b7a1277c4d818dc177aaea4e0bed5d464d240839d5488a278b716facd5',
-                    value: 1000,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
+                    sats: 1000n,
                 },
                 {
                     prevOut: {
@@ -15916,20 +15907,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4830450221009e98db4b91441190bb7e4745b9f249201d0b54c81c0a816af5f3491ffb21a7e902205a4d1347a5a9133c14e4f55319af00f1df836eba6552f30b44640e9373f4cabf4121034cdb43b7a1277c4d818dc177aaea4e0bed5d464d240839d5488a278b716facd5',
-                    value: 750918004,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
+                    sats: 750918004n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495305416c69746105416c6974610a616c6974612e636173684c0001044c00080000befe6f672000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
                     token: {
@@ -15940,23 +15930,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '210000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 210000000000000n,
                     },
                     spentBy: {
                         txid: '2c336374c05f1c8f278d2a1d5f3195a17fe1bc50189ff67c9769a6afcd908ea9',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 750917637,
                     outputScript:
                         '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
                     spentBy: {
                         txid: 'ca70157d5cf6275e0a36adbc3fabf671e3987f343cb35ec4ee7ed5c8d37b3233',
                         outIdx: 0,
                     },
+                    sats: 750917637n,
                 },
             ],
             lockTime: 0,
@@ -15976,9 +15967,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16031,20 +16022,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100ab2a1e04a156e9cc5204e11e77ba399347f3b7ea3e05d45897c7fb7c6854a7ff022065c7e096e0526a0af223ce32e5e162aa577c42f7da231c13e28ebc3532396f20412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1300,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1300n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953035544540a557064617465546573741468747470733a2f2f636173687461622e636f6d2f4c0001074c000800000001cf977871',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -16055,10 +16045,11 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '7777777777',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 7777777777n,
                     },
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -16078,9 +16069,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16133,20 +16124,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402203eb4229f825fc4ff6cebe4768821cb8b65c55a39577ed17438f29207785dcbc4022075793f39aa7448c5a56ab5d1317fa822ccac1b010bb0a63c7adbad025d53a43c4121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-                    value: 100000,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+                    sats: 100000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034354420b43617368546162426974731768747470733a2f2f636173687461626170702e636f6d2f4c0001090102088ac7230489e80000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -16157,17 +16147,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000000000000000000n,
                     },
                     spentBy: {
                         txid: 'f517a560df3b7939bce51faddff4c3bac25fff3e94edbf93546cbeda738bf8f3',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -16178,19 +16168,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 98358,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     spentBy: {
                         txid: '6a4c8bfa2e3ca345795dc3bde84d647390e9e1f2ff96e535cd2754d8ea5a3539',
                         outIdx: 0,
                     },
+                    sats: 98358n,
                 },
             ],
             lockTime: 0,
@@ -16210,9 +16201,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16265,20 +16256,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220058d0e566c59804ac96c4a05dc7ab49f387b6046175c97a8c829994d280428050220220159d839b46539ce8b8d08577f970169032f59a993437719f491f945a45b13412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1497155685,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1497155685n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530443544c32244361736874616220546f6b656e204c61756e6368204c61756e636820546f6b656e2076321074686563727970746f6775792e636f6d4c0001004c000800000000000007d0',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -16289,23 +16279,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '2000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 2000n,
                     },
                     spentBy: {
                         txid: '9f4c66b82f5b41f474f9670311e834667c0207a81f9e31a65731a7731e86c3ee',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 1497154381,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
                         outIdx: 0,
                     },
+                    sats: 1497154381n,
                 },
             ],
             lockTime: 0,
@@ -16325,9 +16316,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16380,10 +16371,10 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402202fff3979f9cf0a5052655c8699081a77a653903de41547928db0b94601aa082502207cdb909e3a7b2b7f8a3eb80243a1bd2fd8ad9449a0ec30242ae4b187436d11a0412103b30e7096c6e3a3b45e5aba4ad8fe48a1fdd7c04de0de55a43095e7560b52e19d',
-                    value: 546,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91433c0448680ca324225eeca7a230cf191ab88400288ac',
+                    sats: 546n,
                 },
                 {
                     prevOut: {
@@ -16392,20 +16383,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022011a39acbbb80c4723822d434445fc4b3d72ad0212902fdb183a5408af00e158c02200eb3778b1af9f3a8fe28b6670f5fe543fb4c190f79f349273860125be05269b2412103b30e7096c6e3a3b45e5aba4ad8fe48a1fdd7c04de0de55a43095e7560b52e19d',
-                    value: 65084,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91433c0448680ca324225eeca7a230cf191ab88400288ac',
+                    sats: 65084n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953084e414b414d4f544f084e414b414d4f544f4c004c0001084c0008000775f05a074000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91433c0448680ca324225eeca7a230cf191ab88400288ac',
                     token: {
@@ -16416,23 +16406,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '2100000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 2100000000000000n,
                     },
                     spentBy: {
                         txid: '5f4c275fe00896031757fb8f771cf9ff64ef90112ff2d8cd75c3d792338f7767',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 64650,
                     outputScript:
                         '76a91433c0448680ca324225eeca7a230cf191ab88400288ac',
                     spentBy: {
                         txid: '4bc56e2c0358dbfa169e0feadf8edade0b76773f3bfad3f44b042e9bc5cd5d7f',
                         outIdx: 0,
                     },
+                    sats: 64650n,
                 },
             ],
             lockTime: 555670,
@@ -16452,9 +16443,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16507,20 +16498,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220288fe3c2dda913b7f9c002f944bd946e4a9c98bd5f94d7295fdc1e5bad64cca202200f80b8c84ac71105c01b94c88aec7a8327afed540333a7108dc07346d3b19e3c41210302850962f13b498608a38f82ce5a037da70d659bec50af746816d44e9e732e02',
-                    value: 995151,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914d4fa9121bcd065dd93e58831569cf51ef5a74f6188ac',
+                    sats: 995151n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953035847420b4761726d6f6e626f7a69612d68747470733a2f2f7477696e7065616b732e66616e646f6d2e636f6d2f77696b692f4761726d6f6e626f7a69614c0001084c0008000000174876e800',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914d4fa9121bcd065dd93e58831569cf51ef5a74f6188ac',
                     token: {
@@ -16531,23 +16521,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100000000000n,
                     },
                     spentBy: {
                         txid: 'f2d492da069429866c8ed59fd0d5283b8a8da881414633ac35979a2891030c57',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 993847,
                     outputScript:
                         '76a914d4fa9121bcd065dd93e58831569cf51ef5a74f6188ac',
                     spentBy: {
                         txid: '8c31247864b54642d8f6ef2a9e6a444a828beaa51e9afb3cdbc6e4cac9b39a89',
                         outIdx: 1,
                     },
+                    sats: 993847n,
                 },
             ],
             lockTime: 0,
@@ -16567,9 +16558,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16622,20 +16613,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022045cd384954a2e3f0446e72345b87e117b1e553970a33c3ad135f5f2911bf804502205f07693f399b7922bd16f3318c392887234c89aff8b76ecb3fed0d18f6abfdd9412102fde03670ccc6950b76029ef131280b604df9b44d4520cd9df9023aade2082b07',
-                    value: 99141,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a914726e13d2a9f4de19146a69d8a464d96674bc4ec288ac',
+                    sats: 99141n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495304484f4e4b09484f4e4b20484f4e4b17544845205245414c20484f4e4b20534c5020544f4b454e4c0001004c0008000000174876e800',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91453c0098567382f003437a016edcc47de1436746988ac',
                     token: {
@@ -16646,23 +16636,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100000000000n,
                     },
                     spentBy: {
                         txid: 'd9f1c4833aa9b6e91d589c46783ec4c7e6225b754d1c0d8cd06a7d65bc71e696',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 98290,
                     outputScript:
                         '76a9145afb7e1a1216788d7c69c509269d75b8750e750688ac',
                     spentBy: {
                         txid: '5691fa7fbf62db3964d9bc01ef27cdb392a5051b2c225054dc502b4bfadd377e',
                         outIdx: 1,
                     },
+                    sats: 98290n,
                 },
             ],
             lockTime: 576632,
@@ -16682,9 +16673,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16737,20 +16728,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100d09d803b134f5e320a1487817342b56a017e11a69c2fa106814e3107d8c47fd30220300af9b456fa43049c41dca21d564c434504864c6fc4a3a36941ddaaddcba5b0412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
-                    value: 97862,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+                    sats: 97862n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495307536572766963650945766320746f6b656e1368747470733a2f2f636173687461622e636f6d4c0001004c0008000000161e70f600',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
                     token: {
@@ -16761,23 +16751,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '95000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 95000000000n,
                     },
                     spentBy: {
                         txid: '46da16acb51c912164e7bed0cc515ab6d8898e6d4d3e821d4ee7442587a9a50e',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 96793,
                     outputScript:
                         '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
                     spentBy: {
                         txid: 'd21ae699093349473539b13808618561a350d0c39acc00f3704ba474ad851370',
                         outIdx: 0,
                     },
+                    sats: 96793n,
                 },
             ],
             lockTime: 0,
@@ -16797,9 +16788,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16852,20 +16843,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220608c220025c34683b650ad8b33c3ee891f677f4b3162cec94c865e1e766094340220789e91fffcf5ffb15508429befd5c299f9e86cd49cf203649cbbe384a9998586412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1496725917,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1496725917n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495305434c4e53501a436f6d706f6e656e744c6f6e674e616d6553706565644c6f61641768747470733a2f2f636173687461626170702e636f6d2f4c0001004c00080000000000000064',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -16876,23 +16866,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100n,
                     },
                     spentBy: {
                         txid: '979f7741bb99ef43d7cf55ac5f070408fcb95dfce5818eb44f49e5b759a36d11',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 1496724613,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '28669d88822a1e0c202fb68d6abc36c3b5acc9f1df3c6990d045b119e4b7cc4d',
                         outIdx: 0,
                     },
+                    sats: 1496724613n,
                 },
             ],
             lockTime: 0,
@@ -16912,9 +16903,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -16967,20 +16958,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022062337ef2c17772572dc32f5ba7fb2a272c49009bc947edf8caeacb142ae74999022068752a66f9f653251355231bf9134a9c2309ffbb2070fdcbbf5f16270b45b48b4121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-                    value: 83438,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+                    sats: 83438n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495304584249540565426974731868747470733a2f2f626f6f6d657274616b65732e636f6d2f4c00010901020800038d7ea4c68000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -16991,17 +16981,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000000000000n,
                     },
                     spentBy: {
                         txid: 'ffb660d9ef11879a5c8fce3b11e56819289caf0db49b36b5bb9f90d535ebbc6f',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -17012,19 +17002,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 81796,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     spentBy: {
                         txid: 'ffb660d9ef11879a5c8fce3b11e56819289caf0db49b36b5bb9f90d535ebbc6f',
                         outIdx: 0,
                     },
+                    sats: 81796n,
                 },
             ],
             lockTime: 0,
@@ -17044,9 +17035,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17099,20 +17090,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220478f8eb48e1ff3dd410a97d4033afd23d7ee39ec0ac0450dc6b9160ffe67c84102201b49185a7deb2701956d13601b67802c897a0bf5f0c261f8d259fdafc711ddf3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 140758876,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 140758876n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034342421143617368746162204265746120426974731768747470733a2f2f636173687461626170702e636f6d2f4c0001004c0008000000003b9aca00',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17123,23 +17113,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000000n,
                     },
                     spentBy: {
                         txid: '8ccb8b0eb8f93fcfa4978c60f8aee14bc7e6b4d965d8cb55093f9604f3242d57',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 140757807,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'c6457243bc0ff473b1a442b2f75155fcc020575bad69c45cd8edffa05cb6710a',
                         outIdx: 0,
                     },
+                    sats: 140757807n,
                 },
             ],
             lockTime: 0,
@@ -17159,9 +17150,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17214,20 +17205,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '48304502210089d46c2873cc9d92927e7043e803c9ac1a705508e89de49af25869d7d12879d90220364ee750ac252487dae7bfb71e8de89085f486290654c3acc2efe4f1a08e99654121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-                    value: 86422,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+                    sats: 86422n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953074e4f434f56494419436f7669643139204c69666574696d6520496d6d756e6974794c5168747470733a2f2f7777772e77686f2e696e742f656d657267656e636965732f64697365617365732f6e6f76656c2d636f726f6e6176697275732d323031392f636f7669642d31392d76616363696e65734c00010001020800000000000f4240',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -17238,17 +17228,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000n,
                     },
                     spentBy: {
                         txid: 'cac6ff7ff285f4ae709ca58aad490f51f079c043dfa7f7ecf32086d756fc18a7',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -17259,19 +17249,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 84780,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     spentBy: {
                         txid: 'cac6ff7ff285f4ae709ca58aad490f51f079c043dfa7f7ecf32086d756fc18a7',
                         outIdx: 0,
                     },
+                    sats: 84780n,
                 },
             ],
             lockTime: 0,
@@ -17291,9 +17282,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17346,20 +17337,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022052d51327fd080fb9c8a55b853a6ebc7528b5ad769291405996e5a57bf9e2bfba02201c0855b2544e9689ecc0e154aae6dc451c7a3b5ddf92847905436213cd87dbc8412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 5828,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 5828n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530353524d1653657276657220526564756e64616e6379204d696e741468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000000000005',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17370,23 +17360,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '5',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 5n,
                     },
                     spentBy: {
                         txid: 'c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 4759,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'e5aa45cea8268f873b00134a1981e92e5022e5c15e3ef273be8552b349e01651',
                         outIdx: 0,
                     },
+                    sats: 4759n,
                 },
             ],
             lockTime: 0,
@@ -17406,9 +17397,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17461,20 +17452,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100ed92efcd0c3fd8e241888d85751dc09856a2dbb73038ef6097a1cce91302741e022036c2941b90fbf4607b5a00c872a109630d26beda74763ca9c33f9e7703350053412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 10000,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 10000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034354440c43617368746162204461726b1468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000000002710',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17485,23 +17475,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000n,
                     },
                     spentBy: {
                         txid: '0283492a729cfb7999684e733f2ee76bc4f652b9047ff47dbe3534b8f5960697',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 8931,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '28e406370381e1ef6764bbbb21cf7974e95b84b2c49d204ab9f471d88334af90',
                         outIdx: 5,
                     },
+                    sats: 8931n,
                 },
             ],
             lockTime: 0,
@@ -17521,9 +17512,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17576,20 +17567,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100beb34be709c4060a4c343e899ec8ae5840954c41a0cefc1cfb31d212671f102f022044b1abde3005393e3247ee903646e9c1ecfe2a79b30768f2fde3abe4db485173412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 6212297,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 6212297n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044e4342540e6e657743686174426f745465737412616c6961732e65746f6b656e732e636173684c0001004c00080000000000000064',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17600,19 +17590,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 6211296,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'c2c6b5a7b37e983c4e193900fcde2b8139ef4c3db2fd9689c354f6ea65354f15',
                         outIdx: 0,
                     },
+                    sats: 6211296n,
                 },
             ],
             lockTime: 0,
@@ -17632,9 +17623,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17687,20 +17678,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022006360a62732061dc50a6ccee96ff432f8306482eccdfa04a381d69e92ec9ba090220754d5cdc43e321e4ab4875f9df6759b7c6202c90f8ca56b38186f8a5e7104c66412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 9030220,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 9030220n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044e4342540e6e657743686174426f745465737412616c6961732e65746f6b656e732e636173684c0001004c00080000000000000064',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17711,19 +17701,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 9029219,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '19cc36305423ddf2fefd400663a9938b5cb342a82ebd00f6251ee8bb5c58c855',
                         outIdx: 0,
                     },
+                    sats: 9029219n,
                 },
             ],
             lockTime: 0,
@@ -17743,9 +17734,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17798,20 +17789,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402202425b99ebe499a5e8cada7375526251409d7800bf4bd128ca6494e7fa2ee6709022064c3b22d0611d7585c56cd8e8e655b74ed9bbbc8ab9a2277524dacc7a6939726412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 15250788,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 15250788n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044e4342540e6e657743686174426f745465737412616c6961732e65746f6b656e732e636173684c0001004c00080000000000000064',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17822,19 +17812,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 15249787,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '03d227c6ae528bd6644487f394f5ddb065eea5c2ff97cae9b032d6efc46edea8',
                         outIdx: 0,
                     },
+                    sats: 15249787n,
                 },
             ],
             lockTime: 0,
@@ -17854,9 +17845,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -17909,20 +17900,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402203d613e2f0c10a37c9305130b896d9b00755c24b21c91d3115ed6f240fde78de102202c730ebfb3d109cd6c3f8fe89941c40a88e890a99d932a261eb71c144683d30e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 206527138,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 206527138n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034f4d49074f6d6963726f6e076364632e676f764c0001004c0008000000003b9aca00',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -17933,23 +17923,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000000n,
                     },
                     spentBy: {
                         txid: '702e1b64aed21bc764c83f638407f7f73245604d8d9c36f03e048a8005b8ccfd',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 206526069,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'f83ed4755d3356181a3a0f2a1b8181f7616d76149ce8bcccc751eb4a8c3b91f2',
                         outIdx: 1,
                     },
+                    sats: 206526069n,
                 },
             ],
             lockTime: 0,
@@ -17969,9 +17960,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18024,20 +18015,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402202215015f8d4ff32bf16d579c3db882c6d33ad32cddd05c846f13a1c89e04ec8e02203581865f2d9a0c5107467dcdc38b831156b831ab2d259cc6f234828f78151921412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 29074919,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 29074919n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303434c421243617368746162204c6f63616c20426574610f626f6f6d657274616b65732e636f6d4c0001024c000800000000000008ae',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -18048,23 +18038,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '2222',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 2222n,
                     },
                     spentBy: {
                         txid: '123a31b903c9a7de544a443a02f73e0cbee6304931704e55d0583a8aca8df48e',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 29073850,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'd83677da1b3ade24e9fdcc2a47e3ba87e1fbe1de9e13075d79d16819952a8789',
                         outIdx: 2,
                     },
+                    sats: 29073850n,
                 },
             ],
             lockTime: 0,
@@ -18084,9 +18075,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18139,20 +18130,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '46304302200db47adc26bbb4ae4584ae455c5f078a4d2f624e898fab3159c74473677bc8b2021f371ea6c9acd051c96eaba2b229d06a0247dad2acf6cf0694792d22280dfe8e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1253,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1253n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953035653500b56657370656e65204761733468747470733a2f2f73696d706c652e77696b6970656469612e6f72672f77696b692f5374617243726166742347616d65706c61794c0001094c000829a2241af62c0000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -18163,14 +18153,15 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '3000000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 3000000000000000000n,
                     },
                     spentBy: {
                         txid: 'fc1ada187e9f5da7616f481c79cd0fa3aafa3d4094288db6806e7508f76b5fcd',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -18190,9 +18181,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18245,20 +18236,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4830450221008100fd6256019f3c8709ffe685fedec9dbf452951a44dcd1b928d0c9095b3d1b02204a756b30558ae60a673c28163e3c10bd1152d41be093aa7ad1d32f5886bc66e6412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 138443635,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 138443635n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034c5656174c616d6264612056617269616e742056617269616e74731768747470733a2f2f636173687461626170702e636f6d2f4c0001004c000800000000000f4240',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -18269,23 +18259,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000n,
                     },
                     spentBy: {
                         txid: 'ef80e1ceeada69a9639c320c1fba47ea4417cd3aad1be1635c3472ce28aaef33',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 138442566,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '87faad4f282002da1a9d74059dbebfa41aff3df27a66b5fd01184c5f8afdf283',
                         outIdx: 0,
                     },
+                    sats: 138442566n,
                 },
             ],
             lockTime: 0,
@@ -18305,9 +18296,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18360,20 +18351,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100b0469fe06b1f961932edb02186baa703c65b796ffdc44ee8a81eb5d2ea532b44022075f34517bbbc68200e4d7fc7a5f2fbcebb8cc101044bda8b49ed47d9355e4a03412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1121620547,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1121620547n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034456561644656c74612056617269616e742056617269616e74731768747470733a2f2f636173687461626170702e636f6d2f4c0001004c0008000000003b9ac9ff',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -18384,23 +18374,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '999999999',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 999999999n,
                     },
                     spentBy: {
                         txid: 'e9675fb89a91fd2644e098d5865dcd8de1549d18577247d55813a9f8b383eb12',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 1121619478,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '9eb3f392e7efd073cbe58e4d57d4c4cf755527074f935238493b0d357cc70b8d',
                         outIdx: 0,
                     },
+                    sats: 1121619478n,
                 },
             ],
             lockTime: 0,
@@ -18420,9 +18411,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18476,10 +18467,10 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402202cf16a38ccb1df93e60bc23b3113c05086f1a52522a98f4dcb38c3c48d7f734d02207f42466cbf73c3885b24536253f1e8262804b7774c5d867738a5c71e4464722741210361c15c24d617d75b51bd057e418020b3e7a07d91a41ddd0365bf168b418f79f6',
-                    value: 46641,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f1f529e136738f1d93c5dc4be9306913a7f1855e88ac',
+                    sats: 46641n,
                 },
                 {
                     prevOut: {
@@ -18488,10 +18479,10 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402205278c22d848b7368365cfd08e64a6060e061fa9995161fef50086ad81cb2367502205f0af031e2f1bfcffd47348832e2127428abdea4f9dc0440b1dd387d84e74e8741210361c15c24d617d75b51bd057e418020b3e7a07d91a41ddd0365bf168b418f79f6',
-                    value: 313547,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f1f529e136738f1d93c5dc4be9306913a7f1855e88ac',
+                    sats: 313547n,
                 },
                 {
                     prevOut: {
@@ -18500,20 +18491,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220603fd0df5350ab5213384b57abe575ecad1627470b95a14a61c1d6d6a346056c02205505e66fee9be7ac73a8d1c8d08212dc4ac44e2e7ffd909e6790a7cd26fd68e941210361c15c24d617d75b51bd057e418020b3e7a07d91a41ddd0365bf168b418f79f6',
-                    value: 31355,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f1f529e136738f1d93c5dc4be9306913a7f1855e88ac',
+                    sats: 31355n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303574454435465737420546f6b656e205769746820457863657074696f6e616c6c79204c6f6e67204e616d6520466f722043535320416e64205374796c65205265766973696f6e734068747470733a2f2f7777772e496d706f737369626c794c6f6e6757656273697465446964596f755468696e6b576562446576576f756c64426546756e2e6f72672085b591c15c9f49531e39fcfeb2a5a26b2bd0f7c018fb9cd71b5d92dfb732d5cc0107010208000000e8d4a51000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91419884c453167cf3011a3363b4b1ebd926bde059f88ac',
                     token: {
@@ -18524,17 +18514,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000000000n,
                     },
                     spentBy: {
                         txid: 'ed7a0eb9f80ffcad92a20a9b8eb673561bde8ce143cec05fe4635020842a4c54',
                         outIdx: 56,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91419884c453167cf3011a3363b4b1ebd926bde059f88ac',
                     token: {
@@ -18545,23 +18535,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
                     spentBy: {
                         txid: '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
                         outIdx: 2,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 389686,
                     outputScript:
                         '76a914f1f529e136738f1d93c5dc4be9306913a7f1855e88ac',
                     spentBy: {
                         txid: 'ed7a0eb9f80ffcad92a20a9b8eb673561bde8ce143cec05fe4635020842a4c54',
                         outIdx: 55,
                     },
+                    sats: 389686n,
                 },
             ],
             lockTime: 0,
@@ -18581,9 +18572,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18636,20 +18627,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402202fcd960b6e450dedc8c7863cf43921edab63559ef07b855388ffe8a7dc926e3302203c738c9737cfd5fa6f9df69c341e6007c09a49cabfce8db34606d5b4530ce6c1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 2981229,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 2981229n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303444e520844656e61726975731468747470733a2f2f636173687461622e636f6d2f4c0001004c000800000000000002f1',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -18660,23 +18650,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '753',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 753n,
                     },
                     spentBy: {
                         txid: '5f06207dea4762524dbe2d84900cc78711d079f2b2e909867ec5e9abdeb850aa',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 2980228,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'fa373dbcbac25cfc409b062d9974425a82621c05cecaeaebfd7e0a5a2dc23317',
                         outIdx: 0,
                     },
+                    sats: 2980228n,
                 },
             ],
             lockTime: 0,
@@ -18696,9 +18687,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18751,20 +18742,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100df3fe6fcf7b2afa0d5650e4c526f122e4ed032c3f8dff2b62b950f597c7def0b02201b0ce1ae4a4abe460ccf4801986eee825ea9d2bcff91e95f3d4f66e8a0c06837412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                    value: 1350,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    sats: 1350n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303434c541343617368746162204c6f63616c2054657374731468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000c350',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                     token: {
@@ -18775,14 +18765,15 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '50000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 50000n,
                     },
                     spentBy: {
                         txid: '9c6363fb537d529f512a12d292ea9682fe7159e6bf5ebfec5b7067b401d2dba4',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -18802,9 +18793,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18857,20 +18848,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220033fd897a0c6ae88eac326562de260264e3197b336508b584d81f244e5a47b7a022013f78b1f954eab4027e377745315f9c35811ec2802fc4d7c4280312aa9e7eee94121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-                    value: 94032,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+                    sats: 94032n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953035442530854657374426974731968747470733a2f2f74686563727970746f6775792e636f6d2f4c0001090102088ac7230489e80000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -18881,17 +18871,17 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000000000000000000n,
                     },
                     spentBy: {
                         txid: 'be38b0488679e25823b7a72b925ac695a7b486e7f78122994b913f3079b0b939',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     token: {
@@ -18902,19 +18892,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 92390,
                     outputScript:
                         '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
                     spentBy: {
                         txid: 'be38b0488679e25823b7a72b925ac695a7b486e7f78122994b913f3079b0b939',
                         outIdx: 0,
                     },
+                    sats: 92390n,
                 },
             ],
             lockTime: 0,
@@ -18934,9 +18925,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -18989,20 +18980,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4730440220365f13f47afacb3329e4dc0dbc2e68a2accb94fc08475828e4f320b93e08a36702201d3ffdb7fcd3c3240f8c0d609bcb36b446e4b4253fa7284d14eac1c3b5139844412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 9095,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 9095n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530343464c104361736874616220466163656c6966741468747470733a2f2f636173687461622e636f6d2f4c0001094c0008000009184e72a000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19013,23 +19003,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000000000000n,
                     },
                     spentBy: {
                         txid: 'fefacb25eccd9c1c575da278b265c444f840e9261b041898fbf7f5cd85fb40a4',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 8026,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'f78ee9844a4584d6f13efbf2e40f0e488f25089aa047e61f54063894d01a3a17',
                         outIdx: 0,
                     },
+                    sats: 8026n,
                 },
             ],
             lockTime: 0,
@@ -19049,9 +19040,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19104,20 +19095,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402201c12e609e94a9d852d553a58c5685a0398713757f274cb72f0bcb3c49abbd369022072c33f3237859575b4d616a3857704285c1027fb8cdb0d55c0580a4be60474ad412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 994663,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 994663n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303434d4110436173687461624d696e74416c7068611768747470733a2f2f636173687461626170702e636f6d2f4c0001054c0008000000000054c563',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19128,23 +19118,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '5555555',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 5555555n,
                     },
                     spentBy: {
                         txid: '9989f6f4941d7cf3206b327d957b022b41bf7e449a11fd5dd5cf1e9bc93f1ecf',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 993359,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '92566b9ae391bf2de6c99457fa56ab5f93af66634af563dbe0e1022ebc05ecd4',
                         outIdx: 0,
                     },
+                    sats: 993359n,
                 },
             ],
             lockTime: 0,
@@ -19164,9 +19155,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19219,20 +19210,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '4830450221009fe4253fe41a5badda24212d6af2120a52cae193629d216cbf830f693f2f57050220359de2e48f8506b7633341c52228c4249d00ec4e3504ee283827cee869fbc309412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 3317,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 3317n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034957460d496e73616e69747920576f6c661468747470733a2f2f636173687461622e636f6d2f4c0001004c000800000000000003e8',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19243,19 +19233,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 2157,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'd8c694714c2d39a22b8d867530f37e796937ac4b9bc7c9528926649788d15f43',
                         outIdx: 0,
                     },
+                    sats: 2157n,
                 },
             ],
             lockTime: 0,
@@ -19275,9 +19266,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19330,20 +19321,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022002d7028ecd2a1ece84ce03160fdb5e93784b954c31382ffd3e78c75aca4ef16302205f81fdb6993f63b963f1a0590d4e32e51b5ad8383ad09ee4182ffd2966673a7a412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 998111,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 998111n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953034759500647797073756d1468747470733a2f2f636173687461622e636f6d2f4c0001094c00088ac7230489e80000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19354,23 +19344,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000000000000000000n,
                     },
                     spentBy: {
                         txid: '56cc72b07a374990d767a569120308812d0da4ef0c0d669a1966a648e759669a',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 996966,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '51bc5da566c85b486b37f1c4d3c0220b7bc11ad992c1b92f99233cf35a8794c1',
                         outIdx: 0,
                     },
+                    sats: 996966n,
                 },
             ],
             lockTime: 0,
@@ -19390,9 +19381,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19445,20 +19436,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402204db8555a3141e86b979257feadc41e903a779a61971e2e63a386f1084c52ff2a022010d7f7f9d41b474ff5c4bd979916e2cd29627a2d6194fcc6af6485a979091cbe412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1e',
-                    value: 50000,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                    sats: 50000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303475250064752554d50591868747470733a2f2f6269742e6c792f4772756d7079446f634c0001024c0008000000e8d4a51000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
                     token: {
@@ -19469,23 +19459,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000000000n,
                     },
                     spentBy: {
                         txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 48931,
                     outputScript:
                         '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
                     spentBy: {
                         txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
                         outIdx: 0,
                     },
+                    sats: 48931n,
                 },
             ],
             lockTime: 0,
@@ -19505,9 +19496,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19560,20 +19551,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402204297897dbf74589a2e4872c488144d98a03f446878f7e4d22833bf221faf127002201c33519f5e3f662ac3e0da53ff35ef40057d482bfb75310c0c05d402b208dfdf412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 9039904,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 9039904n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495304545249420c654361736820486572616c641468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000000002710',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19584,23 +19574,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000n,
                     },
                     spentBy: {
                         txid: '27a2471afab33d82b9404df12e1fa242488a9439a68e540dcf8f811ef39c11cf',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 9038903,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: 'ff2d098a14929713f392d46963c5b09c2fa5f38f84793f04e55e94f3bc7eac23',
                         outIdx: 0,
                     },
+                    sats: 9038903n,
                 },
             ],
             lockTime: 0,
@@ -19620,9 +19611,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19675,20 +19666,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022055444db90f98b462ca29a6f51981da4015623ddc34dc1f575852426ccb785f0402206e786d4056be781ca1720a0a915b040e0a9e8716b8e4d30b0779852c191fdeb3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 6231556,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 6231556n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19699,23 +19689,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '4444',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 4444n,
                     },
                     spentBy: {
                         txid: '9e7f91826cfd3adf9867c1b3d102594eff4743825fad9883c35d26fb3bdc1693',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 6230555,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '27a2471afab33d82b9404df12e1fa242488a9439a68e540dcf8f811ef39c11cf',
                         outIdx: 0,
                     },
+                    sats: 6230555n,
                 },
             ],
             lockTime: 0,
@@ -19735,9 +19726,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19790,20 +19781,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '47304402207801a307548c5ecccd6e37043bda5e96cb9d27c93e4e60deaff4344605f138b202201a7fd155a42171c4b3331425b3e708df4e9606edfd221b2e500e3fb6bb541f2b412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 981921,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 981921n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530442554c4c0442756c6c1468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000001406f40',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19814,19 +19804,20 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '21000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 21000000n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 981078,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '4d8c8d06b724493f5ab172a18d9bf9f4d8419c09bc5a93fe780902b21dab75ba',
                         outIdx: 0,
                     },
+                    sats: 981078n,
                 },
             ],
             lockTime: 0,
@@ -19846,9 +19837,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -19901,20 +19892,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022026270f7aea8af1edf82758749f1e1c68accbb3a2719e9c37a49b55f098a4c22302206f5be10f536837f0001f555e968a7a977186d5acfa405e0e47b9df033815ccee412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 26811307,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 26811307n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e455349530343504712436173687461622050726f642047616d6d611074686563727970746f6775792e636f6d4c0001004c00080000000000000064',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -19925,23 +19915,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '100',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 100n,
                     },
                     spentBy: {
                         txid: 'fb50eac73a4fd5e2a701e0dbf4e575cea9c083e061b1db722e057164c7317e5b',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 26810238,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '5f0ab0ecfb8807dfdbc97eb421b940cef3c1c70a4c99fd96c39414de42f32338',
                         outIdx: 0,
                     },
+                    sats: 26810238n,
                 },
             ],
             lockTime: 0,
@@ -19961,9 +19952,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -20016,20 +20007,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '483045022100fb14b5f82605972478186c91ff6fab2051b46abd2a8aa9774b3e9276715daf39022046a62933cc3acf59129fbf373ef05480342312bc33aaa8bf7fb5a0495b5dc80e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1617,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1617n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495303414243034142431468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000000c',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -20040,14 +20030,15 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '12',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 12n,
                     },
                     spentBy: {
                         txid: '41fd4cb3ce0162e44cfd5a446b389afa6b35461d466d55321be412a518c56d63',
                         outIdx: 0,
                     },
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -20067,9 +20058,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -20122,20 +20113,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022018a26c1aaade553fd448ef86c8511bc8e603b755267588ed2406789c5e5fbc69022011a48bcb93c1ec7384b23c4a9b5b3c8a059bf3cb427a02935bc6e4ab77c810df412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 2214,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 2214n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044341464606436f666665651468747470733a2f2f636173687461622e636f6d2f4c0001094c00080000000cce416600',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -20146,15 +20136,16 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '55000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 55000000000n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 1369,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1369n,
                 },
             ],
             lockTime: 0,
@@ -20174,9 +20165,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -20229,20 +20220,19 @@ export const chronikTokenMocks = {
                     },
                     inputScript:
                         '473044022009777275694aab45f8c5589308b8f525c4b9b7f0b0a4b80b01531988313e92fc02206e7f0afa725f407f59f85482f26ea20a70c5fe533c0592c95733a4418054c025412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1497156989,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1497156989n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044347454e0f436173687461622047656e657369731868747470733a2f2f626f6f6d657274616b65732e636f6d2f4c0001094c000800038d7ea4c68000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -20253,23 +20243,24 @@ export const chronikTokenMocks = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '1000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 1000000000000000n,
                     },
                     spentBy: {
                         txid: '4f5af8d3dc9d1fb3dc803a80589cab62c78235264aa90e4f8066b7960804cd74',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 1497155685,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
                         outIdx: 0,
                     },
+                    sats: 1497155685n,
                 },
             ],
             lockTime: 0,
@@ -20289,9 +20280,9 @@ export const chronikTokenMocks = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -20512,20 +20503,19 @@ const txHistorySupportingTokenCache = {
                     },
                     inputScript:
                         '4830450221009bb1fb7d49d9ac64b79ea041be2e2efa5a8709a470930b04c27c9fc46ed1906302206a0a9daf5e64e934a3467951dd2da37405969d4434d4006ddfea3ed39ff4e0ae412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 2200,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 2200n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e4553495306434143484554064361636865741468747470733a2f2f636173687461622e636f6d2f4c0001020102080000000000989680',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -20536,13 +20526,13 @@ const txHistorySupportingTokenCache = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '10000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 10000000n,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -20553,23 +20543,24 @@ const txHistorySupportingTokenCache = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
                     spentBy: {
                         txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
                         outIdx: 0,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 773,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '343356b9d4acd59065f90b1ace647c1f714f1fd4c411e2cf77081a0246c7416d',
                         outIdx: 3,
                     },
+                    sats: 773n,
                 },
             ],
             lockTime: 0,
@@ -20589,9 +20580,9 @@ const txHistorySupportingTokenCache = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -20646,20 +20637,19 @@ const txHistorySupportingTokenCache = {
                     },
                     inputScript:
                         '4130ef71df9d2daacf48d05a0361e103e087b636f4d68af8decd769227caf198003991629bf7057fa1572fc0dd3581115a1b06b5c0eafc88555e58521956fe5cbc410768999600fc71a024752102d8cb55aaf01f84335130bf7b3751267e5cf3398a60e5162ff93ec8d77f14850fac',
-                    value: 4000,
                     sequenceNo: 4294967295,
                     outputScript:
                         'a91464275fca443d169d23d077c85ad1bb7a31b6e05987',
+                    sats: 4000n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a504c63534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a914bbb6c4fecc56ecce35958f87c2367cd3f5e88c2788ac',
                     token: {
@@ -20670,14 +20660,15 @@ const txHistorySupportingTokenCache = {
                             type: 'ALP_TOKEN_TYPE_STANDARD',
                             number: 0,
                         },
-                        amount: '0',
                         isMintBaton: true,
                         entryIdx: 0,
+                        atoms: 0n,
                     },
                     spentBy: {
                         txid: 'ff06c312bef229f6f27989326d9be7e0e142aaa84538967b104b262af69f7f00',
                         outIdx: 0,
                     },
+                    sats: 546n,
                 },
             ],
             lockTime: 777777,
@@ -20697,9 +20688,9 @@ const txHistorySupportingTokenCache = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -20777,26 +20768,26 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '483045022100fbe76f31450482a18941ed90fee302662e5e6184d9d84fda6f2a4df9b1d1697a022041432311f5563007d46ade3536fb5988b9c97e2e8aeeec59c15c3efb5c4d0f70412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1676077,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1676077n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '24eae444d765406d8362da437d66a7cf50b95685198692bd2253bafd4bd003a0',
                     outIdx: 2,
                 },
+                sats: 1100n,
             },
             {
-                value: 1674751,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1674751n,
             },
         ],
         lockTime: 0,
@@ -20823,26 +20814,26 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '473044022066325bcd7ba631d13d08f202714626fa7ec353febc985051d56a68edc19b0f900220016d4cb2308fa378ee04b101411cbfba88d99fd5e6d8b12170e17bca3d671c79412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 442567277,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 442567277n,
             },
         ],
         outputs: [
             {
-                value: 3300,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 3300n,
             },
             {
-                value: 442563522,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '08fa8a346851d44fd4b6765c65008670ccadf8dabcae59686814279a449ada06',
                     outIdx: 2,
                 },
+                sats: 442563522n,
             },
         ],
         lockTime: 0,
@@ -20869,26 +20860,26 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '483045022100dba6667c91a695a7b1b509c901a7ce1fc7c859f2ad4e636729efc697e09177b802206fd4a2d53eaf96e010abdc562d2cc3a19f5ee5427a868105b9814f17eb6a6d72412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 988104,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 988104n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '24eae444d765406d8362da437d66a7cf50b95685198692bd2253bafd4bd003a0',
                     outIdx: 1,
                 },
+                sats: 1100n,
             },
             {
-                value: 986778,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 986778n,
             },
         ],
         lockTime: 0,
@@ -20915,26 +20906,26 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '47304402202f1e5ef2f5f17d3c9f7b65094e903c39db01533ae24898492d30b329b98b3b4a022066cf37253c016fde0ce3b57c5a645605cfdbc10623970e97f68e66592275dc88412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 440000,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 440000n,
             },
         ],
         outputs: [
             {
-                value: 1100,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1100n,
             },
             {
-                value: 438445,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '49e2dd75d2309fee1a8c69d31090ad0f5bdd60eaf32bf1eea1ed276dab33e26f',
                     outIdx: 0,
                 },
+                sats: 438445n,
             },
         ],
         lockTime: 0,
@@ -20961,7 +20952,6 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '4730440220268dcf8d1be3fb33cdcd79b644acb12cdbf100040a51abf828a02fe17c34a03a0220141dce2d7292a49d82f13642e854f27326607dd8e3c13f7905632d373a56c70a412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -20971,12 +20961,13 @@ export const mockPath1899History = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 9n,
                 },
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -20985,10 +20976,10 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '483045022100c7106fb50492ac6726a6cae234ac7424842daee2285fb5a3c8005262a9fdbb06022061c24760989da27c0e3f372646243334d6048894a49aae3459a3f9ebabdc41d0412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 1100,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 1100n,
             },
             {
                 prevOut: {
@@ -20997,20 +20988,19 @@ export const mockPath1899History = [
                 },
                 inputScript:
                     '483045022100c1eca663e5c9f06db6f3844254ff197bbbd106897ffef37300d9ce65b17f4ece02203f80564ba7e4d833db4ef6097c69dcb9ae9abce3cc2ab2c75f17a4c23059abfa412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 3181522,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 3181522n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109080000000000000001080000000000000008',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -21021,13 +21011,13 @@ export const mockPath1899History = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 1n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -21038,23 +21028,24 @@ export const mockPath1899History = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 8n,
                 },
                 spentBy: {
                     txid: '94bf7fb1b2d37fed71085f9f32415f7426ed7cde692b9a9320ff6c811aa2db74',
                     outIdx: 0,
                 },
+                sats: 546n,
             },
             {
-                value: 3180811,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
                     txid: '20c513c9ae5f3966f8dae10c7e0681505756a5a0b4e4f707b366cdf51663c386',
                     outIdx: 0,
                 },
+                sats: 3180811n,
             },
         ],
         lockTime: 0,
@@ -21074,9 +21065,9 @@ export const mockPath1899History = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -21100,7 +21091,6 @@ export const mockPath145History = [
                 },
                 inputScript:
                     '4830450221008a6bb3c19db22b601ca5110415e0be8c56877b58741f7d6f50c57a8bd96f988d0220507a171d02a4fa7facc463bf62ce673a69d0d28fe3b6728a683c2ffc7a93418d4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 546,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -21110,12 +21100,13 @@ export const mockPath145History = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999900000000000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 999900000000000n,
                 },
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 546n,
             },
             {
                 prevOut: {
@@ -21124,20 +21115,19 @@ export const mockPath145History = [
                 },
                 inputScript:
                     '48304502210096482807afee1009914e934326930379ea308402643e786a1ac35786160cca37022070fe57cff80dba8475598c30b9515afa5e14caebf1ba1c7599554b9f9f7c89354121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 44907604,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 44907604n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000007aef40a000800038d5fad5b8e00',
+                sats: 0n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                 token: {
@@ -21148,13 +21138,13 @@ export const mockPath145History = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '33000000000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 33000000000n,
                 },
+                sats: 546n,
             },
             {
-                value: 546,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -21165,19 +21155,20 @@ export const mockPath145History = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999867000000000',
                     isMintBaton: false,
                     entryIdx: 0,
+                    atoms: 999867000000000n,
                 },
+                sats: 546n,
             },
             {
-                value: 44906091,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
                     txid: 'd711c97ff4fe19df3419c570b082bfefc99e5b3d093c0ca8e8397404573c98f3',
                     outIdx: 0,
                 },
+                sats: 44906091n,
             },
         ],
         lockTime: 0,
@@ -21197,9 +21188,9 @@ export const mockPath145History = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
                 burnsMintBatons: false,
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
             },
         ],
         tokenFailedParsings: [],
@@ -21221,26 +21212,26 @@ export const mockPath145History = [
                 },
                 inputScript:
                     '483045022100c2bc2700a443a772b07794660142c1eec7965c8f52e41c549ebba5dfeb2bc509022076884bfa70da9479414e572c450a8b6c667cf499f3367d4ed2ad786a5be2fbc54121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45114487,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 45114487n,
             },
         ],
         outputs: [
             {
-                value: 100383,
                 outputScript:
                     '76a914f5b3312155fe3781140dee0e84023f64cf73a6b588ac',
+                sats: 100383n,
             },
             {
-                value: 45013649,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
                     txid: 'fa984e50466e064068368e0d456e5a8a774adc6005ece87a32337b779eb4c422',
                     outIdx: 0,
                 },
+                sats: 45013649n,
             },
         ],
         lockTime: 0,
@@ -21267,26 +21258,26 @@ export const mockPath145History = [
                 },
                 inputScript:
                     '4830450221008a4a4be8d5ee42c42af259946c4124827e04b3f01b5ea3947089b61108b2ce8c022002d9b52778dc30fd69b9ca11c527ea9fbdce649c654c5a169b8b5c25060e52c74121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45419254,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 45419254n,
             },
         ],
         outputs: [
             {
-                value: 101053,
                 outputScript:
                     '76a91443a15be66386024ed7f87d404048c39fb6f0fce788ac',
+                sats: 101053n,
             },
             {
-                value: 45317746,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
                     txid: '6d182b409b9969ba0a15e65a63ee0162f9003850bdc8ad99b88fc6e855ef3c76',
                     outIdx: 0,
                 },
+                sats: 45317746n,
             },
         ],
         lockTime: 0,
@@ -21313,26 +21304,26 @@ export const mockPath145History = [
                 },
                 inputScript:
                     '483045022100a9f318a6516e98c7eef150c697cfd227e6387a36727351a5448ab597819647db022003ee62af32cd383c6df39cc29a7c79b73e7a3734eae9252aaafbe02fe2c648ea4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45520841,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 45520841n,
             },
         ],
         outputs: [
             {
-                value: 101132,
                 outputScript:
                     '76a91443a15be66386024ed7f87d404048c39fb6f0fce788ac',
+                sats: 101132n,
             },
             {
-                value: 45419254,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
                     txid: 'c28d33a9865ca5e063f457b626754a4cb65966b6b0c9e81b77ceef4b24b47c86',
                     outIdx: 0,
                 },
+                sats: 45419254n,
             },
         ],
         lockTime: 0,
@@ -21359,26 +21350,26 @@ export const mockPath145History = [
                 },
                 inputScript:
                     '47304402203b88cbdb66bcf921259eb1a9c33345048de4aaab35b8e51d80067812232c791e02207f30aaaf1e4548f97a168a6f210f085e8521982cdfd9055a6fe6c7769b29d7484121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45216157,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
+                sats: 45216157n,
             },
         ],
         outputs: [
             {
-                value: 101215,
                 outputScript:
                     '76a91443a15be66386024ed7f87d404048c39fb6f0fce788ac',
+                sats: 101215n,
             },
             {
-                value: 45114487,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
                     txid: '8bf2566feb21f4681fbf97155d78b388b9fc1fd6a6e4bc0e21324db5a9e7a7ac',
                     outIdx: 0,
                 },
+                sats: 45114487n,
             },
         ],
         lockTime: 0,
@@ -21430,20 +21421,19 @@ export const tokensInHistory = {
                     },
                     inputScript:
                         '46304302200db47adc26bbb4ae4584ae455c5f078a4d2f624e898fab3159c74473677bc8b2021f371ea6c9acd051c96eaba2b229d06a0247dad2acf6cf0694792d22280dfe8e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 1253,
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 1253n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953035653500b56657370656e65204761733468747470733a2f2f73696d706c652e77696b6970656469612e6f72672f77696b692f5374617243726166742347616d65706c61794c0001094c000829a2241af62c0000',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -21454,14 +21444,15 @@ export const tokensInHistory = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '3000000000000000000',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 3000000000000000000n,
                     },
                     spentBy: {
                         txid: 'fc1ada187e9f5da7616f481c79cd0fa3aafa3d4094288db6806e7508f76b5fcd',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
             ],
             lockTime: 0,
@@ -21481,9 +21472,9 @@ export const tokensInHistory = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -21536,20 +21527,19 @@ export const tokensInHistory = {
                     },
                     inputScript:
                         '473044022055444db90f98b462ca29a6f51981da4015623ddc34dc1f575852426ccb785f0402206e786d4056be781ca1720a0a915b040e0a9e8716b8e4d30b0779852c191fdeb3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                    value: 6231556,
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    sats: 6231556n,
                 },
             ],
             outputs: [
                 {
-                    value: 0,
                     outputScript:
                         '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
+                    sats: 0n,
                 },
                 {
-                    value: 546,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     token: {
@@ -21560,23 +21550,24 @@ export const tokensInHistory = {
                             type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                             number: 1,
                         },
-                        amount: '4444',
                         isMintBaton: false,
                         entryIdx: 0,
+                        atoms: 4444n,
                     },
                     spentBy: {
                         txid: '9e7f91826cfd3adf9867c1b3d102594eff4743825fad9883c35d26fb3bdc1693',
                         outIdx: 1,
                     },
+                    sats: 546n,
                 },
                 {
-                    value: 6230555,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                     spentBy: {
                         txid: '27a2471afab33d82b9404df12e1fa242488a9439a68e540dcf8f811ef39c11cf',
                         outIdx: 0,
                     },
+                    sats: 6230555n,
                 },
             ],
             lockTime: 0,
@@ -21596,9 +21587,9 @@ export const tokensInHistory = {
                     isInvalid: false,
                     burnSummary: '',
                     failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
                     burnsMintBatons: false,
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
                 },
             ],
             tokenFailedParsings: [],
@@ -21773,7 +21764,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '483045022100fbe76f31450482a18941ed90fee302662e5e6184d9d84fda6f2a4df9b1d1697a022041432311f5563007d46ade3536fb5988b9c97e2e8aeeec59c15c3efb5c4d0f70412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 1676077,
+                sats: 1676077n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -21781,7 +21772,7 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 1100,
+                sats: 1100n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
@@ -21790,7 +21781,7 @@ export const expectedParsedTxHistory = [
                 },
             },
             {
-                value: 1674751,
+                sats: 1674751n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
@@ -21827,7 +21818,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '473044022066325bcd7ba631d13d08f202714626fa7ec353febc985051d56a68edc19b0f900220016d4cb2308fa378ee04b101411cbfba88d99fd5e6d8b12170e17bca3d671c79412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 442567277,
+                sats: 442567277n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -21835,12 +21826,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 3300,
+                sats: 3300n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
             {
-                value: 442563522,
+                sats: 442563522n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
@@ -21882,7 +21873,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '483045022100dba6667c91a695a7b1b509c901a7ce1fc7c859f2ad4e636729efc697e09177b802206fd4a2d53eaf96e010abdc562d2cc3a19f5ee5427a868105b9814f17eb6a6d72412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-                value: 988104,
+                sats: 988104n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
@@ -21890,7 +21881,7 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 1100,
+                sats: 1100n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
@@ -21899,7 +21890,7 @@ export const expectedParsedTxHistory = [
                 },
             },
             {
-                value: 986778,
+                sats: 986778n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
@@ -21936,7 +21927,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '47304402202f1e5ef2f5f17d3c9f7b65094e903c39db01533ae24898492d30b329b98b3b4a022066cf37253c016fde0ce3b57c5a645605cfdbc10623970e97f68e66592275dc88412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 440000,
+                sats: 440000n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -21944,12 +21935,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 1100,
+                sats: 1100n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             },
             {
-                value: 438445,
+                sats: 438445n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
@@ -21991,7 +21982,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '4730440220268dcf8d1be3fb33cdcd79b644acb12cdbf100040a51abf828a02fe17c34a03a0220141dce2d7292a49d82f13642e854f27326607dd8e3c13f7905632d373a56c70a412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -22001,7 +21992,7 @@ export const expectedParsedTxHistory = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '9',
+                    atoms: 9n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -22015,7 +22006,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '483045022100c7106fb50492ac6726a6cae234ac7424842daee2285fb5a3c8005262a9fdbb06022061c24760989da27c0e3f372646243334d6048894a49aae3459a3f9ebabdc41d0412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 1100,
+                sats: 1100n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -22027,7 +22018,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '483045022100c1eca663e5c9f06db6f3844254ff197bbbd106897ffef37300d9ce65b17f4ece02203f80564ba7e4d833db4ef6097c69dcb9ae9abce3cc2ab2c75f17a4c23059abfa412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-                value: 3181522,
+                sats: 3181522n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
@@ -22035,12 +22026,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109080000000000000001080000000000000008',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
                 token: {
@@ -22051,13 +22042,13 @@ export const expectedParsedTxHistory = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '1',
+                    atoms: 1n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 token: {
@@ -22068,7 +22059,7 @@ export const expectedParsedTxHistory = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '8',
+                    atoms: 8n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -22078,7 +22069,7 @@ export const expectedParsedTxHistory = [
                 },
             },
             {
-                value: 3180811,
+                sats: 3180811n,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 spentBy: {
@@ -22104,8 +22095,8 @@ export const expectedParsedTxHistory = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -22152,7 +22143,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '4830450221008a6bb3c19db22b601ca5110415e0be8c56877b58741f7d6f50c57a8bd96f988d0220507a171d02a4fa7facc463bf62ce673a69d0d28fe3b6728a683c2ffc7a93418d4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 546,
+                sats: 546n,
                 sequenceNo: 4294967295,
                 token: {
                     tokenId:
@@ -22162,7 +22153,7 @@ export const expectedParsedTxHistory = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999900000000000',
+                    atoms: 999900000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
@@ -22176,7 +22167,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '48304502210096482807afee1009914e934326930379ea308402643e786a1ac35786160cca37022070fe57cff80dba8475598c30b9515afa5e14caebf1ba1c7599554b9f9f7c89354121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 44907604,
+                sats: 44907604n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -22184,12 +22175,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000007aef40a000800038d5fad5b8e00',
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                 token: {
@@ -22200,13 +22191,13 @@ export const expectedParsedTxHistory = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '33000000000',
+                    atoms: 33000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 546,
+                sats: 546n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 token: {
@@ -22217,13 +22208,13 @@ export const expectedParsedTxHistory = [
                         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                         number: 1,
                     },
-                    amount: '999867000000000',
+                    atoms: 999867000000000n,
                     isMintBaton: false,
                     entryIdx: 0,
                 },
             },
             {
-                value: 44906091,
+                sats: 44906091n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
@@ -22249,8 +22240,8 @@ export const expectedParsedTxHistory = [
                 isInvalid: false,
                 burnSummary: '',
                 failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
                 burnsMintBatons: false,
             },
         ],
@@ -22296,7 +22287,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '483045022100c2bc2700a443a772b07794660142c1eec7965c8f52e41c549ebba5dfeb2bc509022076884bfa70da9479414e572c450a8b6c667cf499f3367d4ed2ad786a5be2fbc54121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45114487,
+                sats: 45114487n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -22304,12 +22295,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 100383,
+                sats: 100383n,
                 outputScript:
                     '76a914f5b3312155fe3781140dee0e84023f64cf73a6b588ac',
             },
             {
-                value: 45013649,
+                sats: 45013649n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
@@ -22350,7 +22341,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '4830450221008a4a4be8d5ee42c42af259946c4124827e04b3f01b5ea3947089b61108b2ce8c022002d9b52778dc30fd69b9ca11c527ea9fbdce649c654c5a169b8b5c25060e52c74121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45419254,
+                sats: 45419254n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -22358,12 +22349,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 101053,
+                sats: 101053n,
                 outputScript:
                     '76a91443a15be66386024ed7f87d404048c39fb6f0fce788ac',
             },
             {
-                value: 45317746,
+                sats: 45317746n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
@@ -22404,7 +22395,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '483045022100a9f318a6516e98c7eef150c697cfd227e6387a36727351a5448ab597819647db022003ee62af32cd383c6df39cc29a7c79b73e7a3734eae9252aaafbe02fe2c648ea4121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45520841,
+                sats: 45520841n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -22412,12 +22403,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 101132,
+                sats: 101132n,
                 outputScript:
                     '76a91443a15be66386024ed7f87d404048c39fb6f0fce788ac',
             },
             {
-                value: 45419254,
+                sats: 45419254n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
@@ -22458,7 +22449,7 @@ export const expectedParsedTxHistory = [
                 },
                 inputScript:
                     '47304402203b88cbdb66bcf921259eb1a9c33345048de4aaab35b8e51d80067812232c791e02207f30aaaf1e4548f97a168a6f210f085e8521982cdfd9055a6fe6c7769b29d7484121021d7fd45a888292cf3a022a95acdbcf82f9f2d5bbbfbdbc740acd558a9f25b5d0',
-                value: 45216157,
+                sats: 45216157n,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
@@ -22466,12 +22457,12 @@ export const expectedParsedTxHistory = [
         ],
         outputs: [
             {
-                value: 101215,
+                sats: 101215n,
                 outputScript:
                     '76a91443a15be66386024ed7f87d404048c39fb6f0fce788ac',
             },
             {
-                value: 45114487,
+                sats: 45114487n,
                 outputScript:
                     '76a9140d94ba179ec21c42417a71a77873b3619363d8ea88ac',
                 spentBy: {
@@ -22503,9 +22494,7 @@ export const expectedParsedTxHistory = [
     },
 ];
 
-const tokenInfoErrorParsedTxHistory = JSON.parse(
-    JSON.stringify(expectedParsedTxHistory),
-);
+const tokenInfoErrorParsedTxHistory = [...expectedParsedTxHistory];
 
 export const noCachedInfoParsedTxHistory = tokenInfoErrorParsedTxHistory;
 
@@ -22520,19 +22509,18 @@ export const NftParentGenesisTx = {
             },
             inputScript:
                 '483045022100b8fdd47dd19070801a6e5ef306463fa0b21e88405fcb381a7983f13b268128f102202434a3ca71f00b9d8a98c170679cd90cf0b81c9c416c8b24e957adfb9c6e3ec3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 32773546,
             sequenceNo: 4294967295,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            sats: 32773546n,
         },
     ],
     outputs: [
         {
-            value: 0,
             outputScript:
                 '6a04534c500001810747454e45534953033448431e54686520466f75722048616c662d436f696e73206f66204a696e2d71756125656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29202a6585a404fae1c33a43322b723b9dbd926cb07244ae9bea888add8f471511e001004c00080000000000000004',
+            sats: 0n,
         },
         {
-            value: 546,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             token: {
                 tokenId:
@@ -22542,22 +22530,23 @@ export const NftParentGenesisTx = {
                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                     number: 129,
                 },
-                amount: '4',
                 isMintBaton: false,
                 entryIdx: 0,
+                atoms: 4n,
             },
             spentBy: {
                 txid: 'faaba128601942a858abcce56d0da002c1f1d95e8c49ba4105c3d08aa76959d8',
                 outIdx: 0,
             },
+            sats: 546n,
         },
         {
-            value: 32772256,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             spentBy: {
                 txid: '6ee862c41f8cf37bfd30b7a2e5ddf6bbad60b87753c6b810dd76527d97c10de4',
                 outIdx: 1,
             },
+            sats: 32772256n,
         },
     ],
     lockTime: 0,
@@ -22577,9 +22566,9 @@ export const NftParentGenesisTx = {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
             burnsMintBatons: false,
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
         },
     ],
     tokenFailedParsings: [],
@@ -22601,7 +22590,6 @@ export const NftChildGenesisTx = {
             },
             inputScript:
                 '483045022100939d517c889174bdcaf9755390165ce1e2ba7f47d1490dbf48bbf2f4146c84360220172aeb2fe8eca8a0c59e68ca6b2ab1a8fd0bdded8410212c5d34d936cadcf734412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 546,
             sequenceNo: 4294967295,
             token: {
                 tokenId:
@@ -22611,11 +22599,12 @@ export const NftChildGenesisTx = {
                     type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
                     number: 129,
                 },
-                amount: '1',
                 isMintBaton: false,
                 entryIdx: 1,
+                atoms: 1n,
             },
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            sats: 546n,
         },
         {
             prevOut: {
@@ -22624,19 +22613,18 @@ export const NftChildGenesisTx = {
             },
             inputScript:
                 '483045022100da6101ab8d02141d6745b3985d4c1ba5481cb2c470acff8d40e66fa654e3f14402200906d6a511dda0c5bc243f82217a03fe40c3cfc0a407b2d1e6f971de1ae70316412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            value: 32769023,
             sequenceNo: 4294967295,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            sats: 32769023n,
         },
     ],
     outputs: [
         {
-            value: 0,
             outputScript:
                 '6a04534c500001410747454e45534953035746430c57752046616e672043686f690b636173687461622e636f6d20ec7ed5da3ed751a80a3ab857c50dce405f8e8f7a083fafea158a3a297308385501004c00080000000000000001',
+            sats: 0n,
         },
         {
-            value: 546,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
             token: {
                 tokenId:
@@ -22646,14 +22634,15 @@ export const NftChildGenesisTx = {
                     type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
                     number: 65,
                 },
-                amount: '1',
                 isMintBaton: false,
                 entryIdx: 0,
+                atoms: 1n,
             },
+            sats: 546n,
         },
         {
-            value: 32768070,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            sats: 32768070n,
         },
     ],
     lockTime: 0,
@@ -22673,11 +22662,11 @@ export const NftChildGenesisTx = {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
             burnsMintBatons: false,
             groupTokenId:
                 '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
         },
         {
             tokenId:
@@ -22691,9 +22680,9 @@ export const NftChildGenesisTx = {
             isInvalid: false,
             burnSummary: '',
             failedColorings: [],
-            actualBurnAmount: '0',
-            intentionalBurn: '0',
             burnsMintBatons: false,
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
         },
     ],
     tokenFailedParsings: [],
@@ -22716,10 +22705,10 @@ export const eCashChatArticleReplyTx = {
                 },
                 inputScript:
                     '4145602aed278898b9892332953d7eb9212b8f4f842a3e761139baa5ec95d353d94ab3abcb7d62b79e190c6aca93e304555a87398fabda5b9141faec1596b9bcc84121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
-                value: 600,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                sats: 600n,
             },
             {
                 prevOut: {
@@ -22728,10 +22717,10 @@ export const eCashChatArticleReplyTx = {
                 },
                 inputScript:
                     '41ec6df6abd70cdb718c19623173901a9471e9f52a5a4cd99d8093c4d5371bc2b0ce107866f1825a04646e6f7b51c883236eaefea50366e7c7074c140695f580014121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
-                value: 600,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                sats: 600n,
             },
             {
                 prevOut: {
@@ -22740,35 +22729,35 @@ export const eCashChatArticleReplyTx = {
                 },
                 inputScript:
                     '4131c3b37d72362a79618771e7ad737e462c0804367809fb79d2bac39b116663297a559327e747be37e70979ba2f2e6ea184bf616e1b11df72a27f8eaafabbc9c24121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
-                value: 508087,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+                sats: 508087n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04626c6f6704726c6f6720fc1bec473c0c8de408b8587ead6d31ad1d8854835c19947488fa7b30b79922674c70697320796f7572207769666520746865206769726c667269656e642066726f6d207061727420313f20496620736f207468656e20736865277320796f757220736f756c6d6174652c206265747465722068616e67206f6e746f20686572206c696b6520796f7572205845432062616773',
+                sats: 0n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
                 spentBy: {
                     txid: '29810f319e19c552a6646d96eb1de5f7587c9adc6bed80ea756fe5b8db1f3f34',
                     outIdx: 0,
                 },
+                sats: 550n,
             },
             {
-                value: 507394,
                 outputScript:
                     '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
                 spentBy: {
                     txid: '29810f319e19c552a6646d96eb1de5f7587c9adc6bed80ea756fe5b8db1f3f34',
                     outIdx: 1,
                 },
+                sats: 507394n,
             },
         ],
         lockTime: 0,
@@ -22860,35 +22849,35 @@ export const eCashChatArticleTx = {
                 },
                 inputScript:
                     '41f6b48f09d3d69002cb49049269d2e16c752b59357bf08c9a4a8513a69d6c87636db7acf09a6714663276d543584045b0796e76bfa3d67bd21a2fa680a89a375d412102f9e8383fe6fc81852f60909f5feb8a314949c3d2c9013c5e67563e3ba03e60ad',
-                value: 133153,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914396addff64044d33431e0106b41c6903c7d0d28988ac',
+                sats: 133153n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04626c6f672863666338633134326661323336303566366336343765333437636262613261356633363064383937',
+                sats: 0n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a914396addff64044d33431e0106b41c6903c7d0d28988ac',
                 spentBy: {
                     txid: '9da106f4f05ba358b91486c5a233db096a57f40fa8134fddcc3ad2121857e47a',
                     outIdx: 0,
                 },
+                sats: 550n,
             },
             {
-                value: 132050,
                 outputScript:
                     '76a914396addff64044d33431e0106b41c6903c7d0d28988ac',
                 spentBy: {
                     txid: '9da106f4f05ba358b91486c5a233db096a57f40fa8134fddcc3ad2121857e47a',
                     outIdx: 1,
                 },
+                sats: 132050n,
             },
         ],
         lockTime: 0,
@@ -22951,6 +22940,7 @@ export const offSpecEcashChatArticleTx = {
         xecTxType: 'Received',
     },
 };
+
 export const CashtabMsg = {
     tx: {
         txid: '1ce6c307b4083fcfc065287a00f0a582cf88bf33de34845db4c49387d4532b8a',
@@ -22963,27 +22953,27 @@ export const CashtabMsg = {
                 },
                 inputScript:
                     '483045022100eccfc2e23d49fb7e72a35123c807f4feef2f379313673295f36611d725e877b002207b1df4c142c590a54d371fe2f04c05769ecf778e0d28fc50a671e5c5d8b277854121028c1fc90b3fa6e5be985032b061b5ca6db41a6878a9c8b442747b820ca74010db',
-                value: 3001592,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914e6309418b6e60b8119928ec45b8ba87de8e735f788ac',
+                sats: 3001592n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a04007461624cbe4d6572636920706f7572206c65207072697820657420626f6e6e6520636f6e74696e756174696f6e2064616e7320766f732070726f6a6574732064652064c3a976656c6f70706575722e2e2e204a27616920c3a974c3a92063656e737572c3a92073c3bb722074c3a96cc3a96772616d6d65206a7573717527617520313520417672696c20323032342e2052c3a97061726572206c6520627567206f6273657276c3a920737572206c6120706167652065546f6b656e204661756365743f',
+                sats: 0n,
             },
             {
-                value: 550,
                 outputScript:
                     '76a9143c28745097b1e32b343c50a8d4a7697fe7ad8aff88ac',
+                sats: 550n,
             },
             {
-                value: 3000609,
                 outputScript:
                     '76a914e6309418b6e60b8119928ec45b8ba87de8e735f788ac',
+                sats: 3000609n,
             },
         ],
         lockTime: 0,
@@ -23059,10 +23049,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '41287a47a0238eb4e55b92061f3205e5c067f00e6a88df11e60ceb55aa6efa5da97d9418e2e52a0c1b69eba5983a8ad837b0cbe05aefe51d5237bdf3a11e72a2e0412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31250500,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31250500n,
             },
             {
                 prevOut: {
@@ -23071,10 +23061,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '415b4594a93e4ea80231f25da079f27f6928264a5c37f281a2b59f7850c0d3a0a7ba9c856791dadc6b0e73aa22430581821b69caace9661c54dd45d7687fad1ef3412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31250355,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31250355n,
             },
             {
                 prevOut: {
@@ -23083,10 +23073,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '41e4c223342bb6987464f4702aafff4dfd1421edddfbb9ab57a7a98339d93191dad2549db9f715260279786eebf48431fd120d18e1c8baa977de11efb7fe1f7b01412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31250022,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31250022n,
             },
             {
                 prevOut: {
@@ -23095,10 +23085,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '41faf5ed17630b62563d8d4e1f342a51c1715deba8cd69bb755056b345e3448ae70fac12b8740c53d17e8e8e9211c6d406026a5512e658da30260ebc207fe7f976412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31250542,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31250542n,
             },
             {
                 prevOut: {
@@ -23107,10 +23097,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '412546d55291fd069a4c12249cb06c011e16b890844824f279159122cbf8657868e7aaf6dc2239c17874cd50bb50fdc306c4224e5e2651ebaa0a831ee3a86a1285412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31251452,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31251452n,
             },
             {
                 prevOut: {
@@ -23119,10 +23109,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '41d8b94143ad17fae0cd9eb5b57c197fd62d750a8d83627bf9d021c800608bca6771844298cccfc4d94da7b592c44ff8a653f2ff238fc1ea17828eac56d05ce309412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31251576,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31251576n,
             },
             {
                 prevOut: {
@@ -23131,10 +23121,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '4148447f966b2000c31d5cfc31c6382cb116b891f643f03b8d9fd7eb25d8a827d01d0ca8129d3b7412255901214ec6fb6fbeca178aedc293797e8d03eabd4d6829412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31258084,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31258084n,
             },
             {
                 prevOut: {
@@ -23143,10 +23133,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '417f7cc74f9421db8a11196faadc29bdca794efd2bc016f9fb46ba5340877c74c46c4d46efa9cb7115256d16fc1e6af1a5265d0b064fb70ec7a74128bb68b7b630412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31250892,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31250892n,
             },
             {
                 prevOut: {
@@ -23155,10 +23145,10 @@ export const xecxTx = {
                 },
                 inputScript:
                     '41f07a227801c780217f0bc3f68e9927c0f278182ffc754ca6b167b0413a1cf98cf4d1838a40668482e1dfb7761ccf0ddc7e5a05ac2f55002a075f79e7dc147914412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31256658,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31256658n,
             },
             {
                 prevOut: {
@@ -23167,76 +23157,76 @@ export const xecxTx = {
                 },
                 inputScript:
                     '413ab633abeacde057b424a607fbbc477f29d8bea944d23d944889e808d8388cb43386c0b62edc8b278e6daa45f0446e90f8f9c750a975a934d911ec0a752b4fbe412102a36a18cea3d7cfd980e0aa30dd5371fcee3c7e993e13c62942d6f36d2a203308',
-                value: 31252018,
                 sequenceNo: 4294967295,
                 outputScript:
                     '76a914122fc1f3bc93ee590186d7ff915053799052b8a788ac',
+                sats: 31252018n,
             },
         ],
         outputs: [
             {
-                value: 0,
                 outputScript:
                     '6a501f584543580008c43400000000000e21fdc39e01000000000000000000000000',
+                sats: 0n,
             },
             {
-                value: 31250371,
                 outputScript:
                     '76a914bf9db3e9b4e447d04cc7dbad89cf50d0fa74388c88ac',
+                sats: 31250371n,
             },
             {
-                value: 279681010,
                 outputScript:
                     '76a9149b487946ba24c1d61248ba992e3d533105cea14b88ac',
+                sats: 279681010n,
             },
             {
-                value: 1578922,
                 outputScript:
                     '76a914bf095d9afbda5245d5f1e27e7b360ec22357d6f088ac',
+                sats: 1578922n,
             },
             {
-                value: 2038,
                 outputScript:
                     '76a914da3621d8d4a1c462b9f5cd2c9cb10850edbd3e4788ac',
                 spentBy: {
                     txid: '084d313be0c552839dbac91b47ceb792fec42ec5c121946366e0f352df16644f',
                     outIdx: 1,
                 },
+                sats: 2038n,
             },
             {
-                value: 1585,
                 outputScript:
                     '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
+                sats: 1585n,
             },
             {
-                value: 1516,
                 outputScript:
                     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                sats: 1516n,
             },
             {
-                value: 1516,
                 outputScript:
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+                sats: 1516n,
             },
             {
-                value: 1280,
                 outputScript:
                     '76a91469535ed57a629cb83609de1e958a3c87a2d5e9db88ac',
+                sats: 1280n,
             },
             {
-                value: 791,
                 outputScript:
                     '76a91428ef733a0427f54c95cc5efea72d95f99db8e48d88ac',
+                sats: 791n,
             },
             {
-                value: 632,
                 outputScript:
                     '76a9149f88249247eba350d3b5ea61187fa1693e15524e88ac',
+                sats: 632n,
             },
             {
-                value: 601,
                 outputScript:
                     '76a91451691a770b8f2ab95590fbf89d22a290c57a4bd988ac',
+                sats: 601n,
             },
         ],
         lockTime: 0,
@@ -23296,7 +23286,7 @@ export const invalidXecxTx = {
         ...xecxTx.tx,
         outputs: [
             {
-                value: 0,
+                sats: 0n,
                 outputScript:
                     '6a501f584543580108c43400000000000e21fdc39e01000000000000000000000000',
             },

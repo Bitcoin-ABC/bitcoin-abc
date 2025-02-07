@@ -6,7 +6,7 @@ use bitcoinsuite_core::{hash::ShaRmd160, script::Script, tx::TxId};
 use bitcoinsuite_slp::{
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
     slp::{genesis_opreturn, parse, ParseError},
-    structs::{Amount, GenesisInfo, TokenMeta},
+    structs::{Atoms, GenesisInfo, TokenMeta},
     token_id::TokenId,
     token_type::{SlpTokenType, TokenType},
 };
@@ -353,11 +353,11 @@ fn test_parse_valid_genesis() {
                     mint_data: match token_type {
                         SlpTokenType::MintVault | SlpTokenType::Nft1Child =>
                             ParsedMintData {
-                                amounts: vec![qty as Amount],
+                                atoms_vec: vec![qty as Atoms],
                                 num_batons: 0,
                             },
                         _ => ParsedMintData {
-                            amounts: vec![qty as Amount, 0, 0],
+                            atoms_vec: vec![qty as Atoms, 0, 0],
                             num_batons: 1,
                         },
                     },

@@ -14,7 +14,7 @@ use bitcoinsuite_slp::{
     color::{ColorError, ColoredTx, ColoredTxSection, FailedColoring},
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
     structs::{
-        Amount, GenesisInfo, TokenMeta, TokenOutput, TokenVariant, TxType,
+        Atoms, GenesisInfo, TokenMeta, TokenOutput, TokenVariant, TxType,
     },
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
@@ -30,7 +30,7 @@ const STD: AlpTokenType = AlpTokenType::Standard;
 
 static INFO: GenesisInfo = GenesisInfo::empty_alp();
 
-const MAX: Amount = 0xffff_ffff_ffff;
+const MAX: Atoms = 0xffff_ffff_ffff;
 
 const MINT_BATON: Option<TokenOutput> = Some(TokenOutput {
     token_idx: 0,
@@ -42,7 +42,7 @@ fn make_tx<const N: usize>(script: Script) -> Tx {
         TXID,
         TxMut {
             outputs: [
-                [TxOutput { value: 0, script }].as_ref(),
+                [TxOutput { sats: 0, script }].as_ref(),
                 &vec![TxOutput::default(); N],
             ]
             .concat(),
@@ -65,7 +65,7 @@ fn mint_data() -> ParsedMintData {
 fn amount(amount: u64) -> Option<TokenOutput> {
     Some(TokenOutput {
         token_idx: 0,
-        variant: TokenVariant::Amount(amount),
+        variant: TokenVariant::Atoms(amount),
     })
 }
 
@@ -104,11 +104,11 @@ fn test_color_alp_genesis_must_be_first() -> Result<(), ParseError> {
 fn test_color_alp_genesis_too_few_outputs() {
     for mint_data in [
         ParsedMintData {
-            amounts: vec![1, 2, 3, 4],
+            atoms_vec: vec![1, 2, 3, 4],
             num_batons: 0,
         },
         ParsedMintData {
-            amounts: vec![],
+            atoms_vec: vec![],
             num_batons: 4,
         },
     ] {
@@ -149,7 +149,7 @@ fn test_color_alp_genesis_too_few_outputs() {
                 &INFO,
                 &ParsedMintData {
                     // 127 amounts
-                    amounts: vec![0; 127],
+                    atoms_vec: vec![0; 127],
                     num_batons: 0,
                 },
             )
@@ -196,7 +196,7 @@ fn test_color_slpv2_genesis_success_big() {
                 STD,
                 &INFO,
                 &ParsedMintData {
-                    amounts: vec![0, 7, MAX, 0],
+                    atoms_vec: vec![0, 7, MAX, 0],
                     num_batons: 3,
                 },
             )

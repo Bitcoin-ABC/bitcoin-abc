@@ -22,8 +22,8 @@ import { when } from 'jest-when';
 import appConfig from 'config/app';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { Ecc } from 'ecash-lib';
-import { MAX_MINT_AMOUNT_TOKEN_SATOSHIS } from 'token-protocols/slpv1';
-import { MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS } from 'token-protocols/alp';
+import { MAX_OUTPUT_AMOUNT_SLP_ATOMS } from 'token-protocols/slpv1';
+import { MAX_OUTPUT_AMOUNT_ALP_ATOMS } from 'token-protocols/alp';
 import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
 
 describe('<CreateTokenForm />', () => {
@@ -140,10 +140,11 @@ describe('<CreateTokenForm />', () => {
             '999507a9f1859adf85405abe28bb75d3c470ef53d2e4bb18880454a5fa9aa9e4';
         // Mock a utxo of the not-yet-created token so we can test the redirect
         const MOCK_UTXO_FOR_BALANCE = {
+            sats: 546n,
             token: {
                 tokenId: createdTokenId,
                 isMintBaton: false,
-                amount: '10',
+                atoms: 10n,
             },
         };
         const mockedChronik = await initializeCashtabStateForTests(
@@ -341,10 +342,11 @@ describe('<CreateTokenForm />', () => {
             '75883c5ebc2c3b375ae6e25dcc845dfbc6b34ae6c1319fb840e7dcba1f8135e7';
         // Mock a utxo of the not-yet-created token so we can test the redirect
         const MOCK_UTXO_FOR_BALANCE = {
+            sats: 546n,
             token: {
                 tokenId: createdTokenId,
                 isMintBaton: false,
-                amount: '10',
+                atoms: 10n,
             },
         };
         const mockedChronik = await initializeCashtabStateForTests(
@@ -468,10 +470,11 @@ describe('<CreateTokenForm />', () => {
             '75883c5ebc2c3b375ae6e25dcc845dfbc6b34ae6c1319fb840e7dcba1f8135e7';
         // Mock a utxo of the not-yet-created token so we can test the redirect
         const MOCK_UTXO_FOR_BALANCE = {
+            sats: 546n,
             token: {
                 tokenId: createdTokenId,
                 isMintBaton: false,
-                amount: '10',
+                atoms: 10n,
             },
         };
         const mockedChronik = await initializeCashtabStateForTests(
@@ -523,7 +526,7 @@ describe('<CreateTokenForm />', () => {
 
         // We see max SLP supply for 0 decimals
         expect(tokenGenesisQtyInput).toHaveValue(
-            MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+            MAX_OUTPUT_AMOUNT_SLP_ATOMS.toString(),
         );
 
         // Select ALP
@@ -532,7 +535,7 @@ describe('<CreateTokenForm />', () => {
         // Expect validation error bc SLP max supply is > ALP max supply
         expect(
             screen.getByText(
-                `Amount ${MAX_MINT_AMOUNT_TOKEN_SATOSHIS} exceeds max mint amount for this token (${MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS})`,
+                `Amount ${MAX_OUTPUT_AMOUNT_SLP_ATOMS} exceeds max mint amount for this token (${MAX_OUTPUT_AMOUNT_ALP_ATOMS})`,
             ),
         ).toBeInTheDocument();
 
@@ -541,7 +544,7 @@ describe('<CreateTokenForm />', () => {
 
         // We see max ALP supply for 0 decimals
         expect(tokenGenesisQtyInput).toHaveValue(
-            MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS,
+            MAX_OUTPUT_AMOUNT_ALP_ATOMS.toString(),
         );
 
         // Increase the decimals so that this supply is invalid
@@ -555,7 +558,7 @@ describe('<CreateTokenForm />', () => {
         // Expect validation error bc ALP max supply is lower if you have 2 decimals
         expect(
             screen.getByText(
-                `Amount ${MAX_OUTPUT_AMOUNT_ALP_TOKEN_SATOSHIS} exceeds max mint amount for this token (2814749767106.55)`,
+                `Amount ${MAX_OUTPUT_AMOUNT_ALP_ATOMS} exceeds max mint amount for this token (2814749767106.55)`,
             ),
         ).toBeInTheDocument();
     });
