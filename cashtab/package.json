@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.13.5",
+    "version": "3.13.6",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",

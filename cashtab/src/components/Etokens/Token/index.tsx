@@ -325,11 +325,11 @@ const Token: React.FC = () => {
     const [showConfirmListPartialSlp, setShowConfirmListPartialSlp] =
         useState<boolean>(false);
     const [agoraPartialTokenQty, setAgoraPartialTokenQty] =
-        useState<string>('0');
+        useState<string>('');
     const [agoraPartialTokenQtyError, setAgoraPartialTokenQtyError] = useState<
         false | string
     >(false);
-    const [agoraPartialMin, setAgoraPartialMin] = useState<string>('0');
+    const [agoraPartialMin, setAgoraPartialMin] = useState<string>('');
     const [agoraPartialMinError, setAgoraPartialMinError] = useState<
         false | string
     >(false);
@@ -403,16 +403,16 @@ const Token: React.FC = () => {
         address: string;
         burnAmount: string;
         mintAmount: string;
-        nftListPrice: null | string;
-        tokenListPrice: null | string;
+        nftListPrice: string;
+        tokenListPrice: string;
     }
     const emptyFormData: TokenScreenFormData = {
         amount: '',
         address: '',
         burnAmount: '',
         mintAmount: '',
-        nftListPrice: null,
-        tokenListPrice: null,
+        nftListPrice: '',
+        tokenListPrice: '',
     };
 
     const [formData, setFormData] =
@@ -458,7 +458,7 @@ const Token: React.FC = () => {
     };
 
     const getAgoraPartialTargetPriceXec = () => {
-        if (formData.tokenListPrice === null) {
+        if (formData.tokenListPrice === '') {
             return;
         }
         // Get the price per token, in XEC, based on the user's input settings
@@ -483,7 +483,7 @@ const Token: React.FC = () => {
         if (
             typeof userLocale !== 'string' ||
             typeof formData === 'undefined' ||
-            formData.tokenListPrice === null ||
+            formData.tokenListPrice === '' ||
             typeof settings !== 'object' ||
             typeof fiatPrice === 'undefined'
         ) {
@@ -624,11 +624,7 @@ const Token: React.FC = () => {
     }, [tokenId, cashtabCache.tokens.get(tokenId)]);
 
     useEffect(() => {
-        if (
-            formData.tokenListPrice === null ||
-            formData.tokenListPrice === '' ||
-            agoraPartialTokenQty === '0'
-        ) {
+        if (formData.tokenListPrice === '' || agoraPartialTokenQty === '') {
             // If we have no price or no offered qty, do nothing
             // Min buy is the last field entered
             return;
@@ -640,7 +636,7 @@ const Token: React.FC = () => {
 
         let agoraPartialMinToValidate = agoraPartialMin;
         // If the user has not yet entered the min quantity, enter THE MINIMUM ALLOWED min qty as default
-        if (agoraPartialMin === '0' || isRedeemingXecx) {
+        if (agoraPartialMin === '' || isRedeemingXecx) {
             // If agoraPartialMin is unset OR if we are redeeming XECX
             // Then we must update agoraPartialMin when agoraPartialTokenQty changes
             if (parseFloat(formData.tokenListPrice) === 0) {
@@ -2929,7 +2925,7 @@ const Token: React.FC = () => {
                                                                         placeholder="Enter list price (per token)"
                                                                         inputDisabled={
                                                                             agoraPartialTokenQty ===
-                                                                            '0'
+                                                                            ''
                                                                         }
                                                                         value={
                                                                             formData.tokenListPrice
@@ -2963,11 +2959,7 @@ const Token: React.FC = () => {
                                                                     }
                                                                     disabled={
                                                                         formData.tokenListPrice ===
-                                                                            null ||
-                                                                        formData.tokenListPrice ===
                                                                             '' ||
-                                                                        formData.tokenListPrice ===
-                                                                            '0' ||
                                                                         tokenListPriceError !==
                                                                             false
                                                                     }
@@ -3021,12 +3013,10 @@ const Token: React.FC = () => {
                                                                         false ||
                                                                     formData.tokenListPrice ===
                                                                         '' ||
-                                                                    formData.tokenListPrice ===
-                                                                        null ||
                                                                     agoraPartialTokenQty ===
-                                                                        '0' ||
+                                                                        '' ||
                                                                     agoraPartialMin ===
-                                                                        '0'
+                                                                        ''
                                                                 }
                                                                 onClick={
                                                                     previewAgoraPartial
