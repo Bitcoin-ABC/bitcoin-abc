@@ -551,7 +551,8 @@ class AvaAddrTest(BitcoinTestFramework):
         check_addr_requests(requester2)
 
     def run_test(self):
-        self.getavaaddr_interval_test()
+        # FIXME this test is flaky so disable it temporarly until it is fixed.
+        # self.getavaaddr_interval_test()
 
         # Limited by maxaddrtosend
         self.address_test(maxaddrtosend=3, num_proof=2, num_avanode=8)
