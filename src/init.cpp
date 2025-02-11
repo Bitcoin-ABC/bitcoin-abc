@@ -1255,6 +1255,9 @@ void SetupServerArgs(NodeContext &node) {
                   "be included in block creation. (default: %s)",
                   ticker, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)),
         ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-simplegbt",
+                   "Use a simplified getblocktemplate output (default: 0)",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::BLOCK_CREATION);
 
     argsman.AddArg("-blockversion=<n>",
                    "Override block version to test forking scenarios",
