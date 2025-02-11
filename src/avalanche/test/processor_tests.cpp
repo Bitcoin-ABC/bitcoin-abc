@@ -9,6 +9,7 @@
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/rewardrankcomparator.h>
 #include <avalanche/voterecord.h>
 #include <chain.h>
 #include <config.h>
@@ -87,6 +88,13 @@ namespace {
                                               const ProofId &proofid) {
             WITH_LOCK(p.cs_finalizedItems,
                       return p.finalizedItems.insert(proofid));
+        }
+
+        static bool setContenderStatusForLocalWinners(
+            Processor &p, const CBlockIndex *pindex,
+            std::vector<StakeContenderId> &pollableContenders) {
+            return p.setContenderStatusForLocalWinners(pindex,
+                                                       pollableContenders);
         }
     };
 } // namespace
@@ -2801,6 +2809,131 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     const StakeContenderId bestcontender =
         StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(bestcontender), 0);
+}
+
+BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+    CBlockIndex *chaintip =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
+    const BlockHash chaintipHash = chaintip->GetBlockHash();
+
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(now);
+
+    // Create a proof that will be the local stake winner
+    auto localWinnerProof =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    ProofId localWinnerProofId = localWinnerProof->getId();
+    const StakeContenderId localWinnerContenderId(chaintipHash,
+                                                  localWinnerProof->getId());
+    {
+        LOCK(cs_main);
+        m_processor->addStakeContender(localWinnerProof);
+    }
+
+    // Prepare the proof so that it becomes the local stake winner
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        ConnectNode(NODE_AVALANCHE);
+        pm.registerProof(localWinnerProof);
+        for (NodeId n = 0; n < 8; n++) {
+            pm.addNode(n, localWinnerProofId);
+        }
+        BOOST_CHECK(pm.forPeer(localWinnerProofId, [&](const Peer peer) {
+            return pm.setFinalized(peer.peerid);
+        }));
+    });
+
+    // Make proof old enough to be considered for staking rewards
+    now += 1h + 1s;
+    SetMockTime(now);
+    chaintip->nTime = now.count();
+
+    // Compute local stake winner
+    BOOST_CHECK(m_processor->isQuorumEstablished());
+    BOOST_CHECK(m_processor->computeStakingReward(chaintip));
+
+    std::vector<ProofRef> acceptedContenderProofs;
+    acceptedContenderProofs.push_back(localWinnerProof);
+    double bestRank =
+        localWinnerContenderId.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
+
+    // Test well past the max since we need to test the max number of accepted
+    // contenders as well. Starts at 2 because the local winner is already
+    // added.
+    for (size_t numContenders = 2;
+         numContenders < AVALANCHE_CONTENDER_MAX_POLLABLE * 10;
+         numContenders++) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        {
+            LOCK(cs_main);
+            m_processor->addStakeContender(proof);
+        }
+
+        const StakeContenderId contenderId(chaintipHash, proof->getId());
+        double rank = contenderId.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
+
+        if (rank < bestRank) {
+            bestRank = rank;
+            acceptedContenderProofs.push_back(proof);
+            std::sort(acceptedContenderProofs.begin(),
+                      acceptedContenderProofs.end(),
+                      [&](const ProofRef &left, const ProofRef &right) {
+                          const ProofId leftProofId = left->getId();
+                          const ProofId rightProofId = right->getId();
+                          const StakeContenderId leftContenderId(chaintipHash,
+                                                                 leftProofId);
+                          const StakeContenderId rightContenderId(chaintipHash,
+                                                                  rightProofId);
+                          return RewardRankComparator()(
+                              leftContenderId,
+                              leftContenderId.ComputeProofRewardRank(
+                                  MIN_VALID_PROOF_SCORE),
+                              leftProofId, rightContenderId,
+                              rightContenderId.ComputeProofRewardRank(
+                                  MIN_VALID_PROOF_SCORE),
+                              rightProofId);
+                      });
+        }
+
+        std::vector<StakeContenderId> pollableContenders;
+        BOOST_CHECK(AvalancheTest::setContenderStatusForLocalWinners(
+            *m_processor, chaintip, pollableContenders));
+        BOOST_CHECK_EQUAL(
+            pollableContenders.size(),
+            std::min(numContenders, AVALANCHE_CONTENDER_MAX_POLLABLE));
+
+        // Accepted contenders (up to the max, best first) are always included
+        // in pollableContenders
+        for (size_t i = 0; i < std::min(acceptedContenderProofs.size(),
+                                        AVALANCHE_CONTENDER_MAX_POLLABLE);
+             i++) {
+            StakeContenderId acceptedContenderId = StakeContenderId(
+                chaintipHash, acceptedContenderProofs[i]->getId());
+            BOOST_CHECK(
+                std::find(pollableContenders.begin(), pollableContenders.end(),
+                          acceptedContenderId) != pollableContenders.end());
+            BOOST_CHECK_EQUAL(
+                m_processor->getStakeContenderStatus(acceptedContenderId), 0);
+        }
+
+        // Check unaccepted contenders are still as we expect
+        std::set<StakeContenderId> unacceptedContenderIds(
+            pollableContenders.begin(), pollableContenders.end());
+        for (auto &acceptedContenderProof : acceptedContenderProofs) {
+            const StakeContenderId acceptedContenderId(
+                chaintipHash, acceptedContenderProof->getId());
+            unacceptedContenderIds.erase(acceptedContenderId);
+        }
+
+        for (auto cid : unacceptedContenderIds) {
+            BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(cid), 1);
+        }
+
+        // Sanity check the local winner stays accepted
+        BOOST_CHECK_EQUAL(
+            m_processor->getStakeContenderStatus(localWinnerContenderId), 0);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

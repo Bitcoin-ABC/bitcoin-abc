@@ -418,8 +418,14 @@ private:
 
     /**
      * Helper to set the vote status for local winners in the contender cache.
+     * pollableContenders are the highest ranking contenders that we should
+     * poll.
      */
-    void setContenderStatusForLocalWinners(const CBlockIndex *pindex)
+    bool setContenderStatusForLocalWinners(
+        const CBlockIndex *pindex,
+        std::vector<StakeContenderId> &pollableContenders)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
+    bool setContenderStatusForLocalWinners(const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
 
     /**

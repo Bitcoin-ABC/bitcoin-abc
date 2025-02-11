@@ -1074,13 +1074,15 @@ void Processor::promoteStakeContendersToTip() {
     // TODO reconcile remoteProofs contenders
 }
 
-void Processor::setContenderStatusForLocalWinners(const CBlockIndex *pindex) {
+bool Processor::setContenderStatusForLocalWinners(
+    const CBlockIndex *pindex,
+    std::vector<StakeContenderId> &pollableContenders) {
     const BlockHash prevblockhash = pindex->GetBlockHash();
     std::vector<std::pair<ProofId, CScript>> winners;
     getStakingRewardWinners(prevblockhash, winners);
     if (winners.size() == 0) {
         // Staking rewards not computed yet
-        return;
+        return false;
     }
 
     // Set status for local winners
@@ -1093,14 +1095,21 @@ void Processor::setContenderStatusForLocalWinners(const CBlockIndex *pindex) {
     // Treat the highest ranking contender similarly to local winners except
     // that it is not automatically included in the winner set (unless it
     // happens to be selected as a local winner).
-    std::vector<StakeContenderId> pollableContenders;
     if (stakeContenderCache.getPollableContenders(
             prevblockhash, AVALANCHE_CONTENDER_MAX_POLLABLE,
             pollableContenders) > 0) {
         // Accept the highest ranking contender. This is a no-op if the highest
         // ranking contender is already the local winner.
         stakeContenderCache.accept(pollableContenders[0]);
+        return true;
     }
+
+    return false;
+}
+
+bool Processor::setContenderStatusForLocalWinners(const CBlockIndex *pindex) {
+    std::vector<StakeContenderId> dummy;
+    return setContenderStatusForLocalWinners(pindex, dummy);
 }
 
 void Processor::updatedBlockTip() {
