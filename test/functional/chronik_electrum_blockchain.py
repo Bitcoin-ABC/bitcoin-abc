@@ -66,7 +66,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_transaction_broadcast()
         self.test_transaction_get_merkle()
         self.test_block_header()
-        self.test_scripthash_get_balance()
+        self.test_scripthash()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -614,10 +614,17 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 },
             )
 
-    def test_scripthash_get_balance(self):
+    def test_scripthash(self):
         for invalid_scripthash in (31 * "ff", 31 * "ff" + "f", 42, False, "spam"):
             assert_equal(
                 self.client.blockchain.scripthash.get_balance(invalid_scripthash).error,
+                {
+                    "code": 1,
+                    "message": "Invalid scripthash",
+                },
+            )
+            assert_equal(
+                self.client.blockchain.scripthash.get_history(invalid_scripthash).error,
                 {
                     "code": 1,
                     "message": "Invalid scripthash",
@@ -631,6 +638,10 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 "confirmed": 0,
                 "unconfirmed": 0,
             },
+        )
+        assert_equal(
+            self.client.blockchain.scripthash.get_history(32 * "ff").result,
+            [],
         )
 
         # Mine a block just to be sure all the utxos are confirmed
@@ -667,33 +678,66 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             },
         )
 
+        # Send transactions to a previously unused script
         script = CScript(
             bytes.fromhex("76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac")
         )
         scripthash = hex_be_sha256(script)
-        assert_equal(
-            self.client.blockchain.scripthash.get_balance(scripthash).result,
-            {
-                "confirmed": 0,
-                "unconfirmed": 0,
-            },
-        )
-        self.wallet.send_to(from_node=self.node, scriptPubKey=script, amount=1337)
-        assert_equal(
-            self.client.blockchain.scripthash.get_balance(scripthash).result,
-            {
-                "confirmed": 0,
-                "unconfirmed": 1337,
-            },
-        )
-        self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
-        assert_equal(
-            self.client.blockchain.scripthash.get_balance(scripthash).result,
-            {
-                "confirmed": 1337,
-                "unconfirmed": 0,
-            },
-        )
+        confirmed = 0
+        unconfirmed = 0
+        history = []
+
+        def assert_scripthash_balance_and_history(sorted_history=True):
+            assert_equal(
+                self.client.blockchain.scripthash.get_balance(scripthash).result,
+                {
+                    "confirmed": confirmed,
+                    "unconfirmed": unconfirmed,
+                },
+            )
+            result = self.client.blockchain.scripthash.get_history(scripthash).result
+            expected_result = history
+            if not sorted_history:
+                # Enforce any unique arbitrary sorting so we can compare equality
+                # between the two lists.
+                def sorting_key(hist_item):
+                    return hist_item["tx_hash"]
+
+                result = sorted(result, key=sorting_key)
+                expected_result = sorted(expected_result, key=sorting_key)
+            assert_equal(result, expected_result)
+
+        assert_scripthash_balance_and_history()
+
+        confirmed = 0
+        unconfirmed = 0
+        history = []
+        for _ in range(4):
+            # Add an unconfirmaed transaction
+            txid, _ = self.wallet.send_to(
+                from_node=self.node, scriptPubKey=script, amount=1337, fee=1000
+            )
+            unconfirmed += 1337
+            history.append({"fee": 1000, "height": 0, "tx_hash": txid})
+            assert_scripthash_balance_and_history()
+
+            # Confirm the transaction
+            self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
+            confirmed += 1337
+            unconfirmed -= 1337
+            history.pop()
+            history.append({"height": self.node.getblockcount(), "tx_hash": txid})
+            assert_scripthash_balance_and_history()
+
+        # History with multiple unconfirmed transactions
+        for _ in range(3):
+            txid, _ = self.wallet.send_to(
+                from_node=self.node, scriptPubKey=script, amount=888, fee=999
+            )
+            unconfirmed += 888
+            history.append({"fee": 999, "height": 0, "tx_hash": txid})
+            # We cannot guarantee the sorting of unconfirmed transactions
+            assert_scripthash_balance_and_history(sorted_history=False)
 
 
 if __name__ == "__main__":

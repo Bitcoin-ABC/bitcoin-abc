@@ -15,7 +15,7 @@ use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::group::GroupMember;
 use chronik_indexer::{merkle::MerkleTree, query::MAX_HISTORY_PAGE_SIZE};
-use chronik_proto::proto::TxHistoryPage;
+use chronik_proto::proto::{Tx, TxHistoryPage};
 use futures::future;
 use itertools::izip;
 use karyon_jsonrpc::{
@@ -391,6 +391,17 @@ fn get_scripthash_balance(
         }
     }
     (confirmed, unconfirmed)
+}
+
+fn get_tx_fee(tx: &Tx) -> i64 {
+    let mut fee: i64 = 0;
+    for inp in tx.inputs.iter() {
+        fee += inp.value;
+    }
+    for outp in tx.outputs.iter() {
+        fee -= outp.value;
+    }
+    fee
 }
 
 #[rpc_impl(name = "blockchain")]
@@ -802,5 +813,89 @@ impl ChronikElectrumRPCBlockchainEndpoint {
           "confirmed": confirmed,
           "unconfirmed": unconfirmed,
         }))
+    }
+
+    #[rpc_method(name = "scripthash.get_history")]
+    async fn scripthash_get_history(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        let indexer = self.indexer.read().await;
+        let script_history = indexer
+            .script_history(&self.node)
+            .map_err(|_| RPCError::InternalError)?;
+        let history = script_history
+            .rev_history(
+                GroupMember::MemberHash(script_hash).as_ref(),
+                0,
+                MAX_HISTORY_PAGE_SIZE,
+            )
+            .map_err(|_| RPCError::InternalError)?;
+        if history.num_txs > MAX_HISTORY as u32 {
+            // Note that Fulcrum would return an empty history in this case
+            return Err(RPCError::CustomError(
+                1,
+                format!(
+                    "transaction history for scripthash {script_hash_hex} \
+                     exceeds limit ({MAX_HISTORY})"
+                ),
+            ));
+        }
+        if history.num_txs == 0 {
+            return Ok(json!([]));
+        }
+
+        let mut json_history: Vec<Value> = vec![];
+        let num_pages = history.num_pages;
+
+        // Return the history in ascending block height order
+        for page in (0..num_pages).rev() {
+            let history = script_history
+                .rev_history(
+                    GroupMember::MemberHash(script_hash).as_ref(),
+                    page as usize,
+                    MAX_HISTORY_PAGE_SIZE,
+                )
+                .map_err(|_| RPCError::InternalError)?;
+            for tx in history.txs.iter().rev() {
+                let height = match &tx.block {
+                    Some(block) => block.height,
+                    // Here we differ from Fulcrum because we don't discriminate
+                    // between unconfirmed transactions and
+                    // transactions with unconfirmed parents
+                    // (height -1)
+                    None => 0,
+                };
+                let be_txid: Vec<u8> = tx.txid.iter().copied().rev().collect();
+                if height > 0 {
+                    json_history.push(json!({
+                        "height": height,
+                        "tx_hash": hex::encode(be_txid)
+                    }));
+                } else {
+                    let fee = get_tx_fee(tx);
+                    json_history.push(json!({
+                        "fee": fee,
+                        "height": height,
+                        "tx_hash": hex::encode(be_txid)
+                    }));
+                }
+            }
+        }
+        Ok(json!(json_history))
     }
 }
