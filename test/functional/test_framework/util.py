@@ -16,7 +16,7 @@ from base64 import b64encode
 from decimal import ROUND_DOWN, Decimal
 from functools import lru_cache
 from subprocess import CalledProcessError
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Union
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
@@ -317,8 +317,7 @@ MAX_NODES = 64
 PORT_MIN = int(os.getenv("TEST_RUNNER_PORT_MIN", default=20000))
 # The number of ports to "reserve" for p2p and rpc, each
 PORT_RANGE = 3000
-# The number of times we increment the port counters and test it again before
-# giving up.
+# The number of times we skip ports and test it again before giving up.
 MAX_PORT_RETRY = 5
 PORT_START_MAP: Dict[PortName, int] = {
     PortName.P2P: 0,
@@ -334,7 +333,7 @@ LAST_USED_PORT_MAP: Dict[PortName, int] = {}
 
 class PortSeed:
     # Must be initialized with a unique integer for each process
-    n = None
+    n: Union[int, None] = None
 
 
 def get_rpc_proxy(url, node_number, *, timeout=None, coveragedir=None):
@@ -365,19 +364,6 @@ def get_rpc_proxy(url, node_number, *, timeout=None, coveragedir=None):
     return coverage.AuthServiceProxyWrapper(proxy, coverage_logfile)
 
 
-# We initialize the port counters at runtime, because at import time PortSeed.n
-# will not yet be defined. It is defined based on a command line option
-# in the BitcoinTestFramework class __init__
-def initialize_port(port_name: PortName):
-    global LAST_USED_PORT_MAP
-    assert PortSeed.n is not None
-    LAST_USED_PORT_MAP[port_name] = (
-        PORT_MIN
-        + PORT_START_MAP[port_name]
-        + (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
-    )
-
-
 def is_port_available(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -388,43 +374,59 @@ def is_port_available(port: int) -> bool:
             return False
 
 
-# The LRU cache ensures that for a given type and peer / node index, the
-# functions always return the same port, and that it is tested only the
-# first time. The parameter `n` is not unused, it is the key in the cache
-# dictionary.
-@lru_cache(maxsize=None)
-def unique_port(port_name: PortName, n: int) -> int:
-    global LAST_USED_PORT_MAP
-    if port_name not in LAST_USED_PORT_MAP:
-        initialize_port(port_name)
+class UniquePort:
+    port_base: dict[PortName, int] = {}
 
-    tried_ports = []
-    for _ in range(MAX_PORT_RETRY):
-        LAST_USED_PORT_MAP[port_name] += 1
-        port = LAST_USED_PORT_MAP[port_name]
-        tried_ports.append(port)
-        if is_port_available(port):
-            return port
+    # The LRU cache ensures that for a given type and peer / node index, the
+    # functions always return the same port, and that it is tested only the
+    # first time. The parameter `n` is not unused, it is the key in the cache
+    # dictionary.
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def get(port_name: PortName, n: int) -> int:
+        def initialize_port(port_name: PortName):
+            assert PortSeed.n is not None
+            UniquePort.port_base[port_name] = (
+                PORT_MIN
+                + PORT_START_MAP[port_name]
+                + (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+            )
 
-    raise RuntimeError(
-        f"Could not find available {port_name} port after {MAX_PORT_RETRY} attempts (tried ports {tried_ports})."
-    )
+        if port_name not in UniquePort.port_base:
+            initialize_port(port_name)
+
+        tried_ports = []
+        for _ in range(MAX_PORT_RETRY):
+            port = UniquePort.port_base[port_name] + n
+            tried_ports.append(port)
+            if is_port_available(port):
+                return port
+            # If we are running a lot of tests in parallel it's possible we get a
+            # collision. In this case the next ports are likely to collide as well,
+            # so we "jump" ports by the CPU count (aka the max number of concurrent
+            # test we are likely to run).
+            PortSeed.n = (PortSeed.n or 0) + (os.cpu_count() or 1)
+            initialize_port(port_name)
+
+        raise RuntimeError(
+            f"Could not find available {port_name} port after {MAX_PORT_RETRY} attempts (tried ports {tried_ports})."
+        )
 
 
 def p2p_port(n: int) -> int:
-    return unique_port(PortName.P2P, n)
+    return UniquePort.get(PortName.P2P, n)
 
 
 def rpc_port(n: int) -> int:
-    return unique_port(PortName.RPC, n)
+    return UniquePort.get(PortName.RPC, n)
 
 
 def chronik_port(n: int) -> int:
-    return unique_port(PortName.CHRONIK, n)
+    return UniquePort.get(PortName.CHRONIK, n)
 
 
 def chronikelectrum_port(n: int) -> int:
-    return unique_port(PortName.CHRONIKELECTRUM, n)
+    return UniquePort.get(PortName.CHRONIKELECTRUM, n)
 
 
 def rpc_url(datadir, chain, host, port):
