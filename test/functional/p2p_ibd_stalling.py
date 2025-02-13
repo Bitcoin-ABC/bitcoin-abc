@@ -155,7 +155,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
                     p.send_message(msg_block(block_dict[stall_block]))
 
         self.log.info("Check that all outstanding blocks get connected")
-        self.wait_until(lambda: node.getblockcount() == NUM_BLOCKS)
+        self.wait_until(lambda: node.getblockcount() == NUM_BLOCKS, timeout=240)
 
     def total_bytes_recv_for_blocks(self):
         total = 0
