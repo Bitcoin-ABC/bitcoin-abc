@@ -334,8 +334,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         mock_time = int(time.time() + 1)
         self.nodes[0].setmocktime(mock_time)
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
-        peer.send_message(msg_inv([CInv(t=context.inv_type, h=0xFF00FF00)]))
-        peer.sync_with_ping()
+        peer.send_and_ping(msg_inv([CInv(t=context.inv_type, h=0xFF00FF00)]))
         if preferred:
             peer.wait_until(lambda: peer.getdata_count >= 1)
         else:
