@@ -14,14 +14,19 @@ describe('Ecc', async () => {
         const sk = fromHex(
             '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         );
-        expect(toHex(ecc.derivePubkey(sk))).to.equal(
+        const msg = fromHex(
+            'fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210',
+        );
+        const pk = ecc.derivePubkey(sk);
+        expect(toHex(pk)).to.equal(
             '034646ae5047316b4230d0086c8acec687f00b1cd9d1dc634f6cb358ac0a9a8fff',
         );
-        expect(ecc.schnorrSign(sk, new Uint8Array(32))).to.have.lengthOf(64);
-        expect(ecc.ecdsaSign(sk, new Uint8Array(32))).length.to.be.within(
-            65,
-            73,
-        );
+        expect(ecc.schnorrSign(sk, msg)).to.have.lengthOf(64);
+        expect(ecc.ecdsaSign(sk, msg)).length.to.be.within(65, 73);
+        // Round-trip recoverable signature
+        expect(
+            toHex(ecc.recoverSig(ecc.signRecoverable(sk, msg), msg)),
+        ).to.equal(toHex(pk));
     });
 
     it('EccDummy', () => {
@@ -32,6 +37,12 @@ describe('Ecc', async () => {
         );
         expect(dummy.ecdsaSign({} as any, {} as any)).to.deep.equal(
             new Uint8Array(73),
+        );
+        expect(dummy.signRecoverable({} as any, {} as any)).to.deep.equal(
+            new Uint8Array(65),
+        );
+        expect(dummy.recoverSig({} as any, {} as any)).to.deep.equal(
+            new Uint8Array(33),
         );
     });
 });

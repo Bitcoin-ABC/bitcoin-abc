@@ -4,7 +4,10 @@
 
 //! Module for [`Ecc`] for signing secp256k1 signatures.
 
-use ecash_secp256k1::{All, Message, PublicKey, Scalar, Secp256k1, SecretKey};
+use ecash_secp256k1::{
+    ecdsa::{RecoverableSignature, RecoveryId},
+    All, Message, PublicKey, Scalar, Secp256k1, SecretKey,
+};
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
 
@@ -160,5 +163,53 @@ impl Ecc {
             .map_err(|_| InvalidPubkey)?
             .serialize()
             .to_vec())
+    }
+
+    /// Create a compact ECDSA signature (65 bytes), which allows reconstructing
+    /// the used public key.
+    /// The format is one header byte, followed by two times 32 bytes for the
+    /// serialized r and s values.
+    /// The header byte: 0x1B = first key with even y,
+    ///                  0x1C = first key with odd y,
+    ///                  0x1D = second key with even y,
+    ///                  0x1E = second key with odd y,
+    ///                  add 0x04 for compressed keys.
+    #[wasm_bindgen(js_name = signRecoverable)]
+    pub fn sign_recoverable(
+        &self,
+        seckey: &[u8],
+        msg: &[u8],
+    ) -> Result<Vec<u8>, String> {
+        let seckey = parse_secret_key(seckey)?;
+        let msg = parse_msg(msg)?;
+        let sig = self.curve.sign_ecdsa_recoverable(&msg, &seckey);
+        let (recover_id, sig_rs) = sig.serialize_compact();
+        let mut ser_sig = [0u8; 65];
+        ser_sig[0] = i32::from(recover_id) as u8 + 0x1b + 0x04;
+        ser_sig[1..].copy_from_slice(&sig_rs);
+        Ok(ser_sig.to_vec())
+    }
+
+    /// Recover the public key of a signature signed by signRecoverable.
+    #[wasm_bindgen(js_name = recoverSig)]
+    pub fn recover_sig(
+        &self,
+        sig: &[u8],
+        msg: &[u8],
+    ) -> Result<Vec<u8>, String> {
+        let recovery_id = sig[0].saturating_sub(0x1b + 0x04);
+        let recovery_id = RecoveryId::try_from(recovery_id as i32)
+            .map_err(|_| format!("Invalid recovery ID: {recovery_id}"))?;
+        let sig = RecoverableSignature::from_compact(&sig[1..], recovery_id)
+            .map_err(|_| "Invalid signature format")?;
+        let msg = Message::from_digest(
+            msg.try_into()
+                .map_err(|_| format!("Invalid msg length {}", msg.len()))?,
+        );
+        let pubkey = self
+            .curve
+            .recover_ecdsa(&msg, &sig)
+            .map_err(|_| "Signature recovery failed")?;
+        Ok(pubkey.serialize().to_vec())
     }
 }

@@ -30,4 +30,4 @@ sha2 = "0.10"
 # libsecp256k1 with support for BCH/XEC/XPI Schnorr signatures
 path = "../ecash-secp256k1"
 default-features = false
-features = ["alloc"]
+features = ["alloc", "recovery"]

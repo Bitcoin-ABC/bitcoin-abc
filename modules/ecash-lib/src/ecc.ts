@@ -24,6 +24,12 @@ export interface Ecc {
 
     /** Add a scalar to a public key (adding G*b) */
     pubkeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array;
+
+    /** Sign a ECDSA recoverable signature, includes the recovery ID */
+    signRecoverable(seckey: Uint8Array, msg: Uint8Array): Uint8Array;
+
+    /** Recover the public key of an ECDSA signed signature (with recovery ID) */
+    recoverSig(sig: Uint8Array, msg: Uint8Array): Uint8Array;
 }
 
 /** Dummy Ecc impl that always returns 0, useful for measuring tx size */
@@ -50,6 +56,14 @@ export class EccDummy implements Ecc {
 
     pubkeyAdd(_a: Uint8Array, _b: Uint8Array): Uint8Array {
         return new Uint8Array(32);
+    }
+
+    signRecoverable(_seckey: Uint8Array, _msg: Uint8Array): Uint8Array {
+        return new Uint8Array(65);
+    }
+
+    recoverSig(_sig: Uint8Array, _msg: Uint8Array): Uint8Array {
+        return new Uint8Array(33);
     }
 }
 
@@ -91,5 +105,13 @@ export class Ecc implements Ecc {
     /** Add a scalar to a public key (adding G*b) */
     pubkeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array {
         return ECC.ecc!.pubkeyAdd(a, b);
+    }
+
+    signRecoverable(seckey: Uint8Array, msg: Uint8Array): Uint8Array {
+        return ECC.ecc!.signRecoverable(seckey, msg);
+    }
+
+    recoverSig(sig: Uint8Array, msg: Uint8Array): Uint8Array {
+        return ECC.ecc!.recoverSig(sig, msg);
     }
 }

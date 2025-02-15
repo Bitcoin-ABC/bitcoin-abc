@@ -90,3 +90,4 @@ console.log(toHex(rawTx));
 -   1.5.0 - Support custom WASM URL and module [D17622](https://reviews.bitcoinabc.org/D17622)
 -   1.5.1 - `Address.withPrefix()` returns same prefix if unchanged (instead of throwing an error) [D17623](https://reviews.bitcoinabc.org/D17623)
 -   2.0.0 - Remove `initWasm`, auto-load the WebAssembly instead. Remove unneeded `ecc` parameters, esp. in `TxBuilder.sign` and `HdNode.fromSeed` [D17639](https://reviews.bitcoinabc.org/D17639) [D17640](https://reviews.bitcoinabc.org/D17640)
+-   2.1.0 - Add `signRecoverable` and `recoverSig` to `Ecc` [D17667](https://reviews.bitcoinabc.org/D17667)
