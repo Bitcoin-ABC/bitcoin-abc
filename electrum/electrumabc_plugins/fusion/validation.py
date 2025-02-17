@@ -81,7 +81,12 @@ def proto_strict_parse(msg, blob):
     except DecodeError:
         raise ValidationError("decode error")
     check(msg.IsInitialized(), "missing fields")
-    check(not msg.UnknownFields(), "has extra fields")
+    try:
+        from google.protobuf.unknown_fields import UnknownFieldSet
+
+        check(not len(UnknownFieldSet(msg)), "has extra fields")
+    except ImportError:
+        check(not msg.UnknownFields(), "has extra fields")
     # Protobuf silently ignores unwanted repeated tags, and gives no direct way
     # to detect this. This sucks because it means someone could send us a giant
     # message even if we check all fields' lengths. This is the only way to
