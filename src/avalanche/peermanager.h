@@ -93,8 +93,6 @@ struct Peer {
     std::chrono::seconds registration_time;
     std::chrono::seconds nextPossibleConflictTime;
 
-    double availabilityScore = 0.0;
-
     /**
      * Consider dropping the peer if no node is attached after this timeout
      * expired.
@@ -451,25 +449,6 @@ public:
     template <typename Callable> void forEachFlakyProof(Callable &&func) const {
         for (const auto &p : manualFlakyProofids) {
             func(p);
-        }
-    }
-
-    template <typename Callable>
-    void updateAvailabilityScores(const double decayFactor,
-                                  Callable &&getNodeAvailabilityScore) {
-        for (auto it = peers.begin(); it != peers.end(); it++) {
-            peers.modify(it, [&](Peer &peer) {
-                // Calculate average of current node scores
-                double peerScore{0.0};
-                forEachNode(peer, [&](const avalanche::Node &node) {
-                    peerScore += getNodeAvailabilityScore(node.nodeid);
-                });
-
-                // Calculate exponential moving average of averaged node scores
-                peer.availabilityScore =
-                    decayFactor * peerScore +
-                    (1. - decayFactor) * peer.availabilityScore;
-            });
         }
     }
 

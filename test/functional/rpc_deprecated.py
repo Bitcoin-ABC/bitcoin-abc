@@ -3,15 +3,27 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test deprecation of RPC calls."""
 
+from test_framework.avatools import get_ava_p2p_interface
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal
 
 
 class DeprecatedRpcTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
+        self.noban_tx_relay = True
         self.extra_args = [
-            [],
-            [],
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+            ],
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-deprecatedrpc=peer_availability_score",
+            ],
         ]
 
     def run_test(self):
@@ -25,7 +37,18 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         # self.log.info("Test generate RPC")
         # assert_raises_rpc_error(-32, 'The wallet generate rpc method is deprecated', self.nodes[0].rpc.generate, 1)
         # self.nodes[1].generate(1)
-        pass
+        self.disconnect_nodes(0, 1)
+
+        get_ava_p2p_interface(self, self.nodes[0])
+        get_ava_p2p_interface(self, self.nodes[1])
+
+        peer_info = self.nodes[0].getavalanchepeerinfo()
+        assert_equal(len(peer_info), 1)
+        assert "availability_score" not in peer_info[0]
+
+        peer_info = self.nodes[1].getavalanchepeerinfo()
+        assert_equal(len(peer_info), 1)
+        assert_equal(peer_info[0]["availability_score"], 0)
 
 
 if __name__ == "__main__":

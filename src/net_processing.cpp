@@ -2362,27 +2362,6 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
     m_connman.ForEachNode([](CNode *pnode) {
         pnode->updateAvailabilityScore(AVALANCHE_STATISTICS_DECAY_FACTOR);
     });
-
-    if (!m_avalanche) {
-        // Not enabled or not ready yet
-        return;
-    }
-
-    // Generate a peer availability score by computing an exponentially
-    // weighted moving average of the average of node availability scores.
-    // This ensures the peer score is bound to the lifetime of its proof which
-    // incentivizes stable network activity.
-    m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.updateAvailabilityScores(
-            AVALANCHE_STATISTICS_DECAY_FACTOR, [&](NodeId nodeid) -> double {
-                double score{0.0};
-                m_connman.ForNode(nodeid, [&](CNode *pavanode) {
-                    score = pavanode->getAvailabilityScore();
-                    return true;
-                });
-                return score;
-            });
-    });
 }
 
 void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {

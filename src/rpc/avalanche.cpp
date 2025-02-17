@@ -846,7 +846,11 @@ static RPCHelpMan getavalanchepeerinfo() {
                     {RPCResult::Type::NUM, "avalanche_peerid",
                      "The avalanche internal peer identifier"},
                     {RPCResult::Type::NUM, "availability_score",
-                     "The agreggated availability score of this peer's nodes"},
+                     "DEPRECATED: The agreggated availability score of this "
+                     "peer's nodes. This score is no longer computed starting "
+                     "with version 0.30.12 and is always 0. This field is only "
+                     "returned if the -deprecatedrpc=peer_availability_score "
+                     "option is enabled."},
                     {RPCResult::Type::STR_HEX, "proofid",
                      "The avalanche proof id used by this peer"},
                     {RPCResult::Type::STR_HEX, "proof",
@@ -871,13 +875,17 @@ static RPCHelpMan getavalanchepeerinfo() {
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             avalanche::Processor &avalanche = EnsureAvalanche(node);
+            const ArgsManager &argsman = EnsureArgsman(node);
 
-            auto peerToUniv = [](const avalanche::PeerManager &pm,
-                                 const avalanche::Peer &peer) {
+            auto peerToUniv = [&argsman](const avalanche::PeerManager &pm,
+                                         const avalanche::Peer &peer) {
                 UniValue obj(UniValue::VOBJ);
 
                 obj.pushKV("avalanche_peerid", uint64_t(peer.peerid));
-                obj.pushKV("availability_score", peer.availabilityScore);
+                if (IsDeprecatedRPCEnabled(argsman,
+                                           "peer_availability_score")) {
+                    obj.pushKV("availability_score", 0);
+                }
                 obj.pushKV("proofid", peer.getProofId().ToString());
                 obj.pushKV("proof", peer.proof->ToHex());
 
