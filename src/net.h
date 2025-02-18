@@ -1043,6 +1043,7 @@ public:
 
     size_t GetNodeCount(ConnectionDirection) const;
     void GetNodeStats(std::vector<CNodeStats> &vstats) const;
+    bool GetNodeStats(NodeId id, CNodeStats &stats) const;
     bool DisconnectNode(const std::string &node);
     bool DisconnectNode(const CSubNet &subnet);
     bool DisconnectNode(const CNetAddr &addr);

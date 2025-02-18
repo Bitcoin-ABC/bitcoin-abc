@@ -3128,6 +3128,20 @@ void CConnman::GetNodeStats(std::vector<CNodeStats> &vstats) const {
     }
 }
 
+bool CConnman::GetNodeStats(NodeId id, CNodeStats &stats) const {
+    LOCK(m_nodes_mutex);
+
+    for (auto &&pnode : m_nodes) {
+        if (pnode->GetId() == id) {
+            pnode->copyStats(stats);
+            stats.m_mapped_as = pnode->addr.GetMappedAS(addrman.GetAsmap());
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool CConnman::DisconnectNode(const std::string &strNode) {
     LOCK(m_nodes_mutex);
     if (CNode *pnode = FindNode(strNode)) {

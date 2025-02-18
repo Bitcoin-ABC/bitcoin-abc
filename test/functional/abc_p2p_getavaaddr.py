@@ -150,8 +150,7 @@ class AvaAddrTest(BitcoinTestFramework):
                 nodeids += p["node_list"]
 
             return all(proofid in valid_proofids for proofid in proofids) and all(
-                node.getpeerinfo()[nodeid]["availability_score"] > 0
-                for nodeid in nodeids
+                node.getavailabilityscore(nodeid) > 0 for nodeid in nodeids
             )
 
         self.wait_until(lambda: all_peers_addr_are_relayable(peers[:8]))
@@ -267,18 +266,18 @@ class AvaAddrTest(BitcoinTestFramework):
             avanode.addr for avanode in avanodes if not avanode.is_responding
         ]
         assert all(
-            p["availability_score"] < 0
+            node.getavailabilityscore(p["id"]) < 0
             for p in peerinfo
             if p["addr"] in muted_addresses
         )
         assert all(
-            p["availability_score"] > 0
+            node.getavailabilityscore(p["id"]) > 0
             for p in peerinfo
             if p["addr"] in responding_addresses
         )
         # Requester has no availability_score because it's not an avalanche
         # peer
-        assert "availability_score" not in peerinfo[-1].keys()
+        assert_equal(node.getavailabilityscore(peerinfo[-1]["id"]), None)
 
         mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
@@ -421,7 +420,7 @@ class AvaAddrTest(BitcoinTestFramework):
         def wait_for_availability_score():
             peerinfo = node.getpeerinfo()
             return all(
-                p.get("availability_score", None) == Decimal(0) for p in peerinfo
+                node.getavailabilityscore(p["id"]) == Decimal(0) for p in peerinfo
             )
 
         self.wait_until(wait_for_availability_score)

@@ -207,7 +207,9 @@ static RPCHelpMan getpeerinfo() {
                        "of unknown message types are listed under '" +
                            NET_MESSAGE_COMMAND_OTHER + "'."}}},
                     {RPCResult::Type::NUM, "availability_score",
-                     "Avalanche availability score of this node (if any)"},
+                     "DEPRECATED: Avalanche availability score of this node "
+                     "(if any). Only present if the "
+                     "deprecatedrpc=node_availability_score option is enabled"},
                 }},
             }},
         },
@@ -218,6 +220,7 @@ static RPCHelpMan getpeerinfo() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             const CConnman &connman = EnsureConnman(node);
             const PeerManager &peerman = EnsurePeerman(node);
+            const ArgsManager &argsman = EnsureArgsman(node);
 
             std::vector<CNodeStats> vstats;
             connman.GetNodeStats(vstats);
@@ -323,7 +326,9 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("connection_type",
                            ConnectionTypeAsString(stats.m_conn_type));
 
-                if (stats.m_availabilityScore) {
+                if (IsDeprecatedRPCEnabled(argsman,
+                                           "node_availability_score") &&
+                    stats.m_availabilityScore) {
                     obj.pushKV("availability_score",
                                *stats.m_availabilityScore);
                 }

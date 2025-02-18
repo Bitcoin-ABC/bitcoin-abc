@@ -1812,6 +1812,34 @@ static RPCHelpMan getflakyproofs() {
         }};
 }
 
+static RPCHelpMan getavailabilityscore() {
+    return RPCHelpMan{
+        "getavailabilityscore",
+        "Return the node availability score.\n",
+        {
+            {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO, "The node id."},
+        },
+        RPCResult{RPCResult::Type::NUM, "availability_score",
+                  "The node availability score (if any)."},
+        RPCExamples{HelpExampleRpc("getavailabilityscore", "<nodeid>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            const CConnman &connman = EnsureConnman(node);
+
+            const NodeId nodeid(request.params[0].getInt<int64_t>());
+
+            CNodeStats nodeStats;
+            if (connman.GetNodeStats(nodeid, nodeStats) &&
+                nodeStats.m_availabilityScore) {
+                return *nodeStats.m_availabilityScore;
+            }
+
+            return UniValue::VNULL;
+        },
+    };
+}
+
 static RPCHelpMan getstakecontendervote() {
     return RPCHelpMan{
         "getstakecontendervote",
@@ -1872,6 +1900,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         verifyavalanchedelegation, },
         { "avalanche",         setflakyproof,             },
         { "avalanche",         getflakyproofs,            },
+        { "hidden",            getavailabilityscore,      },
         { "hidden",            getstakecontendervote,     },
     };
     // clang-format on
