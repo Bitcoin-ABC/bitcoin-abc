@@ -77,6 +77,9 @@ tower-http = { version = "0.5", features = ["cors"] }
 # Trait representing an asynchronous server. 
 tower-service = "0.3"
 
+# Semantic version string parser
+versions = "6.2"
+
 # Async runtime
 [dependencies.tokio]
 version = "1.25"

@@ -30,6 +30,7 @@ use rustls::pki_types::{
 };
 use serde_json::{json, Value};
 use thiserror::Error;
+use versions::Versioning;
 
 use crate::{
     server::{ChronikIndexerRef, NodeRef},
@@ -41,6 +42,9 @@ use crate::{
 /// it comes to scripts with an unreasonable number of transactions.
 /// TODO: make this an init param
 pub const MAX_HISTORY: usize = 200_000;
+
+/// Protocol version implemented by this server
+pub const ELECTRUM_PROTOCOL_VERSION: &str = "1.4";
 
 /// Chronik Electrum protocol
 #[derive(Clone, Copy, Debug)]
@@ -342,6 +346,60 @@ impl ChronikElectrumRPCServerEndpoint {
     async fn ping(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 0);
         Ok(Value::Null)
+    }
+
+    async fn version(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 2);
+        let _client_name =
+            get_optional_param!(params, 0, "client_name", json!(""))?;
+        let client_protocol_versions =
+            get_optional_param!(params, 1, "protocol_version", json!("1.4"))?;
+        let unsup_version_err = RPCError::CustomError(
+            1,
+            "Unsupported protocol version".to_string(),
+        );
+        match client_protocol_versions {
+            Value::String(version_string) => {
+                if version_string != ELECTRUM_PROTOCOL_VERSION {
+                    return Err(unsup_version_err);
+                }
+            }
+            Value::Array(arr) => {
+                if arr.len() != 2 {
+                    return Err(unsup_version_err);
+                }
+                let bad_version_err = || {
+                    RPCError::CustomError(
+                        1,
+                        format!("Bad version tuple: {arr:?}"),
+                    )
+                };
+                let min_version = Versioning::new(
+                    arr[0].as_str().ok_or_else(bad_version_err)?,
+                )
+                .ok_or_else(bad_version_err)?;
+                let max_version = Versioning::new(
+                    arr[1].as_str().ok_or_else(bad_version_err)?,
+                )
+                .ok_or_else(bad_version_err)?;
+                // Only allow versions in the correct order
+                if min_version > max_version {
+                    return Err(bad_version_err());
+                }
+                let target_version =
+                    Versioning::new(ELECTRUM_PROTOCOL_VERSION).unwrap();
+                if target_version < min_version || target_version > max_version
+                {
+                    return Err(unsup_version_err);
+                }
+            }
+            _ => {
+                return Err(unsup_version_err);
+            }
+        };
+        let version_number = ffi::format_full_version();
+        let server_version = format!("Bitcoin ABC {version_number}");
+        Ok(json!([server_version, ELECTRUM_PROTOCOL_VERSION]))
     }
 }
 
