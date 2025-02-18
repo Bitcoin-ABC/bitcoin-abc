@@ -898,4 +898,58 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }
         Ok(json!(json_history))
     }
+
+    #[rpc_method(name = "scripthash.listunspent")]
+    async fn scripthash_listunspent(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        let indexer = self.indexer.read().await;
+        let script_utxos = indexer
+            .script_utxos()
+            .map_err(|_| RPCError::InternalError)?;
+        let script = match script_utxos.script(
+            GroupMember::MemberHash(script_hash),
+            indexer.decompress_script_fn,
+        ) {
+            Ok(script) => script,
+            Err(_) => return Ok(json!([])),
+        };
+        let utxos = script_utxos.utxos(&script).ok().unwrap_or_default();
+
+        let mut json_utxos: Vec<Value> = vec![];
+        for utxo in utxos.iter() {
+            let outpoint =
+                utxo.outpoint.as_ref().ok_or(RPCError::InternalError)?;
+            let be_txid: Vec<u8> =
+                outpoint.txid.iter().copied().rev().collect();
+            // The electrum spec says mempool utxos have a block height of 0
+            let height: i32 = match utxo.block_height {
+                -1 => 0,
+                i => i,
+            };
+            json_utxos.push(json!({
+                "height": height,
+                "tx_hash": hex::encode(be_txid),
+                "tx_pos": outpoint.out_idx,
+                "value": &utxo.value,
+            }));
+        }
+
+        Ok(json!(json_utxos))
+    }
 }

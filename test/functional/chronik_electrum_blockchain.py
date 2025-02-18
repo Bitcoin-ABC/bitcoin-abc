@@ -630,6 +630,13 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     "message": "Invalid scripthash",
                 },
             )
+            assert_equal(
+                self.client.blockchain.scripthash.listunspent(invalid_scripthash).error,
+                {
+                    "code": 1,
+                    "message": "Invalid scripthash",
+                },
+            )
 
         # valid hash, but not associated with any known script
         assert_equal(
@@ -641,6 +648,10 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         )
         assert_equal(
             self.client.blockchain.scripthash.get_history(32 * "ff").result,
+            [],
+        )
+        assert_equal(
+            self.client.blockchain.scripthash.listunspent(32 * "ff").result,
             [],
         )
 
@@ -686,8 +697,9 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         confirmed = 0
         unconfirmed = 0
         history = []
+        utxos = []
 
-        def assert_scripthash_balance_and_history(sorted_history=True):
+        def assert_scripthash_balance_and_history(check_sorting=True):
             assert_equal(
                 self.client.blockchain.scripthash.get_balance(scripthash).result,
                 {
@@ -695,49 +707,64 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     "unconfirmed": unconfirmed,
                 },
             )
-            result = self.client.blockchain.scripthash.get_history(scripthash).result
-            expected_result = history
-            if not sorted_history:
+            actual_history = self.client.blockchain.scripthash.get_history(
+                scripthash
+            ).result
+            expected_history = history
+            actual_utxos = self.client.blockchain.scripthash.listunspent(
+                scripthash
+            ).result
+            expected_utxos = utxos
+            if not check_sorting:
                 # Enforce any unique arbitrary sorting so we can compare equality
                 # between the two lists.
                 def sorting_key(hist_item):
                     return hist_item["tx_hash"]
 
-                result = sorted(result, key=sorting_key)
-                expected_result = sorted(expected_result, key=sorting_key)
-            assert_equal(result, expected_result)
+                actual_history = sorted(actual_history, key=sorting_key)
+                expected_history = sorted(expected_history, key=sorting_key)
+
+                def sorting_key(utxo):
+                    return utxo["tx_hash"], utxo["tx_pos"]
+
+                actual_utxos = sorted(actual_utxos, key=sorting_key)
+                expected_utxos = sorted(expected_utxos, key=sorting_key)
+            assert_equal(actual_history, expected_history)
+            assert_equal(actual_utxos, expected_utxos)
 
         assert_scripthash_balance_and_history()
 
-        confirmed = 0
-        unconfirmed = 0
-        history = []
         for _ in range(4):
             # Add an unconfirmaed transaction
-            txid, _ = self.wallet.send_to(
+            txid, n = self.wallet.send_to(
                 from_node=self.node, scriptPubKey=script, amount=1337, fee=1000
             )
             unconfirmed += 1337
             history.append({"fee": 1000, "height": 0, "tx_hash": txid})
+            utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": 1337})
             assert_scripthash_balance_and_history()
 
             # Confirm the transaction
             self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
             confirmed += 1337
             unconfirmed -= 1337
+            h = self.node.getblockcount()
             history.pop()
-            history.append({"height": self.node.getblockcount(), "tx_hash": txid})
+            history.append({"height": h, "tx_hash": txid})
+            utxos.pop()
+            utxos.append({"height": h, "tx_hash": txid, "tx_pos": n, "value": 1337})
             assert_scripthash_balance_and_history()
 
         # History with multiple unconfirmed transactions
         for _ in range(3):
-            txid, _ = self.wallet.send_to(
+            txid, n = self.wallet.send_to(
                 from_node=self.node, scriptPubKey=script, amount=888, fee=999
             )
             unconfirmed += 888
             history.append({"fee": 999, "height": 0, "tx_hash": txid})
+            utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": 888})
             # We cannot guarantee the sorting of unconfirmed transactions
-            assert_scripthash_balance_and_history(sorted_history=False)
+            assert_scripthash_balance_and_history(check_sorting=False)
 
 
 if __name__ == "__main__":
