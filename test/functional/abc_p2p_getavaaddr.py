@@ -145,10 +145,13 @@ class AvaAddrTest(BitcoinTestFramework):
 
             node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
-            return all(
-                proofid in valid_proofids
-                and node.getavalanchepeerinfo(proofid)[0]["availability_score"] > 0
-                for proofid in proofids
+            nodeids = []
+            for p in node.getavalanchepeerinfo():
+                nodeids += p["node_list"]
+
+            return all(proofid in valid_proofids for proofid in proofids) and all(
+                node.getpeerinfo()[nodeid]["availability_score"] > 0
+                for nodeid in nodeids
             )
 
         self.wait_until(lambda: all_peers_addr_are_relayable(peers[:8]))
@@ -551,8 +554,7 @@ class AvaAddrTest(BitcoinTestFramework):
         check_addr_requests(requester2)
 
     def run_test(self):
-        # FIXME this test is flaky so disable it temporarly until it is fixed.
-        # self.getavaaddr_interval_test()
+        self.getavaaddr_interval_test()
 
         # Limited by maxaddrtosend
         self.address_test(maxaddrtosend=3, num_proof=2, num_avanode=8)
