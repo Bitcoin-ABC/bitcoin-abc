@@ -271,13 +271,13 @@ describe('<Token /> available actions rendered', () => {
         const listButton = screen.getByRole('button', {
             name: /List Vespene Gas/,
         });
-        expect(listButton).toHaveProperty('disabled', true);
+        expect(listButton).toBeDisabled();
 
         // The price input is disabled until qty values are entered
         const priceInput = screen.getByPlaceholderText(
             'Enter list price (per token)',
         );
-        expect(priceInput).toHaveProperty('disabled', true);
+        expect(priceInput).toBeDisabled();
 
         const minQtyInput = screen.getByPlaceholderText('Min qty');
 
@@ -288,7 +288,7 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.type(screen.getByPlaceholderText('Offered qty'), '111');
 
         // The price input is no longer disabled
-        expect(priceInput).toHaveProperty('disabled', false);
+        expect(priceInput).toBeEnabled();
 
         // We see expected error msg if we try to list the token at a price where the min buy would cost less than dust
         await userEvent.type(priceInput, '0.001');
@@ -912,10 +912,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
         // On load, default action for NFT is to list it
-        expect(screen.getByTitle('Toggle Sell NFT')).toHaveProperty(
-            'checked',
-            true,
-        );
+        expect(screen.getByTitle('Toggle Sell NFT')).toBeChecked();
 
         // We see a price input field for listing this NFT
         const priceInput = screen.getByPlaceholderText('Enter NFT list price');
@@ -931,7 +928,7 @@ describe('<Token /> available actions rendered', () => {
         const listButton = screen.getByRole('button', {
             name: /List Gordon Chen/,
         });
-        expect(listButton).toHaveProperty('disabled', true);
+        expect(listButton).toBeDisabled();
 
         await userEvent.clear(priceInput);
 
@@ -944,7 +941,7 @@ describe('<Token /> available actions rendered', () => {
         ).not.toBeInTheDocument();
 
         // The List button is NOT disabled if price is greater than dust
-        expect(listButton).toHaveProperty('disabled', false);
+        expect(listButton).toBeEnabled();
 
         // The fiat price is previewed correctly
         expect(screen.getByText('10,000 XEC = $ 0.30 USD')).toBeInTheDocument();
@@ -1028,17 +1025,17 @@ describe('<Token /> available actions rendered', () => {
 
         // On load, default action for NFT is to list it
         const sellActionSwitch = screen.getByTitle('Toggle Sell NFT');
-        expect(sellActionSwitch).toHaveProperty('checked', true);
+        expect(sellActionSwitch).toBeChecked();
 
         // Sending is disabled
         const sendActionSwitch = screen.getByTitle('Toggle Send');
 
-        expect(sendActionSwitch).toHaveProperty('checked', false);
+        expect(sendActionSwitch).not.toBeChecked();
 
         // When we enable Sending, Selling is disabled, and Sending is enabled
         await userEvent.click(sendActionSwitch);
-        expect(sendActionSwitch).toHaveProperty('checked', true);
-        expect(sellActionSwitch).toHaveProperty('checked', false);
+        expect(sendActionSwitch).toBeChecked();
+        expect(sellActionSwitch).not.toBeChecked();
 
         // We see an Address input
         const addrInput = screen.getByPlaceholderText('Address');
@@ -1048,7 +1045,7 @@ describe('<Token /> available actions rendered', () => {
         const sendButton = screen.getByRole('button', {
             name: /Send GC/,
         });
-        expect(sendButton).toHaveProperty('disabled', true);
+        expect(sendButton).toBeDisabled();
 
         // We can enter an address
         await userEvent.type(
@@ -1057,7 +1054,7 @@ describe('<Token /> available actions rendered', () => {
         );
 
         // Now the button is enabled
-        expect(sendButton).toHaveProperty('disabled', false);
+        expect(sendButton).toBeEnabled();
 
         // We can send an NFT
         await userEvent.click(sendButton);
@@ -1392,9 +1389,7 @@ describe('<Token /> available actions rendered', () => {
 
         // On load, default action for ALP is to send it
         const sendActionSwitch = screen.getByTitle('Toggle Send');
-        await waitFor(() =>
-            expect(sendActionSwitch).toHaveProperty('checked', true),
-        );
+        await waitFor(() => expect(sendActionSwitch).toBeChecked());
 
         // We see an Address input
         const addrInput = screen.getByPlaceholderText('Address');
@@ -1787,7 +1782,7 @@ describe('<Token /> available actions rendered', () => {
         const priceInput = screen.getByPlaceholderText(
             'Enter list price (per token)',
         );
-        expect(priceInput).toHaveProperty('disabled', true);
+        expect(priceInput).toBeDisabled();
 
         // Enter token balance as offered qty
         await userEvent.type(screen.getByPlaceholderText('Offered qty'), '100');
