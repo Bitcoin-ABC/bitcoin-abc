@@ -154,7 +154,6 @@ class AvaAddrTest(BitcoinTestFramework):
             )
 
         self.wait_until(lambda: all_peers_addr_are_relayable(peers[:8]))
-        node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         requester = node.add_p2p_connection(AddrReceiver())
         requester.send_message(msg_getavaaddr())
@@ -179,7 +178,6 @@ class AvaAddrTest(BitcoinTestFramework):
         for p in peers[8:]:
             node.add_p2p_connection(p)
         self.wait_until(lambda: all_peers_addr_are_relayable(peers))
-        node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         # Check our message is now accepted again now that the getavaaddr
         # interval is elapsed
