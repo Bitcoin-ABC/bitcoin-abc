@@ -132,6 +132,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         block_metadata = pb.BlockMetadata(
             height=102,

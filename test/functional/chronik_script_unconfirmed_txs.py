@@ -209,6 +209,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         # Only unconfirmed txs remain, conflict txs are removed
         assert_equal(

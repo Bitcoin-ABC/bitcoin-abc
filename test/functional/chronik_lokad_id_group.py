@@ -185,6 +185,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         assert_equal(ws1.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))
         assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))

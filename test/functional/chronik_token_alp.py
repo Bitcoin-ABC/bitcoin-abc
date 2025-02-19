@@ -586,6 +586,7 @@ be in ascending order""",
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
         all_things.test(chronik, block.hash)
 
         # After being mined, all previous txs still work fine:
@@ -615,6 +616,7 @@ be in ascending order""",
             block.solve()
             prev_hash = block.hash
             peer.send_blocks_and_test([block], node)
+            node.syncwithvalidationinterfacequeue()
             tx_block_hashes[block_idx] = block.hash
 
             # All txs still work on every block
@@ -631,6 +633,7 @@ be in ascending order""",
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
         all_things.test(chronik, block.hash)
         for tx, block_hash in zip(txs, tx_block_hashes):
             tx.test(chronik, block_hash)
@@ -661,6 +664,7 @@ be in ascending order""",
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
         for tx in txs:
             chronik.tx(tx.txid).err(404)
 

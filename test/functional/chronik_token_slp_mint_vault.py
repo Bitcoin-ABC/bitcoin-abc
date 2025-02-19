@@ -199,6 +199,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
         genesis.test(chronik, block.hash)
 
         # MINT is still invalid, despite GENESIS being mined.
@@ -313,6 +314,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
         block_hashes.append(block.hash)
 
         # GENESIS still valid

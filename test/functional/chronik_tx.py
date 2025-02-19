@@ -199,6 +199,7 @@ class ChronikTxTest(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         assert_equal(
             chronik.tx(txid2).err(404).msg,

@@ -169,6 +169,7 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         block = create_block(int(blockhashes[-2], 16), coinbase_tx, mocktime + 1000)
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
         blockhashes[-1] = block.hash
 
         txs = [{"block": (i + 1, blockhash)} for i, blockhash in enumerate(blockhashes)]

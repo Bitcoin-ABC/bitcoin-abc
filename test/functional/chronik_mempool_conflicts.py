@@ -93,6 +93,7 @@ class ChronikMempoolConflicts(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         chronik.tx(tx1.hash).err(404)
         chronik.tx(tx2.hash).err(404)

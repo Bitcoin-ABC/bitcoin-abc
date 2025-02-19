@@ -92,6 +92,7 @@ class ChronikMempoolDisconnectPool(BitcoinTestFramework):
 
         # Make sure Chronik handles the reorg gracefully
         peer.send_blocks_and_test([reorg_block1, reorg_block2], node)
+        node.syncwithvalidationinterfacequeue()
 
         assert_equal(
             chronik.tx(tx1.hash).ok().block.hash[::-1].hex(), reorg_block1.hash

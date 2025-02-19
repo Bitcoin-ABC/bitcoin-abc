@@ -231,6 +231,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         del expected_utxos[2]
         assert_equal(

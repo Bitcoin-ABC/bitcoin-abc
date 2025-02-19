@@ -177,6 +177,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
+        node.syncwithvalidationinterfacequeue()
 
         def check_tx_msgs(ws, msg_type, txids):
             for txid in txids:
