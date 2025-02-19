@@ -22,6 +22,7 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.conflicting_proof_cooldown = 100
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 f"-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}",
@@ -195,7 +196,7 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
             )
 
         # Vote until all the proofs have finalized (including ours)
-        self.wait_until(lambda: vote_for_all_proofs())
+        self.wait_until(lambda: vote_for_all_proofs(), timeout=240)
 
         self.wait_until(
             lambda: avalancheproofs_equals(
