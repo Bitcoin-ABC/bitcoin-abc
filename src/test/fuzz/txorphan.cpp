@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <consensus/amount.h>
+#include <consensus/consensus.h>
 #include <net_processing.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
@@ -45,6 +46,8 @@ FUZZ_TARGET_INIT(txorphan, initialize_orphanage) {
 
     CTransactionRef ptx_potential_parent = nullptr;
 
+    std::vector<CTransactionRef> tx_history;
+
     LIMITED_WHILE(outpoints.size() < 200'000 &&
                       fuzzed_data_provider.ConsumeBool(),
                   10 * DEFAULT_MAX_ORPHAN_TRANSACTIONS) {
@@ -81,6 +84,8 @@ FUZZ_TARGET_INIT(txorphan, initialize_orphanage) {
             }
             return new_tx;
         }();
+
+        tx_history.push_back(tx);
 
         // Trigger orphanage functions that are called using parents.
         // ptx_potential_parent is a tx we constructed in a previous loop and
@@ -169,6 +174,32 @@ FUZZ_TARGET_INIT(txorphan, initialize_orphanage) {
                 [&] {
                     orphanage.EraseForPeer(peer_id);
                     Assert(!orphanage.HaveTxFromPeer(tx->GetId(), peer_id));
+                },
+                [&] {
+                    // Make a block out of txs and then EraseForBlock
+                    CBlock block;
+                    uint64_t block_size{0};
+                    int num_txs =
+                        fuzzed_data_provider
+                            .ConsumeIntegralInRange<unsigned int>(0, 1000);
+                    for (int i{0}; i < num_txs; ++i) {
+                        auto &tx_to_remove =
+                            PickValue(fuzzed_data_provider, tx_history);
+                        const auto tx_size_to_remove =
+                            tx_to_remove->GetTotalSize();
+                        if (block_size + tx_size_to_remove >
+                            DEFAULT_MAX_BLOCK_SIZE) {
+                            break;
+                        }
+                        block_size += tx_size_to_remove;
+                        block.vtx.push_back(tx_to_remove);
+                    }
+                    orphanage.EraseForBlock(block);
+                    for (const auto &tx_removed : block.vtx) {
+                        Assert(!orphanage.HaveTx(tx_removed->GetId()));
+                        Assert(!orphanage.HaveTxFromPeer(tx_removed->GetId(),
+                                                         peer_id));
+                    }
                 },
                 [&] {
                     // test mocktime and expiry
