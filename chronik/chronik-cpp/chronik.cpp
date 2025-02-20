@@ -103,6 +103,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .electrum_default_protocol = 't',
         .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),
         .electrum_privkey_path = args.GetArg("-chronikelectrumprivkey", ""),
+        .electrum_max_history = args.GetIntArg("-chronikelectrummaxhistory",
+                                               DEFAULT_ELECTRUM_MAX_HISTORY),
     }};
 }
 

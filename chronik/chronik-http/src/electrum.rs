@@ -37,12 +37,6 @@ use crate::{
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
 
-/// Largest tx history we a willing to serve.
-/// Electrum responses are not paginated, so the protocol is limited  when
-/// it comes to scripts with an unreasonable number of transactions.
-/// TODO: make this an init param
-pub const MAX_HISTORY: usize = 200_000;
-
 /// Protocol version implemented by this server
 pub const ELECTRUM_PROTOCOL_VERSION: &str = "1.4";
 
@@ -68,6 +62,8 @@ pub struct ChronikElectrumServerParams {
     pub tls_cert_path: String,
     /// The TLS private key file
     pub tls_privkey_path: String,
+    /// Maximum transaction history length
+    pub max_history: u32,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
@@ -79,6 +75,7 @@ pub struct ChronikElectrumServer {
     node: NodeRef,
     tls_cert_path: String,
     tls_privkey_path: String,
+    max_history: u32,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -138,6 +135,7 @@ impl ChronikElectrumServer {
             node: params.node,
             tls_cert_path: params.tls_cert_path,
             tls_privkey_path: params.tls_privkey_path,
+            max_history: params.max_history,
         })
     }
 
@@ -150,6 +148,7 @@ impl ChronikElectrumServer {
             Arc::new(ChronikElectrumRPCBlockchainEndpoint {
                 indexer: self.indexer,
                 node: self.node,
+                max_history: self.max_history,
             });
 
         let tls_cert_path = self.tls_cert_path.clone();
@@ -339,6 +338,7 @@ struct ChronikElectrumRPCServerEndpoint {}
 struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
     node: NodeRef,
+    max_history: u32,
 }
 
 #[rpc_impl(name = "server")]
@@ -842,12 +842,13 @@ impl ChronikElectrumRPCBlockchainEndpoint {
               "unconfirmed": 0
             }));
         }
-        if history.num_txs > MAX_HISTORY as u32 {
+        if history.num_txs > self.max_history {
             return Err(RPCError::CustomError(
                 1,
                 format!(
                     "transaction history for scripthash {script_hash_hex} \
-                     exceeds limit ({MAX_HISTORY})"
+                     exceeds limit ({0})",
+                    self.max_history
                 ),
             ));
         }
@@ -903,13 +904,14 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 MAX_HISTORY_PAGE_SIZE,
             )
             .map_err(|_| RPCError::InternalError)?;
-        if history.num_txs > MAX_HISTORY as u32 {
+        if history.num_txs > self.max_history {
             // Note that Fulcrum would return an empty history in this case
             return Err(RPCError::CustomError(
                 1,
                 format!(
                     "transaction history for scripthash {script_hash_hex} \
-                     exceeds limit ({MAX_HISTORY})"
+                     exceeds limit ({0})",
+                    self.max_history
                 ),
             ));
         }

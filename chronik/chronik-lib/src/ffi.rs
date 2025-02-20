@@ -53,6 +53,8 @@ mod ffi_inner {
         pub electrum_cert_path: String,
         /// Electrum private key file path
         pub electrum_privkey_path: String,
+        /// Maximum transaction history length for an Electrum request
+        pub electrum_max_history: u32,
     }
 
     /// Settings for tuning the TxNumCache.

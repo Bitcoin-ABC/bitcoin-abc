@@ -699,6 +699,9 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         history = []
         utxos = []
 
+        def utxo_sorting_key(utxo):
+            return utxo["tx_hash"], utxo["tx_pos"]
+
         def assert_scripthash_balance_and_history(check_sorting=True):
             assert_equal(
                 self.client.blockchain.scripthash.get_balance(scripthash).result,
@@ -724,24 +727,27 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 actual_history = sorted(actual_history, key=sorting_key)
                 expected_history = sorted(expected_history, key=sorting_key)
 
-                def sorting_key(utxo):
-                    return utxo["tx_hash"], utxo["tx_pos"]
-
-                actual_utxos = sorted(actual_utxos, key=sorting_key)
-                expected_utxos = sorted(expected_utxos, key=sorting_key)
+                actual_utxos = sorted(actual_utxos, key=utxo_sorting_key)
+                expected_utxos = sorted(expected_utxos, key=utxo_sorting_key)
             assert_equal(actual_history, expected_history)
             assert_equal(actual_utxos, expected_utxos)
 
         assert_scripthash_balance_and_history()
 
-        for _ in range(4):
-            # Add an unconfirmaed transaction
+        def add_unconfirmed_transaction(amount: int, fee: int) -> tuple[str, int]:
+            nonlocal unconfirmed
+            nonlocal history
+            nonlocal utxos
             txid, n = self.wallet.send_to(
-                from_node=self.node, scriptPubKey=script, amount=1337, fee=1000
+                from_node=self.node, scriptPubKey=script, amount=amount, fee=fee
             )
-            unconfirmed += 1337
-            history.append({"fee": 1000, "height": 0, "tx_hash": txid})
-            utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": 1337})
+            unconfirmed += amount
+            history.append({"fee": fee, "height": 0, "tx_hash": txid})
+            utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": amount})
+            return txid, n
+
+        for _ in range(4):
+            txid, n = add_unconfirmed_transaction(amount=1337, fee=1000)
             assert_scripthash_balance_and_history()
 
             # Confirm the transaction
@@ -757,14 +763,51 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         # History with multiple unconfirmed transactions
         for _ in range(3):
-            txid, n = self.wallet.send_to(
-                from_node=self.node, scriptPubKey=script, amount=888, fee=999
-            )
-            unconfirmed += 888
-            history.append({"fee": 999, "height": 0, "tx_hash": txid})
-            utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": 888})
+            add_unconfirmed_transaction(amount=888, fee=999)
             # We cannot guarantee the sorting of unconfirmed transactions
             assert_scripthash_balance_and_history(check_sorting=False)
+
+        # Test an excessive transaction history
+        history_len = len(
+            self.client.blockchain.scripthash.get_history(scripthash).result
+        )
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [f"-chronikelectrummaxhistory={history_len + 1}"],
+        )
+        self.client = self.nodes[0].get_chronik_electrum_client()
+        # We can add one more transaction
+        add_unconfirmed_transaction(amount=777, fee=998)
+        assert_scripthash_balance_and_history(check_sorting=False)
+
+        # The next transaction makes the tx history too long.
+        add_unconfirmed_transaction(amount=777, fee=998)
+        msg = f"transaction history for scripthash {scripthash} exceeds limit ({history_len + 1})"
+        assert_equal(
+            self.client.blockchain.scripthash.get_history(scripthash).error,
+            {
+                "code": 1,
+                "message": msg,
+            },
+        )
+        # We compute the balance on demand, so this RPC is also limited by the max
+        # history parameter.
+        assert_equal(
+            self.client.blockchain.scripthash.get_balance(scripthash).error,
+            {
+                "code": 1,
+                "message": msg,
+            },
+        )
+        # But the listunspent RPC is unaffected.
+        assert_equal(
+            sorted(
+                self.client.blockchain.scripthash.listunspent(scripthash).result,
+                key=utxo_sorting_key,
+            ),
+            sorted(utxos, key=utxo_sorting_key),
+        )
 
 
 if __name__ == "__main__":

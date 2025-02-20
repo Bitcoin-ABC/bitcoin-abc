@@ -747,6 +747,11 @@ void SetupServerArgs(NodeContext &node) {
         "-chronikelectrumcert must be set as well.",
         ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
         OptionsCategory::HIDDEN);
+    argsman.AddArg(
+        "-chronikelectrummaxhistory",
+        strprintf("Largest tx history we are willing to serve. (default: %u)",
+                  chronik::DEFAULT_ELECTRUM_MAX_HISTORY),
+        ArgsManager::ALLOW_INT, OptionsCategory::HIDDEN);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",
