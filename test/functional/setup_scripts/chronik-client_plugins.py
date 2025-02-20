@@ -9,6 +9,7 @@ Based on test/functional/chronik_plugins.py
 """
 
 import os
+import time
 
 import pathmagic  # noqa
 from setup_framework import SetupFramework
@@ -38,6 +39,12 @@ class ChronikClientPlugins(SetupFramework):
         from test_framework.chronik.client import pb
 
         node = self.nodes[0]
+
+        # Set the mocktime so we don't have to account for the time first seen
+        # sorting when checking the transactions
+        now = int(time.time())
+        node.setmocktime(now)
+
         yield True
 
         chronik = node.get_chronik_client()
