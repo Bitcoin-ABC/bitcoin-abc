@@ -6,6 +6,7 @@ Test Chronik runs plugins on txs.
 """
 
 import os
+import time
 
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
@@ -35,6 +36,11 @@ class ChronikPlugins(BitcoinTestFramework):
 
         node = self.nodes[0]
         chronik = node.get_chronik_client()
+
+        # Set the mocktime so we don't have to account for the time first seen
+        # sorting when checking the transactions
+        now = int(time.time())
+        node.setmocktime(now)
 
         def ws_msg(txid: str, msg_type):
             return pb.WsMsg(
