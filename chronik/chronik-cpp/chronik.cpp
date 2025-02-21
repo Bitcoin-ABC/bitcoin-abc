@@ -18,6 +18,8 @@
 #include <chronik-cpp/chronik_validationinterface.h>
 #include <chronik_lib/src/ffi.rs.h>
 
+#include <tinyformat.h>
+
 namespace chronik {
 
 // Duration between WebSocket pings initiated by Chronik.
@@ -71,6 +73,16 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         }
     }
 
+    const int64_t electrum_max_history = args.GetIntArg(
+        "-chronikelectrummaxhistory", DEFAULT_ELECTRUM_MAX_HISTORY);
+    if (electrum_max_history < 1 ||
+        electrum_max_history > std::numeric_limits<uint32_t>::max()) {
+        return {{_(strprintf("The -chronikelectrummaxhistory value should be "
+                             "withing the range [1, %d].",
+                             std::numeric_limits<uint32_t>::max())
+                       .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.NetworkIDString()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -103,8 +115,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .electrum_default_protocol = 't',
         .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),
         .electrum_privkey_path = args.GetArg("-chronikelectrumprivkey", ""),
-        .electrum_max_history = args.GetIntArg("-chronikelectrummaxhistory",
-                                               DEFAULT_ELECTRUM_MAX_HISTORY),
+        .electrum_max_history = static_cast<uint32_t>(electrum_max_history),
     }};
 }
 

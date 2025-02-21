@@ -771,7 +771,25 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         history_len = len(
             self.client.blockchain.scripthash.get_history(scripthash).result
         )
-        self.restart_node(
+
+        self.stop_node(0)
+
+        self.nodes[0].assert_start_raises_init_error(
+            extra_args=self.extra_args[0] + ["-chronikelectrummaxhistory=-1"],
+            expected_msg="Error: The -chronikelectrummaxhistory value should be withing the range [1, 4294967295].",
+        )
+
+        self.nodes[0].assert_start_raises_init_error(
+            extra_args=self.extra_args[0] + ["-chronikelectrummaxhistory=0"],
+            expected_msg="Error: The -chronikelectrummaxhistory value should be withing the range [1, 4294967295].",
+        )
+
+        self.nodes[0].assert_start_raises_init_error(
+            extra_args=self.extra_args[0] + ["-chronikelectrummaxhistory=4294967296"],
+            expected_msg="Error: The -chronikelectrummaxhistory value should be withing the range [1, 4294967295].",
+        )
+
+        self.start_node(
             0,
             extra_args=self.extra_args[0]
             + [f"-chronikelectrummaxhistory={history_len + 1}"],
