@@ -4,6 +4,7 @@
 """
 Test Chronik's electrum interface
 """
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, chronikelectrum_port, get_cli_version
 
@@ -29,6 +30,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.node = self.nodes[0]
         self.client = self.node.get_chronik_electrum_client()
         self.test_rpc_errors()
+        self.test_donation_address()
         self.test_ping()
         self.test_server_version()
         # Run this last as it invalidates self.client
@@ -50,6 +52,24 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         assert_equal(
             response.error, {"code": -32602, "message": "Expected at most 0 parameters"}
         )
+
+    def test_donation_address(self):
+        assert_equal(self.client.server.donation_address().result, "")
+
+        self.node.stop_node()
+        self.node.assert_start_raises_init_error(
+            self.extra_args[0] + [f"-chronikelectrumdonationaddress={81 * 'a'}"],
+            "Error: The -chronikelectrumdonationaddress parameter must be at most 80 characters long.",
+        )
+
+        for address in ("lorem_ipsum", ADDRESS_ECREG_UNSPENDABLE, 80 * "a"):
+            self.restart_node(
+                0,
+                extra_args=self.extra_args[0]
+                + [f"-chronikelectrumdonationaddress={address}"],
+            )
+            self.client = self.node.get_chronik_electrum_client()
+            assert_equal(self.client.server.donation_address().result, address)
 
     def test_ping(self):
         # This method return {... "result":null} which JSON-decodes to None

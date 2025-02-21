@@ -752,6 +752,14 @@ void SetupServerArgs(NodeContext &node) {
         strprintf("Largest tx history we are willing to serve. (default: %u)",
                   chronik::DEFAULT_ELECTRUM_MAX_HISTORY),
         ArgsManager::ALLOW_INT, OptionsCategory::HIDDEN);
+    argsman.AddArg(
+        "-chronikelectrumdonationaddress",
+        strprintf(
+            "The server donation address. No checks are done on the server "
+            "side to ensure this is a valid eCash address, it is just relayed "
+            "to clients verbatim as a text string (%u characters maximum).",
+            chronik::MAX_LENGTH_DONATION_ADDRESS),
+        ArgsManager::ALLOW_STRING, OptionsCategory::HIDDEN);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

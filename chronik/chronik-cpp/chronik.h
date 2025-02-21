@@ -29,6 +29,8 @@ static const size_t DEFAULT_TX_NUM_CACHE_BUCKET_SIZE = 100'000;
 
 static const uint32_t DEFAULT_ELECTRUM_MAX_HISTORY{200'000};
 
+static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
+
 // Registers Chronik indexer as ValidationInterface, listens to HTTP queries
 bool Start(const ArgsManager &args, const Config &config,
            const node::NodeContext &node, bool fWipe);

@@ -64,6 +64,8 @@ pub struct ChronikElectrumServerParams {
     pub tls_privkey_path: String,
     /// Maximum transaction history length
     pub max_history: u32,
+    /// Server donation address
+    pub donation_address: String,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
@@ -76,6 +78,7 @@ pub struct ChronikElectrumServer {
     tls_cert_path: String,
     tls_privkey_path: String,
     max_history: u32,
+    donation_address: String,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -136,6 +139,7 @@ impl ChronikElectrumServer {
             tls_cert_path: params.tls_cert_path,
             tls_privkey_path: params.tls_privkey_path,
             max_history: params.max_history,
+            donation_address: params.donation_address,
         })
     }
 
@@ -143,7 +147,9 @@ impl ChronikElectrumServer {
     pub async fn serve(self) -> Result<()> {
         // The behavior is to bind the endpoint name to its method name like so:
         // endpoint.method as the name of the RPC
-        let server_endpoint = Arc::new(ChronikElectrumRPCServerEndpoint {});
+        let server_endpoint = Arc::new(ChronikElectrumRPCServerEndpoint {
+            donation_address: self.donation_address,
+        });
         let blockchain_endpoint =
             Arc::new(ChronikElectrumRPCBlockchainEndpoint {
                 indexer: self.indexer,
@@ -333,7 +339,9 @@ macro_rules! get_optional_param {
     }};
 }
 
-struct ChronikElectrumRPCServerEndpoint {}
+struct ChronikElectrumRPCServerEndpoint {
+    donation_address: String,
+}
 
 struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
@@ -343,6 +351,11 @@ struct ChronikElectrumRPCBlockchainEndpoint {
 
 #[rpc_impl(name = "server")]
 impl ChronikElectrumRPCServerEndpoint {
+    async fn donation_address(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 0);
+        Ok(json!(self.donation_address))
+    }
+
     async fn ping(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 0);
         Ok(Value::Null)

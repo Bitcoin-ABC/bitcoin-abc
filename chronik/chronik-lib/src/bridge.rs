@@ -190,6 +190,7 @@ fn try_setup_chronik(
                 tls_cert_path: params.electrum_cert_path,
                 tls_privkey_path: params.electrum_privkey_path,
                 max_history: params.electrum_max_history,
+                donation_address: params.electrum_donation_address,
             })?;
         runtime.spawn({
             let node = Arc::clone(&node);

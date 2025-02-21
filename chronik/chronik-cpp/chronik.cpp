@@ -83,6 +83,17 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                        .c_str())}};
     }
 
+    const std::string donation_address =
+        args.GetArg("-chronikelectrumdonationaddress", "");
+    if (donation_address.length() > MAX_LENGTH_DONATION_ADDRESS) {
+        return {
+            {_(strprintf(
+                   "The -chronikelectrumdonationaddress parameter must be at "
+                   "most %u characters long.",
+                   MAX_LENGTH_DONATION_ADDRESS)
+                   .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.NetworkIDString()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -116,6 +127,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),
         .electrum_privkey_path = args.GetArg("-chronikelectrumprivkey", ""),
         .electrum_max_history = static_cast<uint32_t>(electrum_max_history),
+        .electrum_donation_address =
+            args.GetArg("-chronikelectrumdonationaddress", ""),
     }};
 }
 

@@ -55,6 +55,8 @@ mod ffi_inner {
         pub electrum_privkey_path: String,
         /// Maximum transaction history length for an Electrum request
         pub electrum_max_history: u32,
+        /// Donation address for public Electrum servers.
+        pub electrum_donation_address: String,
     }
 
     /// Settings for tuning the TxNumCache.
