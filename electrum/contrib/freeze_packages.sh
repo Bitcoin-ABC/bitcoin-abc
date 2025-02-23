@@ -30,8 +30,8 @@ for i in '' '-hw' '-binaries' '-build-wine' ; do
     # pkg-resources needs to be excluded
     # see https://github.com/pypa/pip/issues/4022
     # see https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1635463
-    # btchip-python and trezor are not pinned to a specific version, but rather to a commit hash
-    requirements=$(pip freeze --all | grep -v ^pkg-resources | grep -v ^trezor | grep -v ^btchip-python)
+    # exclude also a few libs that are not pinned to a specific version, but rather to a commit hash
+    requirements=$(pip freeze --all | grep -v ^pkg-resources | grep -v ^trezor | grep -v ^btchip-python | grep -v ^keepkey)
     restricted=$(echo $requirements | $other_python $contrib/deterministic-build/find_restricted_dependencies.py)
     requirements="$requirements $restricted"
 

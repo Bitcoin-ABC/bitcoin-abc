@@ -1,12 +1,14 @@
 Cython>=0.27
 # trezorlib with support for eCash stake signatures (if a custom firmware is used)
 trezor[hidapi] @ https://github.com/Bitcoin-ABC/ecash-trezor-firmware/archive/bea24410b4f3b7a7327bb934a78cf9cba482572a.tar.gz#subdirectory=python
-keepkey>=6.1
+# keepkey 7.0.3 with pb2 files regenerated to support recent protubuf version
+# See https://github.com/keepkey/python-keepkey/issues/146
+keepkey @ https://github.com/zquestz/python-keepkey/archive/3efc32c5c2c02d1a52663c0fd97bc656227affdd.tar.gz
 # btchip-python 0.1.32 with a patch to fix a malformed dependency
 # See https://github.com/LedgerHQ/btchip-python/pull/54
 btchip-python @ git+https://github.com/EchterAgo/btchip-python.git@f65cca5dea1cae6031accc961b5754d02c52a106
 hidapi
-protobuf>=3.20,<4
+protobuf>=3.20
 pyopenssl>=20.0.0
 pyscard>=2.0.0
 pysatochip>=0.12.4
