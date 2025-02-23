@@ -1008,6 +1008,20 @@ bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
         .second;
 }
 
+bool Processor::setStakingRewardWinners(
+    const CBlockIndex *pprev,
+    const std::vector<std::pair<ProofId, CScript>> &winners) {
+    assert(pprev);
+
+    StakingReward stakingReward;
+    stakingReward.blockheight = pprev->nHeight;
+    stakingReward.winners = winners;
+
+    LOCK(cs_stakingRewards);
+    return stakingRewards.insert_or_assign(pprev->GetBlockHash(), stakingReward)
+        .second;
+}
+
 void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     AssertLockNotHeld(cs_main);
 
@@ -1049,6 +1063,31 @@ int Processor::getStakeContenderStatus(
 void Processor::acceptStakeContender(const StakeContenderId &contenderId) {
     LOCK(cs_stakeContenderCache);
     stakeContenderCache.accept(contenderId);
+}
+
+void Processor::finalizeStakeContender(const StakeContenderId &contenderId) {
+    AssertLockHeld(cs_main);
+
+    const CBlockIndex *tip;
+    std::vector<std::pair<ProofId, CScript>> winners;
+    {
+        LOCK(cs_stakeContenderCache);
+        stakeContenderCache.finalize(contenderId);
+
+        // Get block hash related to this contender. We should not assume the
+        // current chain tip is the block this contender is a winner for.
+        BlockHash prevblockhash;
+        stakeContenderCache.getVoteStatus(contenderId, prevblockhash);
+
+        tip = chainman.m_blockman.LookupBlockIndex(prevblockhash);
+
+        stakeContenderCache.getWinners(tip->GetBlockHash(), winners);
+    }
+
+    // Set staking rewards to include newly finalized contender
+    if (winners.size() > 0) {
+        setStakingRewardWinners(tip, winners);
+    }
 }
 
 void Processor::rejectStakeContender(const StakeContenderId &contenderId) {

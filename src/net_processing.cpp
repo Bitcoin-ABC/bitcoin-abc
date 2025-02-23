@@ -6943,6 +6943,33 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
+            if (m_opts.avalanche_staking_preconsensus) {
+                if (auto pitem =
+                        std::get_if<const avalanche::StakeContenderId>(&item)) {
+                    const avalanche::StakeContenderId contenderId = *pitem;
+                    logVoteUpdate(u, "contender", contenderId);
+
+                    switch (u.getStatus()) {
+                        case avalanche::VoteStatus::Rejected:
+                        case avalanche::VoteStatus::Invalid: {
+                            m_avalanche->rejectStakeContender(contenderId);
+                            break;
+                        }
+                        case avalanche::VoteStatus::Finalized: {
+                            LOCK(cs_main);
+                            m_avalanche->finalizeStakeContender(contenderId);
+                            break;
+                        }
+                        case avalanche::VoteStatus::Accepted: {
+                            m_avalanche->acceptStakeContender(contenderId);
+                            break;
+                        }
+                        case avalanche::VoteStatus::Stale:
+                            break;
+                    }
+                }
+            }
+
             if (!m_opts.avalanche_preconsensus) {
                 continue;
             }
