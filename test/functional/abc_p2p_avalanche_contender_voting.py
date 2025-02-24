@@ -174,7 +174,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         assert_response([AvalancheVote(expectedVote, contender_id)])
 
         # Answer polls until the chain tip (and contenders) start polling
-        can_find_inv_in_poll(quorum, int(tip, 16))
+        self.wait_until(lambda: can_find_inv_in_poll(quorum, int(tip, 16)))
 
         # Pop a poll from any peer
         def wait_for_poll():
