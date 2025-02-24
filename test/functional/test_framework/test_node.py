@@ -20,7 +20,7 @@ import time
 import urllib.parse
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .address import ADDRESS_ECREG_UNSPENDABLE
 from .authproxy import JSONRPCException
@@ -491,7 +491,7 @@ class TestNode:
         expiration: int,
         master: str,
         stakes: List[Dict[str, Any]],
-        payoutAddress: Optional[str] = ADDRESS_ECREG_UNSPENDABLE,
+        payoutAddress: str = ADDRESS_ECREG_UNSPENDABLE,
     ) -> str:
         return self.__getattr__("buildavalancheproof")(
             sequence=sequence,
