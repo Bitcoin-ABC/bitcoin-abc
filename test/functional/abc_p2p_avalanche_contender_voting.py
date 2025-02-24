@@ -39,6 +39,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         ]
         self.supports_cli = False
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         node = self.nodes[0]
 
@@ -49,9 +52,12 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Build a fake quorum of nodes.
         def get_quorum():
             def new_ava_interface(node):
+                # Generate a unique payout script for each proof so we can accurately test the stake winners
+                payoutAddress = node.getnewaddress()
+                peer = get_ava_p2p_interface(self, node, payoutAddress=payoutAddress)
+
                 # This test depends on each proof being added to the contender cache before
                 # the next block arrives, so we wait until that happens.
-                peer = get_ava_p2p_interface(self, node)
                 blockhash = node.getbestblockhash()
                 self.wait_until(
                     lambda: node.getstakecontendervote(

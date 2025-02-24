@@ -38,7 +38,7 @@ from .p2p import P2PInterface, p2p_lock
 if TYPE_CHECKING:
     from .test_framework import BitcoinTestFramework
 
-from .test_node import TestNode
+from .test_node import ADDRESS_ECREG_UNSPENDABLE, TestNode
 from .util import satoshi_round, uint256_hex, wait_until_helper
 from .wallet_util import bytes_to_wif
 
@@ -297,7 +297,9 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
 
 
 class AvaP2PInterface(NoHandshakeAvaP2PInterface):
-    def __init__(self, test_framework=None, node=None):
+    def __init__(
+        self, test_framework=None, node=None, payoutAddress=ADDRESS_ECREG_UNSPENDABLE
+    ):
         if (test_framework is not None and node is None) or (
             node is not None and test_framework is None
         ):
@@ -315,7 +317,9 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
         self.delegation = None
 
         if test_framework is not None and node is not None:
-            self.master_privkey, self.proof = gen_proof(test_framework, node)
+            self.master_privkey, self.proof = gen_proof(
+                test_framework, node, payoutAddress=payoutAddress
+            )
             delegation_hex = node.delegateavalancheproof(
                 uint256_hex(self.proof.limited_proofid),
                 bytes_to_wif(self.master_privkey.get_bytes()),
@@ -380,9 +384,10 @@ def get_ava_p2p_interface(
     services=NODE_NETWORK | NODE_AVALANCHE,
     stake_utxo_confirmations=1,
     sync_fun=None,
+    payoutAddress=ADDRESS_ECREG_UNSPENDABLE,
 ) -> AvaP2PInterface:
     """Build and return an AvaP2PInterface connected to the specified TestNode."""
-    n = AvaP2PInterface(test_framework, node)
+    n = AvaP2PInterface(test_framework, node, payoutAddress=payoutAddress)
 
     # Make sure the proof utxos are mature
     if stake_utxo_confirmations > 1:
@@ -412,7 +417,14 @@ def get_ava_p2p_interface(
     return n
 
 
-def gen_proof(test_framework, node, coinbase_utxos=1, expiry=0, sync_fun=None):
+def gen_proof(
+    test_framework,
+    node,
+    coinbase_utxos=1,
+    expiry=0,
+    sync_fun=None,
+    payoutAddress=ADDRESS_ECREG_UNSPENDABLE,
+):
     blockhashes = test_framework.generate(
         node,
         coinbase_utxos,
@@ -426,7 +438,7 @@ def gen_proof(test_framework, node, coinbase_utxos=1, expiry=0, sync_fun=None):
         node, blockhashes, node.get_deterministic_priv_key().key
     )
     proof_hex = node.buildavalancheproof(
-        42, expiry, bytes_to_wif(privkey.get_bytes()), stakes
+        42, expiry, bytes_to_wif(privkey.get_bytes()), stakes, payoutAddress
     )
 
     return privkey, avalanche_proof_from_hex(proof_hex)
