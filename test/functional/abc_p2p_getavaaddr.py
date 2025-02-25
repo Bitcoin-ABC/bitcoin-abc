@@ -138,6 +138,18 @@ class AvaAddrTest(BitcoinTestFramework):
         for p in peers[:8]:
             node.add_p2p_connection(p)
 
+        def wait_for_finalized_proofs(peers):
+            return all(
+                node.getrawavalancheproof(uint256_hex(p.proof.proofid)).get(
+                    "finalized", False
+                )
+                for p in peers
+            )
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: node.isfinalblock(tip))
+        self.wait_until(lambda: wait_for_finalized_proofs(peers[:8]))
+
         # Build some statistics to ensure some addresses will be returned
         def all_peers_addr_are_relayable(avapeers):
             proofids = [uint256_hex(p.proof.proofid) for p in avapeers]
@@ -177,6 +189,11 @@ class AvaAddrTest(BitcoinTestFramework):
         # Add some more address so the node has something to respond
         for p in peers[8:]:
             node.add_p2p_connection(p)
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: node.isfinalblock(tip))
+        self.wait_until(lambda: wait_for_finalized_proofs(peers))
+
         self.wait_until(lambda: all_peers_addr_are_relayable(peers))
 
         # Check our message is now accepted again now that the getavaaddr
