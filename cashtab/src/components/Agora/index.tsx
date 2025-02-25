@@ -101,7 +101,7 @@ const Agora: React.FC = () => {
     // and patient
     const [loadAllZeOffers, setLoadAllZeOffers] = useState<boolean>(false);
 
-    // On load, immediately show whitelisted tokens
+    // State variable to hold the token orderbooks we present to the user
     const [renderedTokenIds, setRenderedTokenIds] = useState<null | string[]>(
         null,
     );
@@ -291,6 +291,9 @@ const Agora: React.FC = () => {
             }
         }
 
+        // Handle token caching for initially rendered tokens
+        addUncachedTokensToCacheAndUpdateCache(initRenderedTokens);
+
         // Set this now and do the rest of our calcs below in the background, as we only need them
         // if the user wants to see all
         setWhitelistedTokensWithOffers(initRenderedTokens);
@@ -367,7 +370,13 @@ const Agora: React.FC = () => {
 
         // Even though we load with a limitied whitelist, we still cache all tokens in the background
 
-        // Build an array of promises to get token info for all unknown tokens
+        // Handle token caching for all tokens
+        addUncachedTokensToCacheAndUpdateCache(tokenIdsWeNeedToCache);
+    };
+
+    const addUncachedTokensToCacheAndUpdateCache = async (
+        tokenIdsWeNeedToCache: string[],
+    ) => {
         const tokenInfoPromises = [];
         for (const tokenId of Array.from(tokenIdsWeNeedToCache)) {
             tokenInfoPromises.push(
