@@ -154,14 +154,16 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)]
         )
 
-        # Pick a proof and poll for its status (not a winner since mock time has not
-        # advanced past the staking rewards minimum registration delay)
-        manual_winner = quorum[1].proof
-        contender_id = make_contender_id(tip, manual_winner.proofid)
-        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-        assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
-        )
+        def get_all_contender_ids(tip):
+            return [make_contender_id(tip, peer.proof.proofid) for peer in quorum]
+
+        # All contenders are pending. They cannot be winners yet since mock time
+        # has not advanced past the staking rewards minimum registration delay.
+        for contender_id in get_all_contender_ids(tip):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+            )
 
         # Advance time past the staking rewards minimum registration delay and
         # mine a block.
@@ -169,15 +171,25 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         node.setmocktime(now)
         tip = self.generate(node, 1)[0]
 
-        # Staking rewards has been computed
-        contender_id = make_contender_id(tip, manual_winner.proofid)
-        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-        expectedVote = AvalancheContenderVoteError.INVALID
+        # Staking rewards has been computed. Check vote for all contenders.
+        contenders = get_all_contender_ids(tip)
         local_winner_proofid = int(node.getstakingreward(tip)[0]["proofid"], 16)
-        if local_winner_proofid == manual_winner.proofid:
-            # If manual_winner happens to be selected as the winner, it will be accepted
-            expectedVote = AvalancheContenderVoteError.ACCEPTED
-        assert_response([AvalancheVote(expectedVote, contender_id)])
+        local_winner_cid = make_contender_id(tip, local_winner_proofid)
+
+        poll_node.send_poll(contenders, inv_type=MSG_AVA_STAKE_CONTENDER)
+        assert_response(
+            [
+                AvalancheVote(
+                    (
+                        AvalancheContenderVoteError.ACCEPTED
+                        if cid == local_winner_cid
+                        else AvalancheContenderVoteError.INVALID
+                    ),
+                    cid,
+                )
+                for cid in contenders
+            ]
+        )
 
         # Answer polls until the chain tip (and contenders) start polling
         self.wait_until(lambda: can_find_inv_in_poll(quorum, int(tip, 16)))
@@ -197,14 +209,10 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Count contenders being polled for
         count = 0
         found_local_winner = False
-        local_winner_contender_id = make_contender_id(tip, local_winner_proofid)
-        quorum_contenders = [
-            make_contender_id(tip, peer.proof.proofid) for peer in quorum
-        ]
         for inv in poll.invs:
-            if inv.hash in quorum_contenders:
+            if inv.hash in contenders:
                 count += 1
-                if local_winner_contender_id == inv.hash:
+                if local_winner_cid == inv.hash:
                     found_local_winner = True
 
         # Check that the local winner was polled
@@ -213,11 +221,17 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Check that the max number of contenders were polled
         assert_equal(count, 12)
 
-        # Manually set this contender as a winner
+        # Manually set a winner that isn't the local winner
+        manual_winner = (
+            quorum[0].proof
+            if local_winner_proofid != quorum[0].proof.proofid
+            else quorum[1].proof
+        )
+        manual_winner_cid = make_contender_id(tip, manual_winner.proofid)
         node.setstakingreward(tip, manual_winner.payout_script.hex())
-        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+        poll_node.send_poll([manual_winner_cid], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.ACCEPTED, contender_id)]
+            [AvalancheVote(AvalancheContenderVoteError.ACCEPTED, manual_winner_cid)]
         )
 
 
