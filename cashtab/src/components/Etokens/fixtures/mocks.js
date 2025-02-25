@@ -4,6 +4,7 @@
 
 import { fromHex } from 'ecash-lib';
 import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
+import { FIRMA } from 'constants/tokens';
 
 /**
  * Etokens/fixtures/mocks.js
@@ -68,6 +69,28 @@ export const tokenTestWallet = {
                 isFinal: true,
                 token: {
                     tokenId: tokenMockXecx.tokenId,
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 1000000n,
+                    isMintBaton: false,
+                },
+                path: 1899,
+            },
+            // FIRMA
+            {
+                outpoint: {
+                    txid: '250c93fd6bc2f1853a41d2fd1f5754a92f79f952f10ab038401be1600d5cbb88',
+                    outIdx: 1,
+                },
+                blockHeight: 836452,
+                isCoinbase: false,
+                sats: 546n,
+                isFinal: true,
+                token: {
+                    tokenId: FIRMA.tokenId,
                     tokenType: {
                         protocol: 'ALP',
                         type: 'ALP_TOKEN_TYPE_STANDARD',
@@ -2297,6 +2320,31 @@ export const xecxMocks = {
     ],
 };
 
+// FIRMA
+export const firmaMocks = {
+    ...FIRMA,
+    utxos: [
+        {
+            ...MOCK_TOKEN_UTXO,
+            token: {
+                ...MOCK_TOKEN_UTXO.token,
+                tokenId: FIRMA.tokenId,
+                atoms: 62500_0000n,
+            },
+        },
+        // Include a mint baton as it is variable supply
+        {
+            ...MOCK_TOKEN_UTXO,
+            token: {
+                ...MOCK_TOKEN_UTXO.token,
+                tokenId: FIRMA.tokenId,
+                atoms: 0n,
+                isMintBaton: true,
+            },
+        },
+    ],
+};
+
 export const supportedTokens = [
     slp1FixedMocks,
     slp1VarMocks,
@@ -2305,6 +2353,7 @@ export const supportedTokens = [
     slp1NftChildMocks,
     alpMocks,
     xecxMocks,
+    firmaMocks,
 ];
 
 /**

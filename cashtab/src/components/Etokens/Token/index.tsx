@@ -154,6 +154,7 @@ import Collection, {
 } from 'components/Agora/Collection';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import { confirmRawTx } from 'components/Send/helpers';
+import { FIRMA } from 'constants/tokens';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -353,6 +354,7 @@ const Token: React.FC = () => {
     // But we may not want this to be default for other token types in the future
     interface TokenScreenSwitches {
         showRedeemXecx: boolean;
+        showRedeemFirma: boolean;
         showSend: boolean;
         showAirdrop: boolean;
         showBurn: boolean;
@@ -364,6 +366,7 @@ const Token: React.FC = () => {
     }
     const switchesOff: TokenScreenSwitches = {
         showRedeemXecx: false,
+        showRedeemFirma: false,
         showSend: false,
         showAirdrop: false,
         showBurn: false,
@@ -417,6 +420,9 @@ const Token: React.FC = () => {
 
     const [formData, setFormData] =
         useState<TokenScreenFormData>(emptyFormData);
+
+    const [isCalculatingRedeemFirma, setIsCalculatingRedeemFirma] =
+        useState<boolean>(false);
 
     const userLocale = getUserLocale(navigator);
 
@@ -710,6 +716,10 @@ const Token: React.FC = () => {
                 // If this is the XECX token page, default option is redeeming XECX
                 // i.e. selling XECX for XEC, 1:1
                 setSwitches({ ...switchesOff, showRedeemXecx: true });
+            } else if (tokenId === FIRMA.tokenId) {
+                // If this is the Firma token page, default option is redeeming Firma
+                // i.e. selling Firma for XEC at the Firma bid price
+                setSwitches({ ...switchesOff, showRedeemFirma: true });
             } else if (isNftChild) {
                 // Default action is list
                 setSwitches({ ...switchesOff, showSellNft: true });
@@ -971,10 +981,19 @@ const Token: React.FC = () => {
         const xecxRedeemError =
             isRedeemingXecx && Number(amount) < toXec(appConfig.dustSats);
 
+        // For Firma redemptions, use 0.01 min
+        const FIRMA_MINIMUM_REDEMPTION = 0.01; // 1 cent
+        const isRedeemingFirma =
+            tokenId === FIRMA.tokenId && switches.showRedeemFirma;
+        const firmaRedeemError =
+            isRedeemingFirma && Number(amount) < FIRMA_MINIMUM_REDEMPTION;
+
         setAgoraPartialTokenQtyError(
             isValidAmountOrErrorMsg === true
                 ? xecxRedeemError
                     ? `Cannot redeem less than 5.46 XECX`
+                    : firmaRedeemError
+                    ? `Cannot redeem less than ${FIRMA_MINIMUM_REDEMPTION} FIRMA`
                     : false
                 : isValidAmountOrErrorMsg,
         );
@@ -1646,6 +1665,138 @@ const Token: React.FC = () => {
         }
     };
 
+    const getFirmaPartialUnitPrice = (firmaPartial: AgoraPartial) => {
+        const offeredAtoms = firmaPartial.offeredAtoms();
+        const acceptPriceSats = firmaPartial.askedSats(offeredAtoms);
+        const acceptPriceXec = toXec(Number(acceptPriceSats));
+
+        // Convert atoms to FIRMA
+        const minAcceptedTokens = decimalizeTokenAmount(
+            offeredAtoms.toString(),
+            decimals as SlpDecimals,
+        );
+
+        // Get the unit price
+        // For FIRMA, we expect this to be > 1 XEC
+        // So, limit to 2 decimal places
+        const actualPricePerToken = new BigNumber(acceptPriceXec)
+            .div(minAcceptedTokens)
+            .dp(2);
+
+        // Return price as a number
+        return actualPricePerToken.toNumber();
+    };
+
+    /**
+     * Firma redemption has a dynamic price which must be fetched from an API endpoint
+     * We want to sell for as close as we can get to the bid price (due to discrete values
+     * of agora offers, it is unlikely we can get the exact bid price)
+     */
+    const previewFirmaPartial = async () => {
+        // Set spinner on button
+        setIsCalculatingRedeemFirma(true);
+        // Get the bid price
+
+        let firmaBidPrice;
+        try {
+            const firmaBidPriceResp = await fetch(`https://firma.cash/api/bid`);
+            const firmaBidPriceJson = await firmaBidPriceResp.json();
+            firmaBidPrice = firmaBidPriceJson.bid;
+            console.info(`FIRMA buys at: ${firmaBidPrice} XEC`);
+        } catch (err) {
+            console.error(`Error fetching FIRMA bid price`, err);
+            toast.error(`Error determining FIRMA bid price: ${err}`);
+            setIsCalculatingRedeemFirma(false);
+            return;
+        }
+
+        const priceNanoSatsPerDecimalizedToken =
+            xecToNanoSatoshis(firmaBidPrice);
+
+        // Adjust for atoms
+        // e.g. a 9-decimal token, the user sets the the price for 1.000000000 tokens
+        // but you must create the offer with priceNanoSatsPerToken for 1 atom
+        // i.e. 0.000000001 token
+        let priceNanoSatsPerAtom =
+            BigInt(priceNanoSatsPerDecimalizedToken) /
+            BigInt(Math.pow(10, decimals as SlpDecimals));
+
+        // Convert formData list qty (a decimalized token qty) to BigInt token sats
+        const userSuggestedOfferedTokens = BigInt(
+            undecimalizeTokenAmount(
+                agoraPartialTokenQty,
+                decimals as SlpDecimals,
+            ),
+        );
+
+        let firmaPartial;
+        try {
+            const firmaPartialParams = {
+                tokenId: tokenId,
+                // We cannot render the Token screen until tokenType is defined
+                tokenType: (tokenType as TokenType).number,
+                // We cannot render the Token screen until protocol is defined
+                tokenProtocol: protocol as 'ALP' | 'SLP',
+                offeredAtoms: userSuggestedOfferedTokens,
+                priceNanoSatsPerAtom: priceNanoSatsPerAtom,
+                makerPk: pk,
+                minAcceptedAtoms: userSuggestedOfferedTokens,
+            };
+            firmaPartial = await agora.selectParams(firmaPartialParams);
+
+            let actualPrice = getFirmaPartialUnitPrice(firmaPartial);
+            if (actualPrice > firmaBidPrice) {
+                // Keep making firmaPartials until we have one that is acceptable
+                // Reduce price by 50 XEC at a time
+                // In practice, this takes 2 or 3 iterations
+                // The quanta are such that we get "the next tick down", we won't
+                // skip it
+                const NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION = 500000000n;
+
+                // Counter to prevent infinite loop
+                let attempts = 0;
+                const MAX_ATTEMPTS = 5;
+                while (actualPrice > firmaBidPrice) {
+                    attempts += 1;
+                    priceNanoSatsPerAtom -=
+                        NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION;
+                    // This time we only update the price, we do not need to update locktime
+                    firmaPartial = await agora.selectParams({
+                        ...firmaPartialParams,
+                        priceNanoSatsPerAtom,
+                    });
+                    actualPrice = getFirmaPartialUnitPrice(firmaPartial);
+                    // loop repeats until actualPrice <= firmaBidPrice
+                    if (attempts > MAX_ATTEMPTS) {
+                        // If we try more than 5 times, there is probably something wrong
+                        // or weird about this specific request
+                        // Maybe some quantities are difficult to price properly
+                        toast.error(
+                            'Unable to determine FIRMA redemption price',
+                        );
+                        return;
+                    }
+                }
+            }
+            setIsCalculatingRedeemFirma(false);
+            return setPreviewedAgoraPartial(firmaPartial);
+        } catch (err) {
+            // We can run into errors trying to create an agora partial
+            // Most of these are prevented by validation in Cashtab
+            // However some are a bit testier, e.g.
+            // "Parameters cannot be represented in Script"
+            // "minAcceptedTokens too small, got truncated to 0"
+            // Catch and give a generic error
+            console.error(`Error creating AgoraPartial`, err);
+            toast.error(
+                `Unable to create Agora offer with these parameters, try increasing the min buy.`,
+            );
+            setIsCalculatingRedeemFirma(false);
+            // Do not show the preview modal
+            return;
+        }
+    };
+
     /**
      * Note that listing ALP tokens is simpler than listing SLP tokens
      * Thanks to EMPP, can be done in a single tx, instead of the required
@@ -2159,7 +2310,8 @@ const Token: React.FC = () => {
                             />
                         )}
                     {showConfirmListPartialSlp &&
-                        formData.tokenListPrice !== '' &&
+                        (formData.tokenListPrice !== '' ||
+                            tokenId === FIRMA.tokenId) &&
                         previewedAgoraPartial !== null && (
                             <Modal
                                 title={`List ${tokenTicker}?`}
@@ -2233,14 +2385,36 @@ const Token: React.FC = () => {
                                             {getAgoraPartialActualPrice()}
                                         </AgoraPreviewCol>
                                     </AgoraPreviewRow>
-                                    <AgoraPreviewRow>
-                                        <AgoraPreviewLabel>
-                                            Target price:{' '}
-                                        </AgoraPreviewLabel>
-                                        <AgoraPreviewCol>
-                                            {getAgoraPartialTargetPriceXec()}
-                                        </AgoraPreviewCol>
-                                    </AgoraPreviewRow>
+                                    {tokenId === FIRMA.tokenId && (
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                You receive:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {toXec(
+                                                    Number(
+                                                        previewedAgoraPartial.askedSats(
+                                                            previewedAgoraPartial.offeredAtoms(),
+                                                        ),
+                                                    ),
+                                                ).toLocaleString(userLocale, {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                })}{' '}
+                                                XEC
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                    )}
+                                    {tokenId !== FIRMA.tokenId && (
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Target price:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {getAgoraPartialTargetPriceXec()}
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                    )}
                                 </AgoraPreviewTable>
                                 <AgoraPreviewParagraph>
                                     If actual price is not close to target
@@ -2684,6 +2858,100 @@ const Token: React.FC = () => {
                                                             }
                                                         >
                                                             Redeem XECX for XEC
+                                                        </PrimaryButton>
+                                                    </SendTokenFormRow>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                    {tokenId === FIRMA.tokenId && (
+                                        <>
+                                            <SwitchHolder>
+                                                <Switch
+                                                    name="Toggle Redeem FIRMA"
+                                                    on="🤳"
+                                                    off="🤳"
+                                                    checked={
+                                                        switches.showRedeemFirma
+                                                    }
+                                                    handleToggle={() => {
+                                                        // We turn everything else off, whether we are turning this one on or off
+                                                        setSwitches({
+                                                            ...switchesOff,
+                                                            showRedeemFirma:
+                                                                !switches.showRedeemFirma,
+                                                        });
+                                                    }}
+                                                />
+                                                <SwitchLabel>
+                                                    Redeem {tokenName}
+                                                </SwitchLabel>
+                                            </SwitchHolder>
+                                            {switches.showRedeemFirma && (
+                                                <>
+                                                    <SendTokenFormRow>
+                                                        <InputRow>
+                                                            <Slider
+                                                                name={
+                                                                    'agoraPartialTokenQty'
+                                                                }
+                                                                label={`Offered qty`}
+                                                                value={
+                                                                    agoraPartialTokenQty
+                                                                }
+                                                                handleSlide={
+                                                                    handleTokenOfferedSlide
+                                                                }
+                                                                error={
+                                                                    agoraPartialTokenQtyError
+                                                                }
+                                                                min={0}
+                                                                max={
+                                                                    tokenBalance
+                                                                }
+                                                                step={parseFloat(
+                                                                    `1e-${decimals}`,
+                                                                )}
+                                                                allowTypedInput
+                                                            />
+                                                        </InputRow>
+                                                    </SendTokenFormRow>
+
+                                                    {!tokenListPriceError &&
+                                                        formData.tokenListPrice !==
+                                                            '' &&
+                                                        formData.tokenListPrice !==
+                                                            null &&
+                                                        fiatPrice !== null && (
+                                                            <ListPricePreview title="Token List Price">
+                                                                {getAgoraPartialPricePreview()}
+                                                            </ListPricePreview>
+                                                        )}
+                                                    <SendTokenFormRow>
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                apiError ||
+                                                                agoraPartialTokenQtyError !==
+                                                                    false ||
+                                                                agoraPartialTokenQty ===
+                                                                    '0' ||
+                                                                agoraPartialTokenQty ===
+                                                                    '' ||
+                                                                isCalculatingRedeemFirma
+                                                            }
+                                                            onClick={
+                                                                previewFirmaPartial
+                                                            }
+                                                        >
+                                                            {isCalculatingRedeemFirma ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                `Redeem FIRMA for XEC`
+                                                            )}
                                                         </PrimaryButton>
                                                     </SendTokenFormRow>
                                                 </>
