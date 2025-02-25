@@ -194,32 +194,28 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Answer polls until the chain tip (and contenders) start polling
         self.wait_until(lambda: can_find_inv_in_poll(quorum, int(tip, 16)))
 
-        # Pop a poll from any peer
-        def wait_for_poll():
-            self.wait_until(lambda: any(len(peer.avapolls) > 0 for peer in quorum))
-            with p2p_lock:
-                for peer in quorum:
-                    if len(peer.avapolls) > 0:
-                        return peer.avapolls.pop(0)
-            return None
+        def get_polled_contenders():
+            # Pop a poll from any peer
+            def wait_for_poll():
+                self.wait_until(lambda: any(len(peer.avapolls) > 0 for peer in quorum))
+                with p2p_lock:
+                    for peer in quorum:
+                        if len(peer.avapolls) > 0:
+                            return peer.avapolls.pop(0)
+                return None
 
-        poll = wait_for_poll()
-        assert poll is not None
-
-        # Count contenders being polled for
-        count = 0
-        found_local_winner = False
-        for inv in poll.invs:
-            if inv.hash in contenders:
-                count += 1
-                if local_winner_cid == inv.hash:
-                    found_local_winner = True
+            poll = wait_for_poll()
+            assert poll is not None
+            return [
+                inv.hash for inv in poll.invs if inv.type == MSG_AVA_STAKE_CONTENDER
+            ]
 
         # Check that the local winner was polled
-        assert found_local_winner
+        polled_contenders = get_polled_contenders()
+        assert local_winner_cid in polled_contenders
 
         # Check that the max number of contenders were polled
-        assert_equal(count, 12)
+        assert_equal(len(polled_contenders), 12)
 
         # Manually set a winner that isn't the local winner
         manual_winner = (
