@@ -6,6 +6,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import PayButton from 'assets/paybutton.webp';
 import XecxSrc from 'assets/xecx-logomark.png';
+import FirmaSrc from 'assets/firma-icon.png';
 import { ReactComponent as QRCode } from 'assets/qrcode.svg';
 import { ReactComponent as Send } from 'assets/send.svg';
 import { ReactComponent as CopyPaste } from 'assets/copypaste.svg';
@@ -152,6 +153,7 @@ export const PayButtonIcon = () => (
     <PayButtonImg src={PayButton} alt="tx-paybutton" />
 );
 export const XecxIcon = () => <img src={XecxSrc} alt="XECX reward" />;
+export const FirmaIcon = () => <img src={FirmaSrc} alt="Firma reward" />;
 
 const PaywallPaymentIconWrapper = styled.div`
     svg,

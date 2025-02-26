@@ -71,6 +71,7 @@ import {
     offSpecCashtabMsg,
     xecxTx,
     invalidXecxTx,
+    firmaYieldTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -517,6 +518,40 @@ export default {
                 genesisInfo: undefined,
                 returned: 'Received 312,503.71 XEC | Invalid XECX',
             },
+            {
+                description: 'Firma yield tx (send)',
+                parsedTx: firmaYieldTx.parsedSend,
+                fiatPrice: null,
+                userLocale: 'en-US',
+                selectedFiatTicker: 'USD',
+                genesisInfo: {
+                    tokenTicker: 'FIRMA',
+                    tokenName: 'Firma',
+                    url: 'firma.cash',
+                    decimals: 4,
+                    data: '',
+                    authPubkey:
+                        '03fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                },
+                returned: 'Sent 20.0481 FIRMA',
+            },
+            {
+                description: 'Firma yield tx (receive)',
+                parsedTx: firmaYieldTx.parsedReceive,
+                fiatPrice: null,
+                userLocale: 'en-US',
+                selectedFiatTicker: 'USD',
+                genesisInfo: {
+                    tokenTicker: 'FIRMA',
+                    tokenName: 'Firma',
+                    url: 'firma.cash',
+                    decimals: 4,
+                    data: '',
+                    authPubkey:
+                        '03fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                },
+                returned: 'Received 0.0195 FIRMA',
+            },
         ],
     },
     parseTx: {
@@ -867,6 +902,18 @@ export default {
                 tx: invalidXecxTx.tx,
                 hashes: [invalidXecxTx.sendingHash],
                 parsed: invalidXecxTx.parsed,
+            },
+            {
+                description: 'Firma yield tx (send)',
+                tx: firmaYieldTx.tx,
+                hashes: [firmaYieldTx.sendingHash],
+                parsed: firmaYieldTx.parsedSend,
+            },
+            {
+                description: 'Firma yield tx (receive)',
+                tx: firmaYieldTx.tx,
+                hashes: [firmaYieldTx.receivingHash],
+                parsed: firmaYieldTx.parsedReceive,
             },
         ],
     },

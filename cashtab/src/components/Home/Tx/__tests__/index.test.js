@@ -72,6 +72,7 @@ import {
     alpAgoraListingTx,
     xecxTx,
     invalidXecxTx,
+    firmaYieldTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3835,5 +3836,93 @@ describe('<Tx />', () => {
 
         // We see the invalid App Action
         expect(screen.getByText('Invalid XECX EMPP')).toBeInTheDocument();
+    });
+    it('Outgoing FIRMA yield payment', async () => {
+        const thisMock = firmaYieldTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsedSend }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see a conventional tx-sent icon for the XEC action
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Feb 25, 2025, 23:00:04')).toBeInTheDocument();
+
+        // We see the expected sent amount
+        expect(screen.getByText('-65.52 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see Firma icon
+        expect(screen.getByAltText(`Firma reward`)).toBeInTheDocument();
+
+        // We see Firma yield app action
+        expect(screen.getByText(`Firma yield payment`)).toBeInTheDocument();
+    });
+    it('Incoming FIRMA yield payment', async () => {
+        const thisMock = firmaYieldTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsedReceive }}
+                        hashes={[thisMock.receivingHashHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see a conventional tx-received icon for the XEC action
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Feb 25, 2025, 23:00:04')).toBeInTheDocument();
+
+        // We see the expected sent amount
+        expect(screen.getByText('5.46 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // We see Firma icon
+        expect(screen.getByAltText(`Firma reward`)).toBeInTheDocument();
+
+        // We see Firma yield app action
+        expect(screen.getByText(`Firma yield payment`)).toBeInTheDocument();
     });
 });

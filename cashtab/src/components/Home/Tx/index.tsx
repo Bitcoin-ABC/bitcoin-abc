@@ -65,6 +65,7 @@ import {
     AgoraCancelIcon,
     TokenSendIcon,
     XecxIcon,
+    FirmaIcon,
 } from 'components/Common/CustomIcons';
 import CashtabSettings, {
     supportedFiatCurrencies,
@@ -167,6 +168,30 @@ const Tx: React.FC<TxProps> = ({
     }
 
     const renderedAppActions: React.ReactNode[] = [];
+
+    // Add firma yield if applicable
+    // NB firma yield is not not identified by OP_RETURN
+    // But it is, semantically speaking, an "app action"
+
+    // A firma yield payment is identified as
+    // - received firma
+    // - sending address was firma yield wallet
+    const isFirmaYield =
+        !tx.isCoinbase &&
+        tx.inputs[0].outputScript ===
+            '76a91438d2e1501a485814e2849552093bb0588ed9acbb88ac' &&
+        typeof parsed.parsedTokenEntries[0] !== 'undefined' &&
+        parsed.parsedTokenEntries[0].tokenId ===
+            '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0';
+    if (isFirmaYield) {
+        renderedAppActions.push(
+            <IconAndLabel>
+                <FirmaIcon />
+                <AppDescLabel noWordBreak>Firma yield payment</AppDescLabel>
+            </IconAndLabel>,
+        );
+    }
+
     for (const appAction of appActions) {
         const { lokadId, app, isValid, action } = appAction;
         switch (lokadId) {
