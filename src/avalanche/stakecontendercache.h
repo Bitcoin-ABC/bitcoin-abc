@@ -180,11 +180,8 @@ public:
         const BlockHash &prevblockhash, size_t maxPollable,
         std::vector<StakeContenderId> &pollableContenders) const;
 
-    /**
-     * Get payout scripts of the winning proofs.
-     */
     bool getWinners(const BlockHash &prevblockhash,
-                    std::vector<CScript> &payouts) const;
+                    std::vector<std::pair<ProofId, CScript>> &winners) const;
 };
 
 } // namespace avalanche

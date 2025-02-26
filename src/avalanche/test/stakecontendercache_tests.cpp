@@ -35,7 +35,7 @@ static void CheckWinners(StakeContenderCache &cache,
                          const BlockHash &prevblockhash,
                          std::vector<CScript> manualWinners,
                          std::vector<ProofRef> avalancheWinners) {
-    std::vector<CScript> winners;
+    std::vector<std::pair<ProofId, CScript>> winners;
     size_t expectedSize = manualWinners.size() + avalancheWinners.size();
     if (expectedSize == 0) {
         BOOST_CHECK(!cache.getWinners(prevblockhash, winners));
@@ -47,41 +47,28 @@ static void CheckWinners(StakeContenderCache &cache,
 
     // Manual winners are always first and in order
     for (size_t i = 0; i < manualWinners.size(); i++) {
-        BOOST_CHECK(winners[i] == manualWinners[i]);
+        BOOST_CHECK(winners[i].second == manualWinners[i]);
     }
 
     // Rest of the the winners are only those determined by avalanche.
-    // For each winning payout script, find all avalancheWinners with the same
-    // payout script.
-    std::vector<std::vector<ProofRef>> possibleWinningProofs;
-    for (auto it = std::next(winners.begin(), manualWinners.size());
-         it != winners.end(); it++) {
-        possibleWinningProofs.push_back(std::vector<ProofRef>());
-        for (const auto &proof : avalancheWinners) {
-            if (proof->getPayoutScript() == *it) {
-                possibleWinningProofs.back().push_back(proof);
-            }
-        }
-        BOOST_CHECK(possibleWinningProofs.back().size() > 0);
+    for (auto &proof : avalancheWinners) {
+        BOOST_CHECK(
+            std::find_if(std::next(winners.begin(), manualWinners.size()),
+                         winners.end(), [&](std::pair<ProofId, CScript> &p) {
+                             return p.first == proof->getId();
+                         }) != winners.end());
     }
-    BOOST_CHECK_EQUAL(possibleWinningProofs.size(), avalancheWinners.size());
 
     // Verify the winner order such that the best (lowest) reward ranked proof's
     // payout script is always before payout scripts from proofs with worse
     // (higher) reward ranks.
     double previousRank = 0;
-    for (auto possibleWinningProofList : possibleWinningProofs) {
-        double lowestRank = std::numeric_limits<double>::max();
-        for (const auto &proof : possibleWinningProofList) {
-            double proofRank = StakeContenderId(prevblockhash, proof->getId())
-                                   .ComputeProofRewardRank(proof->getScore());
-            if (proofRank < lowestRank) {
-                lowestRank = proofRank;
-            }
-        }
-
-        BOOST_CHECK(previousRank < lowestRank);
-        previousRank = lowestRank;
+    for (auto it = std::next(winners.begin(), manualWinners.size());
+         it != winners.end(); it++) {
+        double proofRank = StakeContenderId(prevblockhash, it->first)
+                               .ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(previousRank < proofRank);
+        previousRank = proofRank;
     }
 }
 
@@ -410,7 +397,7 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
             }
 
             // Sanity check there are some winners
-            std::vector<CScript> winners;
+            std::vector<std::pair<ProofId, CScript>> winners;
             BOOST_CHECK(cache.getWinners(blockhashes[i], winners));
             BOOST_CHECK(winners.size() >= 1);
             pindex = pindex->pprev;

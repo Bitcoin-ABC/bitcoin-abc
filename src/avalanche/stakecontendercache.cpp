@@ -221,8 +221,9 @@ size_t StakeContenderCache::getPollableContenders(
     return pollableContenders.size();
 }
 
-bool StakeContenderCache::getWinners(const BlockHash &prevblockhash,
-                                     std::vector<CScript> &payouts) const {
+bool StakeContenderCache::getWinners(
+    const BlockHash &prevblockhash,
+    std::vector<std::pair<ProofId, CScript>> &winners) const {
     // Winners determined by avalanche are sorted by reward rank
     std::vector<const StakeContenderCacheEntry *> rankedWinners;
     auto &view = contenders.get<by_prevblockhash>();
@@ -239,27 +240,29 @@ bool StakeContenderCache::getWinners(const BlockHash &prevblockhash,
                   return left->computeRewardRank() < right->computeRewardRank();
               });
 
-    payouts.clear();
+    winners.clear();
 
     // Add manual winners first, preserving order
     auto &manualWinnersView = manualWinners.get<by_prevblockhash>();
     auto manualWinnerIt = manualWinnersView.find(prevblockhash);
     if (manualWinnerIt != manualWinners.end()) {
-        payouts.reserve(manualWinnerIt->payoutScripts.size() +
+        winners.reserve(manualWinnerIt->payoutScripts.size() +
                         rankedWinners.size());
 
-        payouts.insert(payouts.begin(), manualWinnerIt->payoutScripts.begin(),
-                       manualWinnerIt->payoutScripts.end());
+        for (auto &payoutScript : manualWinnerIt->payoutScripts) {
+            winners.push_back({ProofId(), payoutScript});
+        }
     } else {
-        payouts.reserve(rankedWinners.size());
+        winners.reserve(rankedWinners.size());
     }
 
     // Add ranked winners, preserving reward rank order
     for (const auto &rankedWinner : rankedWinners) {
-        payouts.push_back(rankedWinner->payoutScriptPubkey);
+        winners.push_back(
+            {rankedWinner->proofid, rankedWinner->payoutScriptPubkey});
     }
 
-    return payouts.size() > 0;
+    return winners.size() > 0;
 }
 
 } // namespace avalanche
