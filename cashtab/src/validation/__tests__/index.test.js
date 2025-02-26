@@ -232,6 +232,12 @@ describe('Cashtab validation functions', () => {
     it(`isProbablyNotAScam prevents new genesis tx of "Staked XEC" as token name`, () => {
         expect(isProbablyNotAScam('Staked XEC')).toBe(false);
     });
+    it(`isProbablyNotAScam prevents new genesis tx of "FIRMA" as token ticker`, () => {
+        expect(isProbablyNotAScam('FIRMA')).toBe(false);
+    });
+    it(`isProbablyNotAScam prevents new genesis tx of "Firma" as token name`, () => {
+        expect(isProbablyNotAScam('Firma')).toBe(false);
+    });
     it(`isProbablyNotAScam recognizes "bitcoin" is probably a scam token name`, () => {
         expect(isProbablyNotAScam('bitcoin')).toBe(false);
     });
