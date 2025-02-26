@@ -390,7 +390,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
     void acceptStakeContender(const StakeContenderId &contenderId)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
-    void invalidateStakeContender(const StakeContenderId &contenderId)
+    void rejectStakeContender(const StakeContenderId &contenderId)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
 
     /** Promote stake contender cache entries to the latest chain tip */

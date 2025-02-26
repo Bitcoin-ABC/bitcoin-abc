@@ -449,7 +449,7 @@ struct StakeContenderProvider {
     }
 
     void invalidateItem(const StakeContenderId &contenderId) {
-        fixture->m_processor->invalidateStakeContender(contenderId);
+        fixture->m_processor->rejectStakeContender(contenderId);
 
         // Warning: This is a special case for stake contenders because
         // invalidation does not cause isWorthPolling to return false. This is

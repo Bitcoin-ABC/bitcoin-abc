@@ -120,19 +120,6 @@ bool StakeContenderCache::reject(const StakeContenderId &contenderId) {
     });
 }
 
-bool StakeContenderCache::invalidate(const StakeContenderId &contenderId) {
-    auto &view = contenders.get<by_stakecontenderid>();
-    auto it = view.find(contenderId);
-    if (it == view.end()) {
-        return false;
-    }
-
-    return contenders.modify(it, [&](StakeContenderCacheEntry &entry) {
-        entry.status &= ~(StakeContenderStatus::ACCEPTED |
-                          StakeContenderStatus::IN_WINNER_SET);
-    });
-}
-
 int StakeContenderCache::getVoteStatus(const StakeContenderId &contenderId,
                                        BlockHash &prevblockhashout) const {
     auto &view = contenders.get<by_stakecontenderid>();

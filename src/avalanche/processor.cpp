@@ -1051,9 +1051,9 @@ void Processor::acceptStakeContender(const StakeContenderId &contenderId) {
     stakeContenderCache.accept(contenderId);
 }
 
-void Processor::invalidateStakeContender(const StakeContenderId &contenderId) {
+void Processor::rejectStakeContender(const StakeContenderId &contenderId) {
     LOCK(cs_stakeContenderCache);
-    stakeContenderCache.invalidate(contenderId);
+    stakeContenderCache.reject(contenderId);
 }
 
 void Processor::promoteStakeContendersToTip() {

@@ -161,7 +161,6 @@ public:
     bool accept(const StakeContenderId &contenderId);
     bool finalize(const StakeContenderId &contenderId);
     bool reject(const StakeContenderId &contenderId);
-    bool invalidate(const StakeContenderId &contenderId);
 
     /**
      * Get contender acceptance state for avalanche voting.

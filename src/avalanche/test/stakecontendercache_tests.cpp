@@ -116,9 +116,6 @@ BOOST_AUTO_TEST_CASE(vote_status_tests) {
         cache.finalize(StakeContenderId(blockhash, proof->getId()));
         CheckVoteStatus(cache, blockhash, proof, 0);
 
-        cache.invalidate(StakeContenderId(blockhash, proof->getId()));
-        CheckVoteStatus(cache, blockhash, proof, 1);
-
         // Add the proof as a manual winner. It should always be accepted.
         BOOST_CHECK(cache.setWinners(pindex, {proof->getPayoutScript()}));
         CheckVoteStatus(cache, blockhash, proof, 0);
@@ -233,23 +230,16 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
         CheckWinners(cache, blockhash, moreManualWinners,
                      {proofs[0], proofs[2]});
 
-        // Avalanche invalidating a contender not in the winner set makes no
-        // difference
-        cache.invalidate(StakeContenderId(blockhash, proofs[3]->getId()));
-        CheckWinners(cache, blockhash, moreManualWinners,
-                     {proofs[0], proofs[2]});
-
         // Avalanche finalizing a contender that wasn't in the winner set before
         // makes a new winner
         cache.finalize(StakeContenderId(blockhash, proofs[1]->getId()));
         CheckWinners(cache, blockhash, moreManualWinners,
                      {proofs[0], proofs[1], proofs[2]});
 
-        // Avalanche invalidating a contender that was in the winner set removes
-        // it
-        cache.invalidate(StakeContenderId(blockhash, proofs[2]->getId()));
+        // Avalanche invalidating a contender that was finalized has no effect.
+        cache.reject(StakeContenderId(blockhash, proofs[1]->getId()));
         CheckWinners(cache, blockhash, moreManualWinners,
-                     {proofs[0], proofs[1]});
+                     {proofs[0], proofs[1], proofs[2]});
 
         pindex = pindex->pprev;
     }
@@ -264,7 +254,7 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
     pindex = active_chainstate.m_chain.Tip();
     for (int i = 0; i < 5; i++) {
         CheckWinners(cache, pindex->GetBlockHash(), manualWinners,
-                     {proofs[0], proofs[1]});
+                     {proofs[0], proofs[1], proofs[2]});
         for (int p = 0; p < 4; p++) {
             CheckVoteStatus(cache, pindex->GetBlockHash(), proofs[p], 0);
         }
@@ -358,16 +348,6 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
     CheckWinners(cache, blockhashes[1], {}, proofs);
     CheckWinners(cache, blockhashes[2], {}, {});
     CheckWinners(cache, blockhashes[3], {}, {});
-
-    // Invalidate proofs so they are no longer in the winner set
-    for (const auto &proof : proofs) {
-        cache.invalidate(StakeContenderId(blockhashes[1], proof->getId()));
-    }
-    CheckWinners(cache, blockhashes[0], {}, {});
-    CheckWinners(cache, blockhashes[1], {}, {});
-    CheckWinners(cache, blockhashes[2], {}, {});
-    CheckWinners(cache, blockhashes[3], {}, {});
-    BOOST_CHECK(!cache.isEmpty());
 
     // Clean up the remaining block and the cache should be empty now
     cache.promoteToBlock(active_chainstate.m_chain.Tip(), pm);
