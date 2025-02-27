@@ -149,9 +149,20 @@ class AssumeValidTest(BitcoinTestFramework):
         self.start_node(1, extra_args=[f"-assumevalid={hex(block102.sha256)}"])
         self.start_node(2, extra_args=[f"-assumevalid={hex(block102.sha256)}"])
 
+        def wait_for_header_sync(node, height):
+            expected = {
+                "height": height,
+                "hash": self.blocks[height - 1].hash,
+                "branchlen": height,
+                "status": "headers-only",
+            }
+            self.wait_until(lambda: expected in node.getchaintips())
+
         p2p0 = self.nodes[0].add_p2p_connection(BaseNode())
         p2p0.send_header_for_blocks(self.blocks[0:2000])
         p2p0.send_header_for_blocks(self.blocks[2000:])
+
+        wait_for_header_sync(self.nodes[0], 2202)
 
         # Send blocks to node0. Block 102 will be rejected.
         self.send_blocks_until_disconnected(p2p0)
@@ -161,6 +172,8 @@ class AssumeValidTest(BitcoinTestFramework):
         p2p1 = self.nodes[1].add_p2p_connection(BaseNode())
         p2p1.send_header_for_blocks(self.blocks[0:2000])
         p2p1.send_header_for_blocks(self.blocks[2000:])
+
+        wait_for_header_sync(self.nodes[1], 2202)
 
         # Send all blocks to node1. All blocks will be accepted.
         for i in range(2202):
@@ -174,6 +187,8 @@ class AssumeValidTest(BitcoinTestFramework):
 
         p2p2 = self.nodes[2].add_p2p_connection(BaseNode())
         p2p2.send_header_for_blocks(self.blocks[0:200])
+
+        wait_for_header_sync(self.nodes[2], 200)
 
         # Send blocks to node2. Block 102 will be rejected.
         self.send_blocks_until_disconnected(p2p2)
