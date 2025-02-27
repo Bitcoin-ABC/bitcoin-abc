@@ -131,7 +131,7 @@ function Build() {
                     and on-chain trading — we&apos;re in uncharted territory.
                 </p>
                 <p>
-                    The UTXO model of eCash creates compelling advantages over
+                    The UTXO model of eCash gives it compelling advantages over
                     other blockchains with account-based systems. Anyone can
                     create scalable and performant products with high
                     transaction throughput and low fees. The Avalanche consensus
@@ -148,7 +148,7 @@ function Build() {
                     developers with simple, powerful, open-source libraries.
                     Developers can build feature-dense apps that send and
                     receive money instantly. Rapid prototyping is a key strength
-                    of the eCash network and its dev tools --- MVP apps can be
+                    of the eCash network and its dev tools — MVP apps can be
                     built and deployed in minutes.
                 </p>
                 {devLinks.map((item, index) => (
