@@ -1267,7 +1267,7 @@ public:
     }
 
     const Options m_options;
-    std::thread m_load_block;
+    std::thread m_thread_load;
     //! A single BlockManager instance is shared across each constructed
     //! chainstate to avoid duplicating block metadata.
     node::BlockManager m_blockman;

@@ -125,12 +125,12 @@ using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::fReindex;
 using node::g_indexes_ready_to_sync;
+using node::ImportBlocks;
 using node::KernelNotifications;
 using node::LoadChainstate;
 using node::MempoolPath;
 using node::NodeContext;
 using node::ShouldPersistMempool;
-using node::ThreadImport;
 using node::VerifyLoadedChainstate;
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
@@ -276,8 +276,8 @@ void Shutdown(NodeContext &node) {
     if (node.scheduler) {
         node.scheduler->stop();
     }
-    if (node.chainman && node.chainman->m_load_block.joinable()) {
-        node.chainman->m_load_block.join();
+    if (node.chainman && node.chainman->m_thread_load.joinable()) {
+        node.chainman->m_thread_load.join();
     }
     StopScriptCheckWorkerThreads();
 
@@ -2635,7 +2635,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Step 8: load indexers
 
     // If reindex-chainstate was specified, delay syncing indexes until
-    // ThreadImport has reindexed the chain
+    // ImportBlocks has reindexed the chain
     if (!fReindexChainState) {
         g_indexes_ready_to_sync = true;
     }
@@ -2757,10 +2757,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     avalanche::Processor *const avalanche = node.avalanche.get();
-    chainman.m_load_block =
-        std::thread(&util::TraceThread, "loadblk", [=, &chainman, &args] {
+    chainman.m_thread_load =
+        std::thread(&util::TraceThread, "initload", [=, &chainman, &args] {
             // Import blocks
-            ThreadImport(chainman, avalanche, vImportFiles);
+            ImportBlocks(chainman, avalanche, vImportFiles);
             // Load mempool from disk
             chainman.ActiveChainstate().LoadMempool(
                 ShouldPersistMempool(args) ? MempoolPath(args) : fs::path{});
@@ -2770,7 +2770,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     {
         WAIT_LOCK(g_genesis_wait_mutex, lock);
         // We previously could hang here if StartShutdown() is called prior to
-        // ThreadImport getting started, so instead we just wait on a timer to
+        // ImportBlocks getting started, so instead we just wait on a timer to
         // check ShutdownRequested() regularly.
         while (!fHaveGenesis && !ShutdownRequested()) {
             g_genesis_wait_cv.wait_for(lock, std::chrono::milliseconds(500));

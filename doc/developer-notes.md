@@ -525,8 +525,9 @@ Threads
   : Started from `main()` in `bitcoind.cpp`. Responsible for starting up and
   shutting down the application.
 
-- [ThreadImport (`b-loadblk`)](https://www.bitcoinabc.org/doc/dev/init_8cpp.html#ae9e290a0e829ec0198518de2eda579d1)
-  : Loads blocks from `blk*.dat` files or `-loadblock=<file>` on startup.
+- [Init load (`b-initload`)](https://www.bitcoinabc.org/doc/dev/init_8cpp.html#ae9e290a0e829ec0198518de2eda579d1)
+  : Performs various loading tasks that are part of init but shouldn't block the node from being started: external block import,
+  reindex, reindex-chainstate, main chain activation, spawn indexes background sync threads and mempool load.
 
 - [ThreadScriptCheck (`b-scriptch.x`)](https://www.bitcoinabc.org/doc/dev/validation_8cpp.html#a925a33e7952a157922b0bbb8dab29a20)
   : Parallel script validation threads for transactions in blocks.

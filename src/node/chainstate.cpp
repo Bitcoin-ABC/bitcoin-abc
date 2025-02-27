@@ -86,7 +86,7 @@ static ChainstateLoadResult CompleteChainstateInitialization(
     // At this point blocktree args are consistent with what's on disk.
     // If we're not mid-reindex (based on disk + args), add a genesis
     // block on disk (otherwise we use the one already on disk). This is
-    // called again in ThreadImport after the reindex completes.
+    // called again in ImportBlocks after the reindex completes.
     if (!fReindex && !chainman.ActiveChainstate().LoadGenesisBlock()) {
         return {ChainstateLoadStatus::FAILURE,
                 _("Error initializing block database")};
