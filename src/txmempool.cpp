@@ -511,6 +511,36 @@ std::vector<TxMempoolInfo> CTxMemPool::infoAll() const {
     return ret;
 }
 
+bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx) {
+    AssertLockHeld(cs);
+
+    auto it = mapTx.find(tx->GetTx().GetId());
+    if (it == mapTx.end()) {
+        // Trying to finalize a tx that is not in the mempool !
+        return false;
+    }
+
+    setEntries setAncestors;
+    setAncestors.insert(it);
+    if (!CalculateMemPoolAncestors(tx, setAncestors,
+                                   /*fSearchForParents=*/false)) {
+        // Failed to get a list of parents for this tx. If we finalize it we
+        // might be missing a parent and generate an invalid block.
+        return false;
+    }
+
+    for (txiter ancestor_it : setAncestors) {
+        // It is possible (and normal) that an ancestor is already finalized.
+        // Beware to not account for it in this case.
+        if (finalizedTxs.insert(*ancestor_it)) {
+            totalFinalizedTxSize += (*ancestor_it)->GetTxSize();
+            totalFinalizedTxSigchecks += (*ancestor_it)->GetSigChecks();
+        }
+    }
+
+    return true;
+}
+
 CTransactionRef CTxMemPool::get(const TxId &txid) const {
     LOCK(cs);
     indexed_transaction_set::const_iterator i = mapTx.find(txid);

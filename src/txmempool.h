@@ -521,15 +521,7 @@ public:
     }
 
     bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx)
-        EXCLUSIVE_LOCKS_REQUIRED(cs) {
-        const bool ret = finalizedTxs.insert(tx);
-        if (ret) {
-            totalFinalizedTxSize += tx->GetTxSize();
-            totalFinalizedTxSigchecks += tx->GetSigChecks();
-        }
-
-        return ret;
-    }
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     bool isAvalancheFinalized(const TxId &txid) const {
         LOCK(cs);
