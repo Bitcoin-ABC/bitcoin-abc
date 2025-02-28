@@ -7,4 +7,4 @@ FROM rust:1.76.0
 RUN apt-get update \
     && apt-get install clang binaryen -y \
     && rustup target add wasm32-unknown-unknown \
-    && cargo install -f wasm-bindgen-cli@0.2.92
+    && cargo install -f --locked wasm-bindgen-cli@0.2.92
