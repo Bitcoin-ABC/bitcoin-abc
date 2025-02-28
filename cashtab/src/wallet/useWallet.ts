@@ -74,6 +74,7 @@ export interface UseWalletReturnType {
     ecc: Ecc;
     chaintipBlockheight: number;
     fiatPrice: number | null;
+    firmaPrice: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -96,6 +97,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [cashtabLoaded, setCashtabLoaded] = useState<boolean>(false);
     const [ws, setWs] = useState<null | WsEndpoint>(null);
     const [fiatPrice, setFiatPrice] = useState<null | number>(null);
+    const [firmaPrice, setFirmaPrice] = useState<null | number>(null);
     const [apiError, setApiError] = useState<boolean>(false);
     const [checkFiatInterval, setCheckFiatInterval] =
         useState<null | NodeJS.Timeout>(null);
@@ -831,19 +833,30 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     // Must be able to end them and set new ones with new currencies
     const initializeFiatPriceApi = async (selectedFiatCurrency: string) => {
         if (process.env.REACT_APP_TESTNET === 'true') {
-            return setFiatPrice(0);
+            setFiatPrice(0);
+            setFirmaPrice(0);
+            return;
         }
         // Update fiat price and confirm it is set to make sure ap keeps loading state until this is updated
 
         // Call this instance with showNotifications = false,
         // as we do not want to calculate price deltas when the user selects a new foreign currency
         await fetchXecPrice(selectedFiatCurrency);
+
+        if (selectedFiatCurrency === 'usd') {
+            setFirmaPrice(1);
+        } else {
+            await fetchFirmaPrice();
+        }
         // Set interval for updating the price with given currency
 
         // Now we call with showNotifications = true, as we want
         // to show price changes when the currency has not changed
         const thisFiatInterval = setInterval(function () {
             fetchXecPrice(selectedFiatCurrency);
+            if (selectedFiatCurrency !== 'usd') {
+                fetchFirmaPrice();
+            }
         }, appConfig.fiatUpdateIntervalMs);
 
         // set interval in state
@@ -890,6 +903,43 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
         // If we have an error in the price fetch, or an invalid type without one, do not set the price
         return setFiatPrice(null);
+    };
+
+    /**
+     * If the user does not have USD as fiat currency,
+     * we need to get an exchange rate for Firma
+     */
+    const fetchFirmaPrice = async (
+        fiatCode = cashtabState.settings.fiatCurrency,
+    ) => {
+        // Keep this in the code, because different URLs will have different outputs require different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=${fiatCode}`;
+        try {
+            const firmaPrice = await fetch(priceApiUrl);
+            const firmaPriceJson = await firmaPrice.json();
+            const firmaPriceInFiat = firmaPriceJson.usd[fiatCode];
+
+            if (typeof firmaPriceInFiat === 'number') {
+                // If we have a good fetch
+                return setFirmaPrice(firmaPriceInFiat);
+            }
+        } catch (err) {
+            if (
+                typeof err === 'object' &&
+                err !== null &&
+                'message' in err &&
+                err.message === 'Failed to fetch'
+            ) {
+                // The most common error is coingecko 429
+                console.error(
+                    `Failed to fetch Firma Price: Bad response or rate limit from CoinGecko`,
+                );
+            } else {
+                console.error(`Failed to fetch Firma Price`, err);
+            }
+        }
+        // If we have an error in the price fetch, or an invalid type without one, do not set the price
+        return setFirmaPrice(null);
     };
 
     const cashtabBootup = async () => {
@@ -1020,6 +1070,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         ecc,
         chaintipBlockheight,
         fiatPrice,
+        firmaPrice,
         cashtabLoaded,
         loading,
         setLoading,

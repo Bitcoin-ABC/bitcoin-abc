@@ -76,6 +76,7 @@ import {
     HeaderInfoCtn,
 } from 'components/App/styles';
 import appConfig from 'config/app';
+import { FIRMA } from 'constants/tokens';
 
 const App = () => {
     const ContextValue = useContext(WalletContext);
@@ -88,6 +89,7 @@ const App = () => {
         setCashtabState,
         updateCashtabState,
         fiatPrice,
+        firmaPrice,
         loading,
         setLoading,
         cashtabLoaded,
@@ -112,6 +114,11 @@ const App = () => {
             ? Number(
                   wallet.state.tokens.get(appConfig.vipTokens.xecx.tokenId),
               ) || 0
+            : 0;
+
+    const balanceFirma =
+        wallet !== false
+            ? Number(wallet.state.tokens.get(FIRMA.tokenId)) || 0
             : 0;
 
     // Easter egg boolean not used in extension/src/components/App.js
@@ -201,8 +208,10 @@ const App = () => {
                                                         ).state.balanceSats
                                                     }
                                                     balanceXecx={balanceXecx}
+                                                    balanceFirma={balanceFirma}
                                                     settings={settings}
                                                     fiatPrice={fiatPrice}
+                                                    firmaPrice={firmaPrice}
                                                     userLocale={
                                                         navigator.language
                                                     }

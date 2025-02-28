@@ -9,6 +9,7 @@ import CashtabSettings, {
 } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
+import { FIRMA } from 'constants/tokens';
 
 export const BalanceXec = styled.div`
     display: flex;
@@ -74,20 +75,26 @@ interface BalanceHeaderProps {
     balanceSats: number;
     /** In decimalized XECX */
     balanceXecx: number;
+    /** In decimalized firma */
+    balanceFirma: number;
     settings: CashtabSettings;
     fiatPrice: null | number;
+    firmaPrice: null | number;
     userLocale?: string;
 }
 const BalanceHeader: React.FC<BalanceHeaderProps> = ({
     balanceSats,
     balanceXecx,
+    balanceFirma,
     settings = new CashtabSettings(),
     fiatPrice = null,
+    firmaPrice = null,
     userLocale = 'en-US',
 }) => {
     // If navigator.language is undefined, default to en-US
     userLocale = typeof userLocale === 'undefined' ? 'en-US' : userLocale;
-    const renderFiatValues = typeof fiatPrice === 'number';
+    const renderFiatValues =
+        typeof fiatPrice === 'number' && typeof firmaPrice === 'number';
 
     // Display XEC balance formatted for user's browser locale
     const balanceXec = toXec(balanceSats);
@@ -102,11 +109,24 @@ const BalanceHeader: React.FC<BalanceHeaderProps> = ({
         maximumFractionDigits: appConfig.cashDecimals,
     });
 
+    const formattedBalanceFirma = balanceFirma.toLocaleString(userLocale, {
+        minimumFractionDigits: FIRMA.token.genesisInfo.decimals,
+        maximumFractionDigits: FIRMA.token.genesisInfo.decimals,
+    });
+
     const balanceXecEquivalents = balanceXec + balanceXecx;
+
+    // Note we want FIRMA to be included in fiat balance at 1 USD
+    // But not all users will have USD selected for their foreign currency
+    // So, we cannot "just add it" unless the user is working with USD;
+    // we adjust it by firmaPrice (which is 1 for users with USD selected)
 
     // Display fiat balance formatted for user's browser locale
     const formattedBalanceFiat = renderFiatValues
-        ? (balanceXecEquivalents * fiatPrice).toLocaleString(userLocale, {
+        ? (
+              balanceXecEquivalents * fiatPrice +
+              balanceFirma * firmaPrice
+          ).toLocaleString(userLocale, {
               minimumFractionDigits: appConfig.fiatDecimals,
               maximumFractionDigits: appConfig.fiatDecimals,
           })
@@ -141,6 +161,16 @@ const BalanceHeader: React.FC<BalanceHeaderProps> = ({
                         >
                             XECX
                         </a>
+                    </BalanceRow>
+                )}
+                {balanceFirma !== 0 && (
+                    <BalanceRow
+                        isXecx
+                        title="Balance FIRMA"
+                        hideBalance={settings.balanceVisible === false}
+                    >
+                        {formattedBalanceFirma}{' '}
+                        <a href={`/#/token/${FIRMA.tokenId}`}>FIRMA</a>
                     </BalanceRow>
                 )}
             </BalanceXec>

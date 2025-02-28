@@ -67,6 +67,21 @@ describe('<Configure />', () => {
             .mockResolvedValue({
                 json: () => Promise.resolve(altFiatPriceResponse),
             });
+
+        // Mock firma price API call
+        const firmaPriceGbp = 0.5;
+        const firmaPriceResponse = {
+            usd: {
+                gbp: firmaPriceGbp,
+            },
+        };
+        when(fetch)
+            .calledWith(
+                `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=${altFiat}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve(firmaPriceResponse),
+            });
     });
     afterEach(async () => {
         jest.clearAllMocks();
