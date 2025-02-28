@@ -40,8 +40,14 @@ export const token = {
      * unless the user manually elects to "load all offers". We will
      * improve how this list is built and maintained going forward
      * (establish inclusion metrics)
+     *
+     * NB this array should be sorted alphabetical by tokenId
+     * Otherwise, the listings will "jump" to sort themselves this way
+     * after they load
      */
     whitelist: [
+        // FIRMA
+        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
         // Star crystals
         'ac31bb0bccf33de1683efce4da64f1cb6d8e8d6e098bc01c51d5864deb0e783f',
         // XECX
