@@ -292,6 +292,7 @@ export const handleUtcMidnight = async (
     chronik: ChronikClient,
     telegramBot: TelegramBot,
     channelId: string,
+    secondChannelId?: string,
 ) => {
     // It is a new day
     // Send the daily summary
@@ -386,4 +387,14 @@ export const handleUtcMidnight = async (
 
     // Send msg with successful price API call
     await sendBlockSummary(dailySummaryTgMsgs, telegramBot, channelId, 'daily');
+
+    if (typeof secondChannelId !== 'undefined') {
+        // Send to another channel if we got it
+        await sendBlockSummary(
+            dailySummaryTgMsgs,
+            telegramBot,
+            secondChannelId,
+            'daily',
+        );
+    }
 };

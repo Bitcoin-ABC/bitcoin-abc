@@ -11,7 +11,8 @@ import { main } from './src/main';
 import { handleUtcMidnight } from './src/events';
 
 // Initialize telegram bot on app startup
-const { botId, channelId, dailyChannelId } = secrets.prod.telegram;
+const { botId, channelId, dailyChannelId, mainChannelId } =
+    secrets.prod.telegram;
 const telegramBot = new TelegramBot(botId);
 
 // Initialize chronik on app startup
@@ -22,7 +23,8 @@ const job = new CronJob(
     // see https://www.npmjs.com/package/cron
     // seconds[0-59] minutes[0-59] hours[0-23] day-of-month[1-31] month[1-12] day-of-week[0-7]
     '0 0 0 * * *', // cronTime
-    () => handleUtcMidnight(chronik, telegramBot, dailyChannelId), // onTick
+    () =>
+        handleUtcMidnight(chronik, telegramBot, dailyChannelId, mainChannelId), // onTick
     null, // onComplete
     false, // start
     'UTC', // timeZone

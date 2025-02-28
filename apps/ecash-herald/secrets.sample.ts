@@ -6,6 +6,8 @@ interface TelegramSettings {
     botId: string;
     channelId: string;
     dailyChannelId: string;
+    /** ID of the main public chat, for daily summaries */
+    mainChannelId?: string;
 }
 
 interface Secrets {
