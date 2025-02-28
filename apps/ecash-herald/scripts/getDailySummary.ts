@@ -31,7 +31,7 @@ import TelegramBot from 'node-telegram-bot-api';
 // Initialize telegram bot to send msgs to dev channel
 const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
-const telegramBotDev = new TelegramBot(botId, { polling: true });
+const telegramBotDev = new TelegramBot(botId);
 
 const chronik = new ChronikClient(config.chronik);
 

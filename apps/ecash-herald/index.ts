@@ -12,7 +12,7 @@ import { handleUtcMidnight } from './src/events';
 
 // Initialize telegram bot on app startup
 const { botId, channelId, dailyChannelId } = secrets.prod.telegram;
-const telegramBot = new TelegramBot(botId, { polling: true });
+const telegramBot = new TelegramBot(botId);
 
 // Initialize chronik on app startup
 const chronik = new ChronikClient(config.chronik);

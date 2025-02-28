@@ -55,7 +55,7 @@ if (process.argv && typeof process.argv[2] !== 'undefined') {
 const chronik = new ChronikClient(config.chronik);
 const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
-const telegramBotDev = new TelegramBot(botId, { polling: true });
+const telegramBotDev = new TelegramBot(botId);
 
 async function sendMsgByBlock(
     chronik: ChronikClient,

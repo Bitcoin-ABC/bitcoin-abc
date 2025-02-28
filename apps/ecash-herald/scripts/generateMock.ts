@@ -31,7 +31,7 @@ const { botId, channelId } = dev.telegram;
 const blockMocks = JSON.parse(JSON.stringify(unrevivedBlockMocks), jsonReviver);
 
 // Initialize telegram bot to send msgs to dev channel
-const telegramBotDev = new TelegramBot(botId, { polling: true });
+const telegramBotDev = new TelegramBot(botId);
 
 /**
  * generateMock
