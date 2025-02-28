@@ -380,7 +380,7 @@ describe('parse.js functions', function () {
                 block.activeStakers,
             ),
             [
-                '<b>15 Oct 2024</b>\n' +
+                '<b>14 Oct 2024</b>\n' +
                     '📦61,585 blocks\n' +
                     '➡️37 txs\n' +
                     `💧<i>0.00% capacity</i>\n` +
@@ -466,7 +466,7 @@ describe('parse.js functions', function () {
                 block.activeStakers,
             ),
             [
-                '<b>15 Oct 2024</b>\n' +
+                '<b>14 Oct 2024</b>\n' +
                     '📦61,585 blocks\n' +
                     '➡️37 txs\n' +
                     `💧<i>0.00% capacity</i>\n` +
@@ -544,7 +544,7 @@ describe('parse.js functions', function () {
                 10, // show all tested non-agora tokens
             ),
             [
-                '<b>15 Oct 2024</b>\n' +
+                '<b>14 Oct 2024</b>\n' +
                     '📦61,585 blocks\n' +
                     '➡️37 txs\n' +
                     `💧<i>0.00% capacity</i>\n` +

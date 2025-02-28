@@ -3237,13 +3237,17 @@ export const summarizeTxHistory = (
     // Build your msg
     const tgMsg = [];
 
+    const SECONDS_PER_DAY = 86400;
     tgMsg.push(
-        `<b>${new Date(now * 1000).toLocaleDateString('en-GB', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            timeZone: 'UTC',
-        })}</b>`,
+        `<b>${new Date((now - SECONDS_PER_DAY) * 1000).toLocaleDateString(
+            'en-GB',
+            {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+            },
+        )}</b>`,
     );
     tgMsg.push(
         `${config.emojis.block}${blockCount.toLocaleString('en-US')} blocks`,
