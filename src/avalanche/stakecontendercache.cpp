@@ -224,7 +224,20 @@ bool StakeContenderCache::getWinners(
     std::sort(rankedWinners.begin(), rankedWinners.end(),
               [](const StakeContenderCacheEntry *left,
                  const StakeContenderCacheEntry *right) {
-                  return left->computeRewardRank() < right->computeRewardRank();
+                  if (left->isAccepted() != right->isAccepted()) {
+                      // Accepted contenders sort first
+                      return left->isAccepted();
+                  }
+
+                  double leftRank = left->computeRewardRank();
+                  double rightRank = right->computeRewardRank();
+                  const StakeContenderId &leftContenderId =
+                      left->getStakeContenderId();
+                  const StakeContenderId &rightContenderId =
+                      right->getStakeContenderId();
+                  return RewardRankComparator()(leftContenderId, leftRank,
+                                                left->proofid, rightContenderId,
+                                                rightRank, right->proofid);
               });
 
     winners.clear();

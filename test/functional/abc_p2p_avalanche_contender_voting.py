@@ -37,6 +37,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 "-persistavapeers=0",
                 "-avastalevotethreshold=160",
                 "-avastalevotefactor=1",
+                "-simplegbt",
             ],
         ]
         self.supports_cli = False
@@ -277,26 +278,58 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
                 n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
-        def check_stake_winners(tip, expected_winners):
+        def check_stake_winners(
+            tip, exp_manual_winners, exp_accepted_winners, exp_rejected_winners
+        ):
             reward = node.getstakingreward(tip)
             winners = []
             for winner in reward:
                 winners.append((int(winner["proofid"], 16), winner["hex"]))
 
-            # Sort expected winners by rank, but manual winner is always first if there is one
-            expected_winners = sorted(
-                set(expected_winners),
+            # Sort winners by rank, but manual winners are always first if they exist
+            exp_accepted_winners = sorted(
+                set(exp_accepted_winners),
                 key=lambda w: (
-                    0
-                    if w[0] == 0
-                    else (256.0 - math.log2(make_contender_id(tip, w[0]))) / 5000
+                    (256.0 - math.log2(make_contender_id(tip, w[0]))) / 5000
+                ),
+            )
+            exp_rejected_winners = sorted(
+                set(exp_rejected_winners),
+                key=lambda w: (
+                    (256.0 - math.log2(make_contender_id(tip, w[0]))) / 5000
                 ),
             )
 
-            assert_equal(expected_winners, winners)
+            exp_winners = (
+                exp_manual_winners + exp_accepted_winners + exp_rejected_winners
+            )
+            assert_equal(exp_winners, winners)
+
+            # Check gbt contains the best winner
+            gbt = node.getblocktemplate()
+            assert "stakingrewards" in gbt
+            assert_equal(gbt["stakingrewards"]["script"], exp_winners[0][1])
+
+            # Check poll statuses for sanity
+            poll_ids = []
+            expected = []
+            for w in exp_accepted_winners:
+                contender_id = make_contender_id(tip, w[0])
+                poll_ids.append(contender_id)
+                expected.append(
+                    AvalancheVote(AvalancheContenderVoteError.ACCEPTED, contender_id)
+                )
+            for w in exp_rejected_winners:
+                contender_id = make_contender_id(tip, w[0])
+                poll_ids.append(contender_id)
+                expected.append(
+                    AvalancheVote(AvalancheContenderVoteError.INVALID, contender_id)
+                )
+            poll_node.send_poll(poll_ids, inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(expected)
 
         # Manual winner should already be a winner even though it isn't finalized
-        check_stake_winners(tip, [(0, manual_winner.payout_script.hex())])
+        check_stake_winners(tip, [(0, manual_winner.payout_script.hex())], [], [])
 
         def finalize_contenders(tip, winner_contenders):
             loser_contenders = get_all_contender_ids(tip)[:12]
@@ -322,10 +355,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         finalize_contenders(tip, [local_winner_cid])
         check_stake_winners(
             tip,
-            [
-                (0, manual_winner.payout_script.hex()),
-                (local_winner_proofid, local_winner_payout_script),
-            ],
+            [(0, manual_winner.payout_script.hex())],
+            [(local_winner_proofid, local_winner_payout_script)],
+            [],
         )
 
         self.log.info("Vote on contenders: local winner only")
@@ -337,12 +369,16 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         local_winner_cid = make_contender_id(tip, local_winner_proofid)
 
         # Local winner is the stake winner even though we haven't finalized it yet
-        check_stake_winners(tip, [(local_winner_proofid, local_winner_payout_script)])
+        check_stake_winners(
+            tip, [], [(local_winner_proofid, local_winner_payout_script)], []
+        )
 
         finalize_contenders(tip, [local_winner_cid])
 
         # Sanity check there are no other winners
-        check_stake_winners(tip, [(local_winner_proofid, local_winner_payout_script)])
+        check_stake_winners(
+            tip, [], [(local_winner_proofid, local_winner_payout_script)], []
+        )
 
         for numWinners in range(1, 4):
             self.log.info(
@@ -357,7 +393,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
             # Local winner is the stake winner before we finalize
             check_stake_winners(
-                tip, [(local_winner_proofid, local_winner_payout_script)]
+                tip, [], [(local_winner_proofid, local_winner_payout_script)], []
             )
 
             # Finalize some winners
@@ -365,10 +401,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             contenders.remove(local_winner_cid)
             finalize_contenders(tip, contenders[:numWinners])
 
-            # Sanity check the winners. The local winner remains even though it was invalidated.
-            winners = [
-                (local_winner_proofid, local_winner_payout_script),
-            ]
+            # Sanity check the winners. The local winner remains even though it was invalidated, however it is sorted last.
+            winners = []
             for winner_cid in contenders[:numWinners]:
                 proof = next(
                     (
@@ -378,7 +412,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                     )
                 )
                 winners.append((proof.proofid, proof.payout_script.hex()))
-            check_stake_winners(tip, winners)
+            check_stake_winners(
+                tip, [], winners, [(local_winner_proofid, local_winner_payout_script)]
+            )
 
         self.log.info("Vote on contenders: zero winners")
 
@@ -388,13 +424,17 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         local_winner_proofid = int(staking_reward[0]["proofid"], 16)
 
         # Local winner is the stake winner before we finalize
-        check_stake_winners(tip, [(local_winner_proofid, local_winner_payout_script)])
+        check_stake_winners(
+            tip, [], [(local_winner_proofid, local_winner_payout_script)], []
+        )
 
         # Invalidate all contenders
         finalize_contenders(tip, [])
 
         # Local winner did not change
-        check_stake_winners(tip, [(local_winner_proofid, local_winner_payout_script)])
+        check_stake_winners(
+            tip, [], [], [(local_winner_proofid, local_winner_payout_script)]
+        )
 
         self.log.info("Vote on contenders: stale contenders")
 
@@ -404,7 +444,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         local_winner_proofid = int(staking_reward[0]["proofid"], 16)
 
         # Local winner is the stake winner before we finalize
-        check_stake_winners(tip, [(local_winner_proofid, local_winner_payout_script)])
+        check_stake_winners(
+            tip, [], [(local_winner_proofid, local_winner_payout_script)], []
+        )
 
         # Stale all contenders
         contenders = get_all_contender_ids(tip)[:12]
@@ -420,7 +462,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             pass
 
         # Local winner did not change because it was not replaced with a finalized contender
-        check_stake_winners(tip, [(local_winner_proofid, local_winner_payout_script)])
+        check_stake_winners(
+            tip, [], [(local_winner_proofid, local_winner_payout_script)], []
+        )
 
 
 if __name__ == "__main__":
