@@ -120,3 +120,7 @@ If you have any implementation questions regarding this mock tool please check t
 2.1.3
 
 -   Update `package.json` paths for correct typescript `dist` [D17542](https://reviews.bitcoinabc.org/D17542)
+
+3.0.0
+
+-   Update types to match latest breaking changes in `chronik-client` [D17727](https://reviews.bitcoinabc.org/D17727)
