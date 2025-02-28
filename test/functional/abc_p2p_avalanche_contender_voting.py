@@ -191,8 +191,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             ]
         )
 
-        # Answer polls until the chain tip (and contenders) start polling
-        self.wait_until(lambda: can_find_inv_in_poll(quorum, int(tip, 16)))
+        # Answer polls until contenders start polling
+        self.wait_until(lambda: can_find_inv_in_poll(quorum, local_winner_cid))
 
         def get_polled_contenders():
             # Pop a poll from any peer
