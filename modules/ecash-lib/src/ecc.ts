@@ -42,6 +42,9 @@ export interface Ecc {
 
     /** Recover the public key of an ECDSA signed signature (with recovery ID) */
     recoverSig(sig: Uint8Array, msg: Uint8Array): Uint8Array;
+
+    /** Compress an uncompressed public key (must start with 0x04) */
+    compressPk(pk: Uint8Array): Uint8Array;
 }
 
 /** Dummy Ecc impl that always returns 0, useful for measuring tx size */
@@ -81,11 +84,16 @@ export class EccDummy implements Ecc {
     recoverSig(_sig: Uint8Array, _msg: Uint8Array): Uint8Array {
         return new Uint8Array(33);
     }
+
+    compressPk(_pk: Uint8Array): Uint8Array {
+        return new Uint8Array(33);
+    }
 }
 
-const ECC: { ecc?: Ecc } = {};
+type FfiEcc = Omit<Ecc, 'compressPk'>;
+const ECC: { ecc?: FfiEcc } = {};
 
-export function __setEcc(ecc: Ecc) {
+export function __setEcc(ecc: FfiEcc) {
     ECC.ecc = ecc;
 }
 
@@ -145,5 +153,15 @@ export class Ecc implements Ecc {
 
     recoverSig(sig: Uint8Array, msg: Uint8Array): Uint8Array {
         return ECC.ecc!.recoverSig(sig, msg);
+    }
+
+    compressPk(pk: Uint8Array): Uint8Array {
+        if (pk[0] != 0x04) {
+            throw new Error('Uncompressed pubkey must start with 0x04');
+        }
+        const compressedPk = new Uint8Array(33);
+        compressedPk[0] = 0x02 | (pk[64] & 0x01);
+        compressedPk.set(pk.slice(1, 33), 1);
+        return compressedPk;
     }
 }

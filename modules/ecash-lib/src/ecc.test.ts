@@ -45,6 +45,17 @@ describe('Ecc', async () => {
         expect(
             toHex(ecc.recoverSig(ecc.signRecoverable(sk, msg), msg)),
         ).to.equal(toHex(pk));
+
+        const GENESIS_PK =
+            '04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f';
+        expect(toHex(ecc.compressPk(fromHex(GENESIS_PK)))).to.equal(
+            '03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6',
+        );
+        const UNCOMPRESSED_PK =
+            '04db78c5695628eebba58176d9e566800c568a0b39fc2e4e99b9b3aa69bb17aea7ccdc968a46bacfc32ae4697cefa05bb90f6f2417b3970eca26b53587f61e5296';
+        expect(toHex(ecc.compressPk(fromHex(UNCOMPRESSED_PK)))).to.equal(
+            '02db78c5695628eebba58176d9e566800c568a0b39fc2e4e99b9b3aa69bb17aea7',
+        );
     });
 
     it('EccDummy', () => {
@@ -64,5 +75,6 @@ describe('Ecc', async () => {
         expect(dummy.recoverSig({} as any, {} as any)).to.deep.equal(
             new Uint8Array(33),
         );
+        expect(dummy.compressPk({} as any)).to.deep.equal(new Uint8Array(33));
     });
 });
