@@ -10,8 +10,20 @@ export interface Ecc {
     /** Sign an ECDSA signature. msg needs to be a 32-byte hash */
     ecdsaSign(seckey: Uint8Array, msg: Uint8Array): Uint8Array;
 
+    /**
+     * Verify an ECDSA signature. msg needs to be a 32-byte hash.
+     * Throws an exception if the signature is invalid.
+     **/
+    ecdsaVerify(sig: Uint8Array, msg: Uint8Array, pk: Uint8Array): void;
+
     /** Sign a Schnorr signature. msg needs to be a 32-byte hash */
     schnorrSign(seckey: Uint8Array, msg: Uint8Array): Uint8Array;
+
+    /**
+     * Verify a Schnorr signature. msg needs to be a 32-byte hash.
+     * Throws an exception if the signature is invalid.
+     **/
+    schnorrVerify(sig: Uint8Array, msg: Uint8Array, pk: Uint8Array): void;
 
     /**
      * Return whether the given secret key is valid, i.e. whether is of correct
@@ -42,9 +54,13 @@ export class EccDummy implements Ecc {
         return new Uint8Array(73);
     }
 
+    ecdsaVerify(_sig: Uint8Array, _msg: Uint8Array, _pk: Uint8Array): void {}
+
     schnorrSign(_seckey: Uint8Array, _msg: Uint8Array): Uint8Array {
         return new Uint8Array(64);
     }
+
+    schnorrVerify(_sig: Uint8Array, _msg: Uint8Array, _pk: Uint8Array): void {}
 
     isValidSeckey(_seckey: Uint8Array): boolean {
         return false;
@@ -84,9 +100,25 @@ export class Ecc implements Ecc {
         return ECC.ecc!.ecdsaSign(seckey, msg);
     }
 
+    /**
+     * Verify an ECDSA signature. msg needs to be a 32-byte hash.
+     * Throws an exception if the signature is invalid.
+     **/
+    ecdsaVerify(sig: Uint8Array, msg: Uint8Array, pk: Uint8Array): void {
+        ECC.ecc?.ecdsaVerify(sig, msg, pk);
+    }
+
     /** Sign a Schnorr signature. msg needs to be a 32-byte hash */
     schnorrSign(seckey: Uint8Array, msg: Uint8Array): Uint8Array {
         return ECC.ecc!.schnorrSign(seckey, msg);
+    }
+
+    /**
+     * Verify a Schnorr signature. msg needs to be a 32-byte hash.
+     * Throws an exception if the signature is invalid.
+     **/
+    schnorrVerify(sig: Uint8Array, msg: Uint8Array, pk: Uint8Array): void {
+        ECC.ecc?.schnorrVerify(sig, msg, pk);
     }
 
     /**

@@ -5,7 +5,8 @@
 //! Module for [`Ecc`] for signing secp256k1 signatures.
 
 use ecash_secp256k1::{
-    ecdsa::{RecoverableSignature, RecoveryId},
+    ecdsa::{RecoverableSignature, RecoveryId, Signature as EcdsaSignature},
+    schnorr::Signature as SchnorrSignature,
     All, Message, PublicKey, Scalar, Secp256k1, SecretKey,
 };
 use thiserror::Error;
@@ -50,6 +51,18 @@ pub enum EccError {
     /// Invalid message size
     #[error("Invalid message size, expected 32 bytes but got {0}")]
     InvalidMessageSize(usize),
+
+    /// Invalid DER signature format
+    #[error("Invalid DER signature format")]
+    InvalidDerSignatureFormat,
+
+    /// Invalid Schnorr signature size
+    #[error("Invalid Schnorr signature size, expected 64 bytes but got {0}")]
+    InvalidSignatureSize(usize),
+
+    /// Incorrect signature
+    #[error("Incorrect signature")]
+    IncorrectSignature,
 }
 
 impl From<EccError> for String {
@@ -91,6 +104,15 @@ fn parse_msg(msg: &[u8]) -> Result<Message, String> {
     ))
 }
 
+fn parse_ecdsa_sig(sig: &[u8]) -> Result<EcdsaSignature, String> {
+    Ok(EcdsaSignature::from_der(sig).map_err(|_| InvalidDerSignatureFormat)?)
+}
+
+fn parse_schnorr_sig(sig: &[u8]) -> Result<SchnorrSignature, String> {
+    Ok(SchnorrSignature::from_slice(sig)
+        .map_err(|_| InvalidSignatureSize(sig.len()))?)
+}
+
 #[wasm_bindgen]
 impl Ecc {
     /// Create a new Ecc instance.
@@ -123,6 +145,23 @@ impl Ecc {
         Ok(sig.serialize_der().to_vec())
     }
 
+    /// Verify an ECDSA signature.
+    #[wasm_bindgen(js_name = ecdsaVerify)]
+    pub fn ecdsa_verify(
+        &self,
+        sig: &[u8],
+        msg: &[u8],
+        pk: &[u8],
+    ) -> Result<(), String> {
+        let msg = parse_msg(msg)?;
+        let sig = parse_ecdsa_sig(sig)?;
+        let pk = parse_public_key(pk)?;
+        self.curve
+            .verify_ecdsa(&msg, &sig, &pk)
+            .map_err(|_| IncorrectSignature)?;
+        Ok(())
+    }
+
     /// Sign a Schnorr signature.
     #[wasm_bindgen(js_name = schnorrSign)]
     pub fn schnorr_sign(
@@ -134,6 +173,23 @@ impl Ecc {
         let msg = parse_msg(msg)?;
         let sig = self.curve.sign_schnorrabc_no_aux_rand(&msg, &seckey);
         Ok(sig.as_ref().to_vec())
+    }
+
+    /// Verify a Schnorr signature.
+    #[wasm_bindgen(js_name = schnorrVerify)]
+    pub fn schnorr_verify(
+        &self,
+        sig: &[u8],
+        msg: &[u8],
+        pk: &[u8],
+    ) -> Result<(), String> {
+        let msg = parse_msg(msg)?;
+        let sig = parse_schnorr_sig(sig)?;
+        let pk = parse_public_key(pk)?;
+        self.curve
+            .verify_schnorrabc(&sig, &msg, &pk)
+            .map_err(|_| IncorrectSignature)?;
+        Ok(())
     }
 
     /// Return whether the given secret key is valid, i.e. whether is of correct
