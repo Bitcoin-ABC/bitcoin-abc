@@ -13,6 +13,7 @@ import 'fake-indexeddb/auto';
 import {
     agoraPartialAlphaWallet,
     agoraPartialBetaWallet,
+    agoraPartialBetaMoreBalanceWallet,
     agoraOfferCachetAlphaOne,
     agoraOfferCachetAlphaTwo,
     agoraOfferCachetBetaOne,
@@ -541,7 +542,7 @@ describe('<OrderBook />', () => {
 
         const mockedChronik = await prepareContext(
             localForage,
-            [agoraPartialBetaWallet],
+            [agoraPartialBetaMoreBalanceWallet],
             tokenMocks,
         );
 
@@ -553,9 +554,9 @@ describe('<OrderBook />', () => {
 
         // Set mocks for tx that buys a listing
         const buyHex =
-            '0200000002cc3ca4ae9c981a5194dc9c28b14adb4ae21ccef8a81cfb8b2c7b37c97d90930c01000000fd25030441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1405cbf78f58a651d32dc922a39ec0c7628870dc9c42017035e2d966c282169763decfbce85539b1fb07b11df79edfd0e519caed6504c34468195212ae2d71c4b712222020000000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac4d2f01cc3ca4ae9c981a5194dc9c28b14adb4ae21ccef8a81cfb8b2c7b37c97d90930c01000000d67b63817b6ea269760384c420a26976036da3019700887d94527901377f75789263587e78036da301965880bc007e7e68587e5279036da301965880bc007e7e825980bc7c7e01007e7b02795993027a599657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504590d8762886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffff210d9c8dd95d89d9b5a3b8aeb897b9790c8120ec052780b955d99d68f2c738a8590d8762c100000003c62631514d58014c766a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000000000016da30100000000007a5900000000000084c4200000000000590d87620233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd08a0a3ff7f00000000ab7b63817b6ea269760384c420a26976036da3019700887d94527901377f75789263587e78036da301965880bc007e7e68587e5279036da301965880bc007e7e825980bc7c7e01007e7b02795993027a599657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504590d8762886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087fffffffff327f712cf7e629089daa7e76aa6a22d695f09a8019cd6fce640f5d044d211470000000064418c6d0ba2cf3d9210776733288068c87b5be930266072910ce9769918b37d90c031babf46c845c0418443e4357eecd229055511e5f00de1f88586562b412fe1134121021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39ffffffff040000000000000000496a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000000000080000000000004e0208000000000000001e008d0000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac220200000000000017a914aa18825dc0e70e8a9f016716fe4b16d1842d27ee8722020000000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac590d8762';
+            '0200000002cc3ca4ae9c981a5194dc9c28b14adb4ae21ccef8a81cfb8b2c7b37c97d90930c01000000fd47030441475230075041525449414c21023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b14002c4109f92403271f830a5fc41c9448d88cf46fcd4d7f5aa06b3d4b112b34a9e8c5f41f083ce5fe606e8f1fa54c9583d554d8ba8cafae4c7a00ec6090b156e384422020000000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac0f319a3b000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac4d2f01cc3ca4ae9c981a5194dc9c28b14adb4ae21ccef8a81cfb8b2c7b37c97d90930c01000000d67b63817b6ea269760384c420a26976036da3019700887d94527901377f75789263587e78036da301965880bc007e7e68587e5279036da301965880bc007e7e825980bc7c7e01007e7b02795993027a599657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504590d8762886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c880441475230872202000000000000ffffffffcab4f1f6fe0b6c6146d4a88bc09a5f311a3b5c4fec0150c11dd03217ae7eab1a590d8762c100000003c62631514d58014c766a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000000000016da30100000000007a5900000000000084c4200000000000590d87620233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd08a0a3ff7f00000000ab7b63817b6ea269760384c420a26976036da3019700887d94527901377f75789263587e78036da301965880bc007e7e68587e5279036da301965880bc007e7e825980bc7c7e01007e7b02795993027a599657807e041976a914707501557f77a97e0288ac7e7e6b7d02220258800317a9147e024c7672587d807e7e7e01ab7e537901257f7702d6007f5c7f7701207f547f7504590d8762886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501557f7768ad075041525449414c88044147523087fffffffff327f712cf7e629089daa7e76aa6a22d695f09a8019cd6fce640f5d044d21147000000006441152a7ce0bb4906171714f0fe85c1f96dc04364d33f3f2c5ba75b0c930623bfdf627950312e9cd62b9961dd935c8d0c29889d7c00d4a4da60b8be30b331fc0d664121021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39ffffffff050000000000000000496a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000000000080000000000004e0208000000000000001e008d0000000000001976a91403b830e4b9dce347f3495431e1f9d1005f4b420488ac220200000000000017a914aa18825dc0e70e8a9f016716fe4b16d1842d27ee8722020000000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac0f319a3b000000001976a914f208ef75eb0dd778ea4540cbd966a830c7b94bb088ac590d8762';
         const buyTxid =
-            'a529472fc058c52e0c54eccbf82fc63d24eb0a2389ee55723c29c3c8ec3146f8';
+            '935b8a8da688c829874657c56c26b7a8f18703bd9a58576323f28c8caa71510a';
         mockedChronik.setBroadcastTx(buyHex, buyTxid);
 
         render(
@@ -699,38 +700,7 @@ describe('<OrderBook />', () => {
         // Select the spot offer
         await userEvent.click(screen.getByText('$0.03600 USD'));
 
-        // We expect this field to be populated with min buy amount by default
-        expect(buyAmountCachetInput).toHaveValue('.20');
-        // Erase this input
-        await userEvent.clear(buyAmountCachetInput);
-
-        // Type a valid quantity above min that we cannot afford
-        await userEvent.type(buyAmountCachetInput, '100');
-        expect(buyAmountCachetInput).toHaveValue('100');
-
-        // Buy with defaults
-        await userEvent.click(
-            screen.getByRole('button', {
-                name: 'Buy CACHET',
-            }),
-        );
-
-        // We buy
-        await userEvent.click(screen.getByText('OK'));
-
-        // Error notification for buy we can't afford
-        expect(
-            await screen.findByText(
-                `Error: Insufficient utxos to accept this offer`,
-            ),
-        ).toBeInTheDocument();
-
-        // The error notification clears the confirmation modal
-        expect(
-            screen.queryByText('Execute this trade?'),
-        ).not.toBeInTheDocument();
-
-        // Guess we do buy the min then
+        // Let's do the min buy
         await userEvent.clear(buyAmountCachetInput);
         await userEvent.type(buyAmountCachetInput, '.30');
         await userEvent.click(buyCachetButton);
@@ -851,7 +821,7 @@ describe('<OrderBook />', () => {
 
         const mockedChronik = await prepareContext(
             localForage,
-            [agoraPartialBetaWallet],
+            [agoraPartialBetaMoreBalanceWallet],
             tokenMocks,
         );
 
@@ -914,8 +884,23 @@ describe('<OrderBook />', () => {
         await userEvent.clear(buyAmountXecxInput);
 
         // Type a valid quantity that cannot exactly be accepted by this offer
-        // 299.99 Cachet, which would create an unacceptable remainder of 0.01 CACHET (offer min is 0.30)
         await userEvent.type(buyAmountXecxInput, '178109597.15');
+
+        // Because this exceeds our balance, we see expected validation error
+        expect(
+            screen.getByText(
+                `Buy price (178.11M XEC) exceeds available balance (10M XEC).`,
+            ),
+        ).toBeInTheDocument();
+
+        // So the buy button is disabled
+        expect(buyXecxButton).toBeDisabled();
+
+        // Erase this input
+        await userEvent.clear(buyAmountXecxInput);
+
+        // Type a valid quantity that cannot exactly be accepted by this offer and is within our means
+        await userEvent.type(buyAmountXecxInput, '960001');
 
         await userEvent.click(buyXecxButton);
 
@@ -924,26 +909,16 @@ describe('<OrderBook />', () => {
             await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
         // We see target qty
-        expect(screen.getByText('178,109,597.15')).toBeInTheDocument();
+        expect(screen.getByText('960,001')).toBeInTheDocument();
         // We see actual qty
-        expect(screen.getByText('178,109,596.16')).toBeInTheDocument();
+        expect(screen.getByText('960,000.00')).toBeInTheDocument();
         // We see the delta
         expect(screen.getByText('Qty Delta:')).toBeInTheDocument();
-        expect(screen.getByText('-0.99')).toBeInTheDocument();
+        expect(screen.getByText('-1')).toBeInTheDocument();
         // We see the price in XEC
-        expect(screen.getByText('178,109,596.16 XEC')).toBeInTheDocument();
+        expect(screen.getByText('960,000 XEC')).toBeInTheDocument();
         // We see the price in USD in the modal and on the form
-        expect(screen.getByText('$5,343.29 USD')).toBeInTheDocument();
-
-        // We buy
-        await userEvent.click(screen.getByText('OK'));
-
-        // Error notification for buy we can't afford
-        expect(
-            await screen.findByText(
-                `Error: Insufficient utxos to accept this offer`,
-            ),
-        ).toBeInTheDocument();
+        expect(screen.getByText('$28.80 USD')).toBeInTheDocument();
     });
     it('Unacceptable offers are rendered to their makers', async () => {
         mockPrice(0.000033);

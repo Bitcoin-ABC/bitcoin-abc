@@ -896,6 +896,76 @@ export const agoraPartialBetaWallet: CashtabWallet = {
     name: 'Agora Partial Beta',
 };
 
+export const agoraPartialBetaMoreBalanceWallet: CashtabWallet = {
+    state: {
+        balanceSats: 10_000_000_00,
+        slpUtxos: [
+            {
+                outpoint: {
+                    txid: '50b388cd351b7d22d82dcab8d1ea58c461a28884f856a95399ba9a161a5a1152',
+                    outIdx: 1,
+                },
+                blockHeight: -1,
+                isCoinbase: false,
+                sats: 546n,
+                isFinal: false,
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 30000n,
+                    isMintBaton: false,
+                },
+                path: 1899,
+            },
+        ],
+        nonSlpUtxos: [
+            {
+                outpoint: {
+                    txid: '4711d244d0f540e6fcd69c01a8095f692da2a66ae7a7da8990627ecf12f727f3',
+                    outIdx: 0,
+                },
+                blockHeight: -1,
+                isCoinbase: false,
+                // 10 million XEC
+                sats: 10_000_000_00n,
+                isFinal: false,
+                path: 1899,
+            },
+        ],
+        tokens: new Map([
+            [
+                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                '300.00',
+            ],
+        ]),
+        parsedTxHistory: [],
+    },
+    mnemonic:
+        'end object argue chalk toward blouse square primary fragile glad engine paddle',
+    paths: new Map([
+        [
+            1899,
+            {
+                hash: 'f208ef75eb0dd778ea4540cbd966a830c7b94bb0',
+                address: 'ecash:qreq3mm4avxaw782g4qvhktx4qcv0w2tkqj3j5jaad',
+                wif: 'L1pjs2zuVGMx4jzegPaSHauNmDrchm8vS1m1T263z5Wzw6ehHwLD',
+                sk: fromHex(
+                    '895eab6d2f84b8d534907f209173ad9404fc796b9f5c1651dd4501acda3e1cc5',
+                ),
+                pk: fromHex(
+                    '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
+                ),
+            },
+        ],
+    ]) as CashtabWalletPaths,
+    name: 'Agora Partial Beta Moar Balance',
+};
+
 export const agoraPartialAlphaKeypair = {
     sk: (
         agoraPartialAlphaWallet.paths.get(

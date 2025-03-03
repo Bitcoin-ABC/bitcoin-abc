@@ -202,6 +202,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
     }
 
     const wallet = wallets[0];
+    const { balanceSats } = wallet.state;
     const activePk = (
         wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo
     ).pk;
@@ -920,6 +921,20 @@ const OrderBook: React.FC<OrderBookProps> = ({
         const spotPriceSatsThisQty = (selectedOffer as PartialOffer).askedSats(
             preparedTokenSatoshis,
         );
+
+        // We need a second round of validation, now that we know the actual price,
+        // to confirm the user can afford this quantity
+        if (spotPriceSatsThisQty > balanceSats) {
+            setTakeTokenDecimalizedQtyError(
+                `Buy price (${toFormattedXec(
+                    Number(spotPriceSatsThisQty),
+                    userLocale,
+                )} XEC) exceeds available balance (${toFormattedXec(
+                    balanceSats,
+                    userLocale,
+                )} XEC).`,
+            );
+        }
 
         // The state parameter "askedSats" is only used for rendering pricing information,
         // So it does not require bigint token satoshis precision

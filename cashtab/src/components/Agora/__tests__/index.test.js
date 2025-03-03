@@ -992,29 +992,14 @@ describe('<Agora />', () => {
         });
         expect(buyCachetButton).toBeInTheDocument();
 
-        await userEvent.click(buyCachetButton);
-
-        // We see a confirmation modal
+        // We see the expected error msg
         expect(
-            await screen.findByText('Execute this trade?'),
-        ).toBeInTheDocument();
-        // We see target qty and the actual qty
-        expect(screen.getAllByText('.30')).toHaveLength(2);
-        // We DO NOT see the delta
-        expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
-        // We see the price in XEC
-        expect(screen.getByText('3,601.92 XEC')).toBeInTheDocument();
-        // We see the price in USD in the modal and on the form
-        expect(screen.getByText('$0.1081 USD')).toBeInTheDocument();
-
-        // We buy
-        await userEvent.click(screen.getByText('OK'));
-
-        // Error notification for buy we can't afford
-        expect(
-            await screen.findByText(
-                `Error: Insufficient utxos to accept this offer`,
+            screen.getByText(
+                `Buy price (3.6k XEC) exceeds available balance (0.00 XEC).`,
             ),
         ).toBeInTheDocument();
+
+        // The button is disabled because we cannot afford this agora purchase
+        expect(buyCachetButton).toBeDisabled();
     });
 });
