@@ -14,7 +14,6 @@ from test_framework.messages import (
     hash256,
     ser_uint256,
 )
-from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 
@@ -207,31 +206,35 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             ]
         )
 
-        # Answer polls until contenders start polling
-        self.wait_until(lambda: can_find_inv_in_poll(quorum, local_winner_cid))
+        def find_polled_contenders():
+            # Answer polls until contenders start polling
+            for n in quorum:
+                poll = n.get_avapoll_if_available()
 
-        def get_polled_contenders():
-            # Pop a poll from any peer
-            def wait_for_poll():
-                self.wait_until(lambda: any(len(peer.avapolls) > 0 for peer in quorum))
-                with p2p_lock:
-                    for peer in quorum:
-                        if len(peer.avapolls) > 0:
-                            return peer.avapolls.pop(0)
-                return None
+                if poll is None:
+                    continue
 
-            poll = wait_for_poll()
-            assert poll is not None
-            return [
-                inv.hash for inv in poll.invs if inv.type == MSG_AVA_STAKE_CONTENDER
-            ]
+                votes = []
+                polled_contenders = []
+                for inv in poll.invs:
+                    votes.append(
+                        AvalancheVote(AvalancheContenderVoteError.ACCEPTED, inv.hash)
+                    )
+                    if inv.type == MSG_AVA_STAKE_CONTENDER:
+                        polled_contenders.append(inv.hash)
 
-        # Check that the local winner was polled
-        polled_contenders = get_polled_contenders()
-        assert local_winner_cid in polled_contenders
+                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
-        # Check that the max number of contenders were polled
-        assert_equal(len(polled_contenders), 12)
+                if len(polled_contenders) > 0:
+                    # Local winner must be polled
+                    assert local_winner_cid in polled_contenders
+                    # Max number of contenders was polled
+                    assert_equal(len(polled_contenders), 12)
+                    return True
+
+            return False
+
+        self.wait_until(lambda: find_polled_contenders())
 
         # Manually set a winner that isn't the local winner
         manual_winner = (
