@@ -1,0 +1,49 @@
+{
+    "name": "ecash-wallet",
+    "version": "0.0.0",
+    "description": "An ecash wallet class. Manage keys, build and broadcast txs. Includes support for tokens and agora.",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha --require mocha-suppress-logs --import=tsx ./*.test.ts src/*.test.ts",
+        "build": "tsc -p ./tsconfig.build.json"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
+        "directory": "modules/ecash-wallet"
+    },
+    "keywords": [
+        "XEC",
+        "eCash",
+        "crypto",
+        "wallet",
+        "agora",
+        "SLP",
+        "ALP",
+        "tokens"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
+    },
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc#readme",
+    "devDependencies": {
+        "@types/chai": "^5.0.1",
+        "@types/chai-as-promised": "^8.0.1",
+        "@types/mocha": "^10.0.10",
+        "chai": "^5.2.0",
+        "chai-as-promised": "^8.0.1",
+        "mocha": "^11.1.0",
+        "mocha-junit-reporter": "^2.2.1",
+        "mocha-suppress-logs": "^0.5.1",
+        "mock-chronik-client": "^3.0.0",
+        "tsx": "^4.19.3",
+        "typescript": "^5.8.2",
+        "typescript-eslint": "^8.26.0"
+    },
+    "dependencies": {
+        "chronik-client": "^3.0.0",
+        "ecash-lib": "^3.0.0"
+    }
+}

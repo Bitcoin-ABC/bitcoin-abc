@@ -681,6 +681,15 @@ builds:
       pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
       ./build-wasm.sh
 
+  ecash-wallet:
+    depends:
+      - chronik-client
+      - ecash-lib
+    script: |
+      pushd "${TOPLEVEL}/modules/ecash-wallet"
+      npm ci
+      npm run build
+
   chronik-client:
     depends:
       - ecashaddrjs
@@ -924,6 +933,20 @@ builds:
       - chronik-client
     templates:
       - js-mocha-integration-tests
+
+  ecash-wallet-tests:
+    runOnDiffRegex:
+      - modules/ecash-wallet/
+      - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
+      - src/secp256k1/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-wallet
+    depends:
+      - chronik-client
+      - ecash-lib
+    templates:
+      - js-mocha
 
   chronik-client-integration-tests:
     cmake_flags:
