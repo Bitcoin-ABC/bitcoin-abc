@@ -750,10 +750,12 @@ const Token: React.FC = () => {
     }, [switches]);
 
     useEffect(() => {
-        // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable
-        handleSelectedCurrencyChange({
-            target: { value: 'XEC' },
-        } as React.ChangeEvent<HTMLSelectElement>);
+        if (fiatPrice === null && selectedCurrency !== 'XEC') {
+            // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable
+            handleSelectedCurrencyChange({
+                target: { value: 'XEC' },
+            } as React.ChangeEvent<HTMLSelectElement>);
+        }
     }, [fiatPrice]);
 
     const getNfts = async (tokenId: string) => {
