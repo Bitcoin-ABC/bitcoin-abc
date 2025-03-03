@@ -85,6 +85,16 @@ describe('<CreateTokenForm />', () => {
             ).not.toBeInTheDocument(),
         );
 
+        // On load, the ALP switch is selected by default
+        expect(screen.getByTitle('Create ALP')).toBeChecked();
+
+        // Select SLP
+        await user.click(screen.getByTitle('Create SLP'));
+
+        // Now SLP is checked, ALP is not
+        expect(screen.getByTitle('Create ALP')).not.toBeChecked();
+        expect(screen.getByTitle('Create SLP')).toBeChecked();
+
         // The user enters valid token metadata
         await user.type(
             await screen.findByPlaceholderText('Enter a name for your token'),
@@ -187,6 +197,16 @@ describe('<CreateTokenForm />', () => {
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
         );
+
+        // On load, the ALP switch is selected by default
+        expect(screen.getByTitle('Create ALP')).toBeChecked();
+
+        // Select SLP
+        await user.click(screen.getByTitle('Create SLP'));
+
+        // Now SLP is checked, ALP is not
+        expect(screen.getByTitle('Create ALP')).not.toBeChecked();
+        expect(screen.getByTitle('Create SLP')).toBeChecked();
 
         // The user enters valid token metadata
         await user.type(
@@ -390,14 +410,7 @@ describe('<CreateTokenForm />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        // On load, the SLP switch is selected by default
-        expect(screen.getByTitle('Create SLP')).toBeChecked();
-
-        // Select ALP
-        await user.click(screen.getByTitle('Create ALP'));
-
-        // Now ALP is checked, SLP is not
-        expect(screen.getByTitle('Create SLP')).not.toBeChecked();
+        // On load, the ALP switch is selected by default
         expect(screen.getByTitle('Create ALP')).toBeChecked();
 
         // The user enters valid token metadata
@@ -514,7 +527,14 @@ describe('<CreateTokenForm />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        // On load, the SLP switch is selected by default
+        // On load, the ALP switch is selected by default
+        expect(screen.getByTitle('Create ALP')).toBeChecked();
+
+        // Select SLP
+        await user.click(screen.getByTitle('Create SLP'));
+
+        // Now SLP is checked, ALP is not
+        expect(screen.getByTitle('Create ALP')).not.toBeChecked();
         expect(screen.getByTitle('Create SLP')).toBeChecked();
 
         const tokenGenesisQtyInput = screen.getByPlaceholderText(

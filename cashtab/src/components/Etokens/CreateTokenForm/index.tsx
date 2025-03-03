@@ -176,11 +176,11 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
         slp: false,
         alp: false,
     };
-    // Default SLP
+    // Default ALP
     const [tokenTypeSwitches, setTokenTypeSwitches] =
         useState<TokenTypeSwitches>({
             ...switchesOff,
-            slp: true,
+            alp: true,
         });
 
     const [showTypeInfoSlp, setShowTypeInfoSlp] = useState<boolean>(false);
@@ -891,6 +891,10 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                 >
                     <TokenTypeDescription>
                         <TokenInfoParagraph>
+                            If you are not sure what type of token to create,
+                            Cashtab recommends ALP.
+                        </TokenInfoParagraph>
+                        <TokenInfoParagraph>
                             ALP v1 fungible token. Token may be of fixed or
                             variable supply.
                         </TokenInfoParagraph>
@@ -920,27 +924,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                     <>
                         <SwitchRow>
                             <Switch
-                                name="Create SLP"
-                                on=""
-                                off=""
-                                checked={tokenTypeSwitches.slp}
-                                handleToggle={() => {
-                                    // We can only select one token type at a time
-                                    setTokenTypeSwitches({
-                                        slp: !tokenTypeSwitches.slp,
-                                        alp: !tokenTypeSwitches.alp,
-                                    });
-                                }}
-                            />
-                            <SwitchLabel>SLP</SwitchLabel>
-                            <IconButton
-                                name={`Click for more info about SLP token type`}
-                                icon={<QuestionIcon />}
-                                onClick={() => setShowTypeInfoSlp(true)}
-                            />
-                        </SwitchRow>
-                        <SwitchRow>
-                            <Switch
                                 name="Create ALP"
                                 on="🏔"
                                 off="🏔"
@@ -958,6 +941,27 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                                 name={`Click for more info about ALP token type`}
                                 icon={<QuestionIcon />}
                                 onClick={() => setShowTypeInfoAlp(true)}
+                            />
+                        </SwitchRow>
+                        <SwitchRow>
+                            <Switch
+                                name="Create SLP"
+                                on=""
+                                off=""
+                                checked={tokenTypeSwitches.slp}
+                                handleToggle={() => {
+                                    // We can only select one token type at a time
+                                    setTokenTypeSwitches({
+                                        slp: !tokenTypeSwitches.slp,
+                                        alp: !tokenTypeSwitches.alp,
+                                    });
+                                }}
+                            />
+                            <SwitchLabel>SLP</SwitchLabel>
+                            <IconButton
+                                name={`Click for more info about SLP token type`}
+                                icon={<QuestionIcon />}
+                                onClick={() => setShowTypeInfoSlp(true)}
                             />
                         </SwitchRow>
                     </>
