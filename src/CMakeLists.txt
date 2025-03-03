@@ -22,7 +22,6 @@ option(ENABLE_BIP70 "Enable BIP70 (payment protocol) support in GUI" ON)
 option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
-option(ENABLE_GLIBC_BACK_COMPAT "Enable Glibc compatibility features" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
 option(ENABLE_UPNP "Enable UPnP support" ON)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
@@ -308,18 +307,6 @@ if(NOT HAVE_LARGE_FILE_SUPPORT)
 	add_linker_flags(-Wl,--large-address-aware)
 endif()
 
-if(ENABLE_GLIBC_BACK_COMPAT)
-	# Wrap some glibc functions with ours
-	add_linker_flags(-Wl,--wrap=exp)
-	add_linker_flags(-Wl,--wrap=log)
-	add_linker_flags(-Wl,--wrap=log2)
-	add_linker_flags(-Wl,--wrap=pow)
-
-	if(NOT HAVE_LARGE_FILE_SUPPORT)
-		add_linker_flags(-Wl,--wrap=fcntl -Wl,--wrap=fcntl64)
-	endif()
-endif()
-
 if(USE_JEMALLOC)
 	# Most of the sanitizers require their instrumented allocation functions to
 	# be fully functional. This is obviously the case for all the memory related
@@ -416,7 +403,6 @@ add_custom_command(
 add_library(util
 	chainparamsbase.cpp
 	clientversion.cpp
-	compat/glibcxx_sanity.cpp
 	compat/strnlen.cpp
 	currencyunit.cpp
 	interfaces/handler.cpp
@@ -468,10 +454,6 @@ target_include_directories(util
 		# To access the config/ and obj/ directories
 		${CMAKE_CURRENT_BINARY_DIR}
 )
-
-if(ENABLE_GLIBC_BACK_COMPAT)
-	target_sources(util PRIVATE compat/glibc_compat.cpp)
-endif()
 
 # Work around jemalloc printing harmless warnings to stderr with qemu.
 # We match the emulator against qemu but not ^qemu so we are compatible with the
@@ -881,7 +863,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		checkpoints.cpp
 		clientversion.cpp
 		coins.cpp
-		compat/glibcxx_sanity.cpp
 		compressor.cpp
 		config.cpp
 		consensus/activation.cpp

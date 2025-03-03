@@ -12,6 +12,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
 | FreeType | [2.11.0](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
 | GCC |  | [8.3](https://gcc.gnu.org/) |  |  |  |
+| glibc | | [2.31](https://www.gnu.org/software/libc/) |  |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | jemalloc | [5.2.1](https://github.com/jemalloc/jemalloc/releases) | 3.6.0 |  |  |  |
 | libevent | [2.1.12-stable](https://github.com/libevent/libevent/releases) | 2.1.8 | No |  |  |

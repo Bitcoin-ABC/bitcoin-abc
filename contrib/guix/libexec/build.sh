@@ -300,7 +300,7 @@ case "$HOST" in
         CMAKE_EXTRA_OPTIONS=(-DBUILD_BITCOIN_SEEDER=OFF -DCPACK_STRIP_FILES=ON -DCPACK_PACKAGE_FILE_NAME="${DISTNAME}-win64-setup-unsigned")
         ;;
     *linux*)
-        CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON  -DUSE_LINKER=)
+        CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DUSE_LINKER=)
 
         # Work around a false positive in aws-lc-sys which detects a bug in GCC even if
         # the version is free of the bug. It seeems to not affect the cmake build for

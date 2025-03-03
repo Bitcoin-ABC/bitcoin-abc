@@ -54,7 +54,7 @@ bool AppInitBasicSetup(const ArgsManager &args);
  */
 bool AppInitParameterInteraction(Config &config, const ArgsManager &args);
 /**
- * Initialization sanity checks: ecc init, sanity checks, dir lock.
+ * Initialization sanity checks.
  * @note This can be done before daemonization.
  * Do not call Shutdown() if this function fails.
  * @pre Parameters should be parsed and config file should be read,

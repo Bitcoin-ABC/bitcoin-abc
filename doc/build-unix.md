@@ -284,7 +284,7 @@ To build executables for AArch64:
     cd ..
     mkdir build
     cd build
-    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/LinuxAArch64.cmake -DENABLE_GLIBC_BACK_COMPAT=ON -DENABLE_STATIC_LIBSTDCXX=ON
+    cmake -GNinja .. -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/LinuxAArch64.cmake -DENABLE_STATIC_LIBSTDCXX=ON
     ninja
 
 

@@ -190,8 +190,7 @@
             "include": "(^(src|chronik)/.*\\.(h|cpp)$)",
             "exclude": [
                 "(^src/(crypto/ctaes|secp256k1|leveldb)/)",
-                "(^src/bench/nanobench.h$)",
-                "(^src/compat/glibc_compat.cpp$)"
+                "(^src/bench/nanobench.h$)"
             ]
         },
         "lint-logs": {
