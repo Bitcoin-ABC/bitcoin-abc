@@ -7087,7 +7087,14 @@ void PeerManagerImpl::ProcessMessage(
                                 break;
                             }
 
-                            m_mempool.setAvalancheFinalized(**it);
+                            std::vector<TxId> finalizedTxIds;
+                            m_mempool.setAvalancheFinalized(**it,
+                                                            finalizedTxIds);
+
+                            for (const auto &finalized_txid : finalizedTxIds) {
+                                m_avalanche->setRecentlyFinalized(
+                                    finalized_txid);
+                            }
 
                             // NO_THREAD_SAFETY_ANALYSIS because
                             // m_recent_rejects requires cs_main in the lambda

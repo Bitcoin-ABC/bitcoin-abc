@@ -492,6 +492,10 @@ bool Processor::isRecentlyFinalized(const uint256 &itemId) const {
     return WITH_LOCK(cs_finalizedItems, return finalizedItems.contains(itemId));
 }
 
+void Processor::setRecentlyFinalized(const uint256 &itemId) {
+    WITH_LOCK(cs_finalizedItems, finalizedItems.insert(itemId));
+}
+
 void Processor::clearFinalizedItems() {
     LOCK(cs_finalizedItems);
     finalizedItems.reset();

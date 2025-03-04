@@ -287,7 +287,6 @@ public:
      * that are guarded by it.
      *
      * @par Consistency guarantees
-     *
      * By design, it is guaranteed that:
      *
      * 1. Locking both `cs_main` and `mempool.cs` will give a view of mempool
@@ -520,7 +519,8 @@ public:
         return mapTx.count(txid) != 0;
     }
 
-    bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx)
+    bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
+                               std::vector<TxId> &finalizedTxIds)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     bool isAvalancheFinalized(const TxId &txid) const {

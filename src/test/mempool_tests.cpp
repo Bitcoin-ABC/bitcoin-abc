@@ -597,8 +597,11 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
         pool.addUnchecked(mempoolEntry);
         BOOST_CHECK(pool.exists(txid));
 
-        BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry));
+        std::vector<TxId> finalizedTxIds;
+        BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry, finalizedTxIds));
         BOOST_CHECK(pool.isAvalancheFinalized(txid));
+        BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
+        BOOST_CHECK_EQUAL(finalizedTxIds[0], txid);
 
         txs.push_back(std::move(tx));
     }

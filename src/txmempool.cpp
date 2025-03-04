@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 bool CTxMemPool::CalculateAncestors(
     setEntries &setAncestors,
@@ -511,7 +512,8 @@ std::vector<TxMempoolInfo> CTxMemPool::infoAll() const {
     return ret;
 }
 
-bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx) {
+bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
+                                       std::vector<TxId> &finalizedTxIds) {
     AssertLockHeld(cs);
 
     auto it = mapTx.find(tx->GetTx().GetId());
@@ -529,12 +531,16 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx) {
         return false;
     }
 
+    finalizedTxIds.clear();
+
     for (txiter ancestor_it : setAncestors) {
         // It is possible (and normal) that an ancestor is already finalized.
         // Beware to not account for it in this case.
         if (finalizedTxs.insert(*ancestor_it)) {
             totalFinalizedTxSize += (*ancestor_it)->GetTxSize();
             totalFinalizedTxSigchecks += (*ancestor_it)->GetSigChecks();
+
+            finalizedTxIds.push_back((*ancestor_it)->GetTx().GetId());
         }
     }
 

@@ -293,6 +293,8 @@ public:
 
     bool isRecentlyFinalized(const uint256 &itemId) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
+    void setRecentlyFinalized(const uint256 &itemId)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     void clearFinalizedItems() EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h

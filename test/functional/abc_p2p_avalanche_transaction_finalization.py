@@ -5,7 +5,7 @@
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import COINBASE_MATURITY
-from test_framework.messages import AvalancheTxVoteError
+from test_framework.messages import AvalancheTxVoteError, AvalancheVote
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
@@ -43,6 +43,48 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
 
         self.wait_until(vote_until_final)
 
+    def finalize_tip_and_check_no_finalized_tx_is_polled(self, finalized_txids):
+        tip = self.nodes[0].getbestblockhash()
+
+        def find_tip_in_poll_and_check_for_no_finalized_tx():
+            found_hash = False
+            tip_int = int(tip, 16)
+            for n in self.quorum:
+                poll = n.get_avapoll_if_available()
+
+                # That node has not received a poll
+                if poll is None:
+                    continue
+
+                # We got a poll, check for the hash and repond
+                votes = []
+                for inv in poll.invs:
+                    # Vote unknown to everything but our searched inv
+                    r = AvalancheTxVoteError.UNKNOWN
+
+                    # Look for what we expect
+                    if inv.hash == tip_int:
+                        r = AvalancheTxVoteError.ACCEPTED
+                        found_hash = True
+
+                    votes.append(AvalancheVote(r, inv.hash))
+
+                # We found the tip, so we expect none of the finalized tx to be
+                # present in the polled inventories
+                if found_hash:
+                    for inv in poll.invs:
+                        assert inv.hash not in finalized_txids
+
+                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+
+            return found_hash
+
+        def vote_until_final():
+            find_tip_in_poll_and_check_for_no_finalized_tx()
+            return self.nodes[0].isfinalblock(tip)
+
+        self.wait_until(vote_until_final)
+
     def finalize_tx(self, txid, other_response=AvalancheTxVoteError.ACCEPTED):
         def vote_until_final():
             can_find_inv_in_poll(
@@ -75,6 +117,11 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         for txid in txids:
             self.finalize_tx(txid)
 
+        # Mine one more block, wait for it to be finalized while checking none
+        # of the finalized txs are part of the polled items
+        self.generate(self.wallet, 1)
+        self.finalize_tip_and_check_no_finalized_tx_is_polled(txids)
+
     def test_chained_txs(self):
         self.log.info("Check the finalization of chained txs")
 
@@ -99,6 +146,11 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         assert all(node.isfinaltransaction(txid) for txid in txids[:-1])
         # But not the descendant
         assert not node.isfinaltransaction(txids[-1])
+
+        # Mine one more block, wait for it to be finalized while checking none
+        # of the finalized txs are part of the polled items
+        self.generate(self.wallet, 1)
+        self.finalize_tip_and_check_no_finalized_tx_is_polled(txids[:-1])
 
     def test_diamond_txs(self):
         self.log.info("Check the finalization of diamond shaped tx chains")
@@ -141,6 +193,11 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
 
         # But not tx5
         assert not node.isfinaltransaction(txids[-1])
+
+        # Mine one more block, wait for it to be finalized while checking none
+        # of the finalized txs are part of the polled items
+        self.generate(self.wallet, 1)
+        self.finalize_tip_and_check_no_finalized_tx_is_polled(txids[:-1])
 
     def run_test(self):
         def get_quorum():
