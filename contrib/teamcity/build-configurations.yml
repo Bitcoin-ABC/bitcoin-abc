@@ -723,11 +723,6 @@ builds:
       pushd "${TOPLEVEL}/modules/ecash-script"
       npm ci
 
-  ecash-coinselect:
-    script: |
-      pushd "${TOPLEVEL}/modules/ecash-coinselect"
-      npm ci
-
   cashtab-tests:
     runOnDiffRegex:
       - cashtab/
@@ -962,14 +957,6 @@ builds:
       - modules/ecash-script/
     env:
       JS_PROJECT_ROOT: modules/ecash-script
-    templates:
-      - js-mocha
-
-  ecash-coinselect-tests:
-    runOnDiffRegex:
-      - modules/ecash-coinselect/
-    env:
-      JS_PROJECT_ROOT: modules/ecash-coinselect
     templates:
       - js-mocha
 
