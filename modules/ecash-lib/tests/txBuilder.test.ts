@@ -5,7 +5,7 @@
 import { expect } from 'chai';
 import { ChronikClient } from 'chronik-client';
 
-import { Ecc, EccDummy } from '../src/ecc.js';
+import { Ecc } from '../src/ecc.js';
 import { sha256d, shaRmd160 } from '../src/hash.js';
 import { fromHex, toHex } from '../src/io/hex.js';
 import { pushBytesOp } from '../src/op.js';

@@ -17,14 +17,18 @@ export interface CashtabContact {
     address: string;
 }
 
-interface CashtabState {
+interface CashtabStateInterface {
     contactList: CashtabContact[];
     cashtabCache: CashtabCache;
     settings: CashtabSettings;
     wallets: CashtabWallet[];
 }
 
-class CashtabState implements CashtabState {
+class CashtabState implements CashtabStateInterface {
+    contactList: CashtabContact[];
+    cashtabCache: CashtabCache;
+    settings: CashtabSettings;
+    wallets: CashtabWallet[];
     constructor(
         contactList: CashtabContact[] = [],
         cashtabCache = new CashtabCache(),

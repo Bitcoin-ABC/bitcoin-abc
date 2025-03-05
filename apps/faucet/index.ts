@@ -52,8 +52,6 @@ import { config } from './config';
     console.log('Initialize ECC...');
     const ecc = new Ecc();
 
-    // The IP address => request time map used to rate limit the requests
-    const ipMap = new Map();
     // The eCash address => request time map used to rate limit the requests
     const addressMap = new Map();
 
@@ -93,7 +91,7 @@ import { config } from './config';
 
     console.log(`Setting up the addresses cleanup routine...`);
     setInterval(() => {
-        let eligibleAddresses = [];
+        const eligibleAddresses = [];
         const now = Date.now();
         for (const [address, lastRequestTimeMs] of addressMap) {
             if (
@@ -269,7 +267,7 @@ import { config } from './config';
     );
 
     if (config.enableBalanceEndpoint) {
-        faucet.get('/balance', async function (req: Request, res: Response) {
+        faucet.get('/balance', async function (_req: Request, res: Response) {
             let utxos: ScriptUtxo[] = [];
             try {
                 const resp = await chronik.address(walletAddress).utxos();

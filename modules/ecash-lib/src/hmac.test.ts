@@ -11,7 +11,7 @@ import './initNodeJs.js';
 
 // Tests are based on https://github.com/paulmillr/noble-hashes/blob/main/test/hmac.test.js
 
-describe('hmac', async () => {
+describe('hmac', () => {
     it('hmac 0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b', async () => {
         const key = fromHex('0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b');
         const data = strToBytes('Hi There');

@@ -3,10 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
-import {
-    agoraOfferCachetAlphaOne,
-    heismanNftOneOffer,
-} from 'components/Agora/fixtures/mocks';
 import { fromHex } from 'ecash-lib';
 
 export const UNSAFE_INTEGER_STRING = '10000000000000000';

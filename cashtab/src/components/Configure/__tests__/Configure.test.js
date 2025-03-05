@@ -7,7 +7,6 @@ import {
     walletWithXecAndTokens,
     vipTokenChronikTokenMocks,
     cachetTokenAndTx,
-    freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
 } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';

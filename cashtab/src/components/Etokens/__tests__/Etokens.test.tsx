@@ -75,7 +75,7 @@ describe('<Etokens />', () => {
         expect(showAllSwitch).toHaveProperty('disabled', true);
 
         // We render all 57 tokens
-        expect(renderedTokens.length).toBe(57);
+        expect(renderedTokens).toHaveLength(57);
 
         // Tokens are sorted alphabetically
         expect(renderedTokens[0]).toHaveTextContent('223');
@@ -89,7 +89,7 @@ describe('<Etokens />', () => {
         await userEvent.type(searchInput, 'VSP');
 
         // Now only one token is rendered
-        expect(screen.getAllByTitle('Token List Item').length).toBe(1);
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         // The lone rendered token is what we searched for
         expect(screen.getByTitle('Token List Item')).toHaveTextContent('VSP');
 
@@ -98,7 +98,7 @@ describe('<Etokens />', () => {
         await userEvent.type(searchInput, 'vsp');
 
         // Now only one token is rendered
-        expect(screen.getAllByTitle('Token List Item').length).toBe(1);
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         // The lone rendered token is what we searched for
         expect(screen.getByTitle('Token List Item')).toHaveTextContent('VSP');
 
@@ -117,7 +117,7 @@ describe('<Etokens />', () => {
         // If we delete the query, now we see only NFTs
         await userEvent.clear(searchInput);
 
-        expect(screen.getAllByTitle('Token List Item').length).toBe(1);
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         expect(screen.getAllByTitle('Token List Item')[0]).toHaveTextContent(
             'S5',
         );
@@ -125,7 +125,7 @@ describe('<Etokens />', () => {
         // If we hit the switch to show collections, we see the only collection
         // If we switch to "Show NFTs" while the search is showing one non-NFT, we see no tokens
         await userEvent.click(screen.getByTitle('Toggle Collections'));
-        expect(screen.getAllByTitle('Token List Item').length).toBe(1);
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         expect(screen.getAllByTitle('Token List Item')[0]).toHaveTextContent(
             /MASCOTS/,
         );
@@ -143,7 +143,7 @@ describe('<Etokens />', () => {
         await userEvent.click(screen.getByTitle('Toggle Fungible Tokens'));
 
         // Now we get the expected token, and only this token
-        expect(screen.getAllByTitle('Token List Item').length).toBe(1);
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         expect(screen.getByTitle('Token List Item')).toHaveTextContent('VSP');
 
         // We get expected msg if our search has no results
@@ -169,7 +169,7 @@ describe('<Etokens />', () => {
         // We hit show all and now it's there
         await userEvent.click(screen.getByTitle('Toggle All'));
         expect(showAllSwitch).toHaveProperty('checked', true);
-        expect(screen.getAllByTitle('Token List Item').length).toBe(1);
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         expect(screen.getByTitle('Token List Item')).toHaveTextContent(
             'MASCOTS',
         );

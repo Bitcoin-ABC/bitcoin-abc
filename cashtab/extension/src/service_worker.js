@@ -100,7 +100,7 @@ async function openAddressShareApproval(request, tab) {
         // Position window in top right corner of lastFocused window.
         top = lastFocused.top;
         left = lastFocused.left + (lastFocused.width - NOTIFICATION_WIDTH);
-    } catch (_) {
+    } catch {
         // The following properties are more than likely 0, due to being
         // opened from the background chrome process for the extension that
         // has no physical dimensions
@@ -131,7 +131,7 @@ async function openSendXec(txInfo) {
         // Position window in top right corner of lastFocused window.
         top = lastFocused.top;
         left = lastFocused.left + (lastFocused.width - NOTIFICATION_WIDTH);
-    } catch (_) {
+    } catch {
         // The following properties are more than likely 0, due to being
         // opened from the background chrome process for the extension that
         // has no physical dimensions

@@ -273,7 +273,7 @@ describe('<Wallets />', () => {
         // The wallet has been renamed. The new name is updated in all locations.
         const activeWalletLabels = await screen.findAllByText('ACTIVE WALLET');
         const EXPECTED_ACTIVE_WALLET_LABELS_IN_DOCUMENT = 2;
-        expect(activeWalletLabels.length).toBe(
+        expect(activeWalletLabels).toHaveLength(
             EXPECTED_ACTIVE_WALLET_LABELS_IN_DOCUMENT,
         );
 
@@ -468,7 +468,7 @@ describe('<Wallets />', () => {
 
         // Now "bravo" is the active wallet
         const newActiveWalletLabels = await screen.findAllByText('bravo');
-        expect(newActiveWalletLabels.length).toBe(
+        expect(newActiveWalletLabels).toHaveLength(
             EXPECTED_ACTIVE_WALLET_LABELS_IN_DOCUMENT,
         );
 

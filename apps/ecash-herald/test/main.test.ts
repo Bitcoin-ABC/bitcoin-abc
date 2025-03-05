@@ -11,7 +11,7 @@ import {
 import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
 import { ChronikClient } from 'chronik-client';
 
-describe('ecash-herald main.js', async function () {
+describe('ecash-herald main.js', function () {
     it('main() starts the app on successful websocket connection', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();

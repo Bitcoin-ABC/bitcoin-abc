@@ -26,13 +26,8 @@ const Nfts: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        fiatPrice,
-        chronik,
-        agora,
-        cashtabState,
-        chaintipBlockheight,
-    } = ContextValue;
+    const { fiatPrice, chronik, agora, cashtabState, chaintipBlockheight } =
+        ContextValue;
     const { wallets, settings, cashtabCache } = cashtabState;
     const wallet = wallets[0];
     // We get public key when wallet changes

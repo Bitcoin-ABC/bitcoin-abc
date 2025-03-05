@@ -416,7 +416,7 @@ export const getLegacyPaths = (
             }
         } else {
             // Cashtab wallet post 2.9.0
-            wallet.paths?.forEach((pathInfo, path) => {
+            wallet.paths?.forEach((_pathInfo, path) => {
                 if (path !== 1899) {
                     legacyPaths.push(path);
                 }

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-interface CashtabSettings {
+interface CashtabSettingsInterface {
     fiatCurrency: string;
     sendModal: boolean;
     autoCameraOn: boolean;
@@ -11,7 +11,13 @@ interface CashtabSettings {
     minFeeSends: boolean;
 }
 // Default settings which can be modified within Cashtab
-class CashtabSettings {
+class CashtabSettings implements CashtabSettingsInterface {
+    fiatCurrency: string;
+    sendModal: boolean;
+    autoCameraOn: boolean;
+    hideMessagesFromUnknownSenders: boolean;
+    balanceVisible: boolean;
+    minFeeSends: boolean;
     constructor(
         fiatCurrency = 'usd',
         sendModal = false,

@@ -1400,16 +1400,14 @@ describe('<SendXec />', () => {
         // The amount input is no longer hidden
         expect(
             await screen.findByPlaceholderText('Amount'),
-        ).toBeInTheDocument(),
-            // Amount input is reset
-            expect(await screen.findByPlaceholderText('Amount')).toHaveValue(
-                null,
-            ),
-            // The "Send to Many" switch is not disabled
-            expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-                'disabled',
-                false,
-            );
+        ).toBeInTheDocument();
+        // Amount input is reset
+        expect(await screen.findByPlaceholderText('Amount')).toHaveValue(null);
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The 'Send To' input field has been cleared
         expect(addressInputEl).toHaveValue('');

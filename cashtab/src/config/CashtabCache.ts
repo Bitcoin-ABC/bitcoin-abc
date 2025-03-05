@@ -19,7 +19,7 @@ export interface CashtabCachedTokenInfo {
     groupTokenId?: string;
 }
 
-interface CashtabCache {
+interface CashtabCacheInterface {
     tokens: Map<string, CashtabCachedTokenInfo>;
 }
 
@@ -49,7 +49,8 @@ export const UNKNOWN_TOKEN_CACHED_INFO: CashtabCachedTokenInfo = {
     genesisOutputScripts: [],
 };
 
-class CashtabCache {
+class CashtabCache implements CashtabCacheInterface {
+    tokens: Map<string, CashtabCachedTokenInfo>;
     constructor(tokens = new Map()) {
         const defaultTokensCache = new Map([
             [UNKNOWN_TOKEN_ID, UNKNOWN_TOKEN_CACHED_INFO],

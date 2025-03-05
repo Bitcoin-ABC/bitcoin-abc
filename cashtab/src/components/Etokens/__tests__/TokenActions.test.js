@@ -1697,7 +1697,6 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(screen.getByRole('button', { name: /max/ }));
 
         // Max is input
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
         const maxMintQty = '28147497671.0655';
 
         expect(screen.getByPlaceholderText('Mint Amount')).toHaveValue(

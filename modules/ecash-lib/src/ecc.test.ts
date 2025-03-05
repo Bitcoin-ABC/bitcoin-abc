@@ -8,7 +8,7 @@ import { fromHex, toHex } from './io/hex.js';
 import { Ecc, EccDummy } from './ecc.js';
 import './initNodeJs.js';
 
-describe('Ecc', async () => {
+describe('Ecc', () => {
     it('EccWasm', () => {
         const ecc = new Ecc();
         const sk = fromHex(

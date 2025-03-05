@@ -74,7 +74,7 @@ export function parseAgoraTx(tx: chronik.Tx): ParsedAd | undefined {
                     parsedAd.redeemScript,
                     opreturnScript,
                 );
-            } catch (ex) {
+            } catch {
                 return undefined;
             }
             variant = {

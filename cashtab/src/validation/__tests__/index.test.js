@@ -155,7 +155,7 @@ describe('Cashtab validation functions', () => {
         expect(isValidTokenId(testValidTokenId)).toBe(false);
     });
     it(`isValidTokenId rejects a token ID number that is 64 digits in length`, () => {
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+        // eslint-disable-next-line no-loss-of-precision
         const testValidTokenId = 8912345678912345678912345678912345678912345678912345678912345679;
         expect(isValidTokenId(testValidTokenId)).toBe(false);
     });

@@ -48,8 +48,8 @@ export class SigHashType {
                 outputFlags == 1
                     ? SigHashTypeOutputs.ALL
                     : outputFlags == 2
-                      ? SigHashTypeOutputs.NONE
-                      : SigHashTypeOutputs.SINGLE,
+                    ? SigHashTypeOutputs.NONE
+                    : SigHashTypeOutputs.SINGLE,
         });
     }
 

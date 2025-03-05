@@ -199,16 +199,13 @@ describe('ecash-telegram-bot utils.js functions', function () {
     it('formatXecAmount returns a string with no decimal places if XEC amount is 1 trillion', function () {
         assert.strictEqual(formatXecAmount(1000000000000), `1T XEC`);
     });
-    it('formatXecAmount returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', function () {
-        assert.strictEqual(formatXecAmount(555555.55), `556k XEC`);
-    });
     it('formatXecAmount returns a rounded millions string with no decimal places if 1M < XEC amount < 1B', function () {
         assert.strictEqual(formatXecAmount(555555555.55), `556M XEC`);
     });
     it('formatXecAmount returns a rounded billions string with no decimal places if 1B < XEC amount < 1T', function () {
         assert.strictEqual(formatXecAmount(555555555555.55), `556B XEC`);
     });
-    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', function () {
+    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 50T', function () {
         assert.strictEqual(formatXecAmount(55555555555555.55), `56T XEC`);
     });
     it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', function () {

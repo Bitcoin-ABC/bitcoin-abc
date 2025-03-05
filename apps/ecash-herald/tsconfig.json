@@ -8,5 +8,5 @@
         "strict": true,
         "alwaysStrict": true,
         "skipLibCheck": true
-    },
+    }
 }

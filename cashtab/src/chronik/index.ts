@@ -435,7 +435,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         isAgoraPurchase = true;
                     }
                 }
-            } catch (err) {
+            } catch {
                 console.error(
                     `Error in getTypeAndHashFromOutputScript(${input.outputScript}) from txid ${txid}`,
                 );
@@ -471,7 +471,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             try {
                 const destinationAddress = encodeOutputScript(outputScript);
                 destinationAddresses.add(destinationAddress);
-            } catch (err) {
+            } catch {
                 // Skip non-address recipients
             }
             selfSendTx = false;
@@ -996,8 +996,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     if (xecTxType === XecTxType.Received) {
         try {
             replyAddress = encodeOutputScript(inputs[0].outputScript as string);
-        } catch (err) {
-            // Handle error
+        } catch {
+            // replyAddress remains undefined
         }
     }
 

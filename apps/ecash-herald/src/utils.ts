@@ -244,8 +244,7 @@ export const satsToFormattedValue = (
     )}${descriptor}`;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const jsonReplacer = function (key: string, value: any) {
+export const jsonReplacer = function (_key: string, value: any) {
     if (value instanceof Map) {
         const keyValueArray = Array.from(value.entries());
 
@@ -295,8 +294,7 @@ export const jsonReplacer = function (key: string, value: any) {
     }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const jsonReviver = (key: string, value: any) => {
+export const jsonReviver = (_key: string, value: any) => {
     if (typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
             // If the map is not empty
@@ -345,9 +343,8 @@ export const jsonReviver = (key: string, value: any) => {
  * @param {map} map
  * @returns array
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export const mapToKeyValueArray = (map: Map<any, any>): Array<[any, any]> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const kvArray: Array<[any, any]> = [];
     map.forEach((value, key) => {
         kvArray.push([key, value]);

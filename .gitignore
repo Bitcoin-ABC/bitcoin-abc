@@ -81,11 +81,21 @@ test/cache/*
 
 contrib/devtools/split-debug.sh
 
-# Ignore node_modules at every level
+# JS artifacts at every level
 node_modules/
+build/
+.next/
+.docusaurus/
+.nyc_output/
+test-results.xml
+test_results/
 
-# Ignore secrets.js for JS apps that use secret keys, e.g. databases or telegram bots
+# compiled WebAssembly
+modules/ecash-lib/src/ffi/
+
+# Ignore secrets for JS/TS apps that use secret keys, e.g. databases or telegram bots
 secrets.js
+secrets.ts
 
 # Local Netlify folder
 .netlify

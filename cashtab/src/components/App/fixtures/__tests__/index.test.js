@@ -230,7 +230,6 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                 wallet.paths.forEach(async (pathInfo, path) => {
                     if (path === 1899) {
                         // OK to ignore because we test if/else
-                        // eslint-disable-next-line jest/no-conditional-expect
                         expect(
                             await mockChronikClient
                                 .address(pathInfo.address)
@@ -242,7 +241,6 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                             ),
                         });
                         // Path1899 history
-                        // eslint-disable-next-line jest/no-conditional-expect
                         expect(
                             (
                                 await mockChronikClient
@@ -253,7 +251,6 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                     } else {
                         // Other paths are empty
                         // OK to ignore because we test if/else
-                        // eslint-disable-next-line jest/no-conditional-expect
                         expect(
                             await mockChronikClient
                                 .address(pathInfo.address)
@@ -263,7 +260,6 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                             utxos: [],
                         });
                         // history
-                        // eslint-disable-next-line jest/no-conditional-expect
                         expect(
                             (
                                 await mockChronikClient

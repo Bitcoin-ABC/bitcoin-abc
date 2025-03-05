@@ -138,7 +138,7 @@ const englishVectors: [string, string, string][] = [
     ],
 ];
 
-describe('mnemonic', async () => {
+describe('mnemonic', () => {
     for (const [entropy, phrase, seed] of englishVectors) {
         it('mnemonic ' + entropy, () => {
             expect(entropyToMnemonic(fromHex(entropy), wordlist)).to.equal(

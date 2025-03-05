@@ -206,7 +206,7 @@ export class FailoverProxy {
                 // from a working server and we should return it to the user
                 error = proto.Error.decode(new Uint8Array(response.data));
                 errorCanBeDecoded = true;
-            } catch (err) {
+            } catch {
                 // If we can't decode this error with proto, something is wrong with this server instance
                 // It may be indexing
                 // In this case, we should try the next server

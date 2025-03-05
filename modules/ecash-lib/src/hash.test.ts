@@ -14,7 +14,7 @@ const GENESIS_HEADER_HEX =
     '3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a' +
     '29ab5f49ffff001d1dac2b7c';
 
-describe('Ecc', async () => {
+describe('Ecc', () => {
     it('sha256', () => {
         expect(toHex(sha256(new Uint8Array()))).to.equal(
             'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',

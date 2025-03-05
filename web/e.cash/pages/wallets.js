@@ -9,7 +9,6 @@ import walletAnimation from '/public/animations/wallet.json';
 import { wallets } from '/data/wallets.js';
 import ExternalLink from '/components/external-link';
 import Button from '/components/button';
-import { ButtonCtn, MarginButtonWrapper } from '/styles/pages/homepage';
 import {
     WalletListCtn,
     WalletCardCtn,

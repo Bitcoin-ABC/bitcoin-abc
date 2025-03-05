@@ -695,7 +695,7 @@ const Token: React.FC = () => {
             // Note we only expect an array of length 0 or 1 here
             // We only call this function on NFTs so we only expect OneshotOffer[]
             setNftActiveOffer(thisNftOffer as OneshotOffer[]);
-        } catch (err) {
+        } catch {
             console.error(
                 `Error querying agora.activeOffersByTokenId(${tokenId})`,
             );

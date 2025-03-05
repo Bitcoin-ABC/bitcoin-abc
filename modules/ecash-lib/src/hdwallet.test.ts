@@ -10,7 +10,7 @@ import './initNodeJs.js';
 
 // Tests are based on https://github.com/bitcoinjs/bip32/blob/master/test/fixtures/index.json
 
-describe('hdwallet', async () => {
+describe('hdwallet', () => {
     it('hdwallet 000102030405060708090a0b0c0d0e0f', () => {
         const seed = fromHex('000102030405060708090a0b0c0d0e0f');
         const master = HdNode.fromSeed(seed);

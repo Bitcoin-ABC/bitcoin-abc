@@ -628,11 +628,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
         // Agora Partial offers may only be accepted in discrete amounts
         // We configure the slider to render only these amounts
-        tokenSatoshisStep = tokenSatoshisMax / truncAtoms;
+        tokenSatoshisStep = tokenSatoshisMax! / truncAtoms;
 
         try {
             isMaker = toHex(activePk as Uint8Array) === toHex(makerPk);
-        } catch (err) {
+        } catch {
             console.error(`Error comparing activePk with makerPk`);
             console.error(`activePk`, activePk);
             console.error(`makerPk`, makerPk);
@@ -657,7 +657,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             );
 
             decimalizedTokenQtyMax = decimalizeTokenAmount(
-                tokenSatoshisMax.toString(),
+                tokenSatoshisMax!.toString(),
                 decimals,
             );
         }

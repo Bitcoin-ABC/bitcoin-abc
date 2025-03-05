@@ -21,7 +21,7 @@ export const formatDate = (dateString: string, userLocale = 'en'): string => {
             );
         }
         return new Date().toLocaleDateString(userLocale, options);
-    } catch (error) {
+    } catch {
         return dateFormattingError;
     }
 };
@@ -38,7 +38,7 @@ export const formatFiatBalance = (
             maximumFractionDigits: appConfig.cashDecimals,
         };
         return fiatBalance.toLocaleString(userLocale, options);
-    } catch (err) {
+    } catch {
         return fiatBalance;
     }
 };

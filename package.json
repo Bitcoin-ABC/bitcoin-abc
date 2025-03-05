@@ -1,6 +1,12 @@
 {
     "description": "Bitcoin ABC monorepo dependencies. Used to version pin binaries needed for arc lint and arc unit of JS repos.",
     "devDependencies": {
-        "prettier": "^2.6.0"
+        "eslint-config-next": "^15.2.1",
+        "eslint-formatter-unix": "^8.40.0",
+        "eslint-plugin-header": "^3.1.1",
+        "eslint-plugin-jest": "^28.11.0",
+        "eslint-plugin-mocha": "^10.5.0",
+        "prettier": "^2.6.0",
+        "typescript-eslint": "^8.26.0"
     }
 }

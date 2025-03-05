@@ -42,7 +42,7 @@ const DUMMY_P2PKH = Script.p2pkh(
 export const sendXec = async (
     chronik,
     // TODO: remove
-    ecc,
+    _ecc,
     wallet,
     targetOutputs,
     satsPerKb,

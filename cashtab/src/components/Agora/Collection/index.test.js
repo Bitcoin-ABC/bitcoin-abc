@@ -22,7 +22,6 @@ import {
     heismanCollectionCacheMocks,
     lkCacheMocks,
 } from 'components/Agora/fixtures/mocks';
-import { Ecc } from 'ecash-lib';
 import {
     MockAgora,
     MockChronikClient,
@@ -34,8 +33,6 @@ import { Bounce, ToastContainer } from 'react-toastify';
  * Test expected behavior of the Collection component
  */
 describe('<Collection />', () => {
-    const ecc = new Ecc();
-
     let mockedChronik;
     const FIAT_PRICE = 0.00003;
     const CHAINTIPBLOCKHEIGHT = 800000;

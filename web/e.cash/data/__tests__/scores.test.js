@@ -180,7 +180,7 @@ describe('makeDivisibleByThree', () => {
         expect(makeDivisibleByThree(['one'])).toEqual(['one', '', '']);
     });
 
-    it('should add empty strings to the end of an array to make the total length divisble by three', () => {
+    it('should add empty strings to the end of an array to make the total length divisble by three with larger array', () => {
         expect(
             makeDivisibleByThree([
                 'one',

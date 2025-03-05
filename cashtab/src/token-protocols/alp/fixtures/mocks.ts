@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { AgoraPartial, AgoraOffer } from 'ecash-agora';
+import { AgoraPartial } from 'ecash-agora';
 import { DUMMY_KEYPAIR } from 'wallet';
 
 // Tiberium AgoraPartial

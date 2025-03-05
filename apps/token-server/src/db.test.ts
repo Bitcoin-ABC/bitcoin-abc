@@ -20,7 +20,7 @@ import config from '../config';
 // initializeDb(initialBlacklist) will modify the entries by adding an "_id" key
 const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
 
-describe('db.ts, token-server database unit tests', async function () {
+describe('db.ts, token-server database unit tests', function () {
     let mongoServer: MongoMemoryServer, testMongoClient: MongoClient;
     before(async () => {
         // Start mongo memory server before running this suite of unit tests

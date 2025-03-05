@@ -98,10 +98,10 @@ export const formatTimestamp = timestamp => {
  * @returns {boolen} if it is or isn't a valid url
  */
 export const evaluateMediaLink = string => {
-    let url;
+    let _url;
     try {
-        url = new URL(string);
-    } catch (err) {
+        _url = new URL(string);
+    } catch {
         return false;
     }
     return true;

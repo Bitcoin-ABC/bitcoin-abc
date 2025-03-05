@@ -1802,7 +1802,7 @@ export const getBlockTgMessage = (
         const xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
 
         // Throw out OP_RETURN outputs for txs parsed as XEC send txs
-        xecReceivingAddressOutputs.forEach((value, key, map) => {
+        xecReceivingAddressOutputs.forEach((_value, key, map) => {
             if (key.startsWith(opReturn.opReturnPrefix)) {
                 map.delete(key);
             }

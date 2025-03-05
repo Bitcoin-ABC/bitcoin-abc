@@ -88,7 +88,7 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
         stackArray = getStackArray(
             `${opReturn.opReturnPrefixHex}${opReturnRaw}`,
         );
-    } catch (err) {
+    } catch {
         // Note that in Cashtab we only call parseOpReturnRaw if validation has already cleared this
         throw new Error('Invalid OP_RETURN');
     }

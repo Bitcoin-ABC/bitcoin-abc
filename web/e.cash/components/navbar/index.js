@@ -10,7 +10,7 @@ import { NavbarOuter, NavbarCtn, EnvVarMessage, SocialCtn } from './styles';
 import AnnouncementBar from '/components/announcement-bar';
 import { useApiData } from './getNavbarData';
 
-export default function Navbar({ announcementbar }) {
+export default function Navbar() {
     const [mobileMenu, setMobileMenu] = useState(false);
     const [selectedDropDownMenu, setSelectedDropDownMenu] = useState(-1);
     const [windowWidth, setWindowWidth] = useState('');

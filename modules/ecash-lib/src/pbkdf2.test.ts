@@ -12,7 +12,7 @@ import './initNodeJs.js';
 
 // Tests are based on https://github.com/paulmillr/noble-hashes/blob/main/test/kdf.test.js
 
-describe('pbkdf2', async () => {
+describe('pbkdf2', () => {
     it('pbkdf2 passwd', async () => {
         expect(
             toHex(

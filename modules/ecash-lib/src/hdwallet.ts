@@ -139,6 +139,7 @@ export class HdNode {
             splitPath = splitPath.slice(1);
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         let hd: HdNode = this;
         for (const step of splitPath) {
             if (step.slice(-1) === `'`) {

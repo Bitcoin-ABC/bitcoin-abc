@@ -33,6 +33,8 @@ export function isPushOp(op: any): op is PushOp {
     if (!op || typeof op !== 'object') {
         return false;
     }
+
+    // eslint-disable-next-line no-prototype-builtins
     if (!op.hasOwnProperty('opcode') || !op.hasOwnProperty('data')) {
         return false;
     }
@@ -137,8 +139,8 @@ export function pushNumberOp(value: number | bigint): Op {
     // Prepare number for encoding. The algorithm below replicates the one used
     // in `src/script/script.h` intentionally to avoid discrepancies.
     const auxValue = BigInt(value);
-    let bytes: number[] = [];
-    let negative = auxValue < 0;
+    const bytes: number[] = [];
+    const negative = auxValue < 0;
     let absvalue = negative ? ~auxValue + 1n : auxValue;
 
     // Encode value in little endian byte order by iteratively pushing the
@@ -151,7 +153,7 @@ export function pushNumberOp(value: number | bigint): Op {
     // The MSB will encode the sign which means that, if the previous encoding
     // of the absolute value uses that bit, a new byte must be added to encode
     // the sign. If bit is not set, then it must be set for negative numbers.
-    let last = bytes[bytes.length - 1];
+    const last = bytes[bytes.length - 1];
     if (last & 0x80) {
         bytes.push(negative ? 0x80 : 0x00);
     } else if (negative) {

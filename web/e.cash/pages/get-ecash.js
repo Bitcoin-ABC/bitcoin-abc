@@ -9,7 +9,6 @@ import H3 from '/components/h3';
 import { Container, GradientSpacer } from '/components/atoms';
 import coinupdown from '/public/animations/coin-up-down.json';
 import coinflip from '/public/animations/exchanges-coin-flip.json';
-import services from '/public/animations/services.json';
 import mining from '/public/animations/mining.json';
 import staking from '/public/animations/staking.json';
 import {

@@ -232,7 +232,7 @@ export const isValidCashtabSettings = (settings: CashtabSettings): boolean => {
         const isValid = typeof settings === 'object' && isValidSettingParams;
 
         return isValid;
-    } catch (err) {
+    } catch {
         return false;
     }
 };
@@ -542,7 +542,7 @@ export const nodeWillAcceptOpReturnRaw = (opReturnRaw: string): boolean => {
         );
 
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 };

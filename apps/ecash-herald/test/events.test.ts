@@ -26,7 +26,7 @@ const block: StoredMock = JSON.parse(
     jsonReviver,
 );
 
-describe('ecash-herald events.js', async function () {
+describe('ecash-herald events.js', function () {
     let memoryCache: MemoryCache;
     before(async () => {
         const CACHE_TTL = config.cacheTtlMsecs;

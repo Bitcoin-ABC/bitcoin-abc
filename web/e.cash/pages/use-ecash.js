@@ -2,15 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Layout from '/components/layout';
-import Script from 'next/script';
 import Image from 'next/image';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
 import { Container, GradientSpacer } from '/components/atoms';
 import coinupdown from '/public/animations/coin-up-down.json';
-import coinflip from '/public/animations/exchanges-coin-flip.json';
 import services from '/public/animations/services.json';
-import mining from '/public/animations/mining.json';
 import {
     LeftTopArrow,
     LeftDownArrow,

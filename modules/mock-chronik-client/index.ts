@@ -227,7 +227,7 @@ interface MockChronikClientMockedResponses {
     tx: { [key: string | number]: Tx | Error };
     token: { [key: string | number]: TokenInfo | Error };
     broadcastTx: { [key: string | number]: { txid: string } | Error };
-    blockchainInfo: BlockchainInfo | Error | {};
+    blockchainInfo: BlockchainInfo | Error | object;
     chronikInfo: { version: string } | Error;
     script: {
         p2pkh: {

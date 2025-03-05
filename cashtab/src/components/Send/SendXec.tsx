@@ -1060,7 +1060,7 @@ const SendXec: React.FC = () => {
                     ? appConfig.minFee
                     : appConfig.defaultFee,
             );
-        } catch (err) {
+        } catch {
             // Set to zero. In this case, 0 is the max amount we can send, and we know
             // this will trigger the expected dust validation error
             maxSendSatoshis = 0;

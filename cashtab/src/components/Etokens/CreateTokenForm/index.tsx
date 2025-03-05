@@ -292,7 +292,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
         imgFile: File,
         callback: (file: string) => void,
     ) =>
-        new Promise((resolve, reject) => {
+        new Promise((_resolve, reject) => {
             setLoading(true);
             try {
                 // Get the sha256 hash of the user's original uploaded file
@@ -423,8 +423,9 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
             setLoading(true);
             handleTokenIconImage(file, imageUrl => setImageUrl(imageUrl));
         } catch (e) {
+            console.error(`icon error`, e);
             toast.error(
-                `Cashtab can only process jpg or png files for token icon uploads.`,
+                `Cashtab can only process jpg or png files for token icon uploads`,
             );
             setTokenIcon(null);
             setImageUrl('');

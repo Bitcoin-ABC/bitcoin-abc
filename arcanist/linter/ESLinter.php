@@ -24,7 +24,7 @@ final class ESLinter extends ArcanistExternalLinter {
 
   public function getInstallInstructions() {
     return pht(
-      'Install `eslint` using `npm` with `npm install --global eslint`');
+      'Install `eslint` using `npm ci` from the root of the repository');
   }
 
   public function getLinterName() {
@@ -36,7 +36,8 @@ final class ESLinter extends ArcanistExternalLinter {
   }
 
   public function getDefaultBinary() {
-    return 'eslint';
+    $root = $this->getProjectRoot();
+    return Filesystem::resolvePath('node_modules/eslint/bin/eslint.js', $root);
   }
 
   public function getMandatoryFlags() {

@@ -569,7 +569,7 @@ export const getTextWidth = (
             return context.measureText(text).width;
         }
         return 200;
-    } catch (err) {
+    } catch {
         // If we do not have access to HTML methods, e.g. if we are in the test environment
         // Return a hard-coded width
         return 200;

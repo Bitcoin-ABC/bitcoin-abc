@@ -94,7 +94,7 @@ const OUTPUTS_HEX = OUTPUT0_HEX + OUTPUT1_HEX + OUTPUT2_HEX;
 
 const LOCKTIME_HEX = 'beba0df0';
 
-describe('UnsignedTx', async () => {
+describe('UnsignedTx', () => {
     const ecc = new Ecc();
 
     it('UnsignedTx.dummyFromTx', () => {

@@ -8,8 +8,6 @@ import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
 import { Container, CenterImage, GradientSpacer } from '/components/atoms';
 import spiningcoin from '/public/animations/spiningcoin.json';
-import handslogo from '/public/images/hands-logo.png';
-import rocket from '/public/images/rocket.png';
 import bitcoinabc from '/public/images/bitcoinabc-logo.png';
 import { TextBlock } from '/styles/pages/wealth-redefined.js';
 import QuoteCarousel from '/components/quote-carousel';

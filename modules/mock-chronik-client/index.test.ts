@@ -340,7 +340,7 @@ describe('MockChronikClient', () => {
         );
     });
     it('We can set and get utxos by address', async () => {
-        const { utxo, scriptUtxo } = mocks;
+        const { utxo } = mocks;
         const type = 'p2pkh';
         const hash = '00'.repeat(20);
         const address = encodeCashAddress('ecash', type, hash);
@@ -398,7 +398,7 @@ describe('MockChronikClient', () => {
     });
     context('Integration tests', () => {
         it('We can set utxos and then tx history at the same address without overwriting the utxos', async () => {
-            const { utxo, scriptUtxo } = mocks;
+            const { utxo } = mocks;
             const type = 'p2pkh';
             const hash = '00'.repeat(20);
             const address = encodeCashAddress('ecash', type, hash);

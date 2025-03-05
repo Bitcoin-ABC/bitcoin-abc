@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 /** Interface to abstract over Elliptic Curve Cryptography */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface Ecc {
     /** Derive a public key from secret key. */
     derivePubkey(seckey: Uint8Array): Uint8Array;
@@ -97,6 +98,7 @@ export function __setEcc(ecc: FfiEcc) {
     ECC.ecc = ecc;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Ecc implements Ecc {
     /** Derive a public key from secret key. */
     derivePubkey(seckey: Uint8Array): Uint8Array {

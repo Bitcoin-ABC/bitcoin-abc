@@ -31,7 +31,7 @@ import { ChronikClient, ScriptUtxo, Tx } from 'chronik-client';
 // initializeDb(initialBlacklist) will modify the entries by adding an "_id" key
 const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
 
-describe('routes.js', async function () {
+describe('routes.js', function () {
     // Initialize Ecc
     const ecc = new Ecc();
     let mongoServer: MongoMemoryServer, testMongoClient: MongoClient;
@@ -904,7 +904,7 @@ describe('routes.js', async function () {
                 tokenIds: mockBlacklist.map(entry => entry.tokenId),
             });
     });
-    it('/blacklist returns tokenIds of the blacklist', function () {
+    it('/blacklist returns expected error if tokenIds cannot be retrieved', function () {
         return request(badDbApp)
             .get(`/blacklist`)
             .expect(500)

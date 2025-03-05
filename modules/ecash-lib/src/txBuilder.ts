@@ -96,7 +96,7 @@ export class TxBuilder {
     } {
         let fixedOutputSum = 0n;
         let leftoverIdx: number | undefined = undefined;
-        let outputs: TxOutput[] = new Array(this.outputs.length);
+        const outputs: TxOutput[] = new Array(this.outputs.length);
         for (let idx = 0; idx < this.outputs.length; ++idx) {
             const builderOutput = this.outputs[idx];
             if ('bytecode' in builderOutput) {

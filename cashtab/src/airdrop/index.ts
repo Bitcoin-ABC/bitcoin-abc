@@ -266,7 +266,7 @@ export const getEqualAirdropTx = (
 
     // Now we can build our csv
     const airdropArray: string[] = [];
-    sortedAirdropRecipients.forEach((tokenQty, address) => {
+    sortedAirdropRecipients.forEach((_tokenQty, address) => {
         airdropArray.push(`${address}, ${toXec(equalAirdropAmount)}`);
     });
 

@@ -76,7 +76,7 @@ uint32_t compute_next_target(gbt) {
     return gbt.bits;
 `;
 
-function Mining(props) {
+function Mining() {
     return (
         <Layout>
             <SubPageHero

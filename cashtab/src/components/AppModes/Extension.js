@@ -31,7 +31,7 @@ const Extension = ({ wallet }) => {
         let address;
         try {
             address = wallet.paths.get(1899).address;
-        } catch (err) {
+        } catch {
             // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.
             return;
         }
@@ -112,7 +112,7 @@ const Extension = ({ wallet }) => {
             setAddressRequestTabId(tabId);
             setAddressRequestTabUrl(tabUrl);
             setShowApproveAddressShareModal(true);
-        } catch (err) {
+        } catch {
             // If you can't parse this, forget about it
             return;
         }
