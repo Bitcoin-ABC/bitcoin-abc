@@ -785,7 +785,7 @@ class BCDataStream(object):
         self.write(s)
 
 
-def is_push_opcode(opcode: OpCodes, min_data_size: int = 0) -> bool:
+def is_push_opcode(opcode: Union[OpCodes, int], min_data_size: int = 0) -> bool:
     """Return True if opcode is a data PUSH that can handle min_data_size or more bytes.
 
     >>> is_push_opcode(OpCodes.OP_CHECKMULTISIGVERIFY)
