@@ -175,7 +175,7 @@ setup(
         "electrumabc",
         "electrumabc.avalanche",
         "electrumabc.qrreaders",
-        "electrumabc.slp",
+        "electrumabc.tokens",
         "electrumabc.tor",
         "electrumabc.utils",
         "electrumabc_gui",

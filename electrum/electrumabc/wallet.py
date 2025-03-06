@@ -86,7 +86,6 @@ from .paymentrequest import (
 )
 from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
-from .slp import slp
 from .storage import (
     STO_EV_PLAINTEXT,
     STO_EV_USER_PW,
@@ -95,6 +94,7 @@ from .storage import (
     WalletStorage,
 )
 from .synchronizer import Synchronizer
+from .tokens import slp
 from .transaction import (
     DUST_THRESHOLD,
     InputValueMissing,
