@@ -57,7 +57,7 @@ from typing import (
 )
 from weakref import ref
 
-from . import avalanche, bitcoin, coinchooser, keystore, mnemo, paymentrequest, slp
+from . import avalanche, bitcoin, coinchooser, keystore, mnemo, paymentrequest
 from .address import Address, PublicKey, Script
 from .avalanche.proof import StakeAndSigningData
 from .bip32 import xpub_type
@@ -86,6 +86,7 @@ from .paymentrequest import (
 )
 from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
+from .slp import slp
 from .storage import (
     STO_EV_PLAINTEXT,
     STO_EV_USER_PW,
