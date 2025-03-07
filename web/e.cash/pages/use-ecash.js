@@ -45,6 +45,7 @@ import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
 import pay2stay from '/public/images/Pay2Stay.png';
 import xecxLogo from '/public/images/xecx-logo-white.png';
+import localecashLogo from '/public/images/localecash.png';
 
 function TileSection({ title, items, children }) {
     return (
@@ -237,6 +238,40 @@ function UseEcash(props) {
                                 link="https://cashtab.com/#/token/c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4"
                                 corner="bottomRight"
                                 color="white"
+                                openInNewTab
+                            />
+                        </FlexButtons>
+                    </TextImageBlock>
+                    <TextImageBlock
+                        id="localecash"
+                        title="LocaleCash"
+                        image={localecashLogo}
+                        alt="LocaleCash logo"
+                    >
+                        <p>
+                            Trade your XEC against fiat, crypto, or goods using
+                            a non-custodial escrow. Make public or private
+                            offers and engage with your counterparty in direct
+                            trades.
+                        </p>
+                        <p>Built with eCash-native smart contracts.</p>
+                        <p>
+                            <i>
+                                LocaleCash is a P2P DEX where trades are
+                                initiated by locking XEC in escrow. In case of a
+                                dispute, arbitrators can be called in. The
+                                contract is designed so that arbitrators can
+                                only forward funds to either the buyer or the
+                                seller without ever taking custody of the funds.
+                            </i>
+                        </p>
+
+                        <FlexButtons>
+                            <Button
+                                text="Get Started"
+                                link="https://localecash.com/"
+                                corner="bottomRight"
+                                color="accent"
                                 openInNewTab
                             />
                         </FlexButtons>
