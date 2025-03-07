@@ -254,9 +254,8 @@ def print_report(file_infos, verbose):
             i["filename"] for i in file_infos if i["dominant_style"][holder_name]
         ]
         if len(dominant_style) > 0:
-            print(
-                f"{len(dominant_style):4d} with '{holder_name.replace('\\n', '\\\\n')}'"
-            )
+            holder_name_escaped = holder_name.replace("\\n", "\\\\n")
+            print(f"{len(dominant_style):4d} with '{holder_name_escaped}'")
             print_filenames(dominant_style, verbose)
     print("")
     print(SEPARATOR)
