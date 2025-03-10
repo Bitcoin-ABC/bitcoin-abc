@@ -277,7 +277,9 @@ class TrezorPlugin(HWPluginBase):
 
         # Note that this can be toggled from True to False if the wallet doesn't
         # use the eCash derivation path.
-        self.has_native_ecash_support = client.atleast_version(2, 8, 6)
+        self.has_native_ecash_support = client.atleast_version(2, 8, 6) or (
+            client.get_trezor_model() == "1" and client.atleast_version(1, 13, 0)
+        )
         # Override the class attribute if this trezor supports the 899'
         # derivation path
         TrezorPlugin.SUPPORTS_XEC_BIP44_DERIVATION = self.has_native_ecash_support
