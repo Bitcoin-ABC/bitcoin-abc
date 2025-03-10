@@ -16,6 +16,7 @@ from test_framework.util import (
     assert_raises_rpc_error,
     create_lots_of_big_transactions,
     gen_return_txouts,
+    sync_txindex,
 )
 from test_framework.wallet import MiniWallet
 
@@ -288,6 +289,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
 
         # Add a prioritisation before a tx is in the mempool (de-prioritising a
         # high-fee transaction so that it's now low fee).
+        sync_txindex(self, self.nodes[0])
         self.nodes[0].prioritisetransaction(
             txid=high_fee_tx,
             fee_delta=-int(2 * base_fee * COIN)

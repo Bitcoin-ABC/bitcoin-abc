@@ -10,7 +10,12 @@ from test_framework.avatools import AvaP2PInterface, can_find_inv_in_poll
 from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import CBlockHeader, msg_headers
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    sync_txindex,
+    uint256_hex,
+)
 
 QUORUM_NODE_COUNT = 16
 
@@ -152,7 +157,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
                     False
                 ), "The isfinaltransaction RPC call did not throw as expected."
 
-            self.wait_until(lambda: node.getindexinfo()["txindex"]["synced"] is True)
+            sync_txindex(self, node)
 
             self.wait_until(lambda: is_finalblock(tip))
             assert node.isfinaltransaction(wallet_txid)

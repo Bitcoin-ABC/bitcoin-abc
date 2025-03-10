@@ -5,7 +5,7 @@
 
 from test_framework.messages import CMerkleBlock, FromHex, ToHex
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_equal, assert_raises_rpc_error, sync_txindex
 from test_framework.wallet import MiniWallet
 
 
@@ -146,6 +146,7 @@ class MerkleBlockTest(BitcoinTestFramework):
             sorted(txlist),
         )
         # We can always get a proof if we have a -txindex
+        sync_txindex(self, self.nodes[1])
         assert_equal(
             self.nodes[0].verifytxoutproof(self.nodes[1].gettxoutproof([txid_spent])),
             [txid_spent],

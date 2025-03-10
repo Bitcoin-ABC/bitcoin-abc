@@ -6,7 +6,7 @@
 from test_framework.messages import CTransaction, FromHex
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, sync_txindex
 from test_framework.wallet import MiniWallet
 
 
@@ -80,7 +80,7 @@ class GetTransactionStatusTest(BitcoinTestFramework):
         self.log.info("Check the block field when the txindex is enabled")
 
         self.restart_node(0, extra_args=["-txindex=1"])
-        self.wait_until(lambda: node.getindexinfo("txindex")["txindex"]["synced"])
+        sync_txindex(self, node)
         assert_equal(node.gettransactionstatus(mempool_tx["txid"])["block"], tip)
 
         # A non-mined tx will return none

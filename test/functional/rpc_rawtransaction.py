@@ -24,6 +24,7 @@ from test_framework.util import (
     assert_greater_than,
     assert_raises_rpc_error,
     find_vout_for_address,
+    sync_txindex,
 )
 
 
@@ -440,6 +441,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         assert_equal(gottx["in_active_chain"], True)
         # We should not have the 'in_active_chain' flag when we don't provide a
         # block
+        sync_txindex(self, self.nodes[0])
         gottx = self.nodes[0].getrawtransaction(tx, True)
         assert_equal(gottx["txid"], tx)
         assert "in_active_chain" not in gottx

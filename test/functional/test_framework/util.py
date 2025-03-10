@@ -824,3 +824,10 @@ class TestFrameworkUtil(unittest.TestCase):
 
         for a, n in test_vectors:
             self.assertEqual(modinv(a, n), pow(a, n - 2, n))
+
+
+def sync_txindex(test_framework, node):
+    test_framework.log.debug("Waiting for node txindex to sync")
+    sync_start = int(time.time())
+    test_framework.wait_until(lambda: node.getindexinfo("txindex")["txindex"]["synced"])
+    test_framework.log.debug(f"Synced in {time.time() - sync_start} seconds")
