@@ -39,7 +39,7 @@ import { MockAgora } from '../../../../../modules/mock-chronik-client';
 import { Agora } from 'ecash-agora';
 import { token as tokenConfig } from 'config/token';
 import { explorer } from 'config/explorer';
-import { FIRMA } from 'constants/tokens';
+import { FIRMA, XECX_SWEEPER_ADDRESS } from 'constants/tokens';
 
 describe('<Token /> available actions rendered', () => {
     const ecc = new Ecc();
@@ -2031,39 +2031,211 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(redeemButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('List XECX?')).toBeInTheDocument();
-        expect(
-            screen.getByText('Create the following sell offer?'),
-        ).toBeInTheDocument();
-        // Offered qty (actual, calculated from AgoraOffer)
-        const actualOfferedQty = '10,000.00';
-        // We see this three times bc it is also the min buy for XECX redemptions and behind the modal
-        expect(screen.getAllByText(actualOfferedQty)).toHaveLength(3);
-        // Actual price calculated from AgoraOffer
-        const actualPricePerTokenForMinBuy = '1 XEC';
-        // We see the price two times (modal and preview behind it)
-        expect(screen.getAllByText(actualPricePerTokenForMinBuy)).toHaveLength(
-            2,
-        );
+        expect(screen.getByText('Redeem 10,000.00 XECX?')).toBeInTheDocument();
+        expect(screen.getByText('You receive:')).toBeInTheDocument();
+        expect(screen.getByText('10,000.00 XEC')).toBeInTheDocument();
 
-        // We can cancel and not create this listing
+        // We can cancel and not create this auto-redeem listing
         await userEvent.click(screen.getByText('Cancel'));
 
         // The confirmation modal is gone
-        expect(screen.queryByText('List XECX?')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Redeem 10,000.00 XECX?'),
+        ).not.toBeInTheDocument();
 
         // We change our mind and list it
         await userEvent.click(redeemButton);
 
-        expect(await screen.findByText('List XECX?')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Redeem 10,000.00 XECX?'),
+        ).toBeInTheDocument();
         await userEvent.click(screen.getByText('OK'));
 
         // We see the expected toast notification for the successful listing tx
         expect(
             await screen.findByText(
-                `${actualOfferedQty} Staked XEC listed for ${actualPricePerTokenForMinBuy} per token`,
+                `10,000.00 Staked XEC listed for 1 XEC per token`,
             ),
         ).toBeInTheDocument();
+    });
+    it('We see expected alert in XECX redemption workflow for hot wallet balance', async () => {
+        // Mock Math.random()
+        jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
+
+        // Mock a balance of 9.99k XEC in the hot wallet
+        mockedChronik.setUtxosByAddress(XECX_SWEEPER_ADDRESS, [
+            { sats: 9_999_00n },
+        ]);
+
+        // Mock response for agora select params check
+        // Note
+        // We obtain EXPECTED_OFFER_P2SH by adding
+        // console.log(toHex(shaRmd160(agoraScript.bytecode)));
+        // to ecash-agora lib and running this test
+        // Note that Date() and Math.random() must be mocked to keep this deterministic
+        const EXPECTED_OFFER_P2SH = '9c3889f324767ca4462614f85835776ab68990a9';
+
+        // We mock no existing utxos
+        mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
+
+        // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
+        // agora object to build the partial
+        const agora = new Agora(mockedChronik);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={agora}
+                route={`/send-token/${tokenMockXecx.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = tokenMockXecx.tokenInfo.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // XECX token icon is rendered
+        expect(
+            screen.getByAltText(`icon for ${tokenMockXecx.tokenId}`),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // On load, default action for XECX is to redeem it
+        expect(screen.getByTitle('Toggle Redeem XECX')).toBeEnabled();
+
+        // The redeem button is disabled on load
+        const redeemButton = screen.getByRole('button', {
+            name: /Redeem XECX for XEC/,
+        });
+
+        await waitFor(() => expect(redeemButton).toBeDisabled());
+
+        // We redeem 10k XECX
+        await userEvent.type(
+            screen.getByPlaceholderText('Offered qty'),
+            '10000',
+        );
+
+        expect(screen.getByPlaceholderText('Offered qty')).toHaveValue('10000');
+
+        // The redeem button is now enabled
+        expect(redeemButton).toBeEnabled();
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('1 XEC ($0.00003000 USD) per token'),
+        ).toBeInTheDocument();
+
+        // Redeem
+        await userEvent.click(redeemButton);
+
+        // We see expected confirmation modal to list the Token
+        expect(screen.getByText('Redeem 10,000.00 XECX?')).toBeInTheDocument();
+        expect(screen.getByText('You receive:')).toBeInTheDocument();
+        expect(screen.getByText('10,000.00 XEC')).toBeInTheDocument();
+
+        // We see the hot wallet alert
+        expect(
+            screen.getByText(
+                '⚠️ XECX redemption larger than hot wallet balance of 10k XEC. Execution may take up to 24 hours.',
+            ),
+        ).toBeInTheDocument();
+    });
+    it('We DO NOT see expected alert in XECX redemption workflow for hot wallet balance if there is some error determining the hot wallet balance', async () => {
+        // Mock Math.random()
+        jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
+
+        // Mock a balance of 9.99k XEC in the hot wallet
+        mockedChronik.setUtxosByAddress(
+            XECX_SWEEPER_ADDRESS,
+            new Error('we do not get the balance'),
+        );
+
+        // Mock response for agora select params check
+        // Note
+        // We obtain EXPECTED_OFFER_P2SH by adding
+        // console.log(toHex(shaRmd160(agoraScript.bytecode)));
+        // to ecash-agora lib and running this test
+        // Note that Date() and Math.random() must be mocked to keep this deterministic
+        const EXPECTED_OFFER_P2SH = '9c3889f324767ca4462614f85835776ab68990a9';
+
+        // We mock no existing utxos
+        mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
+
+        // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
+        // agora object to build the partial
+        const agora = new Agora(mockedChronik);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={agora}
+                route={`/send-token/${tokenMockXecx.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = tokenMockXecx.tokenInfo.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // XECX token icon is rendered
+        expect(
+            screen.getByAltText(`icon for ${tokenMockXecx.tokenId}`),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // On load, default action for XECX is to redeem it
+        expect(screen.getByTitle('Toggle Redeem XECX')).toBeEnabled();
+
+        // The redeem button is disabled on load
+        const redeemButton = screen.getByRole('button', {
+            name: /Redeem XECX for XEC/,
+        });
+
+        await waitFor(() => expect(redeemButton).toBeDisabled());
+
+        // We redeem 10k XECX
+        await userEvent.type(
+            screen.getByPlaceholderText('Offered qty'),
+            '10000',
+        );
+
+        expect(screen.getByPlaceholderText('Offered qty')).toHaveValue('10000');
+
+        // The redeem button is now enabled
+        expect(redeemButton).toBeEnabled();
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText('1 XEC ($0.00003000 USD) per token'),
+        ).toBeInTheDocument();
+
+        // Redeem
+        await userEvent.click(redeemButton);
+
+        // We see expected confirmation modal to list the Token
+        expect(screen.getByText('Redeem 10,000.00 XECX?')).toBeInTheDocument();
+        expect(screen.getByText('You receive:')).toBeInTheDocument();
+        expect(screen.getByText('10,000.00 XEC')).toBeInTheDocument();
+
+        // We see the hot wallet alert
+        expect(
+            screen.queryByText(
+                '⚠️ XECX redemption larger than hot wallet balance of 10k XEC. Execution may take up to 24 hours.',
+            ),
+        ).not.toBeInTheDocument();
     });
     it('We can redeem 1 Firma for $1 of XEC using a workflow unique to Firma', async () => {
         // Mock Math.random()

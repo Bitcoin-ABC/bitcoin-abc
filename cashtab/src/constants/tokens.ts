@@ -10,6 +10,17 @@ interface TokenConst {
     tx: Tx;
 }
 
+/**
+ * Hot wallet that handles XECX redemptions to XEC
+ * In practice, any redemption must be <= the balance of this wallet
+ * to be instantly accepted
+ *
+ * We alert Cashtab users the "max instant redemption", and include
+ * a notice that larger amounts can expect redemption within 24 hrs
+ */
+export const XECX_SWEEPER_ADDRESS =
+    'ecash:qqrjf6n3gvavhw3f35zd0p96m3heujujcs4458vcwf';
+
 export const FIRMA: TokenConst = {
     tokenId: '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
     token: {

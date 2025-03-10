@@ -30,6 +30,7 @@ import {
     getFormattedFiatPrice,
     getAgoraSpotPriceXec,
     decimalizedTokenQtyToLocaleFormat,
+    toFormattedXec,
 } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
@@ -154,7 +155,7 @@ import Collection, {
 } from 'components/Agora/Collection';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import { confirmRawTx } from 'components/Send/helpers';
-import { FIRMA } from 'constants/tokens';
+import { FIRMA, XECX_SWEEPER_ADDRESS } from 'constants/tokens';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -424,7 +425,40 @@ const Token: React.FC = () => {
     const [isCalculatingRedeemFirma, setIsCalculatingRedeemFirma] =
         useState<boolean>(false);
 
+    const [xecxSweeperBalanceSats, setXecxSweeperBalanceSats] = useState<
+        null | bigint
+    >(null);
+
     const userLocale = getUserLocale(navigator);
+
+    /**
+     * Convenience method to compartmentalize comparison of state
+     * variables that require calculations
+     *
+     * TODO dynamically size modals
+     */
+    const getRedeemXecxModalHeight = () => {
+        const askedQtyStr = Number(agoraPartialTokenQty).toFixed(2);
+        const actualQtyStr = decimalizeTokenAmount(
+            previewedAgoraPartial!.offeredAtoms().toString(),
+            decimals as SlpDecimals,
+        );
+        const offeredXecxSats = previewedAgoraPartial!.offeredAtoms();
+
+        let baseHeight = 175;
+        if (
+            xecxSweeperBalanceSats !== null &&
+            offeredXecxSats > xecxSweeperBalanceSats
+        ) {
+            // If we need to show the "redemption may take 24 hrs" notice
+            baseHeight += 125;
+        }
+        if (askedQtyStr !== actualQtyStr) {
+            // If we need to show the "agora values differ" notice
+            baseHeight += 125;
+        }
+        return baseHeight;
+    };
 
     const getAgoraPartialActualPrice = () => {
         if (previewedAgoraPartial === null) {
@@ -581,6 +615,30 @@ const Token: React.FC = () => {
             setChronikQueryError(true);
         }
     };
+
+    const getXecxSweeperBalance = async () => {
+        let sweeperUtxos;
+        try {
+            sweeperUtxos = (await chronik.address(XECX_SWEEPER_ADDRESS).utxos())
+                .utxos;
+            const balanceSats = sweeperUtxos
+                .map(utxo => utxo.sats)
+                .reduce((prev, curr) => prev + curr, 0n);
+            setXecxSweeperBalanceSats(balanceSats);
+        } catch (err) {
+            // If there is some error in getting the utxo set of the sweeper address,
+            // we will not be able to get the balance, and Cashtab will simply not show
+            // this information
+            console.error(`Error getting XECX Sweeper balance`, err);
+        }
+    };
+
+    useEffect(() => {
+        if (tokenId === appConfig.vipTokens.xecx.tokenId) {
+            // Get XECX sweeper balance when user is on xecx token page
+            getXecxSweeperBalance();
+        }
+    }, [tokenId]);
 
     useEffect(() => {
         if (
@@ -2312,6 +2370,140 @@ const Token: React.FC = () => {
                             />
                         )}
                     {showConfirmListPartialSlp &&
+                        tokenId === appConfig.vipTokens.xecx.tokenId &&
+                        previewedAgoraPartial !== null && (
+                            <Modal
+                                title={`Redeem ${decimalizedTokenQtyToLocaleFormat(
+                                    decimalizeTokenAmount(
+                                        previewedAgoraPartial
+                                            .offeredAtoms()
+                                            .toString(),
+                                        decimals as SlpDecimals,
+                                    ),
+                                    userLocale,
+                                )} XECX?`}
+                                disabled={previewedAgoraPartialUnacceptable}
+                                handleOk={listAlpPartial}
+                                handleCancel={() => {
+                                    setPreviewedAgoraPartial(null);
+                                }}
+                                showCancelButton
+                                height={getRedeemXecxModalHeight()}
+                            >
+                                {decimalizeTokenAmount(
+                                    previewedAgoraPartial
+                                        .offeredAtoms()
+                                        .toString(),
+                                    decimals as SlpDecimals,
+                                ) !==
+                                    Number(agoraPartialTokenQty).toFixed(2) && (
+                                    <AgoraPreviewTable>
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Requested qty:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {Number(
+                                                    agoraPartialTokenQty,
+                                                ).toLocaleString(userLocale, {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                })}{' '}
+                                                XECX
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Actual qty:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {decimalizedTokenQtyToLocaleFormat(
+                                                    decimalizeTokenAmount(
+                                                        previewedAgoraPartial
+                                                            .offeredAtoms()
+                                                            .toString(),
+                                                        decimals as SlpDecimals,
+                                                    ),
+                                                    userLocale,
+                                                )}{' '}
+                                                XECX
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                        <AgoraPreviewRow>
+                                            <AgoraPreviewLabel>
+                                                Delta:{' '}
+                                            </AgoraPreviewLabel>
+                                            <AgoraPreviewCol>
+                                                {(
+                                                    Number(
+                                                        agoraPartialTokenQty,
+                                                    ) -
+                                                    Number(
+                                                        decimalizeTokenAmount(
+                                                            previewedAgoraPartial
+                                                                .offeredAtoms()
+                                                                .toString(),
+                                                            decimals as SlpDecimals,
+                                                        ),
+                                                    )
+                                                ).toFixed(2)}
+                                            </AgoraPreviewCol>
+                                        </AgoraPreviewRow>
+                                        <Info>
+                                            Note: Actual qty does not exactly
+                                            match requested qty due to agora
+                                            encoding.
+                                        </Info>
+                                    </AgoraPreviewTable>
+                                )}
+
+                                <AgoraPreviewTable>
+                                    {previewedAgoraPartialUnacceptable && (
+                                        <Alert noWordBreak>
+                                            Error in agora encoding:
+                                            unacceptable offer created. Adjust
+                                            redeem amount.
+                                        </Alert>
+                                    )}
+
+                                    <AgoraPreviewRow>
+                                        <AgoraPreviewLabel>
+                                            You receive:{' '}
+                                        </AgoraPreviewLabel>
+                                        <AgoraPreviewCol>
+                                            {decimalizedTokenQtyToLocaleFormat(
+                                                decimalizeTokenAmount(
+                                                    previewedAgoraPartial
+                                                        .offeredAtoms()
+                                                        .toString(),
+                                                    decimals as SlpDecimals,
+                                                ),
+                                                userLocale,
+                                            )}{' '}
+                                            XEC
+                                        </AgoraPreviewCol>
+                                    </AgoraPreviewRow>
+                                    {xecxSweeperBalanceSats !== null &&
+                                        previewedAgoraPartial.offeredAtoms() >
+                                            xecxSweeperBalanceSats && (
+                                            <Alert noWordBreak>
+                                                ⚠️ XECX redemption larger than
+                                                hot wallet balance of{' '}
+                                                {toFormattedXec(
+                                                    Number(
+                                                        xecxSweeperBalanceSats,
+                                                    ),
+                                                    userLocale,
+                                                )}{' '}
+                                                XEC. Execution may take up to 24
+                                                hours.
+                                            </Alert>
+                                        )}
+                                </AgoraPreviewTable>
+                            </Modal>
+                        )}
+                    {showConfirmListPartialSlp &&
+                        tokenId !== appConfig.vipTokens.xecx.tokenId &&
                         (formData.tokenListPrice !== '' ||
                             tokenId === FIRMA.tokenId) &&
                         previewedAgoraPartial !== null && (
