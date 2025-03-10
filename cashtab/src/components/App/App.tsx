@@ -150,7 +150,16 @@ const App = () => {
                 wallet !== false && !validWallet && <Spinner />
             )}
 
-            <CustomApp>
+            <CustomApp
+                onClick={e => {
+                    if (
+                        navMenuClicked &&
+                        !(e.target as Element).closest('.nav-menu-container')
+                    ) {
+                        setNavMenuClicked(false);
+                    }
+                }}
+            >
                 <ToastContainer
                     position="top-right"
                     autoClose={2000}
@@ -378,8 +387,11 @@ const App = () => {
                                 <ReceiveIcon />
                             </NavButton>
                             <NavWrapper
+                                className="nav-menu-container"
                                 title="Show Other Screens"
-                                onClick={handleNavMenuClick}
+                                onClick={() => {
+                                    handleNavMenuClick();
+                                }}
                             >
                                 <NavIcon clicked={navMenuClicked} />
                                 <NavMenu
