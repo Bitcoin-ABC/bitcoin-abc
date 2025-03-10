@@ -272,7 +272,8 @@ describe('<Token /> available actions rendered', () => {
         const listButton = screen.getByRole('button', {
             name: /List Vespene Gas/,
         });
-        expect(listButton).toBeDisabled();
+
+        await waitFor(() => expect(listButton).toBeDisabled());
 
         // The price input is disabled until qty values are entered
         const priceInput = screen.getByPlaceholderText(
@@ -1982,7 +1983,8 @@ describe('<Token /> available actions rendered', () => {
         const redeemButton = screen.getByRole('button', {
             name: /Redeem XECX for XEC/,
         });
-        expect(redeemButton).toBeDisabled();
+
+        await waitFor(() => expect(redeemButton).toBeDisabled());
 
         // We do not see a price input
         expect(
@@ -2134,7 +2136,8 @@ describe('<Token /> available actions rendered', () => {
         const redeemButton = await screen.findByRole('button', {
             name: /Redeem FIRMA for XEC/,
         });
-        expect(redeemButton).toBeDisabled();
+
+        await waitFor(() => expect(redeemButton).toBeDisabled());
 
         // We do not see a price input
         expect(

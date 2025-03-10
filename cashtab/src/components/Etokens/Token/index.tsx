@@ -2851,9 +2851,9 @@ const Token: React.FC = () => {
                                                                 formData.tokenListPrice ===
                                                                     null ||
                                                                 agoraPartialTokenQty ===
-                                                                    '0' ||
+                                                                    '' ||
                                                                 agoraPartialMin ===
-                                                                    '0'
+                                                                    ''
                                                             }
                                                             onClick={
                                                                 previewAgoraPartial
