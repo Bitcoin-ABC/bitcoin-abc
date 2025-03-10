@@ -95,7 +95,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             )
             return self.nodes[0].isfinaltransaction(uint256_hex(txid))
 
-        self.wait_until(vote_until_final, timeout=10)
+        self.wait_until(vote_until_final)
 
     def test_simple_txs(self):
         self.log.info("Check the finalization of simple non-chained txs")
