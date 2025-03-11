@@ -343,7 +343,7 @@ export class AgoraPartial {
 
         if (params.offeredAtoms < params.minAcceptedAtoms) {
             throw new Error(
-                'offeredAtoms must be greater than minAcceptedAtoms',
+                'offeredAtoms must be greater than or equal to minAcceptedAtoms',
             );
         }
 
@@ -443,8 +443,12 @@ export class AgoraPartial {
 
         // Scale + truncate the minimum accepted tokens
         const minAcceptedScaledTruncAtoms =
-            (params.minAcceptedAtoms * atomsScaleFactor) >>
-            (8n * numAtomsTruncBytes);
+            params.minAcceptedAtoms === params.offeredAtoms
+                ? // If minAcceptedAtoms is intended to be the whole offer, set it this way.
+                  // This prevents creating an unacceptable offer (minAcceptedAtoms > offeredAtoms)
+                  truncAtoms * atomsScaleFactor
+                : (params.minAcceptedAtoms * atomsScaleFactor) >>
+                  (8n * numAtomsTruncBytes);
 
         const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
         const agoraPartial = new AgoraPartial({

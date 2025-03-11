@@ -1074,6 +1074,36 @@ describe('Agora Partial Param Approximation', () => {
         expect(agoraPartial.askedSats(100n)).to.equal(71236327571456n);
     });
 
+    it('AgoraPartial.approximateParams ALP 1:1 priced (e.g. XECX), large quantity, minAcceptedAtoms === offeredAtoms', async () => {
+        // Use a figure where error of "minAcceptedAtoms exceeds offeredAtoms" was seen in real life
+        const attemptedOfferedAtoms = 292_116_503_52n;
+        const agoraPartial = AgoraPartial.approximateParams({
+            offeredAtoms: attemptedOfferedAtoms,
+            priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
+            minAcceptedAtoms: attemptedOfferedAtoms,
+            ...BASE_PARAMS_ALP,
+        });
+
+        expect(agoraPartial).to.deep.equal(
+            new AgoraPartial({
+                truncAtoms: 114108009n,
+                numAtomsTruncBytes: 1,
+                atomsScaleFactor: 18n,
+                scaledTruncAtomsPerTruncSat: 18n,
+                numSatsTruncBytes: 1,
+                minAcceptedScaledTruncAtoms: 2053944162n,
+                ...BASE_PARAMS_ALP,
+                scriptLen: agoraPartial.scriptLen,
+            }),
+        );
+        const actualOfferedAtoms = 292_116_503_04n;
+        expect(agoraPartial.offeredAtoms()).to.equal(actualOfferedAtoms);
+        expect(agoraPartial.minAcceptedAtoms()).to.equal(actualOfferedAtoms);
+        expect(agoraPartial.askedSats(actualOfferedAtoms)).to.equal(
+            actualOfferedAtoms,
+        );
+    });
+
     it('AgoraPartial.approximateParams failure', () => {
         expect(() =>
             AgoraPartial.approximateParams({
@@ -1124,7 +1154,9 @@ describe('Agora Partial Param Approximation', () => {
                 ...BASE_PARAMS_SLP,
                 tokenProtocol: 'ALP',
             }),
-        ).to.throw('offeredAtoms must be greater than minAcceptedAtoms');
+        ).to.throw(
+            'offeredAtoms must be greater than or equal to minAcceptedAtoms',
+        );
         expect(() =>
             AgoraPartial.approximateParams({
                 offeredAtoms: 1n,
