@@ -56,6 +56,7 @@ class CoinDisplayData:
     vout: int
     address: Address
     slp_token: Optional[Tuple[str, int]]
+    is_alp_token: bool
     is_frozen: bool
     is_address_frozen: bool
     is_immature: bool
@@ -72,6 +73,7 @@ class CoinDisplayData:
             and not self.is_address_frozen
             and not self.is_immature
             and self.slp_token is None
+            and not self.is_alp_token
         )
 
 
@@ -123,7 +125,7 @@ class UTXOList(MyTreeWidget):
         )
         self.blue = ColorScheme.BLUE.as_color(True)
         self.cyanBlue = QColor("#3399ff")
-        self.slpBG = ColorScheme.SLPGREEN.as_color(True)
+        self.tokenBG = ColorScheme.SLPGREEN.as_color(True)
         self.immatureColor = ColorScheme.BLUE.as_color(False)
         self.output_point_prefix_text = columns[self.Col.output_point]
 
@@ -179,6 +181,7 @@ class UTXOList(MyTreeWidget):
                 x.get("prevout_n"),
                 address,
                 x["slp_token"],
+                x["is_alp_token"],
                 x["is_frozen_coin"],
                 self.wallet.is_frozen(address),
                 is_immature,
@@ -215,9 +218,9 @@ class UTXOList(MyTreeWidget):
                         continue
                     utxo_item.setForeground(colNum, self.immatureColor)
                 toolTipMisc = _("Coin is not yet mature")
-            elif coin.slp_token is not None:
-                utxo_item.setBackground(0, self.slpBG)
-                toolTipMisc = _("Coin contains an SLP token")
+            elif coin.slp_token is not None or coin.is_alp_token:
+                utxo_item.setBackground(0, self.tokenBG)
+                toolTipMisc = _("Coin may contain a token")
             elif coin.is_address_frozen and not coin.is_frozen:
                 # emulate the "Look" off the address_list .py's frozen entry
                 utxo_item.setBackground(0, self.lightBlue)
@@ -396,6 +399,8 @@ class UTXOList(MyTreeWidget):
             if not spend_action.isEnabled():
                 if coin.slp_token is not None:
                     spend_action.setText(_("SLP Token: Spend Locked"))
+                elif coin.is_alp_token:
+                    spend_action.setText(_("ALP Token: Spend Locked"))
                 elif coin.is_immature:
                     spend_action.setText(_("Immature Coinbase: Spend Locked"))
             menu.addAction(

@@ -94,7 +94,7 @@ from .storage import (
     WalletStorage,
 )
 from .synchronizer import Synchronizer
-from .tokens import slp
+from .tokens import alp, slp
 from .transaction import (
     DUST_THRESHOLD,
     InputValueMissing,
@@ -276,8 +276,10 @@ class AbstractWallet(PrintError, SPVDelegate):
         # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer
         # back to themselves.  This should always be a weakref.ref (Weak.ref), or None
         self.weak_window: Optional[ref[ElectrumWindow]] = None
+
         self.slp = slp.WalletData(self)
         finalization_print_error(self.slp)  # debug object lifecycle
+        self.alp = alp.WalletData(self)
 
         # Removes defunct entries from self.pruned_txo asynchronously
         self.pruned_txo_cleaner_thread = None
@@ -377,6 +379,11 @@ class AbstractWallet(PrintError, SPVDelegate):
             self.slp.rebuild()
             self.slp.save()  # commit changes to self.storage
 
+        if self.alp.needs_rebuild:
+            # First time this wallet scans for ALP tokens
+            self.alp.rebuild()
+            self.alp.save()
+
         # Print debug message on finalization
         finalization_print_error(
             self,
@@ -447,6 +454,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 self.print_error("removing unreferenced tx", tx_hash)
                 self.transactions.pop(tx_hash)
                 self.slp.rm_tx(tx_hash)
+                self.alp.rm_tx(tx_hash)
 
     @profiler
     def save_transactions(self, write=False):
@@ -474,6 +482,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             history = self.from_Address_dict(self._history)
             self.storage.put("addr_history", history)
             self.slp.save()
+            self.alp.save()
             if write:
                 self.storage.write()
 
@@ -505,6 +514,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             self.pruned_txo = {}
             self.pruned_txo_values = set()
             self.slp.clear()
+            self.alp.clear()
             self.save_transactions()
             self._addr_bal_cache = {}
             self._history = {}
@@ -982,9 +992,10 @@ class AbstractWallet(PrintError, SPVDelegate):
                 "is_frozen_coin": (
                     txo in self.frozen_coins or txo in self.frozen_coins_tmp
                 ),
-                "slp_token": self.slp.token_info_for_txo(
-                    txo
-                ),  # (token_id_hex, qty) tuple or None
+                # (token_id_hex, qty) tuple or None
+                "slp_token": self.slp.token_info_for_txo(txo),
+                # for now just a boolean flag
+                "is_alp_token": self.alp.has_txo(txo),
             }
             out[txo] = x
         return out
@@ -1504,9 +1515,10 @@ class AbstractWallet(PrintError, SPVDelegate):
             # save
             self.transactions[tx_hash] = tx
 
-            # Unconditionally invoke the SLP handler. Note that it is a fast &
+            # Unconditionally invoke the token handlers. Note that it is a fast &
             # cheap no-op if this tx's outputs[0] is not an SLP script.
             self.slp.add_tx(tx_hash, tx)
+            self.alp.add_tx(tx_hash, tx)
 
     def remove_transaction(self, tx_hash):
         with self.lock:
@@ -1557,8 +1569,9 @@ class AbstractWallet(PrintError, SPVDelegate):
             except KeyError:
                 self.print_error("tx was not in output history", tx_hash)
 
-            # inform slp subsystem as well
+            # inform token subsystems as well
             self.slp.rm_tx(tx_hash)
+            self.alp.rm_tx(tx_hash)
 
     def receive_tx_callback(self, tx_hash, tx, tx_height):
         self.add_transaction(tx_hash, tx)
