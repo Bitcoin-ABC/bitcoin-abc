@@ -92,3 +92,4 @@ console.log(toHex(rawTx));
 -   2.0.0 - Remove `initWasm`, auto-load the WebAssembly instead. Remove unneeded `ecc` parameters, esp. in `TxBuilder.sign` and `HdNode.fromSeed` [D17639](https://reviews.bitcoinabc.org/D17639) [D17640](https://reviews.bitcoinabc.org/D17640)
 -   2.1.0 - Add `signRecoverable` and `recoverSig` to `Ecc` [D17667](https://reviews.bitcoinabc.org/D17667)
 -   3.0.0 - Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
+-   3.1.0 - Add methods for signing and verifying messages [D17778](https://reviews.bitcoinabc.org/D17778)

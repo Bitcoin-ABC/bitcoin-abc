@@ -9,15 +9,13 @@ import Switch from 'components/Common/Switch';
 import { WalletContext } from 'wallet/context';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
-import xecMessage from 'bitcoinjs-message';
-import * as utxolib from '@bitgo/utxo-lib';
 import { isValidCashAddress } from 'ecashaddrjs';
 import { toast } from 'react-toastify';
 import { theme } from 'assets/styles/theme';
 import appConfig from 'config/app';
 import { PageHeader } from 'components/Common/Atoms';
 import { ThemedSignAndVerifyMsg } from 'components/Common/CustomIcons';
-import { Address } from 'ecash-lib';
+import { signMsg, verifyMsg } from 'ecash-lib';
 
 const SignVerifyForm = styled.div`
     display: flex;
@@ -76,29 +74,17 @@ const SignVerifyMsg = () => {
     const [signMsgMode, setSignMsgMode] = useState(true);
     const [messageSignature, setMessageSignature] = useState('');
 
-    const signMsg = () => {
+    const handleUserSignature = () => {
         // We get the msgToSign from formData in state
         const { msgToSign } = formData;
 
         // Wrap signing in try...catch to handle any errors
         try {
-            // First, get required params
-            const keyPair = utxolib.ECPair.fromWIF(
-                wallet.paths.get(1899).wif,
-                utxolib.networks.ecash,
-            );
+            // sign with path 1899 sk
+            const sk = wallet.paths.get(1899).sk;
+            const signature = signMsg(msgToSign, sk);
 
-            // Now you can get the local signature
-            const messageSignature = xecMessage
-                .sign(
-                    msgToSign,
-                    keyPair.__D,
-                    keyPair.compressed,
-                    utxolib.networks.ecash.messagePrefix,
-                )
-                .toString('base64');
-
-            setMessageSignature(messageSignature);
+            setMessageSignature(signature);
             toast.success('Message Signed');
         } catch (err) {
             toast.error(`${err}`);
@@ -150,13 +136,10 @@ const SignVerifyMsg = () => {
     const verifyMessage = () => {
         let verification;
         try {
-            verification = xecMessage.verify(
+            verification = verifyMsg(
                 formData.msgToVerify,
-                Address.fromCashAddress(formData.addressToVerify)
-                    .legacy()
-                    .toString(),
                 formData.signatureToVerify,
-                utxolib.networks.ecash.messagePrefix,
+                formData.addressToVerify,
             );
         } catch (err) {
             toast.error(`${err}`);
@@ -204,7 +187,7 @@ const SignVerifyMsg = () => {
                     </Row>
                     <Row>
                         <PrimaryButton
-                            onClick={signMsg}
+                            onClick={handleUserSignature}
                             disabled={formData.msgToSign === ''}
                         >
                             Sign

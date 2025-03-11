@@ -78,7 +78,7 @@ describe('<SignVerifyMsg />', () => {
 
         expect(
             screen.getByText(
-                'ILwXI6gAnIkh7nw3r/VDNYWiBxVoHYIjsk9lALezbYjGVXbFj0p4glXibHDQoJVll4+zTS5SWXsVAwhczh5GTts=',
+                'H15QdmXfPFzMX+nDsoIGL51Nq3jkX/3RGmhwe87fIs9fLpvdHEflw+K9935GTU30Ids8J8Cdn1fV4uRJfUwYM8w=',
             ),
         ).toBeInTheDocument();
     });

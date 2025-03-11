@@ -8,6 +8,7 @@ export * from './hash.js';
 export * from './op.js';
 export * from './opcode.js';
 export * from './script.js';
+export * from './messages.js';
 export * from './mnemonic.js';
 export * from './hdwallet.js';
 export * from './address/address.js';
