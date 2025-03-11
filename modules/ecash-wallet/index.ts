@@ -6,6 +6,18 @@ import { Script, Ecc, shaRmd160, Address } from 'ecash-lib';
 import { ChronikClient, ScriptUtxo } from 'chronik-client';
 
 /**
+ * Confirmations required before coinbase utxos
+ * are spendable
+ *
+ * On eCash, coinbase utxos may be
+ *
+ * - mining rewards
+ * - staking rewards
+ * - IFP rewards
+ */
+export const COINBASE_MATURITY = 100;
+
+/**
  * Wallet
  *
  * Implements a one-address eCash (XEC) wallet
@@ -72,6 +84,35 @@ class Wallet {
         // Only set chronik-dependent fields if we got no errors
         this.utxos = utxos;
         this.tipHeight = tipHeight;
+    }
+
+    /**
+     * Return all spendable UTXOs only containing sats and no tokens
+     *
+     * - Any spendable coinbase UTXO without tokens
+     * - Any non-coinbase UTXO without tokens
+     */
+    public spendableSatsOnlyUtxos(): ScriptUtxo[] {
+        return this.utxos
+            .filter(
+                utxo =>
+                    typeof utxo.token === 'undefined' &&
+                    utxo.isCoinbase === false,
+            )
+            .concat(this._spendableCoinbaseUtxos());
+    }
+
+    /**
+     * Return all spendable coinbase utxos
+     * i.e. coinbase utxos with COINBASE_MATURITY confirmations
+     */
+    private _spendableCoinbaseUtxos(): ScriptUtxo[] {
+        return this.utxos.filter(
+            utxo =>
+                utxo.isCoinbase === true &&
+                typeof utxo.token === 'undefined' &&
+                this.tipHeight - utxo.blockHeight >= COINBASE_MATURITY,
+        );
     }
 
     /**

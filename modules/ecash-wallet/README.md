@@ -20,4 +20,5 @@ See tests for detailed methods.
 
 ## Change log
 
--   0.0.0 Init with constructor and `sync` method
+-   0.0.0 Init with constructor and `sync` method [D17773](https://reviews.bitcoinabc.org/D17773)
+-   0.0.1 Add utxo getter methods `getFuelUtxos` and `getSpendableCoinbaseUtxos` [D17779](https://reviews.bitcoinabc.org/D17779)

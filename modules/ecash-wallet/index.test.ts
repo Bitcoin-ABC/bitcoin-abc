@@ -4,10 +4,24 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { Ecc, fromHex, shaRmd160, Script, Address } from 'ecash-lib';
-import { OutPoint, ScriptUtxo, ChronikClient } from 'chronik-client';
+import {
+    Ecc,
+    fromHex,
+    shaRmd160,
+    Script,
+    Address,
+    toHex,
+    strToBytes,
+} from 'ecash-lib';
+import {
+    OutPoint,
+    ScriptUtxo,
+    ChronikClient,
+    Token,
+    TokenType,
+} from 'chronik-client';
 import { MockChronikClient } from 'mock-chronik-client';
-import Wallet from '.';
+import Wallet, { COINBASE_MATURITY } from '.';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -28,17 +42,71 @@ const DUMMY_OUTPOINT: OutPoint = {
 };
 const DUMMY_UTXO: ScriptUtxo = {
     outpoint: DUMMY_OUTPOINT,
-    blockHeight: 800000,
+    blockHeight: DUMMY_TIPHEIGHT,
     isCoinbase: false,
     sats: 546n,
     isFinal: true,
 };
 
+/**
+ * Coinbase utxo with blockheight of DUMMY_UTXO, i.e. DUMMY_TIPHEIGHT
+ * Coinbase utxos require COINBASE_MATURITY
+ * confirmations to become spendable
+ */
+const DUMMY_UNSPENDABLE_COINBASE_UTXO: ScriptUtxo = {
+    ...DUMMY_UTXO,
+    isCoinbase: true,
+    sats: 31250000n,
+};
+
+/**
+ * A coinbase utxo with (just) enough confirmations to be spendable
+ */
+const DUMMY_SPENDABLE_COINBASE_UTXO: ScriptUtxo = {
+    ...DUMMY_UNSPENDABLE_COINBASE_UTXO,
+    blockHeight: DUMMY_TIPHEIGHT - COINBASE_MATURITY,
+};
+
+// Dummy ALP STANDARD utxos (quantity and mintbaton)
+const DUMMY_TOKENID_ALP = toHex(strToBytes('ALP0')).repeat(8);
+const DUMMY_TOKEN_TYPE_ALP_FUNGIBLE: TokenType = {
+    protocol: 'ALP',
+    type: 'ALP_TOKEN_TYPE_STANDARD',
+    number: 0,
+};
+const ALP_FUNGIBLE_ATOMS = 101n;
+const DUMMY_TOKEN_ALP_STANDARD: Token = {
+    tokenId: DUMMY_TOKENID_ALP,
+    tokenType: DUMMY_TOKEN_TYPE_ALP_FUNGIBLE,
+    atoms: ALP_FUNGIBLE_ATOMS,
+    isMintBaton: false,
+};
+const DUMMY_TOKEN_UTXO_ALP_STANDARD: ScriptUtxo = {
+    ...DUMMY_UTXO,
+    token: DUMMY_TOKEN_ALP_STANDARD,
+};
+const DUMMY_TOKEN_UTXO_ALP_STANDARD_MINTBATON: ScriptUtxo = {
+    ...DUMMY_TOKEN_UTXO_ALP_STANDARD,
+    token: { ...DUMMY_TOKEN_ALP_STANDARD, isMintBaton: true, atoms: 0n },
+};
+
+const DUMMY_SPENDABLE_COINBASE_UTXO_TOKEN: ScriptUtxo = {
+    ...DUMMY_SPENDABLE_COINBASE_UTXO,
+    token: DUMMY_TOKEN_ALP_STANDARD,
+};
+
 // Utxo set used in testing to show all utxo types supported by ecash-wallet
-const ALL_SUPPORTED_UTXOS: ScriptUtxo[] = [DUMMY_UTXO];
+const ALL_SUPPORTED_UTXOS: ScriptUtxo[] = [
+    DUMMY_UTXO,
+    DUMMY_UNSPENDABLE_COINBASE_UTXO,
+    DUMMY_SPENDABLE_COINBASE_UTXO,
+    DUMMY_TOKEN_UTXO_ALP_STANDARD,
+    DUMMY_TOKEN_UTXO_ALP_STANDARD_MINTBATON,
+    DUMMY_SPENDABLE_COINBASE_UTXO_TOKEN,
+];
 
 describe('wallet.ts', () => {
-    it('We can initialize and sync an Wallet', async () => {
+    it('We can initialize and sync a Wallet', async () => {
         const mockChronik = new MockChronikClient();
 
         // We can create a wallet
@@ -65,6 +133,9 @@ describe('wallet.ts', () => {
         // utxo set is empty on creation
         expect(testWallet.utxos).to.deep.equal([]);
 
+        // We have no spendableSatsOnlyUtxos before sync
+        expect(testWallet.spendableSatsOnlyUtxos()).to.deep.equal([]);
+
         // Mock a chaintip
         mockChronik.setBlockchainInfo({
             tipHash: DUMMY_TIPHASH,
@@ -79,6 +150,12 @@ describe('wallet.ts', () => {
 
         // Now we have a chaintip
         expect(testWallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+
+        // We can get spendableSatsOnlyUtxos, which include spendable coinbase utxos
+        expect(testWallet.spendableSatsOnlyUtxos()).to.deep.equal([
+            DUMMY_UTXO,
+            DUMMY_SPENDABLE_COINBASE_UTXO,
+        ]);
 
         // Now we have utxos
         expect(testWallet.utxos).to.deep.equal(ALL_SUPPORTED_UTXOS);
