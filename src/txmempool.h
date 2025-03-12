@@ -13,6 +13,7 @@
 #include <kernel/cs_main.h>
 #include <kernel/mempool_entry.h>
 #include <kernel/mempool_options.h>
+#include <node/blockfitter.h>
 #include <policy/packages.h>
 #include <primitives/transaction.h>
 #include <radix.h>
@@ -219,10 +220,8 @@ private:
 
     //! sum of all mempool tx's sizes.
     uint64_t totalTxSize GUARDED_BY(cs);
-    //! sum of all mempool finalized tx's sizes
-    uint64_t totalFinalizedTxSize GUARDED_BY(cs){0};
-    //! sum of all mempool finalized tx's sigchecks
-    uint64_t totalFinalizedTxSigchecks GUARDED_BY(cs){0};
+    //! Check whether the finalized txs would fit a block
+    node::BlockFitter m_finalizedTxsFitter GUARDED_BY(cs);
     //! sum of all mempool tx's fees (NOT modified fee)
     Amount m_total_fee GUARDED_BY(cs);
     //! sum of dynamic memory usage of all the map elements (NOT the maps
@@ -359,7 +358,7 @@ public:
      * accepting transactions becomes O(N^2) where N is the number of
      * transactions in the pool.
      */
-    CTxMemPool(const Options &opts);
+    CTxMemPool(const Config &config, const Options &opts);
     ~CTxMemPool();
 
     /**
@@ -501,12 +500,14 @@ public:
 
     uint64_t GetTotalFinalizedTxSize() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
-        return totalFinalizedTxSize;
+        return m_finalizedTxsFitter.nBlockSize -
+               node::BlockFitter::COINBASE_RESERVED_SIZE;
     }
 
     uint64_t GetTotalFinalizedTxSigchecks() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
-        return totalFinalizedTxSigchecks;
+        return m_finalizedTxsFitter.nBlockSigChecks -
+               node::BlockFitter::COINBASE_RESERVED_SIGCHECKS;
     }
 
     Amount GetTotalFee() const EXCLUSIVE_LOCKS_REQUIRED(cs) {

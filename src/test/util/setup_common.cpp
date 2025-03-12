@@ -184,7 +184,7 @@ ChainTestingSetup::ChainTestingSetup(
     GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
 
     m_node.mempool =
-        std::make_unique<CTxMemPool>(MemPoolOptionsForTest(m_node));
+        std::make_unique<CTxMemPool>(config, MemPoolOptionsForTest(m_node));
 
     m_cache_sizes = CalculateCacheSizes(m_args);
 

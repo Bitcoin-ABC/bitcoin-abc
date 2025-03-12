@@ -267,7 +267,7 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
 }
 
 static void
-benchEviction(const Config &, benchmark::Bench &bench,
+benchEviction(const Config &config, benchmark::Bench &bench,
               const std::vector<std::vector<CTransactionRef>> &chains,
               bool revFee = true) {
     std::list<CTxMemPool> pools;
@@ -283,7 +283,7 @@ benchEviction(const Config &, benchmark::Bench &bench,
         CTxMemPool::Options mempool_opts{
             .check_ratio = 0,
         };
-        pools.emplace_back(mempool_opts);
+        pools.emplace_back(config, mempool_opts);
         CTxMemPool &pool = pools.back();
         TestMemPoolEntryHelper entry;
         // Fill mempool

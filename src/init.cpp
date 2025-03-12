@@ -2502,7 +2502,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
               mempool_opts.max_size_bytes * (1.0 / 1024 / 1024));
 
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
-        node.mempool = std::make_unique<CTxMemPool>(mempool_opts);
+        node.mempool = std::make_unique<CTxMemPool>(config, mempool_opts);
 
         node.chainman =
             std::make_unique<ChainstateManager>(chainman_opts, blockman_opts);

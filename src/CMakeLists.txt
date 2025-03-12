@@ -887,6 +887,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		logging.cpp
 		networks/abc/chainparamsconstants.cpp
 		networks/abc/checkpoints.cpp
+		node/blockfitter.cpp
 		node/blockstorage.cpp
 		node/chainstate.cpp
 		node/ui_interface.cpp

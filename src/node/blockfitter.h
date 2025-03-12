@@ -47,6 +47,11 @@ public:
 
     /** Account for this tx */
     void addTx(size_t txSize, int64_t txSigChecks, Amount txFee);
+    /**
+     * Remove accounting for this tx. No check is done that the tx was
+     * previously added to the block fitter.
+     */
+    void removeTxUnchecked(size_t txSize, int64_t txSigChecks, Amount txFee);
 
     /** Test if a new Tx would "fit" in the block */
     bool testTxFits(uint64_t txSize, int64_t txSigChecks) const;

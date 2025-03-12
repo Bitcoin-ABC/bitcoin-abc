@@ -115,8 +115,9 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
     }
 }
 
-CTxMemPool::CTxMemPool(const Options &opts)
+CTxMemPool::CTxMemPool(const Config &config, const Options &opts)
     : m_check_ratio(opts.check_ratio),
+      m_finalizedTxsFitter(node::BlockFitter(config)),
       m_orphanage(std::make_unique<TxOrphanage>()),
       m_conflicting(std::make_unique<TxConflicting>()),
       m_max_size_bytes{opts.max_size_bytes}, m_expiry{opts.expiry},
@@ -208,8 +209,9 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
             (*it)->GetSharedTx(), reason, mempool_sequence);
 
         if (auto removed_tx = finalizedTxs.remove(txid)) {
-            totalFinalizedTxSize -= removed_tx->GetTxSize();
-            totalFinalizedTxSigchecks -= removed_tx->GetSigChecks();
+            m_finalizedTxsFitter.removeTxUnchecked(removed_tx->GetTxSize(),
+                                                   removed_tx->GetSigChecks(),
+                                                   removed_tx->GetFee());
         }
     }
 
@@ -329,8 +331,9 @@ void CTxMemPool::removeForFinalizedBlock(
         // next block. So we can simply remove the txs from the block with no
         // further check.
         if (auto removed_tx = finalizedTxs.remove(tx->GetId())) {
-            totalFinalizedTxSize -= removed_tx->GetTxSize();
-            totalFinalizedTxSigchecks -= removed_tx->GetSigChecks();
+            m_finalizedTxsFitter.removeTxUnchecked(removed_tx->GetTxSize(),
+                                                   removed_tx->GetSigChecks(),
+                                                   removed_tx->GetFee());
         }
     }
 }
@@ -537,8 +540,9 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
         // It is possible (and normal) that an ancestor is already finalized.
         // Beware to not account for it in this case.
         if (finalizedTxs.insert(*ancestor_it)) {
-            totalFinalizedTxSize += (*ancestor_it)->GetTxSize();
-            totalFinalizedTxSigchecks += (*ancestor_it)->GetSigChecks();
+            m_finalizedTxsFitter.addTx((*ancestor_it)->GetTxSize(),
+                                       (*ancestor_it)->GetSigChecks(),
+                                       (*ancestor_it)->GetFee());
 
             finalizedTxIds.push_back((*ancestor_it)->GetTx().GetId());
         }

@@ -80,6 +80,14 @@ void BlockFitter::addTx(size_t txSize, int64_t txSigChecks, Amount txFee) {
     nFees += txFee;
 }
 
+void BlockFitter::removeTxUnchecked(size_t txSize, int64_t txSigChecks,
+                                    Amount txFee) {
+    nBlockSize -= txSize;
+    nBlockSigChecks -= txSigChecks;
+    nFees -= txFee;
+    --nBlockTx;
+}
+
 bool BlockFitter::testTxFits(uint64_t txSize, int64_t txSigChecks) const {
     if (nBlockSize + txSize >= nMaxGeneratedBlockSize) {
         return false;
