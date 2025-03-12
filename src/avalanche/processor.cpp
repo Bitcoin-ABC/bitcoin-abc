@@ -956,8 +956,8 @@ void Processor::cleanupStakingRewards(const int minHeight) {
     }
 
     if (m_stakingPreConsensus) {
-        WITH_LOCK(cs_stakeContenderCache,
-                  return stakeContenderCache.cleanup(minHeight));
+        WITH_LOCK(cs_peerManager,
+                  return peerManager->cleanupStakeContenders(minHeight));
     }
 }
 
@@ -1003,8 +1003,8 @@ bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
     }
 
     if (m_stakingPreConsensus) {
-        LOCK(cs_stakeContenderCache);
-        stakeContenderCache.setWinners(pprev, payouts);
+        LOCK(cs_peerManager);
+        peerManager->setStakeContenderWinners(pprev, payouts);
     }
 
     LOCK(cs_stakingRewards);
@@ -1035,21 +1035,20 @@ void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
 }
 
 void Processor::addStakeContender(const ProofRef &proof) {
-    AssertLockHeld(cs_main);
-    const CBlockIndex *activeTip = chainman.ActiveTip();
-    WITH_LOCK(cs_stakeContenderCache,
-              return stakeContenderCache.add(activeTip, proof));
+    AssertLockNotHeld(cs_main);
+
+    WITH_LOCK(cs_peerManager, return peerManager->addStakeContender(proof));
 }
 
 int Processor::getStakeContenderStatus(
     const StakeContenderId &contenderId) const {
-    AssertLockNotHeld(cs_stakeContenderCache);
+    AssertLockNotHeld(cs_peerManager);
     AssertLockNotHeld(cs_stakingRewards);
 
     BlockHash prevblockhash;
-    int status = WITH_LOCK(
-        cs_stakeContenderCache,
-        return stakeContenderCache.getVoteStatus(contenderId, prevblockhash));
+    int status =
+        WITH_LOCK(cs_peerManager, return peerManager->getStakeContenderStatus(
+                                      contenderId, prevblockhash));
 
     if (status != -1) {
         std::vector<std::pair<ProofId, CScript>> winners;
@@ -1065,27 +1064,28 @@ int Processor::getStakeContenderStatus(
 }
 
 void Processor::acceptStakeContender(const StakeContenderId &contenderId) {
-    LOCK(cs_stakeContenderCache);
-    stakeContenderCache.accept(contenderId);
+    LOCK(cs_peerManager);
+    peerManager->acceptStakeContender(contenderId);
 }
 
 void Processor::finalizeStakeContender(const StakeContenderId &contenderId) {
-    AssertLockHeld(cs_main);
+    AssertLockNotHeld(cs_main);
 
     const CBlockIndex *tip;
     std::vector<std::pair<ProofId, CScript>> winners;
     {
-        LOCK(cs_stakeContenderCache);
-        stakeContenderCache.finalize(contenderId);
+        LOCK(cs_peerManager);
+        peerManager->finalizeStakeContender(contenderId);
 
         // Get block hash related to this contender. We should not assume the
         // current chain tip is the block this contender is a winner for.
         BlockHash prevblockhash;
-        stakeContenderCache.getVoteStatus(contenderId, prevblockhash);
+        peerManager->getStakeContenderStatus(contenderId, prevblockhash);
 
-        tip = chainman.m_blockman.LookupBlockIndex(prevblockhash);
+        tip = WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
+                                     prevblockhash));
 
-        stakeContenderCache.getWinners(tip->GetBlockHash(), winners);
+        peerManager->getStakeContenderWinners(tip->GetBlockHash(), winners);
     }
 
     // Set staking rewards to include newly finalized contender
@@ -1095,8 +1095,8 @@ void Processor::finalizeStakeContender(const StakeContenderId &contenderId) {
 }
 
 void Processor::rejectStakeContender(const StakeContenderId &contenderId) {
-    LOCK(cs_stakeContenderCache);
-    stakeContenderCache.reject(contenderId);
+    LOCK(cs_peerManager);
+    peerManager->rejectStakeContender(contenderId);
 }
 
 void Processor::promoteStakeContendersToTip() {
@@ -1111,8 +1111,7 @@ void Processor::promoteStakeContendersToTip() {
 
     {
         LOCK(cs_peerManager);
-        LOCK(cs_stakeContenderCache);
-        stakeContenderCache.promoteToBlock(activeTip, *peerManager);
+        peerManager->promoteStakeContendersToBlock(activeTip);
     }
 
     // If staking rewards have not been computed yet, we will try again when
@@ -1137,21 +1136,21 @@ bool Processor::setContenderStatusForLocalWinners(
     }
 
     // Set status for local winners
-    LOCK(cs_stakeContenderCache);
+    LOCK(cs_peerManager);
     for (const auto &winner : winners) {
         const StakeContenderId contenderId(prevblockhash, winner.first);
-        stakeContenderCache.finalize(contenderId);
+        peerManager->finalizeStakeContender(contenderId);
     }
 
     // Treat the highest ranking contender similarly to local winners except
     // that it is not automatically included in the winner set (unless it
     // happens to be selected as a local winner).
-    if (stakeContenderCache.getPollableContenders(
-            prevblockhash, AVALANCHE_CONTENDER_MAX_POLLABLE,
-            pollableContenders) > 0) {
+    if (peerManager->getPollableContenders(prevblockhash,
+                                           AVALANCHE_CONTENDER_MAX_POLLABLE,
+                                           pollableContenders) > 0) {
         // Accept the highest ranking contender. This is a no-op if the highest
         // ranking contender is already the local winner.
-        stakeContenderCache.accept(pollableContenders[0]);
+        peerManager->acceptStakeContender(pollableContenders[0]);
         return true;
     }
 
@@ -1448,7 +1447,7 @@ bool Processor::IsWorthPolling::operator()(const ProofRef &proof) const {
 
 bool Processor::IsWorthPolling::operator()(
     const StakeContenderId &contenderId) const {
-    AssertLockNotHeld(processor.cs_stakeContenderCache);
+    AssertLockNotHeld(processor.cs_peerManager);
     AssertLockNotHeld(processor.cs_stakingRewards);
 
     // Only worth polling for contenders that we know about
@@ -1488,7 +1487,7 @@ bool Processor::GetLocalAcceptance::operator()(const ProofRef &proof) const {
 
 bool Processor::GetLocalAcceptance::operator()(
     const StakeContenderId &contenderId) const {
-    AssertLockNotHeld(processor.cs_stakeContenderCache);
+    AssertLockNotHeld(processor.cs_peerManager);
     AssertLockNotHeld(processor.cs_stakingRewards);
 
     return processor.getStakeContenderStatus(contenderId) == 0;

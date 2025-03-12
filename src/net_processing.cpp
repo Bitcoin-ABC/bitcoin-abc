@@ -6956,7 +6956,6 @@ void PeerManagerImpl::ProcessMessage(
                             break;
                         }
                         case avalanche::VoteStatus::Finalized: {
-                            LOCK(cs_main);
                             m_avalanche->finalizeStakeContender(contenderId);
                             break;
                         }
@@ -9217,7 +9216,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     saveProofIfStaker(node, proofid, nodeid);
 
     if (isStaker && m_opts.avalanche_staking_preconsensus) {
-        WITH_LOCK(cs_main, m_avalanche->addStakeContender(proof));
+        m_avalanche->addStakeContender(proof);
     }
 
     return true;

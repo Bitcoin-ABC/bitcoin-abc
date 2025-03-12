@@ -1390,4 +1390,52 @@ bool PeerManager::loadPeersFromFile(
     return true;
 }
 
+void PeerManager::cleanupStakeContenders(const int requestedMinHeight) {
+    stakeContenderCache.cleanup(requestedMinHeight);
+}
+
+void PeerManager::addStakeContender(const ProofRef &proof) {
+    const CBlockIndex *tip = WITH_LOCK(cs_main, return chainman.ActiveTip());
+    stakeContenderCache.add(tip, proof);
+}
+
+int PeerManager::getStakeContenderStatus(const StakeContenderId &contenderId,
+                                         BlockHash &prevblockhashout) const {
+    return stakeContenderCache.getVoteStatus(contenderId, prevblockhashout);
+}
+
+void PeerManager::acceptStakeContender(const StakeContenderId &contenderId) {
+    stakeContenderCache.accept(contenderId);
+}
+
+void PeerManager::finalizeStakeContender(const StakeContenderId &contenderId) {
+    stakeContenderCache.finalize(contenderId);
+}
+
+void PeerManager::rejectStakeContender(const StakeContenderId &contenderId) {
+    stakeContenderCache.reject(contenderId);
+}
+
+void PeerManager::promoteStakeContendersToBlock(const CBlockIndex *pindex) {
+    stakeContenderCache.promoteToBlock(pindex, *this);
+}
+
+bool PeerManager::setStakeContenderWinners(
+    const CBlockIndex *pindex, const std::vector<CScript> &payoutScripts) {
+    return stakeContenderCache.setWinners(pindex, payoutScripts);
+}
+
+size_t PeerManager::getPollableContenders(
+    const BlockHash &prevblockhash, size_t maxPollable,
+    std::vector<StakeContenderId> &pollableContenders) const {
+    return stakeContenderCache.getPollableContenders(prevblockhash, maxPollable,
+                                                     pollableContenders);
+}
+
+bool PeerManager::getStakeContenderWinners(
+    const BlockHash &prevblockhash,
+    std::vector<std::pair<ProofId, CScript>> &winners) const {
+    return stakeContenderCache.getWinners(prevblockhash, winners);
+}
+
 } // namespace avalanche

@@ -9,6 +9,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
 #include <avalanche/proofradixtreeadapter.h>
+#include <avalanche/stakecontendercache.h>
 #include <coins.h>
 #include <common/bloom.h>
 #include <consensus/validation.h>
@@ -294,6 +295,8 @@ class PeerManager {
 
     std::unordered_set<ProofId, SaltedProofIdHasher> manualFlakyProofids;
 
+    StakeContenderCache stakeContenderCache;
+
 public:
     static constexpr size_t MAX_REMOTE_PROOFS{100};
 
@@ -451,6 +454,24 @@ public:
             func(p);
         }
     }
+
+    /** Make some of the contender cache API available */
+    void cleanupStakeContenders(const int requestedMinHeight);
+    void addStakeContender(const ProofRef &proof);
+    int getStakeContenderStatus(const StakeContenderId &contenderId,
+                                BlockHash &prevblockhashout) const;
+    void acceptStakeContender(const StakeContenderId &contenderId);
+    void finalizeStakeContender(const StakeContenderId &contenderId);
+    void rejectStakeContender(const StakeContenderId &contenderId);
+    void promoteStakeContendersToBlock(const CBlockIndex *pindex);
+    bool setStakeContenderWinners(const CBlockIndex *pindex,
+                                  const std::vector<CScript> &payoutScripts);
+    size_t getPollableContenders(
+        const BlockHash &prevblockhash, size_t maxPollable,
+        std::vector<StakeContenderId> &pollableContenders) const;
+    bool getStakeContenderWinners(
+        const BlockHash &prevblockhash,
+        std::vector<std::pair<ProofId, CScript>> &winners) const;
 
     /****************************************************
      * Functions which are public for testing purposes. *

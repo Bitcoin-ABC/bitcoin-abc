@@ -30,6 +30,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
+    "avalanche/peermanager -> avalanche/stakecontendercache -> avalanche/peermanager"
     "kernel/coinstats -> validation -> kernel/coinstats"
     "kernel/mempool_persist -> validation -> kernel/mempool_persist"
     "kernel/disconnected_transactions -> validation -> kernel/disconnected_transactions"

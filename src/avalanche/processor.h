@@ -11,7 +11,6 @@
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
 #include <avalanche/stakecontender.h>
-#include <avalanche/stakecontendercache.h>
 #include <avalanche/voterecord.h> // For AVALANCHE_MAX_INFLIGHT_POLL
 #include <blockindex.h>
 #include <blockindexcomparators.h>
@@ -255,9 +254,6 @@ class Processor final : public NetEventsInterface {
     std::unordered_map<BlockHash, StakingReward, SaltedUint256Hasher>
         stakingRewards GUARDED_BY(cs_stakingRewards);
 
-    mutable Mutex cs_stakeContenderCache;
-    StakeContenderCache stakeContenderCache GUARDED_BY(cs_stakeContenderCache);
-
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CTxMemPool *mempoolIn,
               CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
@@ -348,16 +344,16 @@ public:
     }
     bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
-                                 !cs_stakeContenderCache, !cs_finalizedItems);
+                                 !cs_finalizedItems);
     bool canShareLocalProof();
 
     bool computeStakingReward(const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
-                                 !cs_stakeContenderCache, !cs_finalizedItems);
+                                 !cs_finalizedItems);
     bool eraseStakingRewardWinner(const BlockHash &prevBlockHash)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     void cleanupStakingRewards(const int minHeight)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_stakeContenderCache);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager);
     bool getStakingRewardWinners(
         const BlockHash &prevBlockHash,
         std::vector<std::pair<ProofId, CScript>> &winners) const
@@ -367,7 +363,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     bool setStakingRewardWinners(const CBlockIndex *pprev,
                                  const std::vector<CScript> &payouts)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_stakeContenderCache);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager);
     bool setStakingRewardWinners(
         const CBlockIndex *pprev,
         const std::vector<std::pair<ProofId, CScript>> &winners)
@@ -391,33 +387,30 @@ public:
 
     /** Track votes on stake contenders */
     void addStakeContender(const ProofRef &proof)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_stakeContenderCache);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     int getStakeContenderStatus(const StakeContenderId &contenderId) const
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
     void acceptStakeContender(const StakeContenderId &contenderId)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     void finalizeStakeContender(const StakeContenderId &contenderId)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_stakeContenderCache,
-                                 !cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
     void rejectStakeContender(const StakeContenderId &contenderId)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
 
     /** Promote stake contender cache entries to the latest chain tip */
     void promoteStakeContendersToTip()
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards,
-                                 !cs_peerManager, !cs_finalizationTip,
-                                 !cs_finalizedItems);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager,
+                                 !cs_finalizationTip, !cs_finalizedItems);
 
 private:
     void updatedBlockTip()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
-                                 !cs_finalizationTip, !cs_stakeContenderCache,
-                                 !cs_stakingRewards);
+                                 !cs_finalizationTip, !cs_stakingRewards);
     void transactionAddedToMempool(const CTransactionRef &tx)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     void runEventLoop()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
-                                 !cs_stakeContenderCache, !cs_finalizedItems);
+                                 !cs_finalizedItems);
     void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
@@ -434,7 +427,7 @@ private:
     bool setContenderStatusForLocalWinners(
         const CBlockIndex *pindex,
         std::vector<StakeContenderId> &pollableContenders)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
 
     /**
      * We don't need many blocks but a low false positive rate.
@@ -469,7 +462,7 @@ private:
         bool operator()(const ProofRef &proof) const
             LOCKS_EXCLUDED(cs_peerManager);
         bool operator()(const StakeContenderId &contenderId) const
-            LOCKS_EXCLUDED(cs_stakeContenderCache, cs_stakingRewards);
+            LOCKS_EXCLUDED(cs_peerManager, cs_stakingRewards);
         bool operator()(const CTransactionRef &tx) const;
     };
     bool isWorthPolling(const AnyVoteItem &item) const

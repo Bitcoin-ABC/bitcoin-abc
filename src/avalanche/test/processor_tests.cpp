@@ -409,16 +409,13 @@ struct StakeContenderProvider {
         const StakeContenderId contenderId(chaintip->GetBlockHash(),
                                            proof->getId());
 
-        {
-            LOCK(cs_main);
-            fixture->m_processor->addStakeContender(proof);
+        fixture->m_processor->addStakeContender(proof);
 
-            // Many of these tests assume that building a new item means it is
-            // accepted by default. Contenders are different in that they are
-            // only accepted if they are a stake winner. We stick the the
-            // convention for these tests and accept the contender.
-            fixture->m_processor->acceptStakeContender(contenderId);
-        }
+        // Many of these tests assume that building a new item means it is
+        // accepted by default. Contenders are different in that they are
+        // only accepted if they are a stake winner. We stick the the
+        // convention for these tests and accept the contender.
+        fixture->m_processor->acceptStakeContender(contenderId);
 
         BOOST_CHECK(
             fixture->m_processor->getStakeContenderStatus(contenderId) == 0);
@@ -2574,11 +2571,8 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
 
     // Add stake contenders. Without computing staking rewards, the status is
     // pending.
-    {
-        LOCK(cs_main);
-        m_processor->addStakeContender(proof1);
-        m_processor->addStakeContender(proof2);
-    }
+    m_processor->addStakeContender(proof1);
+    m_processor->addStakeContender(proof2);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block1),
                       -2);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block1),
@@ -2731,7 +2725,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         });
 
         // Add it as a stake contender so it will be promoted
-        WITH_LOCK(cs_main, m_processor->addStakeContender(proof));
+        m_processor->addStakeContender(proof);
 
         proofs.emplace_back(std::move(proof));
     }
@@ -2792,7 +2786,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
                                ->m_blockman.LookupBlockIndex(block.GetHash()));
     auto bestproof = buildRandomProof(active_chainstate,
                                       std::numeric_limits<uint32_t>::max());
-    WITH_LOCK(cs_main, m_processor->addStakeContender(bestproof));
+    m_processor->addStakeContender(bestproof);
     AvalancheTest::updatedBlockTip(*m_processor);
 
     // Compute local stake winners
@@ -2827,10 +2821,7 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
     ProofId localWinnerProofId = localWinnerProof->getId();
     const StakeContenderId localWinnerContenderId(chaintipHash,
                                                   localWinnerProof->getId());
-    {
-        LOCK(cs_main);
-        m_processor->addStakeContender(localWinnerProof);
-    }
+    m_processor->addStakeContender(localWinnerProof);
 
     // Prepare the proof so that it becomes the local stake winner
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
@@ -2865,10 +2856,7 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
          numContenders < AVALANCHE_CONTENDER_MAX_POLLABLE * 10;
          numContenders++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
-        {
-            LOCK(cs_main);
-            m_processor->addStakeContender(proof);
-        }
+        m_processor->addStakeContender(proof);
 
         const StakeContenderId contenderId(chaintipHash, proof->getId());
         double rank = contenderId.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
