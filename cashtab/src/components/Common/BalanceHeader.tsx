@@ -156,9 +156,7 @@ const BalanceHeader: React.FC<BalanceHeaderProps> = ({
                         hideBalance={settings.balanceVisible === false}
                     >
                         {formattedBalanceXecx}{' '}
-                        <a
-                            href={`/#/token/${appConfig.vipTokens.xecx.tokenId}`}
-                        >
+                        <a href={`#/token/${appConfig.vipTokens.xecx.tokenId}`}>
                             XECX
                         </a>
                     </BalanceRow>
@@ -170,7 +168,7 @@ const BalanceHeader: React.FC<BalanceHeaderProps> = ({
                         hideBalance={settings.balanceVisible === false}
                     >
                         {formattedBalanceFirma}{' '}
-                        <a href={`/#/token/${FIRMA.tokenId}`}>FIRMA</a>
+                        <a href={`#/token/${FIRMA.tokenId}`}>FIRMA</a>
                     </BalanceRow>
                 )}
             </BalanceXec>
