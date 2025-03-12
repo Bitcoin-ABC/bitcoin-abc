@@ -10,6 +10,7 @@ use std::sync::{
 use abc_rust_error::Result;
 use async_trait::async_trait;
 use bitcoinsuite_chronik_client::{
+    assert_status_code_eq,
     handler::{IpcHandler, IpcReader},
     test_runner::{handle_test_info, spin_child_process},
     ChronikClient, ChronikClientError,
@@ -117,22 +118,7 @@ impl IpcReader for BlockandBlocksIPC {
                             )
                             .await;
 
-                            let err = result
-                                .unwrap_err()
-                                .downcast::<ChronikClientError>()?;
-
-                            let status_code = match err {
-                                ChronikClientError::ChronikError {
-                                    status_code: e,
-                                    ..
-                                } => e,
-                                _ => panic!(
-                                    "ChronikClientError should be raised, but
-                                     hasn't"
-                                ),
-                            };
-
-                            assert_eq!(status_code, 400);
+                            assert_status_code_eq!(result, 400);
                         }
 
                         // Gives us the block at 10 higher
@@ -238,22 +224,7 @@ impl IpcReader for BlockandBlocksIPC {
                             )
                             .await;
 
-                            let err = result
-                                .unwrap_err()
-                                .downcast::<ChronikClientError>()?;
-
-                            let status_code = match err {
-                                ChronikClientError::ChronikError {
-                                    status_code: e,
-                                    ..
-                                } => e,
-                                _ => panic!(
-                                    "ChronikClientError should be raised, but
-                                     hasn't"
-                                ),
-                            };
-
-                            assert_eq!(status_code, 404);
+                            assert_status_code_eq!(result, 404);
 
                             // blocks does not throw error if asked for parked
                             // block, but also does not return it
@@ -409,22 +380,7 @@ impl IpcReader for BlockandBlocksIPC {
                             )
                             .await;
 
-                            let err = result
-                                .unwrap_err()
-                                .downcast::<ChronikClientError>()?;
-
-                            let status_code = match err {
-                                ChronikClientError::ChronikError {
-                                    status_code: e,
-                                    ..
-                                } => e,
-                                _ => panic!(
-                                    "ChronikClientError should be raised, but
-                                     hasn't"
-                                ),
-                            };
-
-                            assert_eq!(status_code, 404);
+                            assert_status_code_eq!(result, 404);
 
                             // blocks does not throw error if asked for
                             // invalidated block, but also does not return it

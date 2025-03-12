@@ -465,3 +465,46 @@ mod tests {
         Ok(())
     }
 }
+
+#[macro_export]
+macro_rules! assert_status_code_eq {
+    ($result:expr, $expected_status:expr) => {
+        match $result {
+            Ok(_) => {
+                panic!(
+                    "Expected HTTP error response with status code {}, but \
+                     the request succeeded",
+                    $expected_status
+                );
+            }
+            Err(report) => {
+                let report_debug = format!("{:?}", report);
+
+                let err =
+                    report.downcast::<ChronikClientError>().expect(&format!(
+                        "Expected a Chronik client error but got a different \
+                         error {}",
+                        report_debug
+                    ));
+
+                let status_code = match err {
+                    ChronikClientError::ChronikError {
+                        status_code, ..
+                    } => status_code,
+                    other => panic!(
+                        "Expected a ChronikError with HTTP status code, but \
+                         got different variant: {:?}",
+                        other
+                    ),
+                };
+
+                assert_eq!(
+                    status_code, $expected_status,
+                    "HTTP status code assertion failed: expected {}, received \
+                     {}",
+                    $expected_status, status_code
+                );
+            }
+        }
+    };
+}
