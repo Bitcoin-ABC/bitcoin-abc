@@ -79,6 +79,8 @@ BlockAssembler::BlockAssembler(Chainstate &chainstate,
     // by everyone else, and so the block will propagate quickly, regardless of
     // how many sigchecks it contains.)
     nMaxGeneratedBlockSigChecks = nMaxBlockSigChecks;
+
+    resetBlock();
 }
 
 static BlockAssembler::Options DefaultOptions(const Config &config) {
