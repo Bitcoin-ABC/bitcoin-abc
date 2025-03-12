@@ -78,6 +78,9 @@ private:
     const bool fPrintPriority;
 
 public:
+    static constexpr uint64_t COINBASE_RESERVED_SIZE{1000};
+    static constexpr uint64_t COINBASE_RESERVED_SIGCHECKS{100};
+
     struct Options {
         Options();
         uint64_t nExcessiveBlockSize;

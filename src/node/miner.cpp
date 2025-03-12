@@ -67,10 +67,11 @@ BlockAssembler::BlockAssembler(Chainstate &chainstate,
       fPrintPriority(
           gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY)) {
     blockMinFeeRate = options.blockMinFeeRate;
-    // Limit size to between 1K and options.nExcessiveBlockSize -1K for sanity:
-    nMaxGeneratedBlockSize = std::max<uint64_t>(
-        1000, std::min<uint64_t>(options.nExcessiveBlockSize - 1000,
-                                 options.nMaxGeneratedBlockSize));
+    // Limit size to between COINBASE_RESERVED_SIZE and
+    // options.nExcessiveBlockSize - COINBASE_RESERVED_SIZE for sanity:
+    nMaxGeneratedBlockSize =
+        std::clamp(options.nMaxGeneratedBlockSize, COINBASE_RESERVED_SIZE,
+                   options.nExcessiveBlockSize - COINBASE_RESERVED_SIZE);
     // Calculate the max consensus sigchecks for this block.
     auto nMaxBlockSigChecks = GetMaxBlockSigChecksCount(nMaxGeneratedBlockSize);
     // Allow the full amount of signature check operations in lieu of a separate
@@ -110,8 +111,8 @@ BlockAssembler::BlockAssembler(const Config &config, Chainstate &chainstate,
 
 void BlockAssembler::resetBlock() {
     // Reserve space for coinbase tx.
-    nBlockSize = 1000;
-    nBlockSigChecks = 100;
+    nBlockSize = COINBASE_RESERVED_SIZE;
+    nBlockSigChecks = COINBASE_RESERVED_SIGCHECKS;
 
     // These counters do not include coinbase tx.
     nBlockTx = 0;
