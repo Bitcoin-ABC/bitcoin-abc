@@ -296,12 +296,12 @@ class UTXOList(MyTreeWidget):
         avaproof_action = menu.addAction(
             _("Build avalanche proof"), lambda: self.build_avaproof(utxos)
         )
-        if not self.wallet.is_schnorr_possible() or self.wallet.is_watching_only():
+        if not self.wallet.is_stake_signature_possible():
             avaproof_action.setEnabled(False)
             avaproof_action.setToolTip(
                 _(
-                    "Cannot build avalanche proof for hardware, multisig or "
-                    "watch-only wallet (Schnorr signature is required)."
+                    "Cannot build avalanche proof or delegation for some hardware, "
+                    "multisig or watch-only wallet (Schnorr signature is required)."
                 )
             )
         elif any(c["height"] <= 0 for c in utxos):
