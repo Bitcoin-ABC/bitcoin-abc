@@ -5,7 +5,11 @@
 import math
 import time
 
-from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.avatools import (
+    build_msg_avaproofs,
+    can_find_inv_in_poll,
+    get_ava_p2p_interface,
+)
 from test_framework.key import ECPubKey
 from test_framework.messages import (
     MSG_AVA_STAKE_CONTENDER,
@@ -14,10 +18,12 @@ from test_framework.messages import (
     hash256,
     ser_uint256,
 )
+from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 
 QUORUM_NODE_COUNT = 16
+AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
 
 
 class AvalancheContenderVotingTest(BitcoinTestFramework):
@@ -34,7 +40,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-persistavapeers=0",
                 "-avastalevotethreshold=160",
                 "-avastalevotefactor=1",
                 "-simplegbt",
@@ -163,11 +168,13 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)]
         )
 
-        def get_all_contender_ids(tip):
+        def get_all_contender_ids(tip, proofids=None):
             # Determine all possible contenders IDs for the given block.
             # The first 12 (best scores) will be polled.
+            if not proofids:
+                proofids = [peer.proof.proofid for peer in quorum]
             return sorted(
-                [make_contender_id(tip, peer.proof.proofid) for peer in quorum],
+                [make_contender_id(tip, proofid) for proofid in proofids],
                 key=lambda cid: (256.0 - math.log2(cid)) / 5000,
             )
 
@@ -178,6 +185,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             assert_response(
                 [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
             )
+
+        self.log.info("Check votes after staking rewards have been computed")
 
         # Advance time past the staking rewards minimum registration delay and
         # mine a block.
@@ -465,6 +474,101 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         check_stake_winners(
             tip, [], [(local_winner_proofid, local_winner_payout_script)], []
         )
+
+        self.log.info("Check votes after node restart")
+
+        # Restart the node. Persisted ava peers should be re-added to the cache.
+        self.restart_node(
+            0, extra_args=self.extra_args[0] + ["-avaminquorumconnectedstakeratio=0.5"]
+        )
+        self.wait_until(lambda: node.getbestblockhash() == tip)
+
+        old_quorum = quorum
+        quorum = get_quorum()
+        poll_node = quorum[0]
+
+        assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        for peer in quorum:
+            self.wait_until(lambda: has_finalized_proof(peer.proof.proofid))
+
+        def peer_has_getavaproofs():
+            with p2p_lock:
+                for peer in quorum:
+                    if peer.message_count.get("getavaproofs", 0) > 0:
+                        return peer
+            return None
+
+        # Trigger periodic request for getavaproofs
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        self.wait_until(lambda: peer_has_getavaproofs() is not None)
+
+        # Send proofs to node so they are marked as remote and will be promoted. But skip
+        # the last proof so we can test that proofs missing promotion are re-added to the cache.
+        prefilled_proofs = sorted(
+            [peer.proof for peer in old_quorum[:-1]], key=lambda p: p.proofid
+        )
+        peer_with_getavaproofs = peer_has_getavaproofs()
+        peer_with_getavaproofs.send_message(
+            build_msg_avaproofs(prefilled_proofs, prefilled_proofs)
+        )
+        with p2p_lock:
+            # Reset the count so we don't pick this peer again unless it received another
+            # getavaproofs message.
+            peer_with_getavaproofs.message_count["getavaproofs"] = 0
+
+        # Get the key so we can verify signatures.
+        avakey = ECPubKey()
+        avakey.set(bytes.fromhex(node.getavalanchekey()))
+
+        # Need a finalized block to promote contenders
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        # Trigger building the whole cache for a new block since we cannot be
+        # certain what the tip was when the persisted proofs were registered.
+        tip = self.generate(node, 1)[0]
+
+        # Sanity check
+        for contender_id in get_all_contender_ids(tip):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+            )
+
+        # Proofs from the prior quorum that were persisted were loaded back into the contender cache
+        for contender_id in get_all_contender_ids(
+            tip, [p.proof.proofid for p in old_quorum[:-1]]
+        ):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+            )
+
+        # Set last proof as remote
+        prefilled_proofs = [old_quorum[-1].proof]
+        peer_has_getavaproofs().send_message(
+            build_msg_avaproofs(prefilled_proofs, prefilled_proofs)
+        )
+
+        # Trigger contenders promotion
+        tip = self.generate(node, 1)[0]
+
+        # Sanity check
+        for contender_id in get_all_contender_ids(tip):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+            )
+
+        # All proofs from the prior quorum were promoted
+        for contender_id in get_all_contender_ids(
+            tip, [p.proof.proofid for p in old_quorum]
+        ):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+            )
 
 
 if __name__ == "__main__":

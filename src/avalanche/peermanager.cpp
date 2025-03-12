@@ -415,6 +415,10 @@ bool PeerManager::registerProof(const ProofRef &proof,
         addOrUpdateNode(inserted.first, nodeid);
     }
 
+    if (m_stakingPreConsensus) {
+        addStakeContender(proof);
+    }
+
     return true;
 }
 
@@ -658,6 +662,19 @@ void PeerManager::clearAllInvalid() {
 
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
+    if (m_stakingPreConsensus && isBoundToPeer(proofid) &&
+        !isRemoteProof(proofid)) {
+        // If this is the first time this peer's proof becomes a remote proof of
+        // any node, ensure it is included in the contender cache. There is a
+        // special case where the contender cache can lose track of a proof if
+        // it is not saved as a remote proof before the next finalized block
+        // (triggering promotion, where non-remote cache entries are dropped).
+        // This does not happen in the hot path since receiving a proof
+        // immediately saves it as a remote, however it becomes more likely if
+        // the proof was loaded from a file (-persistavapeers) or added via RPC.
+        addStakeContender(getProof(proofid));
+    }
+
     // Get how many proofs this node has announced
     auto &remoteProofsByLastUpdate = remoteProofs.get<by_lastUpdate>();
     auto [begin, end] = remoteProofsByLastUpdate.equal_range(nodeid);

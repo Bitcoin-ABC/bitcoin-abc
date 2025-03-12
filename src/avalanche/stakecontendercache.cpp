@@ -54,10 +54,10 @@ void StakeContenderCache::promoteToBlock(
     const CBlockIndex *activeTip,
     std::function<bool(const ProofId &proofid)> const &shouldPromote) {
     // "Promote" past contenders to activeTip and check that those contenders
-    // are still valid proofs to be stake winners. This is done because new
-    // stake contenders are only added when a new proof is seen for the first
-    // time. We need to persist the cached payout scripts and proof scores since
-    // they are not guaranteed to be stored by peerManager.
+    // are still valid proofs to be stake winners. This is done because stake
+    // contenders are only added when a proof is registered in the peerManager.
+    // We need to persist the cached payout scripts and proof scores since they
+    // are not guaranteed to be stored in the event they become remote proofs.
     const BlockHash &blockhash = activeTip->GetBlockHash();
     const int height = activeTip->nHeight;
     lastPromotedHeight = height;

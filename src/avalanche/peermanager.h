@@ -242,6 +242,8 @@ class PeerManager {
 
     ChainstateManager &chainman;
 
+    const bool m_stakingPreConsensus{false};
+
     ProofRef localProof;
 
     struct by_lastUpdate;
@@ -302,10 +304,11 @@ public:
     static constexpr size_t MAX_REMOTE_PROOFS{100};
 
     PeerManager(const Amount &stakeUtxoDustThresholdIn,
-                ChainstateManager &chainmanIn,
+                ChainstateManager &chainmanIn, bool stakingPreConsensus = false,
                 const ProofRef &localProofIn = ProofRef())
         : stakeUtxoDustThreshold(stakeUtxoDustThresholdIn),
-          chainman(chainmanIn), localProof(localProofIn){};
+          chainman(chainmanIn), m_stakingPreConsensus(stakingPreConsensus),
+          localProof(localProofIn){};
 
     /**
      * Node API.

@@ -155,7 +155,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
       chainman(chainmanIn), mempool(mempoolIn), round(0),
       peerManager(std::make_unique<PeerManager>(
-          stakeUtxoDustThreshold, chainman,
+          stakeUtxoDustThreshold, chainman, stakingPreConsensus,
           peerDataIn ? peerDataIn->proof : ProofRef())),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
