@@ -197,8 +197,9 @@ rm -rf "$PYDIR"/site-packages/PyQt5/Qt.*
 
 # these are deleted as they were not deterministic; and are not needed anyway
 find "$APPDIR" -path '*/__pycache__*' -delete
-rm -rf "$PYDIR"/site-packages/*.dist-info/
 rm -rf "$PYDIR"/site-packages/*.egg-info/
+# Remove the .dist-info directories but keep slip10-*.dist-info because this library needs its metadata.
+find "$PYDIR/site-packages" -maxdepth 1 -mindepth 1 -type d -name "*.dist-info" ! -name "slip10*" -exec rm -rf {} +
 
 # set timestamps in dist, in order to make the installer reproducible
 find -exec touch -h -d '2000-11-11T11:11:11+00:00' {} +

@@ -1,5 +1,6 @@
 Cython>=0.27
-trezor[hidapi]>=0.13.8,<0.14
+# trezorlib with support for eCash stake signatures (if a custom firmware is used)
+trezor[hidapi] @ https://github.com/Bitcoin-ABC/ecash-trezor-firmware/archive/bea24410b4f3b7a7327bb934a78cf9cba482572a.tar.gz#subdirectory=python
 keepkey>=6.1
 # btchip-python 0.1.32 with a patch to fix a malformed dependency
 # See https://github.com/LedgerHQ/btchip-python/pull/54
