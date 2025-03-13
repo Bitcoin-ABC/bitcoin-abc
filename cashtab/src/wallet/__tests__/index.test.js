@@ -24,10 +24,8 @@ import {
 import { isValidCashtabWallet } from 'validation';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import vectors from '../fixtures/vectors';
-import { Ecc } from 'ecash-lib';
 
 describe('Cashtab wallet methods', () => {
-    const ecc = new Ecc();
     describe('Calculates total balance in satoshis from a valid set of chronik utxos', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getBalanceSatsVectors;
@@ -95,7 +93,7 @@ describe('Cashtab wallet methods', () => {
         expectedReturns.forEach(expectedReturn => {
             const { description, mnemonic, wallet } = expectedReturn;
             it(`createCashtabWallet: ${description}`, async () => {
-                expect(await createCashtabWallet(ecc, mnemonic)).toStrictEqual(
+                expect(await createCashtabWallet(mnemonic)).toStrictEqual(
                     wallet,
                 );
 

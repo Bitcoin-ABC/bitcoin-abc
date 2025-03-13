@@ -370,7 +370,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
             // If wallet is invalid, rebuild to latest Cashtab schema
             let newWallet = await createCashtabWallet(
-                ecc,
                 storedWallet.mnemonic,
                 extraPathsToMigrate,
             );
@@ -402,7 +401,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                             // Recreate this wallet at latest format from mnemonic
 
                             const newSavedWallet = await createCashtabWallet(
-                                ecc,
                                 savedWallet.mnemonic,
                                 extraPathsToMigrate,
                             );
@@ -491,7 +489,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                         // Recreate this wallet at latest format from mnemonic
                         const migratedUnnamedActiveWallet =
                             await createCashtabWallet(
-                                ecc,
                                 activeWallet.mnemonic,
                                 extraPathsToMigrate,
                             );
@@ -523,7 +520,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
                                     const migratedWallet =
                                         await createCashtabWallet(
-                                            ecc,
                                             loadedPossiblyLegacyWallet.mnemonic,
                                             extraPathsToMigrate,
                                         );

@@ -5,10 +5,9 @@
 import BigNumber from 'bignumber.js';
 import * as bip39 from 'bip39';
 import randomBytes from 'randombytes';
-import * as utxolib from '@bitgo/utxo-lib';
 import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
-import { fromHex, Ecc } from 'ecash-lib';
+import { fromHex, HdNode, shaRmd160 } from 'ecash-lib';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
 import { ParsedTx } from 'chronik';
 import {
@@ -16,7 +15,7 @@ import {
     LegacyCashtabWallet_Pre_2_9_0,
     LegacyCashtabWallet_Pre_2_55_0,
 } from 'components/App/fixtures/mocks';
-import wif from 'wif';
+import * as wif from 'wif';
 import {
     TokenJson,
     TxJson,
@@ -252,7 +251,6 @@ export const hasEnoughToken = (
  * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
  */
 export const createCashtabWallet = async (
-    ecc: Ecc,
     mnemonic: string,
     additionalPaths: number[] = [],
 ): Promise<CashtabWallet> => {
@@ -274,10 +272,7 @@ export const createCashtabWallet = async (
 
     const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
 
-    const masterHDNode = utxolib.bip32.fromSeed(
-        rootSeedBuffer,
-        utxolib.networks.ecash,
-    );
+    const masterHDNode = HdNode.fromSeed(rootSeedBuffer);
 
     // wallet.paths is an array
     // For all newly-created wallets, we only support Path 1899
@@ -289,7 +284,7 @@ export const createCashtabWallet = async (
 
     const walletPaths: Map<number, CashtabPathInfo> = new Map();
     for (const path of pathsToDerive) {
-        const pathInfo = getPathInfo(masterHDNode, path, ecc);
+        const pathInfo = getPathInfo(masterHDNode, path);
         if (path === appConfig.derivationPath) {
             // Initialize wallet name with first 5 chars of Path1899 address
             const prefixLength = `${appConfig.prefix}:`.length;
@@ -312,30 +307,23 @@ export const createCashtabWallet = async (
  * @param ecc
  */
 const getPathInfo = (
-    masterHDNode: utxolib.BIP32Interface,
+    masterHDNode: HdNode,
     abbreviatedDerivationPath: number,
-    ecc: Ecc,
 ): CashtabPathInfo => {
     const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
-    const address = encodeCashAddress(
-        appConfig.prefix,
-        'p2pkh',
-        node.identifier,
-    );
-    // Note the 'true' modifier here means we will always return a string
+    const pk = node.pubkey();
+    const address = encodeCashAddress(appConfig.prefix, 'p2pkh', shaRmd160(pk));
     const { hash } = decodeCashAddress(address);
-    const skWif = node.toWIF();
-    // Get sk and pk
-    const sk = wif.decode(skWif).privateKey;
+    const sk = node.seckey();
 
-    const pk = ecc.derivePubkey(sk);
+    const thisWif = wif.encode(128, sk as Buffer, true);
 
     return {
         hash: hash.toString(),
         address,
-        wif: node.toWIF(),
-        sk,
+        wif: thisWif,
+        sk: sk as Uint8Array,
         pk,
     };
 };

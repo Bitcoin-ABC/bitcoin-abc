@@ -759,7 +759,7 @@ describe('<App />', () => {
 
         // Apart from state, which is blank from createCashtabWallet,
         // the imported wallet matches what we get from createCashtabWallet
-        const createdWallet = await createCashtabWallet(ecc, VALID_MNEMONIC);
+        const createdWallet = await createCashtabWallet(VALID_MNEMONIC);
         expect(importedWallet).toEqual({
             ...createdWallet,
             state: importedWallet.state,

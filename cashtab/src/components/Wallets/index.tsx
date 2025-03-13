@@ -65,13 +65,8 @@ const Wallets = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        cashtabState,
-        setCashtabState,
-        setLoading,
-        updateCashtabState,
-        ecc,
-    } = ContextValue;
+    const { cashtabState, setCashtabState, setLoading, updateCashtabState } =
+        ContextValue;
     const { wallets, contactList } = cashtabState;
 
     const emptyFormData: WalletsFormData = {
@@ -222,7 +217,7 @@ const Wallets = () => {
     const addNewWallet = async () => {
         // Generate a new wallet with a new mnemonic
         const mnemonic = generateMnemonic();
-        const newAddedWallet = await createCashtabWallet(ecc, mnemonic);
+        const newAddedWallet = await createCashtabWallet(mnemonic);
 
         // Note: technically possible though highly unlikley that a wallet already exists with this name
         // Also technically possible though ... er, almost impossibly improbable for wallet with same mnemonic to exist
@@ -273,10 +268,7 @@ const Wallets = () => {
         }
 
         // Create a new wallet from mnemonic
-        const newImportedWallet = await createCashtabWallet(
-            ecc,
-            formData.mnemonic,
-        );
+        const newImportedWallet = await createCashtabWallet(formData.mnemonic);
 
         // Handle edge case of another wallet having the same name
         const existingWalletHasSameName = wallets.find(
