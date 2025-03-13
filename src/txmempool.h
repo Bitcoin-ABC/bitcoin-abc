@@ -510,6 +510,9 @@ public:
                node::BlockFitter::COINBASE_RESERVED_SIGCHECKS;
     }
 
+    bool isWorthPolling(const CTransactionRef &tx) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs, !cs_conflicting);
+
     Amount GetTotalFee() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
         return m_total_fee;

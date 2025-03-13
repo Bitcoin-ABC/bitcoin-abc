@@ -551,6 +551,25 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
     return true;
 }
 
+bool CTxMemPool::isWorthPolling(const CTransactionRef &tx) const {
+    AssertLockHeld(cs);
+    AssertLockNotHeld(cs_conflicting);
+
+    const TxId &txid = tx->GetId();
+
+    if (exists(txid)) {
+        return true;
+    }
+
+    if (WITH_LOCK(cs_conflicting,
+                  return m_conflicting && m_conflicting->HaveTx(txid))) {
+        return true;
+    }
+
+    // Not in the mempool nor conflicting, don't poll
+    return false;
+}
+
 CTransactionRef CTxMemPool::get(const TxId &txid) const {
     LOCK(cs);
     indexed_transaction_set::const_iterator i = mapTx.find(txid);

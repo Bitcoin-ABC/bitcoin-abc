@@ -1461,13 +1461,8 @@ bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
     }
 
     AssertLockNotHeld(processor.mempool->cs);
-    LOCK(processor.mempool->cs);
-
-    return processor.mempool->exists(tx->GetId()) ||
-           processor.mempool->withConflicting(
-               [&tx](const TxConflicting &conflicting) {
-                   return conflicting.HaveTx(tx->GetId());
-               });
+    return WITH_LOCK(processor.mempool->cs,
+                     return processor.mempool->isWorthPolling(tx));
 }
 
 bool Processor::isWorthPolling(const AnyVoteItem &item) const {
