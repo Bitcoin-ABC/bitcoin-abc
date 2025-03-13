@@ -1006,6 +1006,63 @@ class SettingsDialog(WindowModalDialog):
             if filename := select_file():
                 update_firmware(filename)
 
+        def select_ecash_firmware():
+            client = devmgr.client_by_id(device_id)
+            if not client:
+                raise RuntimeError("Device not connected")
+
+            version = "2.8.9"
+            model_codename = client.client.model.internal_name.upper()
+            fingerprint = None
+
+            if model_codename == "T2T1":
+                # T
+                fingerprint = (
+                    "21ea2c454ff54d06441ca182903e9cb7037f2944557640d3b063d00b3f66b904"
+                )
+            if model_codename == "T2B1":
+                # Safe 3
+                fingerprint = (
+                    "3669b2442f499d494cda688d8895f16ccb27e0cf18935c4969708f20a33ff44f"
+                )
+            if model_codename == "T3B1":
+                # Safe 3
+                fingerprint = (
+                    "4e60652e198a673aafc8ab4ddacacf5229a9d7df8e9fee18f22cf398c23d019e"
+                )
+            if model_codename == "T3T1":
+                # Safe 5
+                fingerprint = (
+                    "b77c2b81eeb95462b6233a9320b5ba722784f7b25bb77be8eb99dc4961f197c3"
+                )
+
+            filename = os.path.join(
+                os.path.dirname(__file__),
+                "firmware",
+                f"{model_codename}-{version}.ecash.bin",
+            )
+
+            if not fingerprint or not os.path.isfile(filename):
+                self.show_message(
+                    "There is no eCash firmware available for your device"
+                )
+                return
+
+            self.show_warning(
+                f"You are about to install the eCash firmware version {version}\n\n"
+                f"This is not an official Trezor firmware, which means that:\n"
+                f" * Your device seed will be wiped if you have a Trezor\n"
+                f"   firmware currently installed.\n"
+                f" * Your will be requested to unlock the device bootloader\n"
+                f"   if not done already. This is irreversible.\n"
+                f" * Your device will show the firmware vendor as\n"
+                f"   'UNSAFE, DO NOT USE', and exhibit a worrying red warning\n"
+                f"   screen at boot.\n\n"
+                f"If you are not sure, you should not install this firmware."
+            )
+
+            update_firmware(filename, fingerprint)
+
         # Information tab
         info_tab = QtWidgets.QWidget()
         info_layout = QtWidgets.QVBoxLayout(info_tab)
@@ -1163,10 +1220,13 @@ class SettingsDialog(WindowModalDialog):
             _("Install firmware from disk...")
         )
         firmware_custom_button.clicked.connect(select_custom_firmware)
+        firmware_ecash_button = QtWidgets.QPushButton(_("Install eCash firmware"))
+        firmware_ecash_button.clicked.connect(select_ecash_firmware)
         firmware_layout.addWidget(firmware_current_version)
         firmware_layout.addWidget(firmware_trezor_button)
         firmware_layout.addWidget(firmware_warning)
         firmware_layout.addWidget(firmware_custom_button)
+        firmware_layout.addWidget(firmware_ecash_button)
         firmware_layout.addStretch(1)
 
         # Advanced tab

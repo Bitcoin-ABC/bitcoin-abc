@@ -221,8 +221,9 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         firmware_fingerprint = firmware_obj.digest().hex()
         if fingerprint and fingerprint != firmware_fingerprint:
             self.handler.show_error(
-                f"The firmware fingerprint {firmware_fingerprint.hex()} doesn't match the expected fingerprint {fingerprint.hex()}"
+                f"The firmware fingerprint {firmware_fingerprint} doesn't match the expected fingerprint {fingerprint}"
             )
+            return None
 
         # Is this a legit Trezor firmware, or at least a valid custom firmware ?
         invalid_fw = False
