@@ -1,6 +1,10 @@
 import os
+import tempfile
 from functools import partial
+from pathlib import Path
+from urllib.parse import urlparse
 
+import requests
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import (
     QBuffer,
@@ -565,6 +569,7 @@ class SettingsDialog(WindowModalDialog):
             pin_msg.setVisible(not features.pin_protection)
             passphrase_button.setText(endis[features.passphrase_protection])
             language_label.setText(features.language)
+            firmware_current_version.setText(_(f"Current firmware version: {version}"))
 
         def set_label_enabled():
             label_apply.setEnabled(label_edit.text() != self.features.label)
@@ -596,7 +601,7 @@ class SettingsDialog(WindowModalDialog):
                 return
             invoke_client("toggle_passphrase", unpair_after=currently_enabled)
 
-        def custom_homescreen():
+        def select_file():
             le_dir = (
                 (__class__.last_hs_dir and [__class__.last_hs_dir])
                 or QStandardPaths.standardLocations(QStandardPaths.DesktopLocation)
@@ -609,13 +614,17 @@ class SettingsDialog(WindowModalDialog):
             )
 
             if not filename:
-                return  # user cancelled
+                # user cancelled
+                return None
 
-            __class__.last_hs_dir = os.path.dirname(
-                filename
-            )  # remember previous location
+            # remember previous location
+            __class__.last_hs_dir = os.path.dirname(filename)
 
-            prepare_image_and_update_homescreen(filename)
+            return filename
+
+        def custom_homescreen():
+            if filename := select_file():
+                prepare_image_and_update_homescreen(filename)
 
         def ecash_homescreen():
             trusted_source = True
@@ -919,6 +928,84 @@ class SettingsDialog(WindowModalDialog):
         def slider_released():
             config.set_session_timeout(timeout_slider.sliderPosition() * 60)
 
+        def update_firmware(filename, fingerprint=None):
+            invoke_client("update_firmware", filename, fingerprint)
+
+        def select_trezor_firmware():
+            client = devmgr.client_by_id(device_id)
+            if not client:
+                raise RuntimeError("Device not connected")
+
+            # Based on trezorlib cli get_all_firmware_releases() and
+            # get_url_and_fingerprint_from_release() functions
+            url = f"https://data.trezor.io/firmware/{client.client.model.internal_name.lower()}/releases.json"
+            req = requests.get(url)
+            req.raise_for_status()
+            releases = req.json()
+
+            if not releases:
+                self.show_error(
+                    "Failed to retrieve the list of Trezor firmware releases"
+                )
+                return
+
+            # Stable channel only
+            releases = [
+                r for r in releases if "channel" not in r or r["channel"] == "stable"
+            ]
+
+            # Latest version in first position
+            releases.sort(key=lambda r: r["version"], reverse=True)
+
+            latest_release = releases[0]
+            version = tuple(latest_release["version"])
+            fingerprint = latest_release["fingerprint"]
+            url = latest_release["url"]
+            changelog = latest_release["changelog"]
+
+            if client.client.features.fw_vendor in (
+                "Trezor",
+                "SatoshiLabs",
+            ) and version <= (
+                client.client.features.major_version,
+                client.client.features.minor_version,
+                client.client.features.patch_version,
+            ):
+                self.show_message("You are already up-to-date")
+                return
+
+            self.show_message(
+                f"The latest Trezor firmware is version {'.'.join([str(v) for v in version])}\n\n"
+                f"Changelog:\n"
+                f"{changelog}"
+            )
+
+            url_prefix = "data/"
+            if not url.startswith(url_prefix):
+                self.show_error(f"Unsupported firmware download URL found: {url}")
+                return
+
+            url = "https://data.trezor.io/" + url[len(url_prefix) :]
+            req = requests.get(url)
+            req.raise_for_status()
+
+            # Save to a file. This will not get cleaned up because the update
+            # runs in another thread, but:
+            #  - the file is small
+            #  - the file name is always the same if repeated
+            #  - the temporary directory will be cleaned up upon restart
+            with tempfile.TemporaryDirectory(delete=False) as tmpdirname:
+                tmp_dir = Path(tmpdirname)
+                filename = tmp_dir / os.path.basename(urlparse(url).path)
+                with open(filename, "wb") as f:
+                    f.write(req.content)
+
+            update_firmware(filename, fingerprint)
+
+        def select_custom_firmware():
+            if filename := select_file():
+                update_firmware(filename)
+
         # Information tab
         info_tab = QtWidgets.QWidget()
         info_layout = QtWidgets.QVBoxLayout(info_tab)
@@ -1055,6 +1142,33 @@ class SettingsDialog(WindowModalDialog):
         settings_layout.addLayout(settings_glayout)
         settings_layout.addStretch(1)
 
+        # Firmware tab
+        firmware_tab = QtWidgets.QWidget()
+        firmware_layout = QtWidgets.QVBoxLayout(firmware_tab)
+        firmware_current_version = QtWidgets.QLabel()
+        firmware_trezor_button = QtWidgets.QPushButton(
+            _("Install the latest Trezor firmware")
+        )
+        firmware_trezor_button.clicked.connect(select_trezor_firmware)
+        firmware_warning = QtWidgets.QLabel(
+            _(
+                "Installing a non-official firmware is not supported by Trezor.\n"
+                "There is a risk of bricking the device and losing access to your coins.\n"
+                "Make sure you inderstand the risks and have a backup of your seed before you proceed."
+            )
+        )
+        firmware_warning.setWordWrap(True)
+        firmware_warning.setStyleSheet("color: red")
+        firmware_custom_button = QtWidgets.QPushButton(
+            _("Install firmware from disk...")
+        )
+        firmware_custom_button.clicked.connect(select_custom_firmware)
+        firmware_layout.addWidget(firmware_current_version)
+        firmware_layout.addWidget(firmware_trezor_button)
+        firmware_layout.addWidget(firmware_warning)
+        firmware_layout.addWidget(firmware_custom_button)
+        firmware_layout.addStretch(1)
+
         # Advanced tab
         advanced_tab = QtWidgets.QWidget()
         advanced_layout = QtWidgets.QVBoxLayout(advanced_tab)
@@ -1112,6 +1226,7 @@ class SettingsDialog(WindowModalDialog):
         tabs = QtWidgets.QTabWidget(self)
         tabs.addTab(info_tab, _("Information"))
         tabs.addTab(settings_tab, _("Settings"))
+        tabs.addTab(firmware_tab, _("Firmware"))
         tabs.addTab(advanced_tab, _("Advanced"))
         dialog_vbox = QtWidgets.QVBoxLayout(self)
         dialog_vbox.addWidget(tabs)
