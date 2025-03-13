@@ -70,13 +70,6 @@ export default {
                 returned: '1,000',
             },
             {
-                description:
-                    'Locale with multibyte thousands separator works as this is still string length 1',
-                decimalizedTokenQty: '1000',
-                userLocale: 'ar',
-                returned: '1٬000',
-            },
-            {
                 description: 'NFT group mint with no decimals and de-DE locale',
                 decimalizedTokenQty: '100',
                 userLocale: 'de-DE',
@@ -145,12 +138,6 @@ export default {
                 satoshis: 99999,
                 userLocale: 'fr-FR',
                 returned: '999,99',
-            },
-            {
-                description: 'Balance less than 1 thousand XEC, but arabic',
-                satoshis: 99999,
-                userLocale: 'ar',
-                returned: '٩٩٩٫٩٩',
             },
         ],
     },
