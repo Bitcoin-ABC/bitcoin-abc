@@ -21,7 +21,7 @@ import {
     TokenType,
 } from 'chronik-client';
 import { MockChronikClient } from 'mock-chronik-client';
-import Wallet, { COINBASE_MATURITY } from '.';
+import Wallet, { COINBASE_MATURITY } from './wallet';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
