@@ -5,6 +5,7 @@ from unittest.mock import Mock
 from .. import consolidate
 from ..address import Address
 from ..transaction import COMPRESSED_PUBKEY_NBYTES
+from ..wallet import AbstractWallet
 
 TEST_ADDRESS: Address = Address.from_string(
     "ecash:qr3l6uufcuwm9prgpa6cfxnez87fzstxesp7ugp0ez"
@@ -88,8 +89,7 @@ class TestConsolidateCoinSelection(unittest.TestCase):
                             if not incl_frozen:
                                 self.assertFalse(coin["is_frozen_coin"])
                             if not incl_tokens:
-                                self.assertIsNone(coin["slp_token"])
-                                self.assertFalse(coin["is_alp_token"])
+                                self.assertFalse(AbstractWallet.has_tokens(coin))
 
         # test minimum and maximum value
         consolidator = consolidate.AddressConsolidator(

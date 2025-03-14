@@ -135,11 +135,10 @@ def select_coins(wallet):
             # ineligible if not already flagged as such.
             good = good and (
                 i < 3  # must not have too many coins on the same address*
-                and not c["slp_token"]  # must not be SLP
-                and not c["is_frozen_coin"]  # must not be frozen
-                and (
-                    not c["coinbase"] or c["height"] <= mincbheight
-                )  # if coinbase -> must be mature coinbase
+                and not wallet.has_tokens(c)
+                and not c["is_frozen_coin"]
+                # if coinbase -> must be mature coinbase
+                and (not c["coinbase"] or c["height"] <= mincbheight)
             )
             # * = We skip addresses with too many coins, since they take up lots
             #     of 'space' for consolidation. TODO: there is possibility of

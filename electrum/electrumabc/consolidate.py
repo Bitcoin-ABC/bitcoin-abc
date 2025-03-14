@@ -72,10 +72,7 @@ class AddressConsolidator:
             if (
                 (include_coinbase or not utxo["coinbase"])
                 and (include_non_coinbase or utxo["coinbase"])
-                and (
-                    include_tokens
-                    or (utxo["slp_token"] is None and not utxo["is_alp_token"])
-                )
+                and (include_tokens or not wallet_instance.has_tokens(utxo))
                 and (include_frozen or not utxo["is_frozen_coin"])
                 and (min_value_sats is None or utxo["value"] >= min_value_sats)
                 and (max_value_sats is None or utxo["value"] <= max_value_sats)

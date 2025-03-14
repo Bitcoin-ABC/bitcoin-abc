@@ -1082,8 +1082,12 @@ class AbstractWallet(PrintError, SPVDelegate):
             exclude_frozen=True,
             mature=True,
             confirmed_only=confirmed_only,
-            exclude_slp=True,
+            exclude_tokens=True,
         )
+
+    @staticmethod
+    def has_tokens(coin: dict[str, Any]) -> bool:
+        return coin["slp_token"] is not None or coin["is_alp_token"]
 
     def get_utxos(
         self,
@@ -1093,7 +1097,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         confirmed_only=False,
         *,
         addr_set_out=None,
-        exclude_slp=True,
+        exclude_tokens=True,
     ):
         """Note that exclude_frozen = True checks for BOTH address-level and
         coin-level frozen status.
@@ -1114,7 +1118,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 utxos = self.get_addr_utxo(addr)
                 len_before = len(coins)
                 for x in utxos.values():
-                    if exclude_slp and x["slp_token"]:
+                    if exclude_tokens and self.has_tokens(x):
                         continue
                     if exclude_frozen and x["is_frozen_coin"]:
                         continue

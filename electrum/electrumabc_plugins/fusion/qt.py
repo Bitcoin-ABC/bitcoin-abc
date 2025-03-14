@@ -189,7 +189,7 @@ class Plugin(FusionPlugin, QObject):
             exclude_frozen=True,
             mature=True,
             confirmed_only=True,
-            exclude_slp=True,
+            exclude_tokens=True,
         )
 
         def start_fusion():
@@ -474,7 +474,7 @@ class Plugin(FusionPlugin, QObject):
                     if (
                         name not in fuz_coins_seen
                         and not adr_coin["is_frozen_coin"]
-                        and adr_coin.get("slp_token") is None
+                        and not wallet.has_tokens(adr_coin)
                         and not adr_coin.get("coinbase")
                     ):
                         coins.append(adr_coin)

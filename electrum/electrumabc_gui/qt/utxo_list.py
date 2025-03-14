@@ -167,7 +167,7 @@ class UTXOList(MyTreeWidget):
         # cache previous selection, if any
         prev_selection = self.get_selected()
         self.clear()
-        self.utxos = self.wallet.get_utxos(exclude_slp=False)
+        self.utxos = self.wallet.get_utxos(exclude_tokens=False)
         for x in self.utxos:
             address = x["address"]
             address_text = address.to_ui_string()
