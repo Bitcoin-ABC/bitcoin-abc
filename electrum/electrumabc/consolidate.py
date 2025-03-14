@@ -53,7 +53,7 @@ class AddressConsolidator:
         include_coinbase: bool = True,
         include_non_coinbase: bool = True,
         include_frozen: bool = False,
-        include_slp: bool = False,
+        include_tokens: bool = False,
         min_value_sats: Optional[int] = None,
         max_value_sats: Optional[int] = None,
         min_height: Optional[int] = None,
@@ -72,7 +72,10 @@ class AddressConsolidator:
             if (
                 (include_coinbase or not utxo["coinbase"])
                 and (include_non_coinbase or utxo["coinbase"])
-                and (include_slp or utxo["slp_token"] is None)
+                and (
+                    include_tokens
+                    or (utxo["slp_token"] is None and not utxo["is_alp_token"])
+                )
                 and (include_frozen or not utxo["is_frozen_coin"])
                 and (min_value_sats is None or utxo["value"] >= min_value_sats)
                 and (max_value_sats is None or utxo["value"] <= max_value_sats)

@@ -41,7 +41,7 @@ class ConsolidateWorker(QtCore.QObject):
         include_coinbase: bool,
         include_non_coinbase: bool,
         include_frozen: bool,
-        include_slp: bool,
+        include_tokens: bool,
         minimum_value: Optional[int],
         maximum_value: Optional[int],
         minimum_height: Optional[int],
@@ -57,7 +57,7 @@ class ConsolidateWorker(QtCore.QObject):
             include_coinbase,
             include_non_coinbase,
             include_frozen,
-            include_slp,
+            include_tokens,
             minimum_value,
             maximum_value,
             minimum_height,
@@ -162,7 +162,7 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
                 self.coins_page.include_coinbase_cb.isChecked(),
                 self.coins_page.include_non_coinbase_cb.isChecked(),
                 self.coins_page.include_frozen_cb.isChecked(),
-                self.coins_page.include_slp_cb.isChecked(),
+                self.coins_page.include_tokens_cb.isChecked(),
                 min_value,
                 max_value,
                 min_height,
@@ -232,10 +232,10 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
         self.include_frozen_cb.setChecked(False)
         layout.addWidget(self.include_frozen_cb)
 
-        self.include_slp_cb = QtWidgets.QCheckBox("Include coins with SLP tokens")
-        self.include_slp_cb.setChecked(False)
-        self.include_slp_cb.toggled.connect(self.warn_burn_tokens)
-        layout.addWidget(self.include_slp_cb)
+        self.include_tokens_cb = QtWidgets.QCheckBox("Include coins with tokens")
+        self.include_tokens_cb.setChecked(False)
+        self.include_tokens_cb.toggled.connect(self.warn_burn_tokens)
+        layout.addWidget(self.include_tokens_cb)
 
         self.minimum_amount_sb = AmountSpinBox()
         self.minimum_amount_sb.setValue(5.46)
@@ -285,18 +285,18 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
 
         return checkbox
 
-    def warn_burn_tokens(self, include_slp_is_checked: bool):
-        if include_slp_is_checked:
+    def warn_burn_tokens(self, include_tokens_is_checked: bool):
+        if include_tokens_is_checked:
             button = QtWidgets.QMessageBox.warning(
                 self,
-                "SLP tokens may be lost",
-                f"{PROJECT_NAME} does not support transferring SLP tokens. If you"
+                "Tokens may be lost",
+                f"{PROJECT_NAME} does not support transferring tokens. If you"
                 " include them in the consolidation transaction, they will be"
                 " burned.",
                 buttons=QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Ok,
             )
             if button == QtWidgets.QMessageBox.Cancel:
-                self.include_slp_cb.setChecked(False)
+                self.include_tokens_cb.setChecked(False)
 
     def get_minimum_value(self) -> Optional[int]:
         """Return minimum value in satoshis, or None"""

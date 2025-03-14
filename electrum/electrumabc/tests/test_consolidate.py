@@ -22,21 +22,23 @@ class TestConsolidateCoinSelection(unittest.TestCase):
         for is_coinbase in (True, False):
             for is_frozen_coin in (True, False):
                 for slp in (None, "not None"):
-                    coins[f"dummy_txid:{i}"] = {
-                        "address": TEST_ADDRESS,
-                        "prevout_n": i,
-                        "prevout_hash": "a" * 64,
-                        "height": 700_000 + i,
-                        "value": 1000 + i,
-                        "coinbase": is_coinbase,
-                        "is_frozen_coin": is_frozen_coin,
-                        "slp_token": slp,
-                        "type": "p2pkh",
-                        "signatures": [None],
-                        "pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
-                        "x_pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
-                        "num_sig": 1,
-                    }
+                    for alp in (True, False):
+                        coins[f"dummy_txid:{i}"] = {
+                            "address": TEST_ADDRESS,
+                            "prevout_n": i,
+                            "prevout_hash": "a" * 64,
+                            "height": 700_000 + i,
+                            "value": 1000 + i,
+                            "coinbase": is_coinbase,
+                            "is_frozen_coin": is_frozen_coin,
+                            "slp_token": slp,
+                            "is_alp_token": alp,
+                            "type": "p2pkh",
+                            "signatures": [None],
+                            "pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
+                            "x_pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
+                            "num_sig": 1,
+                        }
                     i += 1  # noqa: SIM113
                 tx_history.append(("a" * 64, 1))
 
@@ -69,14 +71,14 @@ class TestConsolidateCoinSelection(unittest.TestCase):
         for incl_coinbase in (True, False):
             for incl_noncoinbase in (True, False):
                 for incl_frozen in (True, False):
-                    for incl_slp in (True, False):
+                    for incl_tokens in (True, False):
                         consolidator = consolidate.AddressConsolidator(
                             TEST_ADDRESS,
                             self.mock_wallet,
                             incl_coinbase,
                             incl_noncoinbase,
                             incl_frozen,
-                            incl_slp,
+                            incl_tokens,
                         )
                         for coin in consolidator._coins:
                             if not incl_coinbase:
@@ -85,8 +87,9 @@ class TestConsolidateCoinSelection(unittest.TestCase):
                                 self.assertTrue(coin["coinbase"])
                             if not incl_frozen:
                                 self.assertFalse(coin["is_frozen_coin"])
-                            if not incl_slp:
+                            if not incl_tokens:
                                 self.assertIsNone(coin["slp_token"])
+                                self.assertFalse(coin["is_alp_token"])
 
         # test minimum and maximum value
         consolidator = consolidate.AddressConsolidator(
