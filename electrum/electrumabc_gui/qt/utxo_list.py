@@ -67,13 +67,12 @@ class CoinDisplayData:
     def get_name_short(self) -> str:
         return self.txid[:10] + "..." + f":{self.vout}"
 
+    def is_token(self) -> bool:
+        return self.slp_token is not None or self.is_alp_token
+
     def is_spendable(self) -> bool:
         return (
-            not self.is_frozen
-            and not self.is_address_frozen
-            and not self.is_immature
-            and self.slp_token is None
-            and not self.is_alp_token
+            not self.is_frozen and not self.is_address_frozen and not self.is_immature
         )
 
 
@@ -290,10 +289,17 @@ class UTXOList(MyTreeWidget):
         spendable_coins = self.get_utxos_by_names(
             [coin.get_name() for coin in selected_coins if coin.is_spendable()]
         )
+
+        def warn_if_tokens_and_spend():
+            if any(coin.is_token() for coin in selected_coins):
+                warning_dialog = TokenBurnMessageBox(self)
+                warning_dialog.exec_()
+                if warning_dialog.has_cancelled():
+                    return
+            self.main_window.spend_coins(spendable_coins)
+
         # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
-        spend_action = menu.addAction(
-            _("Spend"), lambda: self.main_window.spend_coins(spendable_coins)
-        )
+        spend_action = menu.addAction(_("Spend"), warn_if_tokens_and_spend)
         spend_action.setEnabled(bool(spendable_coins))
         menu.addAction(_("Export coin details"), lambda: self.dump_utxo(utxos))
         avaproof_action = menu.addAction(
@@ -397,16 +403,15 @@ class UTXOList(MyTreeWidget):
                     ),
                 )
             if not spend_action.isEnabled():
-                if coin.slp_token is not None:
-                    spend_action.setText(_("SLP Token: Spend Locked"))
-                elif coin.is_alp_token:
-                    spend_action.setText(_("ALP Token: Spend Locked"))
-                elif coin.is_immature:
+                if coin.is_immature:
                     spend_action.setText(_("Immature Coinbase: Spend Locked"))
+                else:
+                    spend_action.setText(_("Unfreeze coin or address to spend"))
             menu.addAction(
                 "Consolidate coins for address",
                 lambda: self._open_consolidate_coins_dialog(coin.address),
             )
+
         else:
             # multi-selection
             menu.addSeparator()
@@ -532,3 +537,29 @@ class UTXOList(MyTreeWidget):
     def showEvent(self, e):
         super().showEvent(e)
         self._emit_selection_signals()
+
+
+class TokenBurnMessageBox(QtWidgets.QMessageBox):
+    """QMessageBox question dialog with custom buttons."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setIcon(QtWidgets.QMessageBox.Warning)
+        self.setWindowTitle(_("Tokens may be lost"))
+        self.setText(
+            _(
+                "It looks like one of the selected coins may contain tokens. This "
+                "wallet does not support spending tokens, so any attached token will "
+                "be burned if you proceed. Click Cancel if you are not sure."
+            )
+        )
+
+        self.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+        ok_button = self.button(QtWidgets.QMessageBox.Ok)
+        ok_button.setText(_("I understand the risks"))
+
+        self.cancel_button = self.button(QtWidgets.QMessageBox.Cancel)
+        self.setEscapeButton(self.cancel_button)
+
+    def has_cancelled(self) -> bool:
+        return self.clickedButton() == self.cancel_button
