@@ -110,7 +110,7 @@ const config: TokenServerConfig = {
     },
     iconSizes: [32, 64, 128, 256, 512],
     recaptchaUrl: 'https://www.google.com/recaptcha/api/siteverify',
-    recaptchaThreshold: 0.7,
+    recaptchaThreshold: 0.5,
 };
 
 export default config;
