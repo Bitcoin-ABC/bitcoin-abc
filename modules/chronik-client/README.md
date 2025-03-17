@@ -118,3 +118,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   2.1.0 - Add support for `validateRawTx` endpoint [D15631](https://reviews.bitcoinabc.org/D15631)
 -   2.1.1 - Upgrade to dependency-free `ecashaddrjs` [D17269](https://reviews.bitcoinabc.org/D17269)
 -   3.0.0 - Proto update; `atoms` instead of `amount` and `sats` instead of `value` [D17650](https://reviews.bitcoinabc.org/D17650)
+-   3.0.1 - Patch `failoverProxy` to recognize another type of server error [D17814](https://reviews.bitcoinabc.org/D17814)

@@ -139,7 +139,11 @@ export class FailoverProxy {
                             .toString()
                             .includes(
                                 'Unable to decode error msg, chronik server is indexing or in error state',
-                            ))
+                            ) ||
+                        // We can see this type of error msg from an indexing server
+                        // Observed when a chronik node is down (e.g. bitcoin-cli stop) but
+                        // server is reachable, nginx running
+                        err.toString().trim().endsWith(':'))
                 ) {
                     // Server outage, skip to next url in loop
                     // Connection error msgs have a 'code' key of 'ECONNREFUSED'
