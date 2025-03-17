@@ -36,11 +36,31 @@ export const SLP_MAX_SEND_OUTPUTS = 19;
 export const SLP_ATOMS_NUM_BYTES = 8;
 
 /** Supported SLP token types */
-export type SlpTokenType =
+export interface SlpTokenType {
+    protocol: 'SLP';
+    type: SlpTokenType_Type;
+    number: SlpTokenType_Number;
+}
+
+/** Possible SLP token types returned by chronik */
+export type SlpTokenType_Type =
+    | 'SLP_TOKEN_TYPE_FUNGIBLE'
+    | 'SLP_TOKEN_TYPE_MINT_VAULT'
+    | 'SLP_TOKEN_TYPE_NFT1_GROUP'
+    | 'SLP_TOKEN_TYPE_NFT1_CHILD'
+    | 'SLP_TOKEN_TYPE_UNKNOWN';
+
+export type SlpTokenType_Number =
     | typeof SLP_FUNGIBLE
     | typeof SLP_MINT_VAULT
     | typeof SLP_NFT1_CHILD
     | typeof SLP_NFT1_GROUP;
+
+export const SLP_TOKEN_TYPE_FUNGIBLE: SlpTokenType = {
+    protocol: 'SLP',
+    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+    number: SLP_FUNGIBLE,
+};
 
 /** Build an SLP GENESIS OP_RETURN, creating a new SLP token */
 export function slpGenesis(

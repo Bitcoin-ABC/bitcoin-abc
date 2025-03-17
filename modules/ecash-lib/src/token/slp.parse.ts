@@ -27,7 +27,7 @@ import {
     SLP_MINT_VAULT_SCRIPTHASH_NUM_BYTES,
     SLP_NFT1_CHILD,
     SLP_NFT1_GROUP,
-    SlpTokenType,
+    SlpTokenType_Number,
 } from './slp.js';
 
 /** Parsed SLP GENESIS OP_RETURN Script */
@@ -35,7 +35,7 @@ export interface SlpGenesis {
     /** "GENESIS" */
     txType: typeof GENESIS_STR;
     /** Token type of the token to create */
-    tokenType: SlpTokenType;
+    tokenType: SlpTokenType_Number;
     /** Info about the token */
     genesisInfo: GenesisInfo;
     /** Number of token atoms to initially mint to out_idx=1 */
@@ -81,7 +81,7 @@ export interface SlpSend {
     /** "SEND" */
     txType: typeof SEND_STR;
     /** Token type of the token to send */
-    tokenType: SlpTokenType;
+    tokenType: SlpTokenType_Number;
     /** Token ID of the token to send */
     tokenId: string;
     /** Array of the number of token atoms to send to the outputs at 1 to N */
@@ -93,7 +93,7 @@ export interface SlpBurn {
     /** "BURN" */
     txType: typeof BURN_STR;
     /** Token type of the token to burn */
-    tokenType: SlpTokenType;
+    tokenType: SlpTokenType_Number;
     /** Token ID of the token to burn */
     tokenId: string;
     /** How many tokens should be burned */
@@ -190,7 +190,10 @@ export function parseSlp(opreturnScript: Script): SlpData | undefined {
     }
 }
 
-function nextGenesis(ops: ScriptOpIter, tokenType: SlpTokenType): SlpGenesis {
+function nextGenesis(
+    ops: ScriptOpIter,
+    tokenType: SlpTokenType_Number,
+): SlpGenesis {
     // Parse genesis info
     const tokenTicker = bytesToStr(nextBytesRequired(ops, 'tokenTicker'));
     const tokenName = bytesToStr(nextBytesRequired(ops, 'tokenName'));
@@ -243,7 +246,7 @@ function nextGenesis(ops: ScriptOpIter, tokenType: SlpTokenType): SlpGenesis {
     };
 }
 
-function nextMint(ops: ScriptOpIter, tokenType: SlpTokenType): SlpMint {
+function nextMint(ops: ScriptOpIter, tokenType: SlpTokenType_Number): SlpMint {
     const tokenId = nextTokenId(ops);
     if (tokenType === SLP_MINT_VAULT) {
         const additionalAtomsArray = nextSlpAtomsArray(ops);
@@ -271,7 +274,7 @@ function nextMint(ops: ScriptOpIter, tokenType: SlpTokenType): SlpMint {
     }
 }
 
-function nextSend(ops: ScriptOpIter, tokenType: SlpTokenType): SlpSend {
+function nextSend(ops: ScriptOpIter, tokenType: SlpTokenType_Number): SlpSend {
     const tokenId = nextTokenId(ops);
     const sendAtomsArray = nextSlpAtomsArray(ops);
     return {
@@ -282,7 +285,7 @@ function nextSend(ops: ScriptOpIter, tokenType: SlpTokenType): SlpSend {
     };
 }
 
-function nextBurn(ops: ScriptOpIter, tokenType: SlpTokenType): SlpBurn {
+function nextBurn(ops: ScriptOpIter, tokenType: SlpTokenType_Number): SlpBurn {
     const tokenId = nextTokenId(ops);
     const burnAtoms = parseSlpAtoms(nextBytesRequired(ops, 'burnAtoms'));
     nextEnd(ops, 'BURN');

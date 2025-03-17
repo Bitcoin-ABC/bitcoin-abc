@@ -3,6 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { strToBytes } from '../io/str.js';
+import { AlpTokenType } from './alp.js';
+import { SlpTokenType } from './slp.js';
 
 /** GENESIS tx type: Creates a new token ID */
 export const GENESIS_STR = 'GENESIS';
@@ -51,4 +53,17 @@ export interface GenesisInfo {
     authPubkey?: string;
     /** decimals of the token, i.e. how many decimal places the token should be displayed with. */
     decimals?: number;
+}
+
+/**
+ * SLP/ALP token type.
+ *
+ * See `TokenType` in chronik-client.
+ */
+export type TokenType = SlpTokenType | AlpTokenType | UnknownTokenType;
+
+export interface UnknownTokenType {
+    protocol: 'UNKNOWN';
+    type: 'UNKNOWN';
+    number: 0;
 }

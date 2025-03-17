@@ -18,11 +18,42 @@ export const ALP_LOKAD_ID = strToBytes(ALP_LOKAD_ID_STR);
 /** ALP standard token type number */
 export const ALP_STANDARD = 0;
 
+export type AlpTokenType_Number = typeof ALP_STANDARD;
+
 /** Supported ALP token types */
-export type AlpTokenType = typeof ALP_STANDARD;
+export interface AlpTokenType {
+    protocol: 'ALP';
+    type: AlpTokenType_Type;
+    number: number;
+}
+/** Possible ALP token types returned by chronik */
+export type AlpTokenType_Type =
+    | 'ALP_TOKEN_TYPE_STANDARD'
+    | 'ALP_TOKEN_TYPE_UNKNOWN';
 
 /** ALP limits lengths/sizes to this number, e.g. the number of outputs */
 export const ALP_MAX_SIZE = 127;
+
+export const ALP_TOKEN_TYPE_STANDARD: AlpTokenType = {
+    protocol: 'ALP',
+    type: 'ALP_TOKEN_TYPE_STANDARD',
+    number: ALP_STANDARD,
+};
+
+/**
+ * Although ALP_MAX_SIZE is 127, in practice we can only
+ * handle 29 ALP outputs in a single OP_RETURN given the curent
+ * 223-byte OP_RETURN size limit, and even this assumes
+ * we are only working with 1 ALP token.
+ *
+ * For example an ALP tx that sends multiple tokens cannot support
+ * 29 token outputs as the instructions will require more than 223
+ * bytes in the OP_RETURN.
+ *
+ * So, this is an upper bound on ALP outputs per current mempool
+ * acceptance rules
+ */
+export const ALP_POLICY_MAX_OUTPUTS = 29;
 
 /** Mint data specifying mint amounts (in atoms) and batons of a GENESIS/MINT tx */
 export interface MintData {

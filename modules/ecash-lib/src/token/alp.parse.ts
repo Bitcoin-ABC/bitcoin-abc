@@ -9,7 +9,7 @@ import {
     ALP_LOKAD_ID,
     ALP_MAX_SIZE,
     ALP_STANDARD,
-    AlpTokenType,
+    AlpTokenType_Number,
     MintData,
 } from './alp.js';
 import {
@@ -30,7 +30,7 @@ export interface AlpGenesis {
     /** "GENESIS" */
     txType: typeof GENESIS_STR;
     /** Token type of the token to create */
-    tokenType: AlpTokenType;
+    tokenType: AlpTokenType_Number;
     /** Info about the token */
     genesisInfo: GenesisInfo;
     /** Which tokens/mint baton to create initially */
@@ -42,7 +42,7 @@ export interface AlpMint {
     /** "MINT" */
     txType: typeof MINT_STR;
     /** Token type of the token to mint */
-    tokenType: AlpTokenType;
+    tokenType: AlpTokenType_Number;
     /** Token ID of the token to mint */
     tokenId: string;
     /** Which tokens/mint baton to create  */
@@ -54,7 +54,7 @@ export interface AlpSend {
     /** "SEND" */
     txType: typeof SEND_STR;
     /** Token type of the token to send */
-    tokenType: AlpTokenType;
+    tokenType: AlpTokenType_Number;
     /** Token ID of the token to send */
     tokenId: string;
     /** Array of the number of token atoms to send to the outputs at 1 to N */
@@ -68,7 +68,7 @@ export interface AlpBurn {
     /** Token type of the token to burn */
     tokenId: string;
     /** Token ID of the token to burn */
-    tokenType: AlpTokenType;
+    tokenType: AlpTokenType_Number;
     /** How many tokens should be burned */
     burnAtoms: bigint;
 }
@@ -138,7 +138,7 @@ export function parseAlp(pushdata: Uint8Array): AlpData | undefined {
     }
 }
 
-function readGenesis(bytes: Bytes, tokenType: AlpTokenType): AlpGenesis {
+function readGenesis(bytes: Bytes, tokenType: AlpTokenType_Number): AlpGenesis {
     const tokenTicker = bytesToStr(readVarBytes(bytes, 'tokenTicker'));
     const tokenName = bytesToStr(readVarBytes(bytes, 'tokenName'));
     const url = bytesToStr(readVarBytes(bytes, 'url'));
@@ -162,7 +162,7 @@ function readGenesis(bytes: Bytes, tokenType: AlpTokenType): AlpGenesis {
     };
 }
 
-function readMint(bytes: Bytes, tokenType: AlpTokenType): AlpMint {
+function readMint(bytes: Bytes, tokenType: AlpTokenType_Number): AlpMint {
     const tokenId = readTokenId(bytes);
     const mintData = readMintData(bytes);
     ensureEnd(bytes, 'MINT');
@@ -174,7 +174,7 @@ function readMint(bytes: Bytes, tokenType: AlpTokenType): AlpMint {
     };
 }
 
-function readSend(bytes: Bytes, tokenType: AlpTokenType): AlpSend {
+function readSend(bytes: Bytes, tokenType: AlpTokenType_Number): AlpSend {
     const tokenId = readTokenId(bytes);
     const sendAtomsArray = readAtomsArray(bytes, 'sendAtomsArray');
     ensureEnd(bytes, 'SEND');
@@ -186,7 +186,7 @@ function readSend(bytes: Bytes, tokenType: AlpTokenType): AlpSend {
     };
 }
 
-function readBurn(bytes: Bytes, tokenType: AlpTokenType): AlpBurn {
+function readBurn(bytes: Bytes, tokenType: AlpTokenType_Number): AlpBurn {
     const tokenId = readTokenId(bytes);
     const burnAtoms = readU48(bytes, 'burnAtoms');
     ensureEnd(bytes, 'BURN');

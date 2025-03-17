@@ -971,6 +971,27 @@ builds:
     templates:
       - js-mocha
 
+  ecash-wallet-integration-tests:
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+    targets:
+      - - all
+    runOnDiffRegex:
+      - modules/ecash-wallet/
+      - modules/ecash-lib/
+      - modules/ecash-lib-wasm/
+      - src/secp256k1/
+      - Cargo.toml
+      - Cargo.lock
+    env:
+      JS_PROJECT_ROOT: modules/ecash-wallet
+    depends:
+      - chronik-client
+      - ecash-lib
+    templates:
+      - js-mocha-integration-tests
+
   chronik-client-integration-tests:
     cmake_flags:
       - '-DBUILD_CHRONIK=ON'
