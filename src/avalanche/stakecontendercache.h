@@ -146,7 +146,9 @@ public:
     /**
      * Promote cache entries to a the active chain tip.
      */
-    void promoteToBlock(const CBlockIndex *activeTip, PeerManager &pm);
+    void promoteToBlock(
+        const CBlockIndex *activeTip,
+        std::function<bool(const ProofId &proofid)> const &shouldPromote);
 
     /**
      * Set proof(s) that should be treated as winners (already finalized). This

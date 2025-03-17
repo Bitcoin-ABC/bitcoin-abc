@@ -2784,8 +2784,10 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     chaintip =
         WITH_LOCK(cs_main, return Assert(m_node.chainman)
                                ->m_blockman.LookupBlockIndex(block.GetHash()));
-    auto bestproof = buildRandomProof(active_chainstate,
-                                      std::numeric_limits<uint32_t>::max());
+    auto bestproof = buildRandomProof(
+        active_chainstate,
+        // Subtract some score so totalPeersScore doesn't overflow
+        std::numeric_limits<uint32_t>::max() - MIN_VALID_PROOF_SCORE * 8);
     m_processor->addStakeContender(bestproof);
     AvalancheTest::updatedBlockTip(*m_processor);
 
@@ -2800,9 +2802,57 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
                           bestproof->getPayoutScript()) == winners.end());
 
     // Best contender is accepted
-    const StakeContenderId bestcontender =
-        StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());
-    BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(bestcontender), 0);
+    {
+        const StakeContenderId bestcontender =
+            StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());
+        BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(bestcontender),
+                          0);
+    }
+
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        // Register bestproof so it will become dangling later
+        pm.registerProof(bestproof);
+        // Make it a remote proof so that it will be promoted
+        pm.saveRemoteProof(bestproof->getId(), 0, false);
+    });
+
+    block = CreateAndProcessBlock({}, CScript());
+    chaintip =
+        WITH_LOCK(cs_main, return Assert(m_node.chainman)
+                               ->m_blockman.LookupBlockIndex(block.GetHash()));
+    AvalancheTest::updatedBlockTip(*m_processor);
+    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
+    m_processor->cleanupStakingRewards(chaintip->nHeight);
+
+    // Make bestproof dangling since it has no nodes attached
+    now += 15min + 1s;
+    SetMockTime(now);
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        std::unordered_set<ProofRef, SaltedProofHasher> dummy;
+        pm.cleanupDanglingProofs(dummy);
+    });
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.isDangling(bestproof->getId()));
+    });
+
+    // Compute local stake winners
+    BOOST_CHECK(m_processor->isQuorumEstablished());
+    BOOST_CHECK(m_processor->computeStakingReward(chaintip));
+    BOOST_CHECK(m_processor->getStakingRewardWinners(chaintip->GetBlockHash(),
+                                                     winners));
+
+    // Sanity check bestproof was not selected as a winner
+    BOOST_CHECK(std::find(winners.begin(), winners.end(),
+                          bestproof->getPayoutScript()) == winners.end());
+
+    // Best contender is still accepted because it is a high ranking contender
+    // with a remote proof
+    {
+        const StakeContenderId bestcontender =
+            StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());
+        BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(bestcontender),
+                          0);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {

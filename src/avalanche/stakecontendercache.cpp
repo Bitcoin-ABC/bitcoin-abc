@@ -4,7 +4,6 @@
 
 #include <avalanche/stakecontendercache.h>
 
-#include <avalanche/peermanager.h>
 #include <avalanche/rewardrankcomparator.h>
 
 #include <algorithm>
@@ -48,8 +47,9 @@ bool StakeContenderCache::add(const CBlockIndex *pindex, const ProofRef &proof,
         .second;
 }
 
-void StakeContenderCache::promoteToBlock(const CBlockIndex *activeTip,
-                                         PeerManager &pm) {
+void StakeContenderCache::promoteToBlock(
+    const CBlockIndex *activeTip,
+    std::function<bool(const ProofId &proofid)> const &shouldPromote) {
     // "Promote" past contenders to activeTip and check that those contenders
     // are still valid proofs to be stake winners. This is done because new
     // stake contenders are only added when a new proof is seen for the first
@@ -60,8 +60,7 @@ void StakeContenderCache::promoteToBlock(const CBlockIndex *activeTip,
     lastPromotedHeight = height;
     for (auto &contender : contenders) {
         const ProofId &proofid = contender.proofid;
-        if (pm.isRemoteProof(proofid) &&
-            (pm.isBoundToPeer(proofid) || pm.isDangling(proofid))) {
+        if (shouldPromote(proofid)) {
             contenders.emplace(blockhash, height, proofid,
                                StakeContenderStatus::UNKNOWN,
                                contender.payoutScriptPubkey, contender.score);

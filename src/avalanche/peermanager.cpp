@@ -1417,7 +1417,10 @@ void PeerManager::rejectStakeContender(const StakeContenderId &contenderId) {
 }
 
 void PeerManager::promoteStakeContendersToBlock(const CBlockIndex *pindex) {
-    stakeContenderCache.promoteToBlock(pindex, *this);
+    stakeContenderCache.promoteToBlock(pindex, [&](const ProofId &proofid) {
+        return isRemoteProof(proofid) &&
+               (isBoundToPeer(proofid) || isDangling(proofid));
+    });
 }
 
 bool PeerManager::setStakeContenderWinners(
