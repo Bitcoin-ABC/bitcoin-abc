@@ -1,6 +1,6 @@
 # -*- mode: python3 -*-
 
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs, copy_metadata
 import sys, os
 
 # Note: the dash in the package name is to prevent a case-insensitive name
@@ -44,6 +44,7 @@ datas += collect_data_files('keepkeylib')
 # wordlists used by keepkeylib from lib mnemonic
 datas += collect_data_files('mnemonic')
 
+datas += copy_metadata('slip10')
 
 # Add libusb so Trezor will work
 binaries = [(home + "contrib/osx/libusb-1.0.dylib", ".")]
