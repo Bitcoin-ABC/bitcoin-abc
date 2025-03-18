@@ -1053,7 +1053,7 @@ class SettingsDialog(WindowModalDialog):
                 f"This is not an official Trezor firmware, which means that:\n"
                 f" * Your device seed will be wiped if you have a Trezor\n"
                 f"   firmware currently installed.\n"
-                f" * Your will be requested to unlock the device bootloader\n"
+                f" * You will be requested to unlock the device bootloader\n"
                 f"   if not done already. This is irreversible.\n"
                 f" * Your device will show the firmware vendor as\n"
                 f"   'UNSAFE, DO NOT USE', and exhibit a worrying red warning\n"
