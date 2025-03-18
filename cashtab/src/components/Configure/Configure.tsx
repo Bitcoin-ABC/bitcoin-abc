@@ -54,7 +54,8 @@ const HeadlineAndIcon = styled.div`
     margin: 12px 0;
 `;
 const Headline = styled.div`
-    font-size: 20px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     color: ${props => props.theme.primaryText};
     font-weight: bold;
 `;

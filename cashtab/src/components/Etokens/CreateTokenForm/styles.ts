@@ -18,7 +18,8 @@ export const SwitchRow = styled.div`
 export const SwitchLabel = styled.div`
     text-align: left;
     color: ${props => props.theme.primaryText};
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
 `;
 export const EditIcon = styled.div`
     cursor: pointer;
@@ -71,7 +72,8 @@ export const TokenParam = styled.div`
     word-break: break-word;
 `;
 export const ButtonDisabledMsg = styled.div`
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     color: ${props => props.theme.formError};
     word-break: break-all;
 `;

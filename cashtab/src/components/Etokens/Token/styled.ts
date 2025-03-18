@@ -95,8 +95,8 @@ export const TokenStatsCol = styled.div`
     flex-direction: column;
     h2 {
         margin: 0;
-        font-size: 26px;
-        line-height: 1.2em;
+        font-size: var(--text-2xl);
+        line-height: var(--text-2xl--line-height);
         font-weight: 600;
         text-align: center;
     }
@@ -186,7 +186,8 @@ export const SwitchHolder = styled.div`
 `;
 
 export const ButtonDisabledMsg = styled.div`
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     color: ${props => props.theme.formError};
     word-break: break-all;
 `;
@@ -195,7 +196,8 @@ export const ButtonDisabledSpan = styled.span`
 `;
 export const NftTitle = styled.div`
     color: ${props => props.theme.primaryText};
-    font-size: 20px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     text-align: center;
     font-weight: bold;
 `;
@@ -259,13 +261,15 @@ export const NftCol = styled.div`
 `;
 export const NftNameTitle = styled.div`
     margin-top: 12px;
-    font-size: 24px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     font-weight: bold;
     color: ${props => props.theme.primaryText};
     word-break: break-all;
 `;
 export const NftCollectionTitle = styled.div`
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     color: ${props => props.theme.primaryText};
     word-break: break-all;
 `;
@@ -281,7 +285,8 @@ export const AgoraPreviewTable = styled.div`
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    font-size: 12px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     color: ${props => props.theme.primaryText};
 `;
 export const AgoraPreviewRow = styled.div`

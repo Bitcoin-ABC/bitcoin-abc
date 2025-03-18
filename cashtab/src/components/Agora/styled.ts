@@ -16,7 +16,8 @@ export const OfferTitle = styled.div`
     margin-top: 12px;
     margin-bottom: 12px;
     color: ${props => props.theme.primaryText};
-    font-size: 20px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     text-align: center;
     font-weight: bold;
 `;

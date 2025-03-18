@@ -46,7 +46,8 @@ const WalletDropdown = styled.select<{ value: string }>`
             EXTRA_WIDTH_FOR_SELECT
         }px`};
     cursor: pointer;
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     padding: 6px;
     color: ${props => props.theme.primaryText};
     border: none;

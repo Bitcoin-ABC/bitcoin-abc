@@ -9,7 +9,8 @@ import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { toast } from 'react-toastify';
 
 const BaseButtonOrLinkCss = css<{ disabled?: boolean }>`
-    font-size: 24px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     padding: 20px 12px;
     border-radius: 9px;
     transition: all 0.5s ease;
@@ -23,7 +24,8 @@ const BaseButtonOrLinkCss = css<{ disabled?: boolean }>`
         box-shadow: ${props => props.theme.buttons.primary.hoverShadow};
     }
     @media (max-width: 768px) {
-        font-size: 16px;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         padding: 15px 0;
     }
     display: flex;

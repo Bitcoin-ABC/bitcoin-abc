@@ -104,7 +104,8 @@ export const Timestamp = styled.div`
     display: flex;
     width: 100%;
     text-align: left;
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     color: ${props => props.theme.secondaryText};
 `;
 export const AmountCol = styled.div`

@@ -63,8 +63,8 @@ export const OfferTitleCtn = styled.div`
     margin-top: 20px;
     a {
         margin: 0;
-        font-size: 26px;
-        line-height: 1.2em;
+        font-size: var(--text-2xl);
+        line-height: var(--text-2xl--line-height);
         height: 1.2em;
         overflow: hidden;
         color: ${props => props.theme.primaryText};
@@ -146,7 +146,8 @@ export const OrderbookPrice = styled.div`
     display: flex;
     align-items: center;
     gap: 3px;
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     z-index: 1;
 `;
 
@@ -190,7 +191,8 @@ export const SliderRow = styled.div`
     & > span {
         margin-right: 10px;
         font-weight: 600;
-        font-size: 18px;
+        font-size: var(--text-lg);
+        line-height: var(--text-lg--line-height);
         color: ${props => props.theme.genesisGreen};
     }
     input {
@@ -209,17 +211,18 @@ export const BuyOrderCtn = styled.div`
     align-items: flex-end;
     text-align: right;
     & > div {
-        font-size: 18px;
+        font-size: var(--text-lg);
+        line-height: var(--text-lg--line-height);
         opacity: 0.7;
-        line-height: 1em;
     }
     h3 {
-        font-size: 18px;
+        font-size: var(--text-2xl);
         margin: 0;
         margin-bottom: 20px;
     }
     button {
-        font-size: 16px;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         padding: 14px 10px;
         border-radius: 4px;
         margin-top: 30px;

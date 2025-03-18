@@ -15,7 +15,8 @@ export const WelcomeCtn = styled.div`
 
 export const WelcomeText = styled.p`
     width: 100%;
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     margin-bottom: 60px;
     text-align: left;
 `;

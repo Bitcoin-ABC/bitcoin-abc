@@ -35,7 +35,8 @@ const Row = styled.div`
     gap: 12px;
 `;
 const SignatureLabel = styled.div`
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     color: ${props => props.theme.primaryText};
     text-align: left;
     font-weight: bold;

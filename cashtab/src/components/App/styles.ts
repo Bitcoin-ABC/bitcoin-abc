@@ -23,6 +23,21 @@ export const GlobalStyle = createGlobalStyle`
         --toastify-color-success: ${props => props.theme.genesisGreen};
         --toastify-toast-padding: 20px;
         --toastify-color-progress-dark: ${props => props.theme.accent};
+
+        --text-sm: 0.875rem;
+        --text-base: 1rem; /* 16px */
+        --text-lg: 1.125rem; 
+        --text-xl: 1.25rem; 
+        --text-2xl: 1.5rem; 
+        --text-3xl: 1.875rem;
+        
+        --text-sm--line-height: 1.428;
+        --text-base--line-height: 1.5;
+        --text-lg--line-height: 1.556;
+        --text-xl--line-height: 1.4;
+        --text-2xl--line-height: 1.333;
+        --text-3xl--line-height: 1.2;
+        --leading-7: 1.75; 
     }    
     
     .Toastify__toast {
@@ -45,6 +60,10 @@ export const GlobalStyle = createGlobalStyle`
             color: ${props => props.theme.secondaryAccent};
             text-decoration: none;
         }
+    }
+
+    p {
+        line-height: var(--leading-7);
     }
 `;
 
@@ -211,7 +230,8 @@ const NavButtonDesktop = css<{ active?: boolean }>`
     padding: 5px 10px;
     display: flex;
     align-items: center;
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     border: none;
     background: none;
     margin-bottom: 5px;
@@ -291,7 +311,8 @@ export const NavItem = styled.button`
     @media (max-width: 768px) {
         flex-direction: row;
         justify-content: space-between;
-        font-size: 22px;
+        font-size: var(--text-xl);
+        line-height: var(--text-xl--line-height);
         padding: 10px 20px 10px;
         margin-bottom: 0;
     }

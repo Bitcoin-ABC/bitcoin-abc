@@ -13,7 +13,8 @@ const SeedHolder = styled.div`
     gap: 3px;
 `;
 const SeedRow = styled.code`
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
 `;
 
 const CASHTAB_SEED_WORDCOUNT = 12;

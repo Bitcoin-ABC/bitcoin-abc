@@ -57,17 +57,20 @@ export const AlertMsg = styled.p`
 export const ConvertAmount = styled.div`
     color: ${props => props.theme.primaryText};
     width: 100%;
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     margin-bottom: 10px;
     @media (max-width: 768px) {
-        font-size: 12px;
+        font-size: var(--text-sm);
+        line-height: var(--text-sm--line-height);
     }
 `;
 
 export const SwitchLabel = styled.div`
     text-align: left;
     color: ${props => props.theme.primaryText};
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     word-break: break-all;
 `;
 

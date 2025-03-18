@@ -95,9 +95,9 @@ export const CollectionTitle = styled.div`
     display: flex;
     flex-direction: column;
     word-break: break-all;
-    font-size: 20px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     font-weight: bold;
-    line-height: 20px;
     margin: 20px 0 0;
 `;
 export const CollectionIcon = styled.div<{ isCollapsed: boolean }>`

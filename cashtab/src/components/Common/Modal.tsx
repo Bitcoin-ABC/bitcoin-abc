@@ -31,7 +31,8 @@ const ModalContainer = styled.div<{ width: number; height: number }>`
 const ModalTitle = styled.div`
     font-weight: bold;
     padding: 6px 0;
-    font-size: 20px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     text-align: center;
     width: 100%;
     color: ${props => props.theme.accent};
@@ -53,7 +54,8 @@ const ModalBody = styled.div<{ showButtons: boolean; height: number }>`
 `;
 const ModalDescription = styled.div`
     color: ${props => props.theme.primaryText};
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     margin: 12px 0;
     text-align: center;
 `;
@@ -70,7 +72,8 @@ const ButtonHolder = styled.div`
     transform: translate(-50%, -50%);
 `;
 const ModalBaseButton = styled.button`
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     padding: 8px 0;
     border-radius: 9px;
     transition: all 0.5s ease;
@@ -108,7 +111,8 @@ const ModalCancel = styled(ModalBaseButton)`
 `;
 const ModalExit = styled.button`
     position: absolute;
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     z-index: 1001;
     right: 5px;
     top: 5px;

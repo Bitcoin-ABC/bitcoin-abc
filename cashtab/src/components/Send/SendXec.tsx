@@ -129,7 +129,8 @@ const ParsedBip21Info = styled.div`
 const LocaleFormattedValue = styled.div`
     color: ${props => props.theme.primaryText};
     font-weight: bold;
-    font-size: 1.17em;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     margin-bottom: 0;
 `;
 

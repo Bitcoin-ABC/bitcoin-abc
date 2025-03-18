@@ -25,7 +25,8 @@ const Wrapper = styled.div`
     padding: 10px 0;
     justify-content: space-between;
     h4 {
-        font-size: 16px;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         color: ${props => props.theme.primaryText};
         margin: 0;
         font-weight: bold;

@@ -14,12 +14,12 @@ import { FIRMA } from 'constants/tokens';
 export const BalanceXec = styled.div`
     display: flex;
     flex-direction: column;
-    font-size: 28px;
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
     margin-bottom: 0px;
     font-weight: bold;
-    line-height: 1.4em;
     @media (max-width: 768px) {
-        font-size: 24px;
+        font-size: var(--text-2xl);
     }
 `;
 export const BalanceRow = styled.div<{
@@ -52,9 +52,11 @@ export const BalanceRow = styled.div<{
     }`}
 `;
 export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     @media (max-width: 768px) {
-        font-size: 16px;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
     }
     color: ${props =>
         props.balanceVisible ? 'transparent' : props.theme.secondaryText};
@@ -65,7 +67,8 @@ export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
 const EcashPrice = styled.p`
     padding: 0;
     margin: 0;
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     overflow: hidden;
     text-overflow: ellipsis;
     color: ${props => props.theme.secondaryText};

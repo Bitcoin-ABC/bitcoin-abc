@@ -39,7 +39,8 @@ const InputRow = styled.div<{ invalid?: boolean }>`
 const CashtabInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.secondaryBackground};
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     padding: 16px 12px;
     border-radius: 9px;
     width: 100%;
@@ -60,7 +61,8 @@ const ModalInputField = styled(CashtabInput)<{ invalid?: boolean }>`
 
 const CashtabTextArea = styled.textarea<{ height: number }>`
     background-color: ${props => props.theme.secondaryBackground};
-    font-size: 12px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     padding: 16px 12px;
     border-radius: 9px;
     width: 100%;
@@ -98,7 +100,8 @@ const OnMaxBtn = styled.button<{ invalid?: boolean }>`
     border-radius: 0 9px 9px 0;
     background-color: ${props => props.theme.secondaryBackground};
     border-left: none !important;
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     padding: 16px;
 `;
 
@@ -113,7 +116,8 @@ const AliasSuffixHolder = styled(OnMaxBtn)`
 
 const CurrencyDropdown = styled.select<{ invalid?: boolean }>`
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
-    font-size: 18px;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
     padding: 6px;
     color: ${props =>
         props.invalid ? props.theme.formError : props.theme.primaryText};
@@ -141,7 +145,8 @@ const CurrencyOption = styled.option`
 `;
 
 const ErrorMsg = styled.div`
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     color: ${props => props.theme.formError};
     word-break: break-all;
 `;
@@ -236,7 +241,8 @@ const CountAndErrorFlex = styled.div`
 `;
 const TextAreaErrorMsg = styled.div`
     order: 0;
-    font-size: 14px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     color: ${props => props.theme.formError};
     word-break: break-all;
 `;
@@ -569,7 +575,8 @@ const CashtabSlider = styled.input<{
 const SliderInput = styled.input<{ invalid?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.secondaryBackground};
-    font-size: 16px;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     padding: 6px;
     border-radius: 4px;
     text-align: right;
@@ -685,7 +692,8 @@ const DragLabel = styled.label<{ dragActive?: boolean }>`
 const UploadText = styled.div`
     cursor: pointer;
     padding: 0.25rem;
-    font-size: 1rem;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     border: none;
     background-color: transparent;
     &:hover {

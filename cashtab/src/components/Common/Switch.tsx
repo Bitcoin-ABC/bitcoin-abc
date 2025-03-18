@@ -50,7 +50,7 @@ const SwitchInner = styled.span<{
         width: 50%;
         height: ${props => (props.small ? '20' : '34')}px;
         line-height: ${props => (props.small ? '20' : '34')}px;
-        font-size: 14px;
+        font-size: var(--text-sm);
         color: white;
         font-weight: bold;
         box-sizing: border-box;

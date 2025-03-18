@@ -23,7 +23,8 @@ export const CustomQRCode = styled(QRCodeSVG)`
 `;
 
 const Copied = styled.div`
-    font-size: 24px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     font-family: 'Roboto Mono', monospace;
     font-weight: bold;
     width: 100%;
@@ -58,7 +59,8 @@ const AddressHighlightTrim = styled.span`
 
 const ReceiveAddressHolder = styled.div`
     width: 100%;
-    font-size: 30px;
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
     font-weight: bold;
     color: ${props => props.theme.secondaryText};
     text-align: center;
@@ -99,7 +101,8 @@ const ReceiveAddressHolder = styled.div`
 `;
 
 const DisplayCopiedAddress = styled.span`
-    font-size: 24px;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
     word-wrap: break-word;
 `;
 
