@@ -32,6 +32,9 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install
 
 COPY --from=builder /installed/bin/* /usr/local/bin/
 
+RUN mkdir -p /bitcoin-abc/modules/ecash-agora
+COPY --from=builder /bitcoin-abc/modules/ecash-agora/agora.py /bitcoin-abc/modules/ecash-agora/
+
 RUN groupadd -g 1001 bitcoin
 RUN useradd -u 1001 -mg bitcoin bitcoin
 
