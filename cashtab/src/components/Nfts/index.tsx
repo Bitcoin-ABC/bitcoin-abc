@@ -9,7 +9,7 @@ import Spinner from 'components/Common/Spinner';
 import { toHex } from 'ecash-lib';
 import { AgoraOffer } from 'ecash-agora';
 import { NftsCtn, SubHeader, NftListCtn } from './styled';
-import { SwitchHolder } from 'components/Etokens/Token/styled';
+import { SwitchHolder, NftOfferWrapper } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
 import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
@@ -123,7 +123,7 @@ const Nfts: React.FC = () => {
                         <>
                             <SubHeader>Manage Your NFT Listings</SubHeader>
                             {Array.isArray(offeredNftsThisWallet) && (
-                                <NftListCtn>
+                                <NftOfferWrapper>
                                     {offeredNftsThisWallet.length > 0 ? (
                                         <OneshotSwiper
                                             offers={offeredNftsThisWallet}
@@ -142,7 +142,7 @@ const Nfts: React.FC = () => {
                                     ) : (
                                         <p>You have no listed NFTs</p>
                                     )}
-                                </NftListCtn>
+                                </NftOfferWrapper>
                             )}
                         </>
                     ) : (
