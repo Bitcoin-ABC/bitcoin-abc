@@ -1465,8 +1465,8 @@ bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
 }
 
 bool Processor::isWorthPolling(const AnyVoteItem &item) const {
-    return std::visit(IsWorthPolling(*this), item) &&
-           !isRecentlyFinalized(GetVoteItemId(item));
+    return !isRecentlyFinalized(GetVoteItemId(item)) &&
+           std::visit(IsWorthPolling(*this), item);
 }
 
 bool Processor::GetLocalAcceptance::operator()(
