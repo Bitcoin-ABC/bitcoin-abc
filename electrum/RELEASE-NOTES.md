@@ -1,5 +1,25 @@
 # Release notes
 
+## Release 5.4.1
+
+- Make it possible to sign Avalanche stakes using Trezor devices running
+  a custom firmware (D17573, D17787).
+- Add tools to the Trezor Settings menu allowing to update the firmware
+  of Trezor devices or install a custom firmware from a file (D17798).
+- Add a tool to install an eCash firmware capable of signing Avalanche
+  stakes on the following Trezor devices: Trezor T, Trezor Safe 3,
+  Trezor Safe 5 (D17799).
+- Detect ALP tokens and prevent their accidental burning when sending
+  XEC, using Cash Fusion or consolidating coins (D17770, D17777, D17806,
+  D17808).
+- Make it possible to spend manually selected coins with SLP or ALP
+  tokens attached. The tokens are burned when doing that (D17809).
+- Fix a bug that caused the Max button to become untoggled when starting
+  to edit the Pay-to field if it is initially empty (D17651).
+- Fix an issue with newer versions of the protobuf library when running
+  CashFusion (D17670).
+
+
 ## Release 5.4.0
 
 - Remove explorer.bitcoinabc.org from the list of available block
