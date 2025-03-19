@@ -607,6 +607,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
         }
         BOOST_CHECK_EQUAL(updates.size(), 1);
         BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
+        m_processor->setRecentlyFinalized(finalizeItemId);
     };
     finalize(itemid);
 

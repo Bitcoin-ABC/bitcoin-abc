@@ -662,13 +662,6 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 
         const auto &item = update.getVoteItem();
 
-        if (update.getStatus() == VoteStatus::Finalized) {
-            // Always track finalized items regardless of type. Once finalized
-            // they should never become invalid.
-            WITH_LOCK(cs_finalizedItems,
-                      return finalizedItems.insert(GetVoteItemId(item)));
-        }
-
         if (!std::holds_alternative<const CBlockIndex *>(item)) {
             continue;
         }
