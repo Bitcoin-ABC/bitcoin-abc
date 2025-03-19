@@ -994,11 +994,11 @@ class SettingsDialog(WindowModalDialog):
             #  - the file is small
             #  - the file name is always the same if repeated
             #  - the temporary directory will be cleaned up upon restart
-            with tempfile.TemporaryDirectory(delete=False) as tmpdirname:
-                tmp_dir = Path(tmpdirname)
-                filename = tmp_dir / os.path.basename(urlparse(url).path)
-                with open(filename, "wb") as f:
-                    f.write(req.content)
+            tmpdirname = tempfile.mkdtemp()
+            tmp_dir = Path(tmpdirname)
+            filename = tmp_dir / os.path.basename(urlparse(url).path)
+            with open(filename, "wb") as f:
+                f.write(req.content)
 
             update_firmware(filename, fingerprint)
 
