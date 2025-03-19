@@ -17,6 +17,12 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.noban_tx_relay = True
+        # Anything below 14241 will prevent transaction from being added
+        # to blocks. This is because the block reserves 100 sigchecks
+        # for the coinbase transaction, and max sigchecks is computed as
+        # 141 x block size. So we need at least 101 sigchecks >= 14241
+        # bytes as block size.
+        self.blockmaxsize = 15000
         self.extra_args = [
             [
                 "-avalanchepreconsensus=1",
@@ -26,6 +32,9 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
+                # So we can build arbitrary size txs using several OP_RETURN outputs
+                "-acceptnonstdtxn",
+                f"-blockmaxsize={self.blockmaxsize}",
             ]
         ]
 
@@ -199,6 +208,83 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.generate(self.wallet, 1)
         self.finalize_tip_and_check_no_finalized_tx_is_polled(txids[:-1])
 
+    def test_block_full(self):
+        self.log.info("Check the finalization of tx when the next block is full")
+
+        node = self.nodes[0]
+
+        self.generate(self.wallet, 30)
+        self.finalize_tip()
+
+        # The block has 1000 bytes reserved for the coinbase tx, and the block
+        # max size is 15000 bytes. Let's build 13 txs of size 1000 and finalize
+        # them so we fill up to 14000/15000
+        num_txs = 13
+        assert_equal(node.getmempoolinfo()["size"], 0)
+        filler_txs = [
+            self.wallet.send_self_transfer(from_node=node, target_size=1000)
+            for _ in range(num_txs)
+        ]
+
+        for tx in filler_txs:
+            self.finalize_tx(int(tx["txid"], 16))
+
+        assert_equal(node.getmempoolinfo()["size"], num_txs)
+        assert_equal(node.getmempoolinfo()["bytes"], 13000)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13000)
+
+        # Lets build a chain of 8 txs of size 200 each. Each individual tx would
+        # fit the block, but the chain would not. Only 4 txs can make it into
+        # the block (size should be < 15000 but not equal).
+        chained_txs = self.wallet.send_self_transfer_chain(
+            from_node=node, chain_length=8, target_size=200
+        )
+        assert_equal(node.getmempoolinfo()["size"], num_txs + 8)
+        assert_equal(node.getmempoolinfo()["bytes"], 14600)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13000)
+
+        # We can finalize the first 4 txs but not the last 4
+        mempool = node.getrawmempool()
+        for tx in chained_txs[:4]:
+            assert tx["txid"] in mempool
+            self.finalize_tx(int(tx["txid"], 16))
+        for tx in chained_txs[4:]:
+            assert tx["txid"] in mempool
+            assert not node.isfinaltransaction(tx["txid"])
+
+        assert_equal(node.getmempoolinfo()["size"], num_txs + 8)
+        assert_equal(node.getmempoolinfo()["bytes"], 14600)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13800)
+
+        # Add another tx to the chain. This tx size is 100 bytes, so it gets
+        # polled and will be dropped upon finalization because the chain
+        # (this tx + the last 4 txs from the chain) won't fit the next block.
+        last_tx = self.wallet.send_self_transfer(
+            from_node=node, target_size=100, utxo_to_spend=chained_txs[-1]["new_utxo"]
+        )
+        last_txid = last_tx["txid"]
+        with node.wait_for_debug_log(
+            [
+                f"Delay storing finalized tx {last_txid} as it won't fit in the next block".encode()
+            ],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                self.quorum,
+                int(last_txid, 16),
+                response=AvalancheTxVoteError.ACCEPTED,
+            ),
+        ):
+            pass
+
+        mempool = node.getrawmempool()
+        tx_list = chained_txs[4:] + [last_tx]
+        for tx in tx_list:
+            assert tx["txid"] in mempool
+            assert not node.isfinaltransaction(tx["txid"])
+
+        assert_equal(node.getmempoolinfo()["size"], num_txs + 9)
+        assert_equal(node.getmempoolinfo()["bytes"], 14700)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13800)
+
     def run_test(self):
         def get_quorum():
             return [
@@ -226,6 +312,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.test_simple_txs()
         self.test_chained_txs()
         self.test_diamond_txs()
+        self.test_block_full()
 
 
 if __name__ == "__main__":

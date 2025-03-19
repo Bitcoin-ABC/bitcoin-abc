@@ -420,7 +420,7 @@ class MiniWallet:
         self.scan_tx(from_node.decoderawtransaction(tx_hex))
         return txid
 
-    def create_self_transfer_chain(self, *, chain_length, utxo_to_spend=None):
+    def create_self_transfer_chain(self, *, chain_length, utxo_to_spend=None, **kwargs):
         """
         Create a "chain" of chain_length transactions. The nth transaction in
         the chain is a child of the n-1th transaction and parent of the n+1th transaction.
@@ -429,7 +429,7 @@ class MiniWallet:
         chain = []
 
         for _ in range(chain_length):
-            tx = self.create_self_transfer(utxo_to_spend=chaintip_utxo)
+            tx = self.create_self_transfer(utxo_to_spend=chaintip_utxo, **kwargs)
             chaintip_utxo = tx["new_utxo"]
             chain.append(tx)
 

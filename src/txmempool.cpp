@@ -534,11 +534,37 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
         return false;
     }
 
-    finalizedTxIds.clear();
-
-    for (txiter ancestor_it : setAncestors) {
+    // Make sure the tx chain would fit the block before adding them.
+    uint64_t sumOfTxSize{0};
+    uint64_t sumOfTxSigChecks{0};
+    for (auto iter_it = setAncestors.begin(); iter_it != setAncestors.end();) {
+        // iter_it is an iterator of mapTx iterator (aka txiter)
+        CTxMemPoolEntryRef entry = **iter_it;
         // It is possible (and normal) that an ancestor is already finalized.
         // Beware to not account for it in this case.
+        if (isAvalancheFinalized(entry->GetTx().GetId())) {
+            iter_it = setAncestors.erase(iter_it);
+            continue;
+        }
+
+        sumOfTxSize += entry->GetTxSize();
+        sumOfTxSigChecks += entry->GetSigChecks();
+        ++iter_it;
+    }
+
+    if (!m_finalizedTxsFitter.testTxFits(sumOfTxSize, sumOfTxSigChecks)) {
+        LogPrint(
+            BCLog::AVALANCHE,
+            "Delay storing finalized tx %s as it won't fit in the next block\n",
+            tx->GetTx().GetId().ToString());
+        return false;
+    }
+
+    finalizedTxIds.clear();
+
+    // Now let's add the txs !
+    // At this stage the set of ancestors is free if already finalized txs
+    for (txiter ancestor_it : setAncestors) {
         if (finalizedTxs.insert(*ancestor_it)) {
             m_finalizedTxsFitter.addTx((*ancestor_it)->GetTxSize(),
                                        (*ancestor_it)->GetSigChecks(),
@@ -556,14 +582,18 @@ bool CTxMemPool::isWorthPolling(const CTransactionRef &tx) const {
     AssertLockNotHeld(cs_conflicting);
 
     const TxId &txid = tx->GetId();
-
-    if (exists(txid)) {
-        return true;
+    if (auto it = GetIter(txid)) {
+        // The tx is in the mempool, check it would fit the next block or if
+        // it's already full of finalized txs.
+        return m_finalizedTxsFitter.testTxFits((**it)->GetTxSize(),
+                                               (**it)->GetSigChecks());
     }
 
+    // Otherwise check if it's in the conflicting pool and would fit in size. We
+    // can't check for sigChecks here as they are not calculated.
     if (WITH_LOCK(cs_conflicting,
                   return m_conflicting && m_conflicting->HaveTx(txid))) {
-        return true;
+        return m_finalizedTxsFitter.testTxFits(tx->GetTotalSize(), 0);
     }
 
     // Not in the mempool nor conflicting, don't poll
