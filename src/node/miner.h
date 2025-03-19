@@ -53,9 +53,6 @@ struct CBlockTemplate {
 /** Generate a new block, without valid proof-of-work */
 class BlockAssembler {
 private:
-    // The constructed block template
-    std::unique_ptr<CBlockTemplate> pblocktemplate;
-
     BlockFitter blockFitter;
 
     // Chain context for the block
@@ -85,6 +82,14 @@ public:
         return blockFitter.getMaxGeneratedBlockSize();
     }
 
+    /**
+     * Add transactions from the mempool based on individual tx feerate.
+     */
+    void addTxs(const CTxMemPool &mempool) EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
+
+    // The constructed block template
+    std::unique_ptr<CBlockTemplate> pblocktemplate;
+
     static std::optional<int64_t> m_last_block_num_txs;
     static std::optional<int64_t> m_last_block_size;
 
@@ -96,10 +101,6 @@ private:
     void AddToBlock(const CTxMemPoolEntryRef &entry);
 
     // Methods for how to add transactions to a block.
-    /**
-     * Add transactions from the mempool based on individual tx feerate.
-     */
-    void addTxs(const CTxMemPool &mempool) EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
 
     /// Check the transaction for finality, etc before adding to block
     bool CheckTx(const CTransaction &tx) const;

@@ -32,6 +32,7 @@
 #include <netbase.h>
 #include <netmessagemaker.h>
 #include <node/blockstorage.h>
+#include <node/miner.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -6933,18 +6934,60 @@ void PeerManagerImpl::ProcessMessage(
                     case avalanche::VoteStatus::Finalized: {
                         m_avalanche->setRecentlyFinalized(
                             pindex->GetBlockHash());
+
                         {
                             LOCK(cs_main);
-                            m_chainman.ActiveChainstate().UnparkBlock(pindex);
-                        }
+                            auto &chainstate = m_chainman.ActiveChainstate();
+                            chainstate.UnparkBlock(pindex);
 
-                        if (m_opts.avalanche_preconsensus) {
-                            auto pblock = getBlockFromIndex(pindex);
-                            assert(pblock);
+                            if (m_opts.avalanche_preconsensus) {
+                                auto pblock = getBlockFromIndex(pindex);
+                                assert(pblock);
 
-                            LOCK(m_mempool.cs);
-                            m_mempool.removeForFinalizedBlock(pblock->vtx);
-                        }
+                                std::unique_ptr<node::CBlockTemplate>
+                                    blockTemplate;
+                                {
+                                    LOCK(m_mempool.cs);
+                                    m_mempool.removeForFinalizedBlock(
+                                        pblock->vtx);
+
+                                    // Now add mempool transactions to the poll.
+                                    // To determine which transaction to add, we
+                                    // leverage the legacy block template
+                                    // construction method and build a template
+                                    // with the most valuable txs in it. These
+                                    // transactions are sorted topologically;
+                                    // parents come before children, so we can
+                                    // poll for children first and optimize the
+                                    // number of polls.
+                                    node::BlockAssembler blockAssembler(
+                                        config, chainstate, &m_mempool,
+                                        m_avalanche);
+                                    blockAssembler.pblocktemplate.reset(
+                                        new node::CBlockTemplate());
+
+                                    if (blockAssembler.pblocktemplate) {
+                                        blockAssembler.addTxs(m_mempool);
+                                        blockTemplate = std::move(
+                                            blockAssembler.pblocktemplate);
+                                    }
+                                }
+
+                                if (blockTemplate) {
+                                    // We could check if the tx is final already
+                                    // but addToReconcile will skip the recently
+                                    // finalized txs, so let's abuse this
+                                    // feature and avoid a tree lookup for each
+                                    // tx as an optimization.
+                                    for (const auto &templateEntry :
+                                         reverse_iterate(
+                                             blockTemplate->entries)) {
+                                        m_avalanche->addToReconcile(
+                                            templateEntry.tx);
+                                    }
+                                }
+                            }
+                        } // release cs_main
 
                         m_chainman.ActiveChainstate().AvalancheFinalizeBlock(
                             pindex, *m_avalanche);

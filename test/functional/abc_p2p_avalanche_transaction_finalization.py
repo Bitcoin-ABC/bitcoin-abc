@@ -4,8 +4,13 @@
 """Test avalanche transaction finalization."""
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.blocktools import COINBASE_MATURITY
-from test_framework.messages import AvalancheTxVoteError
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
+from test_framework.messages import (
+    AvalancheTxVoteError,
+    CTransaction,
+    FromHex,
+    ToHex,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
@@ -244,6 +249,41 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         assert_equal(node.getmempoolinfo()["size"], num_txs + 9)
         assert_equal(node.getmempoolinfo()["bytes"], 14700)
         assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13800)
+
+        # Mine the finalized txs
+        txs_to_mine = [
+            FromHex(CTransaction(), tx["hex"]) for tx in filler_txs + chained_txs[:4]
+        ]
+        coinbase = create_coinbase(node.getblockcount() + 1)
+        block = create_block(
+            hashprev=int(node.getbestblockhash(), 16),
+            coinbase=coinbase,
+            txlist=txs_to_mine,
+        )
+        block.calc_merkle_root()
+        block.solve()
+        node.submitblock(ToHex(block))
+        assert_equal(node.getbestblockhash(), block.hash)
+
+        self.finalize_tip()
+
+        assert_equal(node.getmempoolinfo()["size"], 5)
+        assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 0)
+
+        mempool = node.getrawmempool()
+        for tx in tx_list:
+            assert tx["txid"] in mempool
+            self.finalize_tx(
+                int(tx["txid"], 16),
+                unexpected_hashes=[
+                    int(bad_tx["txid"], 16) for bad_tx in (filler_txs + chained_txs[:4])
+                ],
+            )
+
+        assert_equal(node.getmempoolinfo()["size"], 5)
+        assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 4 * 200 + 100)
 
     def run_test(self):
         def get_quorum():
