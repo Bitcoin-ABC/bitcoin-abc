@@ -15,6 +15,7 @@ from .messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
     AvalancheDelegation,
+    AvalanchePrefilledProof,
     AvalancheProof,
     AvalancheResponse,
     AvalancheVote,
@@ -444,9 +445,9 @@ def gen_proof(
     return privkey, avalanche_proof_from_hex(proof_hex)
 
 
-def build_msg_avaproofs(
+def build_raw_msg_avaproofs(
     proofs: List[AvalancheProof],
-    prefilled_proofs: Optional[List[AvalancheProof]] = None,
+    prefilled_proofs: Optional[List[AvalanchePrefilledProof]] = None,
     key_pair: Optional[List[int]] = None,
 ) -> msg_avaproofs:
     if key_pair is None:
@@ -461,6 +462,21 @@ def build_msg_avaproofs(
     ]
 
     return msg
+
+
+def build_msg_avaproofs(
+    proofs: List[AvalancheProof],
+    prefilled_proofs: Optional[List[AvalancheProof]] = None,
+    key_pair: Optional[List[int]] = None,
+) -> msg_avaproofs:
+    proofids = sorted([p.proofid for p in proofs])
+    indexed_prefilled_proofs = []
+    if prefilled_proofs:
+        for proof in sorted(prefilled_proofs, key=lambda p: p.proofid):
+            indexed_prefilled_proofs.append(
+                AvalanchePrefilledProof(proofids.index(proof.proofid), proof)
+            )
+    return build_raw_msg_avaproofs(proofs, indexed_prefilled_proofs, key_pair)
 
 
 def can_find_inv_in_poll(

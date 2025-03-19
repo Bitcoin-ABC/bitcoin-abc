@@ -2,7 +2,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the avalanche remote proofs feature."""
-import random
 import time
 
 from test_framework.avatools import (
@@ -16,9 +15,7 @@ from test_framework.avatools import (
 from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
-    AvalanchePrefilledProof,
     AvalancheProofVoteResponse,
-    calculate_shortid,
 )
 from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
@@ -152,30 +149,11 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
 
             assert False, "Failed to update the remote proofs after 3 retries"
 
-        def build_compactproofs_msg(prefilled_proof, proofs_to_announce):
-            key0 = random.randint(0, 2**64 - 1)
-            key1 = random.randint(0, 2**64 - 1)
-
-            shortid_map = {}
-            for proofid in [proof.proofid for proof in proofs_to_announce]:
-                shortid_map[proofid] = calculate_shortid(key0, key1, proofid)
-            index_prefilled_proof = list(shortid_map.keys()).index(
-                prefilled_proof.proofid
-            )
-
-            return build_msg_avaproofs(
-                proofs_to_announce,
-                prefilled_proofs=[
-                    AvalanchePrefilledProof(index_prefilled_proof, prefilled_proof)
-                ],
-                key_pair=[key0, key1],
-            )
-
         # Build a compact proofs message, including a prefilled proof that node
         # doesn't know yet.
         _, prefilled_proof = gen_proof(self, node)
-        compactproofs_msg = build_compactproofs_msg(
-            prefilled_proof, [outbound.proof] + [prefilled_proof] + proofs
+        compactproofs_msg = build_msg_avaproofs(
+            [outbound.proof] + [prefilled_proof] + proofs, [prefilled_proof]
         )
         trigger_avaproofs(compactproofs_msg)
 
@@ -210,8 +188,8 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         now += 1
         node.setmocktime(now)
 
-        compactproofs_msg = build_compactproofs_msg(
-            prefilled_proof, [outbound.proof] + [prefilled_proof]
+        compactproofs_msg = build_msg_avaproofs(
+            [outbound.proof] + [prefilled_proof], [prefilled_proof]
         )
         trigger_avaproofs(compactproofs_msg)
 
@@ -231,8 +209,8 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         now += 1
         node.setmocktime(now)
 
-        compactproofs_msg = build_compactproofs_msg(
-            prefilled_proof, [outbound.proof] + [prefilled_proof] + proofs_present
+        compactproofs_msg = build_msg_avaproofs(
+            [outbound.proof] + [prefilled_proof] + proofs_present, [prefilled_proof]
         )
         trigger_avaproofs(compactproofs_msg)
 
