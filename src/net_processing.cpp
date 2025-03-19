@@ -7197,7 +7197,6 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         // If there are prefilled proofs, process them first
-        std::set<uint32_t> prefilledIndexes;
         for (const auto &prefilledProof : compactProofs.getPrefilledProofs()) {
             if (!ReceivedAvalancheProof(pfrom, *peer, prefilledProof.proof)) {
                 // If we got an invalid proof, the peer is getting banned and we
