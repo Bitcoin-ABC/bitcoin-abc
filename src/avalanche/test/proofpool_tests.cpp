@@ -10,6 +10,7 @@
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
 #include <random.h>
+#include <validation.h>
 
 #include <avalanche/test/util.h>
 #include <test/util/random.h>

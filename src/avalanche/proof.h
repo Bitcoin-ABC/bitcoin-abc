@@ -7,13 +7,13 @@
 
 #include <avalanche/proofid.h>
 #include <consensus/amount.h>
+#include <kernel/cs_main.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <rcu.h>
 #include <serialize.h>
 #include <util/hasher.h>
-#include <validation.h> // For ChainstateManager and cs_main
 
 #include <array>
 #include <cstdint>
@@ -21,6 +21,7 @@
 #include <vector>
 
 class ArgsManager;
+class ChainstateManager;
 struct bilingual_str;
 
 /**

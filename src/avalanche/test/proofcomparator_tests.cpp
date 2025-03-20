@@ -5,6 +5,7 @@
 #include <avalanche/proofcomparator.h>
 
 #include <random.h>
+#include <validation.h>
 
 #include <avalanche/test/util.h>
 #include <test/util/setup_common.h>

@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <vector>
 
+class Chainstate;
+
 namespace avalanche {
 
 constexpr uint32_t MIN_VALID_PROOF_SCORE = 100 * PROOF_DUST_THRESHOLD / COIN;

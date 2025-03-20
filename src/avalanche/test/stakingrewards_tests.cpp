@@ -9,6 +9,7 @@
 #include <consensus/activation.h>
 #include <net_processing.h>
 #include <policy/block/stakingrewards.h>
+#include <validation.h>
 
 #include <test/util/blockindex.h>
 #include <test/util/setup_common.h>

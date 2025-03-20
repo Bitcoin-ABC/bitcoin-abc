@@ -20,6 +20,7 @@
 #include <scheduler.h>
 #include <util/time.h>
 #include <util/translation.h> // For bilingual_str
+#include <validation.h>
 
 #include <avalanche/test/util.h>
 #include <test/util/setup_common.h>

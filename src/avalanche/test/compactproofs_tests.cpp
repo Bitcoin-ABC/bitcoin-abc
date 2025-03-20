@@ -6,6 +6,7 @@
 
 #include <avalanche/test/util.h>
 #include <streams.h>
+#include <validation.h>
 
 #include <test/util/setup_common.h>
 
