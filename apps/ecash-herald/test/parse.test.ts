@@ -30,6 +30,9 @@ import {
     parseSlpTwo,
     guessRejectReason,
     summarizeTxHistory,
+    getMinerOutputScript,
+    IFP_OUTPUTSCRIPT,
+    STAKING_ACTIVATION_HEIGHT,
 } from '../src/parse';
 import appTxSamples from './mocks/appTxSamples';
 import { dailyTxs, tokenInfoMap } from './mocks/dailyTxs';
@@ -311,6 +314,74 @@ describe('parse.js functions', function () {
             );
         }
     });
+    it('We can get the miner address from coinbase outputs', function () {
+        const minerAddrVectors = [
+            {
+                desc: 'We will bestGuess the staker if there are no other options',
+                blockHeight: STAKING_ACTIVATION_HEIGHT + 1,
+                outputs: [
+                    { outputScript: IFP_OUTPUTSCRIPT, sats: 2_800_000_00n },
+                    { outputScript: 'staker', sats: 312_500_00n },
+                ],
+                result: 'staker',
+            },
+            {
+                desc: 'We ignore the staker if there is another option',
+                blockHeight: STAKING_ACTIVATION_HEIGHT + 1,
+                outputs: [
+                    { outputScript: IFP_OUTPUTSCRIPT, sats: 1_000_000_00n },
+                    { outputScript: 'b', sats: 1_800_000_00n },
+                    { outputScript: 'staker', sats: 312_500_00n },
+                ],
+                result: 'b',
+            },
+            {
+                desc: 'We take the staker if blockheight precedes staking rewards',
+                blockHeight: STAKING_ACTIVATION_HEIGHT - 1,
+                outputs: [
+                    { outputScript: IFP_OUTPUTSCRIPT, sats: 1_000_000_00n },
+                    { outputScript: 'staker', sats: 312_500_00n },
+                    { outputScript: 'b', sats: 1_800_000_00n },
+                ],
+                result: 'staker',
+            },
+            {
+                desc: 'We can handle 4 outputs i.e. #888,849',
+                blockHeight: STAKING_ACTIVATION_HEIGHT + 1,
+                outputs: [
+                    { outputScript: IFP_OUTPUTSCRIPT, sats: 1_000_018_60n },
+                    {
+                        outputScript:
+                            '76a9143dea23dc27b199d34e2cbfced23341c2424b922588ac',
+                        sats: 312_505_81n,
+                    },
+                    {
+                        outputScript:
+                            '76a9146657bcc784bfa56301962567c62feda9d1eb37ba88ac',
+                        sats: 9_062_67n,
+                    },
+                    {
+                        outputScript:
+                            '76a914f4347696e02f6a0200760a01c116a3f07ebdab5088ac',
+                        sats: 1_803_471_05n,
+                    },
+                ],
+                // NB we get the first of the 2 miner outputs
+                result: '76a9146657bcc784bfa56301962567c62feda9d1eb37ba88ac',
+            },
+        ];
+        for (let i = 0; i < minerAddrVectors.length; i += 1) {
+            const { blockHeight, outputs, result } = minerAddrVectors[i];
+
+            assert.equal(
+                getMinerOutputScript(
+                    blockHeight,
+                    outputs as unknown as TxOutput[],
+                ),
+                result,
+            );
+        }
+    });
     it('getMinerFromCoinbaseTx parses miner for all test vectors', function () {
         for (let i = 0; i < minerTestFixtures.length; i += 1) {
             const { parsed, coinbaseHex, payoutOutputScript } =
@@ -318,11 +389,18 @@ describe('parse.js functions', function () {
             // Minimally mock the coinbase tx
             const inputScript = coinbaseHex;
             const outputs = [
-                { outputScript: payoutOutputScript },
+                { outputScript: payoutOutputScript, sats: 1_000_000_00n },
             ] as TxOutput[];
 
+            const DEFAULT_BLOCKHEIGHT = 800000;
+
             assert.strictEqual(
-                getMinerFromCoinbaseTx(inputScript, outputs, miners),
+                getMinerFromCoinbaseTx(
+                    inputScript,
+                    outputs,
+                    miners,
+                    DEFAULT_BLOCKHEIGHT,
+                ),
                 parsed,
             );
         }

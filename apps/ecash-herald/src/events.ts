@@ -237,6 +237,7 @@ export const handleBlockInvalidated = async (
         coinbaseData.scriptsig,
         coinbaseData.outputs,
         miners,
+        blockHeight,
     );
 
     const stakingRewardWinner = getStakerFromCoinbaseTx(

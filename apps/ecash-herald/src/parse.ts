@@ -57,7 +57,8 @@ const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 
 // Miner fund output script
-const minerFundOutputScript = 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
+export const IFP_OUTPUTSCRIPT =
+    'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
 
 interface PriceInfo {
     usd: number;
@@ -140,16 +141,18 @@ interface TokenActions {
         | { hasBaton: boolean; atoms: bigint; count?: number };
 }
 
+export const STAKING_ACTIVATION_HEIGHT = 818670;
+const STAKING_REWARDS_PERCENT = 10n;
+
 export const getStakerFromCoinbaseTx = (
     blockHeight: number,
     coinbaseOutputs: TxOutput[],
 ): HeraldStaker | false => {
-    const STAKING_ACTIVATION_HEIGHT = 818670;
     if (blockHeight < STAKING_ACTIVATION_HEIGHT) {
         // Do not parse for staking rwds if they are not expected to exist
         return false;
     }
-    const STAKING_REWARDS_PERCENT = 10n;
+
     const totalCoinbaseSats = coinbaseOutputs
         .map(output => output.sats)
         .reduce((prev, curr) => prev + curr, 0n);
@@ -178,10 +181,69 @@ export const getStakerFromCoinbaseTx = (
     return false;
 };
 
+export const getMinerOutputScript = (
+    blockHeight: number,
+    coinbaseOutputs: TxOutput[],
+): string => {
+    let hasStakingRwd = true;
+    if (blockHeight < STAKING_ACTIVATION_HEIGHT) {
+        // Do not parse for staking rwds if they are not expected to exist
+        hasStakingRwd = false;
+    }
+
+    const totalCoinbaseSats = coinbaseOutputs
+        .map(output => output.sats)
+        .reduce((prev, curr) => prev + curr, 0n);
+
+    let bestGuess;
+
+    // Test each outputScript for the miner
+    for (const output of coinbaseOutputs) {
+        if (output.outputScript === IFP_OUTPUTSCRIPT) {
+            // We know the IFP output is not the miner
+            continue;
+        }
+        // Everything but the IFP_OUTPUTSCRIPT is a bestguess
+        bestGuess = output.outputScript;
+
+        if (hasStakingRwd) {
+            // Check for staking reward output if we know there will be one
+            const thisValue = output.sats;
+            const minStakerValue =
+                (totalCoinbaseSats * STAKING_REWARDS_PERCENT) / 100n;
+
+            // In practice, the staking reward will almost always be the one that is exactly 10% of totalCoinbaseSats
+            // Use a STAKER_PERCENT_PADDING range to exclude miner and ifp outputs
+            const STAKER_PERCENT_PADDING = 1n;
+            const assumedMaxStakerValue =
+                (totalCoinbaseSats *
+                    (STAKING_REWARDS_PERCENT + STAKER_PERCENT_PADDING)) /
+                100n;
+            if (
+                thisValue >= minStakerValue &&
+                thisValue <= assumedMaxStakerValue
+            ) {
+                // Very likely this is a staking reward and not a miner output
+                continue;
+            }
+        }
+
+        // If it is not the IFP or the staker, it is (probably) the miner
+        // Note we may have more than one miner output
+        // This function picks the first non-IFP non-staker as "the" miner
+        return output.outputScript;
+    }
+
+    // If for some reason we fail to parse, return the last addr we check that was not the IFP
+    // NB bestGuess will always be defined unless a coinbase tx only sends outputs to the IFP address
+    return bestGuess!;
+};
+
 export const getMinerFromCoinbaseTx = (
     coinbaseScriptsig: string,
     coinbaseOutputs: TxOutput[],
     knownMiners: KnownMiners,
+    blockHeight: number,
 ): string => {
     // When you find the miner, minerInfo will come from knownMiners
     let minerInfo: boolean | MinerInfo = false;
@@ -209,18 +271,15 @@ export const getMinerFromCoinbaseTx = (
 
     if (!minerInfo) {
         // We're still unable to identify the miner, so resort to
-        // indentifying by the last chars of the payout address. For now
-        // we assume the ordering of outputs such as the miner reward is at
-        // the first position.
-        const minerPayoutSript = coinbaseOutputs[0].outputScript;
+        // indentifying by the last chars of the payout address.
         try {
-            const minerAddress = encodeOutputScript(minerPayoutSript);
-            return `unknown, ...${minerAddress.slice(-4)}`;
-        } catch (err) {
-            console.log(
-                `Error converting miner payout script (${minerPayoutSript}) to eCash address`,
-                err,
+            const minerAddress = getMinerOutputScript(
+                blockHeight,
+                coinbaseOutputs,
             );
+            return `unknown, ...${encodeOutputScript(minerAddress).slice(-4)}`;
+        } catch (err) {
+            console.error(`Error determining miner address`, err);
             // Give up
             return 'unknown';
         }
@@ -1133,6 +1192,7 @@ export const parseBlockTxs = (
         coinbaseTx.inputs[0].inputScript,
         coinbaseTx.outputs,
         miners,
+        blockHeight,
     );
     const staker = getStakerFromCoinbaseTx(blockHeight, coinbaseTx.outputs);
     if (staker !== false) {
@@ -2149,7 +2209,7 @@ export const guessRejectReason = async (
     // This output is a constant so it's easy to look for
     let hasMinerFundOuptut = false;
     for (let i = 0; i < coinbaseData.outputs.length; i += 1) {
-        if (coinbaseData.outputs[i].outputScript === minerFundOutputScript) {
+        if (coinbaseData.outputs[i].outputScript === IFP_OUTPUTSCRIPT) {
             hasMinerFundOuptut = true;
             break;
         }
@@ -2408,6 +2468,7 @@ export const summarizeTxHistory = (
                 tx.inputs[0].inputScript,
                 outputs,
                 miners,
+                block!.height!,
             );
             if (miner.includes('ViaBTC')) {
                 viaBtcBlocks += 1;
