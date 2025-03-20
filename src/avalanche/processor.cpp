@@ -936,6 +936,11 @@ bool Processor::eraseStakingRewardWinner(const BlockHash &prevBlockHash) {
 }
 
 void Processor::cleanupStakingRewards(const int minHeight) {
+    // Avoid cs_main => cs_peerManager reverse order locking
+    AssertLockNotHeld(::cs_main);
+    AssertLockNotHeld(cs_stakingRewards);
+    AssertLockNotHeld(cs_peerManager);
+
     {
         LOCK(cs_stakingRewards);
         // std::erase_if is only defined since C++20
