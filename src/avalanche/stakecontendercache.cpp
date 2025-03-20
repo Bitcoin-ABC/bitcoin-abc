@@ -5,6 +5,7 @@
 #include <avalanche/stakecontendercache.h>
 
 #include <avalanche/rewardrankcomparator.h>
+#include <blockindex.h>
 
 #include <algorithm>
 

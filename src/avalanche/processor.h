@@ -22,6 +22,7 @@
 #include <net.h>
 #include <primitives/transaction.h>
 #include <rwcollection.h>
+#include <txmempool.h>
 #include <util/variant.h>
 #include <validationinterface.h>
 

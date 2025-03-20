@@ -16,7 +16,12 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
+#include <cstdint>
+#include <functional>
+#include <utility>
 #include <vector>
+
+class CBlockIndex;
 
 namespace avalanche {
 

@@ -10,6 +10,7 @@
 #include <key.h>
 #include <script/script.h>
 
+#include <cstdint>
 #include <vector>
 
 namespace avalanche {
