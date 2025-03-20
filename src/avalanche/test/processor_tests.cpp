@@ -2913,7 +2913,7 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
         const StakeContenderId contenderId(chaintipHash, proof->getId());
         double rank = contenderId.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);
 
-        if (rank < bestRank) {
+        if (rank <= bestRank) {
             bestRank = rank;
             acceptedContenderProofs.push_back(proof);
             std::sort(acceptedContenderProofs.begin(),
