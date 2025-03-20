@@ -18,6 +18,7 @@
 #include <key_io.h>
 #include <memusage.h>
 #include <netbase.h>
+#include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow/pow.h>
 #include <protocol.h>
