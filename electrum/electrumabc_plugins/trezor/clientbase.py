@@ -372,7 +372,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
             return None
         return bootloader_client
 
-    def update_firmware(self, filename, fingerprint):
+    def update_firmware(self, filename, fingerprint, official_firmware):
         model = self.get_trezor_model()
 
         fw = self.check_firmware(filename, model, fingerprint)
@@ -466,9 +466,13 @@ class TrezorClientBase(HardwareClientBase, PrintError):
                 self.handler.finished()
 
         # We can send a better firmware upgrade bootloader message when
-        # installing an official firmware
+        # installing an official firmware. This implies that the header will be
+        # checked and the device will refuse to downgrade, so we only do this if
+        # the user selected to update to the latest Trezor but not if installing
+        # from a file. This replicates the behavior of the Trezor Suite custom
+        # firmware installation.
         if not entered_bootloader:
-            if firmware_vendor in ("Trezor", "SatoshiLabs"):
+            if firmware_vendor in ("Trezor", "SatoshiLabs") and official_firmware:
                 bootloader_client = self.enter_bootloader(
                     path,
                     firmware_header,

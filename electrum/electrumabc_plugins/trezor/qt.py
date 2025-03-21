@@ -928,8 +928,8 @@ class SettingsDialog(WindowModalDialog):
         def slider_released():
             config.set_session_timeout(timeout_slider.sliderPosition() * 60)
 
-        def update_firmware(filename, fingerprint=None):
-            invoke_client("update_firmware", filename, fingerprint)
+        def update_firmware(filename, fingerprint=None, official_firmware=False):
+            invoke_client("update_firmware", filename, fingerprint, official_firmware)
 
         def select_trezor_firmware():
             client = devmgr.client_by_id(device_id)
@@ -1000,7 +1000,7 @@ class SettingsDialog(WindowModalDialog):
             with open(filename, "wb") as f:
                 f.write(req.content)
 
-            update_firmware(filename, fingerprint)
+            update_firmware(filename, fingerprint, official_firmware=True)
 
         def select_custom_firmware():
             if filename := select_file():
