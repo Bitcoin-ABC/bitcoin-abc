@@ -359,11 +359,16 @@ class TrezorClientBase(HardwareClientBase, PrintError):
                 "{}s on the device screen."
             ).format(enter_bootloader_timeout)
         ):
-            trezorlib.device.reboot_to_bootloader(
-                self.client,
-                boot_command=boot_command,
-                firmware_header=firmware_header,
-            )
+            try:
+                trezorlib.device.reboot_to_bootloader(
+                    self.client,
+                    boot_command=boot_command,
+                    firmware_header=firmware_header,
+                )
+            except trezorlib.transport.TransportException:
+                # The libusb can fail to close the session when the device
+                # reboots to bootloader, no harm.
+                pass
 
         bootloader_client = self.wait_for_device(path, enter_bootloader_timeout)
         if not bootloader_client:
