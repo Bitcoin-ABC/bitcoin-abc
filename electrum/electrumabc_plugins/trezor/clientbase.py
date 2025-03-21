@@ -348,13 +348,16 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         firmware_header,
         boot_command=trezorlib.messages.BootCommand.STOP_AND_WAIT,
     ):
+        # Max time to reboot and click to enter bootloader mode
+        enter_bootloader_timeout = 60
+
         # Reboot to bootloader mode
         with self.run_flow(
             _(
-                "Confirm on your {} device to reboot to bootloader mode,\n"
-                "then select 'Install Firmware' within 30s on the device "
-                "screen."
-            )
+                "Confirm on your Trezor device to reboot to bootloader mode,\n"
+                "then select 'Install Firmware' within "
+                "{}s on the device screen."
+            ).format(enter_bootloader_timeout)
         ):
             trezorlib.device.reboot_to_bootloader(
                 self.client,
@@ -362,8 +365,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
                 firmware_header=firmware_header,
             )
 
-        # 30s to reboot and click to enter bootloader mode
-        bootloader_client = self.wait_for_device(path, 30)
+        bootloader_client = self.wait_for_device(path, enter_bootloader_timeout)
         if not bootloader_client:
             self.handler.show_error(
                 "Timeout waiting for the device to enter bootloader mode.\n"
