@@ -557,7 +557,6 @@ class SettingsDialog(WindowModalDialog):
 
             device_label.setText(features.label)
             pin_set_label.setText(noyes[features.pin_protection])
-            passphrases_label.setText(disen[features.passphrase_protection])
             bl_hash_label.setText(bl_hash)
             label_edit.setText(features.label)
             device_id_label.setText(features.device_id)
@@ -567,9 +566,24 @@ class SettingsDialog(WindowModalDialog):
             clear_pin_warning.setVisible(features.pin_protection)
             pin_button.setText(setchange[features.pin_protection])
             pin_msg.setVisible(not features.pin_protection)
-            passphrase_button.setText(endis[features.passphrase_protection])
             language_label.setText(features.language)
             firmware_current_version.setText(_(f"Current firmware version: {version}"))
+
+            if features.passphrase_protection is None:
+                # happens when the device is locked
+                passphrases_label.setText(_("Unknown"))
+                passphrase_button.setText(endis[0])
+                passphrase_button.setEnabled(False)
+                passphrase_button.setToolTip(
+                    _(
+                        "The device appears to be locked. Try closing this settings "
+                        "window, unlocking the device, and reopening the settings to "
+                        "access this feature."
+                    )
+                )
+            else:
+                passphrases_label.setText(disen[features.passphrase_protection])
+                passphrase_button.setText(endis[features.passphrase_protection])
 
         def set_label_enabled():
             label_apply.setEnabled(label_edit.text() != self.features.label)
