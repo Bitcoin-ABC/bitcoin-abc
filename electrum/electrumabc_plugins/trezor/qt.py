@@ -1221,6 +1221,9 @@ class SettingsDialog(WindowModalDialog):
             _("Install the latest Trezor firmware")
         )
         firmware_trezor_button.clicked.connect(select_trezor_firmware)
+        hline = QtWidgets.QFrame()
+        hline.setFrameShape(QtWidgets.QFrame.HLine)
+        hline.setFrameShadow(QtWidgets.QFrame.Sunken)
         firmware_warning = QtWidgets.QLabel(
             _(
                 "Installing a non-official firmware is not supported by Trezor.\n"
@@ -1233,11 +1236,16 @@ class SettingsDialog(WindowModalDialog):
         firmware_custom_button = QtWidgets.QPushButton(
             _("Install firmware from disk...")
         )
+        firmware_custom_button.setStyleSheet("color: red")
         firmware_custom_button.clicked.connect(select_custom_firmware)
         firmware_ecash_button = QtWidgets.QPushButton(_("Install eCash firmware"))
+        firmware_ecash_button.setStyleSheet("color: red")
         firmware_ecash_button.clicked.connect(select_ecash_firmware)
         firmware_layout.addWidget(firmware_current_version)
         firmware_layout.addWidget(firmware_trezor_button)
+        firmware_layout.addSpacing(20)
+        firmware_layout.addWidget(hline)
+        firmware_layout.addSpacing(10)
         firmware_layout.addWidget(firmware_warning)
         firmware_layout.addWidget(firmware_custom_button)
         firmware_layout.addWidget(firmware_ecash_button)
