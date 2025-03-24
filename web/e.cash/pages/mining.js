@@ -189,6 +189,11 @@ function Mining() {
                             MineMine
                         </ExternalLink>
                     </li>
+                    <li>
+                        <ExternalLink href="https://pool.kryptex.com/xec">
+                            Kryptex
+                        </ExternalLink>
+                    </li>
                 </ul>
 
                 <H3 text="Running your own mining setup" id="setup" />
