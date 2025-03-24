@@ -506,9 +506,11 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         task = partial(
             trezorlib.firmware.update, bootloader_client, firmware_data, update_cb
         )
+
+        vendor_str = firmware_vendor + " " if firmware_vendor else ""
         self.handler.show_wait_dialog(
             _(
-                f"Updating the {self.device} firmware to {firmware_vendor or ''} version {firmware_version_string}..."
+                f"Updating the {self.device} firmware to {vendor_str}version {firmware_version_string}..."
             ),
             task,
             max_progress,

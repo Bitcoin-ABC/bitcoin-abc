@@ -1025,27 +1025,36 @@ class SettingsDialog(WindowModalDialog):
             if not client:
                 raise RuntimeError("Device not connected")
 
-            version = "2.8.9"
             model_codename = client.client.model.internal_name.upper()
             fingerprint = None
 
+            if model_codename == "T1B1":
+                # 1
+                version = "1.13.1"
+                fingerprint = (
+                    "c33084c5fd004501911ffb25455b72b649badf6250e9d5d0b815c3236c8c5dba"
+                )
             if model_codename == "T2T1":
                 # T
+                version = "2.8.9"
                 fingerprint = (
                     "21ea2c454ff54d06441ca182903e9cb7037f2944557640d3b063d00b3f66b904"
                 )
             if model_codename == "T2B1":
                 # Safe 3
+                version = "2.8.9"
                 fingerprint = (
                     "3669b2442f499d494cda688d8895f16ccb27e0cf18935c4969708f20a33ff44f"
                 )
             if model_codename == "T3B1":
                 # Safe 3
+                version = "2.8.9"
                 fingerprint = (
                     "4e60652e198a673aafc8ab4ddacacf5229a9d7df8e9fee18f22cf398c23d019e"
                 )
             if model_codename == "T3T1":
                 # Safe 5
+                version = "2.8.9"
                 fingerprint = (
                     "b77c2b81eeb95462b6233a9320b5ba722784f7b25bb77be8eb99dc4961f197c3"
                 )
