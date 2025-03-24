@@ -96,10 +96,11 @@ impl ChronikClient {
     pub async fn broadcast_tx(
         &self,
         raw_tx: Vec<u8>,
+        skip_token_checks: bool,
     ) -> Result<proto::BroadcastTxResponse> {
         let request = proto::BroadcastTxRequest {
             raw_tx,
-            skip_token_checks: false,
+            skip_token_checks,
         };
         self._post("/broadcast-tx", &request).await
     }
@@ -107,10 +108,11 @@ impl ChronikClient {
     pub async fn broadcast_txs(
         &self,
         raw_txs: Vec<Vec<u8>>,
+        skip_token_checks: bool,
     ) -> Result<proto::BroadcastTxsResponse> {
         let request = proto::BroadcastTxsRequest {
             raw_txs,
-            skip_token_checks: false,
+            skip_token_checks,
         };
         self._post("/broadcast-txs", &request).await
     }

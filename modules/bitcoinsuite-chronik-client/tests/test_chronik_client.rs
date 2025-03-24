@@ -22,7 +22,7 @@ const GENESIS_PK_HEX: &str = "04678afdb0fe5548271967f1a67130b7105cd6a828e03\
 pub async fn test_broadcast_tx() -> Result<()> {
     let client = ChronikClient::new(CHRONIK_URL.to_string())?;
     let response = client
-        .broadcast_tx(hex::decode("00000000")?)
+        .broadcast_tx(hex::decode("00000000")?, false)
         .await
         .unwrap_err()
         .downcast::<ChronikClientError>()?;
@@ -45,7 +45,7 @@ pub async fn test_broadcast_tx() -> Result<()> {
 pub async fn test_broadcast_txs() -> Result<()> {
     let client = ChronikClient::new(CHRONIK_URL.to_string())?;
     let response = client
-        .broadcast_txs(vec![hex::decode("00000000")?])
+        .broadcast_txs(vec![hex::decode("00000000")?], false)
         .await
         .unwrap_err()
         .downcast::<ChronikClientError>()?;
