@@ -213,7 +213,12 @@ public:
         checkpointData = CheckpointData(CBaseChainParams::MAIN);
 
         m_assumeutxo_data = {
-            // TODO to be specified in a future patch.
+            {.height = 888'000,
+             .hash_serialized =
+                 AssumeutxoHash{uint256S("0x50493f6218661a189654dbad816821a656b519454190c63daf376610e4fa0a7e")},
+             .nChainTx = 110,
+             .blockhash =
+                 BlockHash{uint256S("0x00000000000000002b218d995a292c34bc4c0244bb4bbdad18f3a97e88ccb567")}},
         };
 
         // Data as of block
