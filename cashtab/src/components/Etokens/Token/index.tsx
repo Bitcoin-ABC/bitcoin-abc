@@ -2371,6 +2371,7 @@ const Token: React.FC = () => {
                         )}
                     {showConfirmListPartialSlp &&
                         tokenId === appConfig.vipTokens.xecx.tokenId &&
+                        switches.showRedeemXecx &&
                         previewedAgoraPartial !== null && (
                             <Modal
                                 title={`Redeem ${decimalizedTokenQtyToLocaleFormat(
@@ -2503,7 +2504,7 @@ const Token: React.FC = () => {
                             </Modal>
                         )}
                     {showConfirmListPartialSlp &&
-                        tokenId !== appConfig.vipTokens.xecx.tokenId &&
+                        !switches.showRedeemXecx &&
                         (formData.tokenListPrice !== '' ||
                             tokenId === FIRMA.tokenId) &&
                         previewedAgoraPartial !== null && (
