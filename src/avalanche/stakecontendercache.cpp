@@ -6,6 +6,8 @@
 
 #include <avalanche/rewardrankcomparator.h>
 #include <blockindex.h>
+#include <logging.h>
+#include <util/strencodings.h>
 
 #include <algorithm>
 
@@ -65,6 +67,14 @@ void StakeContenderCache::promoteToBlock(
             contenders.emplace(blockhash, height, proofid,
                                StakeContenderStatus::UNKNOWN,
                                contender.payoutScriptPubkey, contender.score);
+            LogPrintLevel(
+                BCLog::AVALANCHE, BCLog::Level::Debug,
+                "Contender with proofid %s, payout %s promoted to block "
+                "%s (height %d) (old id %s, new id %s)\n",
+                proofid.ToString(), HexStr(contender.payoutScriptPubkey),
+                blockhash.ToString(), height,
+                contender.getStakeContenderId().ToString(),
+                StakeContenderId(blockhash, proofid).ToString());
         }
     }
 }

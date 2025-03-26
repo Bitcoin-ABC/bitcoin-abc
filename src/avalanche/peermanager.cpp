@@ -19,6 +19,7 @@
 #include <uint256.h>
 #include <util/fastrange.h>
 #include <util/fs_helpers.h>
+#include <util/strencodings.h>
 #include <util/time.h>
 #include <validation.h> // For ChainstateManager
 
@@ -1397,6 +1398,15 @@ void PeerManager::cleanupStakeContenders(const int requestedMinHeight) {
 void PeerManager::addStakeContender(const ProofRef &proof) {
     const CBlockIndex *tip = WITH_LOCK(cs_main, return chainman.ActiveTip());
     stakeContenderCache.add(tip, proof);
+
+    const BlockHash blockhash = tip->GetBlockHash();
+    const ProofId &proofid = proof->getId();
+    LogPrintLevel(BCLog::AVALANCHE, BCLog::Level::Debug,
+                  "Cached stake contender with proofid %s, payout %s at block "
+                  "%s (height %d) with id %s\n",
+                  proofid.ToString(), HexStr(proof->getPayoutScript()),
+                  blockhash.ToString(), tip->nHeight,
+                  StakeContenderId(blockhash, proofid).ToString());
 }
 
 int PeerManager::getStakeContenderStatus(const StakeContenderId &contenderId,
