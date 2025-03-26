@@ -1,5 +1,21 @@
 # Release notes
 
+## Release 5.4.2
+
+- Enable downgrading of Trezor firmware (D17482).
+- Increase the timeout for entering bootloader mode when installing
+  custom firmware on a Trezor device, as the previous duration can be
+  insufficient depending on USB connection speed (D17843).
+- Handle a potential LibUSB error during session closure when
+  transitioning to bootloader mode. This error does not impact the
+  firmware installation process, so it no longer prevents firmware
+  installation (D17844).
+- Fix an error that occurs when opening the Trezor Settings dialog
+  while the device is locked (D17845).
+- Add eCash firmware support for Trezor One wallets, enabling the
+  signing of Avalanche stakes (D17852).
+
+
 ## Release 5.4.1
 
 - Make it possible to sign Avalanche stakes using Trezor devices running
