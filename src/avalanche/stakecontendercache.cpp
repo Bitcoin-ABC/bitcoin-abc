@@ -61,12 +61,17 @@ void StakeContenderCache::promoteToBlock(
     const BlockHash &blockhash = activeTip->GetBlockHash();
     const int height = activeTip->nHeight;
     lastPromotedHeight = height;
+
+    // Gather entries to promote and then insert them afterwards so we don't
+    // iterate over newly inserted entries.
+    std::vector<StakeContenderCacheEntry> promotedEntries;
+    promotedEntries.reserve(contenders.size());
     for (auto &contender : contenders) {
         const ProofId &proofid = contender.proofid;
         if (shouldPromote(proofid)) {
-            contenders.emplace(blockhash, height, proofid,
-                               StakeContenderStatus::UNKNOWN,
-                               contender.payoutScriptPubkey, contender.score);
+            promotedEntries.push_back(StakeContenderCacheEntry(
+                blockhash, height, proofid, StakeContenderStatus::UNKNOWN,
+                contender.payoutScriptPubkey, contender.score));
             LogPrintLevel(
                 BCLog::AVALANCHE, BCLog::Level::Debug,
                 "Contender with proofid %s, payout %s promoted to block "
@@ -77,6 +82,7 @@ void StakeContenderCache::promoteToBlock(
                 StakeContenderId(blockhash, proofid).ToString());
         }
     }
+    contenders.insert(promotedEntries.begin(), promotedEntries.end());
 }
 
 bool StakeContenderCache::setWinners(
