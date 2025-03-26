@@ -1,10 +1,16 @@
-# Bitcoin ABC 0.30.13 Release Notes
+# Bitcoin ABC 0.31.0 Release Notes
 
-Bitcoin ABC version 0.30.13 is now available from:
+Bitcoin ABC version 0.31.0 is now available from:
 
-<https://download.bitcoinabc.org/0.30.13/>
+<https://download.bitcoinabc.org/0.31.0/>
 
-This release includes the following features and fixes:
-- Since Bitcoin ABC 0.22.2 the `pruneblockchain` RPC returned the first
-  unpruned block height. This has been changed to now return the last pruned
-  block height.
+Network upgrade
+---------------
+
+At the MTP time of `1747310400` (May 15, 2025 12:00:00 UTC), the following
+changes will be activated:
+ - Bump automatic replay protection to the next upgrade, timestamp `1763208000`
+   (November 15, 2025 12:00:00 UTC).
+
+Node operators should update to version 0.31.x to remain in sync with the
+network after the May 15, 2025 upgrade activated.
