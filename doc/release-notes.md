@@ -12,5 +12,5 @@ changes will be activated:
  - Bump automatic replay protection to the next upgrade, timestamp `1763208000`
    (November 15, 2025 12:00:00 UTC).
 
-Node operators should update to version 0.31.x to remain in sync with the
-network after the May 15, 2025 upgrade activated.
+To stay in sync with the network, node operators must update to version 0.31.x
+before the May 15, 2025 upgrade gets activated.
