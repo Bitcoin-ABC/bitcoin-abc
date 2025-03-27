@@ -5,11 +5,10 @@ import Layout from '/components/layout';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
 import Link from 'next/link';
-import ExternalLink from '/components/external-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
-const oldVersion = `0.29.13`;
+const oldVersion = `0.30.13`;
 
 function Upgrade(props) {
     const latestVersion = props.latestVersion;
@@ -19,7 +18,7 @@ function Upgrade(props) {
         <Layout>
             <SubPageHero
                 image={pins}
-                h2subtext="Nov 15th 2024"
+                h2subtext="May 15th 2025"
                 h2text="eCash Network Upgrade"
                 noLoop
             >
@@ -32,15 +31,6 @@ function Upgrade(props) {
             </SubPageHero>
             <GradientSpacer />
             <Container narrow>
-                <H3 text="What happened?" id="what" />
-                <p>
-                    The planned upgrade of the eCash network has successfully
-                    been completed. The first post-upgrade block is block number{' '}
-                    <ExternalLink href="https://explorer.e.cash/block/0000000000000000232d2ec92c9a2dd3a6e887dabc254c85f10e804239ff7274">
-                        871168
-                    </ExternalLink>
-                    .
-                </p>
                 <H3 text="Who needs to upgrade?" id="who" />
                 <p>
                     All operators of a Bitcoin ABC full node must upgrade to the
@@ -51,27 +41,27 @@ function Upgrade(props) {
                     </Link>
                     .
                 </p>
+                <H3 text="Exactly when will the upgrade activate?" id="when" />
                 <p>
-                    Miners need to update their setup according to the
-                    instructions on the <Link href="/mining">Mining page</Link>{' '}
-                    .
+                    In order to activate reliably at a predictable time, the
+                    network upgrade uses the &ldquo;Median Time Past&rdquo;
+                    mechanism. The upgrade activates when the median of the last
+                    11 blocks reaches timestamp 1747310400 (12:00:00 UTC on May
+                    15th, 2025). This means that the upgrade does not actually
+                    activate exactly at that time, but typically about one hour
+                    later, when 6 blocks with timestamps greater than the
+                    activation time have been produced.
                 </p>
                 <H3
                     text="What features are included in the Network Upgrade?"
                     id="features"
                 />
                 <p>
-                    The{' '}
-                    <Link href="/blog/heartbeat-upgrade-a-steady-pulse-for-ecash">
-                        Heartbeat
-                    </Link>{' '}
-                    feature, also known as Real Time Targeting, activated with
-                    this upgrade. This is a block policy that makes it more
-                    difficult to mine blocks faster than the expected 10 minutes
-                    average, preventing large bumps in difficulty that can lead
-                    to inconsistent block intervals. Miners need to update their
-                    setup according to the instructions on the{' '}
-                    <Link href="/mining">Mining page</Link> .
+                    This upgrade does not include any new protocol features.
+                    However, because of the automatic replay protection that is
+                    part of the 6-month upgrade cadence, it is necessary for all
+                    full node operators to upgrade to {latestMajor} before the
+                    upgrade time.
                 </p>
                 <H3 text="Do I need to upgrade my wallet?" id="wallet" />
                 <p>
