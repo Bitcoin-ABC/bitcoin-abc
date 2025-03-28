@@ -28,5 +28,6 @@ export * from './token/alp.js';
 export * from './token/common.js';
 export * from './token/empp.js';
 export * from './token/slp.js';
+export * from './token/slp.parse.js';
 
 export * as payment from './payment';

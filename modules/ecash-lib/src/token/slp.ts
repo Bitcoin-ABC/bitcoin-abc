@@ -10,7 +10,9 @@ import { Script } from '../script.js';
 import { BURN, GENESIS, GenesisInfo, MINT, SEND } from './common.js';
 
 /** LOKAD ID for SLP */
-export const SLP_LOKAD_ID = strToBytes('SLP\0');
+export const SLP_LOKAD_ID_STR = 'SLP\0';
+/** LOKAD ID for SLP */
+export const SLP_LOKAD_ID = strToBytes(SLP_LOKAD_ID_STR);
 
 /** SLP fungible token type number */
 export const SLP_FUNGIBLE = 1;
@@ -20,6 +22,25 @@ export const SLP_MINT_VAULT = 2;
 export const SLP_NFT1_CHILD = 0x41;
 /** SLP NFT1 Group token type number */
 export const SLP_NFT1_GROUP = 0x81;
+
+/** How many bytes the GENESIS `hash` field must have (or 0) */
+export const SLP_GENESIS_HASH_NUM_BYTES = 32;
+
+/** How many bytes the GENESIS `mintVaultScripthash` field must have */
+export const SLP_MINT_VAULT_SCRIPTHASH_NUM_BYTES = 20;
+
+/** How many outputs a SEND can specify at most */
+export const SLP_MAX_SEND_OUTPUTS = 19;
+
+/** How many bytes every atoms amount has */
+export const SLP_ATOMS_NUM_BYTES = 8;
+
+/** Supported SLP token types */
+export type SlpTokenType =
+    | typeof SLP_FUNGIBLE
+    | typeof SLP_MINT_VAULT
+    | typeof SLP_NFT1_CHILD
+    | typeof SLP_NFT1_GROUP;
 
 /** Build an SLP GENESIS OP_RETURN, creating a new SLP token */
 export function slpGenesis(
