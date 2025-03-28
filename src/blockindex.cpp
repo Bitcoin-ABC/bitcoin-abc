@@ -31,6 +31,19 @@ std::string CBlockIndex::ToString() const {
         nHeight, hashMerkleRoot.ToString(), GetBlockHash().ToString());
 }
 
+void CBlockIndex::ResetChainStats() {
+    nChainTx = 0;
+    nChainSize = 0;
+}
+
+void CBlockIndex::MaybeResetChainStats() {
+    // For now, we unconditionally reset the stats.
+    // In a following change, this will be done only if the value is not
+    // already set and correct and the block is not the assumeutxo snapshot
+    // base.
+    ResetChainStats();
+}
+
 bool CBlockIndex::UpdateChainStats() {
     if (pprev == nullptr) {
         nChainTx = nTx;
@@ -44,8 +57,6 @@ bool CBlockIndex::UpdateChainStats() {
         return true;
     }
 
-    nChainTx = 0;
-    nChainSize = 0;
     return false;
 }
 

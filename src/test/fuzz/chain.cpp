@@ -38,6 +38,8 @@ FUZZ_TARGET(chain) {
         (void)disk_block_index->HaveNumChainTxs();
         (void)disk_block_index->IsValid();
         (void)disk_block_index->UpdateChainStats();
+        (void)disk_block_index->MaybeResetChainStats();
+        (void)disk_block_index->ResetChainStats();
     }
 
     const CBlockHeader block_header = disk_block_index->GetBlockHeader();

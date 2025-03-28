@@ -159,7 +159,19 @@ public:
     uint64_t GetChainSize() const { return nChainSize; }
 
     /**
-     * Update chain tx stats.
+     * Reset chain tx stats.
+     */
+    void ResetChainStats();
+
+    /**
+     * Reset chain tx stats conditionally.
+     */
+    void MaybeResetChainStats();
+
+    /**
+     * Update chain tx stats and return True if this block is the genesis block
+     * or all parents have their tx stats set.
+     * Else, do nothing and return False.
      */
     bool UpdateChainStats();
 
