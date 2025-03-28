@@ -42,6 +42,7 @@ use crate::{
 pub struct Server {
     chronik: ChronikClient,
     base_dir: PathBuf,
+    chain: Chain,
     satoshi_addr_prefix: &'static str,
     tokens_addr_prefix: &'static str,
     token_icon_url: &'static str,
@@ -58,6 +59,7 @@ impl Server {
         Ok(Server {
             chronik,
             base_dir,
+            chain: chain.clone(),
             satoshi_addr_prefix: match chain {
                 Chain::Mainnet => "ecash",
                 Chain::Testnet => "ectest",
@@ -466,7 +468,7 @@ impl Server {
         let sats_address = address.with_prefix(self.satoshi_addr_prefix);
         let token_address = address.with_prefix(self.tokens_addr_prefix);
 
-        let legacy_address = to_legacy_address(&address);
+        let legacy_address = to_legacy_address(&address, &self.chain);
         let sats_address = sats_address.as_str();
         let token_address = token_address.as_str();
 

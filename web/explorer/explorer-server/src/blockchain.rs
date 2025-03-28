@@ -4,6 +4,8 @@ use bitcoinsuite_core::{
 };
 use bitcoinsuite_error::Result;
 
+use crate::chain::Chain;
+
 pub fn to_be_hex(slice: &[u8]) -> String {
     let mut vec = slice.to_vec();
     vec.reverse();
@@ -61,7 +63,7 @@ pub fn destination_from_script<'a>(
     }
 }
 
-pub fn to_legacy_address(cash_address: &CashAddress) -> String {
+pub fn to_legacy_address(cash_address: &CashAddress, chain: &Chain) -> String {
     use bitcoin::{
         hashes::{hash160, Hash},
         PubkeyHash, ScriptHash,
@@ -76,9 +78,13 @@ pub fn to_legacy_address(cash_address: &CashAddress) -> String {
             bitcoin::Script::new_p2sh(&ScriptHash::from_hash(hash))
         }
     };
-    let address =
-        bitcoin::Address::from_script(&script, bitcoin::Network::Bitcoin)
-            .expect("Invalid address");
+    let legacy_chain = match chain {
+        Chain::Mainnet => bitcoin::Network::Bitcoin,
+        Chain::Testnet => bitcoin::Network::Testnet,
+        Chain::Regtest => bitcoin::Network::Regtest,
+    };
+    let address = bitcoin::Address::from_script(&script, legacy_chain)
+        .expect("Invalid address");
     address.to_string()
 }
 

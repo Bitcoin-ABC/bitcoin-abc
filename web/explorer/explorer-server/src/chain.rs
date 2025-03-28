@@ -10,7 +10,7 @@ pub enum ChainError {
     InvalidChain(String),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Chain {
     Mainnet,
     Testnet,
