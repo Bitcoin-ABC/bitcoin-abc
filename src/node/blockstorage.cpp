@@ -276,6 +276,7 @@ bool BlockManager::LoadBlockIndex() {
         if (pindex->nTx > 0) {
             if (!pindex->UpdateChainStats() && pindex->pprev) {
                 m_blocks_unlinked.insert(std::make_pair(pindex->pprev, pindex));
+                pindex->ResetChainStats();
             }
         }
 
