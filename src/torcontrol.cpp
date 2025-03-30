@@ -44,6 +44,12 @@ const std::string DEFAULT_TOR_CONTROL = "127.0.0.1:9051";
 static const int TOR_COOKIE_SIZE = 32;
 /** Size of client/server nonce for SAFECOOKIE */
 static const int TOR_NONCE_SIZE = 32;
+/**
+ * Tor control reply code. Ref:
+ * https://spec.torproject.org/control-spec/replies.html
+ */
+static const int TOR_REPLY_OK = 250;
+static const int TOR_REPLY_UNRECOGNIZED = 510;
 /** For computing serverHash in SAFECOOKIE */
 static const std::string TOR_SAFE_SERVERKEY =
     "Tor safe cookie authentication server-to-controller hash";
@@ -375,7 +381,7 @@ void TorController::get_socks_cb(TorControlConnection &_conn,
                                  const TorControlReply &reply) {
     // NOTE: We can only get here if -onion is unset
     std::string socks_location;
-    if (reply.code == 250) {
+    if (reply.code == TOR_REPLY_OK) {
         for (const auto &line : reply.lines) {
             if (0 == line.compare(0, 20, "net/listeners/socks=")) {
                 const std::string port_list_str = line.substr(20);
@@ -407,7 +413,7 @@ void TorController::get_socks_cb(TorControlConnection &_conn,
         } else {
             LogPrintf("tor: Get SOCKS port command returned nothing\n");
         }
-    } else if (reply.code == 510) { // 510 Unrecognized command
+    } else if (reply.code == TOR_REPLY_UNRECOGNIZED) {
         LogPrintf("tor: Get SOCKS port command failed with unrecognized "
                   "command (You probably should upgrade Tor)\n");
     } else {
@@ -428,7 +434,14 @@ void TorController::get_socks_cb(TorControlConnection &_conn,
     Assume(resolved.IsValid());
     LogDebug(BCLog::TOR, "tor: Configuring onion proxy for %s\n",
              resolved.ToStringAddrPort());
-    Proxy addrOnion = Proxy(resolved, true);
+
+    // With m_randomize_credentials = true, generates unique SOCKS credentials
+    // per proxy connection (e.g., Tor). Prevents connection correlation and
+    // enhances privacy by forcing different Tor circuits. Requires Tor's
+    // IsolateSOCKSAuth (default enabled) for effective isolation (see
+    // IsolateSOCKSAuth section in
+    // https://2019.www.torproject.org/docs/tor-manual.html.en).
+    Proxy addrOnion = Proxy(resolved, /*randomize_credentials=*/true);
     SetProxy(NET_ONION, addrOnion);
 
     const auto onlynets = gArgs.GetArgs("-onlynet");
@@ -451,7 +464,7 @@ void TorController::get_socks_cb(TorControlConnection &_conn,
 
 void TorController::add_onion_cb(TorControlConnection &_conn,
                                  const TorControlReply &reply) {
-    if (reply.code == 250) {
+    if (reply.code == TOR_REPLY_OK) {
         LogDebug(BCLog::TOR, "tor: ADD_ONION successful\n");
         for (const std::string &s : reply.lines) {
             std::map<std::string, std::string> m = ParseTorReplyMapping(s);
@@ -483,7 +496,7 @@ void TorController::add_onion_cb(TorControlConnection &_conn,
         }
         AddLocal(service, LOCAL_MANUAL);
         // ... onion requested - keep connection open
-    } else if (reply.code == 510) { // 510 Unrecognized command
+    } else if (reply.code == TOR_REPLY_UNRECOGNIZED) {
         LogPrintf("tor: Add onion failed with unrecognized command (You "
                   "probably need to upgrade Tor)\n");
     } else {
@@ -493,7 +506,7 @@ void TorController::add_onion_cb(TorControlConnection &_conn,
 
 void TorController::auth_cb(TorControlConnection &_conn,
                             const TorControlReply &reply) {
-    if (reply.code == 250) {
+    if (reply.code == TOR_REPLY_OK) {
         LogDebug(BCLog::TOR, "tor: Authentication successful\n");
 
         // Now that we know Tor is running setup the proxy for onion addresses
@@ -556,7 +569,7 @@ ComputeResponse(const std::string &key, const std::vector<uint8_t> &cookie,
 
 void TorController::authchallenge_cb(TorControlConnection &_conn,
                                      const TorControlReply &reply) {
-    if (reply.code == 250) {
+    if (reply.code == TOR_REPLY_OK) {
         LogDebug(BCLog::TOR,
                  "tor: SAFECOOKIE authentication challenge successful\n");
         std::pair<std::string, std::string> l =
@@ -605,7 +618,7 @@ void TorController::authchallenge_cb(TorControlConnection &_conn,
 
 void TorController::protocolinfo_cb(TorControlConnection &_conn,
                                     const TorControlReply &reply) {
-    if (reply.code == 250) {
+    if (reply.code == TOR_REPLY_OK) {
         std::set<std::string> methods;
         std::string cookiefile;
         /*
