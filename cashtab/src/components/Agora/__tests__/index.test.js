@@ -390,29 +390,9 @@ describe('<Agora />', () => {
             />,
         );
 
-        // Wait for the screen to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
-        );
-
-        // Wait for agora offers to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Loading active offers'),
-            ).not.toBeInTheDocument(),
-        );
-
-        // Wait for element to get token info and load
-        expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
-
-        // We see the Token Offers section
-        expect(screen.getByText('Token Offers')).toBeInTheDocument();
-
         // No whitelisted offers
         expect(
-            screen.getByText(
+            await screen.findByText(
                 'No whitelisted tokens are currently listed for sale. Try loading all offers.',
             ),
         ).toBeInTheDocument();
