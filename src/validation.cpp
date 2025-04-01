@@ -4844,8 +4844,16 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // last minute so we can make sure everything is ready to be reorged if
     // needed.
     if (gArgs.GetBoolArg("-parkdeepreorg", true)) {
+        // Blocks that are below the snapshot height can't cause reorgs, as the
+        // active tip is at least thousands of blocks higher. Don't park them,
+        // they will most likely connect on the tip of the background chain.
+        std::optional<int> snapshot_base_height = GetSnapshotBaseHeight();
+        const bool is_background_block =
+            snapshot_base_height && BackgroundSyncInProgress() &&
+            pindex->nHeight <= snapshot_base_height;
         const CBlockIndex *pindexFork = ActiveChain().FindFork(pindex);
-        if (pindexFork && pindexFork->nHeight + 1 < ActiveHeight()) {
+        if (!is_background_block && pindexFork &&
+            pindexFork->nHeight + 1 < ActiveHeight()) {
             LogPrintf("Park block %s as it would cause a deep reorg.\n",
                       pindex->GetBlockHash().ToString());
             pindex->nStatus = pindex->nStatus.withParked();
