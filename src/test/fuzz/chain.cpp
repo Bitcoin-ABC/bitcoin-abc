@@ -63,7 +63,6 @@ FUZZ_TARGET(chain) {
         bool has_failed_parent = fuzzed_data_provider.ConsumeBool();
         bool is_parked = fuzzed_data_provider.ConsumeBool();
         bool has_parked_parent = fuzzed_data_provider.ConsumeBool();
-        bool is_assumed_valid = fuzzed_data_provider.ConsumeBool();
         const BlockStatus block_status =
             base.withValidity(block_validity)
                 .withData(has_data)
@@ -71,8 +70,7 @@ FUZZ_TARGET(chain) {
                 .withFailed(has_failed)
                 .withFailedParent(has_failed_parent)
                 .withParked(is_parked)
-                .withParkedParent(has_parked_parent)
-                .withAssumedValid(is_assumed_valid);
+                .withParkedParent(has_parked_parent);
 
         assert(block_status.hasData() == has_data);
         assert(block_status.hasUndo() == has_undo);
@@ -80,7 +78,6 @@ FUZZ_TARGET(chain) {
         assert(block_status.hasFailedParent() == has_failed_parent);
         assert(block_status.isParked() == is_parked);
         assert(block_status.hasParkedParent() == has_parked_parent);
-        assert(block_status.isAssumedValid() == is_assumed_valid);
 
         assert(block_status.isInvalid() == has_failed || has_failed_parent);
         const BlockStatus valid_block = block_status.withClearedFailureFlags();
@@ -91,10 +88,6 @@ FUZZ_TARGET(chain) {
         const BlockStatus unparked_block =
             block_status.withClearedParkedFlags();
         assert(!unparked_block.isOnParkedChain());
-
-        const BlockStatus unassumed_valid_block =
-            block_status.withClearedAssumedValidFlags();
-        assert(!unassumed_valid_block.isAssumedValid());
 
         if (!block_status.isValid()) {
             continue;
