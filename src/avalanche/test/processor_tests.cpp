@@ -410,7 +410,8 @@ struct StakeContenderProvider {
         const StakeContenderId contenderId(chaintip->GetBlockHash(),
                                            proof->getId());
 
-        fixture->m_processor->addStakeContender(proof);
+        fixture->m_processor->withPeerManager(
+            [&](avalanche::PeerManager &pm) { pm.addStakeContender(proof); });
 
         // Many of these tests assume that building a new item means it is
         // accepted by default. Contenders are different in that they are
@@ -2573,8 +2574,10 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
 
     // Add stake contenders. Without computing staking rewards, the status is
     // pending.
-    m_processor->addStakeContender(proof1);
-    m_processor->addStakeContender(proof2);
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.addStakeContender(proof1);
+        pm.addStakeContender(proof2);
+    });
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender1_block1),
                       -2);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block1),
@@ -2718,6 +2721,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         const ProofId proofid = proof->getId();
         m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            // Registering the proof adds it as a contender
             pm.registerProof(proof);
             // Make it a remote proof so that it will be promoted
             pm.saveRemoteProof(proofid, i, true);
@@ -2725,10 +2729,6 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
                 return pm.setFinalized(peer.peerid);
             }));
         });
-
-        // Add it as a stake contender so it will be promoted
-        m_processor->addStakeContender(proof);
-
         proofs.emplace_back(std::move(proof));
     }
 
@@ -2790,7 +2790,8 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         active_chainstate,
         // Subtract some score so totalPeersScore doesn't overflow
         std::numeric_limits<uint32_t>::max() - MIN_VALID_PROOF_SCORE * 8);
-    m_processor->addStakeContender(bestproof);
+    m_processor->withPeerManager(
+        [&](avalanche::PeerManager &pm) { pm.addStakeContender(bestproof); });
     AvalancheTest::updatedBlockTip(*m_processor);
 
     // Compute local stake winners
@@ -2873,7 +2874,9 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
     ProofId localWinnerProofId = localWinnerProof->getId();
     const StakeContenderId localWinnerContenderId(chaintipHash,
                                                   localWinnerProof->getId());
-    m_processor->addStakeContender(localWinnerProof);
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.addStakeContender(localWinnerProof);
+    });
 
     // Prepare the proof so that it becomes the local stake winner
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
@@ -2908,7 +2911,8 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
          numContenders < AVALANCHE_CONTENDER_MAX_POLLABLE * 10;
          numContenders++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
-        m_processor->addStakeContender(proof);
+        m_processor->withPeerManager(
+            [&](avalanche::PeerManager &pm) { pm.addStakeContender(proof); });
 
         const StakeContenderId contenderId(chaintipHash, proof->getId());
         double rank = contenderId.ComputeProofRewardRank(MIN_VALID_PROOF_SCORE);

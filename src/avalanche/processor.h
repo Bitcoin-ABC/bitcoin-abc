@@ -387,8 +387,6 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_delayedAvahelloNodeIds);
 
     /** Track votes on stake contenders */
-    void addStakeContender(const ProofRef &proof)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     int getStakeContenderStatus(const StakeContenderId &contenderId) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
     void acceptStakeContender(const StakeContenderId &contenderId)

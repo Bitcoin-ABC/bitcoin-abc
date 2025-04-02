@@ -1027,12 +1027,6 @@ void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     WITH_LOCK(cs_delayedAvahelloNodeIds, delayedAvahelloNodeIds.erase(nodeid));
 }
 
-void Processor::addStakeContender(const ProofRef &proof) {
-    AssertLockNotHeld(cs_main);
-
-    WITH_LOCK(cs_peerManager, return peerManager->addStakeContender(proof));
-}
-
 int Processor::getStakeContenderStatus(
     const StakeContenderId &contenderId) const {
     AssertLockNotHeld(cs_peerManager);
