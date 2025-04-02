@@ -1435,8 +1435,17 @@ void PeerManager::acceptStakeContender(const StakeContenderId &contenderId) {
     stakeContenderCache.accept(contenderId);
 }
 
-void PeerManager::finalizeStakeContender(const StakeContenderId &contenderId) {
+void PeerManager::finalizeStakeContender(
+    const StakeContenderId &contenderId, BlockHash &prevblockhash,
+    std::vector<std::pair<ProofId, CScript>> &newWinners) {
     stakeContenderCache.finalize(contenderId);
+
+    // Get block hash related to this contender. We should not assume the
+    // current chain tip is the block this contender is a winner for.
+    getStakeContenderStatus(contenderId, prevblockhash);
+
+    // Calculate the new winners for this block
+    stakeContenderCache.getWinners(prevblockhash, newWinners);
 }
 
 void PeerManager::rejectStakeContender(const StakeContenderId &contenderId) {
@@ -1477,12 +1486,6 @@ bool PeerManager::setContenderStatusForLocalWinners(
 bool PeerManager::setStakeContenderWinners(
     const CBlockIndex *pindex, const std::vector<CScript> &payoutScripts) {
     return stakeContenderCache.setWinners(pindex, payoutScripts);
-}
-
-bool PeerManager::getStakeContenderWinners(
-    const BlockHash &prevblockhash,
-    std::vector<std::pair<ProofId, CScript>> &winners) const {
-    return stakeContenderCache.getWinners(prevblockhash, winners);
 }
 
 } // namespace avalanche

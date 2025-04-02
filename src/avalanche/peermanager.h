@@ -465,7 +465,9 @@ public:
     int getStakeContenderStatus(const StakeContenderId &contenderId,
                                 BlockHash &prevblockhashout) const;
     void acceptStakeContender(const StakeContenderId &contenderId);
-    void finalizeStakeContender(const StakeContenderId &contenderId);
+    void finalizeStakeContender(
+        const StakeContenderId &contenderId, BlockHash &prevblockhash,
+        std::vector<std::pair<ProofId, CScript>> &newWinners);
     void rejectStakeContender(const StakeContenderId &contenderId);
     void promoteStakeContendersToBlock(const CBlockIndex *pindex);
     bool setContenderStatusForLocalWinners(
@@ -474,9 +476,6 @@ public:
         size_t maxPollable, std::vector<StakeContenderId> &pollableContenders);
     bool setStakeContenderWinners(const CBlockIndex *pindex,
                                   const std::vector<CScript> &payoutScripts);
-    bool getStakeContenderWinners(
-        const BlockHash &prevblockhash,
-        std::vector<std::pair<ProofId, CScript>> &winners) const;
 
     /****************************************************
      * Functions which are public for testing purposes. *

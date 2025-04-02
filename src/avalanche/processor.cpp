@@ -1058,26 +1058,22 @@ void Processor::acceptStakeContender(const StakeContenderId &contenderId) {
 void Processor::finalizeStakeContender(const StakeContenderId &contenderId) {
     AssertLockNotHeld(cs_main);
 
-    const CBlockIndex *tip;
+    BlockHash prevblockhash;
     std::vector<std::pair<ProofId, CScript>> winners;
     {
         LOCK(cs_peerManager);
-        peerManager->finalizeStakeContender(contenderId);
-
-        // Get block hash related to this contender. We should not assume the
-        // current chain tip is the block this contender is a winner for.
-        BlockHash prevblockhash;
-        peerManager->getStakeContenderStatus(contenderId, prevblockhash);
-
-        tip = WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
-                                     prevblockhash));
-
-        peerManager->getStakeContenderWinners(tip->GetBlockHash(), winners);
+        peerManager->finalizeStakeContender(contenderId, prevblockhash,
+                                            winners);
     }
 
     // Set staking rewards to include newly finalized contender
     if (winners.size() > 0) {
-        setStakingRewardWinners(tip, winners);
+        const CBlockIndex *block = WITH_LOCK(
+            cs_main,
+            return chainman.m_blockman.LookupBlockIndex(prevblockhash));
+        if (block) {
+            setStakingRewardWinners(block, winners);
+        }
     }
 }
 
