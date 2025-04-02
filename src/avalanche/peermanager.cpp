@@ -1450,16 +1450,33 @@ void PeerManager::promoteStakeContendersToBlock(const CBlockIndex *pindex) {
     });
 }
 
+bool PeerManager::setContenderStatusForLocalWinners(
+    const BlockHash &prevblockhash,
+    const std::vector<std::pair<ProofId, CScript>> winners, size_t maxPollable,
+    std::vector<StakeContenderId> &pollableContenders) {
+    // Set status for local winners
+    for (const auto &winner : winners) {
+        const StakeContenderId contenderId(prevblockhash, winner.first);
+        stakeContenderCache.finalize(contenderId);
+    }
+
+    // Treat the highest ranking contender similarly to local winners except
+    // that it is not automatically included in the winner set (unless it
+    // happens to be selected as a local winner).
+    if (stakeContenderCache.getPollableContenders(prevblockhash, maxPollable,
+                                                  pollableContenders) > 0) {
+        // Accept the highest ranking contender. This is a no-op if the highest
+        // ranking contender is already the local winner.
+        stakeContenderCache.accept(pollableContenders[0]);
+        return true;
+    }
+
+    return false;
+}
+
 bool PeerManager::setStakeContenderWinners(
     const CBlockIndex *pindex, const std::vector<CScript> &payoutScripts) {
     return stakeContenderCache.setWinners(pindex, payoutScripts);
-}
-
-size_t PeerManager::getPollableContenders(
-    const BlockHash &prevblockhash, size_t maxPollable,
-    std::vector<StakeContenderId> &pollableContenders) const {
-    return stakeContenderCache.getPollableContenders(prevblockhash, maxPollable,
-                                                     pollableContenders);
 }
 
 bool PeerManager::getStakeContenderWinners(

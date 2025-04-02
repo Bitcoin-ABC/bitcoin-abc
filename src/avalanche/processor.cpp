@@ -1122,26 +1122,10 @@ bool Processor::setContenderStatusForLocalWinners(
         return false;
     }
 
-    // Set status for local winners
     LOCK(cs_peerManager);
-    for (const auto &winner : winners) {
-        const StakeContenderId contenderId(prevblockhash, winner.first);
-        peerManager->finalizeStakeContender(contenderId);
-    }
-
-    // Treat the highest ranking contender similarly to local winners except
-    // that it is not automatically included in the winner set (unless it
-    // happens to be selected as a local winner).
-    if (peerManager->getPollableContenders(prevblockhash,
-                                           AVALANCHE_CONTENDER_MAX_POLLABLE,
-                                           pollableContenders) > 0) {
-        // Accept the highest ranking contender. This is a no-op if the highest
-        // ranking contender is already the local winner.
-        peerManager->acceptStakeContender(pollableContenders[0]);
-        return true;
-    }
-
-    return false;
+    return peerManager->setContenderStatusForLocalWinners(
+        prevblockhash, winners, AVALANCHE_CONTENDER_MAX_POLLABLE,
+        pollableContenders);
 }
 
 void Processor::updatedBlockTip() {
