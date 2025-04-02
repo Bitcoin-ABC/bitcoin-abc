@@ -76,13 +76,6 @@ public:
     //! @sa ActivateSnapshot
     unsigned int nChainTx{0};
 
-private:
-    //! (memory only) Size of all blocks in the chain up to and including this
-    //! block. This value will be non-zero only if and only if transactions for
-    //! this block and all its parents are available.
-    uint64_t nChainSize{0};
-
-public:
     //! Verification status of this block. See enum BlockStatus
     BlockStatus nStatus GUARDED_BY(::cs_main){};
 
@@ -152,11 +145,6 @@ public:
      * Get the number of transaction in the chain so far.
      */
     int64_t GetChainTxCount() const { return nChainTx; }
-
-    /**
-     * Get the size of all the blocks in the chain so far.
-     */
-    uint64_t GetChainSize() const { return nChainSize; }
 
     /**
      * Update chain tx stats.

@@ -29,7 +29,6 @@ FUZZ_TARGET(chain) {
         (void)disk_block_index->GetBlockPos();
         (void)disk_block_index->GetBlockTime();
         (void)disk_block_index->GetBlockTimeMax();
-        (void)disk_block_index->GetChainSize();
         (void)disk_block_index->GetChainTxCount();
         (void)disk_block_index->GetHeaderReceivedTime();
         (void)disk_block_index->GetMedianTimePast();
