@@ -6,11 +6,13 @@ import math
 import time
 
 from test_framework.avatools import (
+    avalanche_proof_from_hex,
     build_msg_avaproofs,
     can_find_inv_in_poll,
+    create_coinbase_stakes,
     get_ava_p2p_interface,
 )
-from test_framework.key import ECPubKey
+from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
     MSG_AVA_STAKE_CONTENDER,
     AvalancheContenderVoteError,
@@ -21,6 +23,7 @@ from test_framework.messages import (
 from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
+from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
 AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
@@ -58,11 +61,16 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         node.setmocktime(now)
 
         # Build a fake quorum of nodes.
-        def get_quorum():
+        def get_quorum(stake_utxo_confirmations=1):
             def new_ava_interface(node):
                 # Generate a unique payout script for each proof so we can accurately test the stake winners
                 payoutAddress = node.getnewaddress()
-                peer = get_ava_p2p_interface(self, node, payoutAddress=payoutAddress)
+                peer = get_ava_p2p_interface(
+                    self,
+                    node,
+                    payoutAddress=payoutAddress,
+                    stake_utxo_confirmations=stake_utxo_confirmations,
+                )
 
                 # This test depends on each proof being added to the contender cache before
                 # the next block arrives, so we wait until that happens.
@@ -479,12 +487,17 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Restart the node. Persisted ava peers should be re-added to the cache.
         self.restart_node(
-            0, extra_args=self.extra_args[0] + ["-avaminquorumconnectedstakeratio=0.5"]
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                "-avaminquorumconnectedstakeratio=0.5",
+                "-avaproofstakeutxoconfirmations=3",
+            ],
         )
         self.wait_until(lambda: node.getbestblockhash() == tip)
 
         old_quorum = quorum
-        quorum = get_quorum()
+        quorum = get_quorum(stake_utxo_confirmations=3)
         poll_node = quorum[0]
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
@@ -547,9 +560,14 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Set last proof as remote
         prefilled_proofs = [old_quorum[-1].proof]
-        peer_has_getavaproofs().send_message(
+        peer_with_getavaproofs = peer_has_getavaproofs()
+        peer_with_getavaproofs.send_message(
             build_msg_avaproofs(prefilled_proofs, prefilled_proofs)
         )
+        with p2p_lock:
+            # Reset the count so we don't pick this peer again unless it received another
+            # getavaproofs message.
+            peer_with_getavaproofs.message_count["getavaproofs"] = 0
 
         # Trigger contenders promotion
         tip = self.generate(node, 1)[0]
@@ -569,6 +587,66 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             assert_response(
                 [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
             )
+
+        self.log.info("Check votes when immature proof matures")
+
+        # Build a valid but immature proof
+        addrkey0 = node.get_deterministic_priv_key()
+        stakes = create_coinbase_stakes(node, [tip], addrkey0.key)
+        privkey = ECKey()
+        privkey.generate()
+        immature_proof = avalanche_proof_from_hex(
+            node.buildavalancheproof(
+                0, 0, bytes_to_wif(privkey.get_bytes()), stakes, node.getnewaddress()
+            )
+        )
+
+        # Send the proof to node
+        peer_has_getavaproofs().send_message(
+            build_msg_avaproofs([immature_proof], [immature_proof])
+        )
+
+        def check_immature_proofs(immature_proofs):
+            return sorted(node.getavalancheproofs()["immature"]) == sorted(
+                immature_proofs
+            )
+
+        # Verify the proof is immature
+        self.wait_until(
+            lambda: check_immature_proofs([uint256_hex(immature_proof.proofid)])
+        )
+
+        # For the block where the immature proof was introduced, the proof's
+        # contender vote is unknown (contender id is not in the cache, and we
+        # can't check if the proofid is immature because polling does not reveal
+        # a contender's proofid.
+        contender_id = make_contender_id(tip, immature_proof.proofid)
+        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+        assert_response(
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)]
+        )
+
+        # Trigger contenders promotion
+        tip = self.generate(node, 1)[0]
+
+        # The proof is not mature yet. Contender status should still be unknown.
+        contender_id = make_contender_id(tip, immature_proof.proofid)
+        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+        assert_response(
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)]
+        )
+
+        # Trigger contenders promotion and mature the proof
+        tip = self.generate(node, 1)[0]
+        self.wait_until(lambda: check_immature_proofs([]))
+
+        # The proof is now mature so it has been added to the contender cache.
+        # Its vote status is pending because staking rewards are not active yet.
+        contender_id = make_contender_id(tip, immature_proof.proofid)
+        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+        assert_response(
+            [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+        )
 
 
 if __name__ == "__main__":
