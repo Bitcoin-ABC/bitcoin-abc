@@ -74,10 +74,11 @@
                     </tbody>
                 </table>
             </div>
-            <div id="advanced"
-                 class="ui segment advanced-toggle"
-                 style="display: none">
-                <h4>Advanced</h4>
+            <div id="advanced" class="ui styled fluid accordion">
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    <span class="non-selectable">Advanced transaction data</span>
+                </div>
                 <div class="content">
                     <table class="ui very basic collapsing celled table">
                         <tbody>
@@ -327,5 +328,8 @@
         checkXecDate();
         checkBchDate();
         checkFiveYearDate();
+    </script>
+    <script type="text/javascript">
+        $('.ui.accordion').accordion();
     </script>
 {% endblock %}
