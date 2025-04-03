@@ -146,6 +146,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '736f6c6f2e6d696e656d696e652e6f6e6c696e65', // ascii solo.minemine.online
             },
         ],
+        [
+            '76a9149f9528b4e5b68220dbb1324cf65880066ad3b91488ac',
+            {
+                miner: 'Kryptex',
+                coinbaseHexFragment: '706f6f6c2e6b7279707465782e636f6d', // ascii pool.kryptex.com
+            },
+        ],
     ],
 };
 
