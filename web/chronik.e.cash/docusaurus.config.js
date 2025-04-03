@@ -16,6 +16,7 @@ const config = {
     tagline:
         'Chronik is a fast and reliable indexer built into the Bitcoin ABC node software',
     favicon: 'img/favicon.png',
+    trailingSlash: true,
 
     // Set the production url of your site here
     url: 'https://chronik.e.cash',
