@@ -9,11 +9,20 @@ import { WriterBytes } from '../io/writerbytes.js';
 import { WriterLength } from '../io/writerlength.js';
 import { BURN, GENESIS, GenesisInfo, MINT, SEND } from './common.js';
 
+/** LOKAD ID for ALP as string */
+export const ALP_LOKAD_ID_STR = 'SLP2';
+
 /** LOKAD ID for ALP */
-export const ALP_LOKAD_ID = strToBytes('SLP2');
+export const ALP_LOKAD_ID = strToBytes(ALP_LOKAD_ID_STR);
 
 /** ALP standard token type number */
 export const ALP_STANDARD = 0;
+
+/** Supported ALP token types */
+export type AlpTokenType = typeof ALP_STANDARD;
+
+/** ALP limits lengths/sizes to this number, e.g. the number of outputs */
+export const ALP_MAX_SIZE = 127;
 
 /** Mint data specifying mint amounts (in atoms) and batons of a GENESIS/MINT tx */
 export interface MintData {

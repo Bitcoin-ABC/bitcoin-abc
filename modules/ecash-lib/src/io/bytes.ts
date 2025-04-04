@@ -53,6 +53,14 @@ export class Bytes {
         return result;
     }
 
+    /** Read 6-byte little-endian integer */
+    public readU48(): bigint {
+        this.ensureSize(6);
+        const low = this.readU32('LE');
+        const high = this.readU16('LE');
+        return BigInt(low) | (BigInt(high) << 32n);
+    }
+
     /** Read 8-byte little-endian integer (uint64_t) */
     public readU64(endian?: Endian): bigint {
         this.ensureSize(8);
@@ -71,9 +79,10 @@ export class Bytes {
 
     private ensureSize(extraBytes: number) {
         if (this.data.length < this.idx + extraBytes) {
-            throw (
+            const bytesLeft = this.data.length - this.idx;
+            throw new Error(
                 `Not enough bytes: Tried reading ${extraBytes} byte(s), but ` +
-                `there are only ${this.data.length - this.idx} byte(s) left`
+                    `there are only ${bytesLeft} byte(s) left`,
             );
         }
     }

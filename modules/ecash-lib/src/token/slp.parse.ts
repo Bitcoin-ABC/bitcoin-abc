@@ -341,6 +341,7 @@ function nextTokenId(iter: ScriptOpIter): string {
             `tokenId must be exactly ${TOKEN_ID_NUM_BYTES} bytes long`,
         );
     }
+    // Note: SLP token ID endianness is big-endian
     return toHex(tokenIdBytes);
 }
 

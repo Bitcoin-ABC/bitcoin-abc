@@ -12,6 +12,9 @@ describe('Bytes', () => {
         expect(new Bytes(fromHex('de')).readU8()).to.equal(0xde);
         expect(new Bytes(fromHex('adde')).readU16()).to.equal(0xdead);
         expect(new Bytes(fromHex('efbeadde')).readU32()).to.equal(0xdeadbeef);
+        expect(new Bytes(fromHex('fecaefbeadde')).readU48()).to.equal(
+            0xdeadbeefcafen,
+        );
         expect(new Bytes(fromHex('fecaad0befbeadde')).readU64()).to.equal(
             0xdeadbeef0badcafen,
         );
@@ -44,6 +47,9 @@ describe('Bytes', () => {
         );
         expect(() => bytes.readU32()).to.throw(
             'Not enough bytes: Tried reading 4 byte(s), but there are only 1 byte(s) left',
+        );
+        expect(() => bytes.readU48()).to.throw(
+            'Not enough bytes: Tried reading 6 byte(s), but there are only 1 byte(s) left',
         );
         expect(() => bytes.readU64()).to.throw(
             'Not enough bytes: Tried reading 8 byte(s), but there are only 1 byte(s) left',
