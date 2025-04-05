@@ -6,15 +6,7 @@
 import time
 
 from test_framework.blocktools import create_block
-from test_framework.messages import (
-    XEC,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-    FromHex,
-    ToHex,
-)
+from test_framework.messages import XEC, COutPoint, CTransaction, CTxIn, CTxOut, ToHex
 from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -114,7 +106,6 @@ class BIP68Test(BitcoinTestFramework):
         tx2.vin = [CTxIn(COutPoint(tx1_id, 0), nSequence=sequence_value)]
         tx2.vout = [CTxOut(int(value - self.relayfee * XEC), CScript([b"a"]))]
         pad_tx(tx2)
-        tx2.rehash()
 
         assert_raises_rpc_error(
             -26,
@@ -246,6 +237,7 @@ class BIP68Test(BitcoinTestFramework):
                 )
             )
             self.wallet.sign_tx(tx=tx)
+            pad_tx(tx)
 
             if using_sequence_locks and not should_pass:
                 # This transaction should be rejected
@@ -294,8 +286,8 @@ class BIP68Test(BitcoinTestFramework):
             0
         ].calculate_fee(tx2)
         self.wallet.sign_tx(tx=tx2)
+        pad_tx(tx2)
         tx2_raw = tx2.serialize().hex()
-        tx2.rehash()
         self.wallet.sendrawtransaction(from_node=self.nodes[0], tx_hex=tx2_raw)
 
         # Create a spend of the 0th output of orig_tx with a sequence lock
@@ -318,7 +310,6 @@ class BIP68Test(BitcoinTestFramework):
                 )
             ]
             pad_tx(tx)
-            tx.rehash()
 
             if orig_tx.hash in node.getrawmempool():
                 # sendrawtransaction should fail if the tx is in the mempool
@@ -462,10 +453,8 @@ class BIP68Test(BitcoinTestFramework):
 
         # sign tx2
         self.wallet.sign_tx(tx=tx2)
-        tx2_raw = tx2.serialize().hex()
-        tx2 = FromHex(tx2, tx2_raw)
         pad_tx(tx2)
-        tx2.rehash()
+        tx2_raw = tx2.serialize().hex()
 
         self.wallet.sendrawtransaction(from_node=self.nodes[0], tx_hex=tx2_raw)
 
@@ -480,7 +469,6 @@ class BIP68Test(BitcoinTestFramework):
             CTxOut(int(tx2.vout[0].nValue - self.relayfee * XEC), CScript([b"a"]))
         ]
         pad_tx(tx3)
-        tx3.rehash()
 
         assert_raises_rpc_error(
             -26,

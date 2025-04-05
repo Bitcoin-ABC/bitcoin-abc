@@ -176,7 +176,6 @@ class MiniWallet:
                 tx.vin[i].scriptSig = SCRIPTSIG_OP_TRUE
         else:
             assert False
-        pad_tx(tx, 100)
 
     def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address, and call rescan_utxos"""
@@ -351,8 +350,7 @@ class MiniWallet:
             ),
         )
 
-        if target_size:
-            pad_tx(tx, target_size)
+        pad_tx(tx, target_size or 100)
 
         txid = tx.rehash()
         return {
