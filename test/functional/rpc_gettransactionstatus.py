@@ -32,12 +32,16 @@ class GetTransactionStatusTest(BitcoinTestFramework):
 
         self.log.info("Tx is in the memory pool")
         utxo = wallet.get_utxo()
-        mempool_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
+        # Pad the transaction with different sizes of OP_RETURN data to create
+        # conflicting transactions.
+        mempool_tx = wallet.create_self_transfer(utxo_to_spend=utxo, target_size=178)
         peer.send_txs_and_test([from_wallet_tx(mempool_tx)], node, success=True)
         assert_equal(node.gettransactionstatus(mempool_tx["txid"])["pool"], "mempool")
 
         self.log.info("Tx is in the conflicting pool")
-        conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
+        conflicting_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, target_size=179
+        )
         peer.send_txs_and_test(
             [from_wallet_tx(conflicting_tx)],
             node,
