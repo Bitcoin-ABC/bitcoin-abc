@@ -1120,8 +1120,7 @@ bool Processor::setContenderStatusForLocalWinners(
 
     LOCK(cs_peerManager);
     return peerManager->setContenderStatusForLocalWinners(
-        prevblockhash, winners, AVALANCHE_CONTENDER_MAX_POLLABLE,
-        pollableContenders);
+        pindex, winners, AVALANCHE_CONTENDER_MAX_POLLABLE, pollableContenders);
 }
 
 void Processor::updatedBlockTip() {

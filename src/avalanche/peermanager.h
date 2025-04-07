@@ -471,7 +471,7 @@ public:
     void rejectStakeContender(const StakeContenderId &contenderId);
     void promoteStakeContendersToBlock(const CBlockIndex *pindex);
     bool setContenderStatusForLocalWinners(
-        const BlockHash &prevblockhash,
+        const CBlockIndex *prevblock,
         const std::vector<std::pair<ProofId, CScript>> winners,
         size_t maxPollable, std::vector<StakeContenderId> &pollableContenders);
     bool setStakeContenderWinners(const CBlockIndex *pindex,
