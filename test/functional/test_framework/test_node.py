@@ -986,15 +986,26 @@ class TestNode:
             timeout=DEFAULT_TIMEOUT * self.timeout_factor,
         )
 
-    def get_chronik_electrum_client(self) -> ChronikElectrumClient:
+    def get_chronik_electrum_client(self, timeout=None) -> ChronikElectrumClient:
         # host is always None in practice, we should get rid of it at some
         # point. In the meantime, let's properly handle the API.
         host = self.host if self.host is not None else "127.0.0.1"
-        return ChronikElectrumClient(
-            host,
-            self.chronik_electrum_port,
-            timeout=ChronikElectrumClient.DEFAULT_TIMEOUT * self.timeout_factor,
-        )
+        timeout = (
+            timeout or ChronikElectrumClient.DEFAULT_TIMEOUT
+        ) * self.timeout_factor
+        t = 0.0
+        while True:
+            try:
+                return ChronikElectrumClient(
+                    host,
+                    self.chronik_electrum_port,
+                    timeout=timeout,
+                )
+            except ConnectionRefusedError:
+                if t > timeout:
+                    raise
+                time.sleep(0.1)
+                t += 0.1
 
     def bumpmocktime(self, seconds):
         """Fast forward using setmocktime to self.mocktime + seconds. Requires setmocktime to have
