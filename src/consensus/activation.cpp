@@ -128,3 +128,18 @@ bool IsSchumpeterEnabled(const Consensus::Params &params,
 
     return IsSchumpeterEnabled(params, pindexPrev->GetMedianTimePast());
 }
+
+bool IsShibusawaEnabled(const Consensus::Params &params,
+                        int64_t nMedianTimePast) {
+    return nMedianTimePast >= gArgs.GetIntArg("-shibusawaactivationtime",
+                                              params.shibusawaActivationTime);
+}
+
+bool IsShibusawaEnabled(const Consensus::Params &params,
+                        const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsShibusawaEnabled(params, pindexPrev->GetMedianTimePast());
+}

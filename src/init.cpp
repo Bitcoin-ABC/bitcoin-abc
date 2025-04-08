@@ -469,8 +469,10 @@ void SetupServerArgs(NodeContext &node) {
         "-rootcertificates=<file>",
         "-splash",
         "-uiplatform",
-        // TODO remove after the May. 2025 upgrade
+        // TODO remove after the May 2025 upgrade
         "-schumpeteractivationtime",
+        // TODO remove after the Nov 2025 upgrade
+        "-shibusawaactivationtime",
     };
 
     // Set all of the args and their help

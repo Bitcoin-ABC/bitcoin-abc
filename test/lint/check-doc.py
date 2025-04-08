@@ -58,8 +58,10 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     # Removed arguments that now just print a helpful error message
     "-zapwallettxes",
     "-replayprotectionactivationtime",
-    # Remove after May. 2025 upgrade
+    # Remove after May 2025 upgrade
     "-schumpeteractivationtime",
+    # Remove after Nov 2025 upgrade
+    "-shibusawaactivationtime",
 }
 
 
