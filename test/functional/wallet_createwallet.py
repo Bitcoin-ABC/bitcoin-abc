@@ -1,8 +1,7 @@
 # Copyright (c) 2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test createwallet arguments.
-"""
+"""Test createwallet arguments."""
 
 from test_framework.address import key_to_p2pkh
 from test_framework.descriptors import descsum_create
@@ -246,7 +245,7 @@ class CreateWalletTest(BitcoinTestFramework):
             "test",
         )
         w6.walletpassphrase("thisisapassphrase", 10)
-        w6.signmessage(w6.getnewaddress("", "legacy"), "test")
+        w6.signmessage(w6.getnewaddress(""), "test")
         w6.keypoolrefill(1)
         # There should only be 1 key for legacy and for descriptors
         walletinfo = w6.getwalletinfo()

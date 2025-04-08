@@ -100,9 +100,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
         self.log.info(
             "Check that addmultisigaddress fails when the private keys are missing"
         )
-        addresses = [
-            self.nodes[1].getnewaddress(address_type="legacy") for _ in range(2)
-        ]
+        addresses = [self.nodes[1].getnewaddress() for _ in range(2)]
         assert_raises_rpc_error(
             -5,
             "no full public key for address",

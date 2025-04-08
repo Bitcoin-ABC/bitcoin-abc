@@ -32,7 +32,7 @@ class WalletDescriptorTest(BitcoinTestFramework):
 
         # Check that getnewaddress works
         self.log.info("Test that getnewaddress and getrawchangeaddress work")
-        addr = self.nodes[0].getnewaddress("", "legacy")
+        addr = self.nodes[0].getnewaddress("")
         addr_info = self.nodes[0].getaddressinfo(addr)
         assert addr_info["desc"].startswith("pkh(")
         assert_equal(addr_info["hdkeypath"], "m/44'/1'/0'/0/0")

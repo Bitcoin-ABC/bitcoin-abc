@@ -335,69 +335,68 @@ class RawTransactionsTest(BitcoinTestFramework):
             ),
         )
 
-        for addr_type in ["legacy"]:
-            addr = self.nodes[0].getnewaddress("", addr_type)
-            addrinfo = self.nodes[0].getaddressinfo(addr)
-            pubkey = addrinfo["scriptPubKey"]
+        addr = self.nodes[0].getnewaddress("")
+        addrinfo = self.nodes[0].getaddressinfo(addr)
+        pubkey = addrinfo["scriptPubKey"]
 
-            self.log.info(f"sendrawtransaction with missing prevtx info ({addr_type})")
+        self.log.info("sendrawtransaction with missing prevtx info")
 
-            # Test `signrawtransactionwithwallet` invalid `prevtxs`
-            inputs = [{"txid": txid, "vout": 3, "sequence": 1000}]
-            outputs = {self.nodes[0].getnewaddress(): 1}
-            rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
+        # Test `signrawtransactionwithwallet` invalid `prevtxs`
+        inputs = [{"txid": txid, "vout": 3, "sequence": 1000}]
+        outputs = {self.nodes[0].getnewaddress(): 1}
+        rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
 
-            prevtx = {"txid": txid, "scriptPubKey": pubkey, "vout": 3, "amount": 1}
-            succ = self.nodes[0].signrawtransactionwithwallet(rawtx, [prevtx])
-            assert succ["complete"]
+        prevtx = {"txid": txid, "scriptPubKey": pubkey, "vout": 3, "amount": 1}
+        succ = self.nodes[0].signrawtransactionwithwallet(rawtx, [prevtx])
+        assert succ["complete"]
 
-            assert_raises_rpc_error(
-                -8,
-                "Missing amount",
-                self.nodes[0].signrawtransactionwithwallet,
-                rawtx,
-                [
-                    {
-                        "txid": txid,
-                        "scriptPubKey": pubkey,
-                        "vout": 3,
-                    }
-                ],
-            )
+        assert_raises_rpc_error(
+            -8,
+            "Missing amount",
+            self.nodes[0].signrawtransactionwithwallet,
+            rawtx,
+            [
+                {
+                    "txid": txid,
+                    "scriptPubKey": pubkey,
+                    "vout": 3,
+                }
+            ],
+        )
 
-            assert_raises_rpc_error(
-                -3,
-                "Missing vout",
-                self.nodes[0].signrawtransactionwithwallet,
-                rawtx,
-                [
-                    {
-                        "txid": txid,
-                        "scriptPubKey": pubkey,
-                        "amount": 1,
-                    }
-                ],
-            )
-            assert_raises_rpc_error(
-                -3,
-                "Missing txid",
-                self.nodes[0].signrawtransactionwithwallet,
-                rawtx,
-                [
-                    {
-                        "scriptPubKey": pubkey,
-                        "vout": 3,
-                        "amount": 1,
-                    }
-                ],
-            )
-            assert_raises_rpc_error(
-                -3,
-                "Missing scriptPubKey",
-                self.nodes[0].signrawtransactionwithwallet,
-                rawtx,
-                [{"txid": txid, "vout": 3, "amount": 1}],
-            )
+        assert_raises_rpc_error(
+            -3,
+            "Missing vout",
+            self.nodes[0].signrawtransactionwithwallet,
+            rawtx,
+            [
+                {
+                    "txid": txid,
+                    "scriptPubKey": pubkey,
+                    "amount": 1,
+                }
+            ],
+        )
+        assert_raises_rpc_error(
+            -3,
+            "Missing txid",
+            self.nodes[0].signrawtransactionwithwallet,
+            rawtx,
+            [
+                {
+                    "scriptPubKey": pubkey,
+                    "vout": 3,
+                    "amount": 1,
+                }
+            ],
+        )
+        assert_raises_rpc_error(
+            -3,
+            "Missing scriptPubKey",
+            self.nodes[0].signrawtransactionwithwallet,
+            rawtx,
+            [{"txid": txid, "vout": 3, "amount": 1}],
+        )
 
         #########################################
         # sendrawtransaction with missing input #

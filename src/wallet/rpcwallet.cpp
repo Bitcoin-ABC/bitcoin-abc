@@ -106,13 +106,6 @@ static RPCHelpMan getnewaddress() {
              "string \"\" to represent the default label. The label does not "
              "need to exist, it will be created if there is no label by the "
              "given name."},
-            // Deprecated in v0.30.4
-            {"address_type", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
-             "DEPRECATED: The Bitcoin address type to use. Only available for "
-             "compatibility with Bitcoin and will be removed in the future. "
-             "The only valid value is \"legacy\". Note that this does not "
-             "change the output of this RPC; in order to get a Bitcoin address "
-             "the -usecashaddr option should be disabled."},
         },
         RPCResult{RPCResult::Type::STR, "address", "The new eCash address"},
         RPCExamples{HelpExampleCli("getnewaddress", "") +
@@ -139,19 +132,10 @@ static RPCHelpMan getnewaddress() {
                 label = LabelFromValue(request.params[0]);
             }
 
-            OutputType output_type = pwallet->m_default_address_type;
-            if (!request.params[1].isNull()) {
-                if (!ParseOutputType(request.params[1].get_str(),
-                                     output_type)) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                       strprintf("Unknown address type '%s'",
-                                                 request.params[1].get_str()));
-                }
-            }
-
             CTxDestination dest;
             std::string error;
-            if (!pwallet->GetNewDestination(output_type, label, dest, error)) {
+            if (!pwallet->GetNewDestination(OutputType::LEGACY, label, dest,
+                                            error)) {
                 throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, error);
             }
 

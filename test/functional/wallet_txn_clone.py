@@ -34,8 +34,6 @@ class TxnMallTest(BitcoinTestFramework):
         self.disconnect_nodes(1, 2)
 
     def run_test(self):
-        output_type = "legacy"
-
         # All nodes should start with 1,250,000,000 XEC:
         starting_balance = 1250000000
         for i in range(3):
@@ -43,11 +41,11 @@ class TxnMallTest(BitcoinTestFramework):
 
         self.nodes[0].settxfee(1000)
 
-        node0_address1 = self.nodes[0].getnewaddress(address_type=output_type)
+        node0_address1 = self.nodes[0].getnewaddress()
         node0_txid1 = self.nodes[0].sendtoaddress(node0_address1, 1219000000)
         node0_tx1 = self.nodes[0].gettransaction(node0_txid1)
 
-        node0_address2 = self.nodes[0].getnewaddress(address_type=output_type)
+        node0_address2 = self.nodes[0].getnewaddress()
         node0_txid2 = self.nodes[0].sendtoaddress(node0_address2, 29000000)
         node0_tx2 = self.nodes[0].gettransaction(node0_txid2)
 

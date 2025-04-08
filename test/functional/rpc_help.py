@@ -143,13 +143,9 @@ class HelpRpcTest(BitcoinTestFramework):
                 f.write(self.nodes[0].help(call))
 
     def wallet_help(self):
-        assert 'getnewaddress ( "label" "address_type" )' in self.nodes[0].help(
-            "getnewaddress"
-        )
+        assert 'getnewaddress ( "label" )' in self.nodes[0].help("getnewaddress")
         self.restart_node(0, extra_args=["-nowallet=1"])
-        assert 'getnewaddress ( "label" "address_type" )' in self.nodes[0].help(
-            "getnewaddress"
-        )
+        assert 'getnewaddress ( "label" )' in self.nodes[0].help("getnewaddress")
 
 
 if __name__ == "__main__":
