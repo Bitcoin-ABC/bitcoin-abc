@@ -10,7 +10,6 @@
              (gnu packages compression)
              (gnu packages cross-base)
              (gnu packages curl)
-             (gnu packages file)
              (gnu packages gawk)
              (gnu packages gcc)
              (gnu packages gperf)
@@ -546,7 +545,6 @@ inspecting signatures in Mach-O binaries.")
         coreutils-minimal
         gperf
         ;; File(system) inspection
-        file
         grep
         diffutils
         findutils
