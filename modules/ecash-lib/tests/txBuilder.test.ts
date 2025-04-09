@@ -5,7 +5,7 @@
 import { expect } from 'chai';
 import { ChronikClient } from 'chronik-client';
 
-import { Ecc } from '../src/ecc.js';
+import { Ecc, EccDummy } from '../src/ecc.js';
 import { sha256d, shaRmd160 } from '../src/hash.js';
 import { fromHex, toHex } from '../src/io/hex.js';
 import { pushBytesOp } from '../src/op.js';
@@ -128,6 +128,9 @@ describe('TxBuilder', () => {
             ],
         });
         const spendTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
+        const estimatedSize = txBuild
+            .sign({ ecc: new EccDummy(), feePerKb: 1000n, dustSats: 546n })
+            .serSize();
         const txid = (await chronik.broadcastTx(spendTx.ser())).txid;
 
         // Now have 1 UTXO change in the wallet
@@ -141,7 +144,7 @@ describe('TxBuilder', () => {
                 blockHeight: -1,
                 isCoinbase: false,
                 sats: BigInt(
-                    90000 * 2 - 120000 - 10000 - 10000 - spendTx.serSize(),
+                    90000 * 2 - 120000 - 10000 - 10000 - estimatedSize,
                 ),
                 isFinal: false,
             },
@@ -412,11 +415,11 @@ describe('TxBuilder', () => {
                         const sks = [sk1, sk2];
                         const sigs = [...Array(2).keys()].map(i => {
                             const preimage = input.sigHashPreimage(ALL_BIP143);
+                            // We use ECDSA to test correct EccDummy usage.
+                            // Schnorr signatures would be fixed length and not give us
+                            // test coverage for size calculation using dummy sigs.
                             return flagSignature(
-                                ecc.schnorrSign(
-                                    sks[i],
-                                    sha256d(preimage.bytes),
-                                ),
+                                ecc.ecdsaSign(sks[i], sha256d(preimage.bytes)),
                                 ALL_BIP143,
                             );
                         });
@@ -442,15 +445,20 @@ describe('TxBuilder', () => {
         });
 
         // 0sats/kB (not broadcast)
-        let spendTx = txBuild.sign({ feePerKb: 0n, dustSats: 546n });
+        let spendTx = txBuild.sign({
+            ecc: new EccDummy(),
+            feePerKb: 0n,
+            dustSats: 546n,
+        });
         expect(spendTx.outputs[1].sats).to.equal(40000n);
 
         // 1ksats/kB
         spendTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
         await chronik.broadcastTx(spendTx.ser());
-        expect(spendTx.outputs[1].sats).to.equal(
-            BigInt(40000 - spendTx.serSize()),
-        );
+        let estimatedSize = txBuild
+            .sign({ ecc: new EccDummy(), feePerKb: 1000n, dustSats: 546n })
+            .serSize();
+        expect(spendTx.outputs[1].sats).to.equal(BigInt(40000 - estimatedSize));
 
         // 10ksats/kB
         txBuild.inputs[0].input.prevOut.txid = await runner.sendToScript(
@@ -459,8 +467,11 @@ describe('TxBuilder', () => {
         );
         spendTx = txBuild.sign({ feePerKb: 10000n, dustSats: 546n });
         await chronik.broadcastTx(spendTx.ser());
+        estimatedSize = txBuild
+            .sign({ ecc: new EccDummy(), feePerKb: 10000n, dustSats: 546n })
+            .serSize();
         expect(spendTx.outputs[1].sats).to.equal(
-            BigInt(40000 - 10 * spendTx.serSize()),
+            BigInt(40000 - 10 * estimatedSize),
         );
 
         // 100ksats/kB
@@ -470,16 +481,22 @@ describe('TxBuilder', () => {
         );
         spendTx = txBuild.sign({ feePerKb: 100000n, dustSats: 546n });
         await chronik.broadcastTx(spendTx.ser());
+        estimatedSize = txBuild
+            .sign({ ecc: new EccDummy(), feePerKb: 100000n, dustSats: 546n })
+            .serSize();
         expect(spendTx.outputs[1].sats).to.equal(
-            BigInt(40000 - 100 * spendTx.serSize()),
+            BigInt(40000 - 100 * estimatedSize),
         );
 
-        // 120ksats/kB, deletes leftover output
+        // 117.6ksats/kB, deletes leftover output
         txBuild.inputs[0].input.prevOut.txid = await runner.sendToScript(
             90000n,
             p2sh,
         );
-        spendTx = txBuild.sign({ feePerKb: 120000n, dustSats: 546n });
+        spendTx = txBuild.sign({ feePerKb: 117600n, dustSats: 546n });
+        const estimatedSizeNoLeftover = txBuild
+            .sign({ ecc: new EccDummy(), feePerKb: 117600n, dustSats: 546n })
+            .serSize();
         await chronik.broadcastTx(spendTx.ser());
         expect(spendTx.outputs.length).to.equal(2);
 
@@ -501,7 +518,7 @@ describe('TxBuilder', () => {
             txBuild.sign({ feePerKb: 1000000n, dustSats: 546n }),
         ).to.throw(
             `Insufficient input sats (90000): Can only pay for 40000 fees, ` +
-                `but ${spendTx.serSize() * 1000} required`,
+                `but ${estimatedSizeNoLeftover * 1000} required`,
         );
     });
 
@@ -541,10 +558,7 @@ describe('TxBuilder', () => {
                         const sigs = [...Array(2).keys()].map(i => {
                             const preimage = input.sigHashPreimage(ALL_BIP143);
                             return flagSignature(
-                                ecc.schnorrSign(
-                                    sks[i],
-                                    sha256d(preimage.bytes),
-                                ),
+                                ecc.ecdsaSign(sks[i], sha256d(preimage.bytes)),
                                 ALL_BIP143,
                             );
                         });
@@ -577,9 +591,10 @@ describe('TxBuilder', () => {
         // 1ksats/kB
         spendTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
         await chronik.broadcastTx(spendTx.ser());
-        expect(spendTx.outputs[2].sats).to.equal(
-            BigInt(40000 - spendTx.serSize()),
-        );
+        const estimatedSize = txBuild
+            .sign({ ecc: new EccDummy(), feePerKb: 1000n, dustSats: 546n })
+            .serSize();
+        expect(spendTx.outputs[2].sats).to.equal(BigInt(40000 - estimatedSize));
     });
 
     it('TxBuilder leftover with 0xFD outputs', async () => {
@@ -676,7 +691,11 @@ describe('TxBuilder', () => {
             // Leftover script, but will be spliced out again
             outputs: [new Script()],
         });
-        const tx = txBuild.sign({ feePerKb: 1000n, dustSats: 9999n });
+        const tx = txBuild.sign({
+            ecc: new EccDummy(),
+            feePerKb: 1000n,
+            dustSats: 9999n,
+        });
         expect(tx.serSize()).to.equal(expectedSize);
     });
 
