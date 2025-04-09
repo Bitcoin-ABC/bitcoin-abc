@@ -194,6 +194,90 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
             )
 
+        def find_polled_contenders(local_winner_contender_id=None):
+            # Answer polls until contenders start polling
+            for n in quorum:
+                poll = n.get_avapoll_if_available()
+
+                if poll is None:
+                    continue
+
+                votes = []
+                polled_contenders = []
+                for inv in poll.invs:
+                    votes.append(
+                        AvalancheVote(AvalancheContenderVoteError.ACCEPTED, inv.hash)
+                    )
+                    if inv.type == MSG_AVA_STAKE_CONTENDER:
+                        polled_contenders.append(inv.hash)
+
+                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+
+                if len(polled_contenders) > 0:
+                    if local_winner_contender_id:
+                        # Local winner must be polled
+                        assert local_winner_contender_id in polled_contenders
+
+                    # Max number of contenders was polled
+                    assert_equal(len(polled_contenders), 12)
+                    return True
+
+            return False
+
+        # Contenders get polled even though there is no local staking reward winner yet.
+        # This helps in the case that the local winner fails to compute, but the network
+        # can still finalize a winner. For example, a poorly connected node could have
+        # proofs go dangling and then come back, but their registration times would be
+        # too early to be selected for staking rewards for a short time.
+        self.wait_until(lambda: find_polled_contenders())
+
+        def vote_all_contenders(
+            winners, winnerVote=AvalancheContenderVoteError.ACCEPTED
+        ):
+            for n in quorum:
+                poll = n.get_avapoll_if_available()
+
+                # That node has not received a poll
+                if poll is None:
+                    continue
+
+                votes = []
+                for inv in poll.invs:
+                    r = AvalancheContenderVoteError.ACCEPTED
+
+                    # Only accept contenders that should be winners
+                    if inv.type == MSG_AVA_STAKE_CONTENDER:
+                        r = (
+                            winnerVote
+                            if inv.hash in winners
+                            else AvalancheContenderVoteError.INVALID
+                        )
+
+                    votes.append(AvalancheVote(r, inv.hash))
+
+                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+
+        def finalize_contenders(tip, winner_contenders):
+            loser_contenders = get_all_contender_ids(tip)[:12]
+            for winner in winner_contenders:
+                loser_contenders.remove(winner)
+
+            with node.wait_for_debug_log(
+                [
+                    f"Avalanche finalized contender {uint256_hex(cid)}".encode()
+                    for cid in winner_contenders
+                ]
+                + [
+                    f"Avalanche invalidated contender {uint256_hex(cid)}".encode()
+                    for cid in loser_contenders
+                ],
+                chatty_callable=lambda: vote_all_contenders(winner_contenders),
+            ):
+                pass
+
+        # Finalize contenders so we do not have any unanswered polls before calling find_polled_contenders again
+        finalize_contenders(tip, [])
+
         self.log.info("Check votes after staking rewards have been computed")
 
         # Advance time past the staking rewards minimum registration delay and
@@ -224,35 +308,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             ]
         )
 
-        def find_polled_contenders():
-            # Answer polls until contenders start polling
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
-
-                if poll is None:
-                    continue
-
-                votes = []
-                polled_contenders = []
-                for inv in poll.invs:
-                    votes.append(
-                        AvalancheVote(AvalancheContenderVoteError.ACCEPTED, inv.hash)
-                    )
-                    if inv.type == MSG_AVA_STAKE_CONTENDER:
-                        polled_contenders.append(inv.hash)
-
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
-
-                if len(polled_contenders) > 0:
-                    # Local winner must be polled
-                    assert local_winner_cid in polled_contenders
-                    # Max number of contenders was polled
-                    assert_equal(len(polled_contenders), 12)
-                    return True
-
-            return False
-
-        self.wait_until(lambda: find_polled_contenders())
+        self.wait_until(lambda: find_polled_contenders(local_winner_cid))
 
         # Manually set a winner that isn't the local winner
         manual_winner = (
@@ -268,32 +324,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         )
 
         self.log.info("Vote on contenders: manual winner + local winner")
-
-        def vote_all_contenders(
-            winners, winnerVote=AvalancheContenderVoteError.ACCEPTED
-        ):
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
-
-                # That node has not received a poll
-                if poll is None:
-                    continue
-
-                votes = []
-                for inv in poll.invs:
-                    r = AvalancheContenderVoteError.ACCEPTED
-
-                    # Only accept contenders that should be winners
-                    if inv.type == MSG_AVA_STAKE_CONTENDER:
-                        r = (
-                            winnerVote
-                            if inv.hash in winners
-                            else AvalancheContenderVoteError.INVALID
-                        )
-
-                    votes.append(AvalancheVote(r, inv.hash))
-
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
         def check_stake_winners(
             tip, exp_manual_winners, exp_accepted_winners, exp_rejected_winners
@@ -347,24 +377,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Manual winner should already be a winner even though it isn't finalized
         check_stake_winners(tip, [(0, manual_winner.payout_script.hex())], [], [])
-
-        def finalize_contenders(tip, winner_contenders):
-            loser_contenders = get_all_contender_ids(tip)[:12]
-            for winner in winner_contenders:
-                loser_contenders.remove(winner)
-
-            with node.wait_for_debug_log(
-                [
-                    f"Avalanche finalized contender {uint256_hex(cid)}".encode()
-                    for cid in winner_contenders
-                ]
-                + [
-                    f"Avalanche invalidated contender {uint256_hex(cid)}".encode()
-                    for cid in loser_contenders
-                ],
-                chatty_callable=lambda: vote_all_contenders(winner_contenders),
-            ):
-                pass
 
         # Finalize the local winner and invalidate contender associated with
         # the manual winner. Although we don't normally want to poll for manual

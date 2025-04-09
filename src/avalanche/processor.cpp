@@ -909,20 +909,22 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     bool rewardsInserted = false;
     if (WITH_LOCK(cs_peerManager, return peerManager->selectStakingRewardWinner(
                                       pindex, _stakingRewards.winners))) {
-        LOCK(cs_stakingRewards);
-        rewardsInserted =
-            stakingRewards
-                .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
-                .second;
-    }
+        {
+            LOCK(cs_stakingRewards);
+            rewardsInserted =
+                stakingRewards
+                    .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
+                    .second;
+        }
 
-    if (m_stakingPreConsensus) {
-        // If pindex has not been promoted in the contender cache yet, this will
-        // be a no-op.
-        std::vector<StakeContenderId> pollableContenders;
-        if (setContenderStatusForLocalWinners(pindex, pollableContenders)) {
-            for (const StakeContenderId &contender : pollableContenders) {
-                addToReconcile(contender);
+        if (m_stakingPreConsensus) {
+            // If pindex has not been promoted in the contender cache yet, this
+            // will be a no-op.
+            std::vector<StakeContenderId> pollableContenders;
+            if (setContenderStatusForLocalWinners(pindex, pollableContenders)) {
+                for (const StakeContenderId &contender : pollableContenders) {
+                    addToReconcile(contender);
+                }
             }
         }
     }
@@ -1118,10 +1120,6 @@ bool Processor::setContenderStatusForLocalWinners(
     const BlockHash prevblockhash = pindex->GetBlockHash();
     std::vector<std::pair<ProofId, CScript>> winners;
     getStakingRewardWinners(prevblockhash, winners);
-    if (winners.size() == 0) {
-        // Staking rewards not computed yet
-        return false;
-    }
 
     LOCK(cs_peerManager);
     return peerManager->setContenderStatusForLocalWinners(
