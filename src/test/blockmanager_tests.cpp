@@ -122,8 +122,10 @@ BOOST_FIXTURE_TEST_CASE(blockmanager_block_data_availability,
     };
 
     // 1) Return genesis block when all blocks are available
-    BOOST_CHECK_EQUAL(blockman.GetFirstStoredBlock(tip),
-                      chainman->ActiveChain()[0]);
+    BOOST_CHECK_EQUAL(
+        blockman.GetFirstBlock(
+            tip, [](const BlockStatus &status) { return status.hasData(); }),
+        chainman->ActiveChain()[0]);
     BOOST_CHECK(
         blockman.CheckBlockDataAvailability(tip, *chainman->ActiveChain()[0]));
 
@@ -140,7 +142,10 @@ BOOST_FIXTURE_TEST_CASE(blockmanager_block_data_availability,
 
     // 3) The last block not pruned is in-between upper-block and the genesis
     // block
-    BOOST_CHECK_EQUAL(blockman.GetFirstStoredBlock(tip), first_available_block);
+    BOOST_CHECK_EQUAL(
+        blockman.GetFirstBlock(
+            tip, [](const BlockStatus &status) { return status.hasData(); }),
+        first_available_block);
     BOOST_CHECK(
         blockman.CheckBlockDataAvailability(tip, *first_available_block));
     BOOST_CHECK(!blockman.CheckBlockDataAvailability(tip, *last_pruned_block));

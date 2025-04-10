@@ -465,13 +465,14 @@ bool BlockManager::IsBlockPruned(const CBlockIndex *pblockindex) {
 }
 
 const CBlockIndex *
-BlockManager::GetFirstStoredBlock(const CBlockIndex &upper_block,
-                                  const CBlockIndex *lower_block) {
+BlockManager::GetFirstBlock(const CBlockIndex &upper_block,
+                            std::function<bool(BlockStatus)> status_test,
+                            const CBlockIndex *lower_block) const {
     AssertLockHeld(::cs_main);
     const CBlockIndex *last_block = &upper_block;
-    // 'upper_block' must have data
-    assert(last_block->nStatus.hasData());
-    while (last_block->pprev && (last_block->pprev->nStatus.hasData())) {
+    // 'upper_block' satisfy the test
+    assert(status_test(last_block->nStatus));
+    while (last_block->pprev && status_test(last_block->pprev->nStatus)) {
         if (lower_block) {
             // Return if we reached the lower_block
             if (last_block == lower_block) {
@@ -492,7 +493,10 @@ bool BlockManager::CheckBlockDataAvailability(const CBlockIndex &upper_block,
     if (!(upper_block.nStatus.hasData())) {
         return false;
     }
-    return GetFirstStoredBlock(upper_block, &lower_block) == &lower_block;
+    return GetFirstBlock(
+               upper_block,
+               [](const BlockStatus &status) { return status.hasData(); },
+               &lower_block) == &lower_block;
 }
 
 // If we're using -prune with -reindex, then delete block files that will be

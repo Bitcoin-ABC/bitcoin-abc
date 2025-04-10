@@ -813,6 +813,30 @@ static RPCHelpMan getblock() {
     };
 }
 
+std::optional<int> GetPruneHeight(const BlockManager &blockman,
+                                  const CChain &chain) {
+    AssertLockHeld(::cs_main);
+
+    const CBlockIndex *chain_tip{chain.Tip()};
+    if (!(chain_tip->nStatus.hasData())) {
+        return chain_tip->nHeight;
+    }
+
+    // Get first block with data, after the last block without data.
+    // This is the start of the unpruned range of blocks.
+    const auto &first_unpruned{*Assert(
+        blockman.GetFirstBlock(*chain_tip,
+                               /*status_test=*/[](const BlockStatus &status) {
+                                   return status.hasData();
+                               }))};
+    if (!first_unpruned.pprev) {
+        // No block before the first unpruned block means nothing is pruned.
+        return std::nullopt;
+    }
+    // Block before the first unpruned block is the last pruned block.
+    return Assert(first_unpruned.pprev)->nHeight;
+}
+
 static RPCHelpMan pruneblockchain() {
     return RPCHelpMan{
         "pruneblockchain",
@@ -881,12 +905,8 @@ static RPCHelpMan pruneblockchain() {
             }
 
             PruneBlockFilesManual(active_chainstate, height);
-            const CBlockIndex &block{*CHECK_NONFATAL(active_chain.Tip())};
-            return block.nStatus.hasData() ? active_chainstate.m_blockman
-                                                     .GetFirstStoredBlock(block)
-                                                     ->nHeight -
-                                                 1
-                                           : block.nHeight;
+            return GetPruneHeight(chainman.m_blockman, active_chain)
+                .value_or(-1);
         },
     };
 }
@@ -1367,12 +1387,10 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("pruned", chainman.m_blockman.IsPruneMode());
 
             if (chainman.m_blockman.IsPruneMode()) {
-                bool has_tip_data = tip.nStatus.hasData();
-                obj.pushKV(
-                    "pruneheight",
-                    has_tip_data
-                        ? chainman.m_blockman.GetFirstStoredBlock(tip)->nHeight
-                        : tip.nHeight + 1);
+                const auto prune_height{GetPruneHeight(
+                    chainman.m_blockman, active_chainstate.m_chain)};
+                obj.pushKV("pruneheight",
+                           prune_height ? prune_height.value() + 1 : 0);
 
                 const bool automatic_pruning{
                     chainman.m_blockman.GetPruneTarget() !=
