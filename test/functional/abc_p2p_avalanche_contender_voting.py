@@ -216,7 +216,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 if len(polled_contenders) > 0:
                     if local_winner_contender_id:
                         # Local winner must be polled
-                        assert local_winner_contender_id in polled_contenders
+                        if local_winner_contender_id not in polled_contenders:
+                            return False
 
                     # Max number of contenders was polled
                     assert_equal(len(polled_contenders), 12)
