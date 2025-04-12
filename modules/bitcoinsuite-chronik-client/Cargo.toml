@@ -40,6 +40,17 @@ serde_json = "1.0"
 # Serializes and deserializes Rust data
 serde = "1.0.217"
 
+# Async streams utilities
+futures-util = "0.3"
+
+# URL parsing and manipulation
+url = "2.5"
+
+# WebSocket client implementation
+tokio-tungstenite = "0.26.2"
+
+tungstenite = "0.26.2"
+
 [build-dependencies]
 # Build Protobuf structs
 prost-build = "0.11"

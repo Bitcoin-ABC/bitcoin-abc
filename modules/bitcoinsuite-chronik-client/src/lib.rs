@@ -3,12 +3,16 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 use std::fmt::Display;
 
-use abc_rust_error::{Result, WrapErr};
+use abc_rust_error::{Report, Result, WrapErr};
 use bitcoinsuite_core::hash::{Hashed, Sha256d};
 use bytes::Bytes;
 pub use chronik_proto::proto;
+use futures_util::{SinkExt, StreamExt};
+use prost::Message;
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 use thiserror::Error;
+use tokio_tungstenite::WebSocketStream;
+use tungstenite::protocol::Message as WsMessage;
 
 use crate::ChronikClientError::*;
 
@@ -67,6 +71,17 @@ pub enum ChronikClientError {
 
     #[error("Invalid protobuf: {0}")]
     InvalidProtobuf(String),
+}
+pub struct WsEndpoint {
+    pub ws: WebSocketStream<
+        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
+    >,
+    pub subs: WsSubscriptions,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct WsSubscriptions {
+    pub blocks: bool,
 }
 
 impl ChronikClient {
@@ -251,6 +266,26 @@ impl ChronikClient {
             .await
             .wrap_err(HttpRequestError)?;
         Self::_handle_response(response).await
+    }
+
+    pub async fn ws(&self) -> Result<WsEndpoint> {
+        let (ws, response) =
+            tokio_tungstenite::connect_async(&self.ws_url).await?;
+
+        if response.status()
+            != tungstenite::http::StatusCode::SWITCHING_PROTOCOLS
+        {
+            abc_rust_error::bail!(
+                "WebSocket connection failed: expected status 101 (Switching \
+                 Protocols), got {}",
+                response.status()
+            )
+        }
+
+        Ok(WsEndpoint {
+            ws,
+            subs: WsSubscriptions::default(),
+        })
     }
 
     async fn _get<MResponse: prost::Message + Default>(
@@ -438,6 +473,66 @@ impl Display for ScriptType {
         };
         write!(f, "{}", text)?;
         Ok(())
+    }
+}
+
+impl WsEndpoint {
+    pub async fn subscribe_to_blocks(&mut self) -> Result<(), Report> {
+        let msg = proto::WsSub {
+            is_unsub: false,
+            sub_type: Some(proto::ws_sub::SubType::Blocks(
+                proto::WsSubBlocks {},
+            )),
+        };
+        self.ws
+            .send(tokio_tungstenite::tungstenite::Message::Binary(
+                Bytes::from(msg.encode_to_vec()),
+            ))
+            .await
+            .wrap_err(HttpRequestError)?;
+        self.subs.blocks = true;
+        Ok(())
+    }
+
+    pub async fn unsubscribe_from_blocks(&mut self) -> Result<(), Report> {
+        let msg = proto::WsSub {
+            is_unsub: true,
+            sub_type: Some(proto::ws_sub::SubType::Blocks(
+                proto::WsSubBlocks {},
+            )),
+        };
+        self.ws
+            .send(tokio_tungstenite::tungstenite::Message::Binary(
+                Bytes::from(msg.encode_to_vec()),
+            ))
+            .await
+            .wrap_err(HttpRequestError)?;
+        self.subs.blocks = false;
+
+        Ok(())
+    }
+
+    pub async fn recv(&mut self) -> Result<Option<proto::WsMsg>, Report> {
+        while let Some(msg) = self.ws.next().await {
+            match msg {
+                Ok(WsMessage::Binary(data)) => {
+                    return Ok(Some(proto::WsMsg::decode(data)?))
+                }
+                Ok(WsMessage::Ping(data)) => {
+                    self.ws.send(WsMessage::Pong(data)).await?;
+                }
+                Ok(WsMessage::Close(_)) => return Ok(None),
+                Ok(WsMessage::Pong(_)) => {}
+                Err(err) => return Err(err.into()),
+                Ok(unexpected_message) => {
+                    abc_rust_error::bail!(
+                        "Unexpected WebSocket message type received {:?}",
+                        unexpected_message
+                    );
+                }
+            }
+        }
+        Ok(None)
     }
 }
 
