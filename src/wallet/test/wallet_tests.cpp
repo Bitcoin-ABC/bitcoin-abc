@@ -227,6 +227,10 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
     }
     m_node.chainman->m_blockman.UnlinkPrunedFiles({file_number});
 
+    // Set this flag so that pwallet->chain().havePruned() returns true, which
+    // affects the RPC error message below.
+    m_node.chainman->m_blockman.m_have_pruned = true;
+
     // Verify importmulti RPC returns failure for a key whose creation time is
     // before the missing block, and success for a key whose creation time is
     // after.
@@ -273,8 +277,8 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
                       "appear in the wallet. This error could be caused by "
                       "pruning or data corruption (see bitcoind log for "
                       "details) and could be dealt with by downloading and "
-                      "rescanning the relevant blocks (see -reindex and "
-                      "-rescan options).\"}},{\"success\":true}]",
+                      "rescanning the relevant blocks (see -reindex option "
+                      "and rescanblockchain RPC).\"}},{\"success\":true}]",
                       0, oldTip->GetBlockTimeMax(), TIMESTAMP_WINDOW));
         RemoveWallet(wallet, std::nullopt);
     }

@@ -1678,18 +1678,36 @@ static int64_t GetImportTimestamp(const UniValue &data, int64_t now) {
 
 static std::string GetRescanErrorMessage(const std::string &object,
                                          const int64_t objectTimestamp,
-                                         const int64_t blockTimestamp) {
-    return strprintf(
-        "Rescan failed for %s with creation timestamp %d. There was an error "
-        "reading a block from time %d, which is after or within %d seconds of "
-        "key creation, and could contain transactions pertaining to the %s. As "
-        "a result, transactions and coins using this %s may not appear in "
-        "the wallet. This error could be caused by pruning or data corruption "
-        "(see bitcoind log for details) and could be dealt with by downloading "
-        "and rescanning the relevant blocks (see -reindex and -rescan "
-        "options).",
-        object, objectTimestamp, blockTimestamp, TIMESTAMP_WINDOW, object,
-        object);
+                                         const int64_t blockTimestamp,
+                                         const bool have_pruned,
+                                         const bool has_assumed_valid_chain) {
+    std::string error_msg{
+        strprintf("Rescan failed for %s with creation timestamp %d. There "
+                  "was an error reading a block from time %d, which is after "
+                  "or within %d seconds of key creation, and could contain "
+                  "transactions pertaining to the %s. As a result, "
+                  "transactions and coins using this %s may not appear "
+                  "in the wallet. ",
+                  object, objectTimestamp, blockTimestamp, TIMESTAMP_WINDOW,
+                  object, object)};
+    if (have_pruned) {
+        error_msg += strprintf(
+            "This error could be caused by pruning or data corruption "
+            "(see bitcoind log for details) and could be dealt with by "
+            "downloading and rescanning the relevant blocks (see -reindex "
+            "option and rescanblockchain RPC).");
+    } else if (has_assumed_valid_chain) {
+        error_msg += strprintf(
+            "This error is likely caused by an in-progress assumeutxo "
+            "background sync. Check logs or getchainstates RPC for assumeutxo "
+            "background sync progress and try again later.");
+    } else {
+        error_msg += strprintf(
+            "This error could potentially be caused by data corruption. If "
+            "the issue persists you may want to reindex (see -reindex "
+            "option).");
+    }
+    return error_msg;
 }
 
 RPCHelpMan importmulti() {
@@ -1959,7 +1977,10 @@ RPCHelpMan importmulti() {
                                     RPC_MISC_ERROR,
                                     GetRescanErrorMessage(
                                         "key", GetImportTimestamp(request, now),
-                                        scannedTime - TIMESTAMP_WINDOW - 1)));
+                                        scannedTime - TIMESTAMP_WINDOW - 1,
+                                        pwallet->chain().havePruned(),
+                                        pwallet->chain()
+                                            .hasAssumedValidChain())));
                             response.push_back(std::move(result));
                         }
                         ++i;
@@ -2354,7 +2375,10 @@ RPCHelpMan importdescriptors() {
                                     GetRescanErrorMessage(
                                         "descriptor",
                                         GetImportTimestamp(request, now),
-                                        scanned_time - TIMESTAMP_WINDOW - 1)));
+                                        scanned_time - TIMESTAMP_WINDOW - 1,
+                                        pwallet->chain().havePruned(),
+                                        pwallet->chain()
+                                            .hasAssumedValidChain())));
                             response.push_back(std::move(result));
                         }
                     }
