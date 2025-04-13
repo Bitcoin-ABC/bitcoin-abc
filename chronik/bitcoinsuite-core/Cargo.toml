@@ -9,6 +9,7 @@ license = "MIT"
 
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
+abc-rust-error = { path = "../abc-rust-error"}
 
 # Efficient byte strings, with ref counted substrings
 bytes = { version = "1.4", features = ["serde"] }

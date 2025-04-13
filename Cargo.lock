@@ -509,6 +509,7 @@ dependencies = [
 name = "bitcoinsuite-core"
 version = "0.1.0"
 dependencies = [
+ "abc-rust-error",
  "abc-rust-lint",
  "bytes",
  "hex",
