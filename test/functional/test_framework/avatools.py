@@ -484,6 +484,7 @@ def can_find_inv_in_poll(
     inv_hash,
     response=AvalancheVoteError.ACCEPTED,
     other_response=AvalancheVoteError.ACCEPTED,
+    unexpected_hashes=None,
 ):
     found_hash = False
     for n in quorum:
@@ -503,6 +504,10 @@ def can_find_inv_in_poll(
             if inv.hash == inv_hash:
                 r = response
                 found_hash = True
+
+            assert inv.hash not in (
+                unexpected_hashes or []
+            ), f"Unexpected inv hash {inv.hash} found in list {unexpected_hashes}"
 
             votes.append(AvalancheVote(r, inv.hash))
 
