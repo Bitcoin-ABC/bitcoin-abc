@@ -6,6 +6,7 @@
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
     AvaP2PInterface,
+    assert_response,
     avalanche_proof_from_hex,
     create_coinbase_stakes,
     gen_proof,
@@ -18,7 +19,7 @@ from test_framework.messages import (
     AvalancheVote,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
+from test_framework.util import assert_raises_rpc_error, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -79,21 +80,10 @@ class InvalidateAvalancheProofTest(BitcoinTestFramework):
         poll_node = quorum[0]
         poll_node.send_poll([proof.proofid], MSG_AVA_PROOF)
 
-        def assert_response(expected):
-            response = poll_node.wait_for_avaresponse()
-            r = response.response
-            assert_equal(r.cooldown, 0)
-
-            # Verify signature.
-            assert node_pubkey.verify_schnorr(response.sig, r.get_hash())
-
-            votes = r.votes
-            assert_equal(len(votes), len(expected))
-            for i in range(0, len(votes)):
-                assert_equal(repr(votes[i]), repr(expected[i]))
-
         assert_response(
-            [AvalancheVote(AvalancheProofVoteResponse.REJECTED, proof.proofid)]
+            poll_node,
+            node_pubkey,
+            [AvalancheVote(AvalancheProofVoteResponse.REJECTED, proof.proofid)],
         )
 
         assert node.reconsideravalancheproof(proof.serialize().hex())
@@ -102,7 +92,9 @@ class InvalidateAvalancheProofTest(BitcoinTestFramework):
         # Now the node vote yes for that proof
         poll_node.send_poll([proof.proofid], MSG_AVA_PROOF)
         assert_response(
-            [AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof.proofid)]
+            poll_node,
+            node_pubkey,
+            [AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof.proofid)],
         )
 
         # Reconsidering an existing proof is a no-op

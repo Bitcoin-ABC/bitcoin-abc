@@ -4,9 +4,14 @@
 """Test the resolution of miner fund changes via avalanche."""
 import random
 
-from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.avatools import (
+    assert_response,
+    can_find_inv_in_poll,
+    get_ava_p2p_interface,
+)
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.cashaddr import decode
+from test_framework.key import ECPubKey
 from test_framework.messages import (
     XEC,
     AvalancheVote,
@@ -64,6 +69,9 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         block_reward = sum([vout["value"] for vout in coinbase["vout"]])
         policy_miner_fund_amount = int(block_reward * XEC * ratio / 100)
 
+        avakey = ECPubKey()
+        avakey.set(bytes.fromhex(node.getavalanchekey()))
+
         def has_accepted_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
             can_find_inv_in_poll(quorum, hash_tip_final)
@@ -95,16 +103,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
             cb.calc_sha256()
             return cb
 
-        def assert_response(expected):
-            response = poll_node.wait_for_avaresponse()
-            r = response.response
-            assert_equal(r.cooldown, 0)
-
-            votes = r.votes
-            assert_equal(len(votes), len(expected))
-            for i in range(0, len(votes)):
-                assert_equal(repr(votes[i]), repr(expected[i]))
-
         def new_block(tip, miner_fund_addr, miner_fund_amount):
             # Create a new block paying to the specified miner fund
             cb = create_cb_pay_to_address(miner_fund_addr, miner_fund_amount)
@@ -129,14 +127,20 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 if matches_policy
                 else AvalancheVoteError.PARKED
             )
-            assert_response([AvalancheVote(expected_vote, block.sha256)])
+            assert_response(
+                poll_node, avakey, [AvalancheVote(expected_vote, block.sha256)]
+            )
 
             # Vote yes on this block until the node accepts it
             self.wait_until(lambda: has_accepted_tip(block.hash))
             assert_equal(node.getbestblockhash(), block.hash)
 
             poll_node.send_poll([block.sha256])
-            assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, block.sha256)])
+            assert_response(
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheVoteError.ACCEPTED, block.sha256)],
+            )
 
             return block
 

@@ -5,7 +5,11 @@
 import random
 import time
 
-from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.avatools import (
+    assert_response,
+    can_find_inv_in_poll,
+    get_ava_p2p_interface,
+)
 from test_framework.key import ECPubKey
 from test_framework.messages import AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
@@ -84,20 +88,11 @@ class AvalancheTest(BitcoinTestFramework):
         best_block_hash = int(node.getbestblockhash(), 16)
         poll_node.send_poll([best_block_hash])
 
-        def assert_response(expected):
-            response = poll_node.wait_for_avaresponse()
-            r = response.response
-            assert_equal(r.cooldown, 0)
-
-            # Verify signature.
-            assert avakey.verify_schnorr(response.sig, r.get_hash())
-
-            votes = r.votes
-            assert_equal(len(votes), len(expected))
-            for i in range(0, len(votes)):
-                assert_equal(repr(votes[i]), repr(expected[i]))
-
-        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, best_block_hash)])
+        assert_response(
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheVoteError.ACCEPTED, best_block_hash)],
+        )
 
         self.log.info("Poll for a selection of blocks...")
         various_block_hashes = [
@@ -113,10 +108,12 @@ class AvalancheTest(BitcoinTestFramework):
 
         poll_node.send_poll(various_block_hashes)
         assert_response(
+            poll_node,
+            avakey,
             [
                 AvalancheVote(AvalancheVoteError.ACCEPTED, h)
                 for h in various_block_hashes
-            ]
+            ],
         )
 
         self.log.info("Poll for a selection of blocks, but some are now invalid...")
@@ -129,6 +126,8 @@ class AvalancheTest(BitcoinTestFramework):
 
         poll_node.send_poll(various_block_hashes)
         assert_response(
+            poll_node,
+            avakey,
             [
                 AvalancheVote(AvalancheVoteError.ACCEPTED, h)
                 for h in various_block_hashes[:5]
@@ -136,7 +135,7 @@ class AvalancheTest(BitcoinTestFramework):
             + [
                 AvalancheVote(AvalancheVoteError.FORK, h)
                 for h in various_block_hashes[-3:]
-            ]
+            ],
         )
 
         self.log.info("Poll for unknown blocks...")
@@ -153,6 +152,8 @@ class AvalancheTest(BitcoinTestFramework):
         ]
         poll_node.send_poll(various_block_hashes)
         assert_response(
+            poll_node,
+            avakey,
             [
                 AvalancheVote(AvalancheVoteError.ACCEPTED, h)
                 for h in various_block_hashes[:3]
@@ -164,7 +165,7 @@ class AvalancheTest(BitcoinTestFramework):
             + [
                 AvalancheVote(AvalancheVoteError.UNKNOWN, h)
                 for h in various_block_hashes[-3:]
-            ]
+            ],
         )
 
         self.log.info("Trigger polling from the node...")
@@ -301,7 +302,9 @@ class AvalancheTest(BitcoinTestFramework):
         # sanity check
         hash_to_find = int(fork_tip, 16)
         poll_node.send_poll([hash_to_find])
-        assert_response([AvalancheVote(AvalancheVoteError.FORK, hash_to_find)])
+        assert_response(
+            poll_node, avakey, [AvalancheVote(AvalancheVoteError.FORK, hash_to_find)]
+        )
 
         # Try some longer fork chains
         for numblocks in range(2, len(ADDRS)):
@@ -324,7 +327,11 @@ class AvalancheTest(BitcoinTestFramework):
             # sanity check
             hash_to_find = int(fork_tip, 16)
             poll_node.send_poll([hash_to_find])
-            assert_response([AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
+            assert_response(
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)],
+            )
 
             with node.wait_for_debug_log(
                 [f"Avalanche invalidated block {fork_tip}".encode()],

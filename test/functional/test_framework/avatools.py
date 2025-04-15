@@ -8,7 +8,7 @@ import struct
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .authproxy import JSONRPCException
-from .key import ECKey
+from .key import ECKey, ECPubKey
 from .messages import (
     MSG_AVA_PROOF,
     MSG_BLOCK,
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from .test_framework import BitcoinTestFramework
 
 from .test_node import ADDRESS_ECREG_UNSPENDABLE, TestNode
-from .util import satoshi_round, uint256_hex, wait_until_helper
+from .util import assert_equal, satoshi_round, uint256_hex, wait_until_helper
 from .wallet_util import bytes_to_wif
 
 
@@ -514,3 +514,19 @@ def can_find_inv_in_poll(
         n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
     return found_hash
+
+
+def assert_response(
+    poll_node: AvaP2PInterface, avakey: ECPubKey, expected: List[AvalancheVote]
+):
+    response = poll_node.wait_for_avaresponse()
+    r = response.response
+
+    # Verify signature.
+    assert avakey.verify_schnorr(response.sig, r.get_hash())
+
+    # Verify correct votes list
+    votes = r.votes
+    assert_equal(len(votes), len(expected))
+    for i in range(0, len(votes)):
+        assert_equal(repr(votes[i]), repr(expected[i]))

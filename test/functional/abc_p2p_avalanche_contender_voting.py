@@ -6,6 +6,7 @@ import math
 import time
 
 from test_framework.avatools import (
+    assert_response,
     avalanche_proof_from_hex,
     build_msg_avaproofs,
     can_find_inv_in_poll,
@@ -102,18 +103,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         avakey = ECPubKey()
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
-        def assert_response(expected):
-            response = poll_node.wait_for_avaresponse()
-            r = response.response
-
-            # Verify signature
-            assert avakey.verify_schnorr(response.sig, r.get_hash())
-
-            votes = r.votes
-            assert_equal(len(votes), len(expected))
-            for i in range(0, len(votes)):
-                assert_equal(repr(votes[i]), repr(expected[i]))
-
         def make_contender_id(prevblockhash, proofid):
             return int.from_bytes(
                 hash256(ser_uint256(int(prevblockhash, 16)) + ser_uint256(proofid)),
@@ -144,13 +133,15 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 )
                 expected.append(AvalancheVote(expected_vote, contender_id))
             poll_node.send_poll(poll_ids, inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(expected)
+            assert_response(poll_node, avakey, expected)
 
         # Unknown contender
         unknown_contender_id = 0x123
         poll_node.send_poll([unknown_contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)]
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)],
         )
 
         def has_finalized_tip(tip_expected):
@@ -173,7 +164,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Unknown contender is still unknown
         poll_node.send_poll([unknown_contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)]
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)],
         )
 
         def get_all_contender_ids(tip, proofids=None):
@@ -191,7 +184,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         for contender_id in get_all_contender_ids(tip):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
             )
 
         def find_polled_contenders(local_winner_contender_id=None):
@@ -296,6 +291,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         poll_node.send_poll(contenders, inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
+            poll_node,
+            avakey,
             [
                 AvalancheVote(
                     (
@@ -306,7 +303,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                     cid,
                 )
                 for cid in contenders
-            ]
+            ],
         )
 
         self.wait_until(lambda: find_polled_contenders(local_winner_cid))
@@ -321,7 +318,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         node.setstakingreward(tip, manual_winner.payout_script.hex())
         poll_node.send_poll([manual_winner_cid], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.ACCEPTED, manual_winner_cid)]
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.ACCEPTED, manual_winner_cid)],
         )
 
         self.log.info("Vote on contenders: manual winner + local winner")
@@ -374,7 +373,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                     AvalancheVote(AvalancheContenderVoteError.INVALID, contender_id)
                 )
             poll_node.send_poll(poll_ids, inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(expected)
+            assert_response(poll_node, avakey, expected)
 
         # Manual winner should already be a winner even though it isn't finalized
         check_stake_winners(tip, [(0, manual_winner.payout_script.hex())], [], [])
@@ -559,7 +558,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         for contender_id in get_all_contender_ids(tip):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
             )
 
         # Proofs from the prior quorum that were persisted were loaded back into the contender cache
@@ -568,7 +569,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         ):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
             )
 
         # Set last proof as remote
@@ -589,7 +592,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         for contender_id in get_all_contender_ids(tip):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
             )
 
         # All proofs from the prior quorum were promoted
@@ -598,7 +603,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         ):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
             )
 
         self.log.info("Check votes when immature proof matures")
@@ -636,7 +643,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         contender_id = make_contender_id(tip, immature_proof.proofid)
         poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)]
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)],
         )
 
         # Trigger contenders promotion
@@ -646,7 +655,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         contender_id = make_contender_id(tip, immature_proof.proofid)
         poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)]
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)],
         )
 
         # Trigger contenders promotion and mature the proof
@@ -658,7 +669,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         contender_id = make_contender_id(tip, immature_proof.proofid)
         poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
         assert_response(
-            [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)]
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
         )
 
 

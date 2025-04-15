@@ -4,8 +4,13 @@
 """Test the real time targeting policy."""
 import time
 
-from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.avatools import (
+    assert_response,
+    can_find_inv_in_poll,
+    get_ava_p2p_interface,
+)
 from test_framework.blocktools import create_block, create_coinbase
+from test_framework.key import ECPubKey
 from test_framework.messages import AvalancheVote, AvalancheVoteError, ToHex
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
@@ -76,15 +81,8 @@ class AvalancheRTTTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_tip(tip))
 
-        def assert_response(expected):
-            response = poll_node.wait_for_avaresponse()
-            r = response.response
-            assert_equal(r.cooldown, 0)
-
-            votes = r.votes
-            assert_equal(len(votes), len(expected))
-            for i in range(0, len(votes)):
-                assert_equal(repr(votes[i]), repr(expected[i]))
+        avakey = ECPubKey()
+        avakey.set(bytes.fromhex(node.getavalanchekey()))
 
         def check_and_accept_new_block(tip, expect_initially_accepted):
             cb = create_coinbase(node.getblockcount())
@@ -102,14 +100,20 @@ class AvalancheRTTTest(BitcoinTestFramework):
                 if expect_initially_accepted
                 else AvalancheVoteError.PARKED
             )
-            assert_response([AvalancheVote(expected_vote, block.sha256)])
+            assert_response(
+                poll_node, avakey, [AvalancheVote(expected_vote, block.sha256)]
+            )
 
             # Vote yes on this block until the node accepts it
             self.wait_until(lambda: has_accepted_tip(block.hash))
             assert_equal(node.getbestblockhash(), block.hash)
 
             poll_node.send_poll([block.sha256])
-            assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, block.sha256)])
+            assert_response(
+                poll_node,
+                avakey,
+                [AvalancheVote(AvalancheVoteError.ACCEPTED, block.sha256)],
+            )
 
         self.log.info("Check the node rejects blocks that doesn't match RTT")
         height = node.getblockcount()
