@@ -138,25 +138,6 @@ public:
     int64_t GetChainTxCount() const { return nChainTx; }
 
     /**
-     * Reset chain tx stats.
-     */
-    void ResetChainStats();
-
-    /**
-     * Reset chain tx stats and log a warning if the block is not the snapshot
-     * block, and the nChainTx value is not zero or the correct value.
-     * Don't modify the value otherwise.
-     */
-    void MaybeResetChainStats(bool is_snapshot_base_block);
-
-    /**
-     * Update chain tx stats and return True if this block is the genesis block
-     * or all parents have their tx stats set.
-     * Else, do nothing and return False.
-     */
-    bool UpdateChainStats();
-
-    /**
      * Check whether this block and all previous blocks back to the genesis
      * block or an assumeutxo snapshot block have reached VALID_TRANSACTIONS
      * and had transactions downloaded (and stored to disk) at some point.

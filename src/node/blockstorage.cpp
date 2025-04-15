@@ -308,14 +308,17 @@ bool BlockManager::LoadBlockIndex(
         // basis of snapshot load (see PopulateAndValidateSnapshot()).
         // Pruned nodes may have deleted the block.
         if (pindex->nTx > 0) {
+            const unsigned int prevNChainTx =
+                pindex->pprev ? pindex->pprev->nChainTx : 0;
             if (m_snapshot_height && pindex->nHeight == *m_snapshot_height &&
                 pindex->GetBlockHash() == *snapshot_blockhash) {
-                Assert(pindex->pprev);
                 // Should have been set above; don't disturb it with code below.
                 Assert(pindex->nChainTx > 0);
-            } else if (!pindex->UpdateChainStats() && pindex->pprev) {
+            } else if (prevNChainTx == 0 && pindex->pprev) {
+                pindex->nChainTx = 0;
                 m_blocks_unlinked.insert(std::make_pair(pindex->pprev, pindex));
-                pindex->ResetChainStats();
+            } else {
+                pindex->nChainTx = prevNChainTx + pindex->nTx;
             }
         }
 

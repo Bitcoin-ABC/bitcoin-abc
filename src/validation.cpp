@@ -4156,7 +4156,23 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
                                                   CBlockIndex *pindexNew,
                                                   const FlatFilePos &pos) {
     pindexNew->nTx = block.vtx.size();
-    pindexNew->MaybeResetChainStats(pindexNew == GetSnapshotBaseBlock());
+    // Typically nChainTX will be 0 at this point, but it can be nonzero if this
+    // is a pruned block which is being downloaded again, or if this is an
+    // assumeutxo snapshot block which has a hardcoded m_chain_tx_count value
+    // from the snapshot metadata. If the pindex is not the snapshot block and
+    // the nChainTx value is not zero, assert that value is actually correct.
+    auto prev_tx_sum = [](CBlockIndex &block) {
+        return block.nTx + (block.pprev ? block.pprev->nChainTx : 0);
+    };
+    if (!Assume(pindexNew->nChainTx == 0 ||
+                pindexNew->nChainTx == prev_tx_sum(*pindexNew) ||
+                pindexNew == GetSnapshotBaseBlock())) {
+        LogPrintf("Internal bug detected: block %d has unexpected nChainTx %i "
+                  "that should be %i. Please report this issue here: %s\n",
+                  pindexNew->nHeight, pindexNew->nChainTx,
+                  prev_tx_sum(*pindexNew), PACKAGE_BUGREPORT);
+        pindexNew->nChainTx = 0;
+    }
     pindexNew->nSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
@@ -4165,7 +4181,7 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
     pindexNew->RaiseValidity(BlockValidity::TRANSACTIONS);
     m_blockman.m_dirty_blockindex.insert(pindexNew);
 
-    if (pindexNew->UpdateChainStats()) {
+    if (pindexNew->pprev == nullptr || pindexNew->pprev->HaveNumChainTxs()) {
         // If pindexNew is the genesis block or all parents are
         // BLOCK_VALID_TRANSACTIONS.
         std::deque<CBlockIndex *> queue;
@@ -4176,7 +4192,19 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
         while (!queue.empty()) {
             CBlockIndex *pindex = queue.front();
             queue.pop_front();
-            pindex->UpdateChainStats();
+            // Before setting nChainTx, assert that it is 0 or already set to
+            // the correct value. This assert will fail after receiving the
+            // assumeutxo snapshot block if assumeutxo snapshot metadata has an
+            // incorrect hardcoded AssumeutxoData::nChainTx value.
+            if (!Assume(pindex->nChainTx == 0 ||
+                        pindex->nChainTx == prev_tx_sum(*pindex))) {
+                LogPrintf(
+                    "Internal bug detected: block %d has unexpected nChainTx "
+                    "%i that should be %i. Please report this issue here: %s\n",
+                    pindex->nHeight, pindex->nChainTx, prev_tx_sum(*pindex),
+                    PACKAGE_BUGREPORT);
+            }
+            pindex->nChainTx = prev_tx_sum(*pindex);
             if (pindex->nSequenceId == 0) {
                 // We assign a sequence is when transaction are received to
                 // prevent a miner from being able to broadcast a block but not

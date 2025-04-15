@@ -36,10 +36,6 @@ FUZZ_TARGET(chain) {
         (void)disk_block_index->GetUndoPos();
         (void)disk_block_index->HaveNumChainTxs();
         (void)disk_block_index->IsValid();
-        (void)disk_block_index->UpdateChainStats();
-        (void)disk_block_index->MaybeResetChainStats(
-            fuzzed_data_provider.ConsumeBool());
-        (void)disk_block_index->ResetChainStats();
     }
 
     const CBlockHeader block_header = disk_block_index->GetBlockHeader();
