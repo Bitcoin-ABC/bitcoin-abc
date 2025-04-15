@@ -20,6 +20,29 @@ interface Endpoint {
 
 const WEBSOCKET_TIMEOUT_MS = 5000;
 
+// Converts an array of chronik http/https urls into
+// websocket equivalents and combines them into an object array
+export function appendWsUrls(urls: string[]): Endpoint[] {
+    const combinedUrls = [];
+    for (const thisUrl of urls) {
+        if (thisUrl.startsWith('https://')) {
+            combinedUrls.push({
+                url: thisUrl,
+                wsUrl: 'wss://' + thisUrl.substring('https://'.length) + '/ws',
+            });
+        } else if (thisUrl.startsWith('http://')) {
+            combinedUrls.push({
+                url: thisUrl,
+                wsUrl: 'ws://' + thisUrl.substring('http://'.length) + '/ws',
+            });
+        } else {
+            throw new Error(`Invalid url found in array: ${thisUrl}`);
+        }
+    }
+
+    return combinedUrls;
+}
+
 /**
  * Handles the networking to Chronik `Endpoint`s, including cycling
  * through both types of endpoints.
@@ -50,7 +73,7 @@ export class FailoverProxy {
 
         // Initializes _endpointArray with an object Array containing
         // 'url' and 'wsUrl' props
-        this._endpointArray = this.appendWsUrls(urlsArray);
+        this._endpointArray = appendWsUrls(urlsArray);
         this._workingIndex = 0;
     }
 
@@ -66,33 +89,6 @@ export class FailoverProxy {
     // Overriding working index for unit testing purposes
     public setWorkingIndex(newIndex: number) {
         this._workingIndex = newIndex;
-    }
-
-    // Converts an array of chronik http/https urls into
-    // websocket equivalents and combines them into an object array
-    // Note: this function is declared as public in order to access it
-    // via unit tests to validate the websocket url parsing logic below.
-    public appendWsUrls(urls: string[]): Endpoint[] {
-        const combinedUrls = [];
-        for (const thisUrl of urls) {
-            if (thisUrl.startsWith('https://')) {
-                combinedUrls.push({
-                    url: thisUrl,
-                    wsUrl:
-                        'wss://' + thisUrl.substring('https://'.length) + '/ws',
-                });
-            } else if (thisUrl.startsWith('http://')) {
-                combinedUrls.push({
-                    url: thisUrl,
-                    wsUrl:
-                        'ws://' + thisUrl.substring('http://'.length) + '/ws',
-                });
-            } else {
-                throw new Error(`Invalid url found in array: ${thisUrl}`);
-            }
-        }
-
-        return combinedUrls;
     }
 
     public async post(path: string, data: Uint8Array): Promise<Uint8Array> {

@@ -4,7 +4,7 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { FailoverProxy } from '../src/failoverProxy';
+import { FailoverProxy, appendWsUrls } from '../src/failoverProxy';
 import { isValidWsSubscription } from '../src/validation';
 import vectors from './vectors';
 
@@ -18,7 +18,6 @@ describe('FailoverProxy', () => {
             'https://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
-        const proxyInterface = new FailoverProxy(urls);
         const expectedResult = [
             {
                 url: 'https://chronik.be.cash/xec',
@@ -33,7 +32,7 @@ describe('FailoverProxy', () => {
                 wsUrl: 'wss://chronik2.fabien.cash/ws',
             },
         ];
-        expect(proxyInterface.appendWsUrls(urls)).to.eql(expectedResult);
+        expect(appendWsUrls(urls)).to.eql(expectedResult);
     });
     it('appendWsUrls combines an array of mixed valid https and http urls with wsUrls', () => {
         const urls = [
@@ -41,7 +40,6 @@ describe('FailoverProxy', () => {
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
-        const proxyInterface = new FailoverProxy(urls);
         const expectedResult = [
             {
                 url: 'https://chronik.be.cash/xec',
@@ -56,29 +54,18 @@ describe('FailoverProxy', () => {
                 wsUrl: 'wss://chronik2.fabien.cash/ws',
             },
         ];
-        expect(proxyInterface.appendWsUrls(urls)).to.eql(expectedResult);
+        expect(appendWsUrls(urls)).to.eql(expectedResult);
     });
     it('appendWsUrls returns an empty array for an empty input', () => {
-        const urls = [
-            'https://chronik.be.cash/xec',
-            'http://chronik.fabien.cash',
-            'https://chronik2.fabien.cash',
-        ];
-        const proxyInterface = new FailoverProxy(urls);
-        expect(proxyInterface.appendWsUrls([])).to.eql([]);
+        expect(appendWsUrls([])).to.eql([]);
     });
     it('appendWsUrls throws error on an invalid regular endpoint', () => {
-        const urls = [
-            'http://chronik.fabien.cash',
-            'https://chronik2.fabien.cash',
-        ];
-        const proxyInterface = new FailoverProxy(urls);
         const oneBrokenUrl = [
             'https://chronik.fabien.cash',
             'not-a-valid-url',
             'https://chronik2.fabien.cash',
         ];
-        expect(() => proxyInterface.appendWsUrls(oneBrokenUrl)).to.throw(
+        expect(() => appendWsUrls(oneBrokenUrl)).to.throw(
             `Invalid url found in array: ${oneBrokenUrl[1]}`,
         );
     });
