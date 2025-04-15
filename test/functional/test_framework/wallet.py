@@ -350,7 +350,7 @@ class MiniWallet:
             ),
         )
 
-        pad_tx(tx, target_size or 100)
+        pad_tx(tx, target_size or 100, deterministic=True)
 
         txid = tx.rehash()
         return {

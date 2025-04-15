@@ -9,7 +9,7 @@ MAX_OP_RETURN_PAYLOAD = 220
 VOUT_VALUE_SIZE = 8
 
 
-def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
+def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE, deterministic=False):
     """
     Pad a transaction with op_return junk data until it is at least pad_to_size,
     or leave it alone if it's already bigger than that.
@@ -61,18 +61,21 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
 
         required_padding -= data_size + VOUT_VALUE_SIZE + 3
 
-        tx.vout.append(CTxOut(0, CScript([OP_RETURN, random.randbytes(data_size)])))
+        # Note that this deterministic data affect the assumeutxo/dumptxoutset hash
+        # used in feature_assumeutxo.py and set in CRegTestParams::m_assumeutxo_data
+        data = b"\x00" * data_size if deterministic else random.randbytes(data_size)
+        tx.vout.append(CTxOut(0, CScript([OP_RETURN, data])))
 
     tx.rehash()
 
 
-def pad_raw_tx(rawtx_hex, min_size=MIN_TX_SIZE):
+def pad_raw_tx(rawtx_hex, min_size=MIN_TX_SIZE, deterministic=False):
     """
     Pad a raw transaction with OP_RETURN data until it reaches at least min_size
     """
     tx = CTransaction()
     FromHex(tx, rawtx_hex)
-    pad_tx(tx, min_size)
+    pad_tx(tx, min_size, deterministic)
     return ToHex(tx)
 
 
@@ -89,9 +92,11 @@ class TestFrameworkScript(unittest.TestCase):
             return len(bytes.fromhex(rawtx))
 
         def test_size(requested_size, expected_size):
-            self.assertEqual(
-                rawtx_length(pad_raw_tx(raw_tx, requested_size)), expected_size
-            )
+            for deterministic in (True, False):
+                self.assertEqual(
+                    rawtx_length(pad_raw_tx(raw_tx, requested_size, deterministic)),
+                    expected_size,
+                )
 
         self.assertEqual(rawtx_length(raw_tx), 85)
 
