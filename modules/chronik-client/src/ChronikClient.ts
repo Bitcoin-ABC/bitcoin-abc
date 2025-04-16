@@ -6,7 +6,7 @@ import { decodeCashAddress } from 'ecashaddrjs';
 import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
 import * as proto from '../proto/chronik';
-import { FailoverProxy } from './failoverProxy';
+import { FailoverProxy, appendWsUrls } from './failoverProxy';
 import { fromHex, toHex, toHexRev } from './hex';
 import {
     isValidWsSubscription,
@@ -17,12 +17,118 @@ import {
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
+export enum ConnectionStrategy {
+    ClosestFirst = 'CLOSEST_FIRST',
+    AsOrdered = 'AS_ORDERED',
+}
+
+const WEBSOCKET_TIMEOUT_MS = 1000;
+
+/**
+ * Measures connection latency to a given WebSocket URL
+ * @param {string} wsUrl WebSocket URL to test connection
+ * @returns {Promise<number>} Returns latency in milliseconds, or Infinity if connection times out or fails
+ */
+export async function measureWebsocketLatency(wsUrl: string): Promise<number> {
+    return new Promise<number>(resolve => {
+        const timeoutFailure = setTimeout(() => {
+            testWs.close();
+            resolve(Infinity);
+        }, WEBSOCKET_TIMEOUT_MS);
+        const startTime = Date.now();
+
+        const testWs = new WebSocket(wsUrl);
+        testWs.onerror = function () {
+            testWs.close();
+            clearTimeout(timeoutFailure);
+            return resolve(Infinity);
+        };
+        testWs.onopen = function () {
+            const latency = Date.now() - startTime;
+            testWs.close();
+            clearTimeout(timeoutFailure);
+            return resolve(latency);
+        };
+    }).catch(() => {
+        return Infinity;
+    });
+}
+
+/**
+ * Sort nodes by latency
+ * @param {string[]} urls Array of URLs to sort
+ * @returns {Promise<string[]>} Array of URLs sorted by latency
+ */
+export async function sortNodesByLatency(urls: string[]): Promise<string[]> {
+    // Convert URLs using appendWsUrls
+    const endpoints = appendWsUrls(urls);
+
+    // Test latency of all endpoints in parallel
+    const results = await Promise.all(
+        endpoints.map(async endpoint => {
+            const latency = await measureWebsocketLatency(endpoint.wsUrl);
+            return {
+                url: endpoint.url,
+                latency: latency,
+            };
+        }),
+    );
+
+    results.sort((a, b) => a.latency - b.latency);
+
+    const sortedUrls = results.map(r => r.url);
+    sortedUrls.forEach((url, idx) => {
+        const result = results.find(r => r.url === url);
+        console.log(
+            result?.latency === Infinity
+                ? `  ${idx + 1}. ${url} - latency: >${Math.round(
+                      WEBSOCKET_TIMEOUT_MS,
+                  )}ms`
+                : `  ${idx + 1}. ${url} - latency: ${Math.round(
+                      result?.latency || 0,
+                  )}ms`,
+        );
+    });
+
+    return sortedUrls;
+}
+
 /**
  * Client to access an in-node Chronik instance.
  * Plain object, without any connections.
  */
 export class ChronikClient {
     private _proxyInterface: FailoverProxy;
+
+    /**
+     * Create Chronik client instance with specified strategy
+     *
+     * @param {ConnectionStrategy} strategy Connection strategy
+     * @param {string[]} urls Array of Chronik URLs
+     * @returns {Promise<ChronikClient>} Client instance created with sorted URLs
+     */
+    public static async useStrategy(
+        strategy: ConnectionStrategy,
+        urls: string[],
+    ): Promise<ChronikClient> {
+        let sortedUrls = [...urls];
+
+        // If using ClosestFirst strategy, sort nodes by latency first
+        if (strategy === ConnectionStrategy.ClosestFirst) {
+            try {
+                sortedUrls = await sortNodesByLatency(urls);
+            } catch (error) {
+                console.error(
+                    'Error sorting nodes by latency:',
+                    error,
+                    'Using original order:',
+                );
+            }
+        }
+
+        return new ChronikClient(sortedUrls);
+    }
+
     /**
      * Create a new client. This just creates an object, without any connections.
      *
