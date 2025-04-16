@@ -25,7 +25,6 @@ from test_framework.messages import (
 )
 from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, chronikelectrum_port, hex_to_be_bytes
 from test_framework.wallet import MiniWallet
 
@@ -214,29 +213,28 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(response.error, {"code": -32600, "message": "Unknown txid"})
 
     def test_transaction_broadcast(self):
-        tx = self.wallet.create_self_transfer()
+        tx_reference = self.wallet.create_self_transfer(target_size=100)
+        raw_tx_reference = tx_reference["hex"]
 
+        # broadcasting is allowed as long as the transaction is not mined
         for _ in range(3):
-            response = self.client.blockchain.transaction.broadcast(tx["hex"])
-            assert_equal(response.result, tx["txid"])
+            response = self.client.blockchain.transaction.broadcast(raw_tx_reference)
+            assert_equal(response.result, tx_reference["txid"])
 
         self.generate(self.wallet, 1)
-        response = self.client.blockchain.transaction.broadcast(tx["hex"])
+        response = self.client.blockchain.transaction.broadcast(raw_tx_reference)
         assert_equal(
             response.error, {"code": 1, "message": "Transaction already in block chain"}
         )
 
-        spent_utxo = tx["tx"].vin[0]
-
-        tx_obj = self.wallet.create_self_transfer()["tx"]
-        tx_obj.vin[0] = spent_utxo
+        # different transaction that spend the same input
+        tx_obj = self.wallet.create_self_transfer(target_size=200)["tx"]
+        tx_obj.vin[0] = tx_reference["tx"].vin[0]
         response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
         assert_equal(
             response.error,
             {"code": 1, "message": "Missing inputs: bad-txns-inputs-missingorspent"},
         )
-
-        raw_tx_reference = self.wallet.create_self_transfer()["hex"]
 
         tx_obj = FromHex(CTransaction(), raw_tx_reference)
         tx_obj.vin[0].scriptSig = b"aaaaaaaaaaaaaaa"
@@ -300,8 +298,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             },
         )
 
-        tx_obj = self.wallet.create_self_transfer()["tx"]
-        pad_tx(tx_obj, 100_001)
+        tx_obj = self.wallet.create_self_transfer(target_size=100_001)["tx"]
         response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
         assert_equal(
             response.error,
