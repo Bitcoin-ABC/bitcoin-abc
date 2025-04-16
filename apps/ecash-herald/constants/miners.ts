@@ -142,8 +142,16 @@ const miners: Miners = {
             // NB this seems to be the consistent output (smaller); probably pays the pool itself
             '76a9146657bcc784bfa56301962567c62feda9d1eb37ba88ac',
             {
-                miner: 'minemine.online',
+                miner: 'solo.minemine.online',
                 coinbaseHexFragment: '736f6c6f2e6d696e656d696e652e6f6e6c696e65', // ascii solo.minemine.online
+            },
+        ],
+        [
+            // NB this seems to be the consistent output (smaller); probably pays the pool itself
+            '76a9147e10ebf54a4f7425b124d7faf9c4ef1916c1563b88ac',
+            {
+                miner: 'pool.minemine.online',
+                coinbaseHexFragment: '706f6f6c2e6d696e656d696e652e6f6e6c696e65', // ascii pool.minemine.online
             },
         ],
         [

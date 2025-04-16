@@ -342,14 +342,14 @@ const minerTestFixtures = [
             '0380900d02114b08118f2927ec650400162f736f6c6f2e6d696e656d696e652e6f6e6c696e652f',
         payoutOutputScript:
             '76a9146657bcc784bfa56301962567c62feda9d1eb37ba88ac',
-        parsed: 'minemine.online',
+        parsed: 'solo.minemine.online',
     },
     {
         height: '888960',
         coinbaseHex:
             '0380900d02114b08118f2927ec650400162f736f6c6f2e6d696e656d696e652e6f6e6c696e652f',
         payoutOutputScript: 'not the one so it is parsed from hex',
-        parsed: 'minemine.online',
+        parsed: 'solo.minemine.online',
     },
     {
         height: '890855',
@@ -365,6 +365,21 @@ const minerTestFixtures = [
             '03e7970d047e48ee672f706f6f6c2e6b7279707465782e636f6d2f3132373761666337626139333936366600001dba129d000000000000',
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'Kryptex',
+    },
+    {
+        height: '892704',
+        coinbaseHex:
+            '03209f0d028cbe08d4959c7a6e410300162f706f6f6c2e6d696e656d696e652e6f6e6c696e652f',
+        payoutOutputScript:
+            '76a9147e10ebf54a4f7425b124d7faf9c4ef1916c1563b88ac',
+        parsed: 'pool.minemine.online',
+    },
+    {
+        height: '892704',
+        coinbaseHex:
+            '03209f0d028cbe08d4959c7a6e410300162f706f6f6c2e6d696e656d696e652e6f6e6c696e652f',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'pool.minemine.online',
     },
 ];
 
