@@ -252,7 +252,7 @@ static RPCHelpMan deriveaddresses() {
         {
             {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The descriptor."},
-            {"range", RPCArg::Type::RANGE, RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"range", RPCArg::Type::RANGE, RPCArg::Optional::OMITTED,
              "If a ranged descriptor is used, this specifies the end or the "
              "range (in [begin,end] notation) to derive."},
         },
@@ -662,7 +662,7 @@ static RPCHelpMan logging() {
         {
             {"include",
              RPCArg::Type::ARR,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+             RPCArg::Optional::OMITTED,
              "The categories to add to debug logging",
              {
                  {"include_category", RPCArg::Type::STR,
@@ -670,7 +670,7 @@ static RPCHelpMan logging() {
              }},
             {"exclude",
              RPCArg::Type::ARR,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+             RPCArg::Optional::OMITTED,
              "The categories to remove from debug logging",
              {
                  {"exclude_category", RPCArg::Type::STR,
@@ -730,25 +730,25 @@ static RPCHelpMan echo(const std::string &name) {
         "argument conversion enabled in the client-side table in "
         "bitcoin-cli and the GUI. There is no server-side difference.",
         {
-            {"arg0", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg0", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg1", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg1", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg2", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg2", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg3", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg3", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg4", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg4", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg5", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg5", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg6", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg6", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg7", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg7", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg8", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg8", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
-            {"arg9", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "",
+            {"arg9", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "",
              RPCArgOptions{.skip_type_check = true}},
         },
         RPCResult{RPCResult::Type::ANY, "", "Returns whatever was passed in"},
@@ -825,8 +825,7 @@ static RPCHelpMan getindexinfo() {
         "Returns the status of one or all available indices currently "
         "running in the node.\n",
         {
-            {"index_name", RPCArg::Type::STR,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"index_name", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
              "Filter results for an index with a specific name."},
         },
         RPCResult{

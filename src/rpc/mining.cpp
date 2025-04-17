@@ -568,7 +568,7 @@ static RPCHelpMan prioritisetransaction() {
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id."},
-            {"dummy", RPCArg::Type::NUM, RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"dummy", RPCArg::Type::NUM, RPCArg::Optional::OMITTED,
              "API-Compatibility for previous API. Must be zero or null.\n"
              "                  DEPRECATED. For forward compatibility "
              "use named arguments and omit this parameter."},
@@ -654,14 +654,14 @@ static RPCHelpMan getblocktemplate() {
              "Format of the template",
              {
                  {"mode", RPCArg::Type::STR, /* treat as named arg */
-                  RPCArg::Optional::OMITTED_NAMED_ARG,
+                  RPCArg::Optional::OMITTED,
                   "This must be set to \"template\", \"proposal\" (see BIP "
                   "23), or omitted"},
                  {
                      "capabilities",
                      RPCArg::Type::ARR,
                      /* treat as named arg */
-                     RPCArg::Optional::OMITTED_NAMED_ARG,
+                     RPCArg::Optional::OMITTED,
                      "A list of strings",
                      {
                          {"support", RPCArg::Type::STR,

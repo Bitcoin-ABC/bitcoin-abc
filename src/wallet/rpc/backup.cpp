@@ -1824,7 +1824,7 @@ RPCHelpMan importmulti() {
              RPCArgOptions{.oneline_description = "\"requests\""}},
             {"options",
              RPCArg::Type::OBJ_NAMED_PARAMS,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+             RPCArg::Optional::OMITTED,
              "",
              {
                  {"rescan", RPCArg::Type::BOOL, RPCArg::Default{true},
@@ -2438,8 +2438,7 @@ RPCHelpMan restorewallet() {
              "The name that will be applied to the restored wallet"},
             {"backup_file", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The backup file that will be used to restore the wallet."},
-            {"load_on_startup", RPCArg::Type::BOOL,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"load_on_startup", RPCArg::Type::BOOL, RPCArg::Optional::OMITTED,
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},

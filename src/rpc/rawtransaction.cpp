@@ -105,8 +105,7 @@ static RPCHelpMan getrawtransaction() {
             {"verbose", RPCArg::Type::BOOL, RPCArg::Default{false},
              "If false, return a string, otherwise return a json object",
              RPCArgOptions{.skip_type_check = true}},
-            {"blockhash", RPCArg::Type::STR_HEX,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
              "The block in which to look for the transaction"},
         },
         {
@@ -667,7 +666,7 @@ static RPCHelpMan signrawtransactionwithkey() {
             {
                 "prevtxs",
                 RPCArg::Type::ARR,
-                RPCArg::Optional::OMITTED_NAMED_ARG,
+                RPCArg::Optional::OMITTED,
                 "The previous dependent transaction outputs",
                 {
                     {
@@ -1417,7 +1416,7 @@ RPCHelpMan utxoupdatepsbt() {
              "A base64 string of a PSBT"},
             {"descriptors",
              RPCArg::Type::ARR,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+             RPCArg::Optional::OMITTED,
              "An array of either strings or objects",
              {
                  {"", RPCArg::Type::STR, RPCArg::Optional::OMITTED,

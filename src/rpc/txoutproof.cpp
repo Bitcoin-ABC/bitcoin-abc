@@ -43,8 +43,7 @@ static RPCHelpMan gettxoutproof() {
                      "A transaction hash"},
                 },
             },
-            {"blockhash", RPCArg::Type::STR_HEX,
-             RPCArg::Optional::OMITTED_NAMED_ARG,
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
              "If specified, looks for txid in the block with this hash"},
         },
         RPCResult{
