@@ -49,7 +49,7 @@ function(add_functional_test_check TARGET DESCRIPTION)
 
 	# Sanitizers, coverage and quemu introduce a lot of overhead, so double the
 	# timeout to prevent false positives.
-	if(ENABLE_SANITIZERS OR ENABLE_COVERAGE OR CMAKE_CROSSCOMPILING_EMULATOR)
+	if(ENABLE_SANITIZERS OR ENABLE_COVERAGE OR CMAKE_CROSSCOMPILING_EMULATOR OR CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message(
 			STATUS
 			"Slow build detected, doubling timeout for ${DESCRIPTION} (target '${TARGET}')"
