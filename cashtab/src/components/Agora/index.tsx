@@ -629,7 +629,11 @@ const Agora: React.FC = () => {
                                     <>
                                         {renderedTokenIds !== null &&
                                         renderedTokenIds.length > 0 ? (
-                                            <OfferTable>
+                                            <OfferTable
+                                                renderedOfferCount={
+                                                    renderedTokenIds.length
+                                                }
+                                            >
                                                 {renderedTokenIds.map(
                                                     offeredTokenId => {
                                                         return (

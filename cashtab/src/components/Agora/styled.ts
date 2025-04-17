@@ -21,9 +21,15 @@ export const OfferTitle = styled.div`
     text-align: center;
     font-weight: bold;
 `;
-export const OfferTable = styled.div`
+export const OfferTable = styled.div<{ renderedOfferCount?: number }>`
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(
+        ${props =>
+            props.renderedOfferCount && props.renderedOfferCount < 5
+                ? props.renderedOfferCount
+                : '5'},
+        1fr
+    );
     gap: 16px;
     width: 100%;
     margin-top: 20px;
