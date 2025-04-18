@@ -17,7 +17,6 @@ unsigned-integer-overflow:basic_string.h
 unsigned-integer-overflow:bench/bench.h
 unsigned-integer-overflow:common/bloom.cpp
 unsigned-integer-overflow:coded_stream.h
-unsigned-integer-overflow:coins.cpp
 unsigned-integer-overflow:compressor.cpp
 unsigned-integer-overflow:core_write.cpp
 unsigned-integer-overflow:crypto/

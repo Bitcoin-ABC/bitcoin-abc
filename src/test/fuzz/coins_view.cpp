@@ -59,23 +59,19 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                 if (random_coin.IsSpent()) {
                     return;
                 }
-                Coin coin = random_coin;
-                bool expected_code_path = false;
-                const bool possible_overwrite =
-                    fuzzed_data_provider.ConsumeBool();
+                COutPoint outpoint{random_out_point};
+                Coin coin{random_coin};
+                const bool possible_overwrite{
+                    fuzzed_data_provider.ConsumeBool()};
                 try {
-                    coins_view_cache.AddCoin(random_out_point, std::move(coin),
+                    coins_view_cache.AddCoin(outpoint, std::move(coin),
                                              possible_overwrite);
-                    expected_code_path = true;
                 } catch (const std::logic_error &e) {
-                    if (e.what() ==
-                        std::string{"Attempted to overwrite an unspent coin "
-                                    "(when possible_overwrite is false)"}) {
-                        assert(!possible_overwrite);
-                        expected_code_path = true;
-                    }
+                    assert(e.what() ==
+                           std::string{"Attempted to overwrite an unspent coin "
+                                       "(when possible_overwrite is false)"});
+                    assert(!possible_overwrite);
                 }
-                assert(expected_code_path);
             },
             [&] { (void)coins_view_cache.Flush(); },
             [&] { (void)coins_view_cache.Sync(); },

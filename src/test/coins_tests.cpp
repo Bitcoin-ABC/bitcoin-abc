@@ -1066,6 +1066,12 @@ struct FlushTest : BasicTestingSetup {
                 CoinEntry(coin.GetTxOut().nValue, CoinEntry::State::CLEAN));
         }
 
+        // Can't overwrite an entry without specifying that an overwrite is
+        // expected.
+        BOOST_CHECK_THROW(
+            view->AddCoin(outp, Coin(coin), /*possible_overwrite=*/false),
+            std::logic_error);
+
         // --- 6. Spend the coin.
         //
         BOOST_CHECK(view->SpendCoin(outp));
@@ -1138,15 +1144,6 @@ struct FlushTest : BasicTestingSetup {
         BOOST_CHECK(!GetCoinMapEntry(all_caches[0]->map(), outp));
         BOOST_CHECK(!all_caches[0]->HaveCoinInCache(outp));
         BOOST_CHECK(!base.HaveCoin(outp));
-
-        // Can't overwrite an entry without specifying that an overwrite is
-        // expected.
-        // The cache is in an inconsistent state after this test and should not
-        // be reused.
-        view->AddCoin(outp, Coin(coin), false);
-        BOOST_CHECK_THROW(
-            view->AddCoin(outp, Coin(coin), /*possible_overwrite=*/false),
-            std::logic_error);
     }
 }; // struct FlushTest
 
@@ -1188,6 +1185,30 @@ BOOST_AUTO_TEST_CASE(coins_resource_is_used) {
     }
 
     PoolResourceTester::CheckAllDataAccountedFor(resource);
+}
+
+BOOST_AUTO_TEST_CASE(ccoins_addcoin_exception_keeps_usage_balanced) {
+    CCoinsView root;
+    CCoinsViewCacheTest cache{&root};
+    const COutPoint outpoint{TxId{m_rng.rand256()}, m_rng.rand32()};
+
+    const Coin coin1{
+        CTxOut{m_rng.randrange(10) * COIN,
+               CScript{} << m_rng.randbytes(CScriptBase::STATIC_SIZE + 1)},
+        1, false};
+    cache.AddCoin(outpoint, Coin{coin1}, /*possible_overwrite=*/false);
+    cache.SelfTest();
+
+    const Coin coin2{
+        CTxOut{m_rng.randrange(20) * COIN,
+               CScript{} << m_rng.randbytes(CScriptBase::STATIC_SIZE + 2)},
+        2, false};
+    BOOST_CHECK_THROW(
+        cache.AddCoin(outpoint, Coin{coin2}, /*possible_overwrite=*/false),
+        std::logic_error);
+    cache.SelfTest();
+
+    BOOST_CHECK(cache.AccessCoin(outpoint) == coin1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
