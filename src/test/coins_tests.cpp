@@ -1211,4 +1211,27 @@ BOOST_AUTO_TEST_CASE(ccoins_addcoin_exception_keeps_usage_balanced) {
     BOOST_CHECK(cache.AccessCoin(outpoint) == coin1);
 }
 
+BOOST_AUTO_TEST_CASE(ccoins_emplace_duplicate_keeps_usage_balanced) {
+    CCoinsView root;
+    CCoinsViewCacheTest cache{&root};
+
+    const COutPoint outpoint{TxId{m_rng.rand256()}, m_rng.rand32()};
+
+    const Coin coin1{
+        CTxOut{m_rng.randrange(10) * COIN,
+               CScript{} << m_rng.randbytes(CScriptBase::STATIC_SIZE + 1)},
+        1, false};
+    cache.EmplaceCoinInternalDANGER(COutPoint{outpoint}, Coin{coin1});
+    cache.SelfTest();
+
+    const Coin coin2{
+        CTxOut{m_rng.randrange(20) * COIN,
+               CScript{} << m_rng.randbytes(CScriptBase::STATIC_SIZE + 2)},
+        2, false};
+    cache.EmplaceCoinInternalDANGER(COutPoint{outpoint}, Coin{coin2});
+    cache.SelfTest();
+
+    BOOST_CHECK(cache.AccessCoin(outpoint) == coin1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
