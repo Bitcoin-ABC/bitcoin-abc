@@ -232,10 +232,10 @@ export class FailoverProxy {
         return new Promise(resolve => {
             // If we do not connect in appropriate timeframe,
             // call it a failure and try the next websocket
-            const timeoutFailure = setTimeout(
-                () => resolve(false),
-                WEBSOCKET_TIMEOUT_MS,
-            );
+            const timeoutFailure = setTimeout(() => {
+                testWs.close();
+                resolve(false);
+            }, WEBSOCKET_TIMEOUT_MS);
             const testWs = new WebSocket(wsUrl);
             testWs.onerror = function () {
                 testWs.close();
