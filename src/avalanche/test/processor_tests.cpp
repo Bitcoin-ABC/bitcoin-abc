@@ -2920,8 +2920,11 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
         if (rank <= bestRank) {
             bestRank = rank;
             acceptedContenderProofs.push_back(proof);
+            const size_t numAccepted =
+                std::min(AVALANCHE_CONTENDER_MAX_POLLABLE,
+                         acceptedContenderProofs.size());
             std::sort(acceptedContenderProofs.begin(),
-                      acceptedContenderProofs.end(),
+                      acceptedContenderProofs.begin() + numAccepted,
                       [&](const ProofRef &left, const ProofRef &right) {
                           const ProofId leftProofId = left->getId();
                           const ProofId rightProofId = right->getId();
