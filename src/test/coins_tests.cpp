@@ -720,9 +720,10 @@ static void WriteCoinsViewEntry(CCoinsView &view, const MaybeCoin &cache_coin) {
     sentinel.second.SelfRef(sentinel);
     CCoinsMapMemoryResource resource;
     CCoinsMap map{0, CCoinsMap::hasher{}, CCoinsMap::key_equal{}, &resource};
-    auto usage{cache_coin ? InsertCoinMapEntry(map, sentinel, *cache_coin) : 0};
-    auto cursor{
-        CoinsViewCacheCursor(usage, sentinel, map, /*will_erase=*/true)};
+    if (cache_coin) {
+        InsertCoinMapEntry(map, sentinel, *cache_coin);
+    }
+    auto cursor{CoinsViewCacheCursor(sentinel, map, /*will_erase=*/true)};
     BOOST_CHECK(view.BatchWrite(cursor, BlockHash{}));
 }
 

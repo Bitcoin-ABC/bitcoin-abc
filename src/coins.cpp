@@ -295,7 +295,7 @@ bool CCoinsViewCache::BatchWrite(CoinsViewCacheCursor &cursor,
 }
 
 bool CCoinsViewCache::Flush() {
-    auto cursor{CoinsViewCacheCursor(cachedCoinsUsage, m_sentinel, cacheCoins,
+    auto cursor{CoinsViewCacheCursor(m_sentinel, cacheCoins,
                                      /*will_erase=*/true)};
     bool fOk = base->BatchWrite(cursor, hashBlock);
     if (fOk) {
@@ -307,7 +307,7 @@ bool CCoinsViewCache::Flush() {
 }
 
 bool CCoinsViewCache::Sync() {
-    auto cursor{CoinsViewCacheCursor(cachedCoinsUsage, m_sentinel, cacheCoins,
+    auto cursor{CoinsViewCacheCursor(m_sentinel, cacheCoins,
                                      /*will_erase=*/false)};
     bool fOk = base->BatchWrite(cursor, hashBlock);
     if (fOk) {

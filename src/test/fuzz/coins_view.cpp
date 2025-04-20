@@ -125,7 +125,6 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
             [&] {
                 CoinsCachePair sentinel{};
                 sentinel.second.SelfRef(sentinel);
-                size_t usage{0};
                 CCoinsMapMemoryResource resource;
                 CCoinsMap coins_map{
                     0, SaltedOutpointHasher{/*deterministic=*/true},
@@ -154,11 +153,10 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                     if (fresh) {
                         CCoinsCacheEntry::SetFresh(*it, sentinel);
                     }
-                    usage += it->second.coin.DynamicMemoryUsage();
                 }
                 bool expected_code_path = false;
                 try {
-                    auto cursor{CoinsViewCacheCursor(usage, sentinel, coins_map,
+                    auto cursor{CoinsViewCacheCursor(sentinel, coins_map,
                                                      /*will_erase=*/true)};
                     coins_view_cache.BatchWrite(
                         cursor,
