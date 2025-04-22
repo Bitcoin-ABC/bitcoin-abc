@@ -37,6 +37,8 @@ template <unsigned int N, typename T, typename Size = uint32_t,
           typename Diff = int32_t>
 class prevector {
 public:
+    static constexpr unsigned int STATIC_SIZE{N};
+
     typedef Size size_type;
     typedef Diff difference_type;
     typedef T value_type;

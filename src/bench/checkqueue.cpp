@@ -9,15 +9,14 @@
 #include <prevector.h>
 #include <pubkey.h>
 #include <random.h>
+#include <script/script.h>
 
 #include <vector>
 
 static const int MIN_CORES = 2;
 static const size_t BATCHES = 101;
 static const size_t BATCH_SIZE = 30;
-static const int PREVECTOR_SIZE = 28;
 static const size_t QUEUE_BATCH_SIZE = 128;
-
 // This Benchmark tests the CheckQueue with a slightly realistic workload, where
 // checks all contain a prevector that is indirect 50% of the time and there is
 // a little bit of work done between calls to Add.
@@ -26,9 +25,9 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
     ECC_Start();
 
     struct PrevectorJob {
-        prevector<PREVECTOR_SIZE, uint8_t> p;
+        prevector<CScriptBase::STATIC_SIZE, uint8_t> p;
         explicit PrevectorJob(FastRandomContext &insecure_rand) {
-            p.resize(insecure_rand.randrange(PREVECTOR_SIZE * 2));
+            p.resize(insecure_rand.randrange(CScriptBase::STATIC_SIZE * 2));
         }
         bool operator()() { return true; }
     };

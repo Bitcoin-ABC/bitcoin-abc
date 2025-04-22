@@ -3,6 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <prevector.h>
+
+#include <script/script.h>
 #include <serialize.h>
 #include <streams.h>
 #include <type_traits>
@@ -22,6 +24,7 @@ struct nontrivial_t {
     nontrivial_t() = default;
     SERIALIZE_METHODS(nontrivial_t, obj) { READWRITE(obj.x); }
 };
+
 static_assert(!IS_TRIVIALLY_CONSTRUCTIBLE<nontrivial_t>::value,
               "expected nontrivial_t to not be trivially constructible");
 
@@ -31,31 +34,31 @@ static_assert(IS_TRIVIALLY_CONSTRUCTIBLE<trivial_t>::value,
 
 template <typename T> static void PrevectorDestructor(benchmark::Bench &bench) {
     bench.batch(2).run([&] {
-        prevector<28, T> t0;
-        prevector<28, T> t1;
-        t0.resize(28);
-        t1.resize(29);
+        prevector<CScriptBase::STATIC_SIZE, T> t0;
+        prevector<CScriptBase::STATIC_SIZE, T> t1;
+        t0.resize(CScriptBase::STATIC_SIZE);
+        t1.resize(CScriptBase::STATIC_SIZE + 1);
     });
 }
 
 template <typename T> static void PrevectorClear(benchmark::Bench &bench) {
-    prevector<28, T> t0;
-    prevector<28, T> t1;
+    prevector<CScriptBase::STATIC_SIZE, T> t0;
+    prevector<CScriptBase::STATIC_SIZE, T> t1;
     bench.batch(2).run([&] {
-        t0.resize(28);
+        t0.resize(CScriptBase::STATIC_SIZE);
         t0.clear();
-        t1.resize(29);
+        t1.resize(CScriptBase::STATIC_SIZE + 1);
         t1.clear();
     });
 }
 
 template <typename T> static void PrevectorResize(benchmark::Bench &bench) {
-    prevector<28, T> t0;
-    prevector<28, T> t1;
+    prevector<CScriptBase::STATIC_SIZE, T> t0;
+    prevector<CScriptBase::STATIC_SIZE, T> t1;
     bench.batch(4).run([&] {
-        t0.resize(28);
+        t0.resize(CScriptBase::STATIC_SIZE);
         t0.resize(0);
-        t1.resize(29);
+        t1.resize(CScriptBase::STATIC_SIZE + 1);
         t1.resize(0);
     });
 }
@@ -63,8 +66,8 @@ template <typename T> static void PrevectorResize(benchmark::Bench &bench) {
 template <typename T>
 static void PrevectorDeserialize(benchmark::Bench &bench) {
     CDataStream s0(SER_NETWORK, 0);
-    prevector<28, T> t0;
-    t0.resize(28);
+    prevector<CScriptBase::STATIC_SIZE, T> t0;
+    t0.resize(CScriptBase::STATIC_SIZE);
     for (auto x = 0; x < 900; ++x) {
         s0 << t0;
     }
@@ -73,7 +76,7 @@ static void PrevectorDeserialize(benchmark::Bench &bench) {
         s0 << t0;
     }
     bench.batch(1000).run([&] {
-        prevector<28, T> t1;
+        prevector<CScriptBase::STATIC_SIZE, T> t1;
         for (auto x = 0; x < 1000; ++x) {
             s0 >> t1;
         }
@@ -84,7 +87,7 @@ static void PrevectorDeserialize(benchmark::Bench &bench) {
 template <typename T>
 static void PrevectorFillVectorDirect(benchmark::Bench &bench) {
     bench.run([&] {
-        std::vector<prevector<28, T>> vec;
+        std::vector<prevector<CScriptBase::STATIC_SIZE, T>> vec;
         vec.reserve(260);
         for (size_t i = 0; i < 260; ++i) {
             vec.emplace_back();
@@ -95,11 +98,11 @@ static void PrevectorFillVectorDirect(benchmark::Bench &bench) {
 template <typename T>
 static void PrevectorFillVectorIndirect(benchmark::Bench &bench) {
     bench.run([&] {
-        std::vector<prevector<28, T>> vec;
+        std::vector<prevector<CScriptBase::STATIC_SIZE, T>> vec;
         vec.reserve(260);
         for (size_t i = 0; i < 260; ++i) {
             // force allocation
-            vec.emplace_back(29, T{});
+            vec.emplace_back(CScriptBase::STATIC_SIZE + 1, T{});
         }
     });
 }
