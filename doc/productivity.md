@@ -29,6 +29,16 @@ Install `ccache` through your distribution's package manager, and run `cmake` wi
 
 To use ccache for all your C/C++ projects, follow the symlinks method [here](https://ccache.samba.org/manual/latest.html#_run_modes) to set it up.
 
+### Use ramdisk when running functional tests
+
+If you have a ramdisk available (check with `df -h | grep /dev/shm`), you can use it to speed up functional tests:
+```
+mkdir /dev/shm/abc
+cmake -GNinja .. -DFUNCTIONAL_TESTS_TMPDIRPREFIX=/dev/shm/abc
+```
+
+Note that the ramdisk does not persist between reboots, so neither will your test datadirs.
+
 ### Disable features with `cmake`
 
 You can disable features to save on compilation time. A few common flags:
