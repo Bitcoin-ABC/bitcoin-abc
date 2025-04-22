@@ -132,8 +132,9 @@ class BuildConfiguration:
         # Define the junit and logs directories
         self.junit_reports_dir = self.build_directory.joinpath("test/junit")
         self.test_logs_dir = self.build_directory.joinpath("test/log")
-        self.functional_test_logs = self.build_directory.joinpath(
-            "test/tmp/test_runner_*"
+        self.functional_test_logs_basedir = self.build_directory.joinpath("test/tmp")
+        self.functional_test_logs = self.functional_test_logs_basedir.joinpath(
+            "test_runner_*"
         )
 
         # We will provide the required environment variables
@@ -442,7 +443,7 @@ class BuildConfiguration:
 
 
 class UserBuild:
-    def __init__(self, configuration):
+    def __init__(self, configuration, ramdisk=False):
         self.configuration = configuration
 
         build_directory = self.configuration.build_directory
@@ -461,9 +462,35 @@ class UserBuild:
         if self.configuration.build_directory.is_dir():
             shutil.rmtree(self.configuration.build_directory)
         self.configuration.build_directory.mkdir(exist_ok=True, parents=True)
+        if ramdisk:
+            self.symlink_ramdisk(self.configuration.functional_test_logs_basedir)
 
         self.preview_url = build_directory.joinpath("preview_url.log")
         self.ip_address = "127.0.0.1"
+
+    def symlink_ramdisk(self, source):
+        # On linux machine this device is a ramdisk available to non privileged
+        # users
+        ramdisk_dev = Path("/dev/shm")
+        if not ramdisk_dev.is_dir():
+            print(f"Warning: Ramdisk device {ramdisk_dev} doesn't exist, skipping")
+            return
+
+        ramdisk = ramdisk_dev.joinpath("bitcoin-abc").joinpath(
+            source.relative_to(self.configuration.build_directory)
+        )
+
+        try:
+            if ramdisk.is_dir():
+                shutil.rmtree(ramdisk)
+            ramdisk.mkdir(parents=True, exist_ok=True)
+            source.parents[0].mkdir(parents=True, exist_ok=True)
+            source.symlink_to(ramdisk, target_is_directory=True)
+            print(f"Created a ramdisk in {ramdisk}, symlinked to {source}")
+        except Exception as e:
+            print(
+                f"Warning: Unable to create or symlink the ramdisk {ramdisk}, skipping ({e})"
+            )
 
     def copy_artifacts(self, artifacts):
         # Make sure the artifact directory always exists. It is created before
@@ -740,6 +767,12 @@ def main():
             str(default_config_path)
         ),
     )
+    parser.add_argument(
+        "--ramdisk",
+        "-r",
+        action="store_true",
+        help="Attempt to use a ramdisk to store the regtest blockchain. This might fail and fallback to default behavior if no user ramdisk is available",
+    )
 
     args, unknown_args = parser.parse_known_args()
 
@@ -748,9 +781,9 @@ def main():
     build_configuration = BuildConfiguration(script_dir, config_path, args.build)
 
     if is_running_under_teamcity():
-        build = TeamcityBuild(build_configuration)
+        build = TeamcityBuild(build_configuration, args.ramdisk)
     else:
-        build = UserBuild(build_configuration)
+        build = UserBuild(build_configuration, args.ramdisk)
 
     sys.exit(build.run(unknown_args)[0])
 
