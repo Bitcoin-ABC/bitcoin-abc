@@ -253,9 +253,9 @@ describe('<Token /> available actions rendered', () => {
         const { tokenName } = slp1FixedMocks.token.genesisInfo;
 
         // Wait for element to get token info and load
-        expect(
-            (await screen.findAllByText(new RegExp(tokenName)))[0],
-        ).toBeInTheDocument();
+        expect(await screen.findAllByText(new RegExp(tokenName))).toHaveLength(
+            3,
+        );
 
         // Token image is rendered
         expect(
@@ -263,13 +263,13 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
 
         // Token actions are available
-        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+        expect(await screen.findByTitle('Token Actions')).toBeInTheDocument();
 
         // On load, default action for SLP is to list it
-        expect(screen.getByTitle('Toggle Sell Token')).toBeEnabled();
+        expect(await screen.findByTitle('Toggle Sell Token')).toBeEnabled();
 
         // The list button is disabled on load
-        const listButton = screen.getByRole('button', {
+        const listButton = await screen.findByRole('button', {
             name: /List Vespene Gas/,
         });
 
