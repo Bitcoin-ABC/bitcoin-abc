@@ -6935,6 +6935,7 @@ void PeerManagerImpl::ProcessMessage(
                         m_avalanche->setRecentlyFinalized(
                             pindex->GetBlockHash());
 
+                        std::unique_ptr<node::CBlockTemplate> blockTemplate;
                         {
                             LOCK(cs_main);
                             auto &chainstate = m_chainman.ActiveChainstate();
@@ -6944,8 +6945,6 @@ void PeerManagerImpl::ProcessMessage(
                                 auto pblock = getBlockFromIndex(pindex);
                                 assert(pblock);
 
-                                std::unique_ptr<node::CBlockTemplate>
-                                    blockTemplate;
                                 {
                                     LOCK(m_mempool.cs);
                                     m_mempool.removeForFinalizedBlock(
@@ -6972,22 +6971,20 @@ void PeerManagerImpl::ProcessMessage(
                                             blockAssembler.pblocktemplate);
                                     }
                                 }
-
-                                if (blockTemplate) {
-                                    // We could check if the tx is final already
-                                    // but addToReconcile will skip the recently
-                                    // finalized txs, so let's abuse this
-                                    // feature and avoid a tree lookup for each
-                                    // tx as an optimization.
-                                    for (const auto &templateEntry :
-                                         reverse_iterate(
-                                             blockTemplate->entries)) {
-                                        m_avalanche->addToReconcile(
-                                            templateEntry.tx);
-                                    }
-                                }
                             }
                         } // release cs_main
+
+                        if (blockTemplate) {
+                            // We could check if the tx is final already
+                            // but addToReconcile will skip the recently
+                            // finalized txs, so let's abuse this
+                            // feature and avoid a tree lookup for each
+                            // tx as an optimization.
+                            for (const auto &templateEntry :
+                                 reverse_iterate(blockTemplate->entries)) {
+                                m_avalanche->addToReconcile(templateEntry.tx);
+                            }
+                        }
 
                         m_chainman.ActiveChainstate().AvalancheFinalizeBlock(
                             pindex, *m_avalanche);
