@@ -57,6 +57,10 @@ function(add_functional_test_check TARGET DESCRIPTION)
 		set(EXTENDED_TIMEOUT "--timeout-factor=2")
 	endif()
 
+	if (FUNCTIONAL_TESTS_TMPDIRPREFIX)
+		set(TMPDIRPREFIX "--tmpdirprefix=${FUNCTIONAL_TESTS_TMPDIRPREFIX}")
+	endif()
+
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
 			"${Python_EXECUTABLE}"
@@ -64,6 +68,7 @@ function(add_functional_test_check TARGET DESCRIPTION)
 			"--testsuitename=Bitcoin ABC ${DESCRIPTION}"
 			${JUNIT_OUTPUT}
 			${EXTENDED_TIMEOUT}
+			${TMPDIRPREFIX}
 			${ARGN}
 		CUSTOM_TARGET_ARGS
 			COMMENT "Running ${DESCRIPTION}"
