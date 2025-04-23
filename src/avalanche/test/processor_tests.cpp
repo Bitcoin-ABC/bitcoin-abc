@@ -2591,7 +2591,6 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
 
     // Register proof2 and save it as a remote proof so that it will be promoted
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
-        ConnectNode(NODE_AVALANCHE);
         pm.registerProof(proof2);
         for (NodeId n = 0; n < 8; n++) {
             pm.addNode(n, proofid2);
@@ -2601,9 +2600,6 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
             return pm.setFinalized(peer.peerid);
         }));
     });
-
-    // Need to have finalization tip set for contenders to be promoted
-    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
 
     // Make proofs old enough to be considered for staking rewards
     now += 1h + 1s;
@@ -2649,9 +2645,6 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block2),
                       0);
 
-    // Advance the finalization tip
-    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
-
     // Now that the finalization point has passed the block where contender1 was
     // added, cleaning up the cache will remove its entry. contender2 will have
     // its old entry cleaned up, but the promoted one remains.
@@ -2685,12 +2678,24 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     // Reject proof2, mine a new chain tip, finalize it, and cleanup the cache
     m_processor->withPeerManager(
         [&](avalanche::PeerManager &pm) { pm.rejectProof(proofid2); });
+
+    // Reestablish quorum with a new proof
+    BOOST_CHECK(!m_processor->isQuorumEstablished());
+    auto proof3 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    const ProofId proofid3 = proof3->getId();
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.registerProof(proof3);
+        for (NodeId n = 0; n < 8; n++) {
+            pm.addNode(n, proofid3);
+        }
+    });
+    BOOST_CHECK(m_processor->isQuorumEstablished());
+
     block = CreateAndProcessBlock({}, CScript());
     chaintip =
         WITH_LOCK(cs_main, return Assert(m_node.chainman)
                                ->m_blockman.LookupBlockIndex(block.GetHash()));
     AvalancheTest::updatedBlockTip(*m_processor);
-    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
     m_processor->cleanupStakingRewards(chaintip->nHeight);
 
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(unknownContender),
@@ -2712,6 +2717,10 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         StakeContenderId(chaintip->GetBlockHash(), proofid2);
     BOOST_CHECK_EQUAL(m_processor->getStakeContenderStatus(contender2_block3),
                       -1);
+
+    // Reject proof3 so it does not conflict with the rest of the test
+    m_processor->withPeerManager(
+        [&](avalanche::PeerManager &pm) { pm.rejectProof(proofid3); });
 
     // Generate a bunch of flaky proofs
     size_t numProofs = 8;

@@ -396,10 +396,10 @@ public:
     void rejectStakeContender(const StakeContenderId &contenderId)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
 
-    /** Promote stake contender cache entries to the latest chain tip */
-    void promoteStakeContendersToTip()
+    /** Promote stake contender cache entries to a given block and then poll */
+    void promoteAndPollStakeContenders(const CBlockIndex *pprev)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager,
-                                 !cs_finalizationTip, !cs_finalizedItems);
+                                 !cs_finalizedItems);
 
 private:
     void updatedBlockTip()

@@ -864,8 +864,15 @@ bool Processor::isQuorumEstablished() {
     // Attempt to compute the staking rewards winner now so we don't have to
     // wait for a block if we already have all the prerequisites.
     const CBlockIndex *pprev = WITH_LOCK(cs_main, return chainman.ActiveTip());
+    bool computedRewards = false;
     if (pprev && IsStakingRewardsActivated(chainman.GetConsensus(), pprev)) {
-        computeStakingReward(pprev);
+        computedRewards = computeStakingReward(pprev);
+    }
+    if (pprev && m_stakingPreConsensus && !computedRewards) {
+        // It's possible to have quorum shortly after startup if peers were
+        // loaded from disk, but staking rewards may not be ready yet. In this
+        // case, we can still promote and poll for contenders.
+        promoteAndPollStakeContenders(pprev);
     }
 
     return true;
@@ -918,14 +925,7 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
         }
 
         if (m_stakingPreConsensus) {
-            // If pindex has not been promoted in the contender cache yet, this
-            // will be a no-op.
-            std::vector<StakeContenderId> pollableContenders;
-            if (setContenderStatusForLocalWinners(pindex, pollableContenders)) {
-                for (const StakeContenderId &contender : pollableContenders) {
-                    addToReconcile(contender);
-                }
-            }
+            promoteAndPollStakeContenders(pindex);
         }
     }
 
@@ -1089,25 +1089,24 @@ void Processor::rejectStakeContender(const StakeContenderId &contenderId) {
     peerManager->rejectStakeContender(contenderId);
 }
 
-void Processor::promoteStakeContendersToTip() {
-    const CBlockIndex *activeTip =
-        WITH_LOCK(cs_main, return chainman.ActiveTip());
-    assert(activeTip);
+void Processor::promoteAndPollStakeContenders(const CBlockIndex *pprev) {
+    assert(pprev);
 
-    if (!hasFinalizedTip()) {
-        // Avoid growing the contender cache until we have finalized a block
+    if (!isQuorumEstablished()) {
+        // Avoid growing the contender cache before it's possible to clean it up
+        // (by finalizing blocks).
         return;
     }
 
     {
         LOCK(cs_peerManager);
-        peerManager->promoteStakeContendersToBlock(activeTip);
+        peerManager->promoteStakeContendersToBlock(pprev);
     }
 
     // If staking rewards have not been computed yet, we will try again when
     // they have been.
     std::vector<StakeContenderId> pollableContenders;
-    if (setContenderStatusForLocalWinners(activeTip, pollableContenders)) {
+    if (setContenderStatusForLocalWinners(pprev, pollableContenders)) {
         for (const StakeContenderId &contender : pollableContenders) {
             addToReconcile(contender);
         }
@@ -1174,7 +1173,11 @@ void Processor::updatedBlockTip() {
     }
 
     if (m_stakingPreConsensus) {
-        promoteStakeContendersToTip();
+        const CBlockIndex *activeTip =
+            WITH_LOCK(cs_main, return chainman.ActiveTip());
+        if (activeTip) {
+            promoteAndPollStakeContenders(activeTip);
+        }
     }
 }
 

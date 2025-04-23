@@ -88,6 +88,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Pick one node from the quorum for polling.
         quorum = get_quorum()
+        tip = node.getbestblockhash()
         poll_node = quorum[0]
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
@@ -109,32 +110,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 "little",
             )
 
-        self.log.info("Check votes before first finalized block")
-
-        # Before finalizing any blocks, no contender promotion occurs in the cache,
-        # so the only way to test if the node knows about a particular contender is
-        # to check it at the block height that the proof was first seen at.
-        for i in range(0, QUORUM_NODE_COUNT):
-            # We started with a clean chain and a new block is mined when creating
-            # each quorum proof to make it valid, so the first block the proof was
-            # seen at is the quorum proof's index + 1.
-            blockhash = node.getblockhash(i + 1)
-            poll_ids = []
-            expected = []
-            for p in range(0, QUORUM_NODE_COUNT):
-                contender_proof = quorum[p].proof
-                contender_id = make_contender_id(blockhash, contender_proof.proofid)
-                poll_ids.append(contender_id)
-                # If the node knows about the contender, it will respond as INVALID
-                expected_vote = (
-                    AvalancheContenderVoteError.PENDING
-                    if p == i
-                    else AvalancheContenderVoteError.UNKNOWN
-                )
-                expected.append(AvalancheVote(expected_vote, contender_id))
-            poll_node.send_poll(poll_ids, inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(poll_node, avakey, expected)
-
         # Unknown contender
         unknown_contender_id = 0x123
         poll_node.send_poll([unknown_contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
@@ -144,30 +119,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)],
         )
 
-        def has_finalized_tip(tip_expected):
-            hash_tip_final = int(tip_expected, 16)
-            can_find_inv_in_poll(quorum, hash_tip_final)
-            return node.isfinalblock(tip_expected)
-
-        self.log.info(
-            "Check votes after a finalized block has triggered contender promotion"
-        )
-
-        # Finalize a block so we promote the contender cache with every block
-        tip = node.getbestblockhash()
-        self.wait_until(lambda: has_finalized_tip(tip))
-        assert_equal(node.getbestblockhash(), tip)
-
-        # Now trigger building the whole cache for a block
-        tip = self.generate(node, 1)[0]
-
-        # Unknown contender is still unknown
-        poll_node.send_poll([unknown_contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-        assert_response(
-            poll_node,
-            avakey,
-            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)],
-        )
+        self.log.info("Check votes after contender promotion")
 
         def proof_reward_rank(contender_id, proof_score):
             return (256.0 - math.log2(contender_id)) / proof_score
@@ -181,6 +133,69 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 [make_contender_id(tip, proofid) for proofid in proofids],
                 key=lambda cid: proof_reward_rank(cid, 5000),
             )
+
+        def vote_all_contenders(
+            winners, winnerVote=AvalancheContenderVoteError.ACCEPTED
+        ):
+            for n in quorum:
+                poll = n.get_avapoll_if_available()
+
+                # That node has not received a poll
+                if poll is None:
+                    continue
+
+                votes = []
+                for inv in poll.invs:
+                    r = AvalancheContenderVoteError.ACCEPTED
+
+                    # Only accept contenders that should be winners
+                    if inv.type == MSG_AVA_STAKE_CONTENDER:
+                        r = (
+                            winnerVote
+                            if inv.hash in winners
+                            else AvalancheContenderVoteError.INVALID
+                        )
+
+                    votes.append(AvalancheVote(r, inv.hash))
+
+                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+
+        def finalize_contenders(tip, winner_contenders):
+            loser_contenders = get_all_contender_ids(tip)[:12]
+            for winner in winner_contenders:
+                loser_contenders.remove(winner)
+
+            with node.wait_for_debug_log(
+                [
+                    f"Avalanche finalized contender {uint256_hex(cid)}".encode()
+                    for cid in winner_contenders
+                ]
+                + [
+                    f"Avalanche invalidated contender {uint256_hex(cid)}".encode()
+                    for cid in loser_contenders
+                ],
+                chatty_callable=lambda: vote_all_contenders(winner_contenders),
+            ):
+                pass
+
+        # Some contenders may have been finalized already while finalizing the proofs.
+        # Mine a block to trigger contender promotion and start from a clean slate.
+        tip = self.generate(node, 1)[0]
+
+        # Finalize any contenders that might have been polled since the quorum became active
+        # so we do not have any unanswered polls before calling find_polled_contenders.
+        finalize_contenders(tip, [])
+
+        # Mining a block will promote contenders to the new block
+        tip = self.generate(node, 1)[0]
+
+        # Unknown contender is still unknown
+        poll_node.send_poll([unknown_contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+        assert_response(
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)],
+        )
 
         # All contenders are pending. They cannot be winners yet since mock time
         # has not advanced past the staking rewards minimum registration delay.
@@ -229,50 +244,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # proofs go dangling and then come back, but their registration times would be
         # too early to be selected for staking rewards for a short time.
         self.wait_until(lambda: find_polled_contenders())
-
-        def vote_all_contenders(
-            winners, winnerVote=AvalancheContenderVoteError.ACCEPTED
-        ):
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
-
-                # That node has not received a poll
-                if poll is None:
-                    continue
-
-                votes = []
-                for inv in poll.invs:
-                    r = AvalancheContenderVoteError.ACCEPTED
-
-                    # Only accept contenders that should be winners
-                    if inv.type == MSG_AVA_STAKE_CONTENDER:
-                        r = (
-                            winnerVote
-                            if inv.hash in winners
-                            else AvalancheContenderVoteError.INVALID
-                        )
-
-                    votes.append(AvalancheVote(r, inv.hash))
-
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
-
-        def finalize_contenders(tip, winner_contenders):
-            loser_contenders = get_all_contender_ids(tip)[:12]
-            for winner in winner_contenders:
-                loser_contenders.remove(winner)
-
-            with node.wait_for_debug_log(
-                [
-                    f"Avalanche finalized contender {uint256_hex(cid)}".encode()
-                    for cid in winner_contenders
-                ]
-                + [
-                    f"Avalanche invalidated contender {uint256_hex(cid)}".encode()
-                    for cid in loser_contenders
-                ],
-                chatty_callable=lambda: vote_all_contenders(winner_contenders),
-            ):
-                pass
 
         # Finalize contenders so we do not have any unanswered polls before calling find_polled_contenders again
         finalize_contenders(tip, [])
@@ -509,9 +480,14 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         old_quorum = quorum
         quorum = get_quorum(stake_utxo_confirmations=3)
+        tip = node.getbestblockhash()
         poll_node = quorum[0]
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        # Even though we haven't mined a block since restarting, contenders are
+        # immediately polled once quorum is established.
+        self.wait_until(lambda: find_polled_contenders())
 
         for peer in quorum:
             self.wait_until(lambda: has_finalized_proof(peer.proof.proofid))
@@ -545,15 +521,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         avakey = ECPubKey()
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
-        # Need a finalized block to promote contenders
-        tip = node.getbestblockhash()
-        self.wait_until(lambda: has_finalized_tip(tip))
-
-        # Trigger building the whole cache for a new block since we cannot be
-        # certain what the tip was when the persisted proofs were registered.
-        tip = self.generate(node, 1)[0]
-
-        # Sanity check
+        # Sanity check that new quorum contenders can be polled even though we have not mined a block yet
         for contender_id in get_all_contender_ids(tip):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
