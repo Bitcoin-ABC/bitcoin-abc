@@ -287,3 +287,110 @@ describe('useStrategy functionality tests', () => {
         expect(actualOrder).to.deep.equal(urls);
     });
 });
+
+describe('FailoverProxy.connectWs failover', () => {
+    it('should cycle workingIndex through all endpoints on consecutive ws onclose', async () => {
+        const urls = [
+            'https://chronik1.alitayin.com',
+            'https://chronik2.alitayin.com',
+            'https://chronik3.alitayin.com',
+            'https://chronik4.alitayin.com',
+        ];
+        const proxy = new FailoverProxy(urls);
+
+        const originalConnectWs = proxy.connectWs;
+
+        // This function prevents subsequent calls to connectWS from onclose handler - only the first call will execute
+        let connectWsCallCount = 0;
+        proxy.connectWs = async function (endpoint) {
+            connectWsCallCount++;
+            if (connectWsCallCount === 1) {
+                return originalConnectWs.call(proxy, endpoint);
+            }
+            return Promise.resolve();
+        };
+
+        proxy['_websocketUrlConnects'] = async (_wsUrl: string) => {
+            return true;
+        };
+
+        const wsEndpoint: any = {
+            manuallyClosed: false,
+            autoReconnect: true,
+            subs: { scripts: [], lokadIds: [], tokens: [], blocks: false },
+        };
+
+        await proxy.connectWs(wsEndpoint);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(0);
+
+        // Trigger onclose to update index
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(1);
+
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(2);
+
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(3);
+
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(0);
+
+        if (wsEndpoint.ws) {
+            wsEndpoint.ws.close();
+            wsEndpoint.ws = null;
+        }
+    });
+});
+
+describe('FailoverProxy.connectWs with manuallyClosed', () => {
+    it('should not cycle workingIndex when manuallyClosed is true', async () => {
+        const urls = [
+            'https://chronik4.alitayin.com',
+            'https://chronik2.alitayin.com',
+            'https://chronik3.alitayin.com',
+            'https://chronik1.alitayin.com',
+        ];
+        const proxy = new FailoverProxy(urls);
+
+        const originalConnectWs = proxy.connectWs;
+
+        let connectWsCallCount = 0;
+        proxy.connectWs = async function (endpoint) {
+            connectWsCallCount++;
+            if (connectWsCallCount === 1) {
+                return originalConnectWs.call(proxy, endpoint);
+            }
+            return Promise.resolve();
+        };
+
+        proxy['_websocketUrlConnects'] = async (_wsUrl: string) => {
+            return true;
+        };
+
+        const wsEndpoint: any = {
+            manuallyClosed: false,
+            autoReconnect: true,
+            subs: { scripts: [], lokadIds: [], tokens: [], blocks: false },
+        };
+
+        await proxy.connectWs(wsEndpoint);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(0);
+
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(1);
+
+        wsEndpoint.manuallyClosed = true;
+
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(1);
+
+        wsEndpoint.ws.onclose({} as any);
+        expect(proxy['deriveEndpointIndex'](0)).to.equal(1);
+
+        if (wsEndpoint.ws) {
+            wsEndpoint.ws.close();
+            wsEndpoint.ws = null;
+        }
+    });
+});

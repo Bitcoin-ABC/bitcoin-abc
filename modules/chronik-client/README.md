@@ -125,3 +125,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   3.0.0 - Proto update; `atoms` instead of `amount` and `sats` instead of `value` [D17650](https://reviews.bitcoinabc.org/D17650)
 -   3.0.1 - Patch `failoverProxy` to recognize another type of server error [D17814](https://reviews.bitcoinabc.org/D17814)
 -   3.1.0 - Add support for automatic node selection using `useStrategy` method [D17913](https://reviews.bitcoinabc.org/D17913)
+-   3.1.1 - Fix WebSocket retry loop issues during disconnection [D17974](https://reviews.bitcoinabc.org/D17974)

@@ -287,6 +287,10 @@ export class FailoverProxy {
                     if (wsEndpoint.onReconnect !== undefined) {
                         wsEndpoint.onReconnect(e);
                     }
+
+                    this._workingIndex =
+                        (this._workingIndex + 1) % this._endpointArray.length;
+
                     this.connectWs(wsEndpoint);
                 };
                 wsEndpoint.ws = ws;
