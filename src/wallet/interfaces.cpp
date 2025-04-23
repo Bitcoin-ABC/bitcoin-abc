@@ -536,7 +536,10 @@ namespace {
                 m_context, CreateWallet(m_context, name, /*load_on_start=*/true,
                                         options, status, error, warnings))};
             if (wallet) {
-                return wallet;
+                // std::move should be unneccessary but is temporarily needed to
+                // work around clang bug
+                // (https://github.com/bitcoin/bitcoin/pull/25977#issuecomment-1564350880)
+                return {std::move(wallet)};
             }
             return util::Error{error};
         }
@@ -551,7 +554,10 @@ namespace {
                 m_context, CreateWallet(m_context, name, /*load_on_start=*/true,
                                         options, status, error, warnings))};
             if (wallet) {
-                return wallet;
+                // std::move should be unneccessary but is temporarily needed to
+                // work around clang bug
+                // (https://github.com/bitcoin/bitcoin/pull/25977#issuecomment-1564350880)
+                return {std::move(wallet)};
             }
             return util::Error{error};
         }
@@ -566,7 +572,10 @@ namespace {
                                          /*load_on_start=*/true, status, error,
                                          warnings))};
             if (wallet) {
-                return wallet;
+                // std::move should be unneccessary but is temporarily needed to
+                // work around clang bug
+                // (https://github.com/bitcoin/bitcoin/pull/25977#issuecomment-1564350880)
+                return {std::move(wallet)};
             }
             return util::Error{error};
         }
