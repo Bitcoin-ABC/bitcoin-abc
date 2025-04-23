@@ -88,6 +88,8 @@ RestoreWallet(WalletContext &context, const fs::path &backup_file,
               std::vector<bilingual_str> &warnings);
 std::unique_ptr<interfaces::Handler> HandleLoadWallet(WalletContext &context,
                                                       LoadWalletFn load_wallet);
+void NotifyWalletLoaded(WalletContext &context,
+                        const std::shared_ptr<CWallet> &wallet);
 std::unique_ptr<WalletDatabase>
 MakeWalletDatabase(const std::string &name, const DatabaseOptions &options,
                    DatabaseStatus &status, bilingual_str &error);

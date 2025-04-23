@@ -46,6 +46,7 @@ static std::shared_ptr<CWallet> TestLoadWallet(WalletContext &context) {
     auto database = MakeWalletDatabase("", options, status, error);
     auto wallet = CWallet::Create(context, "", std::move(database),
                                   options.create_flags, error, warnings);
+    NotifyWalletLoaded(context, wallet);
     if (context.chain) {
         wallet->postInitProcess();
     }

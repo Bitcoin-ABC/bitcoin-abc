@@ -175,6 +175,14 @@ HandleLoadWallet(WalletContext &context, LoadWalletFn load_wallet) {
     });
 }
 
+void NotifyWalletLoaded(WalletContext &context,
+                        const std::shared_ptr<CWallet> &wallet) {
+    LOCK(context.wallets_mutex);
+    for (auto &load_wallet : context.wallet_load_fns) {
+        load_wallet(interfaces::MakeWallet(context, wallet));
+    }
+}
+
 static GlobalMutex g_loading_wallet_mutex;
 static GlobalMutex g_wallet_release_mutex;
 static std::condition_variable g_wallet_release_cv;
@@ -248,6 +256,8 @@ LoadWalletInternal(WalletContext &context, const std::string &name,
             status = DatabaseStatus::FAILED_LOAD;
             return nullptr;
         }
+
+        NotifyWalletLoaded(context, wallet);
         AddWallet(context, wallet);
         wallet->postInitProcess();
 
@@ -371,6 +381,8 @@ CreateWallet(WalletContext &context, const std::string &name,
             wallet->Lock();
         }
     }
+
+    NotifyWalletLoaded(context, wallet);
     AddWallet(context, wallet);
     wallet->postInitProcess();
 
@@ -2967,13 +2979,6 @@ CWallet::Create(WalletContext &context, const std::string &name,
 
     if (chain && !AttachChain(walletInstance, *chain, error, warnings)) {
         return nullptr;
-    }
-
-    {
-        LOCK(context.wallets_mutex);
-        for (auto &load_wallet : context.wallet_load_fns) {
-            load_wallet(interfaces::MakeWallet(context, walletInstance));
-        }
     }
 
     {
