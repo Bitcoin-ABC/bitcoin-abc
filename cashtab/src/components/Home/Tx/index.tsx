@@ -34,6 +34,8 @@ import {
     AddressLink,
     ExpandButtonPanel,
     TxDescSendRcvMsg,
+    Ellipsis,
+    TimestampSeperator,
 } from 'components/Home/Tx/styled';
 import {
     SendIcon,
@@ -89,7 +91,6 @@ import { ModalInput } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import { getContactNameError } from 'validation';
 import AvalancheFinalized from 'components/Common/AvalancheFinalized';
-import { InlineLoader } from 'components/Common/Spinner';
 import { CopyIconButton } from 'components/Common/Buttons';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import CashtabCache from 'config/CashtabCache';
@@ -977,6 +978,10 @@ const Tx: React.FC<TxProps> = ({
                                             ''
                                         )}
                                     </TxDescSendRcvMsg>
+                                </TxDesc>
+                                <Timestamp>
+                                    {renderedTimestamp}
+                                    <TimestampSeperator>|</TimestampSeperator>
                                     {typeof block !== 'undefined' &&
                                     block.height <= chaintipBlockheight ? (
                                         <AvalancheFinalized
@@ -987,10 +992,13 @@ const Tx: React.FC<TxProps> = ({
                                             }
                                         />
                                     ) : (
-                                        <InlineLoader />
+                                        <Ellipsis title="Loading">
+                                            Finalizing<span>.</span>
+                                            <span>.</span>
+                                            <span>.</span>
+                                        </Ellipsis>
                                     )}
-                                </TxDesc>
-                                <Timestamp>{renderedTimestamp}</Timestamp>
+                                </Timestamp>
                             </TxDescCol>
                         </MainRowLeft>
                         <AmountCol>

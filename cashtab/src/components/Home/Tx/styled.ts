@@ -102,11 +102,44 @@ export const TxDesc = styled.div`
 // Bottom row of TxDescCol
 export const Timestamp = styled.div`
     display: flex;
+    align-items: center;
     width: 100%;
     text-align: left;
     font-size: var(--text-sm);
     line-height: var(--text-sm--line-height);
     color: ${props => props.theme.secondaryText};
+    margin-top: 4px;
+    opacity: 0.8;
+`;
+
+export const TimestampSeperator = styled.div`
+    margin: 0 8px;
+`;
+export const Ellipsis = styled.div`
+    @keyframes blink {
+        0% {
+            opacity: 0;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+    span {
+        opacity: 0;
+        animation: blink 1.2s infinite;
+    }
+    span:nth-child(1) {
+        animation-delay: 0s;
+    }
+    span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
 `;
 export const AmountCol = styled.div`
     flex-direction: row;

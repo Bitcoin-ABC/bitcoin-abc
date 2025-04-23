@@ -21,14 +21,14 @@ const scale = keyframes`
 
 const fill = keyframes`
   100% {
-    box-shadow: inset 0px 0px 0px 30px #00ABE7;
+    box-shadow: inset 0px 0px 0px 30px #838d91;
   }
 `;
 
 const Wrapper = styled.div`
     svg {
-        width: 20px;
-        height: 20px;
+        width: 14px !important;
+        height: 14px !important;
     }
     path {
         fill: none;
@@ -46,7 +46,7 @@ const Finalized = styled.svg<{ displayed: boolean; title: string }>`
     stroke-width: 2;
     stroke: #fff;
     stroke-miterlimit: 10;
-    box-shadow: inset 0px 0px 0px ${props => props.theme.accent};
+    box-shadow: inset 0px 0px 0px ${props => props.theme.secondaryText};
     animation: ${fill} 0.4s ease-in-out 0.4s forwards,
         ${scale} 0.3s ease-in-out 0.9s both;
 `;
@@ -56,16 +56,19 @@ const Circle = styled.circle`
     stroke-dashoffset: 166;
     stroke-width: 2;
     stroke-miterlimit: 10;
-    stroke: ${props => props.theme.accent};
+    stroke: ${props => props.theme.secondaryText};
     fill: none;
     animation: ${stroke} 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 `;
 
 const Check = styled.path`
     transform-origin: 50% 50%;
+    transform: scale(1.3);
     stroke-dasharray: 48;
     stroke-dashoffset: 48;
     animation: ${stroke} 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    stroke-width: 6;
+    stroke: ${props => props.theme.primaryBackground};
 `;
 
 interface AvalancheFinalizedProps {
