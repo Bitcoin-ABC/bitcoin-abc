@@ -683,8 +683,8 @@ class UserBuild:
 
 
 class TeamcityBuild(UserBuild):
-    def __init__(self, configuration):
-        super().__init__(configuration)
+    def __init__(self, configuration, ramdisk=False):
+        super().__init__(configuration, ramdisk)
 
         # This accounts for the volume mapping from the container.
         # Our local /results is mapped to some relative ./results on the host,
