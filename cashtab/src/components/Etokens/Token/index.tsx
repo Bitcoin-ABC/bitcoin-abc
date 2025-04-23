@@ -1805,38 +1805,37 @@ const Token: React.FC = () => {
             firmaPartial = await agora.selectParams(firmaPartialParams);
 
             let actualPrice = getFirmaPartialUnitPrice(firmaPartial);
-            if (actualPrice > firmaBidPrice) {
-                // Keep making firmaPartials until we have one that is acceptable
-                // Reduce price by 50 XEC at a time
-                // In practice, this takes 2 or 3 iterations
-                // The quanta are such that we get "the next tick down", we won't
-                // skip it
-                const NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION = 500000000n;
+            // Keep making firmaPartials until we have one that is acceptable
+            // Reduce price by 50 XEC at a time
+            // In practice, this usually takes 2 or 3 iterations, though I have observed up to 11
+            // The quanta are such that we get "the next tick down", we won't
+            // skip it
+            const NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION = 500000000n;
 
-                // Counter to prevent infinite loop
-                let attempts = 0;
-                const MAX_ATTEMPTS = 5;
-                while (actualPrice > firmaBidPrice) {
-                    attempts += 1;
-                    priceNanoSatsPerAtom -=
-                        NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION;
-                    // This time we only update the price, we do not need to update locktime
-                    firmaPartial = await agora.selectParams({
-                        ...firmaPartialParams,
-                        priceNanoSatsPerAtom,
-                    });
-                    actualPrice = getFirmaPartialUnitPrice(firmaPartial);
-                    // loop repeats until actualPrice <= firmaBidPrice
-                    if (attempts > MAX_ATTEMPTS) {
-                        // If we try more than 5 times, there is probably something wrong
-                        // or weird about this specific request
-                        // Maybe some quantities are difficult to price properly
-                        toast.error(
-                            'Unable to determine FIRMA redemption price',
-                        );
-                        return;
-                    }
-                }
+            // Counter to prevent infinite loop
+            let attempts = 0;
+            const MAX_ATTEMPTS = 25;
+            while (actualPrice > firmaBidPrice && attempts < MAX_ATTEMPTS) {
+                priceNanoSatsPerAtom -=
+                    NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION;
+                // This time we only update the price, we do not need to update locktime
+                firmaPartial = await agora.selectParams({
+                    ...firmaPartialParams,
+                    priceNanoSatsPerAtom,
+                });
+                actualPrice = getFirmaPartialUnitPrice(firmaPartial);
+                // loop repeats until actualPrice <= firmaBidPrice
+                attempts += 1;
+            }
+            if (attempts >= MAX_ATTEMPTS) {
+                // If we try more than MAX_ATTEMPTS times, there is probably something wrong
+                // or weird about this specific request
+                // Maybe some quantities are difficult to price properly
+                toast.error(
+                    'Unable to create partial at or below FIRMA redemption price. Try a different quantity.',
+                );
+                setIsCalculatingRedeemFirma(false);
+                return;
             }
             setIsCalculatingRedeemFirma(false);
             return setPreviewedAgoraPartial(firmaPartial);
