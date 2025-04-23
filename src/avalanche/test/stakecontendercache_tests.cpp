@@ -521,6 +521,21 @@ BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
     CheckWinners(cache, blockhashes[1], {}, {}, {});
     CheckWinners(cache, blockhashes[2], {}, {}, proofs);
 
+    // Attempting to promote to the same block again is a no-op and statuses
+    // remain unchanged.
+    cache.promoteToBlock(tip->pprev->pprev,
+                         [](const ProofId &proofid) { return true; });
+    for (auto &proof : proofs) {
+        // Contenders are unknown for blocks with no cache entries
+        CheckVoteStatus(cache, blockhashes[0], proof, -1);
+        CheckVoteStatus(cache, blockhashes[1], proof, -1);
+        // Contenders at the promoted block are still accepted
+        CheckVoteStatus(cache, blockhashes[2], proof, 0);
+    }
+    CheckWinners(cache, blockhashes[0], {}, {}, {});
+    CheckWinners(cache, blockhashes[1], {}, {}, {});
+    CheckWinners(cache, blockhashes[2], {}, {}, proofs);
+
     // Now advance the tip and invalidate a proof
     cache.promoteToBlock(tip->pprev, [&](const ProofId &proofid) {
         return proofid != proofs[2]->getId();
