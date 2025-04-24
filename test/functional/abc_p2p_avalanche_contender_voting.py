@@ -169,6 +169,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, unknown_contender_id)],
         )
 
+        def proof_reward_rank(contender_id, proof_score):
+            return (256.0 - math.log2(contender_id)) / proof_score
+
         def get_all_contender_ids(tip, proofids=None):
             # Determine all possible contenders IDs for the given block.
             # The first 12 (best scores) will be polled.
@@ -176,7 +179,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 proofids = [peer.proof.proofid for peer in quorum]
             return sorted(
                 [make_contender_id(tip, proofid) for proofid in proofids],
-                key=lambda cid: (256.0 - math.log2(cid)) / 5000,
+                key=lambda cid: proof_reward_rank(cid, 5000),
             )
 
         # All contenders are pending. They cannot be winners yet since mock time
@@ -336,15 +339,11 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             # Sort winners by rank, but manual winners are always first if they exist
             exp_accepted_winners = sorted(
                 set(exp_accepted_winners),
-                key=lambda w: (
-                    (256.0 - math.log2(make_contender_id(tip, w[0]))) / 5000
-                ),
+                key=lambda w: proof_reward_rank(make_contender_id(tip, w[0]), 5000),
             )
             exp_rejected_winners = sorted(
                 set(exp_rejected_winners),
-                key=lambda w: (
-                    (256.0 - math.log2(make_contender_id(tip, w[0]))) / 5000
-                ),
+                key=lambda w: proof_reward_rank(make_contender_id(tip, w[0]), 5000),
             )
 
             exp_winners = (
