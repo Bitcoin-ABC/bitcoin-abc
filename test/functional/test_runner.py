@@ -19,6 +19,7 @@ import datetime
 import json
 import logging
 import os
+import random
 import re
 import shutil
 import subprocess
@@ -356,7 +357,7 @@ def main():
     # Create base test directory
     tmpdir = os.path.join(
         f"{args.tmpdirprefix}",
-        f"test_runner_₿₵_🏃_{datetime.datetime.now():%Y%m%d_%H%M%S}",
+        f"test_runner_₿₵_🏃_{datetime.datetime.now():%Y%m%d_%H%M%S}_{random.getrandbits(16)}",
     )
 
     os.makedirs(tmpdir)
