@@ -82,7 +82,7 @@ templates:
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
       MOCHA_JUNIT_DIR="test_results"
-      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/${PROJECT_NAME}-junit.xml"
+      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/junit_results_${PROJECT_NAME}.xml"
       rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
 
       npm ci
@@ -95,9 +95,11 @@ templates:
         npm run build
       fi
 
-      # Make sure the report is available even if the tests fail
+      # Make sure the report is available even if the tests fail.
+      # Note the report might not exist (e.g. if the build failed before the
+      # tests are run) so we discard the errors here.
       move_junit_report() {
-        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/"
+        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/" &> /dev/null || true
       }
       trap "move_junit_report" EXIT
 
@@ -749,7 +751,7 @@ builds:
       JEST_SUITE_NAME: "Cashtab Test suites"
       JEST_JUNIT_SUITE_NAME: "CashTab Unit Tests"
       JEST_JUNIT_OUTPUT_DIR: "test/junit"
-      JEST_JUNIT_OUTPUT_NAME: "cashtab.xml"
+      JEST_JUNIT_OUTPUT_NAME: "junit_results_cashtab.xml"
     depends:
       - ecashaddrjs
       - chronik-client
@@ -762,9 +764,11 @@ builds:
       npm ci
       npm run build
 
-      # Make sure the report is available even if the tests fail
+      # Make sure the report is available even if the tests fail.
+      # Note the report might not exist (e.g. if the build failed before the
+      # tests are run) so we discard the errors here.
       move_junit_report() {
-        mv test "${BUILD_DIR}/"
+        mv ${JEST_JUNIT_OUTPUT_DIR}/${JEST_JUNIT_OUTPUT_NAME} "${BUILD_DIR}/" &> /dev/null || true
       }
       trap "move_junit_report" EXIT
 
