@@ -145,7 +145,7 @@ templates:
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
       MOCHA_JUNIT_DIR="test_results"
-      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/${PROJECT_NAME}-integration-tests-junit.xml"
+      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/junit_results_integration_tests_${PROJECT_NAME}.xml"
       rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
 
       # Install deps and build
@@ -153,9 +153,11 @@ templates:
       npm ci
       npm run build
 
-      # Make sure the report is available even if the tests fail
+      # Make sure the report is available even if the tests fail.
+      # Note the report might not exist (e.g. if the build failed before the
+      # tests are run) so we discard the errors here.
       move_junit_report() {
-        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/"
+        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/" &> /dev/null || true
       }
       trap "move_junit_report" EXIT
 
