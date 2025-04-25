@@ -5,6 +5,7 @@
 import math
 import time
 
+from test_framework.authproxy import JSONRPCException
 from test_framework.avatools import (
     assert_response,
     avalanche_proof_from_hex,
@@ -521,13 +522,26 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         avakey = ECPubKey()
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
+        # It is possible staking rewards are not ready depending if they were computed before or
+        # after proofs were finalized.
+        def expected_contender_poll_response(tip):
+            try:
+                if len(node.getstakingreward(tip)) > 0:
+                    return AvalancheContenderVoteError.ACCEPTED
+            except JSONRPCException:
+                # An exception is thrown if staking rewards cannot be computed
+                pass
+            return AvalancheContenderVoteError.PENDING
+
+        expected_response = expected_contender_poll_response(tip)
+
         # Sanity check that new quorum contenders can be polled even though we have not mined a block yet
         for contender_id in get_all_contender_ids(tip):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
                 poll_node,
                 avakey,
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
+                [AvalancheVote(expected_response, contender_id)],
             )
 
         # Proofs from the prior quorum that were persisted were loaded back into the contender cache
@@ -538,7 +552,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             assert_response(
                 poll_node,
                 avakey,
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
+                [AvalancheVote(expected_response, contender_id)],
             )
 
         # Set last proof as remote
@@ -554,6 +568,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Trigger contenders promotion
         tip = self.generate(node, 1)[0]
+        expected_response = expected_contender_poll_response(tip)
 
         # Sanity check
         for contender_id in get_all_contender_ids(tip):
@@ -561,7 +576,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             assert_response(
                 poll_node,
                 avakey,
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
+                [AvalancheVote(expected_response, contender_id)],
             )
 
         # All proofs from the prior quorum were promoted
@@ -572,7 +587,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             assert_response(
                 poll_node,
                 avakey,
-                [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
+                [AvalancheVote(expected_response, contender_id)],
             )
 
         self.log.info("Check votes when immature proof matures")
@@ -629,6 +644,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Trigger contenders promotion and mature the proof
         tip = self.generate(node, 1)[0]
+        expected_response = expected_contender_poll_response(tip)
         self.wait_until(lambda: check_immature_proofs([]))
 
         # The proof is now mature so it has been added to the contender cache.
@@ -638,7 +654,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         assert_response(
             poll_node,
             avakey,
-            [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
+            [AvalancheVote(expected_response, contender_id)],
         )
 
 
