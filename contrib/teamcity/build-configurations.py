@@ -443,12 +443,14 @@ class BuildConfiguration:
 
 
 class UserBuild:
-    def __init__(self, configuration, ramdisk=False):
+    def __init__(self, configuration, args):
         self.configuration = configuration
 
         build_directory = self.configuration.build_directory
 
-        self.artifact_dir = build_directory.joinpath("artifacts")
+        self.artifact_dir = Path(
+            args.artifacts or str(build_directory.joinpath("artifacts"))
+        )
 
         # Build 2 log files:
         #  - the full log will contain all unfiltered content
@@ -462,7 +464,7 @@ class UserBuild:
         if self.configuration.build_directory.is_dir():
             shutil.rmtree(self.configuration.build_directory)
         self.configuration.build_directory.mkdir(exist_ok=True, parents=True)
-        if ramdisk:
+        if args.ramdisk:
             self.symlink_ramdisk(self.configuration.functional_test_logs_basedir)
 
         self.preview_url = build_directory.joinpath("preview_url.log")
@@ -498,7 +500,7 @@ class UserBuild:
         # have no control on what is being executed, it might very well be
         # deleted by the build as well. This can happen when the artifacts
         # are located in the build directory and the build calls git clean.
-        self.artifact_dir.mkdir(exist_ok=True)
+        self.artifact_dir.mkdir(parents=True, exist_ok=True)
 
         # Find and copy artifacts.
         # The source is relative to the build tree, the destination relative to
@@ -669,7 +671,7 @@ class UserBuild:
         args = args if args is not None else []
         if self.artifact_dir.is_dir():
             shutil.rmtree(self.artifact_dir)
-        self.artifact_dir.mkdir(exist_ok=True)
+        self.artifact_dir.mkdir(parents=True, exist_ok=True)
 
         self.configuration.create_build_steps(
             self.artifact_dir, self.preview_url, self.ip_address
@@ -683,15 +685,15 @@ class UserBuild:
 
 
 class TeamcityBuild(UserBuild):
-    def __init__(self, configuration, ramdisk=False):
-        super().__init__(configuration, ramdisk)
+    def __init__(self, configuration, args):
+        super().__init__(configuration, args)
 
         # This accounts for the volume mapping from the container.
         # Our local /results is mapped to some relative ./results on the host,
         # so we use /results/artifacts to copy our files but results/artifacts as
         # an artifact path for teamcity.
         # TODO abstract out the volume mapping
-        self.artifact_dir = Path("/results/artifacts")
+        self.artifact_dir = Path(args.artifacts or "/results/artifacts")
 
         self.teamcity_messages = TeamcityServiceMessages()
 
@@ -761,6 +763,13 @@ def main():
     parser = argparse.ArgumentParser(description="Run a CI build")
     parser.add_argument("build", help="The name of the build to run")
     parser.add_argument(
+        "--artifacts",
+        "-a",
+        help="Path to the artifacts directory (default to <build_dir>/artifacts for user builds or /results/artifacts on CI)",
+        type=str,
+        default="",
+    )
+    parser.add_argument(
         "--config",
         "-c",
         help="Path to the builds configuration file (default to {})".format(
@@ -781,9 +790,9 @@ def main():
     build_configuration = BuildConfiguration(script_dir, config_path, args.build)
 
     if is_running_under_teamcity():
-        build = TeamcityBuild(build_configuration, args.ramdisk)
+        build = TeamcityBuild(build_configuration, args)
     else:
-        build = UserBuild(build_configuration, args.ramdisk)
+        build = UserBuild(build_configuration, args)
 
     sys.exit(build.run(unknown_args)[0])
 
