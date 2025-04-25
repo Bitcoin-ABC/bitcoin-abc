@@ -43,7 +43,7 @@ export const theme: CashtabTheme = {
     secondaryBackground: '#2a2e2e',
     accent: '#00ABE7',
     secondaryAccent: '#ff21d0',
-    primaryText: '#FFF',
+    primaryText: '#FFFFFF',
     secondaryText: '#838d91',
     border: '#586161',
     agoraDepthBar: 'rgba(255, 255, 255, 0.2)',

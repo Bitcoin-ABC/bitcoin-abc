@@ -33,7 +33,7 @@ export const Tabs = styled.div`
 export const TxHistoryCtn = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
     color: ${props => props.theme.primaryText};
     background-color: ${props => props.theme.primaryBackground};
     padding: 20px;

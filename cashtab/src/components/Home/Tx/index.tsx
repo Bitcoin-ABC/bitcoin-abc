@@ -14,6 +14,7 @@ import {
     AmountBottom,
     Expand,
     MainRowLeft,
+    IconCtn,
     PanelButton,
     Collapse,
     PanelLink,
@@ -36,6 +37,7 @@ import {
     TxDescSendRcvMsg,
     Ellipsis,
     TimestampSeperator,
+    MessageLabel,
 } from 'components/Home/Tx/styled';
 import {
     SendIcon,
@@ -91,7 +93,6 @@ import { ModalInput } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import { getContactNameError } from 'validation';
 import AvalancheFinalized from 'components/Common/AvalancheFinalized';
-import { CopyIconButton } from 'components/Common/Buttons';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import CashtabCache from 'config/CashtabCache';
 import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
@@ -481,10 +482,11 @@ const Tx: React.FC<TxProps> = ({
                         const { msg } = action;
                         renderedAppActions.push(
                             <>
-                                <IconAndLabel>
+                                <MessageLabel>
                                     <CashtabMsgIcon />
-                                    <AppDescLabel>Cashtab Msg</AppDescLabel>
-                                </IconAndLabel>
+                                    Cashtab Msg
+                                </MessageLabel>
+
                                 <AppDescMsg>{msg}</AppDescMsg>
                                 {xecTxType === 'Received' &&
                                     typeof replyAddress !== 'undefined' && (
@@ -890,6 +892,13 @@ const Tx: React.FC<TxProps> = ({
     const isSelfSendTx =
         (typeof recipients[0] === 'undefined' && xecTxType !== 'Received') ||
         satoshisSent === 0;
+
+    const handleAmountCopy = (data: string) => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(data);
+        }
+        toast.success(`"${data}" copied to clipboard`);
+    };
     return (
         <>
             {showAddNewContactModal && (
@@ -918,15 +927,17 @@ const Tx: React.FC<TxProps> = ({
                 <Collapse onClick={() => setShowPanel(!showPanel)}>
                     <MainRow type={xecTxType}>
                         <MainRowLeft>
-                            {isSelfSendTx ? (
-                                <SelfSendIcon />
-                            ) : xecTxType === 'Received' ? (
-                                <ReceiveIcon />
-                            ) : xecTxType === 'Sent' ? (
-                                <SendIcon />
-                            ) : (
-                                <MinedIcon />
-                            )}
+                            <IconCtn receive={xecTxType === 'Received'}>
+                                {isSelfSendTx ? (
+                                    <SelfSendIcon />
+                                ) : xecTxType === 'Received' ? (
+                                    <ReceiveIcon />
+                                ) : xecTxType === 'Sent' ? (
+                                    <SendIcon />
+                                ) : (
+                                    <MinedIcon />
+                                )}
+                            </IconCtn>
                             <TxDescCol>
                                 <TxDesc>
                                     <TxDescSendRcvMsg>
@@ -1006,17 +1017,19 @@ const Tx: React.FC<TxProps> = ({
                                 {isSelfSendTx ? (
                                     '-'
                                 ) : (
-                                    <>
-                                        <CopyIconButton
-                                            name={`Copy amount`}
-                                            data={toXec(
-                                                satoshisSent,
-                                            ).toLocaleString(userLocale, {
-                                                maximumFractionDigits: 2,
-                                                minimumFractionDigits: 2,
-                                            })}
-                                            showToast
-                                        />
+                                    <div
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            handleAmountCopy(
+                                                toXec(
+                                                    satoshisSent,
+                                                ).toLocaleString(userLocale, {
+                                                    maximumFractionDigits: 2,
+                                                    minimumFractionDigits: 2,
+                                                }),
+                                            );
+                                        }}
+                                    >
                                         {xecTxType === 'Sent' ? '-' : ''}
                                         {!showPanel
                                             ? toFormattedXec(
@@ -1030,7 +1043,7 @@ const Tx: React.FC<TxProps> = ({
                                                   minimumFractionDigits: 2,
                                               })}{' '}
                                         XEC
-                                    </>
+                                    </div>
                                 )}
                             </AmountTop>
                             <AmountBottom>

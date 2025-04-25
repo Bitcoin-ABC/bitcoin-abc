@@ -7,10 +7,11 @@ import { Link } from 'react-router-dom';
 import { XecTxType } from 'chronik';
 
 export const TxWrapper = styled.div`
-    border-bottom: 1px solid ${props => props.theme.border};
+    background-color: ${props => props.theme.secondaryBackground}B3;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    padding: 12px;
+    border-radius: 6px;
     svg {
         width: 33px;
         height: 33px;
@@ -83,6 +84,21 @@ export const MainRowLeft = styled.div`
     align-items: center;
     gap: 12px;
 `;
+export const IconCtn = styled.div<{ receive?: boolean }>`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: ${props =>
+        props.receive
+            ? `${props.theme.accent}20`
+            : `${props.theme.primaryText}20`};
+    border-radius: 50%;
+    padding: 12px;
+    svg {
+        width: 25px;
+        height: 25px;
+    }
+`;
 export const AppTxIcon = styled.div``;
 export const TxDescCol = styled.div`
     flex-direction: row;
@@ -142,20 +158,22 @@ export const Ellipsis = styled.div`
     }
 `;
 export const AmountCol = styled.div`
-    flex-direction: row;
-    justify-content: flex-end;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    text-align: right;
 `;
 // Top row of TxAmountCol
 export const AmountTop = styled.div`
-    display: flex;
-    width: 100%;
-    justify-content: flex-end;
+    font-weight: 600;
+    :hover {
+        text-decoration: underline;
+    }
 `;
 export const AmountBottom = styled.div`
-    display: flex;
-    width: 100%;
     color: ${props => props.theme.secondaryText};
-    justify-content: flex-end;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
 `;
 export const CashtabMsg = styled.div`
     display: flex;
@@ -175,6 +193,7 @@ export const Expand = styled.div<{ showPanel: boolean }>`
     justify-content: flex-end;
     align-items: center;
     gap: 12px;
+    margin-top: ${props => (props.showPanel ? '20px' : '0px')};
     svg {
         height: 33px;
         width: 33px;
@@ -189,6 +208,8 @@ export const Expand = styled.div<{ showPanel: boolean }>`
 `;
 export const ExpandButtonPanel = styled.div`
     display: flex;
+    align-items: center;
+    gap: 5px;
 `;
 export const PanelButton = styled.button`
     border: none;
@@ -207,21 +228,32 @@ export const AddressLink = styled.a`
     padding: 0 3px;
 `;
 export const AppAction = styled.div<{ type?: string }>`
-    display: flex;
-    gap: 12px;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 3px 12px;
-    ${props => props.type === 'Received' && Incoming}
-    border-radius: 9px;
-    background-color: ${props => props.theme.secondaryBackground};
-    flex-wrap: wrap;
     word-break: break-all;
+    ${props => props.type === 'Received' && Incoming}
+    background: ${props => props.theme.primaryText}10;
+    background: ${props => props.theme.primaryBackground}B3;
+    padding: 10px;
+    border-radius: 6px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 `;
 export const AppDescLabel = styled.div<{ noWordBreak?: boolean }>`
     font-weight: bold;
     word-break: ${props => (props.noWordBreak ? 'normal' : 'break-all')};
+`;
+export const MessageLabel = styled.div`
+    font-size: var(--text-sm);
+    color: ${props => props.theme.secondaryText};
+    display: flex;
+    align-items: center;
+
+    svg {
+        width: 15px;
+        height: 15px;
+        margin-right: 6px;
+    }
 `;
 export const IconAndLabel = styled.div`
     display: flex;
@@ -233,10 +265,15 @@ export const AppDescMsg = styled.div`
     word-wrap: break-word;
     word-break: break-all;
     text-align: left;
+    width: 100%;
+    margin-top: 10px;
 `;
 export const TokenAction = styled(AppAction)<{
     tokenTxType?: string;
 }>`
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     ${props => props.tokenTxType === 'Received' && Incoming}
     ${props =>
         (props.tokenTxType === 'Created' || props.tokenTxType === 'Minted') &&
