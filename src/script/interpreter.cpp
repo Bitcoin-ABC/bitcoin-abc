@@ -1534,11 +1534,36 @@ template PrecomputedTransactionData::PrecomputedTransactionData(
 template PrecomputedTransactionData::PrecomputedTransactionData(
     const CMutableTransaction &txTo);
 
+int SigHashCache::CacheIndex(const SigHashType &hash_type) const noexcept {
+    return 6 * hash_type.hasForkId() + 3 * hash_type.hasAnyoneCanPay() +
+           2 * (hash_type.getBaseType() == BaseSigHashType::SINGLE) +
+           1 * (hash_type.getBaseType() == BaseSigHashType::NONE);
+}
+
+bool SigHashCache::Load(const SigHashType &hash_type,
+                        const CScript &script_code,
+                        HashWriter &writer) const noexcept {
+    auto &entry = m_cache_entries[CacheIndex(hash_type)];
+    if (entry.has_value() && (script_code == entry->first)) {
+        writer = HashWriter(entry->second);
+        return true;
+    }
+    return false;
+}
+
+void SigHashCache::Store(const SigHashType &hash_type,
+                         const CScript &script_code,
+                         const HashWriter &writer) noexcept {
+    auto &entry = m_cache_entries[CacheIndex(hash_type)];
+    entry.emplace(script_code, writer);
+}
+
 template <class T>
 uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
                       unsigned int nIn, SigHashType sigHashType,
                       const Amount amount,
-                      const PrecomputedTransactionData *cache, uint32_t flags) {
+                      const PrecomputedTransactionData *cache, uint32_t flags,
+                      SigHashCache *sighash_cache) {
     assert(nIn < txTo.vin.size());
 
     if (flags & SCRIPT_ENABLE_REPLAY_PROTECTION) {
@@ -1561,6 +1586,13 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
     }
 
     HashWriter ss{};
+
+    // Try to compute using cached SHA256 midstate.
+    if (sighash_cache && sighash_cache->Load(sigHashType, scriptCode, ss)) {
+        // Add sighash type and hash.
+        ss << sigHashType;
+        return ss.GetHash();
+    }
 
     if (use_forkid_sighash) {
         uint256 hashPrevouts;
@@ -1611,6 +1643,11 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
         ss << txTmp;
     }
 
+    // If a cache object was provided, store the midstate there.
+    if (sighash_cache != nullptr) {
+        sighash_cache->Store(sigHashType, scriptCode, ss);
+    }
+
     // Add sighash type and hash
     ss << sigHashType;
     return ss.GetHash();
@@ -1644,7 +1681,7 @@ bool GenericTransactionSignatureChecker<T>::CheckSig(
     vchSig.pop_back();
 
     uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, sigHashType, amount,
-                                    this->txdata, flags);
+                                    this->txdata, flags, &m_sighash_cache);
 
     if (!VerifySignature(vchSig, pubkey, sighash)) {
         return false;

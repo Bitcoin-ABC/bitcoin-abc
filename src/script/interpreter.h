@@ -7,6 +7,7 @@
 #ifndef BITCOIN_SCRIPT_INTERPRETER_H
 #define BITCOIN_SCRIPT_INTERPRETER_H
 
+#include <hash.h>
 #include <primitives/transaction.h>
 #include <script/conditionstack.h>
 #include <script/script.h>
@@ -16,6 +17,7 @@
 #include <script/sighashtype.h>
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 class CPubKey;
@@ -24,12 +26,50 @@ class uint256;
 
 bool CastToBool(const std::vector<uint8_t> &vch);
 
+/**
+ * Data structure to cache SHA256 midstates for the ECDSA sighash calculations
+ * (bare, P2SH)
+ */
+class SigHashCache {
+    /**
+     * For each sighash mode:
+     *  [0]  ALL
+     *  [1]  NONE
+     *  [2]  SINGLE
+     *  [3]  ALL|ANYONE
+     *  [4]  NONE|ANYONE
+     *  [5]  SINGLE|ANYONE
+     *  [6]  ALL|FORKID
+     *  [7]  NONE|FORKID
+     *  [8]  SINGLE|FORKID
+     *  [9]  ALL|ANYONE|FORKID
+     *  [10] NONE|ANYONE|FORKID
+     *  [11] SINGLE|ANYONE|FORKID
+     * optionally store a scriptCode which the hash is for, plus a midstate
+     * for the SHA256 computation just before adding the hash_type itself.
+     */
+    std::optional<std::pair<CScript, HashWriter>> m_cache_entries[12];
+
+    /** Given a hash_type, find which of the 12 cache entries is to be used. */
+    int CacheIndex(const SigHashType &hash_type) const noexcept;
+
+public:
+    /** Load into writer the SHA256 midstate if found in this cache. */
+    [[nodiscard]] bool Load(const SigHashType &hash_type,
+                            const CScript &script_code,
+                            HashWriter &writer) const noexcept;
+    /** Store into this cache object the provided SHA256 midstate. */
+    void Store(const SigHashType &hash_type, const CScript &script_code,
+               const HashWriter &writer) noexcept;
+};
+
 template <class T>
 uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
                       unsigned int nIn, SigHashType sigHashType,
                       const Amount amount,
                       const PrecomputedTransactionData *cache = nullptr,
-                      uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID);
+                      uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID,
+                      SigHashCache *sighash_cache = nullptr);
 
 class BaseSignatureChecker {
 public:
@@ -61,6 +101,7 @@ private:
     unsigned int nIn;
     const Amount amount;
     const PrecomputedTransactionData *txdata;
+    mutable SigHashCache m_sighash_cache;
 
 public:
     GenericTransactionSignatureChecker(const T *txToIn, unsigned int nInIn,
