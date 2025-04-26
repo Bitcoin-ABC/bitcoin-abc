@@ -38,6 +38,8 @@ import {
     Ellipsis,
     TimestampSeperator,
     MessageLabel,
+    AirdropHeader,
+    AirdropIconCtn,
 } from 'components/Home/Tx/styled';
 import {
     SendIcon,
@@ -254,23 +256,40 @@ const Tx: React.FC<TxProps> = ({
                             const { tokenName, tokenTicker } = genesisInfo;
                             renderedAppActions.push(
                                 <>
-                                    <IconAndLabel>
-                                        <AirdropIcon />
-                                        <AppDescLabel>
-                                            Airdrop (XEC)
-                                        </AppDescLabel>
-                                    </IconAndLabel>
-                                    <TokenIcon size={32} tokenId={tokenId} />
-                                    <TokenInfoCol>
-                                        <TokenName to={`/token/${tokenId}`}>
-                                            {tokenName}
-                                        </TokenName>
-                                        <TokenTicker>
-                                            ({tokenTicker})
-                                        </TokenTicker>
-                                    </TokenInfoCol>
+                                    <AirdropHeader
+                                        message={typeof msg !== 'undefined'}
+                                    >
+                                        <IconAndLabel>
+                                            <AirdropIcon />
+                                            <AppDescLabel>
+                                                Airdrop (XEC)
+                                            </AppDescLabel>
+                                        </IconAndLabel>
+                                        <AirdropIconCtn>
+                                            <TokenIcon
+                                                size={32}
+                                                tokenId={tokenId}
+                                            />
+                                            <TokenInfoCol>
+                                                <TokenName
+                                                    to={`/token/${tokenId}`}
+                                                >
+                                                    {tokenName}
+                                                </TokenName>
+                                                <TokenTicker>
+                                                    ({tokenTicker})
+                                                </TokenTicker>
+                                            </TokenInfoCol>
+                                        </AirdropIconCtn>
+                                    </AirdropHeader>
                                     {typeof msg !== 'undefined' && (
-                                        <AppDescMsg>{msg}</AppDescMsg>
+                                        <>
+                                            <MessageLabel>
+                                                <CashtabMsgIcon />
+                                                Airdrop Msg
+                                            </MessageLabel>
+                                            <AppDescMsg>{msg}</AppDescMsg>
+                                        </>
                                     )}
                                 </>,
                             );
@@ -279,25 +298,35 @@ const Tx: React.FC<TxProps> = ({
                         // If we do not have token info
                         renderedAppActions.push(
                             <>
-                                <IconAndLabel>
-                                    <AirdropIcon />
-                                    <AppDescLabel>
-                                        Airdrop to holders of{' '}
-                                        <ActionLink
-                                            href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {`${tokenId.slice(
-                                                0,
-                                                3,
-                                            )}...${tokenId.slice(-3)}`}
-                                        </ActionLink>
-                                    </AppDescLabel>
-                                </IconAndLabel>
-                                <TokenIcon size={32} tokenId={tokenId} />
+                                <AirdropHeader
+                                    message={typeof msg !== 'undefined'}
+                                >
+                                    <IconAndLabel>
+                                        <AirdropIcon />
+                                        <AppDescLabel>
+                                            Airdrop to holders of{' '}
+                                            <ActionLink
+                                                href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                {`${tokenId.slice(
+                                                    0,
+                                                    3,
+                                                )}...${tokenId.slice(-3)}`}
+                                            </ActionLink>
+                                        </AppDescLabel>
+                                    </IconAndLabel>
+                                    <TokenIcon size={32} tokenId={tokenId} />
+                                </AirdropHeader>
                                 {typeof msg !== 'undefined' && (
-                                    <AppDescMsg>{msg}</AppDescMsg>
+                                    <>
+                                        <MessageLabel>
+                                            <CashtabMsgIcon />
+                                            Airdrop Msg
+                                        </MessageLabel>
+                                        <AppDescMsg>{msg}</AppDescMsg>
+                                    </>
                                 )}
                             </>,
                         );
@@ -694,7 +723,10 @@ const Tx: React.FC<TxProps> = ({
                   )
                 : '0';
         tokenActions.push(
-            <TokenAction tokenTxType={renderedTxType}>
+            <TokenAction
+                tokenTxType={renderedTxType}
+                noWordBreak={tokenName.length < 10 || tokenTicker.length < 10}
+            >
                 <IconAndLabel>
                     {actionIcon}
                     {tokenIcon}

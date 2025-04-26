@@ -25,6 +25,9 @@ export const TxWrapper = styled.div`
     *:after {
         box-sizing: inherit;
     }
+    @media (max-width: 768px) {
+        padding: 10px;
+    }
 `;
 export const Collapse = styled.div`
     display: flex;
@@ -83,6 +86,11 @@ export const MainRowLeft = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
 `;
 export const IconCtn = styled.div<{ receive?: boolean }>`
     display: flex;
@@ -97,6 +105,13 @@ export const IconCtn = styled.div<{ receive?: boolean }>`
     svg {
         width: 25px;
         height: 25px;
+    }
+    @media (max-width: 768px) {
+        padding: 8px;
+        svg {
+            width: 15px;
+            height: 15px;
+        }
     }
 `;
 export const AppTxIcon = styled.div``;
@@ -231,7 +246,7 @@ export const AppAction = styled.div<{ type?: string }>`
     word-break: break-all;
     ${props => props.type === 'Received' && Incoming}
     background: ${props => props.theme.primaryText}10;
-    background: ${props => props.theme.primaryBackground}B3;
+    background: ${props => props.theme.primaryBackground};
     padding: 10px;
     border-radius: 6px;
     width: 100%;
@@ -240,7 +255,6 @@ export const AppAction = styled.div<{ type?: string }>`
     align-items: flex-start;
 `;
 export const AppDescLabel = styled.div<{ noWordBreak?: boolean }>`
-    font-weight: bold;
     word-break: ${props => (props.noWordBreak ? 'normal' : 'break-all')};
 `;
 export const MessageLabel = styled.div`
@@ -266,20 +280,9 @@ export const AppDescMsg = styled.div`
     word-break: break-all;
     text-align: left;
     width: 100%;
-    margin-top: 10px;
+    margin-top: 5px;
 `;
-export const TokenAction = styled(AppAction)<{
-    tokenTxType?: string;
-}>`
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    ${props => props.tokenTxType === 'Received' && Incoming}
-    ${props =>
-        (props.tokenTxType === 'Created' || props.tokenTxType === 'Minted') &&
-        Genesis}
-        ${props => props.tokenTxType === 'Burned' && Burn}
-`;
+
 export const TokenActionHolder = styled.div``;
 export const TokenInfoCol = styled.div`
     display: flex;
@@ -297,3 +300,70 @@ export const TokenName = styled(PanelLink)`
 export const TokenTicker = styled.div``;
 export const TokenDesc = styled.div``;
 export const ActionLink = styled.a``;
+
+export const TokenAction = styled(AppAction)<{
+    tokenTxType?: string;
+    noWordBreak?: boolean;
+}>`
+    word-break: ${props => (props.noWordBreak ? 'normal' : 'break-all')};
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    ${props => props.tokenTxType === 'Received' && Incoming}
+    ${props =>
+        (props.tokenTxType === 'Created' || props.tokenTxType === 'Minted') &&
+        Genesis}
+        ${props => props.tokenTxType === 'Burned' && Burn}
+        @media (max-width: 768px) {
+        font-size: var(--text-sm);
+        line-height: var(--text-sm--line-height);
+        ${TokenInfoCol} {
+            text-align: left;
+        }
+
+        ${TokenDesc} {
+            text-align: right;
+            margin-left: 10px;
+        }
+
+        ${IconAndLabel} {
+            gap: 3px;
+            flex-direction: column;
+            margin-right: 20px;
+            word-break: normal;
+
+            svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            img {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    }
+    ${IconAndLabel} {
+        svg {
+            fill: ${props =>
+                props.tokenTxType === 'GENESIS'
+                    ? props => props.theme.genesisGreen
+                    : 'white'};
+        }
+    }
+`;
+
+export const AirdropHeader = styled.div<{ message?: boolean }>`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+    margin-bottom: ${props => (props.message ? '20px' : '0')};
+`;
+
+export const AirdropIconCtn = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+`;
