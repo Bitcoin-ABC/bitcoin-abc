@@ -663,7 +663,7 @@ void PeerManager::clearAllInvalid() {
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
     if (m_stakingPreConsensus && isBoundToPeer(proofid) &&
-        !isRemoteProof(proofid)) {
+        !hasRemoteProofStatus(proofid)) {
         // If this is the first time this peer's proof becomes a remote proof of
         // any node, ensure it is included in the contender cache. There is a
         // special case where the contender cache can lose track of a proof if
@@ -715,7 +715,7 @@ PeerManager::getRemoteProofs(const NodeId nodeid) const {
     return nodeRemoteProofs;
 }
 
-bool PeerManager::isRemoteProof(const ProofId &proofid) const {
+bool PeerManager::hasRemoteProofStatus(const ProofId &proofid) const {
     auto &view = remoteProofs.get<by_proofid>();
     return view.count(proofid) > 0;
 }
@@ -1454,7 +1454,7 @@ void PeerManager::rejectStakeContender(const StakeContenderId &contenderId) {
 
 void PeerManager::promoteStakeContendersToBlock(const CBlockIndex *pindex) {
     stakeContenderCache.promoteToBlock(pindex, [&](const ProofId &proofid) {
-        return isRemoteProof(proofid) &&
+        return hasRemoteProofStatus(proofid) &&
                (isBoundToPeer(proofid) || isDangling(proofid));
     });
 }
