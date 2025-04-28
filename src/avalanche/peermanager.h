@@ -450,6 +450,7 @@ public:
                          const bool present);
     std::vector<RemoteProof> getRemoteProofs(const NodeId nodeid) const;
     bool hasRemoteProofStatus(const ProofId &proofid) const;
+    bool isRemotelyPresentProof(const ProofId &proofid) const;
 
     bool setFlaky(const ProofId &proofid);
     bool unsetFlaky(const ProofId &proofid);

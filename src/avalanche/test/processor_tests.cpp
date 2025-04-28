@@ -2825,7 +2825,8 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
         // Register bestproof so it will become dangling later
         pm.registerProof(bestproof);
         // Make it a remote proof so that it will be promoted
-        pm.saveRemoteProof(bestproof->getId(), 0, false);
+        pm.saveRemoteProof(bestproof->getId(), 0, true);
+        pm.saveRemoteProof(bestproof->getId(), 1, false);
     });
 
     block = CreateAndProcessBlock({}, CScript());

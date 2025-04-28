@@ -2516,6 +2516,7 @@ BOOST_AUTO_TEST_CASE(remote_proof) {
             const bool expectedPresent,
             const std::chrono::seconds &expectedlastUpdate) {
             BOOST_CHECK(pm.hasRemoteProofStatus(proofid));
+            BOOST_CHECK(pm.isRemotelyPresentProof(proofid) == expectedPresent);
             auto remoteProof =
                 TestPeerManager::getRemoteProof(pm, proofid, nodeid);
             BOOST_CHECK(remoteProof.has_value());

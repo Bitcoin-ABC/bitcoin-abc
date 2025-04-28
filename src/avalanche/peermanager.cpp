@@ -663,7 +663,7 @@ void PeerManager::clearAllInvalid() {
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
     if (m_stakingPreConsensus && isBoundToPeer(proofid) &&
-        !hasRemoteProofStatus(proofid)) {
+        !isRemotelyPresentProof(proofid)) {
         // If this is the first time this peer's proof becomes a remote proof of
         // any node, ensure it is included in the contender cache. There is a
         // special case where the contender cache can lose track of a proof if
@@ -718,6 +718,14 @@ PeerManager::getRemoteProofs(const NodeId nodeid) const {
 bool PeerManager::hasRemoteProofStatus(const ProofId &proofid) const {
     auto &view = remoteProofs.get<by_proofid>();
     return view.count(proofid) > 0;
+}
+
+bool PeerManager::isRemotelyPresentProof(const ProofId &proofid) const {
+    auto &view = remoteProofs.get<by_proofid>();
+    auto [begin, end] = view.equal_range(proofid);
+    return std::any_of(begin, end, [](const auto &remoteProof) {
+        return remoteProof.present;
+    });
 }
 
 bool PeerManager::removePeer(const PeerId peerid) {
@@ -1454,8 +1462,13 @@ void PeerManager::rejectStakeContender(const StakeContenderId &contenderId) {
 
 void PeerManager::promoteStakeContendersToBlock(const CBlockIndex *pindex) {
     stakeContenderCache.promoteToBlock(pindex, [&](const ProofId &proofid) {
-        return hasRemoteProofStatus(proofid) &&
-               (isBoundToPeer(proofid) || isDangling(proofid));
+        return isBoundToPeer(proofid) ||
+               // isDangling check appears redundant, but remote proofs are not
+               // guaranteed to be cleaned up when one of our peers is removed
+               // for dangling too long. Whether or not a proof is dangling is
+               // gated by remote presence status, so only proofs that are very
+               // poorly connected to the network will stop being promoted.
+               (isRemotelyPresentProof(proofid) && isDangling(proofid));
     });
 }
 
