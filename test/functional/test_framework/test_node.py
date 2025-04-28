@@ -11,6 +11,7 @@ import http.client
 import json
 import logging
 import os
+import pprint
 import re
 import shlex
 import subprocess
@@ -636,7 +637,7 @@ class TestNode:
             time.sleep(0.05)
         self._raise_assertion_error(
             f"Captured debug log:\n\n{print_log}\n\n"
-            f'Expected messages "{expected_msgs}" does not partially match the above log.'
+            f'Expected messages "{pprint.pformat(expected_msgs, width=120)}" does not partially match the above log.'
         )
 
     @contextlib.contextmanager
@@ -687,7 +688,7 @@ class TestNode:
 
         self._raise_assertion_error(
             f"Captured debug log:\n\n{print_log}\n\n"
-            f'Expected messages "{str(expected_msgs)}" does not partially match the above log.'
+            f'Expected messages "{pprint.pformat(expected_msgs, width=120)}" does not partially match the above log.'
         )
 
     @contextlib.contextmanager
