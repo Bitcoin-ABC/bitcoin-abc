@@ -68,19 +68,20 @@ void StakeContenderCache::promoteToBlock(
     promotedEntries.reserve(contenders.size());
     for (auto &contender : contenders) {
         const ProofId &proofid = contender.proofid;
+        bool promoted = false;
         if (shouldPromote(proofid)) {
             promotedEntries.push_back(StakeContenderCacheEntry(
                 blockhash, height, proofid, StakeContenderStatus::UNKNOWN,
                 contender.payoutScriptPubkey, contender.score));
-            LogPrintLevel(
-                BCLog::AVALANCHE, BCLog::Level::Debug,
-                "Contender with proofid %s, payout %s promoted to block "
-                "%s (height %d) (old id %s, new id %s)\n",
-                proofid.ToString(), HexStr(contender.payoutScriptPubkey),
-                blockhash.ToString(), height,
-                contender.getStakeContenderId().ToString(),
-                StakeContenderId(blockhash, proofid).ToString());
+            promoted = true;
         }
+        LogPrintLevel(BCLog::AVALANCHE, BCLog::Level::Debug,
+                      "Contender with proofid %s, payout %s was%s promoted to "
+                      "block %s (height %d) (old id %s, next id %s)\n",
+                      proofid.ToString(), HexStr(contender.payoutScriptPubkey),
+                      promoted ? "" : " NOT", blockhash.ToString(), height,
+                      contender.getStakeContenderId().ToString(),
+                      StakeContenderId(blockhash, proofid).ToString());
     }
     contenders.insert(promotedEntries.begin(), promotedEntries.end());
 }
