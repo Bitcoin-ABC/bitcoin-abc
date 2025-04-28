@@ -635,8 +635,8 @@ class TestNode:
                 break
             time.sleep(0.05)
         self._raise_assertion_error(
-            f'Expected messages "{expected_msgs}" does not partially match '
-            f"log:\n\n{print_log}\n\n"
+            f"Captured debug log:\n\n{print_log}\n\n"
+            f'Expected messages "{expected_msgs}" does not partially match the above log.'
         )
 
     @contextlib.contextmanager
@@ -686,8 +686,8 @@ class TestNode:
             time.sleep(interval)
 
         self._raise_assertion_error(
-            f'Expected messages "{str(expected_msgs)}" does not partially match '
-            f"log:\n\n{print_log}\n\n"
+            f"Captured debug log:\n\n{print_log}\n\n"
+            f'Expected messages "{str(expected_msgs)}" does not partially match the above log.'
         )
 
     @contextlib.contextmanager

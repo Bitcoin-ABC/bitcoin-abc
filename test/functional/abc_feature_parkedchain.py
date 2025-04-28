@@ -225,7 +225,7 @@ class ParkedChainTest(BitcoinTestFramework):
                 )
         except AssertionError as exc:
             # good, we want an absence of "Park block" messages
-            assert "does not partially match log" in exc.args[0]
+            assert "does not partially match the above log" in exc.args[0]
         else:
             raise AssertionError("Parked block when there was no deep reorg")
 

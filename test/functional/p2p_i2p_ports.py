@@ -28,7 +28,7 @@ class I2PPorts(BitcoinTestFramework):
         except AssertionError as e:
             raised = True
             if not re.search(
-                r"Expected messages .* does not partially match log", str(e)
+                r"Expected messages .* does not partially match the above log", str(e)
             ):
                 raise AssertionError(
                     "Assertion raised as expected, but with an unexpected message:"
