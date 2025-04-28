@@ -5691,7 +5691,6 @@ void PeerManagerImpl::ProcessMessage(
         const TxId &txid = tx.GetId();
         AddKnownTx(*peer, txid);
 
-        bool shouldReconcileTx{false};
         {
             LOCK(cs_main);
 
@@ -5910,7 +5909,6 @@ void PeerManagerImpl::ProcessMessage(
                         conflicting.AddTx(ptx, pfrom.GetId());
                         nEvicted = conflicting.LimitTxs(
                             m_opts.max_conflicting_txs, m_rng);
-                        shouldReconcileTx = conflicting.HaveTx(ptx->GetId());
                     });
 
                 if (nEvicted > 0) {
@@ -5920,10 +5918,6 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
         } // Release cs_main
-
-        if (m_avalanche && m_avalanche->m_preConsensus && shouldReconcileTx) {
-            m_avalanche->addToReconcile(ptx);
-        }
 
         return;
     }

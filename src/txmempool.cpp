@@ -589,15 +589,12 @@ bool CTxMemPool::isWorthPolling(const CTransactionRef &tx) const {
                                                (**it)->GetSigChecks());
     }
 
-    // Otherwise check if it's in the conflicting pool and would fit in size. We
-    // can't check for sigChecks here as they are not calculated.
-    if (WITH_LOCK(cs_conflicting,
-                  return m_conflicting && m_conflicting->HaveTx(txid))) {
-        return m_finalizedTxsFitter.testTxFits(tx->GetTotalSize(), 0);
-    }
-
-    // Not in the mempool nor conflicting, don't poll
-    return false;
+    // Otherwise check if it's in the conflicting pool. If we reach this point
+    // this means that the transaction has been rejected so no need to check if
+    // it fits the block, however we don't want to discard it either so the vote
+    // continue until the tx is invalidated.
+    return WITH_LOCK(cs_conflicting,
+                     return m_conflicting && m_conflicting->HaveTx(txid));
 }
 
 CTransactionRef CTxMemPool::get(const TxId &txid) const {

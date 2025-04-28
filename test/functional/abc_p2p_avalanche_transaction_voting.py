@@ -410,7 +410,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             node,
         )
 
-        self.log.info("Check the node polls for conflicting txs")
+        self.log.info("Check the node stores the conflicting txs")
 
         tip = self.generate(node, 1)[0]
         assert_equal(node.getrawmempool(), [])
@@ -442,20 +442,12 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 reject_reason="txn-mempool-conflict",
             )
 
-        self.wait_until(
-            lambda: can_find_inv_in_poll(
-                quorum,
-                int(conflicting_tx["txid"], 16),
-                response=AvalancheTxVoteError.CONFLICTING,
-                other_response=AvalancheTxVoteError.UNKNOWN,
-            )
-        )
         assert mempool_tx["txid"] in node.getrawmempool()
         assert conflicting_tx["txid"] not in node.getrawmempool()
 
         self.log.info("Check the node can pull back conflicting txs via avalanche")
 
-        self.wait_until(lambda: has_accepted_tx(conflicting_tx["txid"]))
+        self.wait_until(lambda: has_rejected_tx(mempool_tx["txid"]))
         assert mempool_tx["txid"] not in node.getrawmempool()
         assert conflicting_tx["txid"] in node.getrawmempool()
 
@@ -491,33 +483,27 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             utxo_to_spend=utxo, fee_rate=Decimal("3000")
         )
 
-        mempool_tx_obj = from_wallet_tx(mempool_tx)
+        # Send the conflicting tx first so it makes it into the mempool and will
+        # be rejected by avalanche.
+        conflicting_tx_obj = from_wallet_tx(conflicting_tx)
         peer.send_txs_and_test(
-            [mempool_tx_obj],
+            [conflicting_tx_obj],
             node,
             success=True,
         )
-        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] in node.getrawmempool()
 
-        conflicting_tx_obj = from_wallet_tx(conflicting_tx)
-        with node.assert_debug_log([f"stored conflicting tx {conflicting_tx['txid']}"]):
+        mempool_tx_obj = from_wallet_tx(mempool_tx)
+        with node.assert_debug_log([f"stored conflicting tx {mempool_tx['txid']}"]):
             peer.send_txs_and_test(
-                [conflicting_tx_obj],
+                [mempool_tx_obj],
                 node,
                 success=False,
                 reject_reason="txn-mempool-conflict",
             )
 
-        self.wait_until(
-            lambda: can_find_inv_in_poll(
-                quorum,
-                int(conflicting_tx["txid"], 16),
-                response=AvalancheTxVoteError.CONFLICTING,
-                other_response=AvalancheTxVoteError.UNKNOWN,
-            )
-        )
-        assert mempool_tx["txid"] in node.getrawmempool()
-        assert conflicting_tx["txid"] not in node.getrawmempool()
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert conflicting_tx["txid"] in node.getrawmempool()
 
         self.wait_until(lambda: has_rejected_tx(conflicting_tx["txid"]))
         assert mempool_tx["txid"] in node.getrawmempool()
