@@ -662,7 +662,7 @@ void PeerManager::clearAllInvalid() {
 
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
-    if (m_stakingPreConsensus && isBoundToPeer(proofid) &&
+    if (present && m_stakingPreConsensus && isBoundToPeer(proofid) &&
         !isRemotelyPresentProof(proofid)) {
         // If this is the first time this peer's proof becomes a remote proof of
         // any node, ensure it is included in the contender cache. There is a

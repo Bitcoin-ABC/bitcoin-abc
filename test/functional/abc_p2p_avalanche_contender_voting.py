@@ -28,6 +28,7 @@ from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
+AVALANCHE_CLEANUP_INTERVAL = 5 * 60
 AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
 
 
@@ -479,6 +480,9 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         )
         self.wait_until(lambda: node.getbestblockhash() == tip)
 
+        now = int(time.time())
+        node.setmocktime(now)
+
         old_quorum = quorum
         quorum = get_quorum(stake_utxo_confirmations=3)
         tip = node.getbestblockhash()
@@ -545,6 +549,44 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             )
 
         # Proofs from the prior quorum that were persisted were loaded back into the contender cache
+        for contender_id in get_all_contender_ids(
+            tip, [p.proof.proofid for p in old_quorum[:-1]]
+        ):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                poll_node,
+                avakey,
+                [AvalancheVote(expected_response, contender_id)],
+            )
+
+        # Make proof dangling
+        now += 15 * 60 + 1
+        node.setmocktime(now)
+        node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
+
+        # Trigger contenders promotion
+        tip = self.generate(node, 1)[0]
+        expected_response = expected_contender_poll_response(tip)
+
+        # Check last proof was not promoted
+        contender_id = make_contender_id(tip, old_quorum[-1].proof.proofid)
+        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+        assert_response(
+            poll_node,
+            avakey,
+            [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)],
+        )
+
+        # Sanity check
+        for contender_id in get_all_contender_ids(tip):
+            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+            assert_response(
+                poll_node,
+                avakey,
+                [AvalancheVote(expected_response, contender_id)],
+            )
+
+        # All proofs from the prior quorum were promoted except the last
         for contender_id in get_all_contender_ids(
             tip, [p.proof.proofid for p in old_quorum[:-1]]
         ):
