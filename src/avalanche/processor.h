@@ -297,7 +297,7 @@ public:
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
     bool registerVotes(NodeId nodeid, const Response &response,
-                       std::vector<VoteItemUpdate> &updates, int &banscore,
+                       std::vector<VoteItemUpdate> &updates, bool &disconnect,
                        std::string &error)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
                                  !cs_invalidatedBlocks, !cs_finalizationTip);

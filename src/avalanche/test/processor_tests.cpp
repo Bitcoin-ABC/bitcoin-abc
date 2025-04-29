@@ -264,16 +264,16 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
                        std::vector<avalanche::VoteItemUpdate> &updates,
                        std::string &error) {
-        int banscore;
-        return m_processor->registerVotes(nodeid, response, updates, banscore,
+        bool disconnect;
+        return m_processor->registerVotes(nodeid, response, updates, disconnect,
                                           error);
     }
 
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
                        std::vector<avalanche::VoteItemUpdate> &updates) {
-        int banscore;
+        bool disconnect;
         std::string error;
-        return m_processor->registerVotes(nodeid, response, updates, banscore,
+        return m_processor->registerVotes(nodeid, response, updates, disconnect,
                                           error);
     }
 

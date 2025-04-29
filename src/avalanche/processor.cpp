@@ -539,7 +539,8 @@ void Processor::sendResponse(CNode *pfrom, Response response) const {
 
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
                               std::vector<VoteItemUpdate> &updates,
-                              int &banscore, std::string &error) {
+                              bool &disconnect, std::string &error) {
+    disconnect = false;
     updates.clear();
     {
         // Save the time at which we can query again.
@@ -557,13 +558,12 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 
     {
         // Check that the query exists. There is a possibility that it has been
-        // deleted if the query timed out, so we don't increase the ban score to
-        // slowly banning nodes for poor networking over time. Banning has to be
-        // handled at callsite to avoid DoS.
+        // deleted if the query timed out, so we don't disconnect for poor
+        // networking over time.
+        // Disconnecting has to be handled at callsite to avoid DoS.
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            banscore = 0;
             error = "unexpected-ava-response";
             return false;
         }
@@ -576,14 +576,14 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     const std::vector<Vote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
-        banscore = 100;
+        disconnect = true;
         error = "invalid-ava-response-size";
         return false;
     }
 
     for (size_t i = 0; i < size; i++) {
         if (invs[i].hash != votes[i].GetHash()) {
-            banscore = 100;
+            disconnect = true;
             error = "invalid-ava-response-content";
             return false;
         }

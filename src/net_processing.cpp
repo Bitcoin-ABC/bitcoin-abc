@@ -6729,13 +6729,12 @@ void PeerManagerImpl::ProcessMessage(
         auto now = GetTime<std::chrono::seconds>();
 
         std::vector<avalanche::VoteItemUpdate> updates;
-        int banscore{0};
+        bool disconnect{false};
         std::string error;
         if (!m_avalanche->registerVotes(pfrom.GetId(), response, updates,
-                                        banscore, error)) {
-            if (banscore > 0) {
-                // If the banscore was set, just increase the node ban score
-                Misbehaving(*peer, banscore, error);
+                                        disconnect, error)) {
+            if (disconnect) {
+                Misbehaving(*peer, 100, error);
                 return;
             }
 
