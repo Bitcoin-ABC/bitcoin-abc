@@ -2014,6 +2014,11 @@ class msg_avaproof:
 
 
 class msg_avapoll:
+    MAX_ELEMENT_POLL = 16
+    """Maximum number of items that can be polled at once.
+    See AVALANCHE_MAX_ELEMENT_POLL in processor.h.
+    """
+
     __slots__ = ("poll",)
     msgtype = b"avapoll"
 

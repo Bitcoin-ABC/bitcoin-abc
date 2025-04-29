@@ -6642,7 +6642,7 @@ void PeerManagerImpl::ProcessMessage(
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > AVALANCHE_MAX_ELEMENT_POLL) {
             Misbehaving(
-                *peer, 20,
+                *peer, 100,
                 strprintf("too-many-ava-poll: poll message size = %u", nCount));
             return;
         }
