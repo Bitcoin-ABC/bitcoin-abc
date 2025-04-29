@@ -6751,7 +6751,10 @@ void PeerManagerImpl::ProcessMessage(
             // the queries are cleared after 10s, this is at least 2 minutes
             // of network outage tolerance over the 1h window.
             if (pfrom.m_avalanche_message_fault_counter > 12) {
-                Misbehaving(*peer, 2, error);
+                pfrom.m_avalanche_message_fault_score += 2;
+                if (pfrom.m_avalanche_message_fault_score > 100) {
+                    Misbehaving(*peer, 100, error);
+                }
                 return;
             }
         }

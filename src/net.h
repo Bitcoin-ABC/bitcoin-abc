@@ -664,8 +664,17 @@ public:
 
     // The last time the node sent us a faulty message
     std::atomic<std::chrono::seconds> m_avalanche_last_message_fault{0s};
-    // How much faulty messages did this node accumulate
+    /**
+     * How much faulty messages did this node accumulate. This is reset if no
+     * fault occured for one hour.
+     */
     std::atomic<int> m_avalanche_message_fault_counter{0};
+    /**
+     * This score is incremented for every new faulty message received when
+     * m_avalanche_message_fault_counter is higher than a threshold.
+     * A score of 100 results in a disconnection.
+     */
+    std::atomic<int> m_avalanche_message_fault_score{0};
 
     SteadyMilliseconds m_last_poll{};
 
