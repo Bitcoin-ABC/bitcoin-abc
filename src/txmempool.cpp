@@ -540,6 +540,20 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
     for (auto iter_it = setAncestors.begin(); iter_it != setAncestors.end();) {
         // iter_it is an iterator of mapTx iterator (aka txiter)
         CTxMemPoolEntryRef entry = **iter_it;
+
+        if (m_finalizedTxsFitter.isBelowBlockMinFeeRate(
+                entry->GetModifiedFeeRate())) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Delay storing finalized tx %s due to fee rate below the "
+                     "block mininmum%s (see -blockmintxfee)\n",
+                     tx->GetTx().GetId().ToString(),
+                     entry->GetSharedTx()->GetId() == tx->GetSharedTx()->GetId()
+                         ? ""
+                         : strprintf(" for parent %s",
+                                     entry->GetSharedTx()->GetId().ToString()));
+            return false;
+        }
+
         // It is possible (and normal) that an ancestor is already finalized.
         // Beware to not account for it in this case.
         if (isAvalancheFinalized(entry->GetTx().GetId())) {
@@ -583,10 +597,14 @@ bool CTxMemPool::isWorthPolling(const CTransactionRef &tx) const {
 
     const TxId &txid = tx->GetId();
     if (auto it = GetIter(txid)) {
+        CTxMemPoolEntryRef entry = **it;
+
         // The tx is in the mempool, check it would fit the next block or if
         // it's already full of finalized txs.
-        return m_finalizedTxsFitter.testTxFits((**it)->GetTxSize(),
-                                               (**it)->GetSigChecks());
+        return !m_finalizedTxsFitter.isBelowBlockMinFeeRate(
+                   entry->GetModifiedFeeRate()) &&
+               m_finalizedTxsFitter.testTxFits(entry->GetTxSize(),
+                                               entry->GetSigChecks());
     }
 
     // Otherwise check if it's in the conflicting pool. If we reach this point

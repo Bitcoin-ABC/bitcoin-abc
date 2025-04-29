@@ -28,6 +28,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         # 141 x block size. So we need at least 101 sigchecks >= 14241
         # bytes as block size.
         self.blockmaxsize = 15000
+        self.blockmintxfee = 20
         self.extra_args = [
             [
                 "-avalanchepreconsensus=1",
@@ -40,6 +41,8 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
                 # So we can build arbitrary size txs using several OP_RETURN outputs
                 "-acceptnonstdtxn",
                 f"-blockmaxsize={self.blockmaxsize}",
+                # Fee rate in XEC/kB
+                f"-blockmintxfee={self.blockmintxfee}",
             ]
         ]
 
@@ -285,6 +288,44 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100)
         assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 4 * 200 + 100)
 
+    def test_blockmintxfee(self):
+        self.log.info(
+            "Check the finalization of tx when the fee is below blockmintxfee"
+        )
+
+        node = self.nodes[0]
+
+        self.generate(self.wallet, 10)
+        self.finalize_tip()
+
+        txs = []
+        # Fee rate in XEC/kB
+        for fee_rate in range(self.blockmintxfee - 5, self.blockmintxfee + 5, 1):
+            # Make sure to not include unconfirmed utxos! Otherwise may create
+            # unexpected tx dependencies
+            tx = self.wallet.send_self_transfer(
+                from_node=node, target_size=100, fee_rate=fee_rate, confirmed_only=True
+            )
+            assert tx["txid"] in node.getrawmempool()
+            txs.append(tx)
+
+        # Only the last 5 txs are polled, the first 5 are not because they won't
+        # make it into the next block
+        for tx in txs[5:]:
+            self.finalize_tx(
+                int(tx["txid"], 16),
+                unexpected_hashes=[
+                    int(low_fee_tx["txid"], 16) for low_fee_tx in txs[:5]
+                ],
+            )
+
+        # Mine the block: only the last 5 txs are mined as expected since the 5
+        # first are below blockmintxfee
+        self.generate(self.wallet, 1)
+        assert_equal(
+            sorted(node.getrawmempool()), sorted([tx["txid"] for tx in txs[:5]])
+        )
+
     def run_test(self):
         def get_quorum():
             return [
@@ -313,6 +354,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.test_chained_txs()
         self.test_diamond_txs()
         self.test_block_full()
+        self.test_blockmintxfee()
 
 
 if __name__ == "__main__":

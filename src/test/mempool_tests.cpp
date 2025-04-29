@@ -592,7 +592,7 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
     for (size_t i = 0; i < 100; i++) {
         CTransactionRef tx = make_tx({int64_t(i + 1) * COIN});
         const TxId &txid = tx->GetId();
-        auto mempoolEntry = entry.FromTx(tx);
+        auto mempoolEntry = entry.Fee(1000 * SATOSHI).FromTx(tx);
 
         pool.addUnchecked(mempoolEntry);
         BOOST_CHECK(pool.exists(txid));

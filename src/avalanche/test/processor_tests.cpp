@@ -483,7 +483,7 @@ struct TxProvider {
         CTransactionRef tx = MakeTransactionRef(std::move(mtx));
 
         TestMemPoolEntryHelper mempoolEntryHelper;
-        auto entry = mempoolEntryHelper.FromTx(tx);
+        auto entry = mempoolEntryHelper.Fee(1000 * SATOSHI).FromTx(tx);
 
         CTxMemPool *mempool = Assert(fixture->m_node.mempool.get());
         {
