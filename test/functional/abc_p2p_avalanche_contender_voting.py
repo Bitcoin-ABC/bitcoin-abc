@@ -13,6 +13,7 @@ from test_framework.avatools import (
     can_find_inv_in_poll,
     create_coinbase_stakes,
     get_ava_p2p_interface,
+    get_proof_ids,
 )
 from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
@@ -563,6 +564,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         now += 15 * 60 + 1
         node.setmocktime(now)
         node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
+        self.wait_until(lambda: old_quorum[-1].proof.proofid not in get_proof_ids(node))
 
         # Trigger contenders promotion
         tip = self.generate(node, 1)[0]
