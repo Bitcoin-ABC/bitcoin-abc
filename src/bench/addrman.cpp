@@ -73,18 +73,18 @@ static void FillAddrMan(AddrMan &addrman) {
 static void AddrManAdd(benchmark::Bench &bench) {
     CreateAddresses();
 
-    AddrMan addrman(/* asmap= */ std::vector<bool>(),
-                    /* consistency_check_ratio= */ 0);
-
     bench.run([&] {
+        AddrMan addrman(/*asmap=*/std::vector<bool>(),
+                        /*deterministic=*/false,
+                        /*consistency_check_ratio=*/0);
         AddAddressesToAddrMan(addrman);
-        addrman.Clear();
     });
 }
 
 static void AddrManSelect(benchmark::Bench &bench) {
-    AddrMan addrman(/* asmap= */ std::vector<bool>(),
-                    /* consistency_check_ratio= */ 0);
+    AddrMan addrman(/*asmap=*/std::vector<bool>(),
+                    /*deterministic=*/false,
+                    /*consistency_check_ratio=*/0);
 
     FillAddrMan(addrman);
 
@@ -95,8 +95,9 @@ static void AddrManSelect(benchmark::Bench &bench) {
 }
 
 static void AddrManGetAddr(benchmark::Bench &bench) {
-    AddrMan addrman(/* asmap= */ std::vector<bool>(),
-                    /* consistency_check_ratio= */ 0);
+    AddrMan addrman(/*asmap=*/std::vector<bool>(),
+                    /*deterministic=*/false,
+                    /*consistency_check_ratio=*/0);
 
     FillAddrMan(addrman);
 
@@ -131,6 +132,7 @@ static void AddrManAddThenGood(benchmark::Bench &bench) {
         // but that overhead is constant so improvements in CAddrMan::Good()
         // will still be noticeable.
         AddrMan addrman(/*asmap=*/std::vector<bool>(),
+                        /*deterministic=*/false,
                         /*consistency_check_ratio=*/0);
         AddAddressesToAddrMan(addrman);
 

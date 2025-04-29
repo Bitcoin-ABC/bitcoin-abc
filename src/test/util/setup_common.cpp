@@ -289,7 +289,8 @@ TestingSetup::TestingSetup(const ChainType chainType,
     LoadVerifyActivateChainstate();
 
     m_node.addrman = std::make_unique<AddrMan>(
-        /* asmap= */ std::vector<bool>(), /* consistency_check_ratio= */ 0);
+        /*asmap=*/std::vector<bool>(), /*deterministic=*/false,
+        /*consistency_check_ratio=*/0);
     m_node.banman = std::make_unique<BanMan>(
         m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);

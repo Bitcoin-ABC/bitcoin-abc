@@ -100,8 +100,6 @@ struct CConnmanTest : public CConnman {
         Init(options);
     };
 
-    void MakeAddrmanDeterministic() { addrman.MakeDeterministic(); }
-
     void Init(const Options &connOptions) {
         CConnman::Init(connOptions);
 
@@ -160,7 +158,6 @@ struct CConnmanTest : public CConnman {
             avalancheOutboundsCount = 0;
         }
 
-        addrman.Clear();
         ClearNodes();
 
         struct IpGen {
@@ -1141,20 +1138,26 @@ BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
 }
 
 BOOST_AUTO_TEST_CASE(net_group_limit) {
-    m_node.connman = std::make_unique<CConnmanTest>(
-        m_node.chainman->GetConfig(), 0x1337, 0x1337, *m_node.addrman);
-
     CConnman::Options options;
-    options.nMaxConnections = 200;
-    options.m_max_outbound_full_relay = 8;
-    options.m_max_avalanche_outbound = 60;
+    auto freshConnman = [&]() {
+        m_node.addrman = std::make_unique<AddrMan>(
+            /*asmap=*/std::vector<bool>(), /*deterministic=*/true,
+            /*consistency_check_ratio=*/0);
+        m_node.connman = std::make_unique<CConnmanTest>(
+            m_node.chainman->GetConfig(), 0x1337, 0x1337, *m_node.addrman);
 
-    auto connman = static_cast<CConnmanTest *>(m_node.connman.get());
-    connman->MakeAddrmanDeterministic();
-    connman->Init(options);
+        options.nMaxConnections = 200;
+        options.m_max_outbound_full_relay = 8;
+        options.m_max_avalanche_outbound = 60;
+
+        auto connman = static_cast<CConnmanTest *>(m_node.connman.get());
+        connman->Init(options);
+
+        return connman;
+    };
 
     // Single full relay outbound is no problem
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK, 1},
@@ -1165,7 +1168,7 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
 
     // Adding more contiguous full relay outbounds fails due to network group
     // limitation
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK, 3},
@@ -1175,7 +1178,7 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
         ));
 
     // Outbounds from different groups can be connected
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK, 1},
@@ -1187,7 +1190,7 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
         ));
 
     // Up to the max
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK, 1},
@@ -1209,7 +1212,7 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
 
     // Avalanche outbounds are prioritized, so contiguous full relay outbounds
     // will fail due to network group limitation
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK | NODE_AVALANCHE, 1},
@@ -1220,7 +1223,7 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
         ));
 
     // Adding more avalanche outbounds is fine
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK | NODE_AVALANCHE, 3},
@@ -1232,7 +1235,7 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
 
     // Group limit still applies to non avalanche outbounds, which also remain
     // capped to the max from the connman options.
-    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+    BOOST_CHECK(freshConnman()->checkContiguousAddressesConnection(
         {
             // group, services, quantity
             {0, NODE_NETWORK | NODE_AVALANCHE, 50},

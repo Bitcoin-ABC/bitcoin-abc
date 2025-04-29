@@ -69,7 +69,8 @@ class AddrMan {
     const std::unique_ptr<AddrManImpl> m_impl;
 
 public:
-    AddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio);
+    AddrMan(std::vector<bool> asmap, bool deterministic,
+            int32_t consistency_check_ratio);
 
     ~AddrMan();
 
@@ -158,11 +159,6 @@ public:
     void SetServices(const CService &addr, ServiceFlags nServices);
 
     const std::vector<bool> &GetAsmap() const;
-
-    void Clear();
-
-    //! Ensure that bucket placement is always the same for testing purposes.
-    void MakeDeterministic();
 
     friend class AddrManTest;
     friend class AddrManCorrupted;

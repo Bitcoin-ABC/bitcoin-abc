@@ -129,10 +129,23 @@ double AddrInfo::GetChance(NodeSeconds now) const {
     return fChance;
 }
 
-AddrManImpl::AddrManImpl(std::vector<bool> &&asmap,
+AddrManImpl::AddrManImpl(std::vector<bool> &&asmap, bool deterministic,
                          int32_t consistency_check_ratio)
-    : m_consistency_check_ratio{consistency_check_ratio},
-      m_asmap{std::move(asmap)} {}
+    : insecure_rand{deterministic},
+      nKey{deterministic ? uint256{1} : insecure_rand.rand256()},
+      m_consistency_check_ratio{consistency_check_ratio},
+      m_asmap{std::move(asmap)} {
+    for (auto &bucket : vvNew) {
+        for (auto &entry : bucket) {
+            entry = -1;
+        }
+    }
+    for (auto &bucket : vvTried) {
+        for (auto &entry : bucket) {
+            entry = -1;
+        }
+    }
+}
 
 AddrManImpl::~AddrManImpl() {
     nKey.SetNull();
@@ -1252,46 +1265,10 @@ const std::vector<bool> &AddrManImpl::GetAsmap() const {
     return m_asmap;
 }
 
-void AddrManImpl::Clear() {
-    LOCK(cs);
-    std::vector<int>().swap(vRandom);
-
-    if (deterministic) {
-        nKey = uint256{1};
-        insecure_rand = FastRandomContext(true);
-    } else {
-        nKey = insecure_rand.rand256();
-    }
-    for (size_t bucket = 0; bucket < ADDRMAN_NEW_BUCKET_COUNT; bucket++) {
-        for (size_t entry = 0; entry < ADDRMAN_BUCKET_SIZE; entry++) {
-            vvNew[bucket][entry] = -1;
-        }
-    }
-    for (size_t bucket = 0; bucket < ADDRMAN_TRIED_BUCKET_COUNT; bucket++) {
-        for (size_t entry = 0; entry < ADDRMAN_BUCKET_SIZE; entry++) {
-            vvTried[bucket][entry] = -1;
-        }
-    }
-
-    nIdCount = 0;
-    nTried = 0;
-    nNew = 0;
-    // Initially at 1 so that "never" is strictly worse.
-    m_last_good = NodeSeconds{1s};
-    mapInfo.clear();
-    mapAddr.clear();
-}
-
-void AddrManImpl::MakeDeterministic() {
-    deterministic = true;
-    Clear();
-}
-
-AddrMan::AddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio)
-    : m_impl(std::make_unique<AddrManImpl>(std::move(asmap),
-                                           consistency_check_ratio)) {
-    Clear();
-}
+AddrMan::AddrMan(std::vector<bool> asmap, bool deterministic,
+                 int32_t consistency_check_ratio)
+    : m_impl(std::make_unique<AddrManImpl>(std::move(asmap), deterministic,
+                                           consistency_check_ratio)) {}
 
 AddrMan::~AddrMan() = default;
 
@@ -1357,12 +1334,4 @@ void AddrMan::SetServices(const CService &addr, ServiceFlags nServices) {
 
 const std::vector<bool> &AddrMan::GetAsmap() const {
     return m_impl->GetAsmap();
-}
-
-void AddrMan::Clear() {
-    return m_impl->Clear();
-}
-
-void AddrMan::MakeDeterministic() {
-    return m_impl->MakeDeterministic();
 }

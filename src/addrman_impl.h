@@ -108,7 +108,8 @@ public:
 
 class AddrManImpl {
 public:
-    AddrManImpl(std::vector<bool> &&asmap, int32_t consistency_check_ratio);
+    AddrManImpl(std::vector<bool> &&asmap, bool deterministic,
+                int32_t consistency_check_ratio);
 
     ~AddrManImpl();
 
@@ -149,10 +150,6 @@ public:
 
     const std::vector<bool> &GetAsmap() const;
 
-    void Clear() EXCLUSIVE_LOCKS_REQUIRED(!cs);
-
-    void MakeDeterministic() EXCLUSIVE_LOCKS_REQUIRED(!cs);
-
     friend class AddrManTest;
     friend class AddrManCorrupted;
 
@@ -161,7 +158,7 @@ private:
     mutable Mutex cs;
 
     //! Source of random numbers for randomization in inner loops
-    mutable FastRandomContext insecure_rand;
+    mutable FastRandomContext insecure_rand GUARDED_BY(cs);
 
     //! secret key to randomize bucket select with
     uint256 nKey;
@@ -196,7 +193,7 @@ private:
     static constexpr uint8_t INCOMPATIBILITY_BASE = 32;
 
     //! last used nId
-    int nIdCount GUARDED_BY(cs);
+    int nIdCount GUARDED_BY(cs){0};
 
     //! table with information about all nIds
     std::unordered_map<int, AddrInfo> mapInfo GUARDED_BY(cs);
@@ -210,19 +207,20 @@ private:
     mutable std::vector<int> vRandom GUARDED_BY(cs);
 
     // number of "tried" entries
-    int nTried GUARDED_BY(cs);
+    int nTried GUARDED_BY(cs){0};
 
     //! list of "tried" buckets
     int vvTried[ADDRMAN_TRIED_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
 
     //! number of (unique) "new" entries
-    int nNew GUARDED_BY(cs);
+    int nNew GUARDED_BY(cs){0};
 
     //! list of "new" buckets
     int vvNew[ADDRMAN_NEW_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
 
-    //! last time Good was called (memory only)
-    NodeSeconds m_last_good GUARDED_BY(cs);
+    //! last time Good was called (memory only).
+    //! Initially set to 1 so that "never" is strictly worse.
+    NodeSeconds m_last_good GUARDED_BY(cs){1s};
 
     //! Holds addrs inserted into tried table that collide with existing
     //! entries. Test-before-evict discipline used to resolve these collisions.
