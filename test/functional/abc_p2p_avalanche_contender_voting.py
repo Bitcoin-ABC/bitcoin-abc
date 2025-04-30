@@ -282,42 +282,53 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 [AvalancheVote(AvalancheContenderVoteError.PENDING, contender_id)],
             )
 
-        def find_polled_contenders(local_winner_contender_id=None):
-            # Answer polls until contenders start polling
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
+        def find_polled_contenders(expected_contenders, local_winner_contender_id=None):
+            polled_contenders = set()
 
-                if poll is None:
-                    continue
+            def poll_round():
+                nonlocal polled_contenders
 
-                votes = []
-                polled_contenders = []
-                for inv in poll.invs:
-                    votes.append(
-                        AvalancheVote(AvalancheContenderVoteError.ACCEPTED, inv.hash)
-                    )
-                    if inv.type == MSG_AVA_STAKE_CONTENDER:
-                        polled_contenders.append(inv.hash)
+                # Answer polls until contenders start polling
+                for n in quorum:
+                    poll = n.get_avapoll_if_available()
 
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+                    if poll is None:
+                        continue
 
-                if local_winner_contender_id:
-                    # Local winner must be polled
-                    if local_winner_contender_id not in polled_contenders:
-                        return False
+                    votes = []
+                    for inv in poll.invs:
+                        votes.append(
+                            AvalancheVote(
+                                AvalancheContenderVoteError.ACCEPTED, inv.hash
+                            )
+                        )
+                        if inv.type == MSG_AVA_STAKE_CONTENDER:
+                            polled_contenders.add(inv.hash)
 
-                # Max number of contenders was polled
-                if len(polled_contenders) == 12:
-                    return True
+                    n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
-            return False
+                    if local_winner_contender_id:
+                        # Local winner must be polled
+                        if local_winner_contender_id not in polled_contenders:
+                            return False
+
+                # Local winner must be polled
+                if (
+                    local_winner_contender_id
+                    and local_winner_contender_id not in polled_contenders
+                ):
+                    return False
+
+                return (set(expected_contenders) - polled_contenders) == set()
+
+            self.wait_until(poll_round)
 
         # Contenders get polled even though there is no local staking reward winner yet.
         # This helps in the case that the local winner fails to compute, but the network
         # can still finalize a winner. For example, a poorly connected node could have
         # proofs go dangling and then come back, but their registration times would be
         # too early to be selected for staking rewards for a short time.
-        self.wait_until(lambda: find_polled_contenders())
+        find_polled_contenders(get_all_contender_ids(tip)[:12])
 
         # Finalize contenders so we do not have any unanswered polls before calling find_polled_contenders again
         finalize_contenders(tip, [])
@@ -355,7 +366,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             ],
         )
 
-        self.wait_until(lambda: find_polled_contenders(local_winner_cid))
+        find_polled_contenders(contenders[:12], local_winner_cid)
 
         # Manually set a winner that isn't the local winner
         manual_winner = (
@@ -603,7 +614,11 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Even though we haven't mined a block since restarting, contenders are
         # immediately polled once quorum is established.
-        self.wait_until(lambda: find_polled_contenders())
+        find_polled_contenders(
+            get_all_contender_ids(tip, [peer.proof for peer in quorum + old_quorum])[
+                :12
+            ]
+        )
 
         for peer in quorum:
             self.wait_until(lambda: has_finalized_proof(peer.proof.proofid))
