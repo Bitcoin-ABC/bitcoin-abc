@@ -6763,6 +6763,10 @@ void PeerManagerImpl::ProcessMessage(
             // the queries are cleared after 10s, this is at least 2 minutes
             // of network outage tolerance over the 1h window.
             if (pfrom.m_avalanche_message_fault_counter > 12) {
+                LogPrint(
+                    BCLog::AVALANCHE,
+                    "Repeated failure to register votes from peer %d: %s\n",
+                    pfrom.GetId(), error);
                 pfrom.m_avalanche_message_fault_score += 2;
                 if (pfrom.m_avalanche_message_fault_score > 100) {
                     Misbehaving(*peer, 100, error);
