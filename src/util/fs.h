@@ -237,8 +237,6 @@ private:
 #endif
 };
 
-std::string get_filesystem_error_message(const fs::filesystem_error &e);
-
 fs::path GetTempDirectoryPath();
 }; // namespace fsbridge
 

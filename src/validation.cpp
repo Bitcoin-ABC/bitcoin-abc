@@ -6624,9 +6624,9 @@ Chainstate &ChainstateManager::InitializeChainstate(CTxMemPool *mempool) {
                           fs::PathToString(node::SNAPSHOT_BLOCKHASH_FILENAME));
             }
         } catch (const fs::filesystem_error &e) {
-            LogPrintf("[snapshot] failed to remove file %s: %s\n",
-                      fs::PathToString(base_blockhash_path),
-                      fsbridge::get_filesystem_error_message(e));
+            LogWarning("[snapshot] failed to remove file %s: %s\n",
+                       fs::PathToString(base_blockhash_path),
+                       e.code().message());
         }
     }
 

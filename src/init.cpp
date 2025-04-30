@@ -403,8 +403,8 @@ void Shutdown(NodeContext &node) {
                       __func__);
         }
     } catch (const fs::filesystem_error &e) {
-        LogPrintf("%s: Unable to remove PID file: %s\n", __func__,
-                  fsbridge::get_filesystem_error_message(e));
+        LogWarning("%s: Unable to remove PID file: %s\n", __func__,
+                   e.code().message());
     }
 
     LogPrintf("%s: done\n", __func__);
