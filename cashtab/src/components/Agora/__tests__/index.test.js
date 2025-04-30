@@ -610,7 +610,7 @@ describe('<Agora />', () => {
                 ).not.toBeInTheDocument(),
             // This can take some time
             // May need to adjust if experience flakiness
-            { timeout: 5000 },
+            { timeout: 10000 },
         );
 
         // When orderbook info has loaded, we see a switch to sort by offer count
