@@ -304,7 +304,8 @@ class InvalidMessagesTest(BitcoinTestFramework):
 
         conn = self.nodes[0].add_p2p_connection(P2PDataStore())
         with self.nodes[0].assert_debug_log(
-            [f"received: {msg_type.decode('ascii')} ({msg_size} bytes)"]
+            [f"received: {msg_type.decode('ascii')} ({msg_size} bytes)"],
+            unexpected_msgs=["Misbehaving"],
         ):
             conn.send_and_ping(msg)
         self.nodes[0].disconnect_p2ps()
@@ -340,7 +341,8 @@ class InvalidMessagesTest(BitcoinTestFramework):
         size = MAX_HEADERS_RESULTS + 1
         msg = msg_headers([CBlockHeader()] * size)
         self.test_oversized_msg(msg, size)
-        self.test_not_oversized_msg_boundaries(msg.msgtype)
+        # test_not_oversized_msg_boundaries is not tested here because the max headers
+        # msg size is well below the boundaries tested
         self.restart_node(0)
 
     def test_oversized_block_msg(self):
