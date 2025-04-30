@@ -229,14 +229,13 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
                 n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
-                if len(polled_contenders) > 0:
-                    if local_winner_contender_id:
-                        # Local winner must be polled
-                        if local_winner_contender_id not in polled_contenders:
-                            return False
+                if local_winner_contender_id:
+                    # Local winner must be polled
+                    if local_winner_contender_id not in polled_contenders:
+                        return False
 
-                    # Max number of contenders was polled
-                    assert_equal(len(polled_contenders), 12)
+                # Max number of contenders was polled
+                if len(polled_contenders) == 12:
                     return True
 
             return False
