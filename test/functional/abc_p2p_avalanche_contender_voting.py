@@ -7,25 +7,31 @@ import time
 
 from test_framework.authproxy import JSONRPCException
 from test_framework.avatools import (
+    AvaP2PInterface,
     assert_response,
     avalanche_proof_from_hex,
     build_msg_avaproofs,
     can_find_inv_in_poll,
     create_coinbase_stakes,
+    gen_proof,
     get_ava_p2p_interface,
     get_proof_ids,
 )
 from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
     MSG_AVA_STAKE_CONTENDER,
+    NODE_AVALANCHE,
+    NODE_NETWORK,
     AvalancheContenderVoteError,
+    AvalancheDelegation,
     AvalancheVote,
+    FromHex,
     hash256,
     ser_uint256,
 )
 from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, uint256_hex
+from test_framework.util import assert_equal, assert_greater_than, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
@@ -65,16 +71,51 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         node.setmocktime(now)
 
         # Build a fake quorum of nodes.
-        def get_quorum(stake_utxo_confirmations=1):
-            def new_ava_interface(node):
+        def get_quorum(stake_utxo_confirmations=1, proof_data=None):
+            def new_ava_interface(node, i):
                 # Generate a unique payout script for each proof so we can accurately test the stake winners
-                payoutAddress = node.getnewaddress()
-                peer = get_ava_p2p_interface(
-                    self,
-                    node,
-                    payoutAddress=payoutAddress,
-                    stake_utxo_confirmations=stake_utxo_confirmations,
-                )
+                if not proof_data:
+                    payoutAddress = node.getnewaddress()
+                    peer = get_ava_p2p_interface(
+                        self,
+                        node,
+                        payoutAddress=payoutAddress,
+                        stake_utxo_confirmations=stake_utxo_confirmations,
+                    )
+                else:
+                    assert_greater_than(len(proof_data), i)
+
+                    peer = AvaP2PInterface()
+                    peer.master_privkey = proof_data[i]["privkey"]
+                    peer.proof = proof_data[i]["proof"]
+
+                    assert node.verifyavalancheproof(peer.proof.serialize().hex())
+
+                    delegation_hex = node.delegateavalancheproof(
+                        uint256_hex(peer.proof.limited_proofid),
+                        bytes_to_wif(peer.master_privkey.get_bytes()),
+                        peer.delegated_privkey.get_pubkey().get_bytes().hex(),
+                    )
+                    assert node.verifyavalanchedelegation(delegation_hex)
+                    peer.delegation = FromHex(AvalancheDelegation(), delegation_hex)
+
+                    node.add_p2p_connection(
+                        peer, services=NODE_NETWORK | NODE_AVALANCHE
+                    )
+                    peer.nodeid = node.getpeerinfo()[-1]["id"]
+
+                    def avapeer_connected():
+                        node_list = []
+                        try:
+                            node_list = node.getavalanchepeerinfo(
+                                uint256_hex(peer.proof.proofid)
+                            )[0]["node_list"]
+                        except BaseException:
+                            pass
+
+                        return peer.nodeid in node_list
+
+                    self.wait_until(avapeer_connected)
 
                 # This test depends on each proof being added to the contender cache before
                 # the next block arrives, so we wait until that happens.
@@ -85,9 +126,10 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                     )
                     == AvalancheContenderVoteError.PENDING
                 )
+
                 return peer
 
-            return [new_ava_interface(node) for _ in range(0, QUORUM_NODE_COUNT)]
+            return [new_ava_interface(node, i) for i in range(0, QUORUM_NODE_COUNT)]
 
         # Pick one node from the quorum for polling.
         quorum = get_quorum()
@@ -469,26 +511,51 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         self.log.info("Check votes after node restart")
 
+        # Build the proofs for the quorum so we don't mine any block after the
+        # restart, and make them mature. Note that the proof staked amount is
+        # only 45M XEC each because of the staking rewards in the blocks
+        # coinbase.
+        proof_data = []
+        for _ in range(QUORUM_NODE_COUNT):
+            payout_address = node.getnewaddress()
+            privkey, proof = gen_proof(self, node, payoutAddress=payout_address)
+
+            proof_data.append(
+                {
+                    "privkey": privkey,
+                    "proof": proof,
+                    "payout_address": payout_address,
+                }
+            )
+
+        self.generate(node, 3)
+        tip_before_restart = node.getbestblockhash()
+
         # Restart the node. Persisted ava peers should be re-added to the cache.
         self.restart_node(
             0,
             extra_args=self.extra_args[0]
             + [
-                "-avaminquorumconnectedstakeratio=0.5",
+                # After restart we will have a new quorum worth 16 * 45M XEC,
+                # but also dangling proofs worth 16* 50M XEC due to avapeeers
+                # persistency
+                "-avaminquorumconnectedstakeratio=0.4",
                 "-avaproofstakeutxoconfirmations=3",
             ],
         )
-        self.wait_until(lambda: node.getbestblockhash() == tip)
 
         now = int(time.time())
         node.setmocktime(now)
 
         old_quorum = quorum
-        quorum = get_quorum(stake_utxo_confirmations=3)
-        tip = node.getbestblockhash()
+        quorum = get_quorum(stake_utxo_confirmations=3, proof_data=proof_data)
         poll_node = quorum[0]
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        # Make sure we mined no block since restarting
+        tip = node.getbestblockhash()
+        assert_equal(tip, tip_before_restart)
 
         # Even though we haven't mined a block since restarting, contenders are
         # immediately polled once quorum is established.
