@@ -577,14 +577,19 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             + [
                 # After restart we will have a new quorum worth 16 * 45M XEC,
                 # but also dangling proofs worth 16* 50M XEC due to avapeeers
-                # persistency
-                "-avaminquorumconnectedstakeratio=0.4",
+                # persistency. Set the ratio so the quorum is established only
+                # after the last peer (out of 16) has connected, otherwise the
+                # test will use a subset of the peers to determine the
+                # contenders until a block is mined.
+                "-avaminquorumconnectedstakeratio=0.47",
                 "-avaproofstakeutxoconfirmations=3",
             ],
         )
 
         now = int(time.time())
         node.setmocktime(now)
+
+        assert node.getavalancheinfo()["ready_to_poll"] is False
 
         old_quorum = quorum
         quorum = get_quorum(stake_utxo_confirmations=3, proof_data=proof_data)
