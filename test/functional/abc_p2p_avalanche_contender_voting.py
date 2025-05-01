@@ -169,15 +169,22 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         def proof_reward_rank(contender_id, proof_score):
             return (256.0 - math.log2(contender_id)) / proof_score
 
-        def get_all_contender_ids(tip, proofids=None):
+        def get_all_contender_ids(tip, proofs=None):
             # Determine all possible contenders IDs for the given block.
             # The first 12 (best scores) will be polled.
-            if not proofids:
-                proofids = [peer.proof.proofid for peer in quorum]
-            return sorted(
-                [make_contender_id(tip, proofid) for proofid in proofids],
-                key=lambda cid: proof_reward_rank(cid, 5000),
+            if not proofs:
+                proofs = [peer.proof for peer in quorum]
+
+            proofs_and_cids = [
+                (proof, make_contender_id(tip, proof.proofid)) for proof in proofs
+            ]
+            proofs_and_cids = sorted(
+                proofs_and_cids,
+                key=lambda proof_and_cid: proof_reward_rank(
+                    proof_and_cid[1], proof_and_cid[0].get_score()
+                ),
             )
+            return [proof_and_cid[1] for proof_and_cid in proofs_and_cids]
 
         def vote_all_contenders(
             winners, winnerVote=AvalancheContenderVoteError.ACCEPTED
@@ -531,6 +538,10 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         self.generate(node, 3)
         tip_before_restart = node.getbestblockhash()
 
+        # From there the check_stake_winners function won't work as it assumes
+        # the staked amount is 50M XEC per proof
+        del check_stake_winners
+
         # Restart the node. Persisted ava peers should be re-added to the cache.
         self.restart_node(
             0,
@@ -617,7 +628,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # Proofs from the prior quorum that were persisted were loaded back into the contender cache
         for contender_id in get_all_contender_ids(
-            tip, [p.proof.proofid for p in old_quorum[:-1]]
+            tip, [p.proof for p in old_quorum[:-1]]
         ):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
@@ -656,7 +667,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
         # All proofs from the prior quorum were promoted except the last
         for contender_id in get_all_contender_ids(
-            tip, [p.proof.proofid for p in old_quorum[:-1]]
+            tip, [p.proof for p in old_quorum[:-1]]
         ):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
@@ -690,9 +701,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             )
 
         # All proofs from the prior quorum were promoted
-        for contender_id in get_all_contender_ids(
-            tip, [p.proof.proofid for p in old_quorum]
-        ):
+        for contender_id in get_all_contender_ids(tip, [p.proof for p in old_quorum]):
             poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
             assert_response(
                 poll_node,

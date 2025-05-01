@@ -943,6 +943,9 @@ class AvalancheProof:
         # make it an int, for comparing with Delegation.proofid
         self.proofid = uint256_from_str(h)
 
+    def get_score(self):
+        return sum([stake.stake.amount for stake in self.stakes]) // 1000000
+
     def deserialize(self, f):
         self.sequence = struct.unpack("<Q", f.read(8))[0]
         self.expiration = struct.unpack("<q", f.read(8))[0]
