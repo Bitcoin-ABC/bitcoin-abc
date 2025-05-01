@@ -8,32 +8,37 @@ import App from 'components/App/App';
 import { WalletProvider } from 'wallet/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from 'components/Common/GoogleAnalytics';
-import { ChronikClient } from 'chronik-client';
+import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';
 import { Ecc } from 'ecash-lib';
 import { Agora } from 'ecash-agora';
 
 // Initialize Ecc (used for signing txs) at app startup
 const ecc = new Ecc();
-// Initialize chronik-client at app startup
-const chronik = new ChronikClient(chronikConfig.urls);
-// Initialize new Agora chronik wrapper at app startup
-const agora = new Agora(chronik);
 
-const container = document.getElementById('root');
-if (container) {
-    const root = createRoot(container);
-    root.render(
-        <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
-            <Router>
-                {GA.init() && <GA.RouteTracker />}
-                <App />
-            </Router>
-        </WalletProvider>,
-    );
-} else {
-    console.error('Failed to find the root element');
-}
+ChronikClient.useStrategy(ConnectionStrategy.ClosestFirst, chronikConfig.urls)
+    .then(chronik => {
+        // Initialize new Agora chronik wrapper after chronik is ready
+        const agora = new Agora(chronik);
+
+        const container = document.getElementById('root');
+        if (container) {
+            const root = createRoot(container);
+            root.render(
+                <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
+                    <Router>
+                        {GA.init() && <GA.RouteTracker />}
+                        <App />
+                    </Router>
+                </WalletProvider>,
+            );
+        } else {
+            console.error('Failed to find the root element');
+        }
+    })
+    .catch(err => {
+        console.error('Failed to initialize chronik client', err);
+    });
 
 if (module.hot) {
     module.hot.accept();
