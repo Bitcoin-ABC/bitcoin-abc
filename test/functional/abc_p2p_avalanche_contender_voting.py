@@ -233,8 +233,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
                 n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
-        def finalize_contenders(tip, winner_contenders):
-            loser_contenders = get_all_contender_ids(tip)[:12]
+        def finalize_contenders(tip, winner_contenders, proofs=None):
+            loser_contenders = get_all_contender_ids(tip, proofs)[:12]
             for winner in winner_contenders:
                 loser_contenders.remove(winner)
 
@@ -502,7 +502,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             check_stake_winners(
                 tip, [], winners, [(local_winner_proofid, local_winner_payout_script)]
             )
-
         self.log.info("Vote on contenders: zero winners")
 
         tip = self.generate(node, 1)[0]
@@ -654,38 +653,40 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         avakey = ECPubKey()
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
-        # It is possible staking rewards are not ready depending if they were computed before or
-        # after proofs were finalized.
-        def expected_contender_poll_response(tip):
+        def assert_contender_polls(tip, contender_ids):
+            local_winner_cid = None
+            # It is possible staking rewards are not ready depending if they were computed
+            # before or after proofs were finalized.
             try:
-                if len(node.getstakingreward(tip)) > 0:
-                    return AvalancheContenderVoteError.ACCEPTED
+                staking_reward = node.getstakingreward(tip)
+                local_winner_proofid = int(staking_reward[0]["proofid"], 16)
+                local_winner_cid = make_contender_id(tip, local_winner_proofid)
             except JSONRPCException:
                 # An exception is thrown if staking rewards cannot be computed
                 pass
-            return AvalancheContenderVoteError.PENDING
 
-        expected_response = expected_contender_poll_response(tip)
+            for contender_id in contender_ids:
+                poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
+                expected_response = AvalancheContenderVoteError.PENDING
+                if local_winner_cid:
+                    # If staking rewards are ready, all contenders should be invalidated for simplicity
+                    expected_response = AvalancheContenderVoteError.INVALID
+                assert_response(
+                    poll_node,
+                    avakey,
+                    [AvalancheVote(expected_response, contender_id)],
+                )
+
+        # Finalize contenders so we don't need to keep track which are invalidated (all of them are)
+        finalize_contenders(tip, [], [peer.proof for peer in quorum + old_quorum])
 
         # Sanity check that new quorum contenders can be polled even though we have not mined a block yet
-        for contender_id in get_all_contender_ids(tip):
-            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(
-                poll_node,
-                avakey,
-                [AvalancheVote(expected_response, contender_id)],
-            )
+        assert_contender_polls(tip, get_all_contender_ids(tip))
 
         # Proofs from the prior quorum that were persisted were loaded back into the contender cache
-        for contender_id in get_all_contender_ids(
-            tip, [p.proof for p in old_quorum[:-1]]
-        ):
-            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(
-                poll_node,
-                avakey,
-                [AvalancheVote(expected_response, contender_id)],
-            )
+        assert_contender_polls(
+            tip, get_all_contender_ids(tip, [p.proof for p in old_quorum])
+        )
 
         # Make proof dangling
         now += 15 * 60 + 1
@@ -693,10 +694,13 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
         self.wait_until(lambda: old_quorum[-1].proof.proofid not in get_proof_ids(node))
 
+        # Advance time past the staking rewards minimum registration delay
+        now += 90 * 60 + 1
+        node.setmocktime(now)
+
         # Trigger contenders promotion
         tip = self.generate(node, 1)[0]
         finalize_tip(tip)
-        expected_response = expected_contender_poll_response(tip)
 
         # Check last proof was not promoted
         contender_id = make_contender_id(tip, old_quorum[-1].proof.proofid)
@@ -707,59 +711,31 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             [AvalancheVote(AvalancheContenderVoteError.UNKNOWN, contender_id)],
         )
 
+        # Invalidate contenders
+        finalize_contenders(tip, [], [peer.proof for peer in quorum + old_quorum[:-1]])
+
         # Sanity check
-        for contender_id in get_all_contender_ids(tip):
-            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(
-                poll_node,
-                avakey,
-                [AvalancheVote(expected_response, contender_id)],
-            )
+        assert_contender_polls(tip, get_all_contender_ids(tip))
 
         # All proofs from the prior quorum were promoted except the last
-        for contender_id in get_all_contender_ids(
-            tip, [p.proof for p in old_quorum[:-1]]
-        ):
-            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(
-                poll_node,
-                avakey,
-                [AvalancheVote(expected_response, contender_id)],
-            )
-
-        # Set last proof as remote
-        prefilled_proofs = [old_quorum[-1].proof]
-        peer_with_getavaproofs = peer_has_getavaproofs()
-        peer_with_getavaproofs.send_message(
-            build_msg_avaproofs(prefilled_proofs, prefilled_proofs)
+        assert_contender_polls(
+            tip, get_all_contender_ids(tip, [p.proof for p in old_quorum[:-1]])
         )
-        with p2p_lock:
-            # Reset the count so we don't pick this peer again unless it received another
-            # getavaproofs message.
-            peer_with_getavaproofs.message_count["getavaproofs"] = 0
 
         # Trigger contenders promotion
         tip = self.generate(node, 1)[0]
         finalize_tip(tip)
-        expected_response = expected_contender_poll_response(tip)
+
+        # Finalize contenders so we don't need to keep track which are invalidated (all of them are)
+        finalize_contenders(tip, [], [peer.proof for peer in quorum + old_quorum[:-1]])
 
         # Sanity check
-        for contender_id in get_all_contender_ids(tip):
-            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(
-                poll_node,
-                avakey,
-                [AvalancheVote(expected_response, contender_id)],
-            )
+        assert_contender_polls(tip, get_all_contender_ids(tip))
 
-        # All proofs from the prior quorum were promoted
-        for contender_id in get_all_contender_ids(tip, [p.proof for p in old_quorum]):
-            poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-            assert_response(
-                poll_node,
-                avakey,
-                [AvalancheVote(expected_response, contender_id)],
-            )
+        # All proofs from the prior quorum were promoted except the last
+        assert_contender_polls(
+            tip, get_all_contender_ids(tip, [p.proof for p in old_quorum[:-1]])
+        )
 
         self.log.info("Check votes when immature proof matures")
 
@@ -817,18 +793,18 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Trigger contenders promotion and mature the proof
         tip = self.generate(node, 1)[0]
         finalize_tip(tip)
-        expected_response = expected_contender_poll_response(tip)
         self.wait_until(lambda: check_immature_proofs([]))
 
-        # The proof is now mature so it has been added to the contender cache.
-        # Its vote status is pending because staking rewards are not active yet.
-        contender_id = make_contender_id(tip, immature_proof.proofid)
-        poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-        assert_response(
-            poll_node,
-            avakey,
-            [AvalancheVote(expected_response, contender_id)],
+        # Finalize contenders so we don't need to keep track which are invalidated (all of them are)
+        finalize_contenders(
+            tip,
+            [],
+            [peer.proof for peer in quorum + old_quorum[:-1]] + [immature_proof],
         )
+
+        # The proof is now mature so it has been added to the contender cache.
+        contender_id = make_contender_id(tip, immature_proof.proofid)
+        assert_contender_polls(tip, [contender_id])
 
 
 if __name__ == "__main__":
