@@ -139,7 +139,13 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         assert node.getavalancheinfo()["ready_to_poll"] is True
 
         def has_finalized_proof(proofid):
-            can_find_inv_in_poll(quorum, proofid)
+            can_find_inv_in_poll(
+                quorum,
+                proofid,
+                response_map={
+                    MSG_AVA_STAKE_CONTENDER: AvalancheContenderVoteError.UNKNOWN
+                },
+            )
             return node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
 
         for peer in quorum:
@@ -198,7 +204,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
 
                 votes = []
                 for inv in poll.invs:
-                    r = AvalancheContenderVoteError.ACCEPTED
+                    r = AvalancheContenderVoteError.UNKNOWN
 
                     # Only accept contenders that should be winners
                     if inv.type == MSG_AVA_STAKE_CONTENDER:
