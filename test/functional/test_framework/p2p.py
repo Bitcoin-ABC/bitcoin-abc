@@ -677,11 +677,11 @@ class P2PInterface(P2PConnection):
 
         self.wait_until(test_function, timeout=timeout)
 
-    def wait_for_verack(self, timeout=60):
+    def wait_for_verack(self, timeout=60, check_connected=True):
         def test_function():
             return "verack" in self.last_message
 
-        self.wait_until(test_function, timeout=timeout)
+        self.wait_until(test_function, timeout=timeout, check_connected=check_connected)
 
     # Message sending helper functions
 
