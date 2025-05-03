@@ -56,6 +56,7 @@ interface OrderBookTestWrapperProps extends OrderBookProps {
     agora: MockAgora;
     ecc: Ecc;
     theme: CashtabTheme;
+    priceInFiat?: boolean;
 }
 const OrderBookTestWrapper: React.FC<OrderBookTestWrapperProps> = ({
     chronik,
@@ -66,6 +67,7 @@ const OrderBookTestWrapper: React.FC<OrderBookTestWrapperProps> = ({
     userLocale,
     noIcon,
     orderBookInfoMap,
+    priceInFiat = false,
 }) => (
     <WalletProvider
         chronik={chronik as unknown as ChronikClient}
@@ -80,6 +82,7 @@ const OrderBookTestWrapper: React.FC<OrderBookTestWrapperProps> = ({
                 userLocale={userLocale}
                 noIcon={noIcon}
                 orderBookInfoMap={orderBookInfoMap}
+                priceInFiat={priceInFiat}
             />
         </ThemeProvider>
     </WalletProvider>
@@ -296,6 +299,54 @@ describe('<OrderBook />', () => {
         expect(
             await screen.findByRole('button', { name: 'Cancel your offer' }),
         ).toBeInTheDocument();
+    });
+    it('We can see a rendered offer with fiat pricing on load', async () => {
+        mockPrice(0.000033);
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
+            agoraOfferCachetAlphaOne,
+        ]);
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet],
+            tokenMocks,
+        );
+
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'en-US'}
+                priceInFiat={true}
+            />,
+        );
+
+        await waitForContext();
+
+        // After loading, we see the token name and ticker above its PartialOffer
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+        expect(await screen.findByText('CACHET')).toBeInTheDocument();
+
+        // We see the token icon
+        expect(screen.getByTitle(CACHET_TOKEN_ID)).toBeInTheDocument();
+
+        expect(
+            screen.getByTitle(`Toggle price for ${CACHET_TOKEN_ID}`),
+        ).toBeChecked();
+
+        // We see the spot price on the depth bar
+        expect(screen.getByText('$0.3300 USD')).toBeInTheDocument();
     });
     it('We can see a rendered offer in an OrderBook with noIcon', async () => {
         mockPrice(0.000033);

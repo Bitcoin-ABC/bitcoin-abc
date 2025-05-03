@@ -178,6 +178,11 @@ export interface OrderBookProps {
      * disable the websockets (before we DDOS ourselves to disable them anyway)
      */
     noWebsocket?: boolean;
+    /**
+     * Load with price in FIAT instead of XEC
+     * Should be set to "true" for stablecoins
+     */
+    priceInFiat?: boolean;
 }
 const OrderBook: React.FC<OrderBookProps> = ({
     tokenId,
@@ -185,6 +190,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
     noIcon,
     orderBookInfoMap,
     noWebsocket = false,
+    priceInFiat = false,
 }) => {
     const ContextValue = useContext(WalletContext);
     if (!isWalletContextLoaded(ContextValue)) {
@@ -540,9 +546,13 @@ const OrderBook: React.FC<OrderBookProps> = ({
      * Show spot prices in XEC even if fiat is available
      * Note that spot prices are always rendered in XEC if
      * fiat info is unavailable
+     *
+     * Note we only use the priceInFiat prop to control the initial state
+     * on load; when a user on the token page changes tokens, their price setting
+     * will persist
      */
     const [displaySpotPricesInFiat, setDisplaySpotPricesInFiat] =
-        useState<boolean>(false);
+        useState<boolean>(priceInFiat);
     // On load, we select the offer at the 0-index
     // This component sorts offers by spot price; so this is the spot offer
     const [selectedIndex, setSelectedIndex] = useState<number>(0);

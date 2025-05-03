@@ -25,6 +25,7 @@ import { CashtabPathInfo } from 'wallet';
 import { InlineLoader } from 'components/Common/Spinner';
 import PrimaryButton from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
+import { FIRMA } from 'constants/tokens';
 
 interface CashtabActiveOffers {
     offeredFungibleTokenIds: string[];
@@ -663,6 +664,10 @@ const Agora: React.FC = () => {
                                                                  */
                                                                 noWebsocket={
                                                                     loadAllZeOffers
+                                                                }
+                                                                priceInFiat={
+                                                                    offeredTokenId ===
+                                                                    FIRMA.tokenId
                                                                 }
                                                             />
                                                         );

@@ -1344,6 +1344,55 @@ export const scamAgoraOffer = new AgoraOffer({
     },
 });
 
+const mockFirmaPartial = new AgoraPartial({
+    truncAtoms: 1526n,
+    numAtomsTruncBytes: 2,
+    atomsScaleFactor: 1407261n,
+    scaledTruncAtomsPerTruncSat: 3112n,
+    numSatsTruncBytes: 2,
+    makerPk: agoraPartialAlphaKeypair.pk,
+    minAcceptedScaledTruncAtoms: 21108915n,
+    tokenId: '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+    tokenType: 0,
+    tokenProtocol: 'ALP',
+    scriptLen: 209,
+    enforcedLockTime: 1647103223,
+    dustSats: 546n,
+});
+export const mockFirmaOffer = new AgoraOffer({
+    outpoint: {
+        txid: '290986f00f48a2eefda8bebb86f585fa2df765ebdae0a1b4a886500ec3ddfe26',
+        outIdx: 1,
+    },
+    status: 'OPEN',
+    token: {
+        tokenId:
+            '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+        tokenType: {
+            protocol: 'ALP',
+            type: 'ALP_TOKEN_TYPE_STANDARD',
+            number: 0,
+        },
+        atoms: 100007936n,
+        isMintBaton: false,
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 1,
+            txid: '290986f00f48a2eefda8bebb86f585fa2df765ebdae0a1b4a886500ec3ddfe26',
+        },
+        signData: {
+            // "redeemScript" key is calculated from the built AgoraPartial
+            redeemScript: mockFirmaPartial.script(),
+            sats: 546n,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: mockFirmaPartial,
+    },
+});
+
 export const cachetCacheMocks = {
     token: {
         tokenId:

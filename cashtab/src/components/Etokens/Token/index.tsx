@@ -2864,6 +2864,7 @@ const Token: React.FC = () => {
                                 tokenId={tokenId as string}
                                 noIcon
                                 userLocale={userLocale}
+                                priceInFiat={tokenId === FIRMA.tokenId}
                             />
                         )}
                     {isNftParent && nftTokenIds.length > 0 && (
