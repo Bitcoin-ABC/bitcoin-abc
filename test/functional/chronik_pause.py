@@ -86,7 +86,6 @@ class ChronikPauseTest(BitcoinTestFramework):
         self.log.info("Create block with conflicting tx")
         conflict_tx = CTransaction(tx)
         conflict_tx.nVersion = 2
-        conflict_tx.rehash()
         blockA = create_block(
             int(tip, 16), create_coinbase(102, b"\x03" * 33), 1300000500
         )

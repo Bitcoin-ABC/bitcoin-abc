@@ -78,7 +78,6 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             CTxOut(546, CScript([OP_HASH160, b"\x01" * 20, OP_EQUAL])),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis_slp = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -161,7 +160,6 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             CTxOut(546, CScript([OP_HASH160, b"\x01" * 20, OP_EQUAL])),
             CTxOut(coinvalue - 200000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis_alp = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,

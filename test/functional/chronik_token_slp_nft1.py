@@ -78,7 +78,6 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 400000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -210,7 +209,6 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             ),
             CTxOut(1400, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         child_genesis1 = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,

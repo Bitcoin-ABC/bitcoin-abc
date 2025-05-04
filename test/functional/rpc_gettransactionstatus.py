@@ -23,9 +23,7 @@ class GetTransactionStatusTest(BitcoinTestFramework):
         self.generate(wallet, 2)
 
         def from_wallet_tx(wallet_tx):
-            tx_obj = FromHex(CTransaction(), wallet_tx["hex"])
-            tx_obj.rehash()
-            return tx_obj
+            return FromHex(CTransaction(), wallet_tx["hex"])
 
         self.log.info("Tx doesn't exist in any memory pool")
         assert_equal(node.gettransactionstatus("0" * 64)["pool"], "none")

@@ -151,7 +151,6 @@ class ReplayProtectionTest(BitcoinTestFramework):
             txfund = create_tx_with_script(
                 spend.tx, spend.n, b"", amount=50 * COIN - 1000, script_pub_key=script
             )
-            txfund.rehash()
 
             # Spend transaction
             txspend = CTransaction()
@@ -167,7 +166,6 @@ class ReplayProtectionTest(BitcoinTestFramework):
                 bytearray([SIGHASH_ALL | SIGHASH_FORKID])
             )
             txspend.vin[0].scriptSig = CScript([sig])
-            txspend.rehash()
 
             return [txfund, txspend]
 

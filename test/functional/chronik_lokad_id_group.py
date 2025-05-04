@@ -93,7 +93,6 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
             CTxOut(10000, p2sh_lokad(b"lok3")),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx0.rehash()
         chronik.broadcast_tx(tx0.serialize()).ok()
         assert_equal(lokad_id_unconf(b"lok0"), [tx0.hash])
 
@@ -103,7 +102,6 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         tx1 = CTransaction()
         tx1.vin = [CTxIn(COutPoint(tx0.sha256, 1), spend_p2lokad(b"lok1"))]
         tx1.vout = [CTxOut(0, CScript([OP_RETURN, b"lok0", b"x" * 100]))]
-        tx1.rehash()
         chronik.broadcast_tx(tx1.serialize()).ok()
         assert_equal(lokad_id_unconf(b"lok0"), [tx0.hash, tx1.hash])
         assert_equal(lokad_id_unconf(b"lok1"), [tx1.hash])
@@ -123,7 +121,6 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
                 0, CScript([OP_RETURN, OP_RESERVED, b"lok2__", b"lok0" + b"x" * 100])
             )
         ]
-        tx2.rehash()
         chronik.broadcast_tx(tx2.serialize()).ok()
         assert_equal(lokad_id_unconf(b"lok0"), [tx0.hash, tx1.hash, tx2.hash])
         assert_equal(lokad_id_unconf(b"lok1"), [tx1.hash])
@@ -148,7 +145,6 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         tx3.vout = [
             CTxOut(0, CScript([OP_RETURN, OP_RESERVED, b"lok2", b"lok0" + b"x" * 100]))
         ]
-        tx3.rehash()
         chronik.broadcast_tx(tx3.serialize()).ok()
 
         assert_equal(ws1.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
@@ -178,7 +174,6 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         tx3_conflict.vout = [
             CTxOut(0, CScript([OP_RETURN, OP_RESERVED, b"lok4" + b"x" * 100]))
         ]
-        tx3_conflict.rehash()
 
         block = create_block(
             int(blockhash, 16),

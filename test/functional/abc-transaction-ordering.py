@@ -38,7 +38,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
         self.noban_tx_relay = True
 
     def add_transactions_to_block(self, block, tx_list):
-        [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
     def next_block(self, number, spend=None, tx_count=0):
@@ -57,7 +56,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
         else:
             # all but one satoshi to fees
             coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
-            coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
             # Make sure we have plenty enough to spend going forward.
@@ -80,7 +78,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
                 return tx
 
             tx = get_base_transaction()
-            tx.rehash()
 
             # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])

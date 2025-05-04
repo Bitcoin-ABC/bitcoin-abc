@@ -194,7 +194,6 @@ class InvalidTxRequestTest(BitcoinTestFramework):
             CTxOut(nValue=11 * COIN, scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE)
         )
         pad_tx(rejected_parent)
-        rejected_parent.rehash()
         with node.assert_debug_log(
             [f"not keeping orphan with rejected parents {rejected_parent.hash}"]
         ):

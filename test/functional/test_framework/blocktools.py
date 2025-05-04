@@ -88,8 +88,6 @@ def create_block(
 
 
 def make_conform_to_ctor(block: CBlock):
-    for tx in block.vtx:
-        tx.rehash()
     block.vtx = [block.vtx[0]] + sorted(block.vtx[1:], key=lambda tx: tx.get_id())
 
 

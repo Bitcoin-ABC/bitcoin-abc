@@ -267,7 +267,6 @@ class BIP68Test(BitcoinTestFramework):
         # Create a mempool tx.
         self.wallet.rescan_utxos()
         tx1 = self.wallet.send_self_transfer(from_node=self.nodes[0])["tx"]
-        tx1.rehash()
 
         # As the fees are calculated prior to the transaction being signed,
         # there is some uncertainty that calculate fee provides the correct
@@ -441,7 +440,6 @@ class BIP68Test(BitcoinTestFramework):
     def test_bip68_not_consensus(self):
         assert_equal(self.get_csv_status(), False)
         tx1 = self.wallet.send_self_transfer(from_node=self.nodes[0])["tx"]
-        tx1.rehash()
 
         # Make an anyone-can-spend transaction
         tx2 = CTransaction()

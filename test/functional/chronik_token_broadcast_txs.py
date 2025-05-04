@@ -68,7 +68,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -107,7 +106,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             alp_opreturn(alp_send(genesis.txid, [1000])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        ok_tx.rehash()
 
         burn_tx = CTransaction()
         burn_tx.vin = [CTxIn(COutPoint(int(genesis.txid, 16), 2), SCRIPTSIG_OP_TRUE)]
@@ -115,7 +113,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             alp_opreturn(alp_send(genesis.txid, [1999])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        burn_tx.rehash()
 
         burn2_tx = CTransaction()
         burn2_tx.vin = [CTxIn(COutPoint(int(genesis.txid, 16), 3), SCRIPTSIG_OP_TRUE)]
@@ -123,7 +120,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             alp_opreturn(alp_send(genesis.txid, [3001])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        burn2_tx.rehash()
 
         wrong_sig_tx = CTransaction()
         wrong_sig_tx.vin = [CTxIn(COutPoint(int(genesis.txid, 16), 4), CScript())]
@@ -131,7 +127,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             alp_opreturn(alp_send(genesis.txid, [4000])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        wrong_sig_tx.rehash()
 
         ok2_tx = CTransaction()
         ok2_tx.vin = [CTxIn(COutPoint(int(genesis.txid, 16), 5), SCRIPTSIG_OP_TRUE)]
@@ -139,7 +134,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             alp_opreturn(alp_send(genesis.txid, [5000])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        ok2_tx.rehash()
 
         ok3_tx = CTransaction()
         ok3_tx.vin = [CTxIn(COutPoint(int(genesis.txid, 16), 6), SCRIPTSIG_OP_TRUE)]
@@ -147,7 +141,6 @@ class ChronikTokenBroadcastTxs(BitcoinTestFramework):
             alp_opreturn(alp_send(genesis.txid, [6000])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        ok3_tx.rehash()
 
         error = chronik.broadcast_txs(
             [

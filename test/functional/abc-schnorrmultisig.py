@@ -163,7 +163,6 @@ class SchnorrMultisigTest(BitcoinTestFramework):
             txfund = create_tx_with_script(
                 spendfrom, 0, b"", amount=value, script_pub_key=script
             )
-            txfund.rehash()
             fundings.append(txfund)
 
             # Spend transaction
@@ -180,7 +179,6 @@ class SchnorrMultisigTest(BitcoinTestFramework):
             elif sigtype == "ecdsa":
                 txsig = private_key.sign_ecdsa(sighash) + hashbyte
             txspend.vin[0].scriptSig = CScript([dummy, txsig])
-            txspend.rehash()
 
             return txspend
 

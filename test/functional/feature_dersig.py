@@ -78,7 +78,6 @@ class BIP66Test(BitcoinTestFramework):
 
         spendtx = self.create_tx(self.coinbase_txids[1])
         unDERify(spendtx)
-        spendtx.rehash()
 
         # First we show that this tx is valid except for DERSIG by getting it
         # rejected from the mempool for exactly that reason.

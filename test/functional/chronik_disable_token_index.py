@@ -64,7 +64,6 @@ class ChronikDisableTokenIndex(BitcoinTestFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,

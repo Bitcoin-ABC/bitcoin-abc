@@ -72,7 +72,6 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 400000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -206,7 +205,6 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             ),
             CTxOut(coinvalue - 500000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis_empty = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,

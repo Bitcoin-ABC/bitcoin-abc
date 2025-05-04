@@ -167,7 +167,6 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         # Tweak tx3 to cause a conflict
         tx3_conflict = CTransaction(tx3)
         tx3_conflict.nLockTime = 1
-        tx3_conflict.rehash()
 
         # Mine tx, tx2 and tx3_conflict
         height = 102

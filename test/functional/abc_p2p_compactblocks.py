@@ -94,7 +94,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.rpc_timeout = 180
 
     def add_transactions_to_block(self, block, tx_list):
-        [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
     def next_block(
@@ -116,7 +115,6 @@ class FullBlockTest(BitcoinTestFramework):
         else:
             # all but one satoshi to fees
             coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
-            coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
             # Make sure we have plenty enough to spend going forward.
@@ -136,7 +134,6 @@ class FullBlockTest(BitcoinTestFramework):
                 return tx
 
             tx = get_base_transaction()
-            tx.rehash()
 
             # If a specific script is required, add it.
             if script is not None:
@@ -318,7 +315,6 @@ class FullBlockTest(BitcoinTestFramework):
         # Let's modify b2 and use it so that we can reuse the mempool.
         tx = b2.vtx[0]
         tx.vout.append(CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
-        tx.rehash()
         b2.vtx[0] = tx
         b2.hashMerkleRoot = b2.calc_merkle_root()
         b2.solve()

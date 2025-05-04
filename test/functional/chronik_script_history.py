@@ -168,7 +168,6 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
         # Create 1 block manually (with out-of-order block time)
         coinbase_tx = create_coinbase(101)
         coinbase_tx.vout[0].scriptPubKey = P2SH_OP_TRUE
-        coinbase_tx.rehash()
         block = create_block(int(blockhashes[-2], 16), coinbase_tx, mocktime + 1000)
         block.solve()
         peer.send_blocks_and_test([block], node)
@@ -250,14 +249,12 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
         ]
         for idx, tx in enumerate(mempool_txs[:5]):
             tx.nLockTime = 12
-            tx.rehash()
             mine_txs.append(tx)
             newblocktxs.append({"time_first_seen": 0, "txid": tx.hash})
 
         height = 1002
         coinbase_tx = create_coinbase(height)
         coinbase_tx.vout[0].scriptPubKey = P2SH_OP_TRUE
-        coinbase_tx.rehash()
         block = create_block(
             int(blockhashes[-1], 16),
             coinbase_tx,

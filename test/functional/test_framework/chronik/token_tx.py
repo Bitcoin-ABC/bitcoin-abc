@@ -18,7 +18,6 @@ class TokenTx:
         failed_parsings=[],
         token_info=None,
     ):
-        tx.rehash()
         self.tx = tx
         self.txid = tx.hash
         self.status = status

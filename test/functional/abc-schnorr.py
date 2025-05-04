@@ -169,7 +169,6 @@ class SchnorrTest(BitcoinTestFramework):
             txfund = create_tx_with_script(
                 spendfrom, 0, b"", amount=value, script_pub_key=script
             )
-            txfund.rehash()
             fundings.append(txfund)
 
             # Spend transaction
@@ -191,7 +190,6 @@ class SchnorrTest(BitcoinTestFramework):
                 txspend.vin[0].scriptSig = CScript([b"", txsig])
             else:
                 txspend.vin[0].scriptSig = CScript([txsig])
-            txspend.rehash()
 
             return txspend
 

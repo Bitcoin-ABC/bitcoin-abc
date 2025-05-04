@@ -59,7 +59,6 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx1.rehash()
         node.sendrawtransaction(tx1.serialize().hex())
 
         tx2 = CTransaction()
@@ -73,7 +72,6 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
             CTxOut(546, P2SH_OP_TRUE),
             CTxOut(coinvalue - 200000, P2SH_OP_TRUE),
         ]
-        tx2.rehash()
         node.sendrawtransaction(tx2.serialize().hex())
 
         tx3 = CTransaction()
@@ -85,7 +83,6 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
             CTxIn(COutPoint(int(tx2.hash, 16), 0), SCRIPTSIG_OP_TRUE),
         ]
         tx3.vout = [CTxOut(546, P2SH_OP_TRUE)]
-        tx3.rehash()
         node.sendrawtransaction(tx3.serialize().hex())
         assert_equal(node.getblockcount(), 101)
         yield True

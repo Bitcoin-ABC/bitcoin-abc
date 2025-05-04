@@ -163,7 +163,6 @@ class CompactBlocksTest(BitcoinTestFramework):
         tx.vin.append(CTxIn(COutPoint(block.vtx[0].sha256, 0), b""))
         for _ in range(10):
             tx.vout.append(CTxOut(out_value, CScript([OP_TRUE])))
-        tx.rehash()
 
         block2 = self.build_block_on_tip(self.nodes[0])
         block2.vtx.append(tx)
@@ -446,7 +445,6 @@ class CompactBlocksTest(BitcoinTestFramework):
             tx.vin.append(CTxIn(COutPoint(utxo[0], utxo[1]), b""))
             tx.vout.append(CTxOut(utxo[2] - 1000, CScript([OP_TRUE])))
             pad_tx(tx)
-            tx.rehash()
             utxo = [tx.sha256, 0, tx.vout[0].nValue]
             block.vtx.append(tx)
 
@@ -541,7 +539,6 @@ class CompactBlocksTest(BitcoinTestFramework):
         tx_no_fee.vin.append(CTxIn(COutPoint(utxo[0], utxo[1]), b""))
         tx_no_fee.vout.append(CTxOut(utxo[2], CScript([OP_TRUE])))
         pad_tx(tx_no_fee)
-        tx_no_fee.rehash()
 
         # Check this doesn't make it into the mempool. The tx should be cached
         # into vExtraTxnForCompact and will not be requested when reconstructing

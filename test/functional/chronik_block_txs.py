@@ -111,7 +111,6 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             CTxOut(coinvalue - 10000, P2SH_OP_TRUE),
             CTxOut(1000, CScript([OP_RETURN, b"test"])),
         ]
-        tx1.rehash()
 
         tx2 = CTransaction()
         tx2.vin = [
@@ -121,7 +120,6 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             CTxOut(3000, CScript([OP_RETURN, b"test"])),
             CTxOut(coinvalue - 20000, P2SH_OP_TRUE),
         ]
-        tx2.rehash()
 
         tx_coinbase = create_coinbase(102, b"\x03" * 33)
 

@@ -165,9 +165,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.log.info("Check the votes on orphan transactions")
 
         def from_wallet_tx(tx):
-            tx_obj = FromHex(CTransaction(), tx["hex"])
-            tx_obj.rehash()
-            return tx_obj
+            return FromHex(CTransaction(), tx["hex"])
 
         orphan_tx = wallet.create_self_transfer_chain(chain_length=2)[-1]
         orphan_txid = int(orphan_tx["txid"], 16)

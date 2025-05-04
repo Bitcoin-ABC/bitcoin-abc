@@ -179,7 +179,6 @@ class ChronikClientTokenSlpMintVault(SetupFramework):
             ),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        slp_mint_vault_mint_tx_valid.rehash()
         slp_mint_vault_mint_tx_valid_txid = node.sendrawtransaction(
             slp_mint_vault_mint_tx_valid.serialize().hex()
         )

@@ -66,7 +66,6 @@ class ChronikClient_Broadcast_Setup(SetupFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        alp_genesis_tx.rehash()
         alp_genesis_rawtx = alp_genesis_tx.serialize().hex()
         alp_genesis_txid = self.nodes[0].decoderawtransaction(alp_genesis_rawtx)["txid"]
 
@@ -80,7 +79,6 @@ class ChronikClient_Broadcast_Setup(SetupFramework):
             alp_opreturn(alp_send(alp_genesis_txid, [1000])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        ok_tx.rehash()
 
         ok_rawtx = ok_tx.serialize().hex()
         ok_txid = self.nodes[0].decoderawtransaction(ok_rawtx)["txid"]
@@ -97,7 +95,6 @@ class ChronikClient_Broadcast_Setup(SetupFramework):
             alp_opreturn(alp_send(alp_genesis_txid, [1999])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        burn_tx.rehash()
 
         alp_burn_rawtx = burn_tx.serialize().hex()
         alp_burn_txid = self.nodes[0].decoderawtransaction(alp_burn_rawtx)["txid"]
@@ -114,7 +111,6 @@ class ChronikClient_Broadcast_Setup(SetupFramework):
             alp_opreturn(alp_send(alp_genesis_txid, [3001])),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        burn2_tx.rehash()
 
         alp_burn_2_rawtx = burn2_tx.serialize().hex()
         alp_burn_2_txid = self.nodes[0].decoderawtransaction(alp_burn_2_rawtx)["txid"]

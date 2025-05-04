@@ -412,7 +412,6 @@ class ChronikScriptHashTest(BitcoinTestFramework):
             if txout.scriptPubKey == script_pubkey:
                 break
         replacement_tx.vout[out_idx].scriptPubKey = b"\x21\x03" + 32 * b"\xee" + b"\xac"
-        replacement_tx.rehash()
 
         block = create_block(tmpl=self.node.getblocktemplate(), txlist=[replacement_tx])
         block.solve()

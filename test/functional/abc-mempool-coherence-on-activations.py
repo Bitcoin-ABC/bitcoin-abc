@@ -73,7 +73,6 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
     txfund = create_tx_with_script(
         spend.tx, spend.n, b"", amount=50 * COIN, script_pub_key=script
     )
-    txfund.rehash()
 
     # Activation specific spending tx
     txspend = CTransaction()
@@ -90,7 +89,6 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
         bytearray([SIGHASH_ALL | SIGHASH_FORKID])
     )
     txspend.vin[0].scriptSig = CScript([sig])
-    txspend.rehash()
 
     return txfund, txspend
 
@@ -138,7 +136,6 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # First create the coinbase
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
-        coinbase.rehash()
         block = create_block(base_block_hash, coinbase, block_time)
 
         # Do PoW, which is cheap on regnet
@@ -202,7 +199,6 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
                 amount=spend.tx.vout[0].nValue - 1000,
                 script_pub_key=CScript([OP_TRUE]),
             )
-            tx.rehash()
             return tx, PreviousSpendableOutput(tx, 0)
 
         # shorthand

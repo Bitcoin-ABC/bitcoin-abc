@@ -66,7 +66,6 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
             CTxOut(100000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 500000, P2SH_OP_TRUE),
         ]
-        fan_tx.rehash()
         fan_txid = node.sendrawtransaction(fan_tx.serialize().hex())
 
         # VAULT script locking MINT txs
@@ -106,7 +105,6 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
             CTxOut(546, P2SH_OP_TRUE),
             CTxOut(99000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,

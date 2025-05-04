@@ -142,7 +142,6 @@ class MinimaldataTest(BitcoinTestFramework):
             txfund = create_tx_with_script(
                 spendfrom, 0, b"", amount=value, script_pub_key=script
             )
-            txfund.rehash()
             fundings.append(txfund)
 
             # Spend transaction
@@ -153,7 +152,6 @@ class MinimaldataTest(BitcoinTestFramework):
             # Sign the transaction
             txspend.vin[0].scriptSig = CScript(b"\x01\x01\x51")  # PUSH1(0x01) OP_1
             pad_tx(txspend)
-            txspend.rehash()
 
             return txspend
 

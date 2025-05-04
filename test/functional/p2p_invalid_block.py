@@ -102,7 +102,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
 
         block2_dup = copy.deepcopy(block2_orig)
         block2_dup.vtx[2].vin.append(block2_dup.vtx[2].vin[0])
-        block2_dup.vtx[2].rehash()
         make_conform_to_ctor(block2_dup)
         block2_dup.hashMerkleRoot = block2_dup.calc_merkle_root()
         block2_dup.solve()
@@ -143,7 +142,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         )
         # Duplicates input
         tx3.vin.append(tx3.vin[0])
-        tx3.rehash()
         block4 = create_block(tip, create_coinbase(height), block_time, txlist=[tx3])
         block4.solve()
         self.log.info("Test inflation by duplicating input")

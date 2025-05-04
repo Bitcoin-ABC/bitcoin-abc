@@ -211,7 +211,6 @@ class ChronikPluginsSetup(BitcoinTestFramework):
         block_height = node.getblockcount()
         coinbase_tx = create_coinbase(block_height + 1, b"\x03" * 33)
         coinbase_tx.vout.insert(0, CTxOut(0, CScript([OP_RETURN, b"TEST"])))
-        coinbase_tx.rehash()
         block = create_block(
             int(block_hashes[-1], 16),
             coinbase_tx,

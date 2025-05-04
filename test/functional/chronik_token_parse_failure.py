@@ -53,7 +53,6 @@ class ChronikTokenParseFailure(BitcoinTestFramework):
             CTxOut(0, invalid_slp_script),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         invalid_slp = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NOT_NORMAL,
@@ -84,7 +83,6 @@ class ChronikTokenParseFailure(BitcoinTestFramework):
             CTxOut(0, invalid_alp_script),
             CTxOut(coinvalue - 200000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         invalid_alp = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NOT_NORMAL,

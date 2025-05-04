@@ -143,7 +143,6 @@ class Script63BitIntsTest(BitcoinTestFramework):
         )
         tx.vin[0].scriptSig = script_sig or SCRIPTSIG_OP_TRUE
         pad_tx(tx)
-        tx.rehash()
         return tx
 
     def make_block(
@@ -162,7 +161,6 @@ class Script63BitIntsTest(BitcoinTestFramework):
         height = self.block_heights.get(prev_block.sha256, 0) + 1
         coinbase = create_coinbase(height)
         coinbase.vout[0].scriptPubKey = coinbase_script or P2SH_OP_TRUE
-        coinbase.rehash()
 
         block = create_block(prev_block.sha256, coinbase, block_time)
         if txs:

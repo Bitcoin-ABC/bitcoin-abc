@@ -145,7 +145,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                         amount, CScript([OP_HASH160, hash160(redeem_script), OP_EQUAL])
                     )
                 )
-            txfund.rehash()
 
             # Segwit spending transaction
             # We'll test if a node that checks for standardness accepts this
@@ -164,7 +163,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                     CScript([OP_HASH160, hash160(CScript([OP_TRUE])), OP_EQUAL]),
                 )
             ]
-            txspend.rehash()
 
             return txfund, txspend
 

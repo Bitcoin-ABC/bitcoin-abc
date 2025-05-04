@@ -460,7 +460,6 @@ class CTransaction:
         return self.hash
 
     def is_valid(self):
-        self.calc_sha256()
         for tout in self.vout:
             if tout.nValue < 0 or tout.nValue > MAX_MONEY:
                 return False

@@ -66,8 +66,6 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE, deterministic=False
         data = b"\x00" * data_size if deterministic else random.randbytes(data_size)
         tx.vout.append(CTxOut(0, CScript([OP_RETURN, data])))
 
-    tx.rehash()
-
 
 def pad_raw_tx(rawtx_hex, min_size=MIN_TX_SIZE, deterministic=False):
     """

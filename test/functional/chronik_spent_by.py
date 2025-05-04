@@ -60,7 +60,6 @@ class ChronikSpentByTest(BitcoinTestFramework):
         tx.vout = [
             CTxOut(value, script) for (value, script) in zip(send_values, send_scripts)
         ]
-        tx.rehash()
 
         # Submit tx to mempool
         txid = node.sendrawtransaction(tx.serialize().hex())
@@ -153,7 +152,6 @@ class ChronikSpentByTest(BitcoinTestFramework):
         # Mine a tx conflicting with tx3
         tx3_conflict = CTransaction(tx3)
         tx3_conflict.nLockTime = 1
-        tx3_conflict.rehash()
 
         # Block mines tx, tx2 and tx3_conflict
         block = create_block(

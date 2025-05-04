@@ -365,7 +365,6 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                     bytes.fromhex("76a914000000000000000000000000000000000000000088ac"),
                 )
             )
-            block.vtx[0].rehash()
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
 

@@ -57,7 +57,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.rpc_timeout = 360
 
     def add_transactions_to_block(self, block, tx_list):
-        [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0):
@@ -77,7 +76,6 @@ class FullBlockTest(BitcoinTestFramework):
         else:
             # all but one satoshi to fees
             coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
-            coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
             # Make sure we have plenty engough to spend going forward.
@@ -100,7 +98,6 @@ class FullBlockTest(BitcoinTestFramework):
             # Make it the same format as transaction added for padding and save the size.
             # It's missing the padding output, so we add a constant to account
             # for it.
-            tx.rehash()
             base_tx_size = len(tx.serialize()) + 18
 
             # If a specific script is required, add it.

@@ -188,7 +188,6 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
             mempool_txs[3:5], mempool_proto_txs[3:5]
         ):
             conflict_tx.nLockTime = 2
-            conflict_tx.rehash()
             mine_txs.append(conflict_tx)
             conflict_proto_tx.txid = bytes.fromhex(conflict_tx.hash)[::-1]
             conflict_proto_tx.lock_time = 2
@@ -197,7 +196,6 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         height = 111
         coinbase_tx = create_coinbase(height)
         coinbase_tx.vout[0].scriptPubKey = P2SH_OP_TRUE
-        coinbase_tx.rehash()
         block = create_block(
             int(blockhashes[-1], 16), coinbase_tx, mocktime + 1100, txlist=mine_txs
         )

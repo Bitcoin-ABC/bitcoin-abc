@@ -64,7 +64,6 @@ class ChronikTokenBurn(BitcoinTestFramework):
             CTxOut(coinvalue - 1000, P2SH_OP_TRUE),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        non_token_tx.rehash()
         node.sendrawtransaction(non_token_tx.serialize().hex())
 
         txs = []
@@ -84,7 +83,6 @@ class ChronikTokenBurn(BitcoinTestFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis_slp = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -157,7 +155,6 @@ class ChronikTokenBurn(BitcoinTestFramework):
             CTxOut(10000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 200000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis_alp = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,

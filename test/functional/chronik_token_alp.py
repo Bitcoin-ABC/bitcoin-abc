@@ -87,7 +87,6 @@ class ChronikTokenAlp(BitcoinTestFramework):
             CTxOut(5000, P2SH_OP_TRUE),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -236,7 +235,6 @@ class ChronikTokenAlp(BitcoinTestFramework):
             CTxOut(5000, P2SH_OP_TRUE),
             CTxOut(coinvalue - 200000, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         genesis2 = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -304,7 +302,6 @@ class ChronikTokenAlp(BitcoinTestFramework):
             CTxOut(546, P2SH_OP_TRUE),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         multi = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NORMAL,
@@ -419,7 +416,6 @@ class ChronikTokenAlp(BitcoinTestFramework):
             CTxOut(546, P2SH_OP_TRUE),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        tx.rehash()
         all_things = TokenTx(
             tx=tx,
             status=pb.TOKEN_STATUS_NOT_NORMAL,

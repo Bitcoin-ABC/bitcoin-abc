@@ -108,7 +108,6 @@ class TxVersionTest(BitcoinTestFramework):
         tx.nVersion = nVersion
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx)
-        tx.rehash()
         return tx
 
     def make_block(
@@ -129,7 +128,6 @@ class TxVersionTest(BitcoinTestFramework):
         coinbase.vout[0].scriptPubKey = P2SH_OP_TRUE
         if coinbase_version is not None:
             coinbase.nVersion = coinbase_version
-        coinbase.rehash()
 
         block = create_block(prev_block.sha256, coinbase, block_time, txlist=txs)
         block.solve()
