@@ -35,7 +35,6 @@ def get_coinbase(height: int, pubkey: bytes) -> CTransaction:
     coinbaseoutput.nValue >>= regtest_halvings
     coinbaseoutput.scriptPubKey = CScript([pubkey, OP_CHECKSIG])
     coinbase.vout = [coinbaseoutput]
-    coinbase.calc_sha256()
     return coinbase
 
 

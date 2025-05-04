@@ -135,7 +135,6 @@ def create_coinbase(
     # Make sure the coinbase is at least 100 bytes
     pad_tx(coinbase)
 
-    coinbase.calc_sha256()
     return coinbase
 
 
@@ -152,7 +151,6 @@ def create_tx_with_script(
     tx.vin.append(CTxIn(COutPoint(prevtx.sha256, n), script_sig, 0xFFFFFFFF))
     tx.vout.append(CTxOut(amount, script_pub_key))
     pad_tx(tx)
-    tx.calc_sha256()
     return tx
 
 

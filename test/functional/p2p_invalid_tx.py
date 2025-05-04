@@ -104,7 +104,6 @@ class InvalidTxRequestTest(BitcoinTestFramework):
             CTxOut(nValue=25 * COIN - 12000, scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE)
         ] * 2
         pad_tx(tx_withhold)
-        tx_withhold.calc_sha256()
 
         # Our first orphan tx with some outputs to create further orphan txs
         tx_orphan_1 = CTransaction()
@@ -113,7 +112,6 @@ class InvalidTxRequestTest(BitcoinTestFramework):
             CTxOut(nValue=8 * COIN, scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE)
         ] * 3
         pad_tx(tx_orphan_1)
-        tx_orphan_1.calc_sha256()
 
         # A valid transaction with low fee
         tx_orphan_2_no_fee = CTransaction()
@@ -129,7 +127,6 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         tx_orphan_2_valid.vout.append(
             CTxOut(nValue=8 * COIN - 12000, scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE)
         )
-        tx_orphan_2_valid.calc_sha256()
         pad_tx(tx_orphan_2_valid)
 
         # An invalid transaction with negative fee
@@ -139,7 +136,6 @@ class InvalidTxRequestTest(BitcoinTestFramework):
             CTxOut(nValue=11 * COIN, scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE)
         )
         pad_tx(tx_orphan_2_invalid)
-        tx_orphan_2_invalid.calc_sha256()
 
         self.log.info("Send the orphans ... ")
         # Send valid orphan txs from p2ps[0]

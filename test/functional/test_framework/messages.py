@@ -406,7 +406,7 @@ class CTxOut:
 
 
 class CTransaction:
-    __slots__ = ("hash", "nLockTime", "nVersion", "sha256", "vin", "vout")
+    __slots__ = ("nLockTime", "nVersion", "vin", "vout")
 
     def __init__(self, tx=None):
         if tx is None:
@@ -414,23 +414,17 @@ class CTransaction:
             self.vin = []
             self.vout = []
             self.nLockTime = 0
-            self.sha256 = None
-            self.hash = None
         else:
             self.nVersion = tx.nVersion
             self.vin = copy.deepcopy(tx.vin)
             self.vout = copy.deepcopy(tx.vout)
             self.nLockTime = tx.nLockTime
-            self.sha256 = tx.sha256
-            self.hash = tx.hash
 
     def deserialize(self, f):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
         self.vin = deser_vector(f, CTxIn)
         self.vout = deser_vector(f, CTxOut)
         self.nLockTime = struct.unpack("<I", f.read(4))[0]
-        self.sha256 = None
-        self.hash = None
 
     def billable_size(self):
         """
@@ -446,21 +440,23 @@ class CTransaction:
             + struct.pack("<I", self.nLockTime)
         )
 
-    # Recalculate the txid
-    def rehash(self):
-        self.sha256 = None
-        self.calc_sha256()
-        return self.hash
+    @property
+    def hash(self) -> str:
+        """Return txid  as hex string."""
+        return hash256(self.serialize())[::-1].hex()
 
-    # self.sha256 and self.hash -- those are expected to be the txid.
-    def calc_sha256(self):
-        if self.sha256 is None:
-            self.sha256 = uint256_from_str(hash256(self.serialize()))
-        self.hash = hash256(self.serialize())[::-1].hex()
+    @property
+    def sha256(self) -> int:
+        """Return txid as integer."""
+        return uint256_from_str(hash256(self.serialize()))
+
+    # Recalculate the txid
+    # TODO: get rid of this method, replace call-sites by .hash access
+    def rehash(self):
+        return self.hash
 
     def get_id(self):
         # For now, just forward the hash.
-        self.calc_sha256()
         return self.hash
 
     def is_valid(self):
@@ -591,7 +587,6 @@ class CBlock(CBlockHeader):
     def calc_merkle_root(self):
         hashes = []
         for tx in self.vtx:
-            tx.calc_sha256()
             hashes.append(ser_uint256(tx.sha256))
         return self.get_merkle_root(hashes)
 

@@ -194,7 +194,6 @@ class ZMQTest(BitcoinTestFramework):
             tx_hex = rawtx.receive()
             tx = CTransaction()
             tx.deserialize(BytesIO(tx_hex))
-            tx.calc_sha256()
             assert_equal(tx.hash, txid.hex())
 
             # Should receive the generated raw block.

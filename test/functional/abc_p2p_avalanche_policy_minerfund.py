@@ -100,7 +100,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 )
 
             pad_tx(cb)
-            cb.calc_sha256()
             return cb
 
         def new_block(tip, miner_fund_addr, miner_fund_amount):

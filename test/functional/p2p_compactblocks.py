@@ -317,8 +317,6 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         # Store the raw block in our internal format.
         block = FromHex(CBlock(), node.getblock(uint256_hex(block_hash), False))
-        for tx in block.vtx:
-            tx.calc_sha256()
         block.rehash()
 
         # Wait until the block was announced (via compact blocks)
@@ -366,7 +364,6 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         # Check that all prefilled_txn entries match what's in the block.
         for entry in header_and_shortids.prefilled_txn:
-            entry.tx.calc_sha256()
             # This checks the tx agree
             assert_equal(entry.tx.sha256, block.vtx[entry.index].sha256)
 
@@ -650,7 +647,6 @@ class CompactBlocksTest(BitcoinTestFramework):
             test_node.send_message(msg)
             test_node.wait_until(lambda: "blocktxn" in test_node.last_message)
 
-            [tx.calc_sha256() for tx in block.vtx]
             with p2p_lock:
                 assert_equal(
                     uint256_hex(
@@ -663,7 +659,6 @@ class CompactBlocksTest(BitcoinTestFramework):
                     tx = test_node.last_message[
                         "blocktxn"
                     ].block_transactions.transactions.pop(0)
-                    tx.calc_sha256()
                     assert_equal(tx.sha256, block.vtx[index].sha256)
                 test_node.last_message.pop("blocktxn", None)
             current_height -= 1

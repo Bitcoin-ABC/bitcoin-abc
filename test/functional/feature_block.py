@@ -694,7 +694,6 @@ class FullBlockTest(BitcoinTestFramework):
         )
         tx.vout.append(CTxOut(0, b""))
         pad_tx(tx)
-        tx.calc_sha256()
         b58 = self.update_block(58, [tx])
         self.send_blocks(
             [b58],
@@ -947,12 +946,12 @@ class FullBlockTest(BitcoinTestFramework):
         )
         self.move_tip(69)
         b70 = self.next_block(70, spend=out[21])
-        bogus_tx = CTransaction()
-        bogus_tx.sha256 = uint256_from_str(
+        bogus_txid_int = uint256_from_str(
             b"23c70ed7c0506e9178fc1a987f40a33946d4ad4c962b5ae3a52546da53af0c5c"
         )
         tx = CTransaction()
-        tx.vin.append(CTxIn(COutPoint(bogus_tx.sha256, 0), b"", 0xFFFFFFFF))
+        tx.vin.append(CTxIn(COutPoint(bogus_txid_int, 0), b"", 0xFFFFFFFF))
+
         tx.vout.append(CTxOut(1, b""))
         pad_tx(tx)
         b70 = self.update_block(70, [tx])
@@ -1097,7 +1096,6 @@ class FullBlockTest(BitcoinTestFramework):
         tx1.vout.append(CTxOut(0, CScript([OP_TRUE])))
         tx1.vout.append(CTxOut(0, CScript([OP_TRUE])))
         tx1.vout.append(CTxOut(0, CScript([OP_TRUE])))
-        tx1.calc_sha256()
         self.sign_tx(tx1, out[29])
         tx1.rehash()
         tx2 = self.create_tx(tx1, vout_offset, 0, CScript([OP_RETURN]))
