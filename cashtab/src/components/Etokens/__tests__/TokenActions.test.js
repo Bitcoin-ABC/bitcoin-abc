@@ -385,7 +385,7 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(listButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('List VSP?')).toBeInTheDocument();
+        expect(await screen.findByText('List VSP?')).toBeInTheDocument();
         expect(
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
