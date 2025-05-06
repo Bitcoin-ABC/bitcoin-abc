@@ -27,6 +27,7 @@ import json
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Dict, List, Optional, Sequence, Union
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 from .address import Address, AddressError
@@ -34,6 +35,11 @@ from .address import Address, AddressError
 
 class InvoiceDataError(Exception):
     pass
+
+
+class ExchangeRateApiError(Exception):
+    def __init__(self, reason: str):
+        self.reason = reason
 
 
 class Invoice:
@@ -165,9 +171,18 @@ class ExchangeRateApi:
         return {"url": self.url, "keys": self.keys}
 
     def get_exchange_rate(self) -> Decimal:
-        with urlopen(self.url) as response:
-            body = response.read()
-            json_data = json.loads(body)
+        try:
+            with urlopen(self.url) as response:
+                body = response.read()
+                json_data = json.loads(body)
+        except HTTPError as e:
+            raise ExchangeRateApiError(f"HTTPError: code {e.code}; reason {e.reason}")
+        except URLError as e:
+            raise ExchangeRateApiError(f"URLError: {e.reason}")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise ExchangeRateApiError(
+                "Data returned by exchange rate API does not seem to be valid JSON"
+            )
 
         next_node = json_data
         for k in self.keys:

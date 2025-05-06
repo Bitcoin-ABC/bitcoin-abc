@@ -61,6 +61,7 @@ from electrumabc.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT
 from electrumabc.contacts import Contact
 from electrumabc.ecc import ECPubkey
 from electrumabc.i18n import _, ngettext
+from electrumabc.invoice import ExchangeRateApiError
 from electrumabc.paymentrequest import PR_PAID
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import is_verbose
@@ -3927,7 +3928,17 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
 
         invoice = load_invoice_from_file_and_show_error_message(filename, self)
-        xec_amount = invoice.get_xec_amount()
+        try:
+            xec_amount = invoice.get_xec_amount()
+        except ExchangeRateApiError as e:
+            QtWidgets.QMessageBox.critical(
+                self,
+                _("Exchange rate API error"),
+                _("An error was raised while trying to fetch the exchange rate:")
+                + f"\n\n{e.reason}",
+            )
+            return
+
         amount_str = format_satoshis_plain(
             int(xec_amount * 100), self.get_decimal_point()
         )
