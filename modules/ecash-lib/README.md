@@ -93,3 +93,4 @@ console.log(toHex(rawTx));
 -   2.1.0 - Add `signRecoverable` and `recoverSig` to `Ecc` [D17667](https://reviews.bitcoinabc.org/D17667)
 -   3.0.0 - Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
 -   3.1.0 - Add methods for signing and verifying messages [D17778](https://reviews.bitcoinabc.org/D17778)
+-   3.2.0 - Add method for parsing pushes from an EMPP OP_RETURN [D18057](https://reviews.bitcoinabc.org/D18057)
