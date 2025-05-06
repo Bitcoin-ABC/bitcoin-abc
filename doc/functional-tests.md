@@ -85,6 +85,13 @@ solution:
 test/functional/test_runner.py --timeout-factor=0.3 abc_rpc_isfinal
 ```
 
+**Use --repeat when debugging intermittent issues**
+
+Run a test multiple times in parallel to look for intermittent issues.
+```
+test/functional/test_runner.py --repeat 100 p2p_leak
+```
+
 ##### Resource contention
 
 The P2P and RPC ports used by the bitcoind nodes-under-test are chosen to make

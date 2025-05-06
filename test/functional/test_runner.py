@@ -341,6 +341,16 @@ def main():
             " report."
         ),
     )
+    parser.add_argument(
+        "--repeat",
+        "-r",
+        type=int,
+        default=1,
+        help=(
+            "Number of times to repeat the selected tests. "
+            "Useful for troubleshooting intermittent failures."
+        ),
+    )
     args, unknown_args = parser.parse_known_args()
 
     # args to be passed on always start with two dashes; tests are the
@@ -439,8 +449,9 @@ def main():
     # Always use timings from src_dir if present
     src_timings = Timings(os.path.join(src_dir, "test", "functional", "timing.json"))
 
-    # Add test parameters and remove long running tests if needed
-    test_list = get_tests_to_run(test_list, TEST_PARAMS, cutoff, src_timings)
+    test_list = args.repeat * get_tests_to_run(
+        test_list, TEST_PARAMS, cutoff, src_timings
+    )
 
     if not test_list:
         print(
