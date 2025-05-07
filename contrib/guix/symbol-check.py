@@ -33,8 +33,8 @@ import lief
 MAX_VERSIONS = {
     "GCC": (8, 3, 0),
     "GLIBC": {
-        lief.ELF.ARCH.i386: (2, 31),
-        lief.ELF.ARCH.x86_64: (2, 31),
+        lief.ELF.ARCH.I386: (2, 31),
+        lief.ELF.ARCH.X86_64: (2, 31),
         lief.ELF.ARCH.ARM: (2, 31),
         lief.ELF.ARCH.AARCH64: (2, 31),
     },
@@ -73,17 +73,17 @@ IGNORE_EXPORTS = {
 # Expected linker-loader names can be found here:
 # https://sourceware.org/glibc/wiki/ABIList?action=recall&rev=16
 ELF_INTERPRETER_NAMES = {
-    lief.ELF.ARCH.i386: {
-        lief.ENDIANNESS.LITTLE: "/lib/ld-linux.so.2",
+    lief.ELF.ARCH.I386: {
+        lief.Header.ENDIANNESS.LITTLE: "/lib/ld-linux.so.2",
     },
-    lief.ELF.ARCH.x86_64: {
-        lief.ENDIANNESS.LITTLE: "/lib64/ld-linux-x86-64.so.2",
+    lief.ELF.ARCH.X86_64: {
+        lief.Header.ENDIANNESS.LITTLE: "/lib64/ld-linux-x86-64.so.2",
     },
     lief.ELF.ARCH.ARM: {
-        lief.ENDIANNESS.LITTLE: "/lib/ld-linux-armhf.so.3",
+        lief.Header.ENDIANNESS.LITTLE: "/lib/ld-linux-armhf.so.3",
     },
     lief.ELF.ARCH.AARCH64: {
-        lief.ENDIANNESS.LITTLE: "/lib/ld-linux-aarch64.so.1",
+        lief.Header.ENDIANNESS.LITTLE: "/lib/ld-linux-aarch64.so.1",
     },
 }
 
@@ -227,7 +227,7 @@ def check_exported_symbols(binary) -> bool:
         name = symbol.name
         if name in IGNORE_EXPORTS:
             continue
-        print(f"{binary.name}: export of symbol {name} not allowed!")
+        print(f"{filename}: export of symbol {name} not allowed!")
         ok = False
     return ok
 
@@ -290,19 +290,19 @@ def check_ELF_interpreter(binary) -> bool:
 
 
 CHECKS = {
-    lief.EXE_FORMATS.ELF: [
+    lief.Binary.FORMATS.ELF: [
         ("IMPORTED_SYMBOLS", check_imported_symbols),
         ("EXPORTED_SYMBOLS", check_exported_symbols),
         ("LIBRARY_DEPENDENCIES", check_ELF_libraries),
         ("INTERPRETER_NAME", check_ELF_interpreter),
     ],
-    lief.EXE_FORMATS.MACHO: [
+    lief.Binary.FORMATS.MACHO: [
         ("DYNAMIC_LIBRARIES", check_MACHO_libraries),
         ("MIN_OS", check_MACHO_min_os),
         ("SDK", check_MACHO_sdk),
         ("LLD", check_MACHO_lld),
     ],
-    lief.EXE_FORMATS.PE: [
+    lief.Binary.FORMATS.PE: [
         ("DYNAMIC_LIBRARIES", check_PE_libraries),
         ("SUBSYSTEM_VERSION", check_PE_subsystem_version),
     ],
@@ -314,8 +314,10 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         try:
             binary = lief.parse(filename)
+
+            assert binary is not None
             etype = binary.format
-            if etype == lief.EXE_FORMATS.UNKNOWN:
+            if etype == lief.Binary.FORMATS.UNKNOWN:
                 print(f"{filename}: unknown executable format")
 
             failed = []

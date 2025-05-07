@@ -134,7 +134,7 @@ pip3 install pytest
 # For en/-decoding protobuf messages
 pip3 install protobuf
 # For security-check.py and symbol-check.py
-pip3 install "lief==0.13.2"
+pip3 install "lief==0.16.6"
 # For Chronik WebSocket endpoint
 pip3 install websocket-client
 
