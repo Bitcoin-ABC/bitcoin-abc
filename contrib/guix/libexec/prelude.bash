@@ -51,7 +51,7 @@ fi
 time-machine() {
     # shellcheck disable=SC2086
     guix time-machine --url=https://git.savannah.gnu.org/git/guix.git \
-                      --commit=23ab6fc29f28b0fa9ad94bf2ceed135ee3fdea34 \
+                      --commit=5cb84f2013c5b1e48a7d0e617032266f1e6059e2 \
                       --cores="$JOBS" \
                       --keep-failed \
                       --fallback \
