@@ -181,7 +181,7 @@ function Mining() {
                     </li>
                     <li>
                         <ExternalLink href="https://zpool.ca/">
-                            Zpool
+                            zpool
                         </ExternalLink>
                     </li>
                     <li>
