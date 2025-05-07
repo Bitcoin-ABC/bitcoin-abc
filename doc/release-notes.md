@@ -1,8 +1,7 @@
-# Bitcoin ABC 0.31.2 Release Notes
+# Bitcoin ABC 0.31.3 Release Notes
 
-Bitcoin ABC version 0.31.2 is now available from:
+Bitcoin ABC version 0.31.3 is now available from:
 
-  <https://download.bitcoinabc.org/0.31.2/>
+  <https://download.bitcoinabc.org/0.31.3/>
 
-This release brings big performance improvements to the coinstatsindex,
-shortening the index synchronization time.
+This release contains minor bugfixes and performance improvements.
