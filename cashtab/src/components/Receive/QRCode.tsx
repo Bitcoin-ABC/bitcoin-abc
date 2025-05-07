@@ -3,11 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import QRCodeSVG from 'qrcode.react';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import appConfig from 'config/app';
+import firmaLogo from 'assets/firma-icon.png';
 
 export const CustomQRCode = styled(QRCodeSVG)`
     cursor: pointer;
@@ -106,13 +106,20 @@ const DisplayCopiedAddress = styled.span`
     word-wrap: break-word;
 `;
 
-export const QRCode = ({
-    address,
+interface QrCodeProps {
+    address: string;
+    size: number;
+    logoSizePx: number;
+}
+export const QRCode: React.FC<QrCodeProps> = ({
+    address = '',
     size = 210,
     logoSizePx = 36,
-    onClick = () => null,
 }) => {
-    address = address ? address : '';
+    const isBip21 = address.includes('?');
+    const isToken = address.includes('token_id');
+
+    const addressOnly = isBip21 ? address.split('?')[0] : address;
 
     const [visible, setVisible] = useState(false);
     const trimAmount = 3;
@@ -120,15 +127,14 @@ export const QRCode = ({
     const addressPrefix = addressSplit[0];
     const prefixLength = addressPrefix.length + 1;
 
-    const handleOnClick = evt => {
+    const handleClick = () => {
         setVisible(true);
         setTimeout(() => {
             setVisible(false);
         }, 1500);
-        onClick(evt);
     };
 
-    const getCopiedAddressBlocks = (address, sliceSize) => {
+    const getCopiedAddressBlocks = (address: string, sliceSize: number) => {
         const lineCount = Math.ceil(address.length / sliceSize);
         const lines = [];
         for (let i = 0; i < lineCount; i += 1) {
@@ -151,25 +157,34 @@ export const QRCode = ({
                     position: 'relative',
                 }}
             >
-                <div style={{ position: 'relative' }} onClick={handleOnClick}>
-                    <Copied style={{ display: visible ? null : 'none' }}>
-                        Address Copied to Clipboard
-                        <br />
-                        <DisplayCopiedAddress>
-                            {getCopiedAddressBlocks(address, 6)}
-                        </DisplayCopiedAddress>
-                    </Copied>
+                <div style={{ position: 'relative' }} onClick={handleClick}>
+                    {isBip21 ? (
+                        <Copied
+                            style={{ display: visible ? undefined : 'none' }}
+                        >
+                            bip21 query string copied to clipboard
+                        </Copied>
+                    ) : (
+                        <Copied
+                            style={{ display: visible ? undefined : 'none' }}
+                        >
+                            Address Copied to Clipboard
+                            <br />
+                            <DisplayCopiedAddress>
+                                {getCopiedAddressBlocks(addressOnly, 6)}
+                            </DisplayCopiedAddress>
+                        </Copied>
+                    )}
 
                     <CustomQRCode
                         title="Raw QR Code"
                         value={address || ''}
                         size={size}
-                        renderAs={'svg'}
                         includeMargin
                         imageSettings={{
-                            src: appConfig.logo,
-                            x: null,
-                            y: null,
+                            src: isToken ? firmaLogo : appConfig.logo,
+                            x: undefined,
+                            y: undefined,
                             height: logoSizePx,
                             width: logoSizePx,
                             excavate: true,
@@ -185,17 +200,17 @@ export const QRCode = ({
                                 type="text"
                             />
                             <PrefixLabel>
-                                {address.slice(0, prefixLength)}
+                                {addressOnly.slice(0, prefixLength)}
                             </PrefixLabel>
                             <AddressHighlightTrim>
-                                {address.slice(
+                                {addressOnly.slice(
                                     prefixLength,
                                     prefixLength + trimAmount,
                                 )}
                             </AddressHighlightTrim>
                             {'...'}
                             <AddressHighlightTrim>
-                                {address.slice(-trimAmount)}
+                                {addressOnly.slice(-trimAmount)}
                             </AddressHighlightTrim>
                         </ReceiveAddressHolder>
                     )}
@@ -203,11 +218,4 @@ export const QRCode = ({
             </div>
         </CopyToClipboard>
     );
-};
-
-QRCode.propTypes = {
-    address: PropTypes.string,
-    size: PropTypes.number,
-    logoSizePx: PropTypes.number,
-    onClick: PropTypes.func,
 };

@@ -2965,4 +2965,176 @@ export default {
             },
         ],
     },
+    getReceiveAmountError: {
+        expectedReturns: [
+            {
+                description: 'XEC: we accept an empty string',
+                amount: '',
+                decimals: 2,
+                isXec: true,
+                returned: false,
+            },
+            {
+                description: 'XEC: 0 is rejected',
+                amount: '0',
+                decimals: 2,
+                isXec: true,
+                returned: 'Amount must be greater than 0',
+            },
+            {
+                description: 'Token: 0 is rejected',
+                amount: '0',
+                decimals: 4,
+                isXec: false,
+                returned: 'Amount must be greater than 0',
+            },
+            {
+                description: 'Token: blank input is rejected',
+                amount: '',
+                decimals: 0,
+                isXec: false,
+                returned: 'Amount is required for bip21 token sends',
+            },
+            {
+                description: 'XEC: Rejects non-string input',
+                amount: 50,
+                isXec: true,
+                returned: 'Amount must be a string',
+            },
+            {
+                description: 'Token: Rejects non-string input',
+                amount: 50,
+                isXec: false,
+                returned: 'Amount must be a string',
+            },
+            {
+                description:
+                    'XEC: Rejects input including a decimal marker other than "."',
+                amount: '95,1',
+                decimals: 1,
+                isXec: true,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description:
+                    'Token: Rejects input including a decimal marker other than "."',
+                amount: '95,1',
+                decimals: 1,
+                isXec: false,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description: 'Rejects input multiple decimal points',
+                amount: '95.1.23',
+                decimals: 1,
+                isXec: false,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description:
+                    'Rejects input multiple consecutive decimal points',
+                amount: '95..23',
+                decimals: 1,
+                isXec: false,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description: 'Rejects input containing non-decimal characters',
+                amount: '100.a',
+                decimals: 1,
+                isXec: false,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description: 'We get an error for too many XEC decimals',
+                amount: '99.123',
+                decimals: 2,
+                isXec: true,
+                returned: 'XEC supports up to 2 decimal places',
+            },
+            {
+                description: 'We get an error for XEC amounts below dust',
+                amount: '5.45',
+                decimals: 2,
+                isXec: true,
+                returned:
+                    'XEC send amounts cannot be less than dust (5.46 XEC)',
+            },
+            {
+                description: 'We accept 5.46 XEC',
+                amount: '5.46',
+                decimals: 2,
+                isXec: true,
+                returned: false,
+            },
+            {
+                description: 'We accept 5.45 of a 2-decimal token',
+                amount: '5.45',
+                decimals: 2,
+                isXec: false,
+                returned: false,
+            },
+            {
+                description:
+                    'We get non-plural error msg if token supports only 1 decimal place',
+                amount: '99.12',
+                decimals: 1,
+                isXec: false,
+                returned: 'This token supports no more than 1 decimal place',
+            },
+            {
+                description:
+                    'We cannot specify more decimal places than supported by the token',
+                amount: '99.123',
+                decimals: 2,
+                isXec: false,
+                returned: 'This token supports no more than 2 decimal places',
+            },
+            {
+                description:
+                    'We cannot have decimals for a token supporting 0 decimals',
+                amount: '99.1',
+                decimals: 0,
+                isXec: false,
+                returned: 'This token does not support decimal places',
+            },
+            {
+                description:
+                    'We can specify fewer decimal places than supported by the token',
+                amount: '99.123',
+                decimals: 9,
+                isXec: false,
+                returned: false,
+            },
+            {
+                description:
+                    'We can specify the exact decimal places supported by the token',
+                amount: '99.123456789',
+                decimals: 9,
+                isXec: false,
+                returned: false,
+            },
+            {
+                description:
+                    'We can include a decimal point at the end of the string and no decimal places',
+                amount: '99.',
+                decimals: 9,
+                isXec: false,
+                returned: false,
+            },
+            {
+                description:
+                    'We can include a decimal point at the end of the string and no decimal places, even if the token supports 0 decimals',
+                amount: '99.',
+                decimals: 0,
+                isXec: false,
+                returned: false,
+            },
+        ],
+    },
 };

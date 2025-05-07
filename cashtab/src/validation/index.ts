@@ -26,6 +26,7 @@ import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 import { getMaxDecimalizedQty } from 'token-protocols';
 import { CashtabContact } from 'config/CashtabState';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
+import { DEFAULT_DUST_SATS } from 'ecash-lib';
 
 export const getContactAddressError = (
     address: string,
@@ -1357,6 +1358,61 @@ export const getAgoraPartialAcceptTokenQtyError = (
             threshold.toString(),
             userLocale,
         )} or the full offer`;
+    }
+    return false;
+};
+
+/**
+ * Validate a user-entered string to be included in a bip21
+ * receive string
+ *
+ * - Must be > 0
+ * - Must match specified decimals
+ *
+ * Can be used for XEC or decimal amounts
+ *
+ */
+export const getReceiveAmountError = (
+    amount: string,
+    decimals: number,
+    isXec = false,
+): string | false => {
+    if (typeof amount !== 'string') {
+        return 'Amount must be a string';
+    }
+    if (amount === '' && !isXec) {
+        // Per bip21, we only need an amount for a bip21 token query string
+        // If we have just the address, cashtab will allow user input of an amount
+        // We may update this later to allow arbitrary user-entered token amounts,
+        // but the send screen needs to be upgraded for arbitrary token sends
+        return 'Amount is required for bip21 token sends';
+    }
+    if (amount === '0') {
+        return `Amount must be greater than 0`;
+    }
+    if (
+        (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) &&
+        amount !== ''
+    ) {
+        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+    }
+
+    if (amount.includes('.')) {
+        if (amount.toString().split('.')[1].length > decimals) {
+            if (isXec) {
+                return `XEC supports up to ${decimals} decimal places`;
+            }
+            if (decimals === 0) {
+                return `This token does not support decimal places`;
+            }
+            return `This token supports no more than ${decimals} decimal place${
+                decimals === 1 ? '' : 's'
+            }`;
+        }
+    }
+
+    if (isXec && parseFloat(amount) < Number(DEFAULT_DUST_SATS) / 100) {
+        return `XEC send amounts cannot be less than dust (5.46 XEC)`;
     }
     return false;
 };

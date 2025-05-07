@@ -33,6 +33,7 @@ import {
     getAgoraPartialListPriceError,
     getAgoraPartialAcceptTokenQtyError,
     getAgoraMinBuyError,
+    getReceiveAmountError,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -610,6 +611,18 @@ describe('Cashtab validation functions', () => {
                         userLocale,
                     ),
                 ).toBe(returned);
+            });
+        });
+    });
+    describe('Gets error for bip21 quantity input on Receive screen', () => {
+        const { expectedReturns } = vectors.getReceiveAmountError;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, amount, decimals, isXec, returned } =
+                expectedReturn;
+            it(`getReceiveAmountError: ${description}`, () => {
+                expect(getReceiveAmountError(amount, decimals, isXec)).toBe(
+                    returned,
+                );
             });
         });
     });

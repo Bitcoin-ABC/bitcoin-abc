@@ -159,7 +159,7 @@ interface CopyIconButtonProps {
     name: string;
     data: string;
     customMsg?: string;
-    showToast: boolean;
+    showToast?: boolean;
 }
 const CopyIconButton: React.FC<CopyIconButtonProps> = ({
     name,

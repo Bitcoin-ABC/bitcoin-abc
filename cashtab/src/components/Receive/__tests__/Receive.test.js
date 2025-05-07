@@ -16,6 +16,7 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { FIRMA } from 'constants/tokens';
 
 describe('<Receive />', () => {
     let user;
@@ -102,6 +103,71 @@ describe('<Receive />', () => {
         expect(qrCodeItself).toBeInTheDocument();
         expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
         expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
+
+        // We can enter an amount to generate a bip21 QR code and query string
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter receive amount'),
+            '55.123',
+        );
+
+        // We see expected validation error bc an eCash amount cannot have more than 2 decimal places
+        expect(
+            screen.getByText('XEC supports up to 2 decimal places'),
+        ).toBeInTheDocument();
+
+        // Enter a valid amount
+        await userEvent.clear(
+            screen.getByPlaceholderText('Enter receive amount'),
+        );
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter receive amount'),
+            '55123.33',
+        );
+
+        // If we click the QR code now, we get a bip21 msg
+        await user.click(qrCodeItself);
+
+        // Copy div is displayed with expected bip 21 msg
+        expect(
+            screen.queryByText('bip21 query string copied to clipboard'),
+        ).toBeInTheDocument();
+
+        // We can click to get a URL that will open Cashtab with this tx pre-populated
+        await user.click(
+            screen.getByRole('button', { name: 'Copy Cashtab URL' }),
+        );
+        expect(
+            await screen.findByText(
+                `"https://cashtab.com/#/send?bip21=ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g?amount=55123.33" copied to clipboard`,
+            ),
+        ).toBeInTheDocument();
+
+        // We can hit the switch to send in Firma
+        await user.click(screen.getByTitle('Toggle Firma'));
+
+        // Now we can use 4 decimal places
+        await userEvent.clear(
+            screen.getByPlaceholderText('Enter receive amount'),
+        );
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter receive amount'),
+            '12.1234',
+        );
+        // We can get a FIRMA receive bip21 string
+        await user.click(
+            screen.getByRole('button', { name: 'Copy Cashtab URL' }),
+        );
+        expect(
+            await screen.findByText(
+                `"https://cashtab.com/#/send?bip21=ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g?token_id=${FIRMA.tokenId}&token_decimalized_qty=12.1234" copied to clipboard`,
+            ),
+        ).toBeInTheDocument();
+
+        // If we switch back to XEC, form validation catches 4 decimal places
+        await user.click(screen.getByTitle('Toggle Firma'));
+        expect(
+            screen.getByText('XEC supports up to 2 decimal places'),
+        ).toBeInTheDocument();
     });
     it('Renders the Receive screen with QR code of expected width for smallest supported mobile view', async () => {
         // Reset the width to mobile

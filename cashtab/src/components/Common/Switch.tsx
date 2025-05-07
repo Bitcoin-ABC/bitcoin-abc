@@ -4,6 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { theme } from 'assets/styles/theme';
 
 const Container = styled.div<{ switchWidth?: number }>`
     width: ${props => props.switchWidth}px;
@@ -26,9 +27,10 @@ const SwitchLabel = styled.label<{ disabled?: boolean }>`
 `;
 const SwitchInner = styled.span<{
     bgImageOn: boolean | string;
+    bgColorOn: string;
     small: boolean;
     bgImageOff: boolean | string;
-    bgColorOff: boolean | string;
+    bgColorOff: string;
 }>`
     display: block;
     width: 200%;
@@ -37,7 +39,7 @@ const SwitchInner = styled.span<{
         content: attr(data-on);
         ${props =>
             props.bgImageOn
-                ? `background: ${props.theme.accent} url(${props.bgImageOn}) 20%/contain no-repeat`
+                ? `background: ${props.bgColorOn} url(${props.bgImageOn}) 20%/contain no-repeat`
                 : `background-color: ${props.theme.accent}`};
         text-transform: uppercase;
         padding-left: 10px;
@@ -96,6 +98,7 @@ interface CashtabSwitchProps {
     width?: number;
     right?: number;
     on?: string;
+    bgColorOn?: string;
     bgImageOn?: string;
     off?: string;
     bgImageOff?: string;
@@ -112,6 +115,7 @@ export const CashtabSwitch: React.FC<CashtabSwitchProps> = ({
     width,
     right,
     on = '',
+    bgColorOn = theme.accent,
     bgImageOn = false,
     off = '',
     bgImageOff = false,
@@ -145,6 +149,7 @@ export const CashtabSwitch: React.FC<CashtabSwitchProps> = ({
                     <SwitchInner
                         data-on={on}
                         data-off={off}
+                        bgColorOn={bgColorOn}
                         bgImageOn={bgImageOn}
                         bgImageOff={bgImageOff}
                         bgColorOff={bgColorOff}

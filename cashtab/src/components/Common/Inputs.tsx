@@ -19,6 +19,7 @@ const CashtabInputWrapper = styled.div`
 `;
 
 const InputRow = styled.div<{ invalid?: boolean }>`
+    position: relative;
     display: flex;
     align-items: stretch;
     input,
@@ -158,6 +159,34 @@ export const InputFlex = styled.div`
     gap: 12px;
 `;
 
+export const InputLogoPrefix = styled.img`
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    z-index: 1;
+`;
+
+const TextSuffix = styled.span`
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+    color: ${props => props.theme.primaryText};
+    font-family: 'Roboto Mono', monospace;
+    z-index: 1;
+    pointer-events: none;
+`;
+
+interface InputLogoPrefixProps {
+    src: string;
+    alt: string;
+}
+
 interface InputProps {
     placeholder: string;
     name: string;
@@ -166,6 +195,9 @@ interface InputProps {
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     error?: string | boolean;
     type?: string;
+    style?: React.CSSProperties;
+    prefix?: InputLogoPrefixProps;
+    suffix?: string;
 }
 export const Input: React.FC<InputProps> = ({
     placeholder = '',
@@ -175,21 +207,34 @@ export const Input: React.FC<InputProps> = ({
     handleInput,
     error = false,
     type = 'text',
+    style,
+    prefix,
+    suffix,
 }) => {
     return (
         <CashtabInputWrapper>
             <InputRow invalid={typeof error === 'string'}>
+                {typeof prefix !== 'undefined' && (
+                    <InputLogoPrefix src={prefix.src} alt={prefix.alt} />
+                )}
                 <CashtabInput
                     name={name}
+                    style={style}
                     value={value === null ? '' : value}
                     placeholder={placeholder}
                     disabled={disabled}
                     invalid={typeof error === 'string'}
                     onChange={handleInput}
+                    onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
+                        (e.target as HTMLInputElement).blur();
+                    }}
                     type={type}
                 />
+                {typeof suffix !== 'undefined' && (
+                    <TextSuffix>{suffix}</TextSuffix>
+                )}
             </InputRow>
-            <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+            <ErrorMsg>{typeof error === 'string' ? error : ' '}</ErrorMsg>
         </CashtabInputWrapper>
     );
 };
