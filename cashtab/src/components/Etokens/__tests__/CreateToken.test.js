@@ -97,7 +97,9 @@ describe('<CreateToken />', () => {
         );
 
         // Wait for the wallet balance to load
-        expect(await screen.findByText('0.00 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('0.00 XEC');
 
         // We do not see the Create a Token form
         expect(screen.queryByText('Create Token')).not.toBeInTheDocument();

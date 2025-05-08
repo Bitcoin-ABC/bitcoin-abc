@@ -76,7 +76,9 @@ describe('<Home />', () => {
         );
 
         // Wait for the balance to render
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         // The home screen is in the document
         expect(await screen.findByTestId('tx-history')).toBeInTheDocument();

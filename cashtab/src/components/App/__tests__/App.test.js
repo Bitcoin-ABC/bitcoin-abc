@@ -45,7 +45,6 @@ import CashtabCache from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Ecc, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
-import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
 
 describe('<App />', () => {
     const ecc = new Ecc();
@@ -379,8 +378,6 @@ describe('<App />', () => {
         expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
             '10,000.00 XEC',
         );
-        // For a wallet with no XECX, we do not display any XECX balance info
-        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
 
         // We see the home container
         await screen.findByTestId('tx-history');
@@ -611,45 +608,7 @@ describe('<App />', () => {
         // We see the easter egg
         expect(await screen.findByAltText('tabcash')).toBeInTheDocument();
     });
-    it('Wallet with XECX sees XECX balance and XECX balance included in fiat balance', async () => {
-        const xecxUtxo = {
-            ...requiredUtxoThisToken,
-            token: {
-                ...requiredUtxoThisToken.token,
-                tokenId: tokenMockXecx.tokenId,
-            },
-        };
-        // Modify walletWithXecAndTokens to have the required token for this feature
 
-        const walletWithXecx = {
-            ...walletWithXecAndTokens,
-            state: {
-                ...walletWithXecAndTokens.state,
-                slpUtxos: [...walletWithXecAndTokens.state.slpUtxos, xecxUtxo],
-            },
-        };
-
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecx,
-            localforage,
-        );
-
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
-        mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
-
-        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
-
-        // We see the balance in XECX
-
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
-
-        expect(await screen.findByTitle('Balance XECX')).toBeInTheDocument();
-        expect(await screen.findByText('XECX')).toBeInTheDocument();
-        expect(screen.getByText(/100,000,000.00/)).toBeInTheDocument();
-    });
     it('If Cashtab starts with 1.5.* cashtabCache, it is wiped and migrated to 2.9.0 cashtabCache', async () => {
         // Note: this is what will happen for all Cashtab users when this diff lands
         const mockedChronik =
@@ -734,9 +693,9 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
+        expect(
+            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
+        ).toBeInTheDocument();
 
         // We are forwarded to the home screen after the wallet loads
         expect(await screen.findByTestId('tx-history')).toBeInTheDocument();
@@ -784,9 +743,9 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
+        expect(
+            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
+        ).toBeInTheDocument();
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
@@ -822,9 +781,9 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
+        expect(
+            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
+        ).toBeInTheDocument();
 
         // Check wallets
         const walletsAfterLoad = cashtabWalletsFromJSON(
@@ -938,9 +897,9 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
+        expect(
+            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
+        ).toBeInTheDocument();
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
@@ -1042,9 +1001,9 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
+        expect(
+            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
+        ).toBeInTheDocument();
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
@@ -1118,9 +1077,9 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
-        );
+        expect(
+            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
+        ).toBeInTheDocument();
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');

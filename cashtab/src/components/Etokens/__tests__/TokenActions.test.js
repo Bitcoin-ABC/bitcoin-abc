@@ -2297,7 +2297,7 @@ describe('<Token /> available actions rendered', () => {
 
         // XECX token icon is rendered
         expect(
-            screen.getByAltText(`icon for ${FIRMA.tokenId}`),
+            await screen.findByAltText(`icon for ${FIRMA.tokenId}`),
         ).toBeInTheDocument();
 
         // Token actions are available
@@ -2425,7 +2425,7 @@ describe('<Token /> available actions rendered', () => {
 
         // XECX token icon is rendered
         expect(
-            screen.getByAltText(`icon for ${FIRMA.tokenId}`),
+            await screen.findByAltText(`icon for ${FIRMA.tokenId}`),
         ).toBeInTheDocument();
 
         // Token actions are available

@@ -272,7 +272,7 @@ describe('<Agora />', () => {
 
         // We see the token name and ticker above its PartialOffer after OrderBooks load
         expect(await screen.findByText('Staked XEC')).toBeInTheDocument();
-        expect(screen.getByText('XECX')).toBeInTheDocument();
+        expect(await screen.findAllByText('XECX')).toHaveLength(2);
 
         // Because this offer was created by this wallet, we have the option to cancel it
         expect(

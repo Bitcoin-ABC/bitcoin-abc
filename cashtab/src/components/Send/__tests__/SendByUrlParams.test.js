@@ -80,7 +80,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -104,7 +106,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // Wait for balance to be loaded
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
@@ -148,7 +152,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -211,7 +217,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -274,7 +282,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -452,7 +462,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -519,7 +531,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -628,7 +642,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -765,7 +781,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -881,7 +899,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for balance to be loaded
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 

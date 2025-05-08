@@ -121,8 +121,36 @@ const SvgButtonOrLinkCss = css`
         }
     }
 `;
-const SvgButton = styled.button`
-    ${SvgButtonOrLinkCss}
+const HeaderCopyButtonCss = css`
+    border: none;
+    background: ${props => props.theme.secondaryBackground};
+    width: 38px;
+    flex-shrink: 0;
+    height: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+        height: 18px;
+        width: 18px;
+        path {
+            fill: ${props => props.theme.secondaryText};
+        }
+    }
+    &:hover {
+        background: ${props => props.theme.accent};
+        svg {
+            path {
+                fill: ${props => props.theme.primaryText};
+            }
+        }
+    }
+`;
+
+const SvgButton = styled.button<{ isHeader?: boolean }>`
+    ${({ isHeader }) => (isHeader ? HeaderCopyButtonCss : SvgButtonOrLinkCss)}
 `;
 
 interface IconButtonProps {
@@ -160,16 +188,19 @@ interface CopyIconButtonProps {
     data: string;
     customMsg?: string;
     showToast?: boolean;
+    isHeader?: boolean;
 }
 const CopyIconButton: React.FC<CopyIconButtonProps> = ({
     name,
     data,
     customMsg,
     showToast = false,
+    isHeader = false,
 }) => {
     return (
         <SvgButton
             aria-label={name}
+            isHeader={isHeader}
             onClick={() => {
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(data);

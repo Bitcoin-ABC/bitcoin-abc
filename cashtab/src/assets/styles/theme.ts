@@ -9,6 +9,7 @@ export interface CashtabTheme extends DefaultTheme {
     secondaryBackground: string;
     accent: string;
     secondaryAccent: string;
+    firmaAccent: string;
     primaryText: string;
     secondaryText: string;
     border: string;
@@ -43,6 +44,7 @@ export const theme: CashtabTheme = {
     secondaryBackground: '#2a2e2e',
     accent: '#00ABE7',
     secondaryAccent: '#ff21d0',
+    firmaAccent: '#64d6c5',
     primaryText: '#FFFFFF',
     secondaryText: '#838d91',
     border: '#586161',

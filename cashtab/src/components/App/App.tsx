@@ -50,9 +50,7 @@ import { CashtabWallet, hasEnoughToken } from 'wallet';
 import ServiceWorkerWrapper from 'components/Common/ServiceWorkerWrapper';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
-import ExtensionHeader from 'components/Common/ExtensionHeader';
-import WalletLabel from 'components/Common/WalletLabel';
-import BalanceHeader from 'components/Common/BalanceHeader';
+import Header from 'components/Header';
 import { isValidCashtabWallet } from 'validation';
 import { Bounce, ToastContainer } from 'react-toastify';
 import {
@@ -68,12 +66,9 @@ import {
     WalletBody,
     ScreenWrapper,
     WalletCtn,
-    HeaderCtn,
     CashtabLogo,
     EasterEgg,
-    BalanceHeaderContainer,
     DesktopLogo,
-    HeaderInfoCtn,
 } from 'components/App/styles';
 import appConfig from 'config/app';
 import { FIRMA } from 'constants/tokens';
@@ -183,50 +178,26 @@ const App = () => {
                                     <OnBoarding />
                                 ) : (
                                     <>
-                                        <HeaderCtn>
-                                            {process.env.REACT_APP_BUILD_ENV ===
-                                            'extension' ? (
-                                                <ExtensionHeader
-                                                    path={location.pathname}
-                                                />
-                                            ) : (
-                                                <CashtabLogo
-                                                    src={Cashtab}
-                                                    alt="cashtab"
-                                                />
-                                            )}
-                                        </HeaderCtn>
-                                        <HeaderInfoCtn>
-                                            <WalletLabel
-                                                wallets={wallets}
-                                                settings={settings}
-                                                updateCashtabState={
-                                                    updateCashtabState
-                                                }
-                                                setCashtabState={
-                                                    setCashtabState
-                                                }
-                                                loading={loading}
-                                                setLoading={setLoading}
-                                            />
-                                            <BalanceHeaderContainer title="Wallet Info">
-                                                <BalanceHeader
-                                                    balanceSats={
-                                                        (
-                                                            wallet as CashtabWallet
-                                                        ).state.balanceSats
-                                                    }
-                                                    balanceXecx={balanceXecx}
-                                                    balanceFirma={balanceFirma}
-                                                    settings={settings}
-                                                    fiatPrice={fiatPrice}
-                                                    firmaPrice={firmaPrice}
-                                                    userLocale={
-                                                        navigator.language
-                                                    }
-                                                />
-                                            </BalanceHeaderContainer>
-                                        </HeaderInfoCtn>
+                                        <Header
+                                            wallets={wallets}
+                                            settings={settings}
+                                            updateCashtabState={
+                                                updateCashtabState
+                                            }
+                                            setCashtabState={setCashtabState}
+                                            loading={loading}
+                                            setLoading={setLoading}
+                                            balanceSats={
+                                                (wallet as CashtabWallet).state
+                                                    .balanceSats
+                                            }
+                                            balanceXecx={balanceXecx}
+                                            balanceFirma={balanceFirma}
+                                            fiatPrice={fiatPrice}
+                                            firmaPrice={firmaPrice}
+                                            userLocale={navigator.language}
+                                            path={location.pathname}
+                                        ></Header>
                                         <ScreenWrapper>
                                             {process.env.REACT_APP_BUILD_ENV !==
                                                 'extension' && (

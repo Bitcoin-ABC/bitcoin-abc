@@ -89,6 +89,10 @@ describe('<CashtabTestWrapper />', () => {
             ).not.toBeInTheDocument(),
         );
 
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
+        );
+
         // Wait for the balance to render
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 

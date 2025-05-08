@@ -4,19 +4,8 @@
 
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
 import { CopyIconButton } from 'components/Common/Buttons';
 import HideBalanceSwitch from 'components/Common/HideBalanceSwitch';
-
-export const WalletHideBalanceCopyAddress = styled.div`
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    svg {
-        height: 21px;
-        width: 21px;
-    }
-`;
 
 const WalletHeaderActions = ({
     address = '',
@@ -24,13 +13,18 @@ const WalletHeaderActions = ({
     updateCashtabState,
 }) => {
     return (
-        <WalletHideBalanceCopyAddress>
-            <CopyIconButton name={`Copy ${address}`} data={address} showToast />
+        <>
             <HideBalanceSwitch
                 settings={settings}
                 updateCashtabState={updateCashtabState}
             />
-        </WalletHideBalanceCopyAddress>
+            <CopyIconButton
+                name={`Copy ${address}`}
+                data={address}
+                showToast
+                isHeader
+            />
+        </>
     );
 };
 
