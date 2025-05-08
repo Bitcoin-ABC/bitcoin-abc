@@ -53,7 +53,7 @@ hyper = "1.1"
 itertools = "0.13.0"
 
 # JSON RPC network library
-karyon_jsonrpc = { git = "https://github.com/karyontech/karyon.git", rev = "c019ca3273a89afb34e2aa429386851f45cfa5d1", default-features = false, features = [
+karyon_jsonrpc = { version = "0.2.2", default-features = false, features = [
     "tokio",
     "tcp",
     "tls",

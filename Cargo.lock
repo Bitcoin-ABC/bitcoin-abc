@@ -2030,16 +2030,18 @@ dependencies = [
 
 [[package]]
 name = "karyon_async_rustls"
-version = "0.2.1"
-source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2394051e43dbfcd0d37319843fb7fcfe2375812830d0a0ef96b551150f5a0c6"
 dependencies = [
  "tokio-rustls",
 ]
 
 [[package]]
 name = "karyon_core"
-version = "0.2.1"
-source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9563cd58a48e3b57aec90b9115862939649e59a6c8e4c6d26e2f43d94f88b289"
 dependencies = [
  "async-channel",
  "bincode 2.0.0-rc.3",
@@ -2051,14 +2053,15 @@ dependencies = [
  "parking_lot",
  "pin-project-lite",
  "rand 0.8.5",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "tokio",
 ]
 
 [[package]]
 name = "karyon_jsonrpc"
-version = "0.2.1"
-source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac1e295f768101082402febd19b86784f7bc4f84ad12b04520af3ca30badf011"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -2070,13 +2073,14 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
 name = "karyon_jsonrpc_macro"
-version = "0.2.1"
-source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "861b1bab46fe5dd324f8abcdd1a92965376720cd2d303cf37be4157e84cfe947"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2086,8 +2090,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_net"
-version = "0.2.1"
-source = "git+https://github.com/karyontech/karyon.git?rev=c019ca3273a89afb34e2aa429386851f45cfa5d1#c019ca3273a89afb34e2aa429386851f45cfa5d1"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d813985d380a4ebb490058329a232c1afc57aaff1467843e53d3f2f915bd7ab"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -2098,7 +2103,7 @@ dependencies = [
  "log",
  "pin-project-lite",
  "rustls-pki-types",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "tokio",
  "url",
 ]
