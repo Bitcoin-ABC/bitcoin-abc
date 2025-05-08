@@ -14,15 +14,20 @@ use bitcoinsuite_core::{
 use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::group::GroupMember;
-use chronik_indexer::{merkle::MerkleTree, query::MAX_HISTORY_PAGE_SIZE};
+use chronik_indexer::{
+    merkle::MerkleTree,
+    query::{QueryBlocks, MAX_HISTORY_PAGE_SIZE},
+    subs::BlockMsgType,
+};
 use chronik_proto::proto::{Tx, TxHistoryPage};
+use chronik_util::log_chronik;
 use futures::future;
 use itertools::izip;
 use karyon_jsonrpc::{
     error::RPCError,
     net::{Addr, Endpoint},
-    rpc_impl, rpc_method,
-    server::ServerBuilder,
+    rpc_impl, rpc_method, rpc_pubsub_impl,
+    server::{channel::Channel, ServerBuilder},
 };
 use rustls::pki_types::{
     pem::PemObject,
@@ -240,7 +245,8 @@ impl ChronikElectrumServer {
 
                     let server = builder
                         .service(server_endpoint)
-                        .service(blockchain_endpoint)
+                        .service(blockchain_endpoint.clone())
+                        .pubsub_service(blockchain_endpoint)
                         .build()
                         .await
                         .map_err(|err| ServingFailed(err.to_string()))?;
@@ -475,6 +481,94 @@ fn get_tx_fee(tx: &Tx) -> i64 {
     fee
 }
 
+async fn header_json_from_height(
+    blocks: &QueryBlocks<'_>,
+    height: i32,
+) -> Result<Value, RPCError> {
+    let header = blocks.header(height.to_string(), 0).await.map_err(|_| {
+        RPCError::CustomError(
+            1,
+            format!("Unable to retrieve the header at height {height}"),
+        )
+    })?;
+
+    Ok(json!({
+        "height": height,
+        "hex": hex::encode(header.raw_header),
+    }))
+}
+
+#[rpc_pubsub_impl(name = "blockchain")]
+impl ChronikElectrumRPCBlockchainEndpoint {
+    #[rpc_method(name = "headers.subscribe")]
+    async fn headers_subscribe(
+        &self,
+        chan: Arc<Channel>,
+        method: String,
+        _params: Value,
+    ) -> Result<Value, RPCError> {
+        let indexer = self.indexer.read().await;
+        let blocks: chronik_indexer::query::QueryBlocks<'_> =
+            indexer.blocks(&self.node);
+
+        let subs: tokio::sync::RwLockWriteGuard<
+            '_,
+            chronik_indexer::subs::Subs,
+        > = indexer.subs().write().await;
+        let mut block_subs = subs.sub_to_block_msgs();
+
+        let indexer_clone = self.indexer.clone();
+        let node_clone = self.node.clone();
+
+        let sub = chan.new_subscription(&method).await;
+        tokio::spawn(async move {
+            log_chronik!("Subscription to electrum headers\n");
+
+            loop {
+                let Ok(block_msg) = block_subs.recv().await else {
+                    // Error, disconnect
+                    break;
+                };
+
+                if block_msg.msg_type != BlockMsgType::Connected {
+                    // We're only sending headers upon block connection.
+                    // At some point we might want to wait for block
+                    // finalization instead, but this behavior would differ from
+                    // Fulcrum.
+                    continue;
+                }
+
+                let indexer = indexer_clone.read().await;
+                let blocks: chronik_indexer::query::QueryBlocks<'_> =
+                    indexer.blocks(&node_clone);
+
+                match header_json_from_height(&blocks, block_msg.height).await {
+                    Err(err) => {
+                        log_chronik!("{err}\n");
+                        break;
+                    }
+                    Ok(header_json) => {
+                        if sub.notify(header_json).await.is_err() {
+                            // Don't log, it's likely a client unsubscription or
+                            // disconnection
+                            break;
+                        }
+                    }
+                };
+            }
+
+            log_chronik!("Unsubscription from electrum headers\n");
+        });
+
+        let tip_height = blocks
+            .blockchain_info()
+            .map_err(|_| RPCError::InternalError)?
+            .tip_height;
+
+        header_json_from_height(&blocks, tip_height).await
+    }
+}
+
 #[rpc_impl(name = "blockchain")]
 impl ChronikElectrumRPCBlockchainEndpoint {
     #[rpc_method(name = "block.header")]
@@ -524,7 +618,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 .collect();
             Ok(json!({
                 "branch": branch,
-                "header": hex::encode(proto_header.raw_header) ,
+                "header": hex::encode(proto_header.raw_header),
                 "root": be_bytes_to_le_hex(&proto_header.root),
             }))
         }
