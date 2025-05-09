@@ -10,7 +10,7 @@ macro(add_to_symbols_check BINARY)
 		COMMENT "Running symbol-check.py on ${BINARY}..."
 		COMMAND
 			"${Python_EXECUTABLE}"
-			"${CMAKE_SOURCE_DIR}/contrib/devtools/symbol-check.py"
+			"${CMAKE_SOURCE_DIR}/contrib/guix/symbol-check.py"
 			"$<TARGET_FILE:${BINARY}>"
 		DEPENDS
 			"${BINARY}"
@@ -29,7 +29,7 @@ macro(add_to_security_check BINARY)
 		COMMENT "Running security-check.py on ${BINARY}..."
 		COMMAND
 			"${Python_EXECUTABLE}"
-			"${CMAKE_SOURCE_DIR}/contrib/devtools/security-check.py"
+			"${CMAKE_SOURCE_DIR}/contrib/guix/security-check.py"
 			"$<TARGET_FILE:${BINARY}>"
 		DEPENDS
 			"${BINARY}"
