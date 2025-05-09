@@ -16,7 +16,7 @@ use chronik_db::{
     plugins::PluginsGroup,
 };
 use chronik_plugin::data::PluginOutput;
-use chronik_util::log;
+use chronik_util::log_chronik;
 use tokio::sync::broadcast;
 
 use crate::subs_group::{SubsGroup, TxMsgType};
@@ -144,7 +144,7 @@ impl Subs {
     pub(crate) fn broadcast_block_msg(&self, msg: BlockMsg) {
         if self.subs_block.receiver_count() > 0 {
             if let Err(err) = self.subs_block.send(msg) {
-                log!("Unexpected send error: {}\n", err);
+                log_chronik!("Unexpected send error: {}\n", err);
             }
         }
     }
