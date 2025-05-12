@@ -9,7 +9,6 @@
 #include <hash.h>
 #include <util/check.h>
 
-#include <bit>
 #include <cassert>
 #include <cstdio>
 #include <limits>
