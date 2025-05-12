@@ -49,7 +49,7 @@ COMPLETE_IDX = {"synced": True, "best_block_height": FINAL_HEIGHT}
 class AssumeutxoTest(BitcoinTestFramework):
     def set_test_params(self):
         """Use the pregenerated, deterministic chain up to height 199."""
-        self.num_nodes = 4
+        self.num_nodes = 5
         self.rpc_timeout = 120
         self.extra_args = [
             [],
@@ -61,12 +61,13 @@ class AssumeutxoTest(BitcoinTestFramework):
                 "-coinstatsindex=1",
             ],
             [],
+            ["-chronik"] if self.is_chronik_compiled() else [],
         ]
 
     def setup_network(self):
         """Start with the nodes disconnected so that one can generate a snapshot
         including blocks the other hasn't yet seen."""
-        self.add_nodes(4)
+        self.add_nodes(5)
         self.start_nodes(extra_args=self.extra_args)
 
     def test_invalid_snapshot_scenarios(self, valid_snapshot_path):
@@ -264,7 +265,7 @@ class AssumeutxoTest(BitcoinTestFramework):
             expected_error(log_msg=log_msg)
 
     def test_headers_not_synced(self, valid_snapshot_path):
-        for node in self.nodes[1:]:
+        for node in self.nodes[1:4]:
             msg = (
                 "Unable to load UTXO snapshot: The base block header "
                 "(118a7d5473bccce9b314789e14ce426fc65fb09dfeda0131032bb6d86ed2fd0b) "
@@ -360,6 +361,49 @@ class AssumeutxoTest(BitcoinTestFramework):
         main_block2 = node0.getblock(node0.getblockhash(SNAPSHOT_BASE_HEIGHT + 2), 0)
         node1.submitheader(main_block1)
         node1.submitheader(main_block2)
+
+    def test_chronik_incompatiblity(self, dump_output_path):
+        """Test that a Chronik-enabled node cannot call loadtxoutset"""
+        if not self.is_chronik_compiled():
+            return
+        self.log.info("Test assumeutxo-chronik incompatibility.")
+        node = self.nodes[4]
+        assert_raises_rpc_error(
+            -1,
+            "loadtxoutset is not compatible with Chronik",
+            node.loadtxoutset,
+            dump_output_path,
+        )
+
+        # Load the snapshot, but don't sync blocks
+        self.restart_node(4, extra_args=[])
+        node.loadtxoutset(dump_output_path)
+        chainstates = node.getchainstates()["chainstates"]
+        assert_equal(len(chainstates), 2)
+        assert_equal(chainstates[0]["blocks"], START_HEIGHT)
+        self.stop_node(4)
+
+        node.assert_start_raises_init_error(
+            extra_args=["-chronik"],
+            expected_msg=(
+                "Error: Assumeutxo is incompatible with -chronik. "
+                "Wait for background sync to complete before enabling Chronik."
+            ),
+        )
+
+        # Now sync blocks and check that we can restart with chronik
+        self.restart_node(4, extra_args=[])
+        self.connect_nodes(0, 4)
+        self.wait_until(lambda: len(node.getchainstates()["chainstates"]) == 1)
+
+        self.restart_node(4, extra_args=["-chronik"])
+        chronik = node.get_chronik_client()
+        # The chronik node is synced
+        assert_equal(chronik.blockchain_info().ok().tip_height, FINAL_HEIGHT)
+        # It can process mempool transactions
+        wallet = MiniWallet(node)
+        mempool_tx = wallet.send_self_transfer(from_node=node)
+        chronik.tx(mempool_tx["txid"]).ok()
 
     def test_sync_from_assumeutxo_node(self, snapshot):
         """
@@ -489,7 +533,6 @@ class AssumeutxoTest(BitcoinTestFramework):
         n0 = self.nodes[0]
         n1 = self.nodes[1]
         n2 = self.nodes[2]
-        n3 = self.nodes[3]
 
         self.mini_wallet = MiniWallet(n0)
 
@@ -541,9 +584,8 @@ class AssumeutxoTest(BitcoinTestFramework):
             block = n0.getblock(n0.getblockhash(i), 0)
             # make n1 and n2 aware of the new header, but don't give them the
             # block.
-            n1.submitheader(block)
-            n2.submitheader(block)
-            n3.submitheader(block)
+            for n in self.nodes[1:]:
+                n.submitheader(block)
 
         # Ensure everyone is seeing the same headers.
         for n in self.nodes:
@@ -610,6 +652,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.test_invalid_file_path()
         self.test_snapshot_block_invalidated(dump_output["path"])
         self.test_snapshot_not_on_most_work_chain(dump_output["path"])
+        self.test_chronik_incompatiblity(dump_output["path"])
 
         # Prune-node sanity check
         assert "NETWORK" not in n1.getnetworkinfo()["localservicesnames"]

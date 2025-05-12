@@ -2695,8 +2695,16 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
+    const bool background_sync_in_progress{WITH_LOCK(
+        chainman.GetMutex(), return chainman.BackgroundSyncInProgress())};
 #if ENABLE_CHRONIK
     if (args.GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
+        if (background_sync_in_progress) {
+            return InitError(
+                _("Assumeutxo is incompatible with -chronik. Wait for "
+                  "background sync to complete before enabling Chronik."));
+        }
+
         const bool fReindexChronik =
             fReindex || args.GetBoolArg("-chronikreindex", false);
         if (!chronik::Start(args, config, node, fReindexChronik)) {
@@ -2727,8 +2735,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     } else {
         // Prior to setting NODE_NETWORK, check if we can provide historical
         // blocks.
-        if (!WITH_LOCK(chainman.GetMutex(),
-                       return chainman.BackgroundSyncInProgress())) {
+        if (!background_sync_in_progress) {
             LogPrintf("Setting NODE_NETWORK on non-prune mode\n");
             nLocalServices = ServiceFlags(nLocalServices | NODE_NETWORK);
         } else {

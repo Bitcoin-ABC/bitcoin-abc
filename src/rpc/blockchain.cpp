@@ -3051,6 +3051,10 @@ static RPCHelpMan loadtxoutset() {
         "are typically obtained from third-party sources (HTTP, torrent, etc.) "
         "which is reasonable since their contents are always checked by "
         "hash.\n\n"
+        "This RPC is incompatible with the -chronik init option, and a node "
+        "with multiple chainstates may not be restarted with -chronik. After "
+        "the background validation is finished and the chainstates are merged, "
+        "the node can be restarted again with Chronik.\n\n"
         "You can find more information on this process in the `assumeutxo` "
         "design document (https://www.bitcoinabc.org/doc/assumeutxo.html).",
         {
@@ -3076,9 +3080,15 @@ static RPCHelpMan loadtxoutset() {
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
-            const fs::path path{
-                AbsPathForConfigVal(EnsureArgsman(node),
-                                    fs::u8path(self.Arg<std::string>("path")))};
+            ArgsManager &args = EnsureArgsman(node);
+            const fs::path path{AbsPathForConfigVal(
+                args, fs::u8path(self.Arg<std::string>("path")))};
+
+            if (args.GetBoolArg("-chronik", false)) {
+                throw JSONRPCError(
+                    RPC_MISC_ERROR,
+                    "loadtxoutset is not compatible with Chronik.");
+            }
 
             FILE *file{fsbridge::fopen(path, "rb")};
             AutoFile afile{file};
