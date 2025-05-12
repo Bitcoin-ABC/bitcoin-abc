@@ -144,7 +144,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     if (!force && !addr.IsRoutable()) {
         return;
     }
-    CService ipp(addr);
+    const CService &ipp(addr);
     if (banned.count(ipp)) {
         time_t bantime = banned[ipp];
         if (force ||

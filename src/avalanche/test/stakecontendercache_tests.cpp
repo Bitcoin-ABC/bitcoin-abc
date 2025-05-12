@@ -441,6 +441,7 @@ BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
     StakeContenderCache cache;
 
     std::vector<ProofRef> proofs;
+    proofs.reserve(3);
     for (size_t i = 0; i < 3; i++) {
         proofs.push_back(
             buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));

@@ -202,7 +202,7 @@ static bool rest_headers(Config &config, const std::any &context,
                        "Header count out of range: " + path[0]);
     }
 
-    std::string hashStr = path[1];
+    const std::string &hashStr = path[1];
     uint256 rawHash;
     if (!ParseHashStr(hashStr, rawHash)) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);

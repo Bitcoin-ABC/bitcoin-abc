@@ -200,7 +200,7 @@ bool BitcoinUnits::parse(int unit, const QString &value, Amount *val_out) {
         // More than one dot
         return false;
     }
-    QString whole = parts[0];
+    const QString &whole = parts[0];
     QString decimals;
 
     if (parts.size() > 1) {

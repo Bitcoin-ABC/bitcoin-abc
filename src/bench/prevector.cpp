@@ -85,6 +85,7 @@ template <typename T>
 static void PrevectorFillVectorDirect(benchmark::Bench &bench) {
     bench.run([&] {
         std::vector<prevector<28, T>> vec;
+        vec.reserve(260);
         for (size_t i = 0; i < 260; ++i) {
             vec.emplace_back();
         }
@@ -95,6 +96,7 @@ template <typename T>
 static void PrevectorFillVectorIndirect(benchmark::Bench &bench) {
     bench.run([&] {
         std::vector<prevector<28, T>> vec;
+        vec.reserve(260);
         for (size_t i = 0; i < 260; ++i) {
             // force allocation
             vec.emplace_back(29, T{});

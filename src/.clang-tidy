@@ -10,6 +10,8 @@ performance-*,
 -performance-no-int-to-ptr,
 -performance-noexcept-move-constructor,
 -performance-unnecessary-value-param,
+-performance-enum-size,
+-performance-avoid-endl,
 '
 FormatStyle: file
 CheckOptions:
