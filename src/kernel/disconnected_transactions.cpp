@@ -115,7 +115,8 @@ void DisconnectedBlockTransactions::addForBlock(
 
                 // We have parent in our set, we reinsert them at the right
                 // position.
-                const CTransactionRef &ptx = *pit;
+                // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
+                const CTransactionRef ptx = *pit;
                 queuedTx.erase(pit);
                 queuedTx.insert(ptx);
 
