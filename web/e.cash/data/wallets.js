@@ -70,6 +70,14 @@ export const wallets = [
         availableOn: ['iOS', 'Android', 'Desktop', 'Web App'],
     },
     {
+        name: 'Trezor',
+        text: 'Trezor is a leading multi-crypto hardware wallet that supports eCash (XEC) in combination with Electrum ABC on Trezor Safe 3, Safe 5, and Model T. Users can also sign Avalanche stake-proofs using custom firmware provided by Bitcoin ABC.',
+        image: '/images/trezor-logo-white.png',
+        link: 'https://trezor.io',
+        availableOn: ['Hardware Wallet'],
+        features: ['Message Signing', 'Multi-sig wallets', 'Bip-70'],
+    },
+    {
         name: 'Satochip',
         text: 'Satochip is an open source and super-secure multi-crypto hardware wallet that natively supports storing eCash (XEC). Satochip cold wallet offers state-of-the-art security for storing & managing your XEC coins.',
         image: '/images/satochip.svg',
