@@ -10,6 +10,7 @@ Based on test/functional/chronik_plugins.py
 
 import os
 import time
+from functools import cmp_to_key
 
 import pathmagic  # noqa
 from setup_framework import SetupFramework
@@ -180,7 +181,6 @@ class MyPluginPlugin(Plugin):
 
         yield True
         self.log.info("Step 3: Send a second tx to create plugin utxos in group 'b'")
-
         tx2 = CTransaction()
         tx2.vin = [CTxIn(COutPoint(tx1.sha256, 3), SCRIPTSIG_OP_TRUE)]
         tx2.vout = [
@@ -222,11 +222,30 @@ class MyPluginPlugin(Plugin):
         assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
         assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
 
+        def compare_unconfirmed_txs(tx_a, tx_b):
+            # Sort first by time_first_seen then by txid
+            if tx_a.time_first_seen != tx_b.time_first_seen:
+                return tx_a.time_first_seen - tx_b.time_first_seen
+            return int.from_bytes(tx_a.txid, byteorder="little") - int.from_bytes(
+                tx_b.txid, byteorder="little"
+            )
+
+        def compare_history_txs(tx_a, tx_b):
+            # Sort first by revert time_first_seen then by reverse txid
+            if tx_a.time_first_seen != tx_b.time_first_seen:
+                return tx_b.time_first_seen - tx_a.time_first_seen
+            return int.from_bytes(tx_b.txid, byteorder="little") - int.from_bytes(
+                tx_a.txid, byteorder="little"
+            )
+
         proto_tx1 = chronik.tx(tx1.hash).ok()
-        txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
-        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), txs)
+        unconf_txs = sorted(
+            [proto_tx1, proto_tx2], key=cmp_to_key(compare_unconfirmed_txs)
+        )
+        hist_txs = sorted([proto_tx1, proto_tx2], key=cmp_to_key(compare_history_txs))
+        assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), unconf_txs)
         assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), [])
-        assert_equal(list(plugin.history(b"a").ok().txs), txs[::-1])
+        assert_equal(list(plugin.history(b"a").ok().txs), hist_txs)
         assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx2])
         assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [])
         assert_equal(list(plugin.history(b"b").ok().txs), [proto_tx2])
@@ -271,9 +290,10 @@ class MyPluginPlugin(Plugin):
         )
 
         txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
+        hist_txs = sorted([proto_tx1, proto_tx2], key=cmp_to_key(compare_history_txs))
         assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), [])
         assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), txs)
-        assert_equal(list(plugin.history(b"a").ok().txs), txs[::-1])
+        assert_equal(list(plugin.history(b"a").ok().txs), hist_txs)
         assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
         assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
         assert_equal(list(plugin.history(b"b").ok().txs), [proto_tx2])
@@ -326,9 +346,10 @@ class MyPluginPlugin(Plugin):
 
         proto_tx2 = chronik.tx(tx2.hash).ok()
         txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
+        hist_txs = sorted([proto_tx2, proto_tx3], key=cmp_to_key(compare_history_txs))
         assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx3])
         assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
-        assert_equal(list(plugin.history(b"b").ok().txs), txs[::-1])
+        assert_equal(list(plugin.history(b"b").ok().txs), hist_txs)
 
         yield True
 
@@ -340,9 +361,10 @@ class MyPluginPlugin(Plugin):
 
         proto_tx3 = chronik.tx(tx3.hash).ok()
         txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
+        hist_txs = sorted([proto_tx2, proto_tx3], key=cmp_to_key(compare_history_txs))
         assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
         assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), txs)
-        assert_equal(list(plugin.history(b"b").ok().txs), txs[::-1])
+        assert_equal(list(plugin.history(b"b").ok().txs), hist_txs)
 
         yield True
 

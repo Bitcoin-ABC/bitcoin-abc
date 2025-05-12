@@ -517,11 +517,17 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         // Update firstTx, as now it has a spent output
         const firstTx = await chronik.tx(FIRST_PLUGIN_TXID);
 
-        // unconfirmed txs are sorted by timeFirstSeen
+        // Unconfirmed txs are sorted first by time first seen, then by txid.
+        const txsSortedUnconfirmed = [firstTx, secondTx].sort(
+            (a, b) =>
+                a.timeFirstSeen - b.timeFirstSeen ||
+                a.txid.localeCompare(b.txid),
+        );
+
         expect(
             await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_a),
         ).to.deep.equal({
-            txs: [secondTx, firstTx],
+            txs: txsSortedUnconfirmed,
             numPages: 1,
             numTxs: 2,
         });
@@ -534,12 +540,19 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             numTxs: 0,
         });
 
-        // Note that the history endpoint keeps unconfirmed txs in reverse-chronological order
-        // Opposite order of unconfirmedTxs
+        // History is sorted first by reverse time first seen, then by reverse txid.
+        // We don't account for the pagination glitches here:
+        // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
+        const txsSortedHistory = [firstTx, secondTx].sort(
+            (b, a) =>
+                a.timeFirstSeen - b.timeFirstSeen ||
+                a.txid.localeCompare(b.txid),
+        );
+
         expect(
             await chronik.plugin(PLUGIN_NAME).history(BYTES_a),
         ).to.deep.equal({
-            txs: [firstTx, secondTx],
+            txs: txsSortedHistory,
             numPages: 1,
             numTxs: 2,
         });
@@ -622,11 +635,13 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             a.txid.localeCompare(b.txid),
         );
 
-        // History sorting is more complicated
-        // Since timeFirstSeen here is constant, we end up getting "reverse-txid" order
+        // History is sorted first by reverse time first seen, then by reverse txid.
+        // We don't account for the pagination glitches here:
         // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
-        const txsSortedByTxidReverse = [firstTx, secondTx].sort((a, b) =>
-            b.txid.localeCompare(a.txid),
+        const txsSortedHistory = [firstTx, secondTx].sort(
+            (b, a) =>
+                a.timeFirstSeen - b.timeFirstSeen ||
+                a.txid.localeCompare(b.txid),
         );
 
         expect(
@@ -648,7 +663,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         expect(
             await chronik.plugin(PLUGIN_NAME).history(BYTES_a),
         ).to.deep.equal({
-            txs: txsSortedByTxidReverse,
+            txs: txsSortedHistory,
             numPages: 1,
             numTxs: 2,
         });
@@ -741,16 +756,14 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         // Update secondTx as now an output is spent
         const secondTx = await chronik.tx(SECOND_PLUGIN_TXID);
 
-        // Sort alphabetical by txid, as this is how confirmed txs will be sorted
-        // aka lexicographic sorting
-        const txsSortedByTxid = [secondTx, thirdTx].sort((a, b) =>
-            a.txid.localeCompare(b.txid),
-        );
-
-        // History sorting is more complicated
-        // Since timeFirstSeen here is constant, we end up getting "reverse-txid" order
+        // History is sorted first by reverse time first seen, then by reverse txid.
+        // We don't account for the pagination glitches here:
         // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
-        const txsSortedByTxidReverse = txsSortedByTxid.reverse();
+        const txsSortedHistory = [secondTx, thirdTx].sort(
+            (b, a) =>
+                a.timeFirstSeen - b.timeFirstSeen ||
+                a.txid.localeCompare(b.txid),
+        );
 
         expect(
             await chronik.plugin(PLUGIN_NAME).unconfirmedTxs(BYTES_b),
@@ -771,7 +784,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         expect(
             await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
         ).to.deep.equal({
-            txs: txsSortedByTxidReverse,
+            txs: txsSortedHistory,
             numPages: 1,
             numTxs: 2,
         });
@@ -803,10 +816,10 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             a.txid.localeCompare(b.txid),
         );
 
-        // History sorting is more complicated
-        // Since timeFirstSeen here is constant, we end up getting "reverse-txid" order
+        // History is sorted first by reverse time first seen, then by reverse txid.
+        // We don't account for the pagination glitches here:
         // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/a18387188c0d1235eca81791919458fec2433345/chronik/chronik-indexer/src/query/group_history.rs#L171
-        const txsSortedTxidReverse = [secondTx, thirdTx].sort(
+        const txsSortedHistory = [secondTx, thirdTx].sort(
             (b, a) =>
                 a.timeFirstSeen - b.timeFirstSeen ||
                 a.txid.localeCompare(b.txid),
@@ -831,7 +844,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         expect(
             await chronik.plugin(PLUGIN_NAME).history(BYTES_b),
         ).to.deep.equal({
-            txs: txsSortedTxidReverse,
+            txs: txsSortedHistory,
             numPages: 1,
             numTxs: 2,
         });
