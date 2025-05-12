@@ -7,8 +7,6 @@ import json
 import socket
 from typing import Any, Optional
 
-from .util import assert_equal
-
 
 class OversizedResponseError(Exception):
     pass
@@ -97,15 +95,6 @@ class ChronikElectrumClient:
         """
         return MethodNameProxy(self, item)
 
-    def _recv(self):
-        data = b""
-        while b"\n" not in data:
-            data += self.sock.recv(1024)
-            if len(data) > self.MAX_DATA_SIZE:
-                raise OversizedResponseError()
-
-        return json.loads(data.decode("utf-8"))
-
     def synchronous_request(
         self, method: str, params: Optional[list | dict]
     ) -> JsonRpcResponse:
@@ -115,33 +104,16 @@ class ChronikElectrumClient:
             request["params"] = params
         self.sock.send(json.dumps(request).encode("utf-8") + b"\n")
 
-        json_reply = self._recv()
+        data = b""
+        while b"\n" not in data:
+            data += self.sock.recv(1024)
+            if len(data) > self.MAX_DATA_SIZE:
+                raise OversizedResponseError()
 
+        json_reply = json.loads(data.decode("utf-8"))
         # As per the JSONRPC spec, we cannot have both an error and a result
         assert "error" not in json_reply or "result" not in json_reply
-        assert_equal(json_reply.get("id"), self.id)
+        assert json_reply.get("id") == self.id
         return JsonRpcResponse(
             json_reply.get("id"), json_reply.get("result"), json_reply.get("error")
         )
-
-    def wait_for_notification(self, method: str, timeout=None):
-        prev_timeout = self.sock.gettimeout()
-        # If set, timeout should override the current socket timeout. We make
-        # sure to restore the previous valus after the message is received
-        self.sock.settimeout(timeout or prev_timeout)
-
-        json_reply = self._recv()
-
-        self.sock.settimeout(prev_timeout)
-
-        # A notification can't be an error
-        assert "error" not in json_reply
-        # A notification has no id but a method field
-        assert "id" not in json_reply
-        assert_equal(json_reply.get("method"), method)
-        assert "params" in json_reply
-        assert "result" in json_reply["params"]
-
-        # The "result" is within a "params" field. There is no point returning
-        # a JsonRpcResponse here as we only care about the result
-        return json_reply["params"]["result"]

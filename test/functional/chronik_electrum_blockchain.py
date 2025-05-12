@@ -66,7 +66,6 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_transaction_get_merkle()
         self.test_block_header()
         self.test_scripthash()
-        self.test_headers_subscribe()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -824,69 +823,6 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             ),
             sorted(utxos, key=utxo_sorting_key),
         )
-
-    def test_headers_subscribe(self):
-        self.log.info("Test the blockchain.headers.subscribe endpoint")
-
-        def new_header():
-            tip = self.generate(self.node, 1)[0]
-            height = self.node.getblockcount()
-            header_hex = self.node.getblockheader(tip, verbose=False)
-            return height, header_hex
-
-        (height, header_hex) = new_header()
-
-        sub_message = self.client.blockchain.headers.subscribe()
-        assert_equal(
-            sub_message.result,
-            {
-                "height": height,
-                "hex": header_hex,
-            },
-        )
-
-        def check_notification(clients, height, header_hex):
-            for client in clients:
-                notification = client.wait_for_notification(
-                    "blockchain.headers.subscribe"
-                )
-                assert_equal(notification["height"], height)
-                assert_equal(notification["hex"], header_hex)
-
-        # Mine a block and check we get the message we subscribed for
-        (height, header_hex) = new_header()
-        check_notification([self.client], height, header_hex)
-
-        # Let's add more clients
-        client2 = self.node.get_chronik_electrum_client()
-        sub_message = client2.blockchain.headers.subscribe()
-        assert_equal(
-            sub_message.result,
-            {
-                "height": height,
-                "hex": header_hex,
-            },
-        )
-
-        # At this stage both self.client and client2 will receive header
-        # notifications
-        (height, header_hex) = new_header()
-        check_notification([self.client, client2], height, header_hex)
-
-        client3 = self.node.get_chronik_electrum_client()
-        sub_message = client3.blockchain.headers.subscribe()
-        assert_equal(
-            sub_message.result,
-            {
-                "height": height,
-                "hex": header_hex,
-            },
-        )
-
-        # At this stage self.client, client2 and client3 will receive header
-        # notifications
-        (height, header_hex) = new_header()
-        check_notification([self.client, client2, client3], height, header_hex)
 
 
 if __name__ == "__main__":
