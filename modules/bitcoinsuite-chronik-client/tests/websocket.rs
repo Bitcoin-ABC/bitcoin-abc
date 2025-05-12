@@ -8,17 +8,20 @@ use std::sync::{
 };
 
 use async_trait::async_trait;
+use bitcoinsuite_chronik_client::ScriptType;
 use bitcoinsuite_chronik_client::{
     handler::{IpcHandler, IpcReader},
     test_runner::{handle_test_info, spin_child_process},
     ChronikClient, WsEndpoint,
 };
-use bitcoinsuite_core::block::BlockHash;
+use bitcoinsuite_core::{address::CashAddress, block::BlockHash, tx::TxId};
 use chronik_proto::proto::{
-    ws_msg::MsgType, BlockMsgType::*, CoinbaseData, MsgBlock, TxOutput, WsMsg,
+    ws_msg::MsgType, BlockMsgType::*, CoinbaseData, MsgBlock, MsgTx, TxMsgType,
+    TxOutput, WsMsg, WsSubScript,
 };
 use serde_json::Value;
 use tokio::sync::Mutex;
+use tokio::time::{timeout, Duration};
 
 #[derive(Default)]
 struct TestData {
@@ -31,6 +34,15 @@ struct TestData {
     coinbase_out_scriptpubkey: String,
     coinbase_out_value: i64,
     coinbase_scriptsig: String,
+    p2pkh_address: String,
+    p2sh_address: String,
+    p2pk_script: String,
+    other_script: String,
+    p2pkh_txid: String,
+    p2sh_txid: String,
+    p2pk_txid: String,
+    other_txid: String,
+    mixed_output_txid: String,
 }
 
 #[derive(Default)]
@@ -55,6 +67,15 @@ impl IpcReader for WebsocketIPC {
             "coinbase_out_scriptpubkey",
             "coinbase_out_value",
             "coinbase_scriptsig",
+            "p2pkh_address",
+            "p2sh_address",
+            "p2pk_script",
+            "other_script",
+            "p2pkh_txid",
+            "p2sh_txid",
+            "p2pk_txid",
+            "other_txid",
+            "mixed_output_txid",
         ];
 
         // We use a mutable reference so we can call recv() on data.endpoint
@@ -105,6 +126,51 @@ impl IpcReader for WebsocketIPC {
                             data.coinbase_scriptsig = coinbase_sig.to_string();
                         }
                     }
+                    "p2pkh_address" => {
+                        if let Some(address) = value.as_str() {
+                            data.p2pkh_address = address.to_string();
+                        }
+                    }
+                    "p2sh_address" => {
+                        if let Some(address) = value.as_str() {
+                            data.p2sh_address = address.to_string();
+                        }
+                    }
+                    "p2pk_script" => {
+                        if let Some(script) = value.as_str() {
+                            data.p2pk_script = script.to_string();
+                        }
+                    }
+                    "other_script" => {
+                        if let Some(script) = value.as_str() {
+                            data.other_script = script.to_string();
+                        }
+                    }
+                    "p2pkh_txid" => {
+                        if let Some(txid) = value.as_str() {
+                            data.p2pkh_txid = txid.to_string();
+                        }
+                    }
+                    "p2sh_txid" => {
+                        if let Some(txid) = value.as_str() {
+                            data.p2sh_txid = txid.to_string();
+                        }
+                    }
+                    "p2pk_txid" => {
+                        if let Some(txid) = value.as_str() {
+                            data.p2pk_txid = txid.to_string();
+                        }
+                    }
+                    "other_txid" => {
+                        if let Some(txid) = value.as_str() {
+                            data.other_txid = txid.to_string();
+                        }
+                    }
+                    "mixed_output_txid" => {
+                        if let Some(txid) = value.as_str() {
+                            data.mixed_output_txid = txid.to_string();
+                        }
+                    }
                     _ => {
                         println!("Unhandled key: {}", key);
                     }
@@ -117,26 +183,143 @@ impl IpcReader for WebsocketIPC {
         {
             match self.counter.load(Ordering::SeqCst) {
                 // New regtest chain
-                0 | 1 => {
+                0 => {
                     let chronik_url = data.chronik_url.clone();
                     data.endpoint =
                         Some(ChronikClient::new(chronik_url)?.ws().await?);
+                }
+
+                // Subscribe to scripts and blocks
+                1 => {
+                    let p2pkh_addr =
+                        data.p2pkh_address.parse::<CashAddress>()?;
+                    let p2pkh_hash = p2pkh_addr.hash();
+                    let p2sh_addr = data.p2sh_address.parse::<CashAddress>()?;
+                    let p2sh_hash = p2sh_addr.hash();
+                    let p2pk_script = &data.p2pk_script;
+                    let other_script = &data.other_script;
+
+                    let subscriptions: Vec<WsSubScript> = vec![
+                        WsSubScript {
+                            script_type: ScriptType::P2pkh.to_string(),
+                            payload: p2pkh_hash.as_ref().to_vec(),
+                        },
+                        WsSubScript {
+                            script_type: ScriptType::P2sh.to_string(),
+                            payload: p2sh_hash.as_ref().to_vec(),
+                        },
+                        WsSubScript {
+                            script_type: ScriptType::P2pk.to_string(),
+                            payload: hex::decode(p2pk_script)?,
+                        },
+                        WsSubScript {
+                            script_type: ScriptType::Other.to_string(),
+                            payload: hex::decode(other_script)?,
+                        },
+                    ];
 
                     if let Some(ep) = &mut data.endpoint {
+                        for sub in &subscriptions {
+                            ep.subscribe_to_script(
+                                sub.script_type.clone(),
+                                sub.payload.clone(),
+                            )
+                            .await?;
+                        }
+                        assert_eq!(ep.subs.scripts, subscriptions);
+
+                        // Try to unsubscribe from a script we were never
+                        // subscribed to
+                        let non_existent_script = WsSubScript {
+                            script_type: ScriptType::P2pkh.to_string(),
+                            payload: vec![0x11; 20], // P2PKH requires 20 bytes
+                        };
+                        let err = ep
+                            .unsubscribe_from_script(
+                                non_existent_script.script_type,
+                                non_existent_script.payload,
+                            )
+                            .await
+                            .unwrap_err();
+                        assert!(err.to_string().contains("No existing sub at"));
+                        // Verify subscriptions haven't changed
+                        assert_eq!(ep.subs.scripts, subscriptions);
+
+                        // Try to unsubscribe with an invalid script type
+                        let err = ep
+                            .unsubscribe_from_script(
+                                "not a type".to_string(),
+                                "who knows".as_bytes().to_vec(),
+                            )
+                            .await
+                            .unwrap_err();
+                        assert!(err.to_string().contains(
+                            "No existing sub at not a type, who knows"
+                        ));
+                        // Verify subscriptions haven't changed
+                        assert_eq!(ep.subs.scripts, subscriptions);
+
+                        // Test removing subscriptions one by one
+                        let mut remaining_subscriptions = subscriptions.clone();
+                        for _ in 0..subscriptions.len() {
+                            let unsub = remaining_subscriptions.remove(0);
+                            ep.unsubscribe_from_script(
+                                unsub.script_type.clone(),
+                                unsub.payload.clone(),
+                            )
+                            .await?;
+
+                            assert_eq!(
+                                ep.subs.scripts,
+                                remaining_subscriptions
+                            );
+                        }
+
                         ep.subscribe_to_blocks().await?;
                         assert_eq!(ep.subs.blocks, true);
+
                         ep.unsubscribe_from_blocks().await?;
                         assert_eq!(ep.subs.blocks, false);
+
+                        // Test invalid script type
+                        let result = ep
+                            .subscribe_to_script(
+                                "notavalidtype".to_string(),
+                                b"deadbeefe".to_vec(),
+                            )
+                            .await;
+                        assert!(result.is_err());
+                        assert!(result
+                            .unwrap_err()
+                            .to_string()
+                            .contains("Invalid scriptType"));
+
+                        for sub in &subscriptions {
+                            ep.subscribe_to_script(
+                                sub.script_type.clone(),
+                                sub.payload.clone(),
+                            )
+                            .await?;
+                        }
+                        // This will be added in future iterations once we add
+                        // address subscription
+                        //
+                        // ep.unsubscribe_from_script(ScriptType::P2pkh.
+                        // to_string(), p2pkh_hash.as_ref().to_vec()).await?;
+                        // to confirm the sub is active in the same way as the
+                        // script sub in later steps
+                        // Resubscribe to blocks
                         ep.subscribe_to_blocks().await?;
                         assert_eq!(ep.subs.blocks, true);
                     }
                 }
+
                 // After a block is avalanche finalized
                 2 => {
-                    let finalized_block_message =
+                    let block_message =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        finalized_block_message,
+                        block_message,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkFinalized.into(),
@@ -151,18 +334,86 @@ impl IpcReader for WebsocketIPC {
                         })
                     );
                 }
+
                 // After some txs have been broadcast
                 3 => {
-                    // Part of the structure to keep count clean
-                    // for future iterations. Tx testing will be
-                    // conducted here.
+                    let mut expected_msgs: Vec<
+                        Option<chronik_proto::proto::WsMsg>,
+                    > = vec![];
+                    for _ in 0..4 {
+                        expected_msgs.push(
+                            data.endpoint
+                                .as_mut()
+                                .unwrap()
+                                .recv()
+                                .await
+                                .unwrap(),
+                        );
+                    }
+
+                    assert_eq!(
+                        expected_msgs[0],
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: data
+                                    .p2pkh_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
+
+                    assert_eq!(
+                        expected_msgs[1],
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: data
+                                    .p2sh_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
+
+                    assert_eq!(
+                        expected_msgs[2],
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: data
+                                    .p2pk_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
+
+                    assert_eq!(
+                        expected_msgs[3],
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: data
+                                    .other_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
                 }
+
                 // After a block is mined
                 4 => {
-                    let block_connected_msg =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_connected_msg,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkConnected.into(),
@@ -176,13 +427,51 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    // The order of confirmed and finalized txs from multiple
+                    // script subscriptions is indeterminate
+                    // See https://reviews.bitcoinabc.org/D15452
+                    let txids = [
+                        &data.p2pkh_txid,
+                        &data.p2sh_txid,
+                        &data.p2pk_txid,
+                        &data.other_txid,
+                    ];
+                    let mut expected_tx_confirmed_msgs = Vec::new();
+                    for txid in txids {
+                        expected_tx_confirmed_msgs.push(Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxConfirmed.into(),
+                                txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                            })),
+                        }));
+                    }
+
+                    // Receive 4 messages from script subscriptions
+                    let mut received_msgs = Vec::new();
+                    for _ in 0..4 {
+                        received_msgs.push(
+                            data.endpoint.as_mut().unwrap().recv().await?,
+                        );
+                    }
+
+                    // Verify all expected messages are in received messages
+                    // (order doesn't matter)
+                    for expected_msg in &expected_tx_confirmed_msgs {
+                        assert!(
+                            received_msgs.iter().any(|msg| msg == expected_msg),
+                            "Expected message not found: {:?}",
+                            expected_msg
+                        );
+                    }
                 }
+
                 // After this block is finalized by Avalanche
                 5 => {
-                    let block_connected_msg =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_connected_msg,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkFinalized.into(),
@@ -196,13 +485,51 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    // The order of confirmed and finalized txs from multiple
+                    // script subscriptions is indeterminate
+                    // See https://reviews.bitcoinabc.org/D15452
+                    let txids = [
+                        &data.p2pkh_txid,
+                        &data.p2sh_txid,
+                        &data.p2pk_txid,
+                        &data.other_txid,
+                    ];
+                    let mut expected_tx_confirmed_msgs = Vec::new();
+                    for txid in txids {
+                        expected_tx_confirmed_msgs.push(Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxFinalized.into(),
+                                txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                            })),
+                        }));
+                    }
+
+                    // Receive 4 messages from script subscriptions
+                    let mut received_msgs = Vec::new();
+                    for _ in 0..4 {
+                        received_msgs.push(
+                            data.endpoint.as_mut().unwrap().recv().await?,
+                        );
+                    }
+
+                    // Verify all expected messages are in received messages
+                    // (order doesn't matter)
+                    for expected_msg in &expected_tx_confirmed_msgs {
+                        assert!(
+                            received_msgs.iter().any(|msg| msg == expected_msg),
+                            "Expected message not found: {:?}",
+                            expected_msg
+                        );
+                    }
                 }
+
                 // After this block is parked
                 6 => {
-                    let block_message =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_message,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkDisconnected.into(),
@@ -229,13 +556,48 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    let txids = [
+                        &data.p2pkh_txid,
+                        &data.p2sh_txid,
+                        &data.p2pk_txid,
+                        &data.other_txid,
+                    ];
+                    let mut expected_msgs = Vec::new();
+                    for txid in txids {
+                        expected_msgs.push(Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                            })),
+                        }));
+                    }
+
+                    // Receive 4 messages from script subscriptions
+                    let mut received_msgs = Vec::new();
+                    for _ in 0..4 {
+                        received_msgs.push(
+                            data.endpoint.as_mut().unwrap().recv().await?,
+                        );
+                    }
+
+                    // Verify all expected messages are in received messages
+                    // (order doesn't matter)
+                    for expected_msg in &expected_msgs {
+                        assert!(
+                            received_msgs.iter().any(|msg| msg == expected_msg),
+                            "Expected message not found: {:?}",
+                            expected_msg
+                        );
+                    }
                 }
+
                 // After this block is unparked
                 7 => {
-                    let block_message =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_message,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkConnected.into(),
@@ -249,13 +611,51 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    // The order of confirmed and finalized txs from multiple
+                    // script subscriptions is indeterminate
+                    // See https://reviews.bitcoinabc.org/D15452
+                    let txids = [
+                        &data.p2pkh_txid,
+                        &data.p2sh_txid,
+                        &data.p2pk_txid,
+                        &data.other_txid,
+                    ];
+                    let mut expected_msgs = Vec::new();
+                    for txid in txids {
+                        expected_msgs.push(Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxConfirmed.into(),
+                                txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                            })),
+                        }));
+                    }
+
+                    // Receive 4 messages from script subscriptions
+                    let mut received_msgs = Vec::new();
+                    for _ in 0..4 {
+                        received_msgs.push(
+                            data.endpoint.as_mut().unwrap().recv().await?,
+                        );
+                    }
+
+                    // Verify all expected messages are in received messages
+                    // (order doesn't matter)
+                    for expected_msg in &expected_msgs {
+                        assert!(
+                            received_msgs.iter().any(|msg| msg == expected_msg),
+                            "Expected message not found: {:?}",
+                            expected_msg
+                        );
+                    }
                 }
+
                 // After this block is invalidated
                 8 => {
-                    let block_message =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_message,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkDisconnected.into(),
@@ -282,13 +682,48 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    let txids = [
+                        &data.p2pkh_txid,
+                        &data.p2sh_txid,
+                        &data.p2pk_txid,
+                        &data.other_txid,
+                    ];
+                    let mut expected_msgs = Vec::new();
+                    for txid in txids {
+                        expected_msgs.push(Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                            })),
+                        }));
+                    }
+
+                    // Receive 4 messages from script subscriptions
+                    let mut received_msgs = Vec::new();
+                    for _ in 0..4 {
+                        received_msgs.push(
+                            data.endpoint.as_mut().unwrap().recv().await?,
+                        );
+                    }
+
+                    // Verify all expected messages are in received messages
+                    // (order doesn't matter)
+                    for expected_msg in &expected_msgs {
+                        assert!(
+                            received_msgs.iter().any(|msg| msg == expected_msg),
+                            "Expected message not found: {:?}",
+                            expected_msg
+                        );
+                    }
                 }
+
                 // After this block is reconsidered
                 9 => {
-                    let block_message =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_message,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkConnected.into(),
@@ -302,19 +737,70 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    // The order of confirmed and finalized txs from multiple
+                    // script subscriptions is indeterminate
+                    // See https://reviews.bitcoinabc.org/D15452
+                    let txids = [
+                        &data.p2pkh_txid,
+                        &data.p2sh_txid,
+                        &data.p2pk_txid,
+                        &data.other_txid,
+                    ];
+                    let mut expected_msgs = Vec::new();
+                    for txid in txids {
+                        expected_msgs.push(Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxConfirmed.into(),
+                                txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                            })),
+                        }));
+                    }
+
+                    // Receive 4 messages from script subscriptions
+                    let mut received_msgs = Vec::new();
+                    for _ in 0..4 {
+                        received_msgs.push(
+                            data.endpoint.as_mut().unwrap().recv().await?,
+                        );
+                    }
+
+                    // Verify all expected messages are in received messages
+                    // (order doesn't matter)
+                    for expected_msg in &expected_msgs {
+                        assert!(
+                            received_msgs.iter().any(|msg| msg == expected_msg),
+                            "Expected message not found: {:?}",
+                            expected_msg
+                        );
+                    }
                 }
+
                 // After a tx is broadcast with outputs of each type
                 10 => {
-                    // Part of the structure to keep count clean
-                    // for future iterations. Tx testing will be
-                    // conducted here.
-                }
-                // After a block is mined
-                11 => {
-                    let next_blockhash_msg =
+                    let mixed_output_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        next_blockhash_msg,
+                        mixed_output_msg,
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: data
+                                    .mixed_output_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
+                }
+
+                // After a block is mined
+                11 => {
+                    let block_msg =
+                        data.endpoint.as_mut().unwrap().recv().await?;
+                    assert_eq!(
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkConnected.into(),
@@ -328,13 +814,29 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    let tx_msg = data.endpoint.as_mut().unwrap().recv().await?;
+                    assert_eq!(
+                        tx_msg,
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxConfirmed.into(),
+                                txid: data
+                                    .mixed_output_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
                 }
+
                 // After this block is avalanche parked
                 12 => {
-                    let block_message =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_message,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkDisconnected.into(),
@@ -361,13 +863,29 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
+
+                    let tx_msg = data.endpoint.as_mut().unwrap().recv().await?;
+                    assert_eq!(
+                        tx_msg,
+                        Some(WsMsg {
+                            msg_type: Some(MsgType::Tx(MsgTx {
+                                msg_type: TxMsgType::TxAddedToMempool.into(),
+                                txid: data
+                                    .mixed_output_txid
+                                    .parse::<TxId>()?
+                                    .to_bytes()
+                                    .to_vec(),
+                            }))
+                        })
+                    );
                 }
+
                 // After this block is avalanche invalidated
                 13 => {
-                    let block_message =
+                    let block_msg =
                         data.endpoint.as_mut().unwrap().recv().await?;
                     assert_eq!(
-                        block_message,
+                        block_msg,
                         Some(WsMsg {
                             msg_type: Some(MsgType::Block(MsgBlock {
                                 msg_type: BlkInvalidated.into(),
@@ -394,18 +912,66 @@ impl IpcReader for WebsocketIPC {
                             }))
                         })
                     );
-                    data.endpoint
-                        .as_mut()
-                        .unwrap()
-                        .unsubscribe_from_blocks()
-                        .await?;
-                    assert_eq!(
-                        data.endpoint.as_ref().unwrap().subs.blocks,
-                        false
+
+                    let p2pkh_addr =
+                        data.p2pkh_address.parse::<CashAddress>()?;
+                    let p2pkh_hash = p2pkh_addr.hash();
+                    let p2sh_addr = data.p2sh_address.parse::<CashAddress>()?;
+                    let p2sh_hash = p2sh_addr.hash();
+                    let p2pk_script = &data.p2pk_script;
+                    let other_script = &data.other_script;
+
+                    let subscriptions: Vec<WsSubScript> = vec![
+                        WsSubScript {
+                            script_type: ScriptType::P2pkh.to_string(),
+                            payload: p2pkh_hash.as_ref().to_vec(),
+                        },
+                        WsSubScript {
+                            script_type: ScriptType::P2sh.to_string(),
+                            payload: p2sh_hash.as_ref().to_vec(),
+                        },
+                        WsSubScript {
+                            script_type: ScriptType::P2pk.to_string(),
+                            payload: hex::decode(p2pk_script)?,
+                        },
+                        WsSubScript {
+                            script_type: ScriptType::Other.to_string(),
+                            payload: hex::decode(other_script)?,
+                        },
+                    ];
+
+                    if let Some(ep) = &mut data.endpoint {
+                        // Unsubscribe from everything to show you do not get
+                        // any more msgs if another block is found
+                        ep.unsubscribe_from_blocks().await?;
+                        for sub in &subscriptions {
+                            ep.unsubscribe_from_script(
+                                sub.script_type.clone(),
+                                sub.payload.clone(),
+                            )
+                            .await?;
+                        }
+                        // The ws object is updated to reflect no subscriptions
+                        assert_eq!(ep.subs.scripts, Vec::new());
+                        // The ws object is updated to reflect no block
+                        // subscription
+                        assert_eq!(ep.subs.blocks, false);
+                    }
+                }
+
+                // After we have unsubscribed to all and another block is found
+                14 => {
+                    let timeout_result = timeout(
+                        Duration::from_secs(1),
+                        data.endpoint.as_mut().unwrap().recv(),
+                    )
+                    .await;
+                    assert!(
+                        timeout_result.is_err(),
+                        "Expected timeout but received a message"
                     );
                 }
-                // After we have unsubscribed to all and another block is found
-                14 => {}
+
                 _ => {
                     handler.send_message("stop").await?;
                     unreachable!(

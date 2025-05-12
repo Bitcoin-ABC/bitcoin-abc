@@ -7,6 +7,7 @@ use abc_rust_error::{Report, Result, WrapErr};
 use bitcoinsuite_core::hash::{Hashed, Sha256d};
 use bytes::Bytes;
 pub use chronik_proto::proto;
+use chronik_proto::proto::WsSubScript;
 use futures_util::{SinkExt, StreamExt};
 use prost::Message;
 use reqwest::{header::CONTENT_TYPE, StatusCode};
@@ -81,6 +82,9 @@ pub struct WsEndpoint {
 
 #[derive(Debug, Clone, Default)]
 pub struct WsSubscriptions {
+    pub scripts: Vec<WsSubScript>,
+    pub tokens: Vec<String>,
+    pub lokad_ids: Vec<String>,
     pub blocks: bool,
 }
 
@@ -508,6 +512,86 @@ impl WsEndpoint {
             .await
             .wrap_err(HttpRequestError)?;
         self.subs.blocks = false;
+
+        Ok(())
+    }
+
+    pub async fn subscribe_to_script(
+        &mut self,
+        script_type: String,
+        payload: Vec<u8>,
+    ) -> Result<(), Report> {
+        if !matches!(script_type.as_str(), "p2pkh" | "p2sh" | "p2pk" | "other")
+        {
+            return Err(Report::msg(format!(
+                "Invalid scriptType: {}",
+                script_type
+            )));
+        }
+
+        let msg = proto::WsSub {
+            is_unsub: false,
+            sub_type: Some(proto::ws_sub::SubType::Script(
+                proto::WsSubScript {
+                    script_type: script_type.to_string(),
+                    payload: payload.clone(),
+                },
+            )),
+        };
+
+        self.ws
+            .send(tokio_tungstenite::tungstenite::Message::Binary(
+                Bytes::from(msg.encode_to_vec()),
+            ))
+            .await
+            .wrap_err(HttpRequestError)?;
+
+        self.subs.scripts.push(WsSubScript {
+            script_type: script_type.to_string(),
+            payload,
+        });
+
+        Ok(())
+    }
+
+    pub async fn unsubscribe_from_script(
+        &mut self,
+        script_type: String,
+        payload: Vec<u8>,
+    ) -> Result<(), Report> {
+        if !self
+            .subs
+            .scripts
+            .iter()
+            .any(|sub| sub.script_type == script_type && sub.payload == payload)
+        {
+            return Err(Report::msg(format!(
+                "No existing sub at {}, {}",
+                script_type,
+                String::from_utf8_lossy(&payload)
+            )));
+        }
+
+        let msg = proto::WsSub {
+            is_unsub: true,
+            sub_type: Some(proto::ws_sub::SubType::Script(
+                proto::WsSubScript {
+                    script_type: script_type.to_string(),
+                    payload: payload.clone(),
+                },
+            )),
+        };
+
+        self.ws
+            .send(tokio_tungstenite::tungstenite::Message::Binary(
+                Bytes::from(msg.encode_to_vec()),
+            ))
+            .await
+            .wrap_err(HttpRequestError)?;
+
+        self.subs.scripts.retain(|sub| {
+            sub.script_type != script_type || sub.payload != payload
+        });
 
         Ok(())
     }
