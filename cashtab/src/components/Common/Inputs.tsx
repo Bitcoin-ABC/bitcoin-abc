@@ -555,6 +555,9 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
                     onChange={handleInput}
                     disabled={inputDisabled}
                     invalid={typeof error === 'string'}
+                    onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
+                        (e.target as HTMLInputElement).blur();
+                    }}
                 />
                 <SellPriceDropdown
                     data-testid="currency-select-dropdown"
