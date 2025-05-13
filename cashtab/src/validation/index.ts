@@ -526,6 +526,46 @@ export const getOpReturnRawError = (opReturnRaw: string): false | string => {
 };
 
 /**
+ * BIP21 token txs will have 1 or 2 outputs
+ * firma will only work for ALP sends
+ * Set a max of 223 bytes less the space taken by 2 ALP outputs (send and change)
+ */
+const EMPP_OPRETURN_BYTECOUNT_ALP_SEND_WITH_CHANGE = 58; // e.g. 6a5037534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302790b000000001aed02000000
+const FIRMA_PUSH_MAX_BYTECOUNT =
+    opReturn.opreturnParamByteLimit -
+    EMPP_OPRETURN_BYTECOUNT_ALP_SEND_WITH_CHANGE;
+/**
+ * Validate bip21 firma input
+ * @param firmaPush user input (or webapp tx input) for bip21 firma
+ */
+export const getFirmaPushError = (firmaPush: string): false | string => {
+    if (firmaPush === '') {
+        return 'firma push cannot be empty';
+    }
+    if (!VALID_LOWERCASE_HEX_REGEX.test(firmaPush)) {
+        return `firma push must be lowercase hex a-f 0-9.`;
+    }
+    if (firmaPush.startsWith(opReturn.opReturnPrefixHex)) {
+        return `firma push cannot start with OP_RETURN ('6a')`;
+    }
+    const BYTE_LENGTH_HEX = 2;
+    if (firmaPush.length % BYTE_LENGTH_HEX !== 0) {
+        return `firma input must be in hex bytes. Length of firma push must be divisible by two.`;
+    }
+
+    const firmaPushBytecount = firmaPush.length / BYTE_LENGTH_HEX;
+    if (firmaPushBytecount > FIRMA_PUSH_MAX_BYTECOUNT) {
+        // NB in practice the limit for firma will be lower
+        // We do not fully test it here bc it is dynamic (depends on other pushes) and
+        // will be caught by the tx broadcast
+        return `firma is ${firmaPushBytecount} bytes; exceeds max ${FIRMA_PUSH_MAX_BYTECOUNT} bytes`;
+    }
+
+    // No error
+    return false;
+};
+
+/**
  * Test a bip21 op_return_raw param to see if an eCash node will accept it
  * @param opReturnRaw
  */
@@ -613,6 +653,7 @@ export interface CashtabParsedAddressInfo {
     op_return_raw?: { value: null | string; error: false | string };
     token_id?: { value: null | string; error: false | string };
     token_decimalized_qty?: { value: null | string; error: false | string };
+    firma?: { value: null | string; error: false | string };
 }
 
 /**
@@ -694,11 +735,33 @@ export function parseAddressInput(
 
         if (addrParams.has('token_id')) {
             // Parse bip21 for token send tx
+            const tokenParams = [...addrParams.keys()].length;
             if (addrParams.has('token_decimalized_qty')) {
                 // A bip21 string with token_id must have token_decimalized_qty to be valid
-                if ([...addrParams.keys()].length === 2) {
-                    // A bip21 string with token_id must only include the params
-                    // token_id and token_decimalized_qty
+                if (tokenParams === 2 || tokenParams === 3) {
+                    // A bip21 string with token_id must also include
+                    // token_decimalized_qty and may (optionally) include
+                    // firma
+
+                    if (tokenParams === 3) {
+                        // If we have 3 token params, then we MUST have firma
+                        const passedFirma = addrParams.get('firma');
+                        if (passedFirma === null) {
+                            // This is an invalid bip21 token tx
+                            // Set a query string error
+                            parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty, and (optionally) firma`;
+                            // Stop parsing
+                            return parsedAddressInput;
+                        } else {
+                            const firmaError = getFirmaPushError(passedFirma);
+
+                            parsedAddressInput.firma = {
+                                value: passedFirma,
+                                error: firmaError,
+                            };
+                        }
+                    }
+
                     // So this is a (possibly) valid bip21 token send string
                     const passedTokenId = addrParams.get('token_id');
                     parsedAddressInput.token_id = {
@@ -728,17 +791,23 @@ export function parseAddressInput(
                 } else {
                     // This is an invalid bip21 token tx
                     // Set a query string error
-                    parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id and token_decimalized_qty`;
+                    parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty, and (optionally) firma`;
+                    // Stop parsing
+                    return parsedAddressInput;
                 }
             } else {
                 // This is an invalid bip21 token tx
                 // Set a query string error
                 parsedAddressInput.queryString.error = `Invalid bip21 token tx: token_decimalized_qty must be specified if token_id is specified`;
+                // Stop parsing
+                return parsedAddressInput;
             }
         } else if (addrParams.has('token_decimalized_qty')) {
             // This is an invalid bip21 token tx
             // Set a query string error
             parsedAddressInput.queryString.error = `Invalid bip21 token tx: token_id must be specified if token_decimalized_qty is specified`;
+            // Stop parsing
+            return parsedAddressInput;
         } else {
             // Parse bip21 for non-token txs
             for (const [key, value] of addrParams) {

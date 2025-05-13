@@ -744,6 +744,7 @@ builds:
       - modules/ecash-agora/
       - modules/ecash-lib/
       - modules/ecash-lib-wasm/
+      - modules/b58-ts
       - src/secp256k1/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
@@ -755,6 +756,7 @@ builds:
       JEST_JUNIT_OUTPUT_DIR: "test/junit"
       JEST_JUNIT_OUTPUT_NAME: "junit_results_cashtab.xml"
     depends:
+      - b58-ts
       - ecashaddrjs
       - chronik-client
       - mock-chronik-client

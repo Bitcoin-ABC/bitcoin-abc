@@ -185,6 +185,7 @@ export const sendXec = async (
         // Otherwise, broadcast the tx
         const txSer = tx.ser();
         const hex = toHex(txSer);
+        console.log(`hex`, hex);
         // Will throw error on node failing to broadcast tx
         // e.g. 'txn-mempool-conflict (code 18)'
         const response = await chronik.broadcastTx(hex, isBurn);

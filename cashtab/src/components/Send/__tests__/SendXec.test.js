@@ -29,6 +29,7 @@ import {
     slp1NftChildMocks,
     tokenTestWallet,
 } from 'components/Etokens/fixtures/mocks';
+import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
 
 describe('<SendXec />', () => {
     const ecc = new Ecc();
@@ -1843,6 +1844,96 @@ describe('<SendXec />', () => {
         await waitFor(() =>
             // The token amount input is now gone
             expect(tokenInputField).not.toBeInTheDocument(),
+        );
+    });
+    it('We can parse a valid FIRMA-USDT redeem tx from bip21 and broadcast the tx', async () => {
+        const destinationAddress = FIRMA_REDEEM_ADDRESS;
+        const token_id = FIRMA.tokenId;
+        const token_decimalized_qty = '5';
+        // Cashtab msg included under the "firma" param for some reason
+        const firma =
+            '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745';
+
+        const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&firma=${firma}`;
+
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+
+        // FIRMA redeem send tx
+        const hex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441f978662b23f0b4260385bf2eb8d0e46bd24af83af4cad268dfd992b6ce0433f2beb733fe71ee09564011854c46a85c5eda6c91375390d6353b5df98a78d2fbdf4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441f907ff6df505c18642891c8fb7073e19d0314ba37b83b9d9bfe990238f9cf17c8c4fdd56ac1d26234c0fe7c42b28fe66771c3d2e40fc71f2fc52e8fae78fc3ff4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000005f6a5037534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f9487030250c300000000f07e0e00000024534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf74522020000000000001976a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288acce300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            '1264b8f1471381a0436b23971bf5616f442d89de167fdb450ce06418f3b1d8a7';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Make sure FIRMA is cached
+        mockedChronik.setTx(FIRMA.tx.txid, FIRMA.tx);
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,970.81 XEC')).toBeInTheDocument();
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        await user.type(addressInputEl, bip21Str);
+
+        // The amount field is populated
+        const tokenInputField = screen.getByPlaceholderText(
+            'Bip21-entered token amount',
+        );
+        expect(tokenInputField).toBeInTheDocument();
+        expect(tokenInputField).toHaveValue(token_decimalized_qty);
+        // This input field is disabled, because it is controled by the bip21 string in the Address input
+        expect(tokenInputField).toBeDisabled();
+
+        // We do not see a token ID query error
+        expect(
+            screen.queryByText(`Error querying token info for ${token_id}`),
+        ).not.toBeInTheDocument();
+
+        // We see the valid firma redeem tx info
+        expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
+        expect(screen.getByAltText('USDT Tether logo')).toBeInTheDocument();
+
+        // We see the msg parsed including the const $2 fee
+        expect(
+            screen.getByText(
+                'On tx finalized, 3.0000 USDT will be sent to 6JK...EQ4',
+            ),
+        ).toBeInTheDocument();
+
+        // The send button is enabled as we have valid bip21 token send for a token qty supported
+        // by the wallet
+        expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+
+        // We DO NOT see the standard parsed firma field for a valid firma redeem action
+        expect(screen.queryByText('Parsed firma')).not.toBeInTheDocument();
+        expect(screen.queryByText('Solana Address')).not.toBeInTheDocument();
+
+        // We can send the tx
+        await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+        // We see the notification for a successful tx broadcast
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
         );
     });
 });

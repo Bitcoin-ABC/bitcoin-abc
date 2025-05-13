@@ -21,6 +21,15 @@ interface TokenConst {
 export const XECX_SWEEPER_ADDRESS =
     'ecash:qqrjf6n3gvavhw3f35zd0p96m3heujujcs4458vcwf';
 
+export const FIRMA_REDEEM_ADDRESS =
+    'ecash:qr8hdk8rxjc5nj6f450eth3nnslxa8k4gysrtyfxc5';
+
+/** Flat fee charged by firma.cash for redemptions, used to parse redeem txs */
+export const FIRMA_REDEEM_FEE = 2;
+
+// 8-char lokad + 64-char for 32-byte sol pk
+export const FIRMA_REDEEM_EMPP_RAW_LENGTH = 72;
+
 export const FIRMA: TokenConst = {
     tokenId: '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
     token: {

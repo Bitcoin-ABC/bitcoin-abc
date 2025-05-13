@@ -24,6 +24,7 @@ import {
     isValidTokenSendOrBurnAmount,
     isValidTokenMintAmount,
     getOpReturnRawError,
+    getFirmaPushError,
     nodeWillAcceptOpReturnRaw,
     getContactNameError,
     getContactAddressError,
@@ -477,6 +478,15 @@ describe('Cashtab validation functions', () => {
             const { description, opReturnRaw, returned } = expectedReturn;
             it(`getOpReturnRawError: ${description}`, () => {
                 expect(getOpReturnRawError(opReturnRaw)).toBe(returned);
+            });
+        });
+    });
+    describe('Can tell if a string is valid bip21 firma input, or why it is not', () => {
+        const { expectedReturns } = vectors.getFirmaPushError;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, firmaPush, returned } = expectedReturn;
+            it(`getFirmaPushError: ${description}`, () => {
+                expect(getFirmaPushError(firmaPush)).toBe(returned);
             });
         });
     });

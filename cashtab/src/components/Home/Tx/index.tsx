@@ -72,13 +72,15 @@ import {
     TokenSendIcon,
     XecxIcon,
     FirmaIcon,
+    SolIcon,
+    TetherIcon,
 } from 'components/Common/CustomIcons';
 import CashtabSettings, {
     supportedFiatCurrencies,
 } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
-import { ParsedTokenTxType, XecxAction } from 'chronik';
+import { ParsedTokenTxType, XecxAction, SolAddrAction } from 'chronik';
 import { toFormattedXec, decimalizedTokenQtyToLocaleFormat } from 'formatting';
 import {
     toXec,
@@ -98,6 +100,8 @@ import AvalancheFinalized from 'components/Common/AvalancheFinalized';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import CashtabCache from 'config/CashtabCache';
 import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
+import { CopyIconButton } from 'components/Common/Buttons';
+import { FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
 
 interface TxProps {
     tx: CashtabTx;
@@ -187,11 +191,31 @@ const Tx: React.FC<TxProps> = ({
         typeof parsed.parsedTokenEntries[0] !== 'undefined' &&
         parsed.parsedTokenEntries[0].tokenId ===
             '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0';
+
+    const isFirmaRedeem =
+        recipients.length === 1 &&
+        recipients[0] === FIRMA_REDEEM_ADDRESS &&
+        typeof parsed.parsedTokenEntries[0] !== 'undefined' &&
+        parsed.parsedTokenEntries[0].tokenId ===
+            '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0' &&
+        appActions.length === 1 &&
+        appActions[0].isValid &&
+        appActions[0].lokadId === opReturn.appPrefixesHex.solAddr;
+
     if (isFirmaYield) {
         renderedAppActions.push(
             <IconAndLabel>
                 <FirmaIcon />
                 <AppDescLabel noWordBreak>Firma yield payment</AppDescLabel>
+            </IconAndLabel>,
+        );
+    }
+    if (isFirmaRedeem) {
+        renderedAppActions.push(
+            <IconAndLabel>
+                <FirmaIcon />
+                <TetherIcon />
+                <AppDescLabel noWordBreak>Firma USDT conversion</AppDescLabel>
             </IconAndLabel>,
         );
     }
@@ -567,6 +591,26 @@ const Tx: React.FC<TxProps> = ({
                     );
                 }
 
+                break;
+            }
+            case opReturn.appPrefixesHex.solAddr: {
+                const solAddr = (action as SolAddrAction).solAddr;
+                const renderedAddr = isValid
+                    ? `${solAddr.slice(0, 3)}...${solAddr.slice(-3)}`
+                    : solAddr;
+                renderedAppActions.push(
+                    <IconAndLabel>
+                        <SolIcon />
+                        <AppDescMsg>{renderedAddr}</AppDescMsg>
+                        {isValid && (
+                            <CopyIconButton
+                                name="Sol Addr"
+                                data={(action as SolAddrAction).solAddr}
+                                showToast
+                            />
+                        )}
+                    </IconAndLabel>,
+                );
                 break;
             }
             case 'unknown': {

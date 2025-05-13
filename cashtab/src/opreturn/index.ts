@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { encodeCashAddress } from 'ecashaddrjs';
+import { encodeBase58 } from 'b58-ts';
 import { opReturn } from 'config/opreturn';
 import { isValidTokenId, getOpReturnRawError } from 'validation';
 import { consume, getStackArray } from 'ecash-script';
@@ -208,6 +209,48 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
 };
 
 /**
+ * Parse a firma query param from a bip21 string
+ *
+ * This is a niche use case (for now), only working for ALP sends created with bip21
+ * query string (most likely from an app or scanning a QR code)
+ *
+ * In Cashtab, we only support encoded Solana addresses (to support FIRMA redemptions)
+ * and Cashtab Msgs. In practice, we do not expect Cashtab msgs, but this is included here
+ * as a template for future extensibility of generalized ALP data pushes
+ */
+export const parseFirma = (firmaPush: string): ParsedOpReturnRaw => {
+    // Get LOKAD_ID
+    const LOKADID_LENGTH_STR = 8; // 4 bytes
+    // NB firma is always a hex string
+    const lokadHex = firmaPush.slice(0, LOKADID_LENGTH_STR);
+    const dataHex = firmaPush.slice(LOKADID_LENGTH_STR);
+    switch (lokadHex) {
+        case opReturn.appPrefixesHex.solAddr: {
+            const EXPECTED_SOLANA_ADDRESS_LENGTH = 64; // 32 bytes
+            return {
+                protocol: 'Solana Address',
+                data:
+                    dataHex.length === EXPECTED_SOLANA_ADDRESS_LENGTH
+                        ? encodeBase58(fromHex(dataHex))
+                        : `Invalid Solana address: raw pk ${dataHex}`,
+            };
+        }
+        case opReturn.appPrefixesHex.cashtab: {
+            // NB for EMPP cashtab msg, we have no byte push for the msg itself
+            // First 4 bytes are lokad, rest is the msg
+            return {
+                protocol: 'Cashtab Msg',
+                data: Buffer.from(dataHex, 'hex').toString('utf8'),
+            };
+        }
+        default: {
+            // Unknown app
+            return { protocol: 'Unknown Lokad', data: firmaPush };
+        }
+    }
+};
+
+/**
  * Get targetOutput for an Airdrop tx OP_RETURN from token id and optional user message
  * Airdrop tx spec: <Airdrop Protocol Identifier> <tokenId> <optionalMsg>
  * @param tokenId tokenId of the token receiving this airdrop tx
@@ -331,6 +374,21 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
             // Do not parse ALP as an app action, this will parsed by chronik as an indexed token tx
             // Do not parse AGORA as an app action, this is parsed elsewhere
             return;
+        }
+        case opReturn.appPrefixesHex.solAddr: {
+            const VALID_SOL_ADDR_PUSH_LENGTH = 64;
+            const isValid =
+                emppStack.remainingHex.length === VALID_SOL_ADDR_PUSH_LENGTH;
+            return {
+                lokadId,
+                app: 'Solana Address',
+                isValid,
+                action: {
+                    solAddr: isValid
+                        ? encodeBase58(fromHex(emppStack.remainingHex))
+                        : `Invalid SOL pk: ${emppStack.remainingHex}`,
+                },
+            };
         }
         default: {
             // Unknown EMPP action

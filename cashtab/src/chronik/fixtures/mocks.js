@@ -13504,6 +13504,161 @@ export const offSpecPaywallPaymentTx = {
 };
 
 /**
+ * An ALP send tx to the firma minting address with
+ * a solana receive address encoded in a separate EMPP push
+ */
+export const firmaRedeemTx = {
+    tx: {
+        txid: 'c2ca0b8669abda46688bf34ab6da313a03a2bfb56af99c4aad8c244fc25b6aaa',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '2dbb137fdb0bbff00b368892f7ef27c262ef2077cfcdfa74fc37f79b7225af14',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '41e4b59e83b9117fe0700cf7637be60cbded713a8f0eaa09538d76f7ce46429ac29baddd682d106716e616fc6965562a471ce980423c379efd2f10177db701f7c1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 49920n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'c025a30635a0dcf09a286f1a8ba7994fe7f40d7272ff5eb1c6bb7d64b98f8f64',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '412d017b40fe2eca6cfa6a78e9d9dfb9061250af3b7c41ca8dea00b312319d2b849d16a8bb01a400363c780d0fe60954313d61846c7c01fda331b1c2e594375e88412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 12852047n,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a5037534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302102700000000f09b0000000024534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac',
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 10000n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 39920n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 12851003n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1747169763,
+        size: 498,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+        block: {
+            height: 896729,
+            hash: '000000000000000013206bc393f6de124f937013b16456963f7156ba21e7bbf5',
+            timestamp: 1747169847,
+        },
+    },
+    sendingHash: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+    parsedSend: {
+        appActions: [
+            {
+                action: {
+                    solAddr: '6JKwz43wDTgk5n8eNCJrtsnNtkDdKd1XUZAvB9WkiEQ4',
+                },
+                app: 'Solana Address',
+                isValid: true,
+                lokadId: '534f4c30',
+            },
+        ],
+        parsedTokenEntries: [
+            {
+                renderedTokenType: 'ALP',
+                renderedTxType: 'SEND',
+                tokenId:
+                    '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                tokenSatoshis: '10000',
+            },
+        ],
+        recipients: ['ecash:qr8hdk8rxjc5nj6f450eth3nnslxa8k4gysrtyfxc5'],
+        satoshisSent: 546,
+        stackArray: [
+            '50',
+            '534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302102700000000f09b00000000',
+            '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+        ],
+        xecTxType: 'Sent',
+    },
+};
+
+/**
  * Mock chronik.token(tokenId) and chronik.tx(tokenId) for
  * several slpv1 tokens
  *

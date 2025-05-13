@@ -17,7 +17,7 @@ import {
     undecimalizeTokenAmount,
     DUMMY_KEYPAIR,
 } from 'wallet';
-import { Script, toHex, fromHex } from 'ecash-lib';
+import { Script, toHex, fromHex, strToBytes } from 'ecash-lib';
 import { Token, TokenType, OutPoint } from 'chronik-client';
 import { AgoraPartial } from 'ecash-agora';
 import { agoraPartialAlpTiberium } from './mocks';
@@ -69,6 +69,7 @@ interface GetAlpSendTargetOutputsReturn {
     description: string;
     tokenInputInfo: TokenInputInfo;
     destinationAddress: string;
+    firma: string;
     returned: TokenTargetOutput[];
 }
 interface GetAlpBurnTargetOutputsReturn {
@@ -340,6 +341,7 @@ const vectors: AlpVectors = {
                     tokenId: MOCK_TOKEN_ID,
                 },
                 destinationAddress: DUMMY_ADDRESS,
+                firma: '',
                 returned: [
                     {
                         sats: 0n,
@@ -381,6 +383,7 @@ const vectors: AlpVectors = {
                     tokenId: MOCK_TOKEN_ID,
                 },
                 destinationAddress: DUMMY_ADDRESS,
+                firma: '',
                 returned: [
                     {
                         sats: 0n,
@@ -396,6 +399,52 @@ const vectors: AlpVectors = {
                         script: Script.fromAddress(DUMMY_ADDRESS),
                     },
                     // No token change output
+                ],
+            },
+            {
+                description:
+                    'We can send a max-qty ALP tx with change and a message minimally encoding a Solana address',
+                tokenInputInfo: {
+                    // Note that getAlpSendTargetOutputs does not use these
+                    tokenInputs: [
+                        {
+                            ...DUMMY_UTXO,
+                            token: {
+                                ...DUMMY_TOKEN_ALP,
+                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
+                            },
+                        },
+                        {
+                            ...DUMMY_UTXO,
+                            token: {
+                                ...DUMMY_TOKEN_ALP,
+                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
+                            },
+                        },
+                    ],
+                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS), 1n],
+                    tokenId: MOCK_TOKEN_ID,
+                },
+                destinationAddress: DUMMY_ADDRESS,
+                firma: `${toHex(
+                    strToBytes('SOL0'),
+                )}4ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745`,
+                returned: [
+                    {
+                        sats: 0n,
+                        script: new Script(
+                            fromHex(
+                                '6a5037534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111102ffffffffffff01000000000024534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+                            ),
+                        ),
+                    },
+                    // Recipient output
+                    {
+                        ...TOKEN_DUST_CHANGE_OUTPUT,
+                        script: Script.fromAddress(DUMMY_ADDRESS),
+                    },
+                    // Change output has no script or address
+                    TOKEN_DUST_CHANGE_OUTPUT,
                 ],
             },
         ],

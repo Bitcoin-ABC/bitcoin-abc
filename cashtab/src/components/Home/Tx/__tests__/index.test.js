@@ -73,6 +73,7 @@ import {
     xecxTx,
     invalidXecxTx,
     firmaYieldTx,
+    firmaRedeemTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -3924,5 +3925,55 @@ describe('<Tx />', () => {
 
         // We see Firma yield app action
         expect(screen.getByText(`Firma yield payment`)).toBeInTheDocument();
+    });
+    it('Outgoing FIRMA-USDT conversion tx', async () => {
+        const thisMock = firmaRedeemTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsedSend }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see a conventional tx-sent icon for the XEC action
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('May 13, 2025, 20:56:03')).toBeInTheDocument();
+
+        // We see the expected sent amount
+        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+
+        // We see the a fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see Firma icon
+        expect(screen.getByAltText(`Firma reward`)).toBeInTheDocument();
+
+        // We see the USDT icon
+        expect(screen.getByAltText(`USDT Tether logo`)).toBeInTheDocument();
+
+        // We see the SOL logo
+        expect(screen.getByAltText(`SOL logo`)).toBeInTheDocument();
+
+        // We see Firma redeem app action
+        expect(screen.getByText(`Firma USDT conversion`)).toBeInTheDocument();
     });
 });
