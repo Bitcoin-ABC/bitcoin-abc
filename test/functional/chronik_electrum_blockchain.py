@@ -845,6 +845,17 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             },
         )
 
+        # Subscribing again is a no-op and returns the same result
+        for _ in range(3):
+            sub_message = self.client.blockchain.headers.subscribe()
+            assert_equal(
+                sub_message.result,
+                {
+                    "height": height,
+                    "hex": header_hex,
+                },
+            )
+
         def check_notification(clients, height, header_hex):
             for client in clients:
                 notification = client.wait_for_notification(
@@ -887,6 +898,25 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         # notifications
         (height, header_hex) = new_header()
         check_notification([self.client, client2, client3], height, header_hex)
+
+        # Unsubscribe client2
+        unsub_message = client2.blockchain.headers.unsubscribe()
+        assert_equal(unsub_message.result, True)
+
+        # From now on client2 won't receive the header notifications anymore
+        (height, header_hex) = new_header()
+        check_notification([self.client, client3], height, header_hex)
+
+        try:
+            client2.wait_for_notification("blockchain.headers.subscribe", timeout=1)
+            assert False, "Received an unexpected header notification"
+        except TimeoutError:
+            pass
+
+        # Unsubscribing more is a no-op and returns False
+        for _ in range(3):
+            unsub_message = client2.blockchain.headers.unsubscribe()
+            assert_equal(unsub_message.result, False)
 
 
 if __name__ == "__main__":

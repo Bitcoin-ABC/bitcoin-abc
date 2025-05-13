@@ -582,45 +582,48 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let indexer_clone = self.indexer.clone();
         let node_clone = self.node.clone();
 
-        let sub = chan.new_subscription(&method).await;
-        tokio::spawn(async move {
-            log_chronik!("Subscription to electrum headers\n");
+        if let Ok(sub) = chan.new_subscription(&method, Some(0)).await {
+            tokio::spawn(async move {
+                log_chronik!("Subscription to electrum headers\n");
 
-            loop {
-                let Ok(block_msg) = block_subs.recv().await else {
-                    // Error, disconnect
-                    break;
-                };
-
-                if block_msg.msg_type != BlockMsgType::Connected {
-                    // We're only sending headers upon block connection.
-                    // At some point we might want to wait for block
-                    // finalization instead, but this behavior would differ from
-                    // Fulcrum.
-                    continue;
-                }
-
-                let indexer = indexer_clone.read().await;
-                let blocks: chronik_indexer::query::QueryBlocks<'_> =
-                    indexer.blocks(&node_clone);
-
-                match header_json_from_height(&blocks, block_msg.height).await {
-                    Err(err) => {
-                        log_chronik!("{err}\n");
+                loop {
+                    let Ok(block_msg) = block_subs.recv().await else {
+                        // Error, disconnect
                         break;
+                    };
+
+                    if block_msg.msg_type != BlockMsgType::Connected {
+                        // We're only sending headers upon block connection.
+                        // At some point we might want to wait for block
+                        // finalization instead, but this behavior would differ
+                        // from Fulcrum.
+                        continue;
                     }
-                    Ok(header_json) => {
-                        if sub.notify(header_json).await.is_err() {
-                            // Don't log, it's likely a client unsubscription or
-                            // disconnection
+
+                    let indexer = indexer_clone.read().await;
+                    let blocks: chronik_indexer::query::QueryBlocks<'_> =
+                        indexer.blocks(&node_clone);
+
+                    match header_json_from_height(&blocks, block_msg.height)
+                        .await
+                    {
+                        Err(err) => {
+                            log_chronik!("{err}\n");
                             break;
                         }
-                    }
-                };
-            }
+                        Ok(header_json) => {
+                            if sub.notify(header_json).await.is_err() {
+                                // Don't log, it's likely a client
+                                // unsubscription or disconnection
+                                break;
+                            }
+                        }
+                    };
+                }
 
-            log_chronik!("Unsubscription from electrum headers\n");
-        });
+                log_chronik!("Unsubscription from electrum headers\n");
+            });
+        }
 
         let tip_height = blocks
             .blockchain_info()
@@ -628,6 +631,18 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             .tip_height;
 
         header_json_from_height(&blocks, tip_height).await
+    }
+
+    #[rpc_method(name = "headers.unsubscribe")]
+    async fn headers_unsubscribe(
+        &self,
+        chan: Arc<Channel>,
+        _method: String,
+        _params: Value,
+    ) -> Result<Value, RPCError> {
+        let sub_id: message::SubscriptionID = 0;
+        let success = chan.remove_subscription(&sub_id).await.is_ok();
+        Ok(serde_json::json!(success))
     }
 }
 
