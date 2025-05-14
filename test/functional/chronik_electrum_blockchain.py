@@ -25,7 +25,12 @@ from test_framework.messages import (
 )
 from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, chronikelectrum_port, hex_to_be_bytes
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    chronikelectrum_port,
+    hex_to_be_bytes,
+)
 from test_framework.wallet import MiniWallet
 
 COINBASE_TX_HEX = (
@@ -67,6 +72,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_block_header()
         self.test_scripthash()
         self.test_headers_subscribe()
+        self.test_scripthash_subscribe()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -849,6 +855,11 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             sorted(utxos, key=utxo_sorting_key),
         )
 
+        # Remove the history limit for the next tests
+        self.restart_node(0)
+        self.client = self.node.get_chronik_electrum_client()
+        self.wallet.rescan_utxos()
+
     def test_headers_subscribe(self):
         self.log.info("Test the blockchain.headers.subscribe endpoint")
 
@@ -941,6 +952,186 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         for _ in range(3):
             unsub_message = client2.blockchain.headers.unsubscribe()
             assert_equal(unsub_message.result, False)
+
+        # Unsubscribe all the clients so we don't mess with other tests
+        unsub_message = self.client.blockchain.headers.unsubscribe()
+        assert_equal(unsub_message.result, True)
+        unsub_message = client3.blockchain.headers.unsubscribe()
+        assert_equal(unsub_message.result, True)
+
+    def test_scripthash_subscribe(self):
+        self.log.info("Test the blockchain.scripthash.subscribe endpoint")
+
+        self.generate(self.wallet, 10)
+
+        # Subscribing to an address with no history returns null as a status
+        sub_message = self.client.blockchain.scripthash.subscribe("0" * 64)
+        result_no_history = sub_message.result
+        assert_equal(result_no_history, None)
+
+        # Subscribing to an address with some history returns a hash as a status
+        scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
+        assert_greater_than(
+            len(self.client.blockchain.scripthash.get_history(scripthash).result), 0
+        )
+        sub_message = self.client.blockchain.scripthash.subscribe(scripthash)
+        result_history = sub_message.result
+        assert result_history is not None
+        assert_equal(len(result_history), 64)
+
+        # Subscribing again is a no-op and returns the same result
+        for _ in range(3):
+            assert_equal(
+                self.client.blockchain.scripthash.subscribe("0" * 64).result,
+                result_no_history,
+            )
+            assert_equal(
+                self.client.blockchain.scripthash.subscribe(scripthash).result,
+                result_history,
+            )
+
+        # Generate a few wallet transactions so we get notifications
+        chain_length = 3
+        self.wallet.send_self_transfer_chain(
+            from_node=self.node, chain_length=chain_length
+        )
+
+        def check_notification(clients, scripthash, last_status=None):
+            ret_status = None
+            for client in clients:
+                notification = client.wait_for_notification(
+                    "blockchain.scripthash.subscribe", timeout=1
+                )
+                # We should have exactly 2 items, the scripthash and the status
+                assert_equal(len(notification), 2)
+                (ret_scripthash, status) = notification
+                assert_equal(ret_scripthash, scripthash)
+                # Status is some hash
+                assert_equal(len(status), 64)
+
+                # The status should be the same for all clients
+                if ret_status:
+                    assert_equal(status, ret_status)
+                ret_status = status
+
+            assert ret_status != last_status
+            return ret_status
+
+        # We should get a notification of each tx in the chain. Each tx causes
+        # the status to change so the status should be different for each
+        # notification.
+        last_status = None
+        for _ in range(chain_length):
+            last_status = check_notification([self.client], scripthash, last_status)
+
+        # Mine a block: the 3 previously unconfirmed txs are confirmed. We get 2
+        # notification: 1 for the confirmation of the 3 mempool txs, and 1 for
+        # the new coinbase tx
+        assert_equal(len(self.node.getrawmempool()), 3)
+        self.generate(self.wallet, 1)
+        assert_equal(len(self.node.getrawmempool()), 0)
+
+        # Here the confirmation happens for all the txs at the same time, so the
+        # status is the same across all the notifications (there is no such
+        # thing as one tx enters the block, then another one etc.).
+        # But this will differ from the previously saved status because the txs
+        # now have a non zero block height (and there is a new coinbase tx).
+        last_status = check_notification([self.client], scripthash, last_status)
+
+        # Let's add some clients
+        client2 = self.node.get_chronik_electrum_client()
+        assert_equal(
+            client2.blockchain.scripthash.subscribe(scripthash).result, last_status
+        )
+        client3 = self.node.get_chronik_electrum_client()
+        assert_equal(
+            client3.blockchain.scripthash.subscribe(scripthash).result, last_status
+        )
+
+        # Add a few more txs: all clients get notified. The status changes
+        # everytime, see the above rationale
+        self.wallet.send_self_transfer_chain(
+            from_node=self.node, chain_length=chain_length
+        )
+        for _ in range(chain_length):
+            last_status = check_notification(
+                [self.client, client2, client3], scripthash, last_status
+            )
+
+        # Mine the block to confirm the transactions
+        assert_equal(len(self.node.getrawmempool()), 3)
+        self.generate(self.wallet, 1)
+        assert_equal(len(self.node.getrawmempool()), 0)
+        last_status = check_notification(
+            [self.client, client2, client3], scripthash, last_status
+        )
+
+        # Unsubscribe client 2, the other clients are still notified
+        assert_equal(client2.blockchain.scripthash.unsubscribe(scripthash).result, True)
+
+        self.generate(self.wallet, 1)
+        last_status = check_notification(
+            [self.client, client3], scripthash, last_status
+        )
+
+        try:
+            client2.wait_for_notification("blockchain.scripthash.subscribe", timeout=1)
+            assert False, "Received an unexpected scripthash notification"
+        except TimeoutError:
+            pass
+
+        # Unsubscribing again is a no-op
+        for _ in range(3):
+            assert_equal(
+                client2.blockchain.scripthash.unsubscribe(scripthash).result, False
+            )
+
+        # Subscribe the first client to another hash
+        scriptpubkey = CScript(
+            bytes.fromhex("76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac")
+        )
+        other_scripthash = hex_be_sha256(scriptpubkey)
+        # This script has some history from the previous tests
+        sub_message = self.client.blockchain.scripthash.subscribe(other_scripthash)
+        assert_equal(len(sub_message.result), 64)
+
+        # We're sending from the originally subscribed address to the newly
+        # subscribed one so we also get the change output
+        self.wallet.send_to(
+            from_node=self.node,
+            scriptPubKey=scriptpubkey,
+            amount=1000,
+        )
+        check_notification([self.client], other_scripthash)
+        last_status = check_notification(
+            [self.client, client3], scripthash, last_status
+        )
+
+        # Unsubscribe the first client from the first scripthash
+        assert_equal(
+            self.client.blockchain.scripthash.unsubscribe(scripthash).result, True
+        )
+
+        # Now only client3 gets notified for the original scripthash
+        self.generate(self.wallet, 1)
+        last_status = check_notification([client3], scripthash, last_status)
+
+        # The other tx get confirmed
+        check_notification([self.client], other_scripthash)
+        # But that's the only notification
+        try:
+            self.client.wait_for_notification(
+                "blockchain.scripthash.subscribe", timeout=1
+            )
+            assert False, "Received an unexpected scripthash notification"
+        except TimeoutError:
+            pass
+
+        # Unsubscribe to everything
+        assert_equal(
+            self.client.blockchain.scripthash.unsubscribe(other_scripthash).result, True
+        )
+        assert_equal(client3.blockchain.scripthash.unsubscribe(scripthash).result, True)
 
 
 if __name__ == "__main__":
