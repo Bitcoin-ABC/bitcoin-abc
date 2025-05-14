@@ -199,7 +199,7 @@ impl<G: Group> MempoolGroupUtxos<G> {
         &'a self,
         member_prefix: &'a [u8],
         member_start: Vec<u8>,
-    ) -> impl Iterator<Item = (&Vec<u8>, &BTreeSet<OutPoint>)> + 'a {
+    ) -> impl Iterator<Item = (&'a Vec<u8>, &'a BTreeSet<OutPoint>)> + 'a {
         self.utxos
             .range(member_start..)
             .take_while(|(key, _)| key.starts_with(member_prefix))
