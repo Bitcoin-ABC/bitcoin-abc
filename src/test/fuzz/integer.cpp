@@ -95,8 +95,8 @@ FUZZ_TARGET_INIT(integer, initialize_integer) {
         "0000000000000000000000000000000000000000000000000000000000000000"));
     static const uint256 u256_max(uint256S(
         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
-    const std::vector<uint256> v256{u256, u256_min, u256_max};
-    (void)ComputeMerkleRoot(v256);
+    std::vector v256{u256, u256_min, u256_max};
+    (void)ComputeMerkleRoot(std::move(v256));
     (void)DecompressAmount(u64);
     (void)FormatISO8601Date(i64);
     (void)FormatISO8601DateTime(i64);
