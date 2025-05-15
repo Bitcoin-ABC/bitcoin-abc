@@ -220,7 +220,8 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 
 void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
               UniValue &entry, bool include_hex, const CTxUndo *txundo,
-              TxVerbosity verbosity) {
+              TxVerbosity verbosity,
+              std::function<bool(const CTxOut &)> is_change_func) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
     // Transaction version is actually unsigned in consensus checks, just
@@ -294,6 +295,11 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
         UniValue o(UniValue::VOBJ);
         ScriptPubKeyToUniv(txout.scriptPubKey, o, true);
         out.pushKV("scriptPubKey", o);
+
+        if (is_change_func && is_change_func(txout)) {
+            out.pushKV("ischange", true);
+        }
+
         vout.push_back(out);
 
         if (have_undo) {

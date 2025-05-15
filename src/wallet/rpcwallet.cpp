@@ -1868,10 +1868,8 @@ static RPCHelpMan gettransaction() {
                      "Optional, the decoded transaction (only present when "
                      "`verbose` is passed)",
                      {
-                         {RPCResult::Type::ELISION, "",
-                          "Equivalent to the RPC decoderawtransaction method, "
-                          "or the RPC getrawtransaction method when `verbose` "
-                          "is passed."},
+                         DecodeTxDoc(/*txid_field_doc=*/"The transaction id",
+                                     /*wallet=*/true),
                      }},
                 })},
         RPCExamples{HelpExampleCli("gettransaction",
@@ -1945,7 +1943,18 @@ static RPCHelpMan gettransaction() {
 
             if (verbose) {
                 UniValue decoded(UniValue::VOBJ);
-                TxToUniv(*wtx.tx, BlockHash(), decoded, false);
+                TxToUniv(*wtx.tx,
+                         /*hashBlock=*/BlockHash(),
+                         /*entry=*/decoded,
+                         /*include_hex=*/false,
+                         /*txundo=*/nullptr,
+                         /*verbosity=*/TxVerbosity::SHOW_DETAILS,
+                         /*is_change_func=*/
+                         [&pwallet](const CTxOut &txout)
+                             EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
+                                 AssertLockHeld(pwallet->cs_wallet);
+                                 return OutputIsChange(*pwallet, txout);
+                             });
                 entry.pushKV("decoded", decoded);
             }
 

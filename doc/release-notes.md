@@ -14,3 +14,6 @@ This release includes the following features and fixes:
     - `height`
     - `value`
     - `scriptPubKey`
+ - The `gettransaction` RPC command now returns `"ischange": true` for the
+   change output (if any). The field is absent for non change outputs. Please
+   refer to the `gettransaction` documentation for details.

@@ -7,6 +7,7 @@
 
 #include <script/sighashtype.h>
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,7 @@ class CTransaction;
 class uint256;
 class UniValue;
 class CTxUndo;
+class CTxOut;
 
 /**
  * Verbose level for block's transaction
@@ -65,6 +67,7 @@ void ScriptToUniv(const CScript &script, UniValue &out, bool include_address);
 void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
               UniValue &entry, bool include_hex = true,
               const CTxUndo *txundo = nullptr,
-              TxVerbosity verbosity = TxVerbosity::SHOW_DETAILS);
+              TxVerbosity verbosity = TxVerbosity::SHOW_DETAILS,
+              std::function<bool(const CTxOut &)> is_change_func = {});
 
 #endif // BITCOIN_CORE_IO_H
