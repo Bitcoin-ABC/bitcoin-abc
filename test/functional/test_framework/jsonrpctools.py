@@ -81,6 +81,10 @@ class ChronikElectrumClient:
         self.timeout = timeout
 
         self.id = -1
+        # Data buffer. Messages are separated by \n but we might have several in
+        # a single frame so we keep track of the remaining in order to properly
+        # rebuild the messages.
+        self.data = b""
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
@@ -98,13 +102,29 @@ class ChronikElectrumClient:
         return MethodNameProxy(self, item)
 
     def _recv(self):
-        data = b""
-        while b"\n" not in data:
-            data += self.sock.recv(1024)
-            if len(data) > self.MAX_DATA_SIZE:
+        # We need the initial check because self.data might already contain
+        # the messages and we don't want to block on sock.recv() in this case
+        while b"\n" not in self.data:
+            self.data += self.sock.recv(1024)
+
+            # Break early, we will check the length of the message
+            if b"\n" in self.data:
+                break
+
+            # There is no \n, we don't allow for more data than the max size.
+            # This is also an exit condition to avoid looping indefinitely if
+            # there is no \n
+            if len(self.data) > self.MAX_DATA_SIZE:
                 raise OversizedResponseError()
 
-        return json.loads(data.decode("utf-8"))
+        # We might have several messages, but only return the first one
+        (message, self.data) = self.data.split(b"\n", maxsplit=1)
+
+        # Account for the trailing \n that we just removed as 1 byte
+        if len(message) + 1 > self.MAX_DATA_SIZE:
+            raise OversizedResponseError()
+
+        return json.loads(message.decode("utf-8"))
 
     def synchronous_request(
         self, method: str, params: Optional[list | dict]
