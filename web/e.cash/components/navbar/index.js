@@ -54,7 +54,7 @@ export default function Navbar() {
         <NavbarOuter navBackground={navBackground}>
             <AnnouncementBar navBackground={navBackground} href="/upgrade">
                 <span>
-                    <span>Prepare for the eCash network upgrade!</span>
+                    <span>The eCash network upgrade has activated!</span>
                     <span>Click here for more details</span>
                 </span>
             </AnnouncementBar>

@@ -31,6 +31,15 @@ function Upgrade(props) {
             </SubPageHero>
             <GradientSpacer />
             <Container narrow>
+                <H3 text="What happened?" id="what" />
+                <p>
+                    The planned upgrade of the eCash network has successfully
+                    been completed. The first post-upgrade block is block number{' '}
+                    <Link href="https://explorer.e.cash/block/0000000000000000051b048b2d7801b854dbbe3fcdf8f28e995d2bbbd29e7cf5">
+                        896974
+                    </Link>
+                    .
+                </p>
                 <H3 text="Who needs to upgrade?" id="who" />
                 <p>
                     All operators of a Bitcoin ABC full node must upgrade to the
@@ -41,17 +50,6 @@ function Upgrade(props) {
                     </Link>
                     .
                 </p>
-                <H3 text="Exactly when will the upgrade activate?" id="when" />
-                <p>
-                    In order to activate reliably at a predictable time, the
-                    network upgrade uses the &ldquo;Median Time Past&rdquo;
-                    mechanism. The upgrade activates when the median of the last
-                    11 blocks reaches timestamp 1747310400 (12:00:00 UTC on May
-                    15th, 2025). This means that the upgrade does not actually
-                    activate exactly at that time, but typically about one hour
-                    later, when 6 blocks with timestamps greater than the
-                    activation time have been produced.
-                </p>
                 <H3
                     text="What features are included in the Network Upgrade?"
                     id="features"
@@ -60,8 +58,7 @@ function Upgrade(props) {
                     This upgrade does not include any new protocol features.
                     However, because of the automatic replay protection that is
                     part of the 6-month upgrade cadence, it is necessary for all
-                    full node operators to upgrade to {latestMajor} before the
-                    upgrade time.
+                    full node operators to upgrade to {latestMajor}.
                 </p>
                 <H3 text="Do I need to upgrade my wallet?" id="wallet" />
                 <p>
