@@ -4,4 +4,5 @@ Bitcoin ABC version 0.31.4 is now available from:
 
   <https://download.bitcoinabc.org/0.31.4/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+   - Added a checkpoint after the May 15, 2025 eCash network upgrade.

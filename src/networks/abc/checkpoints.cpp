@@ -86,6 +86,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Augusto activation.
         {871168, BlockHash::fromHex("0000000000000000232d2ec92c9a2dd3a6e887dabc"
                                     "254c85f10e804239ff7274")},
+        // Schumpeter activation.
+        {896974, BlockHash::fromHex("0000000000000000051b048b2d7801b854dbbe3fcd"
+                                    "f8f28e995d2bbbd29e7cf5")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -139,6 +142,9 @@ static CCheckpointData testNetCheckpointData = {
         // Augusto activation.
         {1635241, BlockHash::fromHex("00000000082c7e223785dffb1f62db4ec737b8fd1"
                                      "4faaf4dfb7c5a8bbf22bd2d")},
+        // Schumpeter activation.
+        {1661274, BlockHash::fromHex("00000000000ec2a59f7dbddebfa9f5b82a918085d"
+                                     "d6174da26eb9d7ad005c219")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
