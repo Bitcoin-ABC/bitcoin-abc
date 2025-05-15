@@ -20,6 +20,9 @@
 
 using kernel::MemPoolOptions;
 
+//! Maximum mempool size on 32-bit systems.
+static constexpr int MAX_32BIT_MEMPOOL_MB{500};
+
 std::optional<bilingual_str>
 ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
                     MemPoolOptions &mempool_opts) {
@@ -27,6 +30,15 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
         argsman.GetIntArg("-checkmempool", mempool_opts.check_ratio);
 
     if (auto mb = argsman.GetIntArg("-maxmempool")) {
+        mempool_opts.max_size_bytes = *mb * 1'000'000;
+    }
+    if (auto mb = argsman.GetIntArg("-maxmempool")) {
+        constexpr bool is_32bit{sizeof(void *) == 4};
+        if (is_32bit && *mb > MAX_32BIT_MEMPOOL_MB) {
+            return Untranslated(strprintf("-maxmempool is set to %i but can't "
+                                          "be over %i MB on 32-bit systems",
+                                          *mb, MAX_32BIT_MEMPOOL_MB));
+        }
         mempool_opts.max_size_bytes = *mb * 1'000'000;
     }
 
