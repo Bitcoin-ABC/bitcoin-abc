@@ -641,6 +641,7 @@ const SendXec: React.FC = () => {
                     : getSlpSendTargetOutputs(
                           tokenInputInfo as TokenInputInfo,
                           address,
+                          tokenType!.number,
                       );
             // Build and broadcast the tx
             const { response } = await sendXec(

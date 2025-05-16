@@ -23,7 +23,7 @@ import vectors, {
 } from '../fixtures/vectors';
 import slpv1Vectors from 'token-protocols/slpv1/fixtures/vectors';
 import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
-import { Ecc, Script, fromHex } from 'ecash-lib';
+import { Ecc, SLP_FUNGIBLE, Script, fromHex } from 'ecash-lib';
 
 describe('Cashtab functions that build and broadcast rawtxs', () => {
     const ecc = new Ecc();
@@ -304,6 +304,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 const tokenSendTargetOutputs = getSlpSendTargetOutputs(
                     tokenInputInfo,
                     destinationAddress,
+                    SLP_FUNGIBLE,
                 );
 
                 // SLP v1 SEND
@@ -322,8 +323,10 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 // SLP v1 BURN
 
                 // Get the targetOutputs
-                const tokenBurnTargetOutputs =
-                    getSlpBurnTargetOutputs(tokenInputInfo);
+                const tokenBurnTargetOutputs = getSlpBurnTargetOutputs(
+                    tokenInputInfo,
+                    SLP_FUNGIBLE,
+                );
 
                 expect(
                     await sendXec(

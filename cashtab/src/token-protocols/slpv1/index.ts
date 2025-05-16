@@ -110,6 +110,7 @@ export const getSlpGenesisTargetOutput = (
 export const getSlpSendTargetOutputs = (
     tokenInputInfo: TokenInputInfo,
     destinationAddress: string,
+    tokenType: number,
 ): TokenTargetOutput[] => {
     const { tokenInputs, sendAmounts } = tokenInputInfo;
 
@@ -117,7 +118,7 @@ export const getSlpSendTargetOutputs = (
 
     const tokenId = tokenInputs[0].token.tokenId;
 
-    const script = slpSend(tokenId, SLP_1_PROTOCOL_NUMBER, sendAmounts);
+    const script = slpSend(tokenId, tokenType, sendAmounts);
 
     // Build targetOutputs per slpv1 spec
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
@@ -152,6 +153,7 @@ export const getSlpSendTargetOutputs = (
  */
 export const getSlpBurnTargetOutputs = (
     tokenInputInfo: TokenInputInfo,
+    tokenType: number,
 ): TokenTargetOutput[] => {
     const { tokenId, sendAmounts } = tokenInputInfo;
 
@@ -162,7 +164,7 @@ export const getSlpBurnTargetOutputs = (
     const tokenChange = hasChange ? sendAmounts[1] : 0n;
 
     // This step is what makes the tx a burn and not a send, see getSlpSendTargetOutputs
-    const script = slpSend(tokenId, SLP_1_PROTOCOL_NUMBER, [tokenChange]);
+    const script = slpSend(tokenId, tokenType, [tokenChange]);
 
     // Build targetOutputs per slpv1 spec
     // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
