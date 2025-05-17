@@ -239,6 +239,12 @@ describe('Cashtab validation functions', () => {
     it(`isProbablyNotAScam prevents new genesis tx of "Firma" as token name`, () => {
         expect(isProbablyNotAScam('Firma')).toBe(false);
     });
+    it(`isProbablyNotAScam prevents new genesis tx of "MUSD" as token ticker`, () => {
+        expect(isProbablyNotAScam('MUSD')).toBe(false);
+    });
+    it(`isProbablyNotAScam prevents new genesis tx of "Marianas U.S. Dollar" as token name`, () => {
+        expect(isProbablyNotAScam('Marianas U.S. Dollar')).toBe(false);
+    });
     it(`isProbablyNotAScam recognizes "bitcoin" is probably a scam token name`, () => {
         expect(isProbablyNotAScam('bitcoin')).toBe(false);
     });
