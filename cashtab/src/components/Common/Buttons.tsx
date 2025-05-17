@@ -111,12 +111,14 @@ const SvgButtonOrLinkCss = css`
         width: 24px;
         fill: ${props => props.theme.accent};
     }
-    &:hover {
-        svg {
-            fill: ${props => props.theme.secondaryAccent};
-            stroke: ${props => props.theme.secondaryAccent};
-            path {
+    @media (hover: hover) {
+        &:hover {
+            svg {
                 fill: ${props => props.theme.secondaryAccent};
+                stroke: ${props => props.theme.secondaryAccent};
+                path {
+                    fill: ${props => props.theme.secondaryAccent};
+                }
             }
         }
     }
@@ -139,11 +141,13 @@ const HeaderCopyButtonCss = css`
             fill: ${props => props.theme.secondaryText};
         }
     }
-    &:hover {
-        background: ${props => props.theme.accent};
-        svg {
-            path {
-                fill: ${props => props.theme.primaryText};
+    @media (hover: hover) {
+        &:hover {
+            background: ${props => props.theme.accent};
+            svg {
+                path {
+                    fill: ${props => props.theme.primaryText};
+                }
             }
         }
     }
