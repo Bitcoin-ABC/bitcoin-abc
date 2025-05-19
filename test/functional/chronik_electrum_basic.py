@@ -33,6 +33,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.test_donation_address()
         self.test_ping()
         self.test_server_version()
+        self.test_server_peers()
         # Run this last as it invalidates self.client
         self.test_init_errors()
 
@@ -121,6 +122,13 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         assert_equal(
             self.client.server.version("", ("1.4", "1.4", "1.4")).error,
             {"code": 1, "message": "Unsupported protocol version"},
+        )
+
+    def test_server_peers(self):
+        # Peering is not implemented, the server always returns an empty string
+        assert_equal(
+            self.client.server.peers.subscribe().result,
+            [],
         )
 
     def test_init_errors(self):

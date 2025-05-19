@@ -438,6 +438,15 @@ impl ChronikElectrumRPCServerEndpoint {
         let server_version = format!("Bitcoin ABC {version_number}");
         Ok(json!([server_version, ELECTRUM_PROTOCOL_VERSION]))
     }
+
+    // Note that despite the name this is not a subscription, and the server
+    // must send no notifications.
+    #[rpc_method(name = "peers.subscribe")]
+    async fn peers_subscribe(&self, _params: Value) -> Result<Value, RPCError> {
+        // Peering is not implemented, for now we just announce 0 peers.
+        // Electrum may call this method.
+        Ok(json!([]))
+    }
 }
 
 fn json_to_u31(num: Value, err_msg: &str) -> Result<i32, RPCError> {
