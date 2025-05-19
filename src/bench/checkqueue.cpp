@@ -56,7 +56,7 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
         .unit("job")
         .run([&] {
             // Make insecure_rand here so that each iteration is identical.
-            CCheckQueueControl<PrevectorJob> control(&queue);
+            CCheckQueueControl<PrevectorJob> control(queue);
             std::vector<std::vector<PrevectorJob>> vBatches(BATCHES);
             for (auto &vChecks : vBatches) {
                 control.Add(std::move(vChecks));

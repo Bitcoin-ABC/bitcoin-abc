@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
     PrecomputedTransactionData txdata(tx);
     CCheckQueue<CScriptCheck> scriptcheckqueue(/*batch_size=*/128,
                                                /*worker_threads_num=*/20);
-    CCheckQueueControl<CScriptCheck> control(&scriptcheckqueue);
+    CCheckQueueControl<CScriptCheck> control(scriptcheckqueue);
 
     std::vector<Coin> coins;
     for (size_t i = 0; i < mtx.vin.size(); i++) {

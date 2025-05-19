@@ -2360,8 +2360,10 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     CBlockUndo blockundo;
     blockundo.vtxundo.resize(block.vtx.size() - 1);
 
-    CCheckQueueControl<CScriptCheck> control(
-        fScriptChecks ? &m_chainman.GetCheckQueue() : nullptr);
+    std::optional<CCheckQueueControl<CScriptCheck>> control;
+    if (fScriptChecks) {
+        control.emplace(m_chainman.GetCheckQueue());
+    }
 
     // Add all outputs
     try {
@@ -2463,7 +2465,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
             break;
         }
 
-        control.Add(std::move(vChecks));
+        if (control) {
+            control->Add(std::move(vChecks));
+        }
 
         // Note: this must execute in the same iteration as CheckTxInputs (not
         // in a separate loop) in order to detect double spends. However,
@@ -2500,13 +2504,14 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     if (blockFees) {
         *blockFees = nFees;
     }
-
-    auto parallel_result = control.Complete();
-    if (parallel_result.has_value() && state.IsValid()) {
-        state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                      strprintf("mandatory-script-verify-flag-failed (%s)",
-                                ScriptErrorString(parallel_result->first)),
-                      parallel_result->second);
+    if (control) {
+        auto parallel_result = control->Complete();
+        if (parallel_result.has_value() && state.IsValid()) {
+            state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                          strprintf("mandatory-script-verify-flag-failed (%s)",
+                                    ScriptErrorString(parallel_result->first)),
+                          parallel_result->second);
+        }
     }
     if (!state.IsValid()) {
         LogInfo("Block validation error: %s\n", state.ToString());
