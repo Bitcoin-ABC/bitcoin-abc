@@ -651,7 +651,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     ) -> Result<Value, RPCError> {
         let sub_id: message::SubscriptionID = 0;
         let success = chan.remove_subscription(&sub_id).await.is_ok();
-        Ok(serde_json::json!(success))
+        Ok(json!(success))
     }
 }
 
