@@ -7,7 +7,7 @@ import json
 import socket
 from typing import Any, Optional
 
-from .util import assert_equal
+from .util import assert_equal, assert_greater_than
 
 
 class OversizedResponseError(Exception):
@@ -160,8 +160,8 @@ class ChronikElectrumClient:
         assert "id" not in json_reply
         assert_equal(json_reply.get("method"), method)
         assert "params" in json_reply
-        assert_equal(len(json_reply["params"]), 1)
+        assert_greater_than(len(json_reply["params"]), 0)
 
         # The "result" is within a "params" field. There is no point returning
         # a JsonRpcResponse here as we only care about the result
-        return json_reply["params"][0]
+        return json_reply["params"]
