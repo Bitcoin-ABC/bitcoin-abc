@@ -15,11 +15,12 @@ use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::group::GroupMember;
 use chronik_indexer::{
+    indexer::ChronikIndexer,
     merkle::MerkleTree,
     query::{QueryBlocks, MAX_HISTORY_PAGE_SIZE},
     subs::BlockMsgType,
 };
-use chronik_proto::proto::Tx;
+use chronik_proto::proto::{BlockMetadata, Tx};
 use chronik_util::log_chronik;
 use futures::future;
 use itertools::izip;
@@ -453,12 +454,50 @@ fn be_bytes_to_le_hex(hash: &[u8]) -> String {
     hex::encode(Sha256::from_be_slice(hash).unwrap().as_le_bytes())
 }
 
+/// Whether this tx has unconfirmed parents. This is required for the Electrum
+/// protocol which returns a different block height for mempool transactions
+/// depending on this.
+async fn has_unconfirmed_parents(
+    tx: &Tx,
+    indexer: &tokio::sync::RwLockReadGuard<'_, ChronikIndexer>,
+    node: &NodeRef,
+) -> Result<bool, RPCError> {
+    if tx.is_coinbase {
+        // This should be unreachable because we only check for unconfirmed txs,
+        // but this is cheap, more correct and makes the code more robust.
+        // A coinbase tx can't have missing parents.
+        return Ok(true);
+    }
+    for input in tx.inputs.iter() {
+        let prev_txid = match &input.prev_out {
+            Some(prev_out) => TxId::try_from(prev_out.txid.as_slice())
+                .map_err(|_| RPCError::InternalError)?,
+            // This should be unreachable. However if there is no prevout,
+            // assume this is a coinbase so it can't be missing parents.
+            None => return Ok(false),
+        };
+        // This should never fail
+        let tx = indexer
+            .txs(node)
+            .tx_by_id(prev_txid)
+            .map_err(|_| RPCError::InternalError)?;
+        if tx.block.is_none() {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
+
+/// Return the history in a format that fulcrum expects
 async fn get_scripthash_history(
     script_hash: Sha256,
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
 ) -> Result<Vec<Tx>, RPCError> {
+    let script_hash_hex = hex::encode(script_hash.to_be_bytes());
+
     let indexer = indexer.read().await;
     let script_history = indexer
         .script_history(&node)
@@ -469,9 +508,10 @@ async fn get_scripthash_history(
     let mut tx_history: Vec<Tx> = vec![];
 
     while page < num_pages {
-        // Return the history in ascending block height order
+        // Return the confirmed txs in ascending block height order, with txs
+        // ordered as they appear in the block
         let history = script_history
-            .rev_history(
+            .confirmed_txs(
                 GroupMember::MemberHash(script_hash).as_ref(),
                 page as usize,
                 MAX_HISTORY_PAGE_SIZE,
@@ -479,7 +519,6 @@ async fn get_scripthash_history(
             .map_err(|_| RPCError::InternalError)?;
 
         if history.num_txs > max_history {
-            let script_hash_hex = hex::encode(script_hash.to_be_bytes());
             // Note that Fulcrum would return an empty history in this case
             return Err(RPCError::CustomError(
                 1,
@@ -499,6 +538,65 @@ async fn get_scripthash_history(
         page += 1;
     }
 
+    // Note that there is currently no pagination for the mempool.
+    let mut history = script_history
+        .unconfirmed_txs(GroupMember::MemberHash(script_hash).as_ref())
+        .map_err(|_| RPCError::InternalError)?;
+
+    if history.num_txs + (tx_history.len() as u32) > max_history {
+        return Err(RPCError::CustomError(
+            1,
+            format!(
+                "transaction history for scripthash {script_hash_hex} exceeds \
+                 limit ({0})",
+                max_history
+            ),
+        ));
+    }
+
+    let mut unconfirmed_tx_history: Vec<Tx> = vec![];
+
+    for tx in history.txs.iter_mut() {
+        let block_height =
+            if has_unconfirmed_parents(tx, &indexer, &node).await? {
+                -1
+            } else {
+                0
+            };
+
+        // Override the block height:
+        //  - -1 if the tx has some unconfirmed parents
+        //  - 0 if the tx has no unconfirmed parents
+        let electrum_fake_block = BlockMetadata {
+            height: block_height,
+            hash: vec![0; 64],
+            timestamp: 0,
+            is_final: false,
+        };
+        tx.block = Some(electrum_fake_block);
+        unconfirmed_tx_history.push(tx.clone());
+    }
+
+    // Return the mempool txs in the reverse block height then txid order
+    unconfirmed_tx_history.sort_by(|a, b| {
+        let a_height = a.block.as_ref().unwrap().height;
+        let b_height = b.block.as_ref().unwrap().height;
+        if a_height != b_height {
+            // Warning: reverse order! We place txs with no unconfirmed parents
+            // first (height = 0) then txs with unconfirmed parents
+            // (height = -1).
+            return b_height.cmp(&a_height);
+        }
+
+        let a_txid =
+            hex::encode(a.txid.iter().copied().rev().collect::<Vec<u8>>());
+        let b_txid =
+            hex::encode(b.txid.iter().copied().rev().collect::<Vec<u8>>());
+        a_txid.cmp(&b_txid)
+    });
+
+    tx_history.append(&mut unconfirmed_tx_history);
+
     Ok(tx_history)
 }
 
@@ -507,7 +605,10 @@ fn get_scripthash_balance(history: &Vec<Tx>, scripthash: Sha256) -> (i64, i64) {
     let mut unconfirmed: i64 = 0;
 
     for tx in history {
-        let is_mempool = tx.block.is_none();
+        let is_mempool = match &tx.block {
+            Some(block) => block.height <= 0,
+            None => true,
+        };
         for outp in tx.outputs.iter() {
             if Sha256::digest(&outp.output_script) != scripthash {
                 continue;
@@ -1064,14 +1165,13 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let mut json_history: Vec<Value> = vec![];
 
         // Return history in ascending order (and mempool last), which is the
-        // opposite of what chronik does.
-        for tx in history.iter().rev() {
+        // opposite of what chronik does. The get_scripthash_history() takes
+        // care of all the ordering.
+        for tx in history {
             let height = match &tx.block {
                 Some(block) => block.height,
-                // Here we differ from Fulcrum because we don't discriminate
-                // between unconfirmed transactions and
-                // transactions with unconfirmed parents
-                // (height -1)
+                // This should never happen because the block height is filled
+                // the get_scripthash_history() function even for mempool txs.
                 None => 0,
             };
             let be_txid: Vec<u8> = tx.txid.iter().copied().rev().collect();
@@ -1081,7 +1181,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     "tx_hash": hex::encode(be_txid)
                 }));
             } else {
-                let fee = get_tx_fee(tx);
+                let fee = get_tx_fee(&tx);
                 json_history.push(json!({
                     "fee": fee,
                     "height": height,

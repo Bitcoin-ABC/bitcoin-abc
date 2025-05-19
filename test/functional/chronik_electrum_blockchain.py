@@ -700,7 +700,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         def utxo_sorting_key(utxo):
             return utxo["tx_hash"], utxo["tx_pos"]
 
-        def assert_scripthash_balance_and_history(check_sorting=True):
+        def assert_scripthash_balance_and_history():
             assert_equal(
                 self.client.blockchain.scripthash.get_balance(scripthash).result,
                 {
@@ -716,17 +716,31 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 scripthash
             ).result
             expected_utxos = utxos
-            if not check_sorting:
-                # Enforce any unique arbitrary sorting so we can compare equality
-                # between the two lists.
-                def sorting_key(hist_item):
-                    return hist_item["tx_hash"]
 
-                actual_history = sorted(actual_history, key=sorting_key)
-                expected_history = sorted(expected_history, key=sorting_key)
+            def electrum_history_sort(hist):
+                # Extract confirmed txs and sort by ascending height then
+                # txid
+                conf_hist = [tx for tx in hist if tx["height"] > 0]
+                # We use no coinbase tx in this test, otherwise this should be
+                # accounted for (a coinbase tx should remain at first position)
+                conf_hist.sort(key=lambda tx: tx["tx_hash"])
+                conf_hist.sort(key=lambda tx: tx["height"])
 
-                actual_utxos = sorted(actual_utxos, key=utxo_sorting_key)
-                expected_utxos = sorted(expected_utxos, key=utxo_sorting_key)
+                # Extract unconfirmed txs and sort by descending height then
+                # txid
+                unconf_hist = [tx for tx in hist if tx["height"] <= 0]
+                unconf_hist.sort(key=lambda tx: tx["tx_hash"])
+                unconf_hist.sort(key=lambda tx: tx["height"], reverse=True)
+
+                # The full history is made of confirmed txs first then
+                # unconfirmed txs
+                return conf_hist + unconf_hist
+
+            expected_history = electrum_history_sort(expected_history)
+            # Actually the same sort except all mempool txs have a block
+            # height of 0
+            expected_utxos = electrum_history_sort(expected_utxos)
+
             assert_equal(actual_history, expected_history)
             assert_equal(actual_utxos, expected_utxos)
 
@@ -740,7 +754,18 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 from_node=self.node, scriptPubKey=script, amount=amount, fee=fee
             )
             unconfirmed += amount
-            history.append({"fee": fee, "height": 0, "tx_hash": txid})
+
+            unconfirmed_parents = len(self.node.getmempoolentry(txid)["depends"]) > 0
+            history.append(
+                {
+                    "fee": fee,
+                    "height": -1 if unconfirmed_parents else 0,
+                    "tx_hash": txid,
+                }
+            )
+
+            # Note that unlike history, mempool utxos are always returned with a
+            # height of 0 independently of the presence of unconfirmed parents.
             utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": amount})
             return txid, n
 
@@ -762,8 +787,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         # History with multiple unconfirmed transactions
         for _ in range(3):
             add_unconfirmed_transaction(amount=888, fee=999)
-            # We cannot guarantee the sorting of unconfirmed transactions
-            assert_scripthash_balance_and_history(check_sorting=False)
+            assert_scripthash_balance_and_history()
 
         # Test an excessive transaction history
         history_len = len(
@@ -795,7 +819,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.client = self.nodes[0].get_chronik_electrum_client()
         # We can add one more transaction
         add_unconfirmed_transaction(amount=777, fee=998)
-        assert_scripthash_balance_and_history(check_sorting=False)
+        assert_scripthash_balance_and_history()
 
         # The next transaction makes the tx history too long.
         add_unconfirmed_transaction(amount=777, fee=998)
