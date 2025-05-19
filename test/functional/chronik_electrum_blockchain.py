@@ -51,7 +51,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.extra_args = [
             [
                 "-chronik",
-                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
                 "-chronikscripthashindex=1",
             ]
         ]

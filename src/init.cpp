@@ -727,7 +727,7 @@ void SetupServerArgs(NodeContext &node) {
             "'s' means TLS. If TLS is selected, the certificate chain and "
             "private key must both be passed (see -chronikelectrumcert and "
             "-chronikelectrumprivkey (default: disabled; default port: %u, "
-            "testnet: %u, regtest: %u; default protocol: TCP)",
+            "testnet: %u, regtest: %u; default protocol: TLS)",
             defaultBaseParams->ChronikElectrumPort(),
             testnetBaseParams->ChronikElectrumPort(),
             regtestBaseParams->ChronikElectrumPort()),

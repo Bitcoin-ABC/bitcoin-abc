@@ -124,7 +124,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
             },
         .electrum_hosts = ToRustVec<rust::String>(electrum_hosts),
         .electrum_default_port = BaseParams().ChronikElectrumPort(),
-        .electrum_default_protocol = 't',
+        .electrum_default_protocol = 's',
         .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),
         .electrum_privkey_path = args.GetArg("-chronikelectrumprivkey", ""),
         .electrum_max_history = static_cast<uint32_t>(electrum_max_history),
