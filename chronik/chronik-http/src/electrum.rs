@@ -142,7 +142,7 @@ fn electrum_notification_encoder(nt: NewNotification) -> message::Notification {
     message::Notification {
         jsonrpc: message::JSONRPC_VERSION.to_string(),
         method: nt.method,
-        params: Some(Value::Array(vec![nt.result])),
+        params: Some(nt.result),
     }
 }
 
@@ -543,10 +543,10 @@ fn get_tx_fee(tx: &Tx) -> i64 {
     fee
 }
 
-async fn header_json_from_height(
+async fn header_hex_from_height(
     blocks: &QueryBlocks<'_>,
     height: i32,
-) -> Result<Value, RPCError> {
+) -> Result<String, RPCError> {
     let header = blocks.header(height.to_string(), 0).await.map_err(|_| {
         RPCError::CustomError(
             1,
@@ -554,10 +554,7 @@ async fn header_json_from_height(
         )
     })?;
 
-    Ok(json!({
-        "height": height,
-        "hex": hex::encode(header.raw_header),
-    }))
+    Ok(hex::encode(header.raw_header))
 }
 
 #[rpc_pubsub_impl(name = "blockchain")]
@@ -604,15 +601,22 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     let blocks: chronik_indexer::query::QueryBlocks<'_> =
                         indexer.blocks(&node_clone);
 
-                    match header_json_from_height(&blocks, block_msg.height)
+                    match header_hex_from_height(&blocks, block_msg.height)
                         .await
                     {
                         Err(err) => {
                             log_chronik!("{err}\n");
                             break;
                         }
-                        Ok(header_json) => {
-                            if sub.notify(header_json).await.is_err() {
+                        Ok(header_hex) => {
+                            if sub
+                                .notify(json!([{
+                                            "height": block_msg.height,
+                                            "hex": header_hex,
+                                }]))
+                                .await
+                                .is_err()
+                            {
                                 // Don't log, it's likely a client
                                 // unsubscription or disconnection
                                 break;
@@ -630,7 +634,12 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             .map_err(|_| RPCError::InternalError)?
             .tip_height;
 
-        header_json_from_height(&blocks, tip_height).await
+        let header_hex = header_hex_from_height(&blocks, tip_height).await?;
+
+        Ok(json!({
+            "height": tip_height,
+            "hex": header_hex,
+        }))
     }
 
     #[rpc_method(name = "headers.unsubscribe")]
