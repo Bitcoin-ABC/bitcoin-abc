@@ -713,10 +713,10 @@ void SetupServerArgs(NodeContext &node) {
                    "Output some performance statistics (e.g. num cache hits, "
                    "seconds spent) into a <datadir>/perf folder. (default: 0)",
                    ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
-    argsman.AddArg(
-        "-chronikscripthashindex",
-        "Enable the scripthash index for the Chronik indexer (default: 0) ",
-        ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg("-chronikscripthashindex",
+                   "Enable the scripthash index for the Chronik indexer "
+                   "(default: 1 if chronikelectrumbind is set, 0 otherwise) ",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
     argsman.AddArg(
         "-chronikelectrumbind=<addr>[:port][:t|s]",
         strprintf(

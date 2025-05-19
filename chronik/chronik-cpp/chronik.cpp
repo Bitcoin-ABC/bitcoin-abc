@@ -61,14 +61,15 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
 
     const auto electrum_hosts = args.GetArgs("-chronikelectrumbind");
     const bool is_scripthashindex_enabled =
-        args.GetBoolArg("-chronikscripthashindex", false);
+        args.GetBoolArg("-chronikscripthashindex", !electrum_hosts.empty());
     if (!electrum_hosts.empty()) {
         if (args.IsArgSet("-chronikelectrumcert") ^
             args.IsArgSet("-chronikelectrumprivkey")) {
             return {{_("The -chronikelectrumcert and -chronikelectrumprivkey "
                        "options should both be set or unset.")}};
         }
-        if (!is_scripthashindex_enabled) {
+        if (args.IsArgSet("-chronikscripthashindex") &&
+            !is_scripthashindex_enabled) {
             return {{_("The -chronikelectrumbind option requires "
                        "-chronikscripthashindex to be true.")}};
         }

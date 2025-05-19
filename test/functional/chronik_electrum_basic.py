@@ -20,7 +20,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             [
                 "-chronik",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
-                "-chronikscripthashindex=1",
             ]
         ]
 
@@ -135,10 +134,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
     def test_init_errors(self):
         self.node.stop_node()
         self.node.assert_start_raises_init_error(
-            ["-chronik", f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t"],
-            "Error: The -chronikelectrumbind option requires -chronikscripthashindex to be true.",
-        )
-        self.node.assert_start_raises_init_error(
             [
                 "-chronik",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
@@ -151,7 +146,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.node.assert_start_raises_init_error(
             [
                 "-chronik",
-                "-chronikscripthashindex=1",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
             ],
             "Error: Chronik Electrum TLS configuration requires a certificate chain file (see -chronikelectrumcert)",
@@ -160,7 +154,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.node.assert_start_raises_init_error(
             [
                 "-chronik",
-                "-chronikscripthashindex=1",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:s",
             ],
             "Error: Chronik Electrum TLS configuration requires a certificate chain file (see -chronikelectrumcert)",
@@ -168,7 +161,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.node.assert_start_raises_init_error(
             [
                 "-chronik",
-                "-chronikscripthashindex=1",
                 "-chronikelectrumcert=dummy",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
             ],
@@ -177,7 +169,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.node.assert_start_raises_init_error(
             [
                 "-chronik",
-                "-chronikscripthashindex=1",
                 "-chronikelectrumprivkey=dummy",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
             ],
@@ -186,7 +177,6 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.node.assert_start_raises_init_error(
             [
                 "-chronik",
-                "-chronikscripthashindex=1",
                 "-chronikelectrumcert=dummy",
                 "-chronikelectrumprivkey=dummy",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
