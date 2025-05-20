@@ -12,8 +12,7 @@
   installation (D17844).
 - Fix an error that occurs when opening the Trezor Settings dialog
   while the device is locked (D17845).
-- Add eCash firmware support for Trezor One wallets, enabling the
-  signing of Avalanche stakes (D17852).
+- Add eCash native support to Trezor One (D17770).
 
 
 ## Release 5.4.1
@@ -26,7 +25,7 @@
   stakes on the following Trezor devices: Trezor T, Trezor Safe 3,
   Trezor Safe 5 (D17799).
 - Detect ALP tokens and prevent their accidental burning when sending
-  XEC, using Cash Fusion or consolidating coins (D17770, D17777, D17806,
+  XEC, using Cash Fusion or consolidating coins (D17760, D17777, D17806,
   D17808).
 - Make it possible to spend manually selected coins with SLP or ALP
   tokens attached. The tokens are burned when doing that (D17809).
