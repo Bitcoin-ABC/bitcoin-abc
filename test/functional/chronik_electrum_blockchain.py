@@ -4,7 +4,7 @@
 """
 Test Chronik's electrum interface: blockchain.* methods
 """
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, SCRIPT_UNSPENDABLE
 from test_framework.blocktools import (
     GENESIS_BLOCK_HASH,
     GENESIS_CB_SCRIPT_PUBKEY,
@@ -72,6 +72,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_scripthash()
         self.test_headers_subscribe()
         self.test_scripthash_subscribe()
+        self.test_address_get_scripthash()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -1131,6 +1132,46 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             self.client.blockchain.scripthash.unsubscribe(other_scripthash).result, True
         )
         assert_equal(client3.blockchain.scripthash.unsubscribe(scripthash).result, True)
+
+    def test_address_get_scripthash(self):
+        self.log.info("Test the blockchain.address.get_scripthash endpoint")
+
+        for address in [
+            # Empty
+            "",
+            # Dummy
+            "foobar",
+            # Script
+            "76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac",
+            # Script hash
+            "8b01df4e368ea28f8dc0423bcf7a4923e3a12d307c875e47a0cfbf90b5c39161",
+            # Invalid eCash address (wrong checksum)
+            "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkk",
+            # FIXME: missing prefix
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",
+        ]:
+            assert_equal(
+                self.client.blockchain.address.get_scripthash(address).error,
+                {
+                    "code": 1,
+                    "message": f"Invalid address: {address}",
+                },
+            )
+
+        assert_equal(
+            self.client.blockchain.address.get_scripthash(
+                ADDRESS_ECREG_UNSPENDABLE
+            ).result,
+            hex_be_sha256(SCRIPT_UNSPENDABLE),
+        )
+
+        # Works for any prefix
+        assert_equal(
+            self.client.blockchain.address.get_scripthash(
+                "electrum:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdxqwk8ju"
+            ).result,
+            hex_be_sha256(SCRIPT_UNSPENDABLE),
+        )
 
 
 if __name__ == "__main__":

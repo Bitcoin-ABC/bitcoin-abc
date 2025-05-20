@@ -8,6 +8,7 @@ use std::{cmp, net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
+    address::CashAddress,
     hash::{Hashed, Sha256, Sha256d},
     tx::TxId,
 };
@@ -701,6 +702,14 @@ fn script_hash_to_sub_id(script_hash: Sha256) -> u32 {
     let id_bytes: [u8; 4] = script_hash_bytes[..4].try_into().unwrap();
 
     u32::from_le_bytes(id_bytes)
+}
+
+fn address_to_scripthash(address: &String) -> Result<Sha256, RPCError> {
+    let cash_address: CashAddress = address.parse().map_err(|_| {
+        RPCError::CustomError(1, format!("Invalid address: {address}"))
+    })?;
+
+    Ok(Sha256::digest(cash_address.to_script()))
 }
 
 #[rpc_pubsub_impl(name = "blockchain")]
@@ -1413,5 +1422,22 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }
 
         Ok(json!(json_utxos))
+    }
+
+    #[rpc_method(name = "address.get_scripthash")]
+    async fn address_get_scripthash(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let address = match get_param!(params, 0, "address")? {
+            Value::String(v) => Ok(v),
+            _ => Err(RPCError::CustomError(1, "Invalid address".to_string())),
+        }?;
+
+        let scripthash = address_to_scripthash(&address)?;
+
+        Ok(json!(scripthash.hex_be()))
     }
 }
