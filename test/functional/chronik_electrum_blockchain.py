@@ -1147,8 +1147,9 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             "8b01df4e368ea28f8dc0423bcf7a4923e3a12d307c875e47a0cfbf90b5c39161",
             # Invalid eCash address (wrong checksum)
             "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkk",
-            # FIXME: missing prefix
-            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",
+            # Missing prefix and the prefix ("electrum" here) is not in the
+            # supported list
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdxqwk8ju",
         ]:
             assert_equal(
                 self.client.blockchain.address.get_scripthash(address).error,
@@ -1172,6 +1173,18 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             ).result,
             hex_be_sha256(SCRIPT_UNSPENDABLE),
         )
+
+        # Or without a prefix as long as it's in the supported list.
+        for prefixless in [
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx",  # ecash:
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk4aavd2h",  # ectest:
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",  # ecregtest:
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq7q2la8d3",  # etoken:
+        ]:
+            assert_equal(
+                self.client.blockchain.address.get_scripthash(prefixless).result,
+                hex_be_sha256(SCRIPT_UNSPENDABLE),
+            )
 
 
 if __name__ == "__main__":

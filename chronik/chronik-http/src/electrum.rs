@@ -8,7 +8,7 @@ use std::{cmp, net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
-    address::CashAddress,
+    address::{CashAddress, CashAddressError},
     hash::{Hashed, Sha256, Sha256d},
     tx::TxId,
 };
@@ -705,9 +705,31 @@ fn script_hash_to_sub_id(script_hash: Sha256) -> u32 {
 }
 
 fn address_to_scripthash(address: &String) -> Result<Sha256, RPCError> {
-    let cash_address: CashAddress = address.parse().map_err(|_| {
-        RPCError::CustomError(1, format!("Invalid address: {address}"))
-    })?;
+    let supported_prefixes = ["ecash", "ectest", "ecregtest", "etoken"];
+    let cash_address: CashAddress = match address.parse() {
+        Ok(cash_address) => cash_address,
+        Err(CashAddressError::MissingPrefix) => {
+            match supported_prefixes.iter().find_map(|&prefix| {
+                let prefixed_candidate: Result<CashAddress, CashAddressError> =
+                    [prefix, address].join(":").parse();
+                prefixed_candidate.ok()
+            }) {
+                Some(prefixed_address) => prefixed_address,
+                None => {
+                    return Err(RPCError::CustomError(
+                        1,
+                        format!("Invalid address: {address}"),
+                    ));
+                }
+            }
+        }
+        _ => {
+            return Err(RPCError::CustomError(
+                1,
+                format!("Invalid address: {address}"),
+            ));
+        }
+    };
 
     Ok(Sha256::digest(cash_address.to_script()))
 }
