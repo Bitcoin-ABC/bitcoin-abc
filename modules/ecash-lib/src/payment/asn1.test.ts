@@ -9,6 +9,7 @@ import { asn1, x509 } from '.';
 import { Ecc } from '../ecc.js';
 import { toHex } from '../io/hex.js';
 import { sha256 } from '../hash.js';
+import { PkcAlgo } from '../publicKeyCrypto.js';
 import '../initNodeJs.js';
 
 /*
@@ -129,6 +130,13 @@ describe('ASN1', () => {
             const cert = asn1.parseCertPem(certPem);
             // Cert has at least one entry in subject
             expect(cert.tbs.subject.length).to.be.greaterThan(0);
+            // Load public key algorithm
+            const algo = PkcAlgo.fromOid(
+                cert.sigAlg.oid,
+                cert.tbs.pubkey.alg.params,
+            );
+            // Verify the root certificate
+            algo.verify(cert.sig, cert.tbs.raw, cert.tbs.pubkey.data);
         }
     });
 });

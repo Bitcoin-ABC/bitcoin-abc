@@ -14,6 +14,9 @@ crate-type = ["cdylib"]
 [dependencies]
 abc-rust-lint = { path = "../../chronik/abc-rust-lint" }
 
+# Crypto library using BoringSSL, compatible with wasm
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+
 # Generate bindings from WebAssembly <-> JS
 wasm-bindgen = "=0.2.92"
 
