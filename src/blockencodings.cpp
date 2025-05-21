@@ -181,20 +181,14 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
         return READ_STATUS_INVALID;
     }
 
-    BlockValidationState state;
-    CheckBlockFn check_block =
-        m_check_block_mock ? m_check_block_mock : CheckBlock;
-    if (!check_block(block, state, config->GetChainParams().GetConsensus(),
-                     BlockValidationOptions(*config))) {
-        // TODO: We really want to just check merkle tree manually here, but
-        // that is expensive, and CheckBlock caches a block's "checked-status"
-        // (in the CBlock?). CBlock should be able to check its own merkle root
-        // and cache that check.
-        if (state.GetResult() == BlockValidationResult::BLOCK_MUTATED) {
-            // Possible Short ID collision.
-            return READ_STATUS_FAILED;
-        }
-        return READ_STATUS_CHECKBLOCK_FAILED;
+    // Check for possible mutations early now that we have a seemingly good
+    // block
+    IsBlockMutatedFn check_mutated{m_check_block_mutated_mock
+                                       ? m_check_block_mutated_mock
+                                       : IsBlockMutated};
+    if (check_mutated(block)) {
+        // Possible Short ID collision
+        return READ_STATUS_FAILED;
     }
 
     LogDebug(BCLog::CMPCTBLOCK,

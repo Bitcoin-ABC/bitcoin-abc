@@ -30,16 +30,8 @@ void initialize_pdb() {
     g_setup = testing_setup.get();
 }
 
-PartiallyDownloadedBlock::CheckBlockFn
-FuzzedCheckBlock(std::optional<BlockValidationResult> result) {
-    return [result](const CBlock &, BlockValidationState &state,
-                    const Consensus::Params &, BlockValidationOptions) {
-        if (result) {
-            return state.Invalid(*result);
-        }
-
-        return true;
-    };
+PartiallyDownloadedBlock::IsBlockMutatedFn FuzzedIsBlockMutated(bool result) {
+    return [result](const CBlock &block) { return result; };
 }
 
 FUZZ_TARGET_INIT(partially_downloaded_block, initialize_pdb) {
@@ -108,36 +100,20 @@ FUZZ_TARGET_INIT(partially_downloaded_block, initialize_pdb) {
         skipped_missing |= (!pdb.IsTxAvailable(i) && skip);
     }
 
-    // Mock CheckBlock
-    bool fail_check_block{fuzzed_data_provider.ConsumeBool()};
-    auto validation_result = fuzzed_data_provider.PickValueInArray(
-        {BlockValidationResult::BLOCK_RESULT_UNSET,
-         BlockValidationResult::BLOCK_CONSENSUS,
-         BlockValidationResult::BLOCK_CACHED_INVALID,
-         BlockValidationResult::BLOCK_INVALID_HEADER,
-         BlockValidationResult::BLOCK_MUTATED,
-         BlockValidationResult::BLOCK_MISSING_PREV,
-         BlockValidationResult::BLOCK_INVALID_PREV,
-         BlockValidationResult::BLOCK_TIME_FUTURE,
-         BlockValidationResult::BLOCK_CHECKPOINT,
-         BlockValidationResult::BLOCK_HEADER_LOW_WORK});
-    pdb.m_check_block_mock = FuzzedCheckBlock(
-        fail_check_block
-            ? std::optional<BlockValidationResult>{validation_result}
-            : std::nullopt);
+    // Mock IsBlockMutated
+    bool fail_block_mutated{fuzzed_data_provider.ConsumeBool()};
+    pdb.m_check_block_mutated_mock = FuzzedIsBlockMutated(fail_block_mutated);
 
     CBlock reconstructed_block;
     auto fill_status{pdb.FillBlock(reconstructed_block, missing)};
     switch (fill_status) {
         case READ_STATUS_OK:
             assert(!skipped_missing);
-            assert(!fail_check_block);
+            assert(!fail_block_mutated);
             assert(block->GetHash() == reconstructed_block.GetHash());
             break;
-        case READ_STATUS_CHECKBLOCK_FAILED:
-            [[fallthrough]];
         case READ_STATUS_FAILED:
-            assert(fail_check_block);
+            assert(fail_block_mutated);
             break;
         case READ_STATUS_INVALID:
             break;
