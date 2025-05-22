@@ -1010,7 +1010,9 @@ class TestNode:
             timeout=DEFAULT_TIMEOUT * self.timeout_factor,
         )
 
-    def get_chronik_electrum_client(self, timeout=None) -> ChronikElectrumClient:
+    def get_chronik_electrum_client(
+        self, timeout=None, name=None
+    ) -> ChronikElectrumClient:
         # host is always None in practice, we should get rid of it at some
         # point. In the meantime, let's properly handle the API.
         host = self.host if self.host is not None else "127.0.0.1"
@@ -1024,6 +1026,7 @@ class TestNode:
                     host,
                     self.chronik_electrum_port,
                     timeout=timeout,
+                    name=name,
                 )
             except ConnectionRefusedError:
                 if t > timeout:

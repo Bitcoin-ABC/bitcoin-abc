@@ -59,7 +59,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        self.client = self.nodes[0].get_chronik_electrum_client()
+        self.client = self.nodes[0].get_chronik_electrum_client(name="client")
         self.node = self.nodes[0]
         self.wallet = MiniWallet(self.node)
 
@@ -822,7 +822,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             extra_args=self.extra_args[0]
             + [f"-chronikelectrummaxhistory={history_len + 1}"],
         )
-        self.client = self.nodes[0].get_chronik_electrum_client()
+        self.client = self.nodes[0].get_chronik_electrum_client(name="client")
         # We can add one more transaction
         add_unconfirmed_transaction(amount=777, fee=998)
         assert_scripthash_balance_and_history()
@@ -857,7 +857,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         # Remove the history limit for the next tests
         self.restart_node(0)
-        self.client = self.node.get_chronik_electrum_client()
+        self.client = self.node.get_chronik_electrum_client(name="client")
         self.wallet.rescan_utxos()
 
     def test_headers_subscribe(self):
@@ -904,7 +904,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         check_notification([self.client], height, header_hex)
 
         # Let's add more clients
-        client2 = self.node.get_chronik_electrum_client()
+        client2 = self.node.get_chronik_electrum_client(name="client2")
         sub_message = client2.blockchain.headers.subscribe()
         assert_equal(
             sub_message.result,
@@ -919,7 +919,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         (height, header_hex) = new_header()
         check_notification([self.client, client2], height, header_hex)
 
-        client3 = self.node.get_chronik_electrum_client()
+        client3 = self.node.get_chronik_electrum_client(name="client3")
         sub_message = client3.blockchain.headers.subscribe()
         assert_equal(
             sub_message.result,
@@ -1039,11 +1039,11 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         last_status = check_notification([self.client], scripthash, last_status)
 
         # Let's add some clients
-        client2 = self.node.get_chronik_electrum_client()
+        client2 = self.node.get_chronik_electrum_client(name="client2")
         assert_equal(
             client2.blockchain.scripthash.subscribe(scripthash).result, last_status
         )
-        client3 = self.node.get_chronik_electrum_client()
+        client3 = self.node.get_chronik_electrum_client(name="client3")
         assert_equal(
             client3.blockchain.scripthash.subscribe(scripthash).result, last_status
         )

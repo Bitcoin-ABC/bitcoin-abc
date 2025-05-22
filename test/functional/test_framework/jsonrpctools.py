@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import socket
 from typing import Any, Optional
 
@@ -62,6 +63,12 @@ class MethodNameProxy:
         return self.client.synchronous_request(method, params)
 
 
+def shorten(msg: str, threshold: int) -> str:
+    if len(msg) > threshold:
+        return msg[:threshold] + f"…({len(msg) - threshold} chars trimmed)"
+    return msg
+
+
 class ChronikElectrumClient:
     """JSONRPC client.
 
@@ -75,10 +82,15 @@ class ChronikElectrumClient:
     DEFAULT_TIMEOUT = 30
     MAX_DATA_SIZE = 10_000_000
 
-    def __init__(self, host: str, port: int, timeout=DEFAULT_TIMEOUT) -> None:
+    def __init__(
+        self, host: str, port: int, timeout=DEFAULT_TIMEOUT, name: Optional[str] = None
+    ) -> None:
         self.host = host
         self.port = port
         self.timeout = timeout
+
+        name = name or f"{id(self)}"
+        self.log = logging.getLogger(f"TestFramework.ChronikElectrumClient.{name}")
 
         self.id = -1
         # Data buffer. Messages are separated by \n but we might have several in
@@ -130,6 +142,14 @@ class ChronikElectrumClient:
         self, method: str, params: Optional[list | dict]
     ) -> JsonRpcResponse:
         self.id += 1
+
+        # params can be very long when broadcasting oversized transactions.
+        # For other RPC requests, it should always fit 100 chars.
+        params_str = shorten(str(params), 100)
+        self.log.debug(
+            f"Sending RPC request (method={method}, id={self.id}, params={params_str})"
+        )
+
         request = {"jsonrpc": "2.0", "method": method, "id": self.id}
         if params is not None:
             request["params"] = params
@@ -145,6 +165,7 @@ class ChronikElectrumClient:
         )
 
     def wait_for_notification(self, method: str, timeout=None):
+        self.log.debug(f"Waiting for notification for method {method}")
         prev_timeout = self.sock.gettimeout()
         # If set, timeout should override the current socket timeout. We make
         # sure to restore the previous valus after the message is received
@@ -161,6 +182,11 @@ class ChronikElectrumClient:
         assert_equal(json_reply.get("method"), method)
         assert "params" in json_reply
         assert_greater_than(len(json_reply["params"]), 0)
+
+        # A notification shouldn't have a very long result, so the use of shorten here
+        # is defensive programming. 200 chars accommodates all known notifications.
+        result_str = shorten(str(json_reply["params"]), 200)
+        self.log.debug(f"Received notification for method {method}: {result_str}")
 
         # The "result" is within a "params" field. There is no point returning
         # a JsonRpcResponse here as we only care about the result
