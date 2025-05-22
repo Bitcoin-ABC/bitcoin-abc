@@ -19,7 +19,7 @@ The result is a usable bitcoind instance that is current with the network tip in
 matter of minutes rather than hours.
 
 You can find more information on this process in the `assumeutxo` [design
-document](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/assumeutxo.md).
+document](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/design/assumeutxo.md).
 
 `getchainstates` has been added to aid in monitoring the assumeutxo sync process.
 
