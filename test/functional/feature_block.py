@@ -134,6 +134,8 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
             if template.valid_in_block:
                 continue
 
+            assert template.block_reject_reason or template.reject_reason
+
             self.log.info("Reject block with invalid tx: %s", TxTemplate.__name__)
             blockname = f"for_invalid.{TxTemplate.__name__}"
             badblock = self.next_block(blockname)

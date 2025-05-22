@@ -114,6 +114,8 @@ class BadInputOutpointIndex(BadTxTemplate):
     # database can't distinguish between spent outpoints and outpoints which
     # never existed.
     reject_reason = None
+    # But fails in block
+    block_reject_reason = "bad-txns-inputs-missingorspent"
     expect_disconnect = False
 
     def get_tx(self):
@@ -156,6 +158,8 @@ class NonexistentInput(BadTxTemplate):
     # Added as an orphan tx.
     reject_reason = None
     expect_disconnect = False
+    # But fails in block
+    block_reject_reason = "bad-txns-inputs-missingorspent"
 
     def get_tx(self):
         tx = CTransaction()
