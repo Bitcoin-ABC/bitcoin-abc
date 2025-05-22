@@ -80,7 +80,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
     if (electrum_max_history < 1 ||
         electrum_max_history > std::numeric_limits<uint32_t>::max()) {
         return {{_(strprintf("The -chronikelectrummaxhistory value should be "
-                             "withing the range [1, %d].",
+                             "within the range [1, %d].",
                              std::numeric_limits<uint32_t>::max())
                        .c_str())}};
     }
