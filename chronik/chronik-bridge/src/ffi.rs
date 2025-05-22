@@ -310,6 +310,9 @@ mod ffi_inner {
         /// See `ShutdownRequested` in `shutdown.h`.
         fn shutdown_requested(self: &ChronikBridge) -> bool;
 
+        /// Returns the genesis block hash for the current chain
+        fn get_genesis_hash(self: &ChronikBridge) -> WrappedBlockHash;
+
         /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
         fn bridge_tx(
             tx: &CTransaction,

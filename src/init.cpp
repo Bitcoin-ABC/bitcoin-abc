@@ -749,6 +749,15 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
         OptionsCategory::HIDDEN);
     argsman.AddArg(
+        "-chronikelectrumurl",
+        "The URL to advertise to the Electrum peers. This needs to be set to "
+        "the server public URL to instruct the other Electrum peers that they "
+        "don't have to drop the connection. See the 'hosts' key in "
+        "https://electrum-cash-protocol.readthedocs.io/en/latest/"
+        "protocol-methods.html#server.features (default: 127.0.0.1).",
+        ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::HIDDEN);
+    argsman.AddArg(
         "-chronikelectrummaxhistory",
         strprintf("Largest tx history we are willing to serve. (default: %u)",
                   chronik::DEFAULT_ELECTRUM_MAX_HISTORY),

@@ -5,6 +5,7 @@
 Test Chronik's electrum interface
 """
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.blocktools import GENESIS_BLOCK_HASH
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import assert_equal, chronikelectrum_port, get_cli_version
@@ -16,10 +17,12 @@ class ChronikElectrumBasic(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.chronik_url = "electrum.regtest"
         self.extra_args = [
             [
                 "-chronik",
                 f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                f"-chronikelectrumurl={self.chronik_url}",
             ]
         ]
 
@@ -34,6 +37,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.test_ping()
         self.test_server_version()
         self.test_server_peers()
+        self.test_server_features()
         # Run this last as it invalidates self.client
         self.test_init_errors()
 
@@ -129,6 +133,26 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         assert_equal(
             self.client.server.peers.subscribe().result,
             [],
+        )
+
+    def test_server_features(self):
+        version = f"{self.config['environment']['PACKAGE_NAME']} {get_cli_version(self, self.node)}"
+        assert_equal(
+            self.client.server.features().result,
+            {
+                "genesis_hash": GENESIS_BLOCK_HASH,
+                "hash_function": "sha256",
+                "server_version": version,
+                "protocol_min": "1.4",
+                "protocol_max": "1.4.5",
+                "pruning": None,
+                "hosts": {
+                    self.chronik_url: {
+                        "tcp_port": chronikelectrum_port(0),
+                    },
+                },
+                "dsproof": False,
+            },
         )
 
     def test_init_errors(self):

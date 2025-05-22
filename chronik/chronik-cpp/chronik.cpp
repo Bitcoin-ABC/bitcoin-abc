@@ -124,6 +124,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                                            DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
             },
         .electrum_hosts = ToRustVec<rust::String>(electrum_hosts),
+        .electrum_url = args.GetArg("-chronikelectrumurl", "127.0.0.1"),
         .electrum_default_port = BaseParams().ChronikElectrumPort(),
         .electrum_default_protocol = 's',
         .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),

@@ -96,6 +96,8 @@ public:
     void abort_node(const rust::Str msg, const rust::Str user_msg) const;
 
     bool shutdown_requested() const;
+
+    WrappedBlockHash get_genesis_hash() const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);

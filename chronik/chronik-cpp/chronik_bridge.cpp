@@ -396,6 +396,12 @@ bool ChronikBridge::shutdown_requested() const {
     return ShutdownRequested();
 }
 
+WrappedBlockHash ChronikBridge::get_genesis_hash() const {
+    const CBlock &genesis = m_node.chainman->GetParams().GenesisBlock();
+    return WrappedBlockHash{.data =
+                                chronik::util::HashToArray(genesis.GetHash())};
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }

@@ -185,6 +185,7 @@ fn try_setup_chronik(
         let electrum_server =
             ChronikElectrumServer::setup(ChronikElectrumServerParams {
                 hosts: electrum_hosts,
+                url: params.electrum_url,
                 indexer: indexer.clone(),
                 node: node.clone(),
                 tls_cert_path: params.electrum_cert_path,

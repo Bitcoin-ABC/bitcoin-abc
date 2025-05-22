@@ -40,7 +40,7 @@ use rustls::pki_types::{
     pem::PemObject,
     {CertificateDer, PrivateKeyDer},
 };
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use thiserror::Error;
 use versions::Versioning;
 
@@ -49,8 +49,10 @@ use crate::{
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
 
-/// Protocol version implemented by this server
-pub const ELECTRUM_PROTOCOL_VERSION: &str = "1.4";
+/// Minimum protocol version implemented by this server
+pub const ELECTRUM_PROTOCOL_MIN_VERSION: &str = "1.4";
+/// Maximum protocol version implemented by this server
+pub const ELECTRUM_PROTOCOL_MAX_VERSION: &str = "1.4.5";
 
 /// Chronik Electrum protocol
 #[derive(Clone, Copy, Debug)]
@@ -66,6 +68,10 @@ pub enum ChronikElectrumProtocol {
 pub struct ChronikElectrumServerParams {
     /// Host address (port + IP) where to serve the electrum server at.
     pub hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
+    /// Host URL (fqdn) where this server is deployed. This is used to
+    /// advertise in the server.features() response so other peers don't
+    /// drop the connection. Note: there is no verification on this value.
+    pub url: String,
     /// Indexer to read data from
     pub indexer: ChronikIndexerRef,
     /// Access to the bitcoind node
@@ -85,6 +91,7 @@ pub struct ChronikElectrumServerParams {
 #[derive(Debug)]
 pub struct ChronikElectrumServer {
     hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
+    url: String,
     indexer: ChronikIndexerRef,
     node: NodeRef,
     tls_cert_path: String,
@@ -154,6 +161,7 @@ impl ChronikElectrumServer {
     pub fn setup(params: ChronikElectrumServerParams) -> Result<Self> {
         Ok(ChronikElectrumServer {
             hosts: params.hosts,
+            url: params.url,
             indexer: params.indexer,
             node: params.node,
             tls_cert_path: params.tls_cert_path,
@@ -165,11 +173,18 @@ impl ChronikElectrumServer {
 
     /// Start the Chronik electrum server
     pub async fn serve(self) -> Result<()> {
+        let genesis_hash = self.node.bridge.get_genesis_hash();
+        let genesis_hash = Sha256::from_le_bytes(genesis_hash.data).hex_be();
+
         // The behavior is to bind the endpoint name to its method name like so:
         // endpoint.method as the name of the RPC
         let server_endpoint = Arc::new(ChronikElectrumRPCServerEndpoint {
             donation_address: self.donation_address,
+            url: self.url,
+            hosts: self.hosts.clone(),
+            genesis_hash,
         });
+
         let blockchain_endpoint =
             Arc::new(ChronikElectrumRPCBlockchainEndpoint {
                 indexer: self.indexer,
@@ -366,12 +381,20 @@ macro_rules! get_optional_param {
 
 struct ChronikElectrumRPCServerEndpoint {
     donation_address: String,
+    hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
+    url: String,
+    genesis_hash: String,
 }
 
 struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
+}
+
+fn get_version() -> String {
+    let version_number = ffi::format_full_version();
+    format!("Bitcoin ABC {version_number}")
 }
 
 #[rpc_impl(name = "server")]
@@ -398,7 +421,7 @@ impl ChronikElectrumRPCServerEndpoint {
         );
         match client_protocol_versions {
             Value::String(version_string) => {
-                if version_string != ELECTRUM_PROTOCOL_VERSION {
+                if version_string != ELECTRUM_PROTOCOL_MIN_VERSION {
                     return Err(unsup_version_err);
                 }
             }
@@ -425,7 +448,7 @@ impl ChronikElectrumRPCServerEndpoint {
                     return Err(bad_version_err());
                 }
                 let target_version =
-                    Versioning::new(ELECTRUM_PROTOCOL_VERSION).unwrap();
+                    Versioning::new(ELECTRUM_PROTOCOL_MIN_VERSION).unwrap();
                 if target_version < min_version || target_version > max_version
                 {
                     return Err(unsup_version_err);
@@ -435,9 +458,40 @@ impl ChronikElectrumRPCServerEndpoint {
                 return Err(unsup_version_err);
             }
         };
-        let version_number = ffi::format_full_version();
-        let server_version = format!("Bitcoin ABC {version_number}");
-        Ok(json!([server_version, ELECTRUM_PROTOCOL_VERSION]))
+
+        Ok(json!([get_version(), ELECTRUM_PROTOCOL_MIN_VERSION]))
+    }
+
+    async fn features(&self, _params: Value) -> Result<Value, RPCError> {
+        let mut protocol_ports = Map::new();
+        for (host, protocol) in &self.hosts {
+            // Extract all enabled protocols and the port used
+            match protocol {
+                ChronikElectrumProtocol::Tcp => {
+                    protocol_ports
+                        .insert("tcp_port".to_owned(), host.port().into());
+                }
+                ChronikElectrumProtocol::Tls => {
+                    protocol_ports
+                        .insert("tls_port".to_owned(), host.port().into());
+                }
+            };
+        }
+        Ok(json!({
+            "genesis_hash": self.genesis_hash,
+            "hash_function": "sha256",
+            "server_version": get_version(),
+            "protocol_min": ELECTRUM_PROTOCOL_MIN_VERSION,
+            "protocol_max": ELECTRUM_PROTOCOL_MAX_VERSION,
+            // Pruning is not allowed with chronik
+            "pruning": Value::Null,
+            "hosts": {
+                &self.url: protocol_ports,
+            },
+            // This is an optional key added in ElectrumX version 1.4.5 but we
+            // can explicitly deny the feature as it's not supported on eCash.
+            "dsproof": false,
+        }))
     }
 
     // Note that despite the name this is not a subscription, and the server
