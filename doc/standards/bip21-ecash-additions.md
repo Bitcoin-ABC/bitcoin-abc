@@ -89,7 +89,7 @@ Additional outputs will be sent at the `nth` output index, where `n` is the orde
 -   `token_decimalized_qty` param, decimalized qty to be sent
 -   A bip21 string with `token_id` can only be parsed as a token send tx
 -   A bip21 string with `token_id` is invalid if `token_decimalized_qty` is not specified
--   A bip21 string with `token_id` is invalid if any param apart from `token_decimalized_qty` is specified.
+-   If the `token_id` param is present in a bip21 query string, all params apart from `token_decimalized_qty` will be ignored.
 
 It is up to the implementing wallet to properly handle and convert `token_decimalized_qty`. A bip21 string is invalid if `token_decimalized_qty` specifies a decimal amount not supported by the specified `token_id`. This must be handled by the implementing wallet, as there is no way to check token decimals without referencing the token's genesis tx or cached info.
 
