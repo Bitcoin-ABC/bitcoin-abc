@@ -4,7 +4,11 @@
 
 //! Module for [`ChronikElectrumServer`].
 
-use std::{cmp, net::SocketAddr, sync::Arc};
+use std::{
+    cmp,
+    net::{IpAddr, SocketAddr, ToSocketAddrs},
+    sync::{Arc, Mutex},
+};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
@@ -183,6 +187,7 @@ impl ChronikElectrumServer {
             url: self.url,
             hosts: self.hosts.clone(),
             genesis_hash,
+            peers: Mutex::new(Vec::new()),
         });
 
         let blockchain_endpoint =
@@ -379,11 +384,22 @@ macro_rules! get_optional_param {
     }};
 }
 
+struct ElectrumPeer {
+    url: String,
+    ip_addr: IpAddr,
+    max_protocol_version: String,
+    pruning: Option<i64>,
+    tcp_port: Option<u16>,
+    ssl_port: Option<u16>,
+    validated: bool,
+}
+
 struct ChronikElectrumRPCServerEndpoint {
     donation_address: String,
     hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
     url: String,
     genesis_hash: String,
+    peers: Mutex<Vec<ElectrumPeer>>,
 }
 
 struct ChronikElectrumRPCBlockchainEndpoint {
@@ -494,13 +510,150 @@ impl ChronikElectrumRPCServerEndpoint {
         }))
     }
 
+    async fn add_peer(&self, params: Value) -> Result<Value, RPCError> {
+        let mut peers =
+            self.peers.lock().map_err(|_| RPCError::InternalError)?;
+
+        // Limit the number of peers we can store. If the peers list is full
+        // already, bail early
+        const MAX_PEERS: usize = 10;
+        if peers.len() >= MAX_PEERS {
+            return Ok(json!(false));
+        }
+
+        let mut features = match get_param!(params, 0, "features")? {
+            Value::Object(v) => Ok(v),
+            _ => Err(RPCError::CustomError(
+                1,
+                "sever.add_peer expected a non-empty dictionary argument"
+                    .to_string(),
+            )),
+        }?;
+
+        // Mandatory params
+        let Some(max_protocol_version) = features.remove("protocol_max") else {
+            return Ok(json!(false))
+        };
+        let max_protocol_version: String = match max_protocol_version.as_str() {
+            Some(max_protocol_version) => max_protocol_version.into(),
+            None => {
+                return Ok(json!(false));
+            }
+        };
+
+        let Some(hosts) = features.remove("hosts") else {
+            return Ok(json!(false))
+        };
+        let Some(hosts) = hosts.as_object() else {
+            return Ok(json!(false))
+        };
+
+        if hosts.is_empty() {
+            return Ok(json!(false));
+        }
+
+        // From there it's only optional params
+        let pruning = features
+            .remove("pruning")
+            .and_then(|pruning| pruning.as_i64());
+
+        let mut peers_to_add = Vec::new();
+        for (url, protocols) in hosts {
+            for peer in &*peers {
+                if &peer.url == url {
+                    // Don't allow duplicates
+                    return Ok(json!(false));
+                }
+            }
+
+            // We need a port to resolve the url, just use 0
+            let Ok(mut addrs) = format!("{url}:0").to_socket_addrs() else {
+                return Ok(json!(false))
+            };
+            // Use the first IPv4 if several are available, the first address
+            // otherwise
+            let ip_addr =
+                match addrs.find(|addr| addr.is_ipv4()).or(addrs.next()) {
+                    Some(addr) => addr.ip(),
+                    None => return Ok(json!(false)),
+                };
+
+            let tcp_port = match protocols.get("tcp_port") {
+                Some(tcp_port) => {
+                    let Some(tcp_port) = tcp_port.as_i64() else {
+                        return Ok(json!(false))
+                    };
+                    match u16::try_from(tcp_port) {
+                        Ok(tcp_port) => Some(tcp_port),
+                        _ => return Ok(json!(false)),
+                    }
+                }
+                None => None,
+            };
+            let ssl_port = match protocols.get("ssl_port") {
+                Some(ssl_port) => {
+                    let Some(ssl_port) = ssl_port.as_i64() else {
+                        return Ok(json!(false))
+                    };
+                    match u16::try_from(ssl_port) {
+                        Ok(ssl_port) => Some(ssl_port),
+                        _ => return Ok(json!(false)),
+                    }
+                }
+                None => None,
+            };
+
+            peers_to_add.push(ElectrumPeer {
+                url: url.into(),
+                ip_addr,
+                max_protocol_version: max_protocol_version.clone(),
+                pruning,
+                tcp_port,
+                ssl_port,
+                validated: false,
+            });
+        }
+
+        if peers.len() + peers_to_add.len() > MAX_PEERS {
+            return Ok(json!(false));
+        }
+        peers.extend(peers_to_add);
+
+        Ok(json!(true))
+    }
+
     // Note that despite the name this is not a subscription, and the server
     // must send no notifications.
     #[rpc_method(name = "peers.subscribe")]
     async fn peers_subscribe(&self, _params: Value) -> Result<Value, RPCError> {
-        // Peering is not implemented, for now we just announce 0 peers.
-        // Electrum may call this method.
-        Ok(json!([]))
+        let peers = self.peers.lock().map_err(|_| RPCError::InternalError)?;
+
+        let mut peers_data = Vec::new();
+        for peer in &*peers {
+            if !peer.validated {
+                continue;
+            }
+
+            let mut features = Vec::new();
+            features.push(format!("v{}", peer.max_protocol_version));
+            if let Some(pruning) = peer.pruning {
+                features.push(format!("p{}", pruning));
+            }
+            if let Some(tcp_port) = peer.tcp_port {
+                features.push(format!("t{}", tcp_port));
+            }
+            if let Some(ssl_port) = peer.ssl_port {
+                features.push(format!("s{}", ssl_port));
+            }
+
+            peers_data.push(json!([
+                peer.ip_addr.to_string(),
+                peer.url,
+                features,
+            ]));
+        }
+
+        Ok(json!(peers_data))
     }
 }
 

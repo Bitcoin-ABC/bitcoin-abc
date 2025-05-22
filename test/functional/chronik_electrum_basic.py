@@ -129,10 +129,137 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         )
 
     def test_server_peers(self):
-        # Peering is not implemented, the server always returns an empty string
+        self.log.info("Testing the server.peers endpoints")
+
+        # For now peers.subscribe always returns an empty array. This is so
+        # while peer validation is not implemented. After this is completed the
+        # below calls to subscribe can be uncommented.
         assert_equal(
             self.client.server.peers.subscribe().result,
             [],
+        )
+
+        features = {
+            "genesis_hash": GENESIS_BLOCK_HASH,
+            "hash_function": "sha256",
+            "server_version": "Test framework v1.2.3",
+            "protocol_min": "1.4",
+            "protocol_max": "1.4.5",
+            "pruning": 1000,
+            "hosts": {
+                "localhost": {
+                    "tcp_port": 50001,
+                    "ssl_port": 50002,
+                },
+            },
+            "dsproof": False,
+        }
+
+        assert_equal(
+            self.client.server.add_peer(features).result,
+            True,
+        )
+
+        # Expected result after the peer validation is implemented:
+        # assert_equal(
+        #     self.client.server.peers.subscribe().result,
+        #     [
+        #         [
+        #             "127.0.0.1",
+        #             "localhost",
+        #             [
+        #                 "v1.4.5",
+        #                 "p1000",
+        #                 "t50001",
+        #                 "s50002",
+        #             ],
+        #         ],
+        #     ],
+        # )
+        assert_equal(
+            self.client.server.peers.subscribe().result,
+            [],
+        )
+
+        # Re-submitting is forbidden
+        assert_equal(
+            self.client.server.add_peer(features).result,
+            False,
+        )
+
+        # All optional fields are absent, use an ip address as the host
+        features = {
+            "genesis_hash": GENESIS_BLOCK_HASH,
+            "hash_function": "sha256",
+            "server_version": "Test framework v1.2.3",
+            "protocol_min": "1.4",
+            "protocol_max": "1.4.5",
+            "hosts": {
+                "127.0.0.1": {},
+            },
+            "dsproof": False,
+        }
+        assert_equal(
+            self.client.server.add_peer(features).result,
+            True,
+        )
+        # Expected result after the peer validation is implemented:
+        # assert_equal(
+        #     self.client.server.peers.subscribe().result,
+        #     [
+        #         [
+        #             "127.0.0.1",
+        #             "localhost",
+        #             [
+        #                 "v1.4.5",
+        #                 "p1000",
+        #                 "t50001",
+        #                 "s50002",
+        #             ],
+        #         ],
+        #         [
+        #             "127.0.0.1",
+        #             "127.0.0.1",
+        #             [
+        #                 "v1.4.5",
+        #             ],
+        #         ],
+        #     ],
+        # )
+        assert_equal(
+            self.client.server.peers.subscribe().result,
+            [],
+        )
+
+        # No host
+        features = {
+            "genesis_hash": GENESIS_BLOCK_HASH,
+            "hash_function": "sha256",
+            "server_version": "Test framework v1.2.3",
+            "protocol_min": "1.4",
+            "protocol_max": "1.4.5",
+            "pruning": 1000,
+            "dsproof": False,
+        }
+        assert_equal(
+            self.client.server.add_peer(features).result,
+            False,
+        )
+
+        # Missing protocol max version
+        features = {
+            "genesis_hash": GENESIS_BLOCK_HASH,
+            "hash_function": "sha256",
+            "server_version": "Test framework v1.2.3",
+            "protocol_min": "1.4",
+            "hosts": {
+                "0.0.0.1": {},
+            },
+            "dsproof": False,
+        }
+        assert_equal(
+            self.client.server.add_peer(features).result,
+            False,
         )
 
     def test_server_features(self):
