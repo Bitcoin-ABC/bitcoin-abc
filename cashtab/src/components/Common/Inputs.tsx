@@ -707,6 +707,10 @@ export const Slider: React.FC<SliderProps> = ({
                         invalid={typeof error === 'string'}
                         onChange={handleSlide}
                         disabled={disabled}
+                        type="number"
+                        onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
+                            (e.target as HTMLInputElement).blur();
+                        }}
                     ></SliderInput>
                 </LabelAndInputFlex>
             )}
