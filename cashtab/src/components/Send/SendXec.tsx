@@ -761,6 +761,12 @@ const SendXec: React.FC = () => {
                         : 'eToken sent'}
                 </a>,
             );
+
+            if (txInfoFromUrl) {
+                // Close window after successful tx
+                window.close();
+            }
+
             clearInputForms();
             // Hide the confirmation modal if it was showing
             setShowConfirmSendModal(false);
