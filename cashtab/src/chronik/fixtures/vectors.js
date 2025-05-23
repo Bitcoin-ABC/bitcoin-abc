@@ -553,6 +553,23 @@ export default {
                 },
                 returned: 'Received 0.0195 FIRMA',
             },
+            {
+                description: 'Firma redeem tx (send)',
+                parsedTx: firmaRedeemTx.parsedSend,
+                fiatPrice: null,
+                userLocale: 'en-US',
+                selectedFiatTicker: 'USD',
+                genesisInfo: {
+                    tokenTicker: 'FIRMA',
+                    tokenName: 'Firma',
+                    url: 'firma.cash',
+                    decimals: 4,
+                    data: '',
+                    authPubkey:
+                        '03fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                },
+                returned: 'Sent 1.0000 FIRMA',
+            },
         ],
     },
     parseTx: {
