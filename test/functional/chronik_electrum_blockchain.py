@@ -991,10 +991,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             )
 
         # Generate a few wallet transactions so we get notifications
-        chain_length = 3
-        self.wallet.send_self_transfer_chain(
-            from_node=self.node, chain_length=chain_length
-        )
+        chain = self.wallet.create_self_transfer_chain(chain_length=3)
 
         def check_notification(clients, scripthash, last_status=None):
             ret_status = None
@@ -1021,7 +1018,8 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         # the status to change so the status should be different for each
         # notification.
         last_status = None
-        for _ in range(chain_length):
+        for tx in chain:
+            self.node.sendrawtransaction(tx["hex"])
             last_status = check_notification([self.client], scripthash, last_status)
 
         # Mine a block: the 3 previously unconfirmed txs are confirmed. We get 2
@@ -1050,10 +1048,9 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         # Add a few more txs: all clients get notified. The status changes
         # everytime, see the above rationale
-        self.wallet.send_self_transfer_chain(
-            from_node=self.node, chain_length=chain_length
-        )
-        for _ in range(chain_length):
+        chain = self.wallet.create_self_transfer_chain(chain_length=3)
+        for tx in chain:
+            self.node.sendrawtransaction(tx["hex"])
             last_status = check_notification(
                 [self.client, client2, client3], scripthash, last_status
             )
@@ -1114,7 +1111,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         # Now only client3 gets notified for the original scripthash
         self.generate(self.wallet, 1)
-        last_status = check_notification([client3], scripthash, last_status)
+        check_notification([client3], scripthash, last_status)
 
         # The other tx get confirmed
         check_notification([self.client], other_scripthash)
