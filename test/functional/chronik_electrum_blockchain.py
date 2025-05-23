@@ -997,7 +997,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             ret_status = None
             for client in clients:
                 notification = client.wait_for_notification(
-                    "blockchain.scripthash.subscribe", timeout=1
+                    "blockchain.scripthash.subscribe"
                 )
                 # We should have exactly 2 items, the scripthash and the status
                 assert_equal(len(notification), 2)
