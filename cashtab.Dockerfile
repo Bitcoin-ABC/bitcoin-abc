@@ -4,7 +4,7 @@
 # 3) nginx stage to serve frontend assets
 
 # Stage 1 - rust machine for building ecash-lib-wasm
-FROM rust:1.76.0 AS wasmbuilder
+FROM rust:1.87.0 AS wasmbuilder
 
 RUN apt-get update \
   && apt-get install clang binaryen -y \

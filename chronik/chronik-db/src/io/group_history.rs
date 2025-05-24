@@ -583,8 +583,7 @@ impl<'a, G: Group> GroupHistoryReader<'a, G> {
             Some(bytes) => bytes_to_num_txs(&bytes)?,
             None => return Ok((0, 0)),
         };
-        let num_pages =
-            (num_txs + self.conf.page_size - 1) / self.conf.page_size;
+        let num_pages = num_txs.div_ceil(self.conf.page_size);
         Ok((num_pages as usize, num_txs as usize))
     }
 

@@ -157,8 +157,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             };
         let (num_db_pages, num_db_txs) =
             db_reader.member_num_pages_and_txs(member_ser.as_ref())?;
-        let num_request_pages =
-            (num_db_txs + request_page_size - 1) / request_page_size;
+        let num_request_pages = num_db_txs.div_ceil(request_page_size);
 
         let make_result = |txs: Vec<proto::Tx>| {
             if txs.len() != txs.capacity() {
@@ -280,8 +279,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             .unwrap_or(&EMPTY_MEMBER_TX_HISTORY);
 
         let total_num_txs = mempool_txs.len() + num_db_txs;
-        let total_num_pages =
-            (total_num_txs + request_page_size - 1) / request_page_size;
+        let total_num_pages = total_num_txs.div_ceil(request_page_size);
         let make_result = |txs: Vec<proto::Tx>| {
             assert_eq!(txs.len(), txs.capacity());
             proto::TxHistoryPage {

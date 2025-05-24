@@ -126,10 +126,12 @@ fn test_color_alp_genesis_too_few_outputs() {
                     pushdata_idx: 0,
                     parsed: ParsedData {
                         meta: meta(TOKEN_ID),
-                        tx_type: ParsedTxType::Genesis(ParsedGenesis {
-                            info: INFO.clone(),
-                            mint_data,
-                        }),
+                        tx_type: ParsedTxType::Genesis(Box::new(
+                            ParsedGenesis {
+                                info: INFO.clone(),
+                                mint_data,
+                            }
+                        )),
                     },
                     error: ColorError::TooFewOutputs {
                         expected: 5,

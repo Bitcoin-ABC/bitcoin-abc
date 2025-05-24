@@ -288,8 +288,7 @@ impl<'a> QueryBlocks<'a> {
             }));
         }
         let total_num_txs = (tx_range.end - tx_range.start) as usize;
-        let total_num_pages =
-            (total_num_txs + request_page_size - 1) / request_page_size;
+        let total_num_pages = total_num_txs.div_ceil(request_page_size);
         Ok(proto::TxHistoryPage {
             txs,
             num_pages: total_num_pages as u32,

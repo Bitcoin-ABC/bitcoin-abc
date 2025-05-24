@@ -418,6 +418,8 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
     }
 }
 
+type GroupUtxoIterItem<G> = Result<(Box<[u8]>, Vec<DbGroupUtxo<G>>)>;
+
 impl<'a, G: Group> GroupUtxoReader<'a, G> {
     /// Create a new [`GroupUtxoReader`].
     pub fn new(db: &'a Db) -> Result<Self> {
@@ -455,8 +457,7 @@ impl<'a, G: Group> GroupUtxoReader<'a, G> {
         &self,
         member_prefix: &'a [u8],
         member_start: &'a [u8],
-    ) -> impl Iterator<Item = Result<(Box<[u8]>, Vec<DbGroupUtxo<G>>)>> + 'a
-    {
+    ) -> impl Iterator<Item = GroupUtxoIterItem<G>> + 'a {
         self.col
             .db
             .iterator(self.col.cf, member_start, rocksdb::Direction::Forward)

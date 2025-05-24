@@ -11,7 +11,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Corrosion)
 
-set(REQUIRED_RUST_VERSION "1.76.0")
+set(REQUIRED_RUST_VERSION "1.87.0")
 if(Rust_VERSION VERSION_LESS REQUIRED_RUST_VERSION)
     message(FATAL_ERROR "Minimum required Rust version is "
             "${REQUIRED_RUST_VERSION}, but found ${Rust_VERSION}. "
@@ -241,6 +241,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # rocksdb requires items from rpcdce.h, found in rpcrt4
     find_package(RPCRT4 REQUIRED)
     target_link_libraries(chronik RPCRT4::rpcrt4)
+
+    # Need bcrypt for BCryptGenRandom
+    find_package(Bcrypt REQUIRED)
+    target_link_libraries(chronik Bcrypt::bcrypt)
 endif()
 
 # Rocksdb requires "atomic"

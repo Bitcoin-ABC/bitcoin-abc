@@ -7,7 +7,7 @@
 # 2) Node image for prod deployment of ecash-lib
 
 # 1) rust image for ecash-lib
-FROM rust:1.76.0 AS wasmbuilder
+FROM rust:1.87.0 AS wasmbuilder
 
 RUN apt-get update \
   && apt-get install clang binaryen -y \

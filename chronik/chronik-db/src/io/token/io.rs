@@ -60,6 +60,7 @@ struct TokenCol<'a> {
 ///   less data to read + deserialize
 /// - Allows changing how burn amounts/errors are handled without having to
 ///   reindex the DB
+///
 /// Re-coloring/verifying is very quick if the token inputs are already
 /// pre-processed in the DB.
 ///

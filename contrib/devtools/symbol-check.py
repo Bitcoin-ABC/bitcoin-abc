@@ -160,6 +160,8 @@ PE_ALLOWED_LIBRARIES = {
     "USER32.dll",  # user interface
     "WS2_32.dll",  # sockets
     "bcrypt.dll",  # password hashing
+    "bcryptprimitives.dll",  # rng
+    "api-ms-win-core-synch-l1-2-0.dll",  # synchronization primitives
     "ntdll.dll",  # user-mode face of the Windows kernel
     "RPCRT4.dll",  # RPC API
     # bitcoin-qt only

@@ -213,10 +213,10 @@ case "$HOST" in
         ;;
 esac
 
-curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
-echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
+curl -sSf https://static.rust-lang.org/rustup/archive/1.28.2/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
+echo "20a06e644b0d9bd2fbdbfd52d42540bdde820ea7df86e92e533c073da0cdd43c rustup-init" | sha256sum -c
 chmod +x rustup-init
-./rustup-init -y --default-toolchain=1.76.0
+./rustup-init -y --default-toolchain=1.87.0
 rm ./rustup-init
 # shellcheck disable=SC1091
 source "$HOME/.cargo/env"

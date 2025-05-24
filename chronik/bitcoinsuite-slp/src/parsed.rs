@@ -24,7 +24,7 @@ pub struct ParsedData {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ParsedTxType {
     /// Parsed GENESIS tx with genesis info + mint data
-    Genesis(ParsedGenesis),
+    Genesis(Box<ParsedGenesis>),
     /// Parsed MINT tx with mint data
     Mint(ParsedMintData),
     /// Parsed SEND tx with send amounts

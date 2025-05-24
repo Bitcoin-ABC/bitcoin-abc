@@ -323,7 +323,7 @@ impl ColoredTx {
 
         match parsed.tx_type {
             ParsedTxType::Genesis(genesis) => {
-                self.color_genesis(pushdata_idx, meta, genesis)
+                self.color_genesis(pushdata_idx, meta, *genesis)
             }
             ParsedTxType::Mint(mint) => self.color_mint(meta, mint),
             ParsedTxType::Send(send) => self.color_send(meta, send),

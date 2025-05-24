@@ -185,7 +185,7 @@ fn parse_genesis(
             token_id: TokenId::from(*txid),
             token_type: TokenType::Alp(token_type),
         },
-        tx_type: ParsedTxType::Genesis(ParsedGenesis {
+        tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
             info: GenesisInfo {
                 token_ticker,
                 token_name,
@@ -197,7 +197,7 @@ fn parse_genesis(
                 decimals,
             },
             mint_data,
-        }),
+        })),
     })
 }
 

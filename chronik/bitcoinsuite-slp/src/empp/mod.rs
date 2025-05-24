@@ -23,20 +23,20 @@
 //! 1. OP_RETURN (0x6a)
 //! 2. OP_RESERVED (0x50)
 //! 3. <pushop0> <pushop1> ... <pushopN> (One push op containing the entire
-//! payload for each fragment)
+//!    payload for each fragment)
 //!
 //! Push ops in 3. must be encoded the following way:
 //!
 //! 1. Any non-push opcode (e.g. OP_CHECKSIG) is invalid in OP_RETURN scripts by
-//! eCash policy rules; if it is encountered, the entire OP_RETURN should be
-//! ignored as invalid.
+//!    eCash policy rules; if it is encountered, the entire OP_RETURN should be
+//!    ignored as invalid.
 //!
 //! 2. Single-byte push opcodes (i.e. OP_0, OP_RESERVED, OP_1NEGATE, OP_1, ...,
-//! OP_16) are not supported and the entire OP_RETURN script should be ignored
-//! as invalid.
+//!    OP_16) are not supported and the entire OP_RETURN script should be
+//!    ignored as invalid.
 //!
 //! 3. Any pushop pushing the empty string is invalid and the entire OP_RETURN
-//! should be ignored as invalid.
+//!    should be ignored as invalid.
 //!
 //! 4. The payload can be pushed using any of these opcodes:
 //!    1. Opcodes with the number 0x01-0x4b (1 to 75)
@@ -45,8 +45,8 @@
 //!    4. OP_PUSHDATA4
 //!
 //! 5. Unlike data in scriptSig, the op doesn’t have to be encoded minimally.
-//! All of these are considered valid for pushing the payload 0x77:
-//! 0x0177, 0x4c0177, 0x4d010077, 0x4e0100000077.
+//!    All of these are considered valid for pushing the payload 0x77:
+//!    0x0177, 0x4c0177, 0x4d010077, 0x4e0100000077.
 
 mod parse;
 

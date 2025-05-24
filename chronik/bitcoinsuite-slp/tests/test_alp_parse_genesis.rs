@@ -115,10 +115,10 @@ fn test_parse_alp_genesis_default() {
                 token_id: TokenId::from(TXID),
                 token_type: TokenType::Alp(AlpTokenType::Standard),
             },
-            tx_type: ParsedTxType::Genesis(ParsedGenesis {
+            tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
                 info: GenesisInfo::empty_alp(),
                 ..Default::default()
-            }),
+            })),
         }),
     );
 }
@@ -214,10 +214,10 @@ fn test_parse_alp_genesis_valid_field_sizes() {
                 parse(pushdata),
                 Ok(ParsedData {
                     meta: META,
-                    tx_type: ParsedTxType::Genesis(ParsedGenesis {
+                    tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
                         info,
                         mint_data: ParsedMintData::default(),
-                    }),
+                    })),
                 }),
             );
         }
@@ -241,13 +241,13 @@ fn test_parse_alp_genesis_valid_amounts() {
             parse(pushdata),
             Ok(ParsedData {
                 meta: META,
-                tx_type: ParsedTxType::Genesis(ParsedGenesis {
+                tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
                     info: GenesisInfo::empty_alp(),
                     mint_data: ParsedMintData {
                         atoms_vec,
                         num_batons: 0,
                     },
-                }),
+                })),
             }),
         );
     }
@@ -263,13 +263,13 @@ fn test_parse_alp_genesis_valid_num_batons() {
             parse(pushdata),
             Ok(ParsedData {
                 meta: META,
-                tx_type: ParsedTxType::Genesis(ParsedGenesis {
+                tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
                     info: GenesisInfo::empty_alp(),
                     mint_data: ParsedMintData {
                         atoms_vec: vec![],
                         num_batons: size as usize,
                     },
-                }),
+                })),
             }),
         );
     }
@@ -296,7 +296,7 @@ fn test_parse_alp_genesis_valid_example() {
         ),
         Ok(ParsedData {
             meta: META,
-            tx_type: ParsedTxType::Genesis(ParsedGenesis {
+            tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
                 info: GenesisInfo {
                     token_ticker: b"12".to_vec().into(),
                     token_name: b"345".to_vec().into(),
@@ -314,7 +314,7 @@ fn test_parse_alp_genesis_valid_example() {
                     ],
                     num_batons: 4,
                 },
-            }),
+            })),
         }),
     );
 }

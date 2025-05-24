@@ -208,7 +208,7 @@ impl<'tx> BatchProcessor<'tx> {
             valid_tx.outputs.iter().any(|token| token.is_some());
         let has_mint_vault = if is_mint_vault_mint {
             let first_entry = valid_tx.entries.first();
-            first_entry.map_or(false, |entry| !entry.is_invalid)
+            first_entry.is_some_and(|entry| !entry.is_invalid)
         } else {
             false
         };

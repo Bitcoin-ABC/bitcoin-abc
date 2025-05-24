@@ -105,6 +105,8 @@ pub enum DbError {
 
 use self::DbError::*;
 
+type DbIterItem = Result<(Box<[u8]>, Box<[u8]>)>;
+
 impl Db {
     /// Opens the database under the specified path.
     /// Creates the database file and necessary column families if necessary.
@@ -189,7 +191,7 @@ impl Db {
     pub(crate) fn iterator_end(
         &self,
         cf: &CF,
-    ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
+    ) -> impl Iterator<Item = DbIterItem> + '_ {
         self.db
             .iterator_cf(cf, IteratorMode::End)
             .map(|result| Ok(result.map_err(RocksDb)?))
@@ -200,7 +202,7 @@ impl Db {
         cf: &CF,
         start: &[u8],
         direction: rocksdb::Direction,
-    ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
+    ) -> impl Iterator<Item = DbIterItem> + '_ {
         self.db
             .iterator_cf(cf, IteratorMode::From(start, direction))
             .map(|result| Ok(result.map_err(RocksDb)?))
@@ -209,7 +211,7 @@ impl Db {
     pub(crate) fn full_iterator(
         &self,
         cf: &CF,
-    ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
+    ) -> impl Iterator<Item = DbIterItem> + '_ {
         self.db
             .full_iterator_cf(cf, IteratorMode::Start)
             .map(|result| Ok(result.map_err(RocksDb)?))

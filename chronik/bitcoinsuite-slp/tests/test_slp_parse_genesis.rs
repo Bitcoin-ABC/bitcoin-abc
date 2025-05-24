@@ -335,7 +335,7 @@ fn test_parse_valid_genesis() {
                     token_id: TokenId::new(TxId::from([100; 32])),
                     token_type: TokenType::Slp(token_type),
                 },
-                tx_type: ParsedTxType::Genesis(ParsedGenesis {
+                tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
                     info: GenesisInfo {
                         token_ticker: vec![0x44].into(),
                         token_name: vec![0x55].into(),
@@ -361,7 +361,7 @@ fn test_parse_valid_genesis() {
                             num_batons: 1,
                         },
                     },
-                }),
+                })),
             })),
         );
     }

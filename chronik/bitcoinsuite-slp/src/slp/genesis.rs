@@ -92,7 +92,7 @@ pub(crate) fn parse_genesis_data(
             token_id: TokenId::new(txid),
             token_type: TokenType::Slp(token_type),
         },
-        tx_type: ParsedTxType::Genesis(ParsedGenesis {
+        tx_type: ParsedTxType::Genesis(Box::new(ParsedGenesis {
             info: GenesisInfo {
                 token_ticker,
                 token_name,
@@ -107,7 +107,7 @@ pub(crate) fn parse_genesis_data(
                 atoms_vec,
                 num_batons: mint_field.mint_baton_out_idx().is_some() as usize,
             },
-        }),
+        })),
     })
 }
 
