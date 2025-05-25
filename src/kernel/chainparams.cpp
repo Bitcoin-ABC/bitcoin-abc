@@ -213,7 +213,15 @@ public:
         checkpointData = CheckpointData(ChainType::MAIN);
 
         m_assumeutxo_data = {
-            // TODO to be specified in a future patch.
+            // v0.31.5
+            {.height = 896'800,
+             .hash_serialized =
+                 AssumeutxoHash{uint256S("0x2f783c045f353b4a900139f8a66c7bcbb62"
+                                         "c93a4f298472d77dad9bfb0186665")},
+             .nChainTx = 299'407'257,
+             .blockhash =
+                 BlockHash{uint256S("0x0000000000000000297efb200794348b44bff4bf"
+                                    "b31716cf64dc45bac0a251ea")}},
         };
 
         // Data as of block
@@ -359,7 +367,15 @@ public:
         checkpointData = CheckpointData(ChainType::TESTNET);
 
         m_assumeutxo_data = {
-            // TODO to be specified in a future patch.
+            // v0.31.5
+            {.height = 1'661'000,
+             .hash_serialized =
+                 AssumeutxoHash{uint256S("0xc7a2aa5dfdbafa2d6a6613d254d25a2ab9d"
+                                         "893c01099d241f1e7a3785cb5f50f")},
+             .nChainTx = 63'977'749,
+             .blockhash =
+                 BlockHash{uint256S("0x000000000000c7d18ee9b71a1ab4d8d21aa9d758"
+                                    "7bf260e93df029ccb392d403")}},
         };
 
         // Data as of block

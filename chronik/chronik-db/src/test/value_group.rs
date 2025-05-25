@@ -61,6 +61,10 @@ impl Group for ValueGroup {
         ser_value(*sats)
     }
 
+    fn is_hash_member_supported(&self) -> bool {
+        false
+    }
+
     fn ser_hash_member(&self, _member: &Self::Member<'_>) -> [u8; 32] {
         unimplemented!()
     }

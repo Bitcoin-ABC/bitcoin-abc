@@ -45,6 +45,8 @@ mod ffi_inner {
         pub tx_num_cache: TxNumCacheSettings,
         /// Electrum host ip:port param, or empty if disabled
         pub electrum_hosts: Vec<String>,
+        /// Electrum URL
+        pub electrum_url: String,
         /// Electrum default port
         pub electrum_default_port: u16,
         /// Electrum default protocol

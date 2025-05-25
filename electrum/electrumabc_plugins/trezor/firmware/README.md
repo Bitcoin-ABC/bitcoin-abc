@@ -23,6 +23,8 @@ PRODUCTION=0 ./build-docker.sh --skip-bitcoinonly --models T1B1 ecash/legacy_1.1
 
 The firmware files will be placed in `build/core-<model>/firmware/firmware.bin` (or `build/legacy-T1B1/firmware/firmware.bin` for the Trezor One).
 
+*Note:* The Trezor One firmware is not shipped as part of Electrum ABC and is not officially supported.
+
 The fingerprints are printed for each firmware file so you can compare against
 the fingerprint of the firmwares shipping with Electrum ABC. You can extract
 the fingerprint from a built firmware file using this command from the root of

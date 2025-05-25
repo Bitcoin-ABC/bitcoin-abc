@@ -4,10 +4,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import socket
 from typing import Any, Optional
 
-from .util import assert_equal
+from .util import assert_equal, assert_greater_than
 
 
 class OversizedResponseError(Exception):
@@ -62,6 +63,12 @@ class MethodNameProxy:
         return self.client.synchronous_request(method, params)
 
 
+def shorten(msg: str, threshold: int) -> str:
+    if len(msg) > threshold:
+        return msg[:threshold] + f"…({len(msg) - threshold} chars trimmed)"
+    return msg
+
+
 class ChronikElectrumClient:
     """JSONRPC client.
 
@@ -75,12 +82,21 @@ class ChronikElectrumClient:
     DEFAULT_TIMEOUT = 30
     MAX_DATA_SIZE = 10_000_000
 
-    def __init__(self, host: str, port: int, timeout=DEFAULT_TIMEOUT) -> None:
+    def __init__(
+        self, host: str, port: int, timeout=DEFAULT_TIMEOUT, name: Optional[str] = None
+    ) -> None:
         self.host = host
         self.port = port
         self.timeout = timeout
 
+        name = name or f"{id(self)}"
+        self.log = logging.getLogger(f"TestFramework.ChronikElectrumClient.{name}")
+
         self.id = -1
+        # Data buffer. Messages are separated by \n but we might have several in
+        # a single frame so we keep track of the remaining in order to properly
+        # rebuild the messages.
+        self.data = b""
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
@@ -98,18 +114,42 @@ class ChronikElectrumClient:
         return MethodNameProxy(self, item)
 
     def _recv(self):
-        data = b""
-        while b"\n" not in data:
-            data += self.sock.recv(1024)
-            if len(data) > self.MAX_DATA_SIZE:
+        # We need the initial check because self.data might already contain
+        # the messages and we don't want to block on sock.recv() in this case
+        while b"\n" not in self.data:
+            self.data += self.sock.recv(1024)
+
+            # Break early, we will check the length of the message
+            if b"\n" in self.data:
+                break
+
+            # There is no \n, we don't allow for more data than the max size.
+            # This is also an exit condition to avoid looping indefinitely if
+            # there is no \n
+            if len(self.data) > self.MAX_DATA_SIZE:
                 raise OversizedResponseError()
 
-        return json.loads(data.decode("utf-8"))
+        # We might have several messages, but only return the first one
+        (message, self.data) = self.data.split(b"\n", maxsplit=1)
+
+        # Account for the trailing \n that we just removed as 1 byte
+        if len(message) + 1 > self.MAX_DATA_SIZE:
+            raise OversizedResponseError()
+
+        return json.loads(message.decode("utf-8"))
 
     def synchronous_request(
         self, method: str, params: Optional[list | dict]
     ) -> JsonRpcResponse:
         self.id += 1
+
+        # params can be very long when broadcasting oversized transactions.
+        # For other RPC requests, it should always fit 100 chars.
+        params_str = shorten(str(params), 100)
+        self.log.debug(
+            f"Sending RPC request (method={method}, id={self.id}, params={params_str})"
+        )
+
         request = {"jsonrpc": "2.0", "method": method, "id": self.id}
         if params is not None:
             request["params"] = params
@@ -125,6 +165,7 @@ class ChronikElectrumClient:
         )
 
     def wait_for_notification(self, method: str, timeout=None):
+        self.log.debug(f"Waiting for notification for method {method}")
         prev_timeout = self.sock.gettimeout()
         # If set, timeout should override the current socket timeout. We make
         # sure to restore the previous valus after the message is received
@@ -140,8 +181,13 @@ class ChronikElectrumClient:
         assert "id" not in json_reply
         assert_equal(json_reply.get("method"), method)
         assert "params" in json_reply
-        assert_equal(len(json_reply["params"]), 1)
+        assert_greater_than(len(json_reply["params"]), 0)
+
+        # A notification shouldn't have a very long result, so the use of shorten here
+        # is defensive programming. 200 chars accommodates all known notifications.
+        result_str = shorten(str(json_reply["params"]), 200)
+        self.log.debug(f"Received notification for method {method}: {result_str}")
 
         # The "result" is within a "params" field. There is no point returning
         # a JsonRpcResponse here as we only care about the result
-        return json_reply["params"][0]
+        return json_reply["params"]

@@ -8,6 +8,7 @@ use std::{cmp, net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
+    address::{CashAddress, CashAddressError},
     hash::{Hashed, Sha256, Sha256d},
     tx::TxId,
 };
@@ -15,11 +16,13 @@ use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::group::GroupMember;
 use chronik_indexer::{
+    indexer::ChronikIndexer,
     merkle::MerkleTree,
     query::{QueryBlocks, MAX_HISTORY_PAGE_SIZE},
     subs::BlockMsgType,
+    subs_group::TxMsgType,
 };
-use chronik_proto::proto::Tx;
+use chronik_proto::proto::{BlockMetadata, Tx};
 use chronik_util::log_chronik;
 use futures::future;
 use itertools::izip;
@@ -37,7 +40,7 @@ use rustls::pki_types::{
     pem::PemObject,
     {CertificateDer, PrivateKeyDer},
 };
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use thiserror::Error;
 use versions::Versioning;
 
@@ -46,8 +49,10 @@ use crate::{
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
 
-/// Protocol version implemented by this server
-pub const ELECTRUM_PROTOCOL_VERSION: &str = "1.4";
+/// Minimum protocol version implemented by this server
+pub const ELECTRUM_PROTOCOL_MIN_VERSION: &str = "1.4";
+/// Maximum protocol version implemented by this server
+pub const ELECTRUM_PROTOCOL_MAX_VERSION: &str = "1.4.5";
 
 /// Chronik Electrum protocol
 #[derive(Clone, Copy, Debug)]
@@ -63,6 +68,10 @@ pub enum ChronikElectrumProtocol {
 pub struct ChronikElectrumServerParams {
     /// Host address (port + IP) where to serve the electrum server at.
     pub hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
+    /// Host URL (fqdn) where this server is deployed. This is used to
+    /// advertise in the server.features() response so other peers don't
+    /// drop the connection. Note: there is no verification on this value.
+    pub url: String,
     /// Indexer to read data from
     pub indexer: ChronikIndexerRef,
     /// Access to the bitcoind node
@@ -82,6 +91,7 @@ pub struct ChronikElectrumServerParams {
 #[derive(Debug)]
 pub struct ChronikElectrumServer {
     hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
+    url: String,
     indexer: ChronikIndexerRef,
     node: NodeRef,
     tls_cert_path: String,
@@ -142,7 +152,7 @@ fn electrum_notification_encoder(nt: NewNotification) -> message::Notification {
     message::Notification {
         jsonrpc: message::JSONRPC_VERSION.to_string(),
         method: nt.method,
-        params: Some(Value::Array(vec![nt.result])),
+        params: Some(nt.result),
     }
 }
 
@@ -151,6 +161,7 @@ impl ChronikElectrumServer {
     pub fn setup(params: ChronikElectrumServerParams) -> Result<Self> {
         Ok(ChronikElectrumServer {
             hosts: params.hosts,
+            url: params.url,
             indexer: params.indexer,
             node: params.node,
             tls_cert_path: params.tls_cert_path,
@@ -162,11 +173,18 @@ impl ChronikElectrumServer {
 
     /// Start the Chronik electrum server
     pub async fn serve(self) -> Result<()> {
+        let genesis_hash = self.node.bridge.get_genesis_hash();
+        let genesis_hash = Sha256::from_le_bytes(genesis_hash.data).hex_be();
+
         // The behavior is to bind the endpoint name to its method name like so:
         // endpoint.method as the name of the RPC
         let server_endpoint = Arc::new(ChronikElectrumRPCServerEndpoint {
             donation_address: self.donation_address,
+            url: self.url,
+            hosts: self.hosts.clone(),
+            genesis_hash,
         });
+
         let blockchain_endpoint =
             Arc::new(ChronikElectrumRPCBlockchainEndpoint {
                 indexer: self.indexer,
@@ -363,12 +381,20 @@ macro_rules! get_optional_param {
 
 struct ChronikElectrumRPCServerEndpoint {
     donation_address: String,
+    hosts: Vec<(SocketAddr, ChronikElectrumProtocol)>,
+    url: String,
+    genesis_hash: String,
 }
 
 struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
+}
+
+fn get_version() -> String {
+    let version_number = ffi::format_full_version();
+    format!("Bitcoin ABC {version_number}")
 }
 
 #[rpc_impl(name = "server")]
@@ -395,7 +421,7 @@ impl ChronikElectrumRPCServerEndpoint {
         );
         match client_protocol_versions {
             Value::String(version_string) => {
-                if version_string != ELECTRUM_PROTOCOL_VERSION {
+                if version_string != ELECTRUM_PROTOCOL_MIN_VERSION {
                     return Err(unsup_version_err);
                 }
             }
@@ -422,7 +448,7 @@ impl ChronikElectrumRPCServerEndpoint {
                     return Err(bad_version_err());
                 }
                 let target_version =
-                    Versioning::new(ELECTRUM_PROTOCOL_VERSION).unwrap();
+                    Versioning::new(ELECTRUM_PROTOCOL_MIN_VERSION).unwrap();
                 if target_version < min_version || target_version > max_version
                 {
                     return Err(unsup_version_err);
@@ -432,9 +458,49 @@ impl ChronikElectrumRPCServerEndpoint {
                 return Err(unsup_version_err);
             }
         };
-        let version_number = ffi::format_full_version();
-        let server_version = format!("Bitcoin ABC {version_number}");
-        Ok(json!([server_version, ELECTRUM_PROTOCOL_VERSION]))
+
+        Ok(json!([get_version(), ELECTRUM_PROTOCOL_MIN_VERSION]))
+    }
+
+    async fn features(&self, _params: Value) -> Result<Value, RPCError> {
+        let mut protocol_ports = Map::new();
+        for (host, protocol) in &self.hosts {
+            // Extract all enabled protocols and the port used
+            match protocol {
+                ChronikElectrumProtocol::Tcp => {
+                    protocol_ports
+                        .insert("tcp_port".to_owned(), host.port().into());
+                }
+                ChronikElectrumProtocol::Tls => {
+                    protocol_ports
+                        .insert("tls_port".to_owned(), host.port().into());
+                }
+            };
+        }
+        Ok(json!({
+            "genesis_hash": self.genesis_hash,
+            "hash_function": "sha256",
+            "server_version": get_version(),
+            "protocol_min": ELECTRUM_PROTOCOL_MIN_VERSION,
+            "protocol_max": ELECTRUM_PROTOCOL_MAX_VERSION,
+            // Pruning is not allowed with chronik
+            "pruning": Value::Null,
+            "hosts": {
+                &self.url: protocol_ports,
+            },
+            // This is an optional key added in ElectrumX version 1.4.5 but we
+            // can explicitly deny the feature as it's not supported on eCash.
+            "dsproof": false,
+        }))
+    }
+
+    // Note that despite the name this is not a subscription, and the server
+    // must send no notifications.
+    #[rpc_method(name = "peers.subscribe")]
+    async fn peers_subscribe(&self, _params: Value) -> Result<Value, RPCError> {
+        // Peering is not implemented, for now we just announce 0 peers.
+        // Electrum may call this method.
+        Ok(json!([]))
     }
 }
 
@@ -453,12 +519,50 @@ fn be_bytes_to_le_hex(hash: &[u8]) -> String {
     hex::encode(Sha256::from_be_slice(hash).unwrap().as_le_bytes())
 }
 
+/// Whether this tx has unconfirmed parents. This is required for the Electrum
+/// protocol which returns a different block height for mempool transactions
+/// depending on this.
+async fn has_unconfirmed_parents(
+    tx: &Tx,
+    indexer: &tokio::sync::RwLockReadGuard<'_, ChronikIndexer>,
+    node: &NodeRef,
+) -> Result<bool, RPCError> {
+    if tx.is_coinbase {
+        // This should be unreachable because we only check for unconfirmed txs,
+        // but this is cheap, more correct and makes the code more robust.
+        // A coinbase tx can't have missing parents.
+        return Ok(true);
+    }
+    for input in tx.inputs.iter() {
+        let prev_txid = match &input.prev_out {
+            Some(prev_out) => TxId::try_from(prev_out.txid.as_slice())
+                .map_err(|_| RPCError::InternalError)?,
+            // This should be unreachable. However if there is no prevout,
+            // assume this is a coinbase so it can't be missing parents.
+            None => return Ok(false),
+        };
+        // This should never fail
+        let tx = indexer
+            .txs(node)
+            .tx_by_id(prev_txid)
+            .map_err(|_| RPCError::InternalError)?;
+        if tx.block.is_none() {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
+
+/// Return the history in a format that fulcrum expects
 async fn get_scripthash_history(
     script_hash: Sha256,
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
 ) -> Result<Vec<Tx>, RPCError> {
+    let script_hash_hex = hex::encode(script_hash.to_be_bytes());
+
     let indexer = indexer.read().await;
     let script_history = indexer
         .script_history(&node)
@@ -469,9 +573,10 @@ async fn get_scripthash_history(
     let mut tx_history: Vec<Tx> = vec![];
 
     while page < num_pages {
-        // Return the history in ascending block height order
+        // Return the confirmed txs in ascending block height order, with txs
+        // ordered as they appear in the block
         let history = script_history
-            .rev_history(
+            .confirmed_txs(
                 GroupMember::MemberHash(script_hash).as_ref(),
                 page as usize,
                 MAX_HISTORY_PAGE_SIZE,
@@ -479,7 +584,6 @@ async fn get_scripthash_history(
             .map_err(|_| RPCError::InternalError)?;
 
         if history.num_txs > max_history {
-            let script_hash_hex = hex::encode(script_hash.to_be_bytes());
             // Note that Fulcrum would return an empty history in this case
             return Err(RPCError::CustomError(
                 1,
@@ -499,6 +603,65 @@ async fn get_scripthash_history(
         page += 1;
     }
 
+    // Note that there is currently no pagination for the mempool.
+    let mut history = script_history
+        .unconfirmed_txs(GroupMember::MemberHash(script_hash).as_ref())
+        .map_err(|_| RPCError::InternalError)?;
+
+    if history.num_txs + (tx_history.len() as u32) > max_history {
+        return Err(RPCError::CustomError(
+            1,
+            format!(
+                "transaction history for scripthash {script_hash_hex} exceeds \
+                 limit ({0})",
+                max_history
+            ),
+        ));
+    }
+
+    let mut unconfirmed_tx_history: Vec<Tx> = vec![];
+
+    for tx in history.txs.iter_mut() {
+        let block_height =
+            if has_unconfirmed_parents(tx, &indexer, &node).await? {
+                -1
+            } else {
+                0
+            };
+
+        // Override the block height:
+        //  - -1 if the tx has some unconfirmed parents
+        //  - 0 if the tx has no unconfirmed parents
+        let electrum_fake_block = BlockMetadata {
+            height: block_height,
+            hash: vec![0; 64],
+            timestamp: 0,
+            is_final: false,
+        };
+        tx.block = Some(electrum_fake_block);
+        unconfirmed_tx_history.push(tx.clone());
+    }
+
+    // Return the mempool txs in the reverse block height then txid order
+    unconfirmed_tx_history.sort_by(|a, b| {
+        let a_height = a.block.as_ref().unwrap().height;
+        let b_height = b.block.as_ref().unwrap().height;
+        if a_height != b_height {
+            // Warning: reverse order! We place txs with no unconfirmed parents
+            // first (height = 0) then txs with unconfirmed parents
+            // (height = -1).
+            return b_height.cmp(&a_height);
+        }
+
+        let a_txid =
+            hex::encode(a.txid.iter().copied().rev().collect::<Vec<u8>>());
+        let b_txid =
+            hex::encode(b.txid.iter().copied().rev().collect::<Vec<u8>>());
+        a_txid.cmp(&b_txid)
+    });
+
+    tx_history.append(&mut unconfirmed_tx_history);
+
     Ok(tx_history)
 }
 
@@ -507,7 +670,10 @@ fn get_scripthash_balance(history: &Vec<Tx>, scripthash: Sha256) -> (i64, i64) {
     let mut unconfirmed: i64 = 0;
 
     for tx in history {
-        let is_mempool = tx.block.is_none();
+        let is_mempool = match &tx.block {
+            Some(block) => block.height <= 0,
+            None => true,
+        };
         for outp in tx.outputs.iter() {
             if Sha256::digest(&outp.output_script) != scripthash {
                 continue;
@@ -532,6 +698,34 @@ fn get_scripthash_balance(history: &Vec<Tx>, scripthash: Sha256) -> (i64, i64) {
     (confirmed, unconfirmed)
 }
 
+async fn get_scripthash_status(
+    script_hash: Sha256,
+    indexer: ChronikIndexerRef,
+    node: NodeRef,
+    max_history: u32,
+) -> Result<Option<String>, RPCError> {
+    let tx_history =
+        get_scripthash_history(script_hash, indexer, node, max_history).await?;
+
+    if tx_history.is_empty() {
+        return Ok(None);
+    }
+
+    // Then compute the status
+    let mut status_parts = Vec::<String>::new();
+
+    for tx in tx_history {
+        let tx_hash =
+            hex::encode(tx.txid.iter().copied().rev().collect::<Vec<u8>>());
+        let height = tx.block.as_ref().unwrap().height;
+        status_parts.push(format!("{tx_hash}:{height}:"));
+    }
+
+    let status_string = status_parts.join("");
+
+    Ok(Some(Sha256::digest(status_string.as_bytes()).hex_le()))
+}
+
 fn get_tx_fee(tx: &Tx) -> i64 {
     let mut fee: i64 = 0;
     for inp in tx.inputs.iter() {
@@ -543,10 +737,10 @@ fn get_tx_fee(tx: &Tx) -> i64 {
     fee
 }
 
-async fn header_json_from_height(
+async fn header_hex_from_height(
     blocks: &QueryBlocks<'_>,
     height: i32,
-) -> Result<Value, RPCError> {
+) -> Result<String, RPCError> {
     let header = blocks.header(height.to_string(), 0).await.map_err(|_| {
         RPCError::CustomError(
             1,
@@ -554,10 +748,44 @@ async fn header_json_from_height(
         )
     })?;
 
-    Ok(json!({
-        "height": height,
-        "hex": hex::encode(header.raw_header),
-    }))
+    Ok(hex::encode(header.raw_header))
+}
+
+fn script_hash_to_sub_id(script_hash: Sha256) -> u32 {
+    let script_hash_bytes: [u8; 32] = script_hash.into();
+    let id_bytes: [u8; 4] = script_hash_bytes[..4].try_into().unwrap();
+
+    u32::from_le_bytes(id_bytes)
+}
+
+fn address_to_scripthash(address: &String) -> Result<Sha256, RPCError> {
+    let supported_prefixes = ["ecash", "ectest", "ecregtest", "etoken"];
+    let cash_address: CashAddress = match address.parse() {
+        Ok(cash_address) => cash_address,
+        Err(CashAddressError::MissingPrefix) => {
+            match supported_prefixes.iter().find_map(|&prefix| {
+                let prefixed_candidate: Result<CashAddress, CashAddressError> =
+                    [prefix, address].join(":").parse();
+                prefixed_candidate.ok()
+            }) {
+                Some(prefixed_address) => prefixed_address,
+                None => {
+                    return Err(RPCError::CustomError(
+                        1,
+                        format!("Invalid address: {address}"),
+                    ));
+                }
+            }
+        }
+        _ => {
+            return Err(RPCError::CustomError(
+                1,
+                format!("Invalid address: {address}"),
+            ));
+        }
+    };
+
+    Ok(Sha256::digest(cash_address.to_script()))
 }
 
 #[rpc_pubsub_impl(name = "blockchain")]
@@ -582,52 +810,202 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let indexer_clone = self.indexer.clone();
         let node_clone = self.node.clone();
 
-        let sub = chan.new_subscription(&method).await;
-        tokio::spawn(async move {
-            log_chronik!("Subscription to electrum headers\n");
+        if let Ok(sub) = chan.new_subscription(&method, Some(0)).await {
+            tokio::spawn(async move {
+                log_chronik!("Subscription to electrum headers\n");
 
-            loop {
-                let Ok(block_msg) = block_subs.recv().await else {
-                    // Error, disconnect
-                    break;
-                };
-
-                if block_msg.msg_type != BlockMsgType::Connected {
-                    // We're only sending headers upon block connection.
-                    // At some point we might want to wait for block
-                    // finalization instead, but this behavior would differ from
-                    // Fulcrum.
-                    continue;
-                }
-
-                let indexer = indexer_clone.read().await;
-                let blocks: chronik_indexer::query::QueryBlocks<'_> =
-                    indexer.blocks(&node_clone);
-
-                match header_json_from_height(&blocks, block_msg.height).await {
-                    Err(err) => {
-                        log_chronik!("{err}\n");
+                loop {
+                    let Ok(block_msg) = block_subs.recv().await else {
+                        // Error, disconnect
                         break;
+                    };
+
+                    if block_msg.msg_type != BlockMsgType::Connected {
+                        // We're only sending headers upon block connection.
+                        // At some point we might want to wait for block
+                        // finalization instead, but this behavior would differ
+                        // from Fulcrum.
+                        continue;
                     }
-                    Ok(header_json) => {
-                        if sub.notify(header_json).await.is_err() {
-                            // Don't log, it's likely a client unsubscription or
-                            // disconnection
+
+                    let indexer = indexer_clone.read().await;
+                    let blocks: chronik_indexer::query::QueryBlocks<'_> =
+                        indexer.blocks(&node_clone);
+
+                    match header_hex_from_height(&blocks, block_msg.height)
+                        .await
+                    {
+                        Err(err) => {
+                            log_chronik!("{err}\n");
                             break;
                         }
-                    }
-                };
-            }
+                        Ok(header_hex) => {
+                            if sub
+                                .notify(json!([{
+                                            "height": block_msg.height,
+                                            "hex": header_hex,
+                                }]))
+                                .await
+                                .is_err()
+                            {
+                                // Don't log, it's likely a client
+                                // unsubscription or disconnection
+                                break;
+                            }
+                        }
+                    };
+                }
 
-            log_chronik!("Unsubscription from electrum headers\n");
-        });
+                log_chronik!("Unsubscription from electrum headers\n");
+            });
+        }
 
         let tip_height = blocks
             .blockchain_info()
             .map_err(|_| RPCError::InternalError)?
             .tip_height;
 
-        header_json_from_height(&blocks, tip_height).await
+        let header_hex = header_hex_from_height(&blocks, tip_height).await?;
+
+        Ok(json!({
+            "height": tip_height,
+            "hex": header_hex,
+        }))
+    }
+
+    #[rpc_method(name = "headers.unsubscribe")]
+    async fn headers_unsubscribe(
+        &self,
+        chan: Arc<Channel>,
+        _method: String,
+        _params: Value,
+    ) -> Result<Value, RPCError> {
+        let sub_id: message::SubscriptionID = 0;
+        let success = chan.remove_subscription(&sub_id).await.is_ok();
+        Ok(json!(success))
+    }
+
+    #[rpc_method(name = "scripthash.subscribe")]
+    async fn scripthash_subscribe(
+        &self,
+        chan: Arc<Channel>,
+        method: String,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        let indexer = self.indexer.read().await;
+        let mut subs: tokio::sync::RwLockWriteGuard<
+            '_,
+            chronik_indexer::subs::Subs,
+        > = indexer.subs().write().await;
+        let script_subs = subs.subs_script_mut();
+
+        let mut recv =
+            script_subs.subscribe_to_hash_member(&script_hash.to_be_bytes());
+
+        let indexer_clone = self.indexer.clone();
+        let node_clone = self.node.clone();
+        let max_history = self.max_history;
+
+        let sub_id = script_hash_to_sub_id(script_hash);
+        if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
+            tokio::spawn(async move {
+                log_chronik!("Subscription to electrum scripthash\n");
+
+                let mut last_status = None;
+
+                loop {
+                    let Ok(tx_msg) = recv.recv().await else {
+                        // Error, disconnect
+                        break;
+                    };
+
+                    // We want all the events except finalization (this might
+                    // change in the future):
+                    // - added to mempool
+                    // - removed from mempool
+                    // - confirmed
+                    if tx_msg.msg_type == TxMsgType::Finalized {
+                        continue;
+                    }
+
+                    if let Ok(status) = get_scripthash_status(
+                        script_hash,
+                        indexer_clone.clone(),
+                        node_clone.clone(),
+                        max_history,
+                    )
+                    .await
+                    {
+                        if last_status == status {
+                            continue;
+                        }
+                        last_status = status.clone();
+
+                        if sub
+                            .notify(json!([
+                                hex::encode(script_hash.to_be_bytes()),
+                                status,
+                            ]))
+                            .await
+                            .is_err()
+                        {
+                            // Don't log, it's likely a client
+                            // unsubscription or
+                            // disconnection
+                            break;
+                        }
+                    }
+                }
+
+                log_chronik!("Unsubscription from electrum scripthash\n");
+            });
+        }
+
+        let status = get_scripthash_status(
+            script_hash,
+            self.indexer.clone(),
+            self.node.clone(),
+            max_history,
+        )
+        .await?;
+
+        Ok(serde_json::json!(status))
+    }
+
+    #[rpc_method(name = "scripthash.unsubscribe")]
+    async fn scripthash_unsubscribe(
+        &self,
+        chan: Arc<Channel>,
+        _method: String,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        let sub_id = script_hash_to_sub_id(script_hash);
+        let success = chan.remove_subscription(&sub_id).await.is_ok();
+        Ok(serde_json::json!(success))
     }
 }
 
@@ -1040,14 +1418,13 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let mut json_history: Vec<Value> = vec![];
 
         // Return history in ascending order (and mempool last), which is the
-        // opposite of what chronik does.
-        for tx in history.iter().rev() {
+        // opposite of what chronik does. The get_scripthash_history() takes
+        // care of all the ordering.
+        for tx in history {
             let height = match &tx.block {
                 Some(block) => block.height,
-                // Here we differ from Fulcrum because we don't discriminate
-                // between unconfirmed transactions and
-                // transactions with unconfirmed parents
-                // (height -1)
+                // This should never happen because the block height is filled
+                // the get_scripthash_history() function even for mempool txs.
                 None => 0,
             };
             let be_txid: Vec<u8> = tx.txid.iter().copied().rev().collect();
@@ -1057,7 +1434,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     "tx_hash": hex::encode(be_txid)
                 }));
             } else {
-                let fee = get_tx_fee(tx);
+                let fee = get_tx_fee(&tx);
                 json_history.push(json!({
                     "fee": fee,
                     "height": height,
@@ -1121,5 +1498,22 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }
 
         Ok(json!(json_utxos))
+    }
+
+    #[rpc_method(name = "address.get_scripthash")]
+    async fn address_get_scripthash(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let address = match get_param!(params, 0, "address")? {
+            Value::String(v) => Ok(v),
+            _ => Err(RPCError::CustomError(1, "Invalid address".to_string())),
+        }?;
+
+        let scripthash = address_to_scripthash(&address)?;
+
+        Ok(json!(scripthash.hex_be()))
     }
 }

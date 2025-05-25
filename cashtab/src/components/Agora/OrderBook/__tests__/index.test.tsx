@@ -289,7 +289,7 @@ describe('<OrderBook />', () => {
         // We can type and see the price of different quantities
         await userEvent.clear(buyAmountCachetInput);
         await userEvent.type(buyAmountCachetInput, '1.70');
-        expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
+        expect(screen.getByText('1.7 CACHET')).toBeInTheDocument();
         expect(screen.getByText('$0.5611 USD')).toBeInTheDocument();
 
         // Slider action is for informational purposes only here, though, because
@@ -418,7 +418,7 @@ describe('<OrderBook />', () => {
         // We can type and see the price of different quantities
         await userEvent.clear(buyAmountCachetInput);
         await userEvent.type(buyAmountCachetInput, '1.70');
-        expect(screen.getByText('1.70 CACHET')).toBeInTheDocument();
+        expect(screen.getByText('1.7 CACHET')).toBeInTheDocument();
         // XEC amounts are only shown if toggle is selected
         expect(screen.queryByText('17k XEC')).not.toBeInTheDocument();
         expect(screen.getByText('$0.5611 USD')).toBeInTheDocument();
@@ -690,7 +690,7 @@ describe('<OrderBook />', () => {
             `Select buy qty ${CACHET_TOKEN_ID}`,
         );
         // We expect this field to be populated with min buy amount by default
-        expect(buyAmountCachetInput).toHaveValue('.10');
+        expect(buyAmountCachetInput).toHaveValue(0.1);
         // Erase this input
         await userEvent.clear(buyAmountCachetInput);
 
@@ -761,8 +761,8 @@ describe('<OrderBook />', () => {
         expect(
             await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
-        // We see target qty and the actual qty
-        expect(screen.getAllByText('.30')).toHaveLength(2);
+        // We see target qty
+        expect(screen.getByText('.30')).toBeInTheDocument();
         // We DO NOT see the delta
         expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
         // We see the price in XEC
@@ -929,7 +929,7 @@ describe('<OrderBook />', () => {
             `Select buy qty ${XECX_TOKEN_ID}`,
         );
         // We expect this field to be populated with min buy amount by default
-        expect(buyAmountXecxInput).toHaveValue('960000.00');
+        expect(buyAmountXecxInput).toHaveValue(960000);
 
         // Erase this input
         await userEvent.clear(buyAmountXecxInput);

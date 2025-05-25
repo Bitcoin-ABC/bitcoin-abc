@@ -7,6 +7,7 @@
         "eslint-plugin-jest": "^28.11.0",
         "eslint-plugin-mocha": "^10.5.0",
         "prettier": "^2.6.0",
+        "prettier-plugin-tailwindcss": "^0.2.8",
         "typescript-eslint": "^8.26.0"
     }
 }

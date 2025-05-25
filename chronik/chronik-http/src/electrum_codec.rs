@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+use chronik_util::log_chronik;
 use karyon_jsonrpc::{
     codec::{Codec, Decoder, Encoder},
     error::{Error, Result},
@@ -23,6 +24,18 @@ impl Encoder for ElectrumCodec {
         let msg = serde_json::to_string(src)
             .map_err(|err| Error::Encode(err.to_string()))?;
         let buf = msg.as_bytes();
+
+        // Make sure there is enough room allocated in the dst buffer
+        if buf.len() + 1 > dst.len() {
+            log_chronik!(
+                "Electrum encoding error: the message does not fit in the \
+                 encoding buffer\n"
+            );
+            return Err(Error::Encode(
+                "the message does not fit in the encoding buffer".into(),
+            ));
+        }
+
         dst[..buf.len()].copy_from_slice(buf);
         // Fulcrum adds a newline as a separator, so we oblige. This is
         // permitted by the json-rpc standard so this server encoding is still

@@ -7,4 +7,5 @@
 abc_rust_lint::lint! {
     pub mod ecc;
     pub mod hash;
+    pub mod public_key_crypto;
 }

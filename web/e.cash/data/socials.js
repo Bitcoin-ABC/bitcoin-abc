@@ -8,7 +8,7 @@ export const socials = [
     },
     {
         name: 'x',
-        link: 'https://twitter.com/ecashofficial',
+        link: 'https://x.com/eCash',
     },
     {
         name: 'linkedin',

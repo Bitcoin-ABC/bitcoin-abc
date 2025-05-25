@@ -43,6 +43,7 @@ import paybutton from '/public/images/paybutton.png';
 import pay2stay from '/public/images/Pay2Stay.png';
 import xecxLogo from '/public/images/xecx-logo-white.png';
 import localecashLogo from '/public/images/localecash.png';
+import musd from '/public/images/MUSD.png';
 
 function TileSection({ title, items, children }) {
     return (
@@ -127,6 +128,33 @@ function UseEcash(props) {
                 <Blob left="60%" top="60%" />
                 <Blob left="0" top="90%" />
                 <Container>
+                    <TextImageBlock
+                        id="MUSD"
+                        title="Marianas U.S. Dollar"
+                        image={musd}
+                        alt="Marianas U.S. Dollar logo"
+                    >
+                        <p>
+                            MUSD is the first fully-reserved, fiat-backed stable
+                            token issued by a public entity in the United
+                            States. Exclusively issued on the eCash blockchain.
+                        </p>
+                        <p>
+                            MUSD provides the foundation for blockchain
+                            development and distribution of the functions for
+                            government such as identity, finance, safety, and
+                            administration. Ecosystem development partners can
+                            quickly build financial services, standards, and
+                            applications with direct access to the MUSD API.
+                        </p>
+                        <Button
+                            text="Learn More"
+                            link="https://dollar.mp"
+                            corner="bottomRight"
+                            color="accent"
+                            openInNewTab
+                        />
+                    </TextImageBlock>
                     <TextImageBlock
                         id="pay2stay"
                         title="Pay2Stay"

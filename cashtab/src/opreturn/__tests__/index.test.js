@@ -8,6 +8,7 @@ import {
     getCashtabMsgByteCount,
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
+    parseFirma,
     getXecxAppAction,
     getEmppAppAction,
     getEmppAppActions,
@@ -124,6 +125,17 @@ describe('Cashtab opreturn methods', () => {
             const { description, opReturnRaw, error } = expectedError;
             it(`parseOpReturnRaw throws error for: ${description}`, () => {
                 expect(() => parseOpReturnRaw(opReturnRaw)).toThrow(error);
+            });
+        });
+    });
+    describe('Parse firma input for display on Send screen', () => {
+        const { expectedReturns } = opReturnVectors.parseFirma;
+
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, firma, returned } = expectedReturn;
+            it(`parseFirma: ${description}`, () => {
+                expect(parseFirma(firma)).toStrictEqual(returned);
             });
         });
     });

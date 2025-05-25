@@ -1,9 +1,11 @@
 # Note: Keep source files as some bundlers expect them
 
 # Don't publish tests
+/testkeys
 /tests
 *.test.ts
 *.test.d.ts
 *.test.d.ts.map
 *.test.js
 *.test.js.map
+genkeys.sh

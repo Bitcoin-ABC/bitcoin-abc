@@ -1,132 +1,104 @@
-# assumeutxo
+# Assumeutxo Usage
 
 Assumeutxo is a feature that allows fast bootstrapping of a validating bitcoind
-instance with a very similar security model to assumevalid.
+instance.
 
-The RPC commands `dumptxoutset` and `loadtxoutset` are used to
-respectively generate and load UTXO snapshots.
+For notes on the design of Assumeutxo, please refer to [the design doc](/doc/design/assumeutxo.md).
 
-## General background
+## Loading a snapshot
 
-- [assumeutxo proposal](https://github.com/jamesob/assumeutxo-docs/tree/2019-04-proposal/proposal)
-- [Github issue](https://github.com/bitcoin/bitcoin/issues/15605)
-- [draft PR](https://github.com/bitcoin/bitcoin/pull/15606)
+There is currently no canonical source for snapshots <!-- TODO-->, but any downloaded snapshot
+will be checked against a hash that's been hardcoded in source code. If there is
+no source for the snapshot you need, you can generate it yourself using
+`dumptxoutset` on another node that is already synced (see
+[Generating a snapshot](#generating-a-snapshot)).
 
-## Design notes
+Once you've obtained the snapshot, you can use the RPC command `loadtxoutset` to
+load it.
 
-- The concept of UTXO snapshots is treated as an implementation detail that lives
-  behind the ChainstateManager interface. The external presentation of the changes
-  required to facilitate the use of UTXO snapshots is the understanding that there are
-  now certain regions of the chain that can be temporarily assumed to be valid.
-  In certain cases, e.g. wallet rescanning, this is very similar to dealing with
-  a pruned chain.
+```
+$ bitcoin-cli -rpcclienttimeout=0 loadtxoutset /path/to/input
+```
 
-  Logic outside ChainstateManager should try not to know about snapshots, instead
-  preferring to work in terms of more general states like assumed-valid.
+After the snapshot has loaded, the syncing process of both the snapshot chain
+and the background IBD chain can be monitored with the `getchainstates` RPC.
 
+### Pruning
 
-## Chainstate phases
+A pruned node can load a snapshot. To save space, it's possible to delete the
+snapshot file as soon as `loadtxoutset` finishes.
 
-Chainstate within the system goes through a number of phases when UTXO snapshots are
-used, as managed by `ChainstateManager`. At various points there can be multiple
-`ChainState` objects in existence to facilitate both maintaining the network tip and
-performing historical validation of the assumed-valid chain.
+The minimum `-prune` setting is 550 MiB, but this functionality ignores that
+minimum and uses at least 1100 MiB.
 
-It is worth noting that though there are multiple separate chainstates, those
-chainstates share use of a common block index (i.e. they hold the same `BlockManager`
-reference).
+As the background sync continues there will be temporarily two chainstate
+directories, each multiple gigabytes in size (likely growing larger than the
+downloaded snapshot).
 
-The subheadings below outline the phases and the corresponding changes to chainstate
-data.
+### Indexes
 
-### "Normal" operation via initial block download
+This section relates to all indexes except Chronik. For specific notes on Chronik,
+see the [dedicated section](#chronik).
 
-`ChainstateManager` manages a single CChainState object, for which
-`m_snapshot_blockhash` is null. This chainstate is (maybe obviously)
-considered active. This is the "traditional" mode of operation for bitcoind.
+Indexes work but don't take advantage of this feature. They always start building
+from the genesis block and can only apply blocks in order. Once the background
+validation reaches the snapshot block, indexes will continue to build all the
+way to the tip.
 
-|    |    |
-| ---------- | ----------- |
-| number of chainstates | 1 |
-| active chainstate | ibd |
+For indexes that support pruning, note that these indexes only allow blocks that
+were already indexed to be pruned. Blocks that are not indexed yet will also
+not be pruned.
 
-### User loads a UTXO snapshot via `loadtxoutset` RPC
+This means that, if the snapshot is old, then a lot of blocks after the snapshot
+block will need to be downloaded, and these blocks can't be pruned until they
+are indexed, so they could consume a lot of disk space until indexing catches up
+to the snapshot block.
 
-`ChainstateManager` initializes a new chainstate (see `ActivateSnapshot()`) to load the
-snapshot contents into. During snapshot load and validation (see
-`PopulateAndValidateSnapshot()`), the new chainstate is not considered active and the
-original chainstate remains in use as active.
+### Chronik
 
-|    |    |
-| ---------- | ----------- |
-| number of chainstates | 2 |
-| active chainstate | ibd |
+The Chronik indexer is incompatible with the `loadtxoutset` RPC command.
 
-Once the snapshot chainstate is loaded and validated, it is promoted to active
-chainstate and a sync to tip begins. A new chainstate directory is created in the
-datadir for the snapshot chainstate called `chainstate_snapshot`.
+`loadtxoutset` will fail if Chronik is enabled. To load a UTXO snapshot,
+restart the node with Chronik disabled and try again.
 
-When this directory is present in the datadir, the snapshot chainstate will be detected
-and loaded as active on node startup (via `DetectSnapshotChainstate()`).
+Restarting a node with the `-chronik` init flag when an assumeutxo IBD chainstate is
+present in the data directory will fail. In this case, restart the node with Chronik
+disabled and let the assumeutxo background sync complete before restarting the node with
+Chronik enabled.
 
-A special file is created within that directory, `base_blockhash`, which contains the
-serialized `BlockHash` of the base block of the snapshot. This is used to reinitialize
-the snapshot chainstate on subsequent inits. Otherwise, the directory is a normal
-leveldb database.
+## Generating a snapshot
 
-|    |    |
-| ---------- | ----------- |
-| number of chainstates | 2 |
-| active chainstate | snapshot |
+The RPC command `dumptxoutset` can be used to generate a snapshot for the current
+tip (using type "latest") or a recent height (using type "rollback"). A generated
+snapshot from one node can then be loaded
+on any other node. However, keep in mind that the snapshot hash needs to be
+listed in the chainparams to make it usable. If there is no snapshot hash for
+the height you have chosen already, you will need to change the code there and
+re-compile.
 
-The snapshot begins to sync to tip from its base block, technically in parallel with
-the original chainstate, but it is given priority during block download and is
-allocated most of the cache (see `MaybeRebalanceCaches()` and usages) as our chief
-goal is getting to network tip.
+Using the type parameter "rollback", `dumptxoutset` can also be used to verify the
+hardcoded snapshot hash in the source code by regenerating the snapshot and
+comparing the hash.
 
-**Failure consideration:** if shutdown happens at any point during this phase, both
-chainstates will be detected during the next init and the process will resume.
+Example usage for the most recent hardcoded snapshot:
 
-### Snapshot chainstate hits network tip
+```
+$ bitcoin-cli -rpcclienttimeout=0 dumptxoutset /path/to/output rollback
+```
 
-Once the snapshot chainstate leaves IBD, caches are rebalanced
-(via `MaybeRebalanceCaches()` in `ActivateBestChain()`) and more cache is given
-to the background chainstate, which is responsible for doing full validation of the
-assumed-valid parts of the chain.
+Example usage for a specific block height:
+```
+$ bitcoin-cli -rpcclienttimeout=0 -named dumptxoutset utxo.dat rollback=899899
+```
 
-**Note:** at this point, ValidationInterface callbacks will be coming in from both
-chainstates. Considerations here must be made for indexing, which may no longer be happening
-sequentially.
+For most of the duration of `dumptxoutset` running the node is in a temporary
+state that does not actually reflect reality, i.e. blocks are marked invalid
+although we know they are not invalid. Because of this it is discouraged to
+interact with the node in any other way during this time to avoid inconsistent
+results and race conditions, particularly RPCs that interact with blockstorage.
+This inconsistent state is also why network activity is temporarily disabled,
+causing us to disconnect from all peers.
 
-### Background chainstate hits snapshot base block
-
-Once the tip of the background chainstate hits the base block of the snapshot
-chainstate, we stop use of the background chainstate by setting `m_disabled`, in
-`CompleteSnapshotValidation()`, which is checked in `ActivateBestChain()`). We hash the
-background chainstate's UTXO set contents and ensure it matches the compiled value in
-`CMainParams::m_assumeutxo_data`.
-
-|    |    |
-| ---------- | ----------- |
-| number of chainstates | 2 (ibd has `m_disabled=true`) |
-| active chainstate | snapshot |
-
-The background chainstate data lingers on disk until the program is restarted.
-
-### Bitcoind restarts sometime after snapshot validation has completed
-
-After a shutdown and subsequent restart, `LoadChainstate()` cleans up the background
-chainstate with `ValidatedSnapshotCleanup()`, which renames the `chainstate_snapshot`
-datadir as `chainstate` and removes the now unnecessary background chainstate data.
-
-|    |    |
-| ---------- | ----------- |
-| number of chainstates | 1 |
-| active chainstate | ibd (was snapshot, but is now fully validated) |
-
-What began as the snapshot chainstate is now indistinguishable from a chainstate that
-has been built from the traditional IBD process, and will be initialized as such.
-
-A file will be left in `chainstate/base_blockhash`, which indicates that the
-chainstate, even though now fully validated, was originally started from a snapshot
-with the corresponding base blockhash.
+`dumptxoutset` takes some time to complete, independent of hardware and
+what parameter is chosen. Because of that it is recommended to increase the RPC
+client timeout value (use `-rpcclienttimeout=0` for no timeout).

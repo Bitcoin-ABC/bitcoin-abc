@@ -61,14 +61,15 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
 
     const auto electrum_hosts = args.GetArgs("-chronikelectrumbind");
     const bool is_scripthashindex_enabled =
-        args.GetBoolArg("-chronikscripthashindex", false);
+        args.GetBoolArg("-chronikscripthashindex", !electrum_hosts.empty());
     if (!electrum_hosts.empty()) {
         if (args.IsArgSet("-chronikelectrumcert") ^
             args.IsArgSet("-chronikelectrumprivkey")) {
             return {{_("The -chronikelectrumcert and -chronikelectrumprivkey "
                        "options should both be set or unset.")}};
         }
-        if (!is_scripthashindex_enabled) {
+        if (args.IsArgSet("-chronikscripthashindex") &&
+            !is_scripthashindex_enabled) {
             return {{_("The -chronikelectrumbind option requires "
                        "-chronikscripthashindex to be true.")}};
         }
@@ -79,7 +80,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
     if (electrum_max_history < 1 ||
         electrum_max_history > std::numeric_limits<uint32_t>::max()) {
         return {{_(strprintf("The -chronikelectrummaxhistory value should be "
-                             "withing the range [1, %d].",
+                             "within the range [1, %d].",
                              std::numeric_limits<uint32_t>::max())
                        .c_str())}};
     }
@@ -123,8 +124,9 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                                            DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
             },
         .electrum_hosts = ToRustVec<rust::String>(electrum_hosts),
+        .electrum_url = args.GetArg("-chronikelectrumurl", "127.0.0.1"),
         .electrum_default_port = BaseParams().ChronikElectrumPort(),
-        .electrum_default_protocol = 't',
+        .electrum_default_protocol = 's',
         .electrum_cert_path = args.GetArg("-chronikelectrumcert", ""),
         .electrum_privkey_path = args.GetArg("-chronikelectrumprivkey", ""),
         .electrum_max_history = static_cast<uint32_t>(electrum_max_history),

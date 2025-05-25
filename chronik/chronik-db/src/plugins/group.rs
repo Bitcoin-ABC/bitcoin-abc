@@ -119,6 +119,10 @@ impl Group for PluginsGroup {
         member.to_vec()
     }
 
+    fn is_hash_member_supported(&self) -> bool {
+        false
+    }
+
     fn ser_hash_member(&self, _member: &Self::Member<'_>) -> [u8; 32] {
         unimplemented!("There is no known use case for hashing PluginsGroup")
     }

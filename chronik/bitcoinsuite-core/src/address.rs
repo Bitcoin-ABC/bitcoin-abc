@@ -414,6 +414,9 @@ pub fn from_cash_addr(
         None => return Err(CashAddressError::MissingPrefix),
     };
     let decoded = map_from_b32(payload_base32)?;
+    if !verify_checksum(&prefix, decoded.iter().cloned()) {
+        return Err(CashAddressError::InvalidChecksum);
+    }
     let converted =
         convert_bits(decoded.clone().into_iter(), 5, 8, true).unwrap();
     let hash = &converted[1..converted.len() - 6];
@@ -423,9 +426,6 @@ pub fn from_cash_addr(
             return Err(CashAddressError::InvalidPayloadLength(hash.len()))
         }
     };
-    if !verify_checksum(&prefix, decoded.iter().cloned()) {
-        return Err(CashAddressError::InvalidChecksum);
-    }
     Ok((
         ShaRmd160(hash),
         match converted[0] {
@@ -590,6 +590,23 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_fail_invalid_checksum() {
+        let err = "ecash:pqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8m7jvrjj"
+            .parse::<CashAddress>()
+            .unwrap_err();
+        match err {
+            CashAddressError::InvalidChecksum => {}
+            _ => panic!("Unexpected error: {}", err),
+        }
+
+        let err = "ecash:".parse::<CashAddress>().unwrap_err();
+        match err {
+            CashAddressError::InvalidChecksum => {}
+            _ => panic!("Unexpected error: {}", err),
+        }
+    }
+
+    #[test]
     fn test_parse_fail_no_prefix() {
         let err = "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfnhks603"
             .parse::<CashAddress>()
@@ -613,7 +630,7 @@ mod tests {
 
     #[test]
     fn test_parse_fail_invalid_payload_length() {
-        let err = "ecash:pqqqqqqqqqqqqqqqqqqqqqqqqlgq7v"
+        let err = "ecash:pqqqqqqqqqqqqqqqqqqqqzjzxkxw8"
             .parse::<CashAddress>()
             .unwrap_err();
         match err {

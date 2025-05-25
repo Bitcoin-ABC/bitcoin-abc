@@ -109,6 +109,10 @@ pub trait Group {
     /// Serialize the given member.
     fn ser_member(&self, member: &Self::Member<'_>) -> Self::MemberSer;
 
+    /// Whether this group supports ser_hash_member. If false the
+    /// ser_hash_member function will panic and should not be called.
+    fn is_hash_member_supported(&self) -> bool;
+
     /// Hash the given member.
     /// This is currently only used for ScriptGroup to create a
     /// scripthash to script index for the ElectrumX API.

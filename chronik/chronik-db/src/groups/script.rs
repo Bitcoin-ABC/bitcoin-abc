@@ -110,6 +110,10 @@ impl Group for ScriptGroup {
         compress_script_variant(&member.variant())
     }
 
+    fn is_hash_member_supported(&self) -> bool {
+        true
+    }
+
     fn ser_hash_member(&self, member: &Self::Member<'_>) -> [u8; 32] {
         Sha256::digest(member.bytecode()).to_be_bytes()
     }

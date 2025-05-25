@@ -134,7 +134,6 @@ import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     slpSend,
     SLP_NFT1_CHILD,
-    SLP_FUNGIBLE,
     Script,
     fromHex,
     shaRmd160,
@@ -248,6 +247,13 @@ const Token: React.FC = () => {
                         'eCash NFT. NFT supply is always 1. This NFT may belong to an NFT collection.';
                     isSupportedToken = true;
                     isNftChild = true;
+                    break;
+                }
+                case 'SLP_TOKEN_TYPE_MINT_VAULT': {
+                    renderedTokenType = 'SLP 2';
+                    renderedTokenDescription =
+                        'SLP 2 mint vault token. Any utxo at the mint vault address may mint additional supply.';
+                    isSupportedToken = true;
                     break;
                 }
                 default: {
@@ -783,7 +789,12 @@ const Token: React.FC = () => {
                 setSwitches({ ...switchesOff, showSellNft: true });
                 // Check if it is listed
                 getNftOffer();
-            } else if (tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE' || isAlp) {
+            } else if (
+                tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE' ||
+                tokenType.type === 'SLP_TOKEN_TYPE_MINT_VAULT' ||
+                isAlp
+            ) {
+                // Default action is List for non-NFT tokens
                 setSwitches({ ...switchesOff, showSellSlp: true });
             } else {
                 // Default action is send
@@ -929,6 +940,7 @@ const Token: React.FC = () => {
                 : getSlpSendTargetOutputs(
                       tokenInputInfo as TokenInputInfo,
                       cleanAddress,
+                      tokenType!.number,
                   );
             // Build and broadcast the tx
             const { response } = await sendXec(
@@ -1269,7 +1281,7 @@ const Token: React.FC = () => {
             // this is NOT like an slpv1 send tx
             const tokenBurnTargetOutputs = isAlp
                 ? getAlpBurnTargetOutputs(tokenInputInfo)
-                : getSlpBurnTargetOutputs(tokenInputInfo);
+                : getSlpBurnTargetOutputs(tokenInputInfo, tokenType!.number);
 
             // Build and broadcast the tx
             const { response } = await sendXec(
@@ -2015,7 +2027,7 @@ const Token: React.FC = () => {
                 // We will not have any token change for the tx that creates the offer
                 // This is bc the ad setup tx sends the exact amount of tokens we need
                 // for the ad tx (the offer)
-                script: slpSend(tokenId as string, SLP_FUNGIBLE, [
+                script: slpSend(tokenId as string, tokenType!.number, [
                     sendAmounts[0],
                 ]),
             },
@@ -2783,7 +2795,9 @@ const Token: React.FC = () => {
                                                 userLocale,
                                             )}${
                                                 uncachedTokenInfo.mintBatons ===
-                                                0
+                                                    0 &&
+                                                tokenType!.type !==
+                                                    'SLP_TOKEN_TYPE_MINT_VAULT'
                                                     ? ' (fixed)'
                                                     : ' (var.)'
                                             }`
@@ -3313,6 +3327,8 @@ const Token: React.FC = () => {
                                     ) : (
                                         (tokenType?.type ===
                                             'SLP_TOKEN_TYPE_FUNGIBLE' ||
+                                            tokenType?.type ===
+                                                'SLP_TOKEN_TYPE_MINT_VAULT' ||
                                             isAlp) && (
                                             <>
                                                 <SwitchHolder>

@@ -72,6 +72,7 @@ import {
     xecxTx,
     invalidXecxTx,
     firmaYieldTx,
+    firmaRedeemTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -914,6 +915,12 @@ export default {
                 tx: firmaYieldTx.tx,
                 hashes: [firmaYieldTx.receivingHash],
                 parsed: firmaYieldTx.parsedReceive,
+            },
+            {
+                description: 'Firma redeem tx (send)',
+                tx: firmaRedeemTx.tx,
+                hashes: [firmaRedeemTx.sendingHash],
+                parsed: firmaRedeemTx.parsedSend,
             },
         ],
     },

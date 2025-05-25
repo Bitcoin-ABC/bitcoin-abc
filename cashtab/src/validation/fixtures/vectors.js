@@ -889,7 +889,7 @@ export default {
             },
             {
                 description:
-                    'bip21 token: token_decimalized_qty specified but token_id unspecified',
+                    'bip21 token: token_id specified, token_decimalized_qty specified, and amount specified (not supported for bip21 token)',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
                 balanceSats: 50000000,
@@ -901,7 +901,7 @@ export default {
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
-                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id and token_decimalized_qty`,
+                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty, and (optionally) firma`,
                     },
                 },
             },
@@ -956,7 +956,7 @@ export default {
             },
             {
                 description:
-                    'bip21 token: valid bip21 token tx with valid params',
+                    'bip21 token: valid bip21 token tx with valid params, no firma',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123',
                 balanceSats: 50000000,
@@ -1002,6 +1002,66 @@ export default {
                     },
                     queryString: {
                         value: 'token_decimalized_qty=100.123&token_id=1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token tx with valid params including firma',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&firma=deadbeef',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                    },
+                    token_id: {
+                        value: '1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                    token_decimalized_qty: {
+                        value: '100.123',
+                        error: false,
+                    },
+                    firma: {
+                        error: false,
+                        value: 'deadbeef',
+                    },
+                    queryString: {
+                        value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&firma=deadbeef',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token tx with valid params but invalid firma',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&firma=deadbee',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                    },
+                    token_id: {
+                        value: '1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
+                    },
+                    token_decimalized_qty: {
+                        value: '100.123',
+                        error: false,
+                    },
+                    firma: {
+                        error: 'firma input must be in hex bytes. Length of firma push must be divisible by two.',
+                        value: 'deadbee',
+                    },
+                    queryString: {
+                        value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&firma=deadbee',
                         error: false,
                     },
                 },
@@ -2308,6 +2368,60 @@ export default {
                 description: 'String of even spaces is rejected',
                 opReturnRaw: '  ',
                 returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+        ],
+    },
+    getFirmaPushError: {
+        expectedReturns: [
+            {
+                description: 'Valid lowercase hex of max length is good',
+                firmaPush: Array(164).fill('01').join(''),
+                returned: false,
+            },
+            {
+                description:
+                    'Valid lowercase hex of 1 more than max length is rejected',
+                firmaPush: Array(223).fill('01').join(''),
+                returned: 'firma is 223 bytes; exceeds max 164 bytes',
+            },
+            {
+                description:
+                    'Valid lowercase hex of max length that starts with "6a" is rejected',
+                firmaPush: '6adeadbeef',
+                returned: `firma push cannot start with OP_RETURN ('6a')`,
+            },
+            {
+                description: 'Valid hex of odd length below max is rejected',
+                firmaPush: Array(12).fill('01').join('') + '1',
+                returned:
+                    'firma input must be in hex bytes. Length of firma push must be divisible by two.',
+            },
+            {
+                description: 'Uppercase hex is rejected',
+                firmaPush: Array(12).fill('FF').join(''),
+                returned: 'firma push must be lowercase hex a-f 0-9.',
+            },
+            {
+                description:
+                    'Even-length string containing non-hex characters is rejected',
+                firmaPush: 'livebeef',
+                returned: 'firma push must be lowercase hex a-f 0-9.',
+            },
+            {
+                description:
+                    'Even-length string containing a space is rejected',
+                firmaPush: 'dead beef',
+                returned: 'firma push must be lowercase hex a-f 0-9.',
+            },
+            {
+                description: 'Empty string is rejected',
+                firmaPush: '',
+                returned: 'firma push cannot be empty',
+            },
+            {
+                description: 'String of even spaces is rejected',
+                firmaPush: '  ',
+                returned: 'firma push must be lowercase hex a-f 0-9.',
             },
         ],
     },

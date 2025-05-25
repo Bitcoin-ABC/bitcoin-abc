@@ -424,6 +424,55 @@ export const opReturnVectors = {
             },
         ],
     },
+    parseFirma: {
+        expectedReturns: [
+            {
+                description:
+                    'Returns protocol identifier and decoded solana address for a valid SOL0 firma push',
+                firma: '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+                returned: {
+                    protocol: 'Solana Address',
+                    data: '6JKwz43wDTgk5n8eNCJrtsnNtkDdKd1XUZAvB9WkiEQ4',
+                },
+            },
+            {
+                description:
+                    'Returns protocol identifier and error warning for an invalid SOL0 firma push',
+                firma: '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf7',
+                returned: {
+                    protocol: 'Solana Address',
+                    data: 'Invalid Solana address: raw pk 4ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf7',
+                },
+            },
+            {
+                description:
+                    'Returns protocol identifier and decoded message for a valid Cashtab msg',
+                firma: '007461626c6574277320676f6f6f6f6f6f6f206543617368203d20656c656374726f6e696320436173680a58e3858ce384b7757272656e6379',
+                returned: {
+                    protocol: 'Cashtab Msg',
+                    data: `let's gooooooo eCash = electronic Cash\nXㅌㄷurrency`,
+                },
+            },
+            {
+                description:
+                    'Returns unknown lokad firma push with unknown lokad',
+                firma: 'deadbeef',
+                returned: {
+                    protocol: 'Unknown Lokad',
+                    data: 'deadbeef',
+                },
+            },
+            {
+                description:
+                    'Returns unknown lokad firma push that is too short for a lokadId',
+                firma: 'beef',
+                returned: {
+                    protocol: 'Unknown Lokad',
+                    data: 'beef',
+                },
+            },
+        ],
+    },
     getXecxAppAction: {
         expectedReturns: [
             {
@@ -502,6 +551,31 @@ export const opReturnVectors = {
                     },
                     app: 'unknown',
                     lokadId: 'deadbeef',
+                },
+            },
+            {
+                description: 'Parses valid Solana address',
+                push: '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+                returned: {
+                    action: {
+                        solAddr: '6JKwz43wDTgk5n8eNCJrtsnNtkDdKd1XUZAvB9WkiEQ4',
+                    },
+                    app: 'Solana Address',
+                    isValid: true,
+                    lokadId: '534f4c30',
+                },
+            },
+            {
+                description: 'Parses invalid Solana address',
+                push: '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf7',
+                returned: {
+                    action: {
+                        solAddr:
+                            'Invalid SOL pk: 4ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf7',
+                    },
+                    app: 'Solana Address',
+                    isValid: false,
+                    lokadId: '534f4c30',
                 },
             },
             {

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import Modal from 'components/Common/Modal';
-import PrimaryButton from 'components/Common/Buttons';
+import PrimaryButton, { CopyIconButton } from 'components/Common/Buttons';
 import { toSatoshis, toXec, SlpDecimals } from 'wallet';
 import { getSendTokenInputs, TokenInputInfo } from 'token-protocols';
 import {
@@ -38,6 +38,7 @@ import {
     getCashtabMsgByteCount,
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
+    parseFirma,
     ParsedOpReturnRaw,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
@@ -70,6 +71,13 @@ import {
     GenesisInfo,
 } from 'chronik-client';
 import { SendButtonContainer } from './styled';
+import {
+    FIRMA,
+    FIRMA_REDEEM_ADDRESS,
+    FIRMA_REDEEM_EMPP_RAW_LENGTH,
+    FIRMA_REDEEM_FEE,
+} from 'constants/tokens';
+import { FirmaIcon, TetherIcon } from 'components/Common/CustomIcons';
 
 const OuterCtn = styled.div`
     background: ${props => props.theme.primaryBackground};
@@ -176,6 +184,24 @@ const ParsedTokenSend = styled.div`
     padding: 12px;
     text-align: left;
 `;
+export const FirmaRedeemLogoWrapper = styled.div`
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    img {
+        width: 64px;
+        height: 64px;
+    }
+    @media (max-width: 768px) {
+        img {
+            width: 32px;
+            height: 32px;
+        }
+    }
+`;
+export const FirmaRedeemTextAndCopy = styled.div`
+    display: flex;
+`;
 const SendTokenBip21FormRow = styled.div`
     width: 100%;
     display: flex;
@@ -243,6 +269,10 @@ const SendXec: React.FC = () => {
             protocol: '',
             data: '',
         });
+    const [parsedFirma, setParsedFirma] = useState<ParsedOpReturnRaw>({
+        protocol: '',
+        data: '',
+    });
     const [isSending, setIsSending] = useState<boolean>(false);
 
     interface SendXecFormData {
@@ -347,6 +377,7 @@ const SendXec: React.FC = () => {
             error: false | string;
         };
         token_decimalized_qty: { value: string; error: false | string };
+        firma?: { value: string; error: false | string };
     } => {
         return (
             typeof parsedAddressInput !== 'undefined' &&
@@ -359,6 +390,42 @@ const SendXec: React.FC = () => {
             typeof parsedAddressInput.token_decimalized_qty.value ===
                 'string' &&
             parsedAddressInput.token_decimalized_qty.error === false
+        );
+    };
+
+    const isValidFirmaRedeemTx = (
+        parsedAddressInput: CashtabParsedAddressInfo,
+    ): parsedAddressInput is {
+        address: {
+            value: string;
+            error: false;
+        };
+        token_id: {
+            value: string;
+            error: false;
+        };
+        token_decimalized_qty: { value: string; error: false };
+        firma: { value: string; error: false };
+    } => {
+        return (
+            typeof parsedAddressInput !== 'undefined' &&
+            parsedAddressInput.address.value === FIRMA_REDEEM_ADDRESS &&
+            parsedAddressInput.address.error === false &&
+            typeof parsedAddressInput.token_id !== 'undefined' &&
+            parsedAddressInput.token_id.value === FIRMA.tokenId &&
+            parsedAddressInput.token_id.error === false &&
+            typeof parsedAddressInput.token_decimalized_qty !== 'undefined' &&
+            typeof parsedAddressInput.token_decimalized_qty.value ===
+                'string' &&
+            parsedAddressInput.token_decimalized_qty.error === false &&
+            typeof parsedAddressInput.firma !== 'undefined' &&
+            parsedAddressInput.firma.error === false &&
+            typeof parsedAddressInput.firma.value === 'string' &&
+            parsedAddressInput.firma.value.startsWith(
+                opReturn.appPrefixesHex.solAddr,
+            ) &&
+            parsedAddressInput.firma.value.length ===
+                FIRMA_REDEEM_EMPP_RAW_LENGTH
         );
     };
 
@@ -613,6 +680,15 @@ const SendXec: React.FC = () => {
         const { genesisInfo, tokenType } = cachedTokenInfo;
         const { decimals } = genesisInfo;
         const { type } = tokenType;
+        if (
+            type !== 'ALP_TOKEN_TYPE_STANDARD' &&
+            typeof parsedAddressInput.firma !== 'undefined'
+        ) {
+            toast.error(
+                `Error: Cannot include firma for a token type other than ALP_TOKEN_TYPE_STANDARD`,
+            );
+            return;
+        }
         // GA event
         Event('SendXec', 'Bip21 Token Send', tokenId);
 
@@ -629,6 +705,11 @@ const SendXec: React.FC = () => {
                           decimals as SlpDecimals,
                       );
 
+            const firma =
+                typeof parsedAddressInput.firma?.value !== 'undefined'
+                    ? parsedAddressInput.firma.value
+                    : '';
+
             // Get targetOutputs for an slpv1 send tx
             const tokenSendTargetOutputs =
                 type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
@@ -637,10 +718,12 @@ const SendXec: React.FC = () => {
                     ? getAlpSendTargetOutputs(
                           tokenInputInfo as TokenInputInfo,
                           address,
+                          firma,
                       )
                     : getSlpSendTargetOutputs(
                           tokenInputInfo as TokenInputInfo,
                           address,
+                          tokenType!.number,
                       );
             // Build and broadcast the tx
             const { response } = await sendXec(
@@ -678,6 +761,12 @@ const SendXec: React.FC = () => {
                         : 'eToken sent'}
                 </a>,
             );
+
+            if (txInfoFromUrl) {
+                // Close window after successful tx
+                window.close();
+            }
+
             clearInputForms();
             // Hide the confirmation modal if it was showing
             setShowConfirmSendModal(false);
@@ -871,6 +960,14 @@ const SendXec: React.FC = () => {
         }
         if (
             renderedSendToError === false &&
+            typeof parsedAddressInput.firma !== 'undefined' &&
+            parsedAddressInput.firma.error !== false
+        ) {
+            // If we have an invalid firma but a good bip21 query string
+            renderedSendToError = parsedAddressInput.firma.error;
+        }
+        if (
+            renderedSendToError === false &&
             typeof parsedAddressInput.token_id !== 'undefined'
         ) {
             if (parsedAddressInput.token_id.error !== false) {
@@ -920,6 +1017,17 @@ const SendXec: React.FC = () => {
                         value: parsedAddressInput.op_return_raw.value,
                     },
                 } as React.ChangeEvent<HTMLTextAreaElement>);
+            }
+        }
+
+        // Set firma if it's in the query string
+        if (typeof parsedAddressInput.firma !== 'undefined') {
+            if (
+                typeof parsedAddressInput.firma.value === 'string' &&
+                parsedAddressInput.firma.error === false
+            ) {
+                // If firma is valid, set it
+                setParsedFirma(parseFirma(parsedAddressInput.firma.value));
             }
         }
 
@@ -1455,14 +1563,69 @@ const SendXec: React.FC = () => {
                 </SendXecRow>
                 {isBip21TokenSend(parsedAddressInput) &&
                     tokenIdQueryError === false && (
-                        <ParsedTokenSend>
-                            <TokenIcon
-                                size={64}
-                                tokenId={parsedAddressInput.token_id.value}
-                            />
-                            Sending {decimalizedTokenQty} {nameAndTicker} to{' '}
-                            {addressPreview}
-                        </ParsedTokenSend>
+                        <>
+                            {isValidFirmaRedeemTx(parsedAddressInput) ? (
+                                <ParsedTokenSend
+                                    /** make sure the bottom is not stuck behind SEND button */
+                                    style={{ marginBottom: '48px' }}
+                                >
+                                    <FirmaRedeemLogoWrapper>
+                                        <FirmaIcon />
+                                        <TetherIcon />
+                                    </FirmaRedeemLogoWrapper>
+                                    <FirmaRedeemTextAndCopy>
+                                        On tx finalized,{' '}
+                                        {(
+                                            Number(
+                                                parsedAddressInput
+                                                    .token_decimalized_qty
+                                                    .value,
+                                            ) - FIRMA_REDEEM_FEE
+                                        ).toLocaleString(userLocale, {
+                                            maximumFractionDigits: 4,
+                                            minimumFractionDigits: 4,
+                                        })}{' '}
+                                        USDT will be sent to{' '}
+                                        {parsedFirma.data.slice(0, 3)}...
+                                        {parsedFirma.data.slice(-3)}{' '}
+                                        <CopyIconButton
+                                            name="Copy SOL addr"
+                                            data={parsedFirma.data}
+                                            showToast
+                                        />
+                                    </FirmaRedeemTextAndCopy>
+                                </ParsedTokenSend>
+                            ) : (
+                                <ParsedTokenSend>
+                                    <TokenIcon
+                                        size={64}
+                                        tokenId={
+                                            parsedAddressInput.token_id.value
+                                        }
+                                    />
+                                    Sending {decimalizedTokenQty}{' '}
+                                    {nameAndTicker} to {addressPreview}
+                                </ParsedTokenSend>
+                            )}
+                        </>
+                    )}
+
+                {isBip21TokenSend(parsedAddressInput) &&
+                    !isValidFirmaRedeemTx(parsedAddressInput) &&
+                    typeof parsedAddressInput.firma?.value === 'string' &&
+                    parsedAddressInput.firma.error === false && (
+                        <SendXecRow>
+                            <ParsedBip21InfoRow>
+                                <ParsedBip21InfoLabel>
+                                    Parsed firma
+                                </ParsedBip21InfoLabel>
+                                <ParsedBip21Info>
+                                    <b>{parsedFirma.protocol}</b>
+                                    <br />
+                                    {parsedFirma.data}
+                                </ParsedBip21Info>
+                            </ParsedBip21InfoRow>
+                        </SendXecRow>
                     )}
                 {sendWithOpReturnRaw && (
                     <>

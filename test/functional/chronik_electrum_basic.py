@@ -5,7 +5,9 @@
 Test Chronik's electrum interface
 """
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.blocktools import GENESIS_BLOCK_HASH
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_node import ErrorMatch
 from test_framework.util import assert_equal, chronikelectrum_port, get_cli_version
 
 ELECTRUM_PROTOCOL_VERSION = "1.4"
@@ -15,11 +17,12 @@ class ChronikElectrumBasic(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.chronik_url = "electrum.regtest"
         self.extra_args = [
             [
                 "-chronik",
-                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
-                "-chronikscripthashindex=1",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                f"-chronikelectrumurl={self.chronik_url}",
             ]
         ]
 
@@ -33,6 +36,8 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.test_donation_address()
         self.test_ping()
         self.test_server_version()
+        self.test_server_peers()
+        self.test_server_features()
         # Run this last as it invalidates self.client
         self.test_init_errors()
 
@@ -123,20 +128,85 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             {"code": 1, "message": "Unsupported protocol version"},
         )
 
-    def test_init_errors(self):
-        self.node.stop_node()
-        self.node.assert_start_raises_init_error(
-            ["-chronik", f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}"],
-            "Error: The -chronikelectrumbind option requires -chronikscripthashindex to be true.",
+    def test_server_peers(self):
+        # Peering is not implemented, the server always returns an empty string
+        assert_equal(
+            self.client.server.peers.subscribe().result,
+            [],
         )
+
+    def test_server_features(self):
+        version = f"{self.config['environment']['PACKAGE_NAME']} {get_cli_version(self, self.node)}"
+        assert_equal(
+            self.client.server.features().result,
+            {
+                "genesis_hash": GENESIS_BLOCK_HASH,
+                "hash_function": "sha256",
+                "server_version": version,
+                "protocol_min": "1.4",
+                "protocol_max": "1.4.5",
+                "pruning": None,
+                "hosts": {
+                    self.chronik_url: {
+                        "tcp_port": chronikelectrum_port(0),
+                    },
+                },
+                "dsproof": False,
+            },
+        )
+
+    def test_init_errors(self):
         self.node.stop_node()
         self.node.assert_start_raises_init_error(
             [
                 "-chronik",
-                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
                 "-chronikscripthashindex=0",
             ],
             "Error: The -chronikelectrumbind option requires -chronikscripthashindex to be true.",
+        )
+
+        # Chronik Electrum default to TLS if the protocol is not set
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+            ],
+            "Error: Chronik Electrum TLS configuration requires a certificate chain file (see -chronikelectrumcert)",
+        )
+        # Same result when the 's' protocol is explicitly set
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:s",
+            ],
+            "Error: Chronik Electrum TLS configuration requires a certificate chain file (see -chronikelectrumcert)",
+        )
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                "-chronikelectrumcert=dummy",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+            ],
+            "Error: The -chronikelectrumcert and -chronikelectrumprivkey options should both be set or unset.",
+        )
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                "-chronikelectrumprivkey=dummy",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+            ],
+            "Error: The -chronikelectrumcert and -chronikelectrumprivkey options should both be set or unset.",
+        )
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                "-chronikelectrumcert=dummy",
+                "-chronikelectrumprivkey=dummy",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}",
+            ],
+            "Error: Chronik Electrum TLS configuration failed to open the certificate chain file dummy",
+            match=ErrorMatch.PARTIAL_REGEX,
         )
 
         self.start_node(0, self.extra_args[0])

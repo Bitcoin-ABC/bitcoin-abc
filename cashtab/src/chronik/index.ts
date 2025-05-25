@@ -293,6 +293,9 @@ interface EcashChatArticleReply {
 interface CashtabMsgAction {
     msg: string;
 }
+export interface SolAddrAction {
+    solAddr: string;
+}
 export interface XecxAction {
     minBalanceTokenSatoshisToReceivePaymentThisRound: number;
     eligibleTokenSatoshis: number;
@@ -316,6 +319,7 @@ export interface AppAction {
         | EcashChatArticleReply
         | CashtabMsgAction
         | XecxAction
+        | SolAddrAction
         | UnknownAction;
 }
 

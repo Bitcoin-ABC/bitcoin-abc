@@ -141,6 +141,7 @@ describe('slpv1 methods', () => {
                     getSlpSendTargetOutputs(
                         { tokenInputs, sendAmounts },
                         SEND_DESTINATION_ADDRESS,
+                        SLP_FUNGIBLE,
                     ),
                 ).toStrictEqual(targetOutputs);
             });
@@ -195,7 +196,10 @@ describe('slpv1 methods', () => {
                 );
 
                 expect(
-                    getSlpBurnTargetOutputs(calculatedTokenInputInfo),
+                    getSlpBurnTargetOutputs(
+                        calculatedTokenInputInfo,
+                        SLP_FUNGIBLE,
+                    ),
                 ).toStrictEqual(targetOutputs);
             });
         });

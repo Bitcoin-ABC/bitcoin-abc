@@ -71,6 +71,22 @@ impl<G: Group> SubsGroup<G> {
         }
     }
 
+    /// Subscribe to updates about the given group hash member.
+    pub fn subscribe_to_hash_member(
+        &mut self,
+        hash_member: &[u8; 32],
+    ) -> broadcast::Receiver<TxMsg> {
+        match self.subs.get(hash_member.as_ref()) {
+            Some(sender) => sender.subscribe(),
+            None => {
+                let (sender, receiver) =
+                    broadcast::channel(GROUP_CHANNEL_CAPACITY);
+                self.subs.insert(hash_member.as_ref().to_vec(), sender);
+                receiver
+            }
+        }
+    }
+
     /// Cleanly unsubscribe from a member. This will try to deallocate the
     /// memory used by a subscriber.
     pub fn unsubscribe_from_member(&mut self, member: &G::Member<'_>) {
@@ -98,7 +114,14 @@ impl<G: Group> SubsGroup<G> {
             txid: tx.txid(),
         };
         let mut already_notified = HashSet::new();
+        let mut already_notified_hash = HashSet::new();
         for member in tx_members_for_group(&self.group, query, aux) {
+            let hash_member = if self.group.is_hash_member_supported() {
+                Some(self.group.ser_hash_member(&member))
+            } else {
+                None
+            };
+
             if !already_notified.contains(&member) {
                 let member_ser = self.group.ser_member(&member);
                 if let Some(sender) = self.subs.get(member_ser.as_ref()) {
@@ -108,6 +131,24 @@ impl<G: Group> SubsGroup<G> {
                     }
                 }
                 already_notified.insert(member);
+            }
+
+            match hash_member {
+                // What is below is only for ScriptGroup
+                None => continue,
+                Some(hash_member) => {
+                    if !already_notified_hash.contains(&hash_member) {
+                        if let Some(sender) =
+                            self.subs.get(hash_member.as_ref())
+                        {
+                            // Unclean unsubscribe
+                            if sender.send(msg.clone()).is_err() {
+                                self.subs.remove(hash_member.as_ref());
+                            }
+                        }
+                        already_notified_hash.insert(hash_member);
+                    }
+                }
             }
         }
     }

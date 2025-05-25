@@ -73,11 +73,17 @@ describe('ALP token methods', () => {
                 description,
                 tokenInputInfo,
                 destinationAddress,
+                firma,
                 returned,
             } = expectedReturn;
+
             it(`getAlpSendTargetOutputs: ${description}`, () => {
                 expect(
-                    getAlpSendTargetOutputs(tokenInputInfo, destinationAddress),
+                    getAlpSendTargetOutputs(
+                        tokenInputInfo,
+                        destinationAddress,
+                        firma,
+                    ),
                 ).toStrictEqual(returned);
             });
         });

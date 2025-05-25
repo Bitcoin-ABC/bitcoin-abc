@@ -713,10 +713,10 @@ void SetupServerArgs(NodeContext &node) {
                    "Output some performance statistics (e.g. num cache hits, "
                    "seconds spent) into a <datadir>/perf folder. (default: 0)",
                    ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
-    argsman.AddArg(
-        "-chronikscripthashindex",
-        "Enable the scripthash index for the Chronik indexer (default: 0) ",
-        ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg("-chronikscripthashindex",
+                   "Enable the scripthash index for the Chronik indexer "
+                   "(default: 1 if chronikelectrumbind is set, 0 otherwise) ",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
     argsman.AddArg(
         "-chronikelectrumbind=<addr>[:port][:t|s]",
         strprintf(
@@ -727,7 +727,7 @@ void SetupServerArgs(NodeContext &node) {
             "'s' means TLS. If TLS is selected, the certificate chain and "
             "private key must both be passed (see -chronikelectrumcert and "
             "-chronikelectrumprivkey (default: disabled; default port: %u, "
-            "testnet: %u, regtest: %u; default protocol: TCP)",
+            "testnet: %u, regtest: %u; default protocol: TLS)",
             defaultBaseParams->ChronikElectrumPort(),
             testnetBaseParams->ChronikElectrumPort(),
             regtestBaseParams->ChronikElectrumPort()),
@@ -746,6 +746,15 @@ void SetupServerArgs(NodeContext &node) {
         "Path to the private key file to be used by the Chronik Electrum "
         "server when the TLS protocol is selected. If used the "
         "-chronikelectrumcert must be set as well.",
+        ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::HIDDEN);
+    argsman.AddArg(
+        "-chronikelectrumurl",
+        "The URL to advertise to the Electrum peers. This needs to be set to "
+        "the server public URL to instruct the other Electrum peers that they "
+        "don't have to drop the connection. See the 'hosts' key in "
+        "https://electrum-cash-protocol.readthedocs.io/en/latest/"
+        "protocol-methods.html#server.features (default: 127.0.0.1).",
         ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
         OptionsCategory::HIDDEN);
     argsman.AddArg(

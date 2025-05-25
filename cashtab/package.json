@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.23.0",
+    "version": "3.25.2",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "@zxing/browser": "^0.1.4",
+        "b58-ts": "file:../modules/b58-ts",
         "bignumber.js": "^9.1.2",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",

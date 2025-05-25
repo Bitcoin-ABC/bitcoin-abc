@@ -145,6 +145,29 @@ export const tokenTestWallet = {
                 path: 1899,
                 sats: 546n,
             },
+            // SLP MINT VAULT
+            {
+                outpoint: {
+                    txid: '6fb5525bf35ec6eb6a0608c8a3624891801cdf4c1079fc78462a24230bad27e2',
+                    outIdx: 1,
+                },
+                blockHeight: 836700,
+                isCoinbase: false,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+                        number: 2,
+                    },
+                    isMintBaton: false,
+                    atoms: 100000n,
+                },
+                path: 1899,
+                sats: 546n,
+            },
             {
                 outpoint: {
                     txid: 'da3c897eb6d4e5299cb3ae2d8235d46632647303eab61236a1072885d5e56d66',
@@ -2294,6 +2317,126 @@ export const alpMocks = {
     ],
 };
 
+export const slpMintVaultMocks = {
+    tokenId: '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+    token: {
+        tokenId:
+            '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+            number: 2,
+        },
+        timeFirstSeen: 1747417871,
+        genesisInfo: {
+            tokenTicker: 'MVTT β',
+            tokenName: 'Mint Vault Test Token Beta',
+            url: 'cashtab.com',
+            decimals: 0,
+            mintVaultScripthash: '3630f1e9469f7c3b8a989dbc74bf982ed11e25b4',
+            hash: '',
+        },
+        block: {
+            height: 897132,
+            hash: '00000000000000000384f5e6081f2a0ed3581a315a0d280a006b6c5c30f0f3ca',
+            timestamp: 1747418044,
+        },
+    },
+    tx: {
+        txid: '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '36acca8612c20ec7aca2b72090db9f96599f38d02c9b839046cdd3ce66324917',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '4156caad48179e4db51623230205c3d28bc1074589ea79ab5af30c8ee72353f5cbc02c8e7d747767acd2d06fd881d30e56f984ee2f9f6c83bea943ab17c48fbd5d412103e2932c15fe3a40d1eca2d7d65935ac5b550b07b5829a706085c259a453bd7f37',
+                sats: 12959541n,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9143630f1e9469f7c3b8a989dbc74bf982ed11e25b488ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a04534c500001020747454e45534953074d56545420ceb21a4d696e74205661756c74205465737420546f6b656e20426574610b636173687461622e636f6d4c000100143630f1e9469f7c3b8a989dbc74bf982ed11e25b4080000000000989680',
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a9143630f1e9469f7c3b8a989dbc74bf982ed11e25b488ac',
+                token: {
+                    tokenId:
+                        '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+                        number: 2,
+                    },
+                    atoms: 10000000n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '0239fede6e9bde63403836ebb57c12ce6b789488d145dd0c81733d212bec1d8f',
+                    outIdx: 0,
+                },
+            },
+            {
+                sats: 12958670n,
+                outputScript:
+                    '76a9143630f1e9469f7c3b8a989dbc74bf982ed11e25b488ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1747417871,
+        size: 325,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+                    number: 2,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+        block: {
+            height: 897132,
+            hash: '00000000000000000384f5e6081f2a0ed3581a315a0d280a006b6c5c30f0f3ca',
+            timestamp: 1747418044,
+        },
+    },
+    utxos: [
+        {
+            ...MOCK_TOKEN_UTXO,
+            token: {
+                ...MOCK_TOKEN_UTXO.token,
+                tokenId:
+                    '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+                atoms: 10_000_000n,
+            },
+        },
+        // NB no mint batons for a MINT VAULT token
+    ],
+};
+
 // XECX
 export const xecxMocks = {
     ...tokenMockXecx,
@@ -2352,6 +2495,7 @@ export const supportedTokens = [
     slp1NftParentWithChildrenMocks,
     slp1NftChildMocks,
     alpMocks,
+    slpMintVaultMocks,
     xecxMocks,
     firmaMocks,
 ];
