@@ -38,6 +38,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.test_server_version()
         self.test_server_peers()
         self.test_server_features()
+        self.test_server_banner()
         # Run this last as it invalidates self.client
         self.test_init_errors()
 
@@ -280,6 +281,13 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                 },
                 "dsproof": False,
             },
+        )
+
+    def test_server_banner(self):
+        version = f"{self.config['environment']['PACKAGE_NAME']} {get_cli_version(self, self.node)}"
+        assert_equal(
+            self.client.server.banner().result,
+            f"Connected to {version} server",
         )
 
     def test_init_errors(self):

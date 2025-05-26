@@ -655,6 +655,11 @@ impl ChronikElectrumRPCServerEndpoint {
 
         Ok(json!(peers_data))
     }
+
+    async fn banner(&self, _params: Value) -> Result<Value, RPCError> {
+        let banner_msg = format!("Connected to {} server", get_version());
+        Ok(json!(banner_msg))
+    }
 }
 
 fn json_to_u31(num: Value, err_msg: &str) -> Result<i32, RPCError> {
