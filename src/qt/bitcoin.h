@@ -74,7 +74,7 @@ public:
     /// Initialize prune setting
     void InitializePruneSetting(bool prune);
     /// Create main window
-    void createWindow(const Config *, const NetworkStyle *networkStyle);
+    void createWindow(const Config &, const NetworkStyle *networkStyle);
     /// Create splash screen
     void createSplashScreen(const NetworkStyle *networkStyle);
     /// Basic initialization, before starting initialization/shutdown thread.

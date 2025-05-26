@@ -71,7 +71,7 @@ class BitcoinGUI : public QMainWindow {
 public:
     static const std::string DEFAULT_UIPLATFORM;
 
-    explicit BitcoinGUI(interfaces::Node &node, const Config *,
+    explicit BitcoinGUI(interfaces::Node &node, const Config &,
                         const PlatformStyle *platformStyle,
                         const NetworkStyle *networkStyle,
                         QWidget *parent = nullptr);
@@ -189,7 +189,7 @@ private:
     int prevBlocks = 0;
     int spinnerFrame = 0;
 
-    const Config *config;
+    const Config &config;
     const PlatformStyle *platformStyle;
     const NetworkStyle *const m_network_style;
 

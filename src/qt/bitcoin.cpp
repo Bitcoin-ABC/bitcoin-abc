@@ -334,7 +334,7 @@ void BitcoinApplication::createOptionsModel(bool resetSettings) {
     optionsModel = new OptionsModel(this, resetSettings);
 }
 
-void BitcoinApplication::createWindow(const Config *config,
+void BitcoinApplication::createWindow(const Config &config,
                                       const NetworkStyle *networkStyle) {
     window =
         new BitcoinGUI(node(), config, platformStyle, networkStyle, nullptr);
@@ -819,7 +819,7 @@ int GuiMain(int argc, char *argv[]) {
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
 
     try {
-        app.createWindow(&config, networkStyle.data());
+        app.createWindow(config, networkStyle.data());
         // Perform base initialization before spinning up
         // initialization/shutdown thread. This is acceptable because this
         // function only contains steps that are quick to execute, so the GUI

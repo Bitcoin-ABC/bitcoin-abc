@@ -90,7 +90,7 @@ void AppTests::appTests() {
     QScopedPointer<const NetworkStyle> style(
         NetworkStyle::instantiate(Params().GetChainType()));
     m_app.setupPlatformStyle();
-    m_app.createWindow(&config, style.data());
+    m_app.createWindow(config, style.data());
     connect(&m_app, &BitcoinApplication::windowShown, this,
             &AppTests::guiTests);
     expectCallback("guiTests");

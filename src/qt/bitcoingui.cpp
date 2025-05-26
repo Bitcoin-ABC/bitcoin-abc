@@ -75,7 +75,7 @@ const std::string BitcoinGUI::DEFAULT_UIPLATFORM =
 #endif
     ;
 
-BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
+BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config &configIn,
                        const PlatformStyle *_platformStyle,
                        const NetworkStyle *networkStyle, QWidget *parent)
     : QMainWindow(parent), m_node(node), trayIconMenu{new QMenu()},
@@ -277,7 +277,7 @@ void BitcoinGUI::createActions() {
     receiveCoinsAction->setStatusTip(
         tr("Request payments (generates QR codes and %1: URIs)")
             .arg(QString::fromStdString(
-                config->GetChainParams().CashAddrPrefix())));
+                config.GetChainParams().CashAddrPrefix())));
     receiveCoinsAction->setToolTip(receiveCoinsAction->statusTip());
     receiveCoinsAction->setCheckable(true);
     receiveCoinsAction->setShortcut(QKeySequence(QStringLiteral("Alt+3")));
@@ -385,7 +385,7 @@ void BitcoinGUI::createActions() {
     openAction->setStatusTip(
         tr("Open a %1: URI or payment request")
             .arg(QString::fromStdString(
-                config->GetChainParams().CashAddrPrefix())));
+                config.GetChainParams().CashAddrPrefix())));
 
     m_open_wallet_action = new QAction(tr("Open Wallet"), this);
     m_open_wallet_action->setEnabled(false);
@@ -947,7 +947,7 @@ void BitcoinGUI::showHelpMessageClicked() {
 
 #ifdef ENABLE_WALLET
 void BitcoinGUI::openClicked() {
-    OpenURIDialog dlg(config->GetChainParams(), this);
+    OpenURIDialog dlg(config.GetChainParams(), this);
     if (dlg.exec()) {
         Q_EMIT receivedURI(dlg.getURI());
     }
@@ -1062,7 +1062,7 @@ void BitcoinGUI::updateHeadersSyncProgressLabel() {
     int headersTipHeight = clientModel->getHeaderTipHeight();
     int estHeadersLeft =
         (GetTime() - headersTipTime) /
-        config->GetChainParams().GetConsensus().nPowTargetSpacing;
+        config.GetChainParams().GetConsensus().nPowTargetSpacing;
     if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC) {
         progressBarLabel->setText(
             tr("Syncing Headers (%1%)...")
