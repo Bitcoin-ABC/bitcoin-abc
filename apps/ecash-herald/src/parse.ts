@@ -2559,6 +2559,17 @@ export const summarizeTxHistory = (
                     actualBurnAtoms,
                 } = tokenEntry;
                 const { type } = tokenType;
+                if (type == 'UNKNOWN') {
+                    // TODO handle unknown protocol types
+                    invalidTokenEntries += 1;
+                    // Log to console so if we see this tx, we can analyze it for parsing
+                    console.info(
+                        `Unparsed unknown protocol tokenEntry in tx: ${tx.txid}`,
+                    );
+                    // No other parsing for this tokenEntry
+                    continue;
+                }
+
                 tokenTypeMap.set(tokenId, type);
 
                 if (isInvalid) {

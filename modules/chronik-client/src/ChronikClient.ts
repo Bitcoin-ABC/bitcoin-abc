@@ -1384,8 +1384,12 @@ function convertToTokenType(tokenType: proto.TokenType): TokenType {
             number: tokenType.slp,
         };
     }
-    // Should never happen
-    throw new Error('chronik did not return a token protocol for this token');
+    // In case the Chronik instance supports a protocol this client doesn't
+    return {
+        protocol: 'UNKNOWN',
+        type: 'UNKNOWN',
+        number: 0,
+    };
 }
 
 function convertToSlpTokenType(msgType: proto.SlpTokenType): SlpTokenType_Type {
@@ -1768,7 +1772,7 @@ export interface TokenEntry {
 /**
  * SLP/ALP token type
  */
-export type TokenType = SlpTokenType | AlpTokenType;
+export type TokenType = SlpTokenType | AlpTokenType | UnknownTokenType;
 
 export interface SlpTokenType {
     protocol: 'SLP';
@@ -1780,6 +1784,12 @@ export interface AlpTokenType {
     protocol: 'ALP';
     type: AlpTokenType_Type;
     number: number;
+}
+
+export interface UnknownTokenType {
+    protocol: 'UNKNOWN';
+    type: 'UNKNOWN';
+    number: 0;
 }
 
 /** Possible ALP token types returned by chronik */

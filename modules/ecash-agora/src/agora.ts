@@ -950,6 +950,9 @@ export class Agora {
         if (makerPkGroupHex === undefined) {
             return undefined;
         }
+        if (utxo.token.tokenType.protocol == 'UNKNOWN') {
+            return undefined;
+        }
         const makerPk = fromHex(
             makerPkGroupHex.substring(PUBKEY_PREFIX.length),
         );

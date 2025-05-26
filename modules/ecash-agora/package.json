@@ -1,6 +1,6 @@
 {
     "name": "ecash-agora",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "description": "Library for interacting with the eCash Agora protocol",
     "main": "./dist/index.js",
     "scripts": {

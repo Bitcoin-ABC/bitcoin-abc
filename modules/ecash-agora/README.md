@@ -192,6 +192,10 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 -   Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
 -   Introduce 'atoms' as term for base unit of tokens. Implement in lib. The term "token" is ambiguous as it is not clear that we are talking about base tokens.
 
-# 2.0.1
+### 2.0.1
 
 -   Ensure special case of agora partial offers where `minAcceptedAtoms` should equal `offeredAtoms` will work out this way [D17776](https://reviews.bitcoinabc.org/D17776)
+
+### 2.1.0
+
+-   Add support for "UNKNOWN" token protocol type in chronik-client [D18155](https://reviews.bitcoinabc.org/D18155)

@@ -196,7 +196,7 @@ const Token: React.FC = () => {
     const cachedInfoLoaded = typeof cachedInfo !== 'undefined';
 
     let tokenType: undefined | TokenType,
-        protocol: undefined | 'SLP' | 'ALP',
+        protocol: undefined | 'SLP' | 'ALP' | 'UNKNOWN',
         genesisInfo: undefined | GenesisInfo,
         genesisSupply: undefined | string,
         tokenName: undefined | string,

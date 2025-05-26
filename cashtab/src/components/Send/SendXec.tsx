@@ -1280,8 +1280,8 @@ const SendXec: React.FC = () => {
     const cachedInfoLoaded = typeof cachedInfo !== 'undefined';
 
     let tokenType: undefined | TokenType,
-        protocol: undefined | 'SLP' | 'ALP',
-        type: undefined | AlpTokenType_Type | SlpTokenType_Type,
+        protocol: undefined | 'SLP' | 'ALP' | 'UNKNOWN',
+        type: undefined | AlpTokenType_Type | SlpTokenType_Type | 'UNKNOWN',
         genesisInfo: undefined | GenesisInfo,
         tokenName: undefined | string,
         tokenTicker: undefined | string,
@@ -1317,7 +1317,10 @@ const SendXec: React.FC = () => {
 
         const tokenBalance = tokens.get(parsedAddressInput.token_id.value);
 
-        if (!cashtabSupportedSendTypes.includes(type)) {
+        if (
+            !cashtabSupportedSendTypes.includes(type) ||
+            protocol === 'UNKNOWN'
+        ) {
             tokenError = `Cashtab does not support sending this type of token (${type})`;
         } else if (typeof tokenBalance === 'undefined') {
             // User has none of this token

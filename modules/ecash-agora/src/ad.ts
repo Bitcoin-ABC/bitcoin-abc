@@ -54,8 +54,9 @@ export function parseAgoraTx(tx: chronik.Tx): ParsedAd | undefined {
                 [0n, offerOutput.token.atoms],
             );
             break;
+        // ALP not implemented yet
         case 'ALP':
-            // ALP not implemented yet
+        case 'UNKNOWN':
             return undefined;
     }
     const scriptSig = new Script(fromHex(adInput.inputScript));
