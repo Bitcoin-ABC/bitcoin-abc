@@ -21,6 +21,7 @@ RUN npm run build
 WORKDIR /app/web/chronik.e.cash/
 COPY web/chronik.e.cash/package.json .
 COPY web/chronik.e.cash/package-lock.json .
+RUN npm update ecashaddrjs && npm update chronik-client
 RUN npm ci
 
 # Copy everything in web/chronik.e.cash
