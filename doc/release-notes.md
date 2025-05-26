@@ -43,3 +43,8 @@ Restarting a node with the `-chronik` init flag when an assumeutxo IBD chainstat
 present in the data directory will fail. In this case, restart the node with Chronik
 disabled and let the assumeutxo background sync complete before restarting the node with
 Chronik enabled.
+
+Windows Support
+---------------
+
+Starting with this version, running Bitcoin ABC is only supported on Windows 10 or later.
