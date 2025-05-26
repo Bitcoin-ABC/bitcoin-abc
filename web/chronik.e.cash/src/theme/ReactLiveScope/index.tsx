@@ -28,6 +28,12 @@ const Json = props => {
         return <div className="error">{`${error}`}</div>;
     }
 
+    BigInt.prototype.toJSON = function () {
+        if (this > Number.MAX_SAFE_INTEGER) {
+            return this.toString();
+        }
+        return Number(this);
+    };
     const resultJson = JSON.stringify(result, undefined, 2);
     return <CodeBlock language="json">{resultJson}</CodeBlock>;
 };
