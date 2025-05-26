@@ -85,7 +85,7 @@ public:
     void requestInitialize(Config &config, RPCServer &rpcServer,
                            HTTPRPCRequestProcessor &httpRPCRequestProcessor);
     /// Request core shutdown
-    void requestShutdown(Config &config);
+    void requestShutdown();
 
     /// Get process return value
     int getReturnValue() const { return returnValue; }

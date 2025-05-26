@@ -101,7 +101,7 @@ void AppTests::appTests() {
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
     m_app.requestInitialize(config, rpcServer, httpRPCRequestProcessor);
     m_app.exec();
-    m_app.requestShutdown(config);
+    m_app.requestShutdown();
     m_app.exec();
 
     // Reset global state to avoid interfering with later tests.

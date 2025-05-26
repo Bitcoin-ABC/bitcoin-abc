@@ -440,7 +440,7 @@ void BitcoinApplication::requestInitialize(
     Q_EMIT requestedInitialize(&config, &rpcServer, &httpRPCRequestProcessor);
 }
 
-void BitcoinApplication::requestShutdown(Config &config) {
+void BitcoinApplication::requestShutdown() {
     // Show a simple window indicating shutdown status. Do this first as some of
     // the steps may take some time below, for example the RPC console may still
     // be executing a command.
@@ -835,7 +835,7 @@ int GuiMain(int argc, char *argv[]) {
             (HWND)app.getMainWinId());
 #endif
         app.exec();
-        app.requestShutdown(config);
+        app.requestShutdown();
         app.exec();
         return app.getReturnValue();
     } catch (const std::exception &e) {
