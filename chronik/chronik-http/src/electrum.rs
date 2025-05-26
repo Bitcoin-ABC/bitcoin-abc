@@ -384,6 +384,22 @@ macro_rules! get_optional_param {
     }};
 }
 
+/// Generate the address.* variant of a scripthash.* endpoint
+macro_rules! address_wrapper {
+    ($params:expr, $self:ident, $endpoint:ident) => {{
+        check_max_number_of_params!($params, 1);
+
+        let address = match get_param!($params, 0, "address")? {
+            Value::String(v) => Ok(v),
+            _ => Err(RPCError::CustomError(1, "Invalid address".to_string())),
+        }?;
+
+        let scripthash = address_to_scripthash(&address)?;
+
+        $self.$endpoint(json!([scripthash.hex_be()])).await
+    }};
+}
+
 struct ElectrumPeer {
     url: String,
     ip_addr: IpAddr,
@@ -1546,6 +1562,14 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }))
     }
 
+    #[rpc_method(name = "address.get_balance")]
+    async fn address_get_balance(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        address_wrapper!(params, self, scripthash_get_balance)
+    }
+
     #[rpc_method(name = "scripthash.get_history")]
     async fn scripthash_get_history(
         &self,
@@ -1604,6 +1628,14 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         Ok(json!(json_history))
     }
 
+    #[rpc_method(name = "address.get_history")]
+    async fn address_get_history(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        address_wrapper!(params, self, scripthash_get_history)
+    }
+
     #[rpc_method(name = "scripthash.listunspent")]
     async fn scripthash_listunspent(
         &self,
@@ -1656,6 +1688,14 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }
 
         Ok(json!(json_utxos))
+    }
+
+    #[rpc_method(name = "address.listunspent")]
+    async fn address_listunspent(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        address_wrapper!(params, self, scripthash_listunspent)
     }
 
     #[rpc_method(name = "address.get_scripthash")]

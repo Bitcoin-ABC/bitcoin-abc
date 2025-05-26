@@ -4,7 +4,11 @@
 """
 Test Chronik's electrum interface: blockchain.* methods
 """
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, SCRIPT_UNSPENDABLE
+from test_framework.address import (
+    ADDRESS_ECREG_P2SH_OP_TRUE,
+    ADDRESS_ECREG_UNSPENDABLE,
+    SCRIPT_UNSPENDABLE,
+)
 from test_framework.blocktools import (
     GENESIS_BLOCK_HASH,
     GENESIS_CB_SCRIPT_PUBKEY,
@@ -642,6 +646,34 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 },
             )
 
+        for invalid_address in (
+            "",
+            "foobar",
+            "ecregtest:",
+            "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkk",
+        ):
+            assert_equal(
+                self.client.blockchain.address.get_balance(invalid_address).error,
+                {
+                    "code": 1,
+                    "message": f"Invalid address: {invalid_address}",
+                },
+            )
+            assert_equal(
+                self.client.blockchain.address.get_history(invalid_address).error,
+                {
+                    "code": 1,
+                    "message": f"Invalid address: {invalid_address}",
+                },
+            )
+            assert_equal(
+                self.client.blockchain.address.listunspent(invalid_address).error,
+                {
+                    "code": 1,
+                    "message": f"Invalid address: {invalid_address}",
+                },
+            )
+
         # valid hash, but not associated with any known script
         assert_equal(
             self.client.blockchain.scripthash.get_balance(32 * "ff").result,
@@ -659,6 +691,28 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             [],
         )
 
+        # Valid address, but not associated with any known coin. With or without
+        # prefix
+        for address in (
+            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpuvt7ljzqy",
+            "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpuvt7ljzqy",
+        ):
+            assert_equal(
+                self.client.blockchain.scripthash.get_balance(32 * "ff").result,
+                {
+                    "confirmed": 0,
+                    "unconfirmed": 0,
+                },
+            )
+            assert_equal(
+                self.client.blockchain.scripthash.get_history(32 * "ff").result,
+                [],
+            )
+            assert_equal(
+                self.client.blockchain.scripthash.listunspent(32 * "ff").result,
+                [],
+            )
+
         # Mine a block just to be sure all the utxos are confirmed
         self.generate(self.wallet, 1)
         value = sum(
@@ -670,30 +724,47 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             ]
         )
         scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
+        address = ADDRESS_ECREG_P2SH_OP_TRUE
+        balance = self.client.blockchain.scripthash.get_balance(scripthash).result
         assert_equal(
-            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            balance,
             {
                 "confirmed": value * XEC,
                 "unconfirmed": 0,
             },
         )
+        assert_equal(
+            self.client.blockchain.address.get_balance(address).result,
+            balance,
+        )
 
         tx = self.wallet.send_self_transfer(from_node=self.node)
+        balance = self.client.blockchain.scripthash.get_balance(scripthash).result
         assert_equal(
-            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            balance,
             {"confirmed": value * XEC, "unconfirmed": -tx["fee"] * XEC},
+        )
+        assert_equal(
+            self.client.blockchain.address.get_balance(address).result,
+            balance,
         )
 
         self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
+        balance = self.client.blockchain.scripthash.get_balance(scripthash).result
         assert_equal(
-            self.client.blockchain.scripthash.get_balance(scripthash).result,
+            balance,
             {
                 "confirmed": (value - tx["fee"]) * XEC,
                 "unconfirmed": 0,
             },
         )
+        assert_equal(
+            self.client.blockchain.address.get_balance(address).result,
+            balance,
+        )
 
         # Send transactions to a previously unused script
+        address = "ecregtest:qp3wjpa3tjlj042z2wv7hahsldgwhwy0rq5qvvema7"
         script = CScript(
             bytes.fromhex("76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac")
         )
@@ -707,20 +778,33 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             return utxo["tx_hash"], utxo["tx_pos"]
 
         def assert_scripthash_balance_and_history():
+            balance = self.client.blockchain.scripthash.get_balance(scripthash).result
             assert_equal(
-                self.client.blockchain.scripthash.get_balance(scripthash).result,
+                balance,
                 {
                     "confirmed": confirmed,
                     "unconfirmed": unconfirmed,
                 },
             )
+            assert_equal(
+                self.client.blockchain.address.get_balance(address).result,
+                balance,
+            )
             actual_history = self.client.blockchain.scripthash.get_history(
                 scripthash
             ).result
+            assert_equal(
+                self.client.blockchain.address.get_history(address).result,
+                actual_history,
+            )
             expected_history = history
             actual_utxos = self.client.blockchain.scripthash.listunspent(
                 scripthash
             ).result
+            assert_equal(
+                self.client.blockchain.address.listunspent(address).result,
+                actual_utxos,
+            )
             expected_utxos = utxos
 
             def electrum_history_sort(hist):
