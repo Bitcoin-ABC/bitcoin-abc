@@ -1698,6 +1698,98 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         address_wrapper!(params, self, scripthash_listunspent)
     }
 
+    #[rpc_method(name = "scripthash.get_first_use")]
+    async fn scripthash_get_first_use(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        // We could just call get_scripthash_history but since we only need the
+        // first use of this scripthash we can be more performant and bail
+        // early.
+        let indexer = self.indexer.read().await;
+        let script_history = indexer
+            .script_history(&self.node)
+            .map_err(|_| RPCError::InternalError)?;
+
+        let history = script_history
+            .confirmed_txs(
+                GroupMember::MemberHash(script_hash).as_ref(),
+                /* request_page_num= */ 0,
+                /* request_page_size= */ 1,
+            )
+            .map_err(|_| RPCError::InternalError)?;
+
+        // We have a confirmed tx using this scripthash, return the first one as
+        // it appears in the block.
+        if !history.txs.is_empty() {
+            let tx = &history.txs[0];
+            let (block_hash, height) = match &tx.block {
+                Some(block) => {
+                    let block_hash =
+                        Sha256::from_le_slice(block.hash.as_ref()).unwrap();
+                    (block_hash.hex_be(), block.height)
+                }
+                // This should never happen because this is a confirmed tx
+                None => ("00".repeat(32), 0),
+            };
+            let txid_be: Vec<u8> = tx.txid.iter().copied().rev().collect();
+
+            return Ok(json!({
+                "block_hash": block_hash,
+                "height": height,
+                "tx_hash": hex::encode(txid_be),
+            }));
+        }
+
+        // Note that there is currently no pagination for the mempool.
+        let mut history = script_history
+            .unconfirmed_txs(GroupMember::MemberHash(script_hash).as_ref())
+            .map_err(|_| RPCError::InternalError)?;
+
+        // Sort by txid
+        history.txs.sort_by(|a, b| {
+            let a_txid =
+                hex::encode(a.txid.iter().copied().rev().collect::<Vec<u8>>());
+            let b_txid =
+                hex::encode(b.txid.iter().copied().rev().collect::<Vec<u8>>());
+            a_txid.cmp(&b_txid)
+        });
+
+        if !history.txs.is_empty() {
+            let tx = &history.txs[0];
+            let txid_be: Vec<u8> = tx.txid.iter().copied().rev().collect();
+            return Ok(json!({
+                "block_hash": "00".repeat(32),
+                "height": 0,
+                "tx_hash": hex::encode(txid_be),
+            }));
+        }
+
+        Ok(Value::Null)
+    }
+
+    #[rpc_method(name = "address.get_first_use")]
+    async fn address_get_first_use(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        address_wrapper!(params, self, scripthash_get_first_use)
+    }
+
     #[rpc_method(name = "address.get_scripthash")]
     async fn address_get_scripthash(
         &self,

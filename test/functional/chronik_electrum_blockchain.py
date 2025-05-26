@@ -645,6 +645,15 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     "message": "Invalid scripthash",
                 },
             )
+            assert_equal(
+                self.client.blockchain.scripthash.get_first_use(
+                    invalid_scripthash
+                ).error,
+                {
+                    "code": 1,
+                    "message": "Invalid scripthash",
+                },
+            )
 
         for invalid_address in (
             "",
@@ -673,6 +682,13 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     "message": f"Invalid address: {invalid_address}",
                 },
             )
+            assert_equal(
+                self.client.blockchain.address.get_first_use(invalid_address).error,
+                {
+                    "code": 1,
+                    "message": f"Invalid address: {invalid_address}",
+                },
+            )
 
         # valid hash, but not associated with any known script
         assert_equal(
@@ -689,6 +705,10 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(
             self.client.blockchain.scripthash.listunspent(32 * "ff").result,
             [],
+        )
+        assert_equal(
+            self.client.blockchain.scripthash.get_first_use(32 * "ff").result,
+            None,
         )
 
         # Valid address, but not associated with any known coin. With or without
@@ -711,6 +731,10 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             assert_equal(
                 self.client.blockchain.scripthash.listunspent(32 * "ff").result,
                 [],
+            )
+            assert_equal(
+                self.client.blockchain.scripthash.get_first_use(32 * "ff").result,
+                None,
             )
 
         # Mine a block just to be sure all the utxos are confirmed
@@ -773,6 +797,15 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         unconfirmed = 0
         history = []
         utxos = []
+
+        assert_equal(
+            self.client.blockchain.scripthash.get_first_use(scripthash).result,
+            None,
+        )
+        assert_equal(
+            self.client.blockchain.address.get_first_use(address).result,
+            None,
+        )
 
         def utxo_sorting_key(utxo):
             return utxo["tx_hash"], utxo["tx_pos"]
@@ -859,9 +892,60 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             utxos.append({"height": 0, "tx_hash": txid, "tx_pos": n, "value": amount})
             return txid, n
 
-        for _ in range(4):
+        txid, n = add_unconfirmed_transaction(amount=1337, fee=1000)
+        assert_scripthash_balance_and_history()
+
+        first_use = self.client.blockchain.scripthash.get_first_use(scripthash).result
+        assert_equal(
+            first_use,
+            {
+                "block_hash": "00" * 32,
+                "height": 0,
+                "tx_hash": txid,
+            },
+        )
+        assert_equal(
+            self.client.blockchain.address.get_first_use(address).result,
+            first_use,
+        )
+
+        # Confirm the transaction
+        self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
+        confirmed += 1337
+        unconfirmed -= 1337
+        h = self.node.getblockcount()
+        history.pop()
+        history.append({"height": h, "tx_hash": txid})
+        utxos.pop()
+        utxos.append({"height": h, "tx_hash": txid, "tx_pos": n, "value": 1337})
+        assert_scripthash_balance_and_history()
+
+        first_use = self.client.blockchain.scripthash.get_first_use(scripthash).result
+        assert_equal(
+            first_use,
+            {
+                "block_hash": self.node.getblockhash(h),
+                "height": h,
+                "tx_hash": txid,
+            },
+        )
+        assert_equal(
+            self.client.blockchain.address.get_first_use(address).result,
+            first_use,
+        )
+
+        for _ in range(3):
             txid, n = add_unconfirmed_transaction(amount=1337, fee=1000)
             assert_scripthash_balance_and_history()
+
+            assert_equal(
+                self.client.blockchain.scripthash.get_first_use(scripthash).result,
+                first_use,
+            )
+            assert_equal(
+                self.client.blockchain.address.get_first_use(address).result,
+                first_use,
+            )
 
             # Confirm the transaction
             self.generatetoaddress(self.node, 1, ADDRESS_ECREG_UNSPENDABLE)
@@ -873,6 +957,15 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             utxos.pop()
             utxos.append({"height": h, "tx_hash": txid, "tx_pos": n, "value": 1337})
             assert_scripthash_balance_and_history()
+
+            assert_equal(
+                self.client.blockchain.scripthash.get_first_use(scripthash).result,
+                first_use,
+            )
+            assert_equal(
+                self.client.blockchain.address.get_first_use(address).result,
+                first_use,
+            )
 
         # History with multiple unconfirmed transactions
         for _ in range(3):
