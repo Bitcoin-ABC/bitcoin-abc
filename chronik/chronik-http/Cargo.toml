@@ -53,11 +53,7 @@ hyper = "1.1"
 itertools = "0.13.0"
 
 # JSON RPC network library
-karyon_jsonrpc = { version = "0.3.0", default-features = false, features = [
-    "tokio",
-    "tcp",
-    "tls",
-] }
+karyon_jsonrpc = { version = "0.3.2", default-features = false, features = ["tokio", "tcp", "tls"] }
 
 # Protobuf en-/decoding
 prost = "0.11"
