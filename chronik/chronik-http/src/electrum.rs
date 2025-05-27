@@ -1790,6 +1790,94 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         address_wrapper!(params, self, scripthash_get_first_use)
     }
 
+    #[rpc_method(name = "scripthash.get_mempool")]
+    async fn scripthash_get_mempool(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let script_hash_hex = match get_param!(params, 0, "scripthash")? {
+            Value::String(v) => Ok(v),
+            _ => {
+                Err(RPCError::CustomError(1, "Invalid scripthash".to_string()))
+            }
+        }?;
+
+        let script_hash =
+            Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
+                RPCError::CustomError(1, "Invalid scripthash".to_string())
+            })?;
+
+        let indexer = self.indexer.read().await;
+        let script_history = indexer
+            .script_history(&self.node)
+            .map_err(|_| RPCError::InternalError)?;
+
+        // Note that there is currently no pagination for the mempool.
+        let mut history = script_history
+            .unconfirmed_txs(GroupMember::MemberHash(script_hash).as_ref())
+            .map_err(|_| RPCError::InternalError)?;
+
+        for tx in history.txs.iter_mut() {
+            let block_height =
+                if has_unconfirmed_parents(tx, &indexer, &self.node).await? {
+                    -1
+                } else {
+                    0
+                };
+
+            // Override the block height:
+            //  - -1 if the tx has some unconfirmed parents
+            //  - 0 if the tx has no unconfirmed parents
+            let electrum_fake_block = BlockMetadata {
+                height: block_height,
+                hash: vec![0; 64],
+                timestamp: 0,
+                is_final: false,
+            };
+            tx.block = Some(electrum_fake_block);
+        }
+
+        // Return the mempool txs in the reverse block height then txid order
+        history.txs.sort_by(|a, b| {
+            let a_height = a.block.as_ref().unwrap().height;
+            let b_height = b.block.as_ref().unwrap().height;
+            if a_height != b_height {
+                // Warning: reverse order! We place txs with no unconfirmed
+                // parents first (height = 0) then txs with
+                // unconfirmed parents (height = -1).
+                return b_height.cmp(&a_height);
+            }
+
+            let a_txid =
+                hex::encode(a.txid.iter().copied().rev().collect::<Vec<u8>>());
+            let b_txid =
+                hex::encode(b.txid.iter().copied().rev().collect::<Vec<u8>>());
+            a_txid.cmp(&b_txid)
+        });
+
+        let mut json_mempool: Vec<Value> = vec![];
+        for tx in history.txs.iter() {
+            let txid_be: Vec<u8> = tx.txid.iter().copied().rev().collect();
+            json_mempool.push(json!({
+                "height": tx.block.as_ref().unwrap().height,
+                "tx_hash": hex::encode(txid_be),
+                "fee": get_tx_fee(tx),
+            }));
+        }
+
+        Ok(json!(json_mempool))
+    }
+
+    #[rpc_method(name = "address.get_mempool")]
+    async fn address_get_mempool(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        address_wrapper!(params, self, scripthash_get_mempool)
+    }
+
     #[rpc_method(name = "address.get_scripthash")]
     async fn address_get_scripthash(
         &self,
