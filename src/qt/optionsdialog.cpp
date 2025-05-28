@@ -314,8 +314,7 @@ void OptionsDialog::on_resetButton_clicked() {
 
         /* reset all options and close GUI */
         model->Reset();
-        close();
-        Q_EMIT quitOnReset();
+        QApplication::quit();
     }
 }
 

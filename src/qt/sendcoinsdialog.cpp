@@ -412,13 +412,12 @@ void SendCoinsDialog::on_sendButton_clicked() {
     const QString confirmButtonText = model->wallet().privateKeysDisabled()
                                           ? tr("Create Unsigned")
                                           : tr("Send");
-    auto confirmationDialog = new SendConfirmationDialog(
+    SendConfirmationDialog confirmationDialog(
         confirmation, question_string, informative_text, detailed_text,
         SEND_CONFIRM_DELAY, confirmButtonText, this);
-    confirmationDialog->setAttribute(Qt::WA_DeleteOnClose);
-    // TODO: Replace QDialog::exec() with safer QDialog::show().
-    const auto retval =
-        static_cast<QMessageBox::StandardButton>(confirmationDialog->exec());
+    confirmationDialog.exec();
+    QMessageBox::StandardButton retval =
+        static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
 
     if (retval != QMessageBox::Yes) {
         fNewRecipientAllowed = true;

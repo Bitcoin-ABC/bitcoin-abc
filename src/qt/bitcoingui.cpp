@@ -416,7 +416,7 @@ void BitcoinGUI::createActions() {
         tr("Mask the values in the Overview tab"));
     m_mask_values_action->setCheckable(true);
 
-    connect(quitAction, &QAction::triggered, this, &BitcoinGUI::quitRequested);
+    connect(quitAction, &QAction::triggered, qApp, QApplication::quit);
     connect(aboutAction, &QAction::triggered, this, &BitcoinGUI::aboutClicked);
     connect(aboutQtAction, &QAction::triggered, qApp, QApplication::aboutQt);
     connect(optionsAction, &QAction::triggered, this,
@@ -1091,7 +1091,6 @@ void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
     }
 
     auto dlg = new OptionsDialog(this, enableWallet);
-    connect(dlg, &OptionsDialog::quitOnReset, this, &BitcoinGUI::quitRequested);
     dlg->setCurrentTab(tab);
     dlg->setModel(clientModel->getOptionsModel());
     GUIUtil::ShowModalDialogAsynchronously(dlg);
@@ -1315,7 +1314,7 @@ void BitcoinGUI::closeEvent(QCloseEvent *event) {
             // shutdown window
             rpcConsole->close();
 
-            Q_EMIT quitRequested();
+            QApplication::quit();
         } else {
             QMainWindow::showMinimized();
             event->ignore();
@@ -1520,7 +1519,7 @@ void BitcoinGUI::detectShutdown() {
         if (rpcConsole) {
             rpcConsole->hide();
         }
-        Q_EMIT quitRequested();
+        qApp->quit();
     }
 }
 
