@@ -4,6 +4,7 @@
 use std::fmt::Display;
 
 use abc_rust_error::{Report, Result, WrapErr};
+use bitcoinsuite_core::address::CashAddress;
 use bitcoinsuite_core::hash::{Hashed, Sha256d};
 use bytes::Bytes;
 pub use chronik_proto::proto;
@@ -72,6 +73,9 @@ pub enum ChronikClientError {
 
     #[error("Invalid protobuf: {0}")]
     InvalidProtobuf(String),
+
+    #[error("Invalid address type for subscription")]
+    InvalidAddressType,
 }
 pub struct WsEndpoint {
     pub ws: WebSocketStream<
@@ -617,6 +621,38 @@ impl WsEndpoint {
             }
         }
         Ok(None)
+    }
+
+    pub async fn subscribe_to_address(
+        &mut self,
+        address: CashAddress,
+    ) -> Result<(), Report> {
+        let hash = address.hash();
+        let script_type = match address.addr_type() {
+            bitcoinsuite_core::address::AddressType::P2PKH => ScriptType::P2pkh,
+            bitcoinsuite_core::address::AddressType::P2SH => ScriptType::P2sh,
+        };
+        self.subscribe_to_script(
+            script_type.to_string(),
+            hash.as_ref().to_vec(),
+        )
+        .await
+    }
+
+    pub async fn unsubscribe_from_address(
+        &mut self,
+        address: CashAddress,
+    ) -> Result<(), Report> {
+        let hash = address.hash();
+        let script_type = match address.addr_type() {
+            bitcoinsuite_core::address::AddressType::P2PKH => ScriptType::P2pkh,
+            bitcoinsuite_core::address::AddressType::P2SH => ScriptType::P2sh,
+        };
+        self.unsubscribe_from_script(
+            script_type.to_string(),
+            hash.as_ref().to_vec(),
+        )
+        .await
     }
 }
 

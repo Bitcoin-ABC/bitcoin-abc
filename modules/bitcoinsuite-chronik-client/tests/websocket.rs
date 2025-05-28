@@ -275,6 +275,26 @@ impl IpcReader for WebsocketIPC {
                             );
                         }
 
+                        ep.subscribe_to_address(p2pkh_addr.clone()).await?;
+                        ep.subscribe_to_address(p2sh_addr.clone()).await?;
+
+                        assert_eq!(
+                            ep.subs.scripts,
+                            vec![
+                                WsSubScript {
+                                    script_type: ScriptType::P2pkh.to_string(),
+                                    payload: p2pkh_hash.as_ref().to_vec(),
+                                },
+                                WsSubScript {
+                                    script_type: ScriptType::P2sh.to_string(),
+                                    payload: p2sh_hash.as_ref().to_vec(),
+                                },
+                            ]
+                        );
+
+                        ep.unsubscribe_from_address(p2pkh_addr.clone()).await?;
+                        ep.unsubscribe_from_address(p2sh_addr.clone()).await?;
+
                         ep.subscribe_to_blocks().await?;
                         assert_eq!(ep.subs.blocks, true);
 
@@ -301,14 +321,14 @@ impl IpcReader for WebsocketIPC {
                             )
                             .await?;
                         }
-                        // This will be added in future iterations once we add
-                        // address subscription
-                        //
-                        // ep.unsubscribe_from_script(ScriptType::P2pkh.
-                        // to_string(), p2pkh_hash.as_ref().to_vec()).await?;
-                        // to confirm the sub is active in the same way as the
-                        // script sub in later steps
-                        // Resubscribe to blocks
+
+                        ep.unsubscribe_from_script(
+                            ScriptType::P2pkh.to_string(),
+                            p2pkh_hash.as_ref().to_vec(),
+                        )
+                        .await?;
+                        ep.subscribe_to_address(p2pkh_addr).await?;
+
                         ep.subscribe_to_blocks().await?;
                         assert_eq!(ep.subs.blocks, true);
                     }
