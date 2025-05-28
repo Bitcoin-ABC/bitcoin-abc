@@ -1183,8 +1183,15 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         sub_message = self.client.blockchain.scripthash.subscribe("0" * 64)
         result_no_history = sub_message.result
         assert_equal(result_no_history, None)
+        assert_equal(
+            self.client.blockchain.address.subscribe(
+                "ecregtest:prllllllllllllllllllllllllllllllluj3tvnrr9"
+            ).result,
+            result_no_history,
+        )
 
         # Subscribing to an address with some history returns a hash as a status
+        # Note that this scriptpubkey corresponds to ADDRESS_ECREG_P2SH_OP_TRUE
         scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
         assert_greater_than(
             len(self.client.blockchain.scripthash.get_history(scripthash).result), 0
@@ -1193,31 +1200,53 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         result_history = sub_message.result
         assert result_history is not None
         assert_equal(len(result_history), 64)
+        assert_equal(
+            self.client.blockchain.address.subscribe(ADDRESS_ECREG_P2SH_OP_TRUE).result,
+            result_history,
+        )
 
-        # Subscribing again is a no-op and returns the same result
+        # Subscribing again is a no-op and returns the same result, even if we
+        # use the address instead of script hash
         for _ in range(3):
             assert_equal(
                 self.client.blockchain.scripthash.subscribe("0" * 64).result,
                 result_no_history,
             )
             assert_equal(
+                self.client.blockchain.address.subscribe(
+                    "ecregtest:prllllllllllllllllllllllllllllllluj3tvnrr9"
+                ).result,
+                result_no_history,
+            )
+
+            assert_equal(
                 self.client.blockchain.scripthash.subscribe(scripthash).result,
+                result_history,
+            )
+            assert_equal(
+                self.client.blockchain.address.subscribe(
+                    ADDRESS_ECREG_P2SH_OP_TRUE
+                ).result,
                 result_history,
             )
 
         # Generate a few wallet transactions so we get notifications
         chain = self.wallet.create_self_transfer_chain(chain_length=3)
 
-        def check_notification(clients, scripthash, last_status=None):
+        def check_notification(
+            clients,
+            scripthash_or_address,
+            last_status=None,
+            method="blockchain.scripthash.subscribe",
+        ):
             ret_status = None
             for client in clients:
-                notification = client.wait_for_notification(
-                    "blockchain.scripthash.subscribe"
-                )
-                # We should have exactly 2 items, the scripthash and the status
+                notification = client.wait_for_notification(method)
+                # We should have exactly 2 items, the scripthash (or address)
+                # and the status
                 assert_equal(len(notification), 2)
-                (ret_scripthash, status) = notification
-                assert_equal(ret_scripthash, scripthash)
+                (ret_scripthash_or_address, status) = notification
+                assert_equal(ret_scripthash_or_address, scripthash_or_address)
                 # Status is some hash
                 assert_equal(len(status), 64)
 
@@ -1343,7 +1372,76 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(
             self.client.blockchain.scripthash.unsubscribe(other_scripthash).result, True
         )
+        # We can also unsubscribe using the equivalent address despite we
+        # subscribed to the script hash
+        assert_equal(
+            client3.blockchain.address.unsubscribe(ADDRESS_ECREG_P2SH_OP_TRUE).result,
+            True,
+        )
+        # Unsubscribing from script hash is now a no-op
+        assert_equal(
+            client3.blockchain.scripthash.unsubscribe(scripthash).result, False
+        )
+
+        # Subscribe to an address first so we get notified using the address as
+        # well. Let's use a new address.
+        address = "ecregtest:qr8kjf29cdqg03qfhrszleksaf36ue7yqc44rcgt3z"
+        scriptpubkey = CScript.fromhex(
+            "76a914cf692545c34087c409b8e02fe6d0ea63ae67c40688ac"
+        )
+        scripthash = hex_be_sha256(scriptpubkey)
+        assert_equal(
+            self.client.blockchain.address.subscribe(address).result,
+            None,
+        )
+        assert_equal(
+            client2.blockchain.address.subscribe(address).result,
+            None,
+        )
+        assert_equal(
+            client3.blockchain.address.subscribe(address).result,
+            None,
+        )
+
+        last_status = None
+        for _ in range(3):
+            self.wallet.send_to(
+                from_node=self.node,
+                scriptPubKey=scriptpubkey,
+                amount=1000,
+            )
+            last_status = check_notification(
+                [self.client, client2, client3],
+                address,
+                last_status,
+                method="blockchain.address.subscribe",
+            )
+
+        # Unsubscribe clients 2 and 3, mixing script_hash and address
+        assert_equal(client2.blockchain.address.unsubscribe(address).result, True)
+        assert_equal(
+            client2.blockchain.scripthash.unsubscribe(scripthash).result, False
+        )
         assert_equal(client3.blockchain.scripthash.unsubscribe(scripthash).result, True)
+        assert_equal(client3.blockchain.address.unsubscribe(address).result, False)
+
+        # Only the first client gets notified
+        self.wallet.send_to(
+            from_node=self.node,
+            scriptPubKey=scriptpubkey,
+            amount=1000,
+        )
+        last_status = check_notification(
+            [self.client], address, last_status, method="blockchain.address.subscribe"
+        )
+        for client in [client2, client3]:
+            try:
+                client.wait_for_notification("blockchain.address.subscribe", timeout=1)
+                assert False, "Received an unexpected scripthash notification"
+            except TimeoutError:
+                pass
+
+        assert_equal(self.client.blockchain.address.unsubscribe(address).result, True)
 
     def test_address_get_scripthash(self):
         self.log.info("Test the blockchain.address.get_scripthash endpoint")

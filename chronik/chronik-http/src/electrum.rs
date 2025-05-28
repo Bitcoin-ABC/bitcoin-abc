@@ -962,6 +962,92 @@ fn address_to_scripthash(address: &String) -> Result<Sha256, RPCError> {
     Ok(Sha256::digest(cash_address.to_script()))
 }
 
+impl ChronikElectrumRPCBlockchainEndpoint {
+    async fn scripthash_or_address_suscribe(
+        &self,
+        chan: Arc<Channel>,
+        method: String,
+        script_hash: Sha256,
+        formatted_subscription: String,
+    ) -> Result<Value, RPCError> {
+        let indexer = self.indexer.read().await;
+        let mut subs: tokio::sync::RwLockWriteGuard<
+            '_,
+            chronik_indexer::subs::Subs,
+        > = indexer.subs().write().await;
+        let script_subs = subs.subs_script_mut();
+
+        let mut recv =
+            script_subs.subscribe_to_hash_member(&script_hash.to_be_bytes());
+
+        let indexer_clone = self.indexer.clone();
+        let node_clone = self.node.clone();
+        let max_history = self.max_history;
+
+        let sub_id = script_hash_to_sub_id(script_hash);
+        if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
+            tokio::spawn(async move {
+                log_chronik!("Subscription to electrum scripthash\n");
+
+                let mut last_status = None;
+
+                loop {
+                    let Ok(tx_msg) = recv.recv().await else {
+                        // Error, disconnect
+                        break;
+                    };
+
+                    // We want all the events except finalization (this might
+                    // change in the future):
+                    // - added to mempool
+                    // - removed from mempool
+                    // - confirmed
+                    if tx_msg.msg_type == TxMsgType::Finalized {
+                        continue;
+                    }
+
+                    if let Ok(status) = get_scripthash_status(
+                        script_hash,
+                        indexer_clone.clone(),
+                        node_clone.clone(),
+                        max_history,
+                    )
+                    .await
+                    {
+                        if last_status == status {
+                            continue;
+                        }
+                        last_status = status.clone();
+
+                        if sub
+                            .notify(json!([formatted_subscription, status,]))
+                            .await
+                            .is_err()
+                        {
+                            // Don't log, it's likely a client
+                            // unsubscription or
+                            // disconnection
+                            break;
+                        }
+                    }
+                }
+
+                log_chronik!("Unsubscription from electrum scripthash\n");
+            });
+        }
+
+        let status = get_scripthash_status(
+            script_hash,
+            self.indexer.clone(),
+            self.node.clone(),
+            max_history,
+        )
+        .await?;
+
+        Ok(serde_json::json!(status))
+    }
+}
+
 #[rpc_pubsub_impl(name = "blockchain")]
 impl ChronikElectrumRPCBlockchainEndpoint {
     #[rpc_method(name = "headers.subscribe")]
@@ -1078,84 +1164,33 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 RPCError::CustomError(1, "Invalid scripthash".to_string())
             })?;
 
-        let indexer = self.indexer.read().await;
-        let mut subs: tokio::sync::RwLockWriteGuard<
-            '_,
-            chronik_indexer::subs::Subs,
-        > = indexer.subs().write().await;
-        let script_subs = subs.subs_script_mut();
-
-        let mut recv =
-            script_subs.subscribe_to_hash_member(&script_hash.to_be_bytes());
-
-        let indexer_clone = self.indexer.clone();
-        let node_clone = self.node.clone();
-        let max_history = self.max_history;
-
-        let sub_id = script_hash_to_sub_id(script_hash);
-        if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
-            tokio::spawn(async move {
-                log_chronik!("Subscription to electrum scripthash\n");
-
-                let mut last_status = None;
-
-                loop {
-                    let Ok(tx_msg) = recv.recv().await else {
-                        // Error, disconnect
-                        break;
-                    };
-
-                    // We want all the events except finalization (this might
-                    // change in the future):
-                    // - added to mempool
-                    // - removed from mempool
-                    // - confirmed
-                    if tx_msg.msg_type == TxMsgType::Finalized {
-                        continue;
-                    }
-
-                    if let Ok(status) = get_scripthash_status(
-                        script_hash,
-                        indexer_clone.clone(),
-                        node_clone.clone(),
-                        max_history,
-                    )
-                    .await
-                    {
-                        if last_status == status {
-                            continue;
-                        }
-                        last_status = status.clone();
-
-                        if sub
-                            .notify(json!([
-                                hex::encode(script_hash.to_be_bytes()),
-                                status,
-                            ]))
-                            .await
-                            .is_err()
-                        {
-                            // Don't log, it's likely a client
-                            // unsubscription or
-                            // disconnection
-                            break;
-                        }
-                    }
-                }
-
-                log_chronik!("Unsubscription from electrum scripthash\n");
-            });
-        }
-
-        let status = get_scripthash_status(
+        self.scripthash_or_address_suscribe(
+            chan,
+            method,
             script_hash,
-            self.indexer.clone(),
-            self.node.clone(),
-            max_history,
+            hex::encode(script_hash.to_be_bytes()),
         )
-        .await?;
+        .await
+    }
 
-        Ok(serde_json::json!(status))
+    #[rpc_method(name = "address.subscribe")]
+    async fn address_subscribe(
+        &self,
+        chan: Arc<Channel>,
+        method: String,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let address = match get_param!(params, 0, "address")? {
+            Value::String(v) => Ok(v),
+            _ => Err(RPCError::CustomError(1, "Invalid address".to_string())),
+        }?;
+
+        let script_hash = address_to_scripthash(&address)?;
+
+        self.scripthash_or_address_suscribe(chan, method, script_hash, address)
+            .await
     }
 
     #[rpc_method(name = "scripthash.unsubscribe")]
@@ -1176,6 +1211,27 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             Sha256::from_be_hex(&script_hash_hex).map_err(|_| {
                 RPCError::CustomError(1, "Invalid scripthash".to_string())
             })?;
+
+        let sub_id = script_hash_to_sub_id(script_hash);
+        let success = chan.remove_subscription(&sub_id).await.is_ok();
+        Ok(serde_json::json!(success))
+    }
+
+    #[rpc_method(name = "address.unsubscribe")]
+    async fn address_unsubscribe(
+        &self,
+        chan: Arc<Channel>,
+        _method: String,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let address = match get_param!(params, 0, "address")? {
+            Value::String(v) => Ok(v),
+            _ => Err(RPCError::CustomError(1, "Invalid address".to_string())),
+        }?;
+
+        let script_hash = address_to_scripthash(&address)?;
 
         let sub_id = script_hash_to_sub_id(script_hash);
         let success = chan.remove_subscription(&sub_id).await.is_ok();
