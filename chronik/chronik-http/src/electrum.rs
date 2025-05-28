@@ -22,7 +22,7 @@ use chronik_db::group::GroupMember;
 use chronik_indexer::{
     indexer::ChronikIndexer,
     merkle::MerkleTree,
-    query::{QueryBlocks, MAX_HISTORY_PAGE_SIZE},
+    query::{QueryBlockError, QueryBlocks, MAX_HISTORY_PAGE_SIZE},
     subs::BlockMsgType,
     subs_group::TxMsgType,
 };
@@ -1974,5 +1974,81 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         // Return in XEC/kB, and 1 XEC = 100 sats
         Ok(json!(sats_per_kb as f64 / 100.0))
+    }
+
+    #[rpc_method(name = "header.get")]
+    async fn header_get(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let indexer = self.indexer.read().await;
+        let blocks = indexer.blocks(&self.node);
+
+        let mut is_height = false;
+        let hash_or_height = match get_param!(params, 0, "block_hash")? {
+            Value::Number(height) => {
+                is_height = true;
+                let height = height.as_i64().unwrap_or(-1);
+                if height < 0 || height > i32::MAX.into() {
+                    return Err(RPCError::CustomError(
+                        1,
+                        "Invalid height".to_string(),
+                    ));
+                }
+
+                let tip_height = blocks
+                    .blockchain_info()
+                    .map_err(|_| RPCError::InternalError)?
+                    .tip_height;
+                if height > tip_height.into() {
+                    return Err(RPCError::CustomError(
+                        1,
+                        format!("Height {height} is out of range"),
+                    ));
+                }
+
+                height.to_string()
+            }
+            Value::String(block_hash) => block_hash,
+            _ => {
+                return Err(RPCError::CustomError(
+                    1,
+                    "Invalid block hash".to_string(),
+                ))
+            }
+        };
+
+        let err_message = if is_height {
+            "Invalid height".to_string()
+        } else {
+            "Invalid block hash".to_string()
+        };
+
+        let block_height = match blocks.by_hash_or_height(hash_or_height) {
+            Ok(block) => block.block_info.unwrap().height,
+            Err(e) => {
+                if let Ok(err) = e.downcast::<QueryBlockError>() {
+                    match err {
+                        QueryBlockError::BlockNotFound(_) => {
+                            return Err(RPCError::CustomError(
+                                2,
+                                "Block not found".to_string(),
+                            ))
+                        }
+                        _ => return Err(RPCError::CustomError(1, err_message)),
+                    };
+                }
+                return Err(RPCError::CustomError(1, err_message));
+            }
+        };
+
+        let proto_header = blocks
+            .header(block_height.to_string(), 0)
+            .await
+            .map_err(|_| RPCError::InternalError)?;
+
+        Ok(json!({
+            "height": block_height,
+            "hex": hex::encode(proto_header.raw_header),
+        }))
     }
 }

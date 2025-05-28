@@ -479,22 +479,35 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         headers = [self.node.getblockheader(bh, False) for bh in block_hashes]
         tip_height = len(headers) - 1
 
-        self.log.info("Testing the blockchain.block.header RPC")
+        self.log.info(
+            "Testing the blockchain.block.header and blockchain.header.get RPCs"
+        )
         response = self.client.blockchain.block.header(0)
         assert_equal(response.result, headers[0])
+        assert_equal(
+            self.client.blockchain.header.get(0).result,
+            {
+                "height": 0,
+                "hex": headers[0],
+            },
+        )
 
-        response = self.client.blockchain.block.header(
-            len(block_hashes) // 2, tip_height
-        )
-        root, branch = merkle_root_and_branch(
-            block_hashes_bytes, len(block_hashes) // 2
-        )
+        height = len(block_hashes) // 2
+        response = self.client.blockchain.block.header(height, tip_height)
+        root, branch = merkle_root_and_branch(block_hashes_bytes, height)
         assert_equal(
             response.result,
             {
                 "branch": [h[::-1].hex() for h in branch],
-                "header": headers[len(block_hashes) // 2],
+                "header": headers[height],
                 "root": root[::-1].hex(),
+            },
+        )
+        assert_equal(
+            self.client.blockchain.header.get(height).result,
+            {
+                "height": height,
+                "hex": headers[height],
             },
         )
 
@@ -511,6 +524,23 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     },
                 )
 
+        for bh in (-1, max_int32 + 1, max_int64, max_int64 + 1):
+            assert_equal(
+                self.client.blockchain.header.get(bh).error,
+                {
+                    "code": 1,
+                    "message": "Invalid height",
+                },
+            )
+        for bh in ("toto", "00", "0" * 65):
+            assert_equal(
+                self.client.blockchain.header.get(bh).error,
+                {
+                    "code": 1,
+                    "message": "Invalid block hash",
+                },
+            )
+
         for cp_height in ("toto", -1, max_int32 + 1, max_int64, max_int64 + 1):
             for rpc_call in (
                 lambda h: self.client.blockchain.block.header(0, h),
@@ -525,13 +555,17 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 )
 
         for bh in (max_int32, tip_height + 1):
-            assert_equal(
-                self.client.blockchain.block.header(bh).error,
-                {
-                    "code": 1,
-                    "message": f"Height {bh} is out of range",
-                },
-            )
+            for rpc_call in (
+                lambda h: self.client.blockchain.block.header(h),
+                lambda h: self.client.blockchain.header.get(h),
+            ):
+                assert_equal(
+                    rpc_call(bh).error,
+                    {
+                        "code": 1,
+                        "message": f"Height {bh} is out of range",
+                    },
+                )
 
         assert_equal(
             self.client.blockchain.block.header(2, 1).error,
