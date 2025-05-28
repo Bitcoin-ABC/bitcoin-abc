@@ -7,11 +7,11 @@ For notes on the design of Assumeutxo, please refer to [the design doc](/doc/des
 
 ## Loading a snapshot
 
-There is currently no canonical source for snapshots <!-- TODO-->, but any downloaded snapshot
-will be checked against a hash that's been hardcoded in source code. If there is
-no source for the snapshot you need, you can generate it yourself using
-`dumptxoutset` on another node that is already synced (see
-[Generating a snapshot](#generating-a-snapshot)).
+Snapshots are available for download from the following source:
+[download.bitcoinabc.org](https://download.bitcoinabc.org/utxo/)
+
+You can also generate snapshots yourself using `dumptxoutset` on another node that is already
+synced (see [Generating a snapshot](#generating-a-snapshot)).
 
 Once you've obtained the snapshot, you can use the RPC command `loadtxoutset` to
 load it.
