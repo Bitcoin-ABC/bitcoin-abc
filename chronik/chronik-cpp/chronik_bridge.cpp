@@ -402,6 +402,15 @@ WrappedBlockHash ChronikBridge::get_genesis_hash() const {
                                 chronik::util::HashToArray(genesis.GetHash())};
 }
 
+int64_t ChronikBridge::estimate_fee() const {
+    if (!m_node.mempool) {
+        return -1;
+    }
+
+    const Amount feeRateSatsPerK = m_node.mempool->estimateFee().GetFeePerK();
+    return feeRateSatsPerK / Amount::satoshi();
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }

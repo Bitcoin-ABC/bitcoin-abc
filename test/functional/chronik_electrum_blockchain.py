@@ -77,6 +77,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_headers_subscribe()
         self.test_scripthash_subscribe()
         self.test_address_get_scripthash()
+        self.test_estimate_fee()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -1495,6 +1496,36 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 self.client.blockchain.address.get_scripthash(prefixless).result,
                 hex_be_sha256(SCRIPT_UNSPENDABLE),
             )
+
+    def test_estimate_fee(self):
+        assert_equal(
+            self.client.blockchain.estimatefee("foo").error,
+            {
+                "code": 1,
+                "message": "blockchain.estimatefee parameter should be a single non-negative integer",
+            },
+        )
+        assert_equal(
+            self.client.blockchain.estimatefee(-1).error,
+            {
+                "code": 1,
+                "message": "blockchain.estimatefee parameter should be a single non-negative integer",
+            },
+        )
+
+        # The fee doesn't change depending on the number of confirmations
+        assert_equal(
+            self.client.blockchain.estimatefee(0).result,
+            10,
+        )
+        assert_equal(
+            self.client.blockchain.estimatefee(1).result,
+            10,
+        )
+        assert_equal(
+            self.client.blockchain.estimatefee(42).result,
+            10,
+        )
 
 
 if __name__ == "__main__":

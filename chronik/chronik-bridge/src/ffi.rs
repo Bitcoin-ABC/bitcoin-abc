@@ -313,6 +313,10 @@ mod ffi_inner {
         /// Returns the genesis block hash for the current chain
         fn get_genesis_hash(self: &ChronikBridge) -> WrappedBlockHash;
 
+        /// Return the estimated fee rate for a tx to be mined in the next block
+        /// in sats/kB
+        fn estimate_fee(self: &ChronikBridge) -> i64;
+
         /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
         fn bridge_tx(
             tx: &CTransaction,

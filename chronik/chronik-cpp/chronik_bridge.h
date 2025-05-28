@@ -98,6 +98,8 @@ public:
     bool shutdown_requested() const;
 
     WrappedBlockHash get_genesis_hash() const;
+
+    int64_t estimate_fee() const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);

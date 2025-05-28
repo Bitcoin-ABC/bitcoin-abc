@@ -1950,4 +1950,29 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         Ok(json!(scripthash.hex_be()))
     }
+
+    #[rpc_method(name = "estimatefee")]
+    async fn estimate_fee(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        // We don't need it but it's mandatory
+        let _confirmations = match get_param!(params, 0, "number")? {
+            Value::Number(v) if v.as_i64().unwrap() >= 0 => Ok(v),
+            _ => Err(RPCError::CustomError(
+                1,
+                "blockchain.estimatefee parameter should be a single \
+                 non-negative integer"
+                    .to_string(),
+            )),
+        }?;
+
+        let sats_per_kb = self.node.bridge.estimate_fee();
+        if sats_per_kb < 0 {
+            // Unable to estimate
+            return Ok(json!(-1));
+        }
+
+        // Return in XEC/kB, and 1 XEC = 100 sats
+        Ok(json!(sats_per_kb as f64 / 100.0))
+    }
 }
