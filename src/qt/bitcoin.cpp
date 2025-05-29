@@ -45,6 +45,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QTranslator>
+#include <QWindow>
 
 #include <boost/signals2/connection.hpp>
 
@@ -338,6 +339,8 @@ void BitcoinApplication::createWindow(const Config &config,
                                       const NetworkStyle *networkStyle) {
     window =
         new BitcoinGUI(node(), config, platformStyle, networkStyle, nullptr);
+    connect(window, &BitcoinGUI::quitRequested, this,
+            &BitcoinApplication::requestShutdown);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, &QTimer::timeout, window,
@@ -386,7 +389,7 @@ void BitcoinApplication::startThread() {
     connect(executor, &BitcoinABC::initializeResult, this,
             &BitcoinApplication::initializeResult);
     connect(executor, &BitcoinABC::shutdownResult, this,
-            &BitcoinApplication::shutdownResult);
+            &QCoreApplication::quit);
     connect(executor, &BitcoinABC::runawayException, this,
             &BitcoinApplication::handleRunawayException);
 
@@ -441,6 +444,10 @@ void BitcoinApplication::requestInitialize(
 }
 
 void BitcoinApplication::requestShutdown() {
+    for (const auto w : QGuiApplication::topLevelWindows()) {
+        w->hide();
+    }
+
     // Show a simple window indicating shutdown status. Do this first as some of
     // the steps may take some time below, for example the RPC console may still
     // be executing a command.
@@ -448,7 +455,7 @@ void BitcoinApplication::requestShutdown() {
 
     qDebug() << __func__ << ": Requesting shutdown";
     startThread();
-    window->hide();
+
     // Must disconnect node signals otherwise current thread can deadlock since
     // no event loop is running.
     window->unsubscribeFromCoreSignals();
@@ -490,8 +497,7 @@ void BitcoinApplication::initializeResult(
     if (!success) {
         // Make sure splash screen doesn't stick around during shutdown.
         Q_EMIT splashFinished();
-        // Exit first main loop invocation.
-        quit();
+        requestedShutdown();
         return;
     }
     // Log this only after AppInitMain finishes, as then logging setup is
@@ -548,11 +554,6 @@ void BitcoinApplication::initializeResult(
     pollShutdownTimer->start(200);
 }
 
-void BitcoinApplication::shutdownResult() {
-    // Exit second main loop invocation after shutdown finished.
-    quit();
-}
-
 void BitcoinApplication::handleRunawayException(const QString &message) {
     QMessageBox::critical(
         nullptr, "Runaway exception",
@@ -569,6 +570,15 @@ WId BitcoinApplication::getMainWinId() const {
     }
 
     return window->winId();
+}
+
+bool BitcoinApplication::event(QEvent *e) {
+    if (e->type() == QEvent::Quit) {
+        requestShutdown();
+        return true;
+    }
+
+    return QApplication::event(e);
 }
 
 static void SetupUIArgs(ArgsManager &argsman) {
@@ -834,8 +844,6 @@ int GuiMain(int argc, char *argv[]) {
             QObject::tr("%1 didn't yet exit safely...").arg(PACKAGE_NAME),
             (HWND)app.getMainWinId());
 #endif
-        app.exec();
-        app.requestShutdown();
         app.exec();
         return app.getReturnValue();
     } catch (const std::exception &e) {
