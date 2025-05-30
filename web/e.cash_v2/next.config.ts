@@ -49,10 +49,21 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value:
-              process.env.NODE_ENV === "development"
-                ? `default-src 'self' https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`
-                : `default-src https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`,
+            value: `
+            default-src 'self';
+            script-src 'self' 'unsafe-inline' googletagmanager.com google-analytics.com;
+            style-src 'self' 'unsafe-inline' fonts.googleapis.com;
+            font-src 'self' fonts.gstatic.com data:;
+            img-src 'self' google-analytics.com https: data:;
+            connect-src 'self' google-analytics.com region1.google-analytics.com;
+            object-src 'none';
+            base-uri 'self';
+            frame-ancestors 'none';
+            form-action 'self';
+            upgrade-insecure-requests;
+          `
+              .replace(/\s{2,}/g, " ")
+              .trim(),
           },
         ],
       },
