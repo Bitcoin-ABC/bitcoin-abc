@@ -154,7 +154,11 @@ import Collection, {
 } from 'components/Agora/Collection';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import { confirmRawTx } from 'components/Send/helpers';
-import { FIRMA, XECX_SWEEPER_ADDRESS } from 'constants/tokens';
+import {
+    FIRMA,
+    XECX_SWEEPER_ADDRESS,
+    FIRMA_REDEEM_ADDRESS,
+} from 'constants/tokens';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -435,7 +439,32 @@ const Token: React.FC = () => {
         null | bigint
     >(null);
 
+    const [maxFirmaRedeemSats, setMaxFirmaRedeemSats] = useState<null | bigint>(
+        null,
+    );
+
     const userLocale = getUserLocale(navigator);
+
+    const isRedeemingFirma =
+        tokenId === FIRMA.tokenId && switches.showRedeemFirma;
+
+    const canRedeemFirma =
+        maxFirmaRedeemSats !== null &&
+        previewedAgoraPartial !== null &&
+        maxFirmaRedeemSats >
+            previewedAgoraPartial.askedSats(
+                previewedAgoraPartial.offeredAtoms(),
+            );
+
+    const firmaRedeemErrorMsg =
+        maxFirmaRedeemSats === null
+            ? `Unable to fetch $FIRMA redeem hot wallet balance`
+            : `Cannot redeem more than ${toXec(
+                  maxFirmaRedeemSats,
+              ).toLocaleString(userLocale, {
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2,
+              })} XEC worth of $FIRMA. Visit firma.cash to redeem for $USDT.`;
 
     /**
      * Convenience method to compartmentalize comparison of state
@@ -639,10 +668,30 @@ const Token: React.FC = () => {
         }
     };
 
+    const getFirmaRedeemBalance = async () => {
+        let utxos;
+        try {
+            utxos = (await chronik.address(FIRMA_REDEEM_ADDRESS).utxos()).utxos;
+            const maxFirmaRedeemSats = utxos
+                .map(utxo => utxo.sats)
+                .reduce((prev, curr) => prev + curr, 0n);
+            console.log(`maxFirmaRedeemSats`, maxFirmaRedeemSats);
+            setMaxFirmaRedeemSats(maxFirmaRedeemSats);
+        } catch (err) {
+            // If there is some error in getting the utxo set of the sweeper address,
+            // we will not be able to get the balance, and Cashtab will simply not show
+            // this information
+            console.error(`Error getting FIRMA Sweeper balance`, err);
+        }
+    };
+
     useEffect(() => {
         if (tokenId === appConfig.vipTokens.xecx.tokenId) {
             // Get XECX sweeper balance when user is on xecx token page
             getXecxSweeperBalance();
+        } else if (tokenId === FIRMA.tokenId) {
+            // Get balance of the FIRMA redeem hot wallet when user is on firma token page
+            getFirmaRedeemBalance();
         }
     }, [tokenId]);
 
@@ -2520,8 +2569,15 @@ const Token: React.FC = () => {
                             tokenId === FIRMA.tokenId) &&
                         previewedAgoraPartial !== null && (
                             <Modal
-                                title={`List ${tokenTicker}?`}
-                                disabled={previewedAgoraPartialUnacceptable}
+                                title={
+                                    isRedeemingFirma
+                                        ? `Redeem $FIRMA for XEC?`
+                                        : `List ${tokenTicker}?`
+                                }
+                                disabled={
+                                    previewedAgoraPartialUnacceptable ||
+                                    (isRedeemingFirma && !canRedeemFirma)
+                                }
                                 handleOk={
                                     isAlp ? listAlpPartial : listSlpPartial
                                 }
@@ -2529,106 +2585,158 @@ const Token: React.FC = () => {
                                     setPreviewedAgoraPartial(null)
                                 }
                                 showCancelButton
-                                height={450}
+                                height={isRedeemingFirma ? 290 : 450}
                             >
-                                <AgoraPreviewParagraph>
-                                    Agora offers require special encoding and
-                                    may not match your input.
-                                </AgoraPreviewParagraph>
-                                <AgoraPreviewParagraph>
-                                    Create the following sell offer?
-                                </AgoraPreviewParagraph>
-
-                                <AgoraPreviewTable>
-                                    <AgoraPreviewRow>
-                                        <AgoraPreviewLabel>
-                                            Offered qty:{' '}
-                                        </AgoraPreviewLabel>
-                                        <AgoraPreviewCol>
-                                            {decimalizedTokenQtyToLocaleFormat(
-                                                decimalizeTokenAmount(
-                                                    previewedAgoraPartial
-                                                        .offeredAtoms()
-                                                        .toString(),
-                                                    decimals as SlpDecimals,
-                                                ),
-                                                userLocale,
-                                            )}
-                                        </AgoraPreviewCol>
-                                    </AgoraPreviewRow>
-                                    <AgoraPreviewRow>
-                                        <AgoraPreviewLabel>
-                                            Min qty:{' '}
-                                        </AgoraPreviewLabel>
-                                        <AgoraPreviewCol>
-                                            {decimalizedTokenQtyToLocaleFormat(
-                                                decimalizeTokenAmount(
-                                                    previewedAgoraPartial
-                                                        .minAcceptedAtoms()
-                                                        .toString(),
-                                                    decimals as SlpDecimals,
-                                                ),
-                                                userLocale,
-                                            )}
-                                        </AgoraPreviewCol>
-                                    </AgoraPreviewRow>
-                                    {previewedAgoraPartialUnacceptable && (
-                                        <Alert noWordBreak>
-                                            This offer cannot be accepted
-                                            because the min buy is higher than
-                                            the total offered tokens. Cashtab
-                                            does not support creating this type
-                                            of offer. Please update your params
-                                            and try again.
-                                        </Alert>
-                                    )}
-
-                                    <AgoraPreviewRow>
-                                        <AgoraPreviewLabel>
-                                            Actual price:{' '}
-                                        </AgoraPreviewLabel>
-                                        <AgoraPreviewCol>
-                                            {getAgoraPartialActualPrice()}
-                                        </AgoraPreviewCol>
-                                    </AgoraPreviewRow>
-                                    {tokenId === FIRMA.tokenId && (
-                                        <AgoraPreviewRow>
-                                            <AgoraPreviewLabel>
-                                                You receive:{' '}
-                                            </AgoraPreviewLabel>
-                                            <AgoraPreviewCol>
-                                                {toXec(
-                                                    Number(
-                                                        previewedAgoraPartial.askedSats(
-                                                            previewedAgoraPartial.offeredAtoms(),
+                                {isRedeemingFirma ? (
+                                    <>
+                                        <AgoraPreviewTable>
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    You sell:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {decimalizedTokenQtyToLocaleFormat(
+                                                        decimalizeTokenAmount(
+                                                            previewedAgoraPartial
+                                                                .offeredAtoms()
+                                                                .toString(),
+                                                            decimals as SlpDecimals,
                                                         ),
-                                                    ),
-                                                ).toLocaleString(userLocale, {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2,
-                                                })}{' '}
-                                                XEC
-                                            </AgoraPreviewCol>
-                                        </AgoraPreviewRow>
-                                    )}
-                                    {tokenId !== FIRMA.tokenId && (
-                                        <AgoraPreviewRow>
-                                            <AgoraPreviewLabel>
-                                                Target price:{' '}
-                                            </AgoraPreviewLabel>
-                                            <AgoraPreviewCol>
-                                                {getAgoraPartialTargetPriceXec()}
-                                            </AgoraPreviewCol>
-                                        </AgoraPreviewRow>
-                                    )}
-                                </AgoraPreviewTable>
-                                <AgoraPreviewParagraph>
-                                    If actual price is not close to target
-                                    price, increase your min buy.
-                                </AgoraPreviewParagraph>
-                                <AgoraPreviewParagraph>
-                                    You can cancel this listing at any time.
-                                </AgoraPreviewParagraph>
+                                                        userLocale,
+                                                    )}{' '}
+                                                    $FIRMA
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    You receive:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {toXec(
+                                                        Number(
+                                                            previewedAgoraPartial.askedSats(
+                                                                previewedAgoraPartial.offeredAtoms(),
+                                                            ),
+                                                        ),
+                                                    ).toLocaleString(
+                                                        userLocale,
+                                                        {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2,
+                                                        },
+                                                    )}{' '}
+                                                    XEC
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    $FIRMA price:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {getAgoraPartialActualPrice()}
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+                                            {!canRedeemFirma && (
+                                                <Alert noWordBreak>
+                                                    {firmaRedeemErrorMsg}
+                                                </Alert>
+                                            )}
+                                            {previewedAgoraPartialUnacceptable && (
+                                                <Alert noWordBreak>
+                                                    This offer cannot be
+                                                    accepted because the min buy
+                                                    is higher than the total
+                                                    offered tokens. Cashtab does
+                                                    not support creating this
+                                                    type of offer. Please update
+                                                    your params and try again.
+                                                </Alert>
+                                            )}
+                                        </AgoraPreviewTable>
+                                    </>
+                                ) : (
+                                    <>
+                                        <AgoraPreviewParagraph>
+                                            Agora offers require special
+                                            encoding and may not match your
+                                            input.
+                                        </AgoraPreviewParagraph>
+                                        <AgoraPreviewParagraph>
+                                            Create the following sell offer?
+                                        </AgoraPreviewParagraph>
+                                        <AgoraPreviewTable>
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    Offered qty:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {decimalizedTokenQtyToLocaleFormat(
+                                                        decimalizeTokenAmount(
+                                                            previewedAgoraPartial
+                                                                .offeredAtoms()
+                                                                .toString(),
+                                                            decimals as SlpDecimals,
+                                                        ),
+                                                        userLocale,
+                                                    )}
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    Min qty:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {decimalizedTokenQtyToLocaleFormat(
+                                                        decimalizeTokenAmount(
+                                                            previewedAgoraPartial
+                                                                .minAcceptedAtoms()
+                                                                .toString(),
+                                                            decimals as SlpDecimals,
+                                                        ),
+                                                        userLocale,
+                                                    )}
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+                                            {previewedAgoraPartialUnacceptable && (
+                                                <Alert noWordBreak>
+                                                    This offer cannot be
+                                                    accepted because the min buy
+                                                    is higher than the total
+                                                    offered tokens. Cashtab does
+                                                    not support creating this
+                                                    type of offer. Please update
+                                                    your params and try again.
+                                                </Alert>
+                                            )}
+
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    Actual price:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {getAgoraPartialActualPrice()}
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+
+                                            <AgoraPreviewRow>
+                                                <AgoraPreviewLabel>
+                                                    Target price:{' '}
+                                                </AgoraPreviewLabel>
+                                                <AgoraPreviewCol>
+                                                    {getAgoraPartialTargetPriceXec()}
+                                                </AgoraPreviewCol>
+                                            </AgoraPreviewRow>
+                                        </AgoraPreviewTable>
+                                        <AgoraPreviewParagraph>
+                                            If actual price is not close to
+                                            target price, increase your min buy.
+                                        </AgoraPreviewParagraph>
+                                        <AgoraPreviewParagraph>
+                                            You can cancel this listing at any
+                                            time.
+                                        </AgoraPreviewParagraph>
+                                    </>
+                                )}
                             </Modal>
                         )}
                     {renderedTokenType === 'NFT' && (
