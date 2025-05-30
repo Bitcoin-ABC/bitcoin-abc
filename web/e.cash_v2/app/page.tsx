@@ -48,7 +48,7 @@ export default function Home() {
             <div className="mask-gradient-fade-to-left bg-white/14 absolute bottom-20 hidden h-[1px] w-full lg:block" />
             <div className="mask-gradient-fade-to-left bottom-20.25 absolute hidden h-[1px] w-full bg-black lg:block" />
             <h1 className="mb-2 w-auto text-5xl font-bold tracking-tighter lg:mb-6 lg:w-96 lg:text-6xl lg:leading-[60px]">
-              Cash for the internet
+              Cash for the Internet
             </h1>
             <p className="lg:w-70 text-lg">
               Scalable payments to meet the{" "}
