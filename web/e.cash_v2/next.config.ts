@@ -6,6 +6,11 @@ import type { NextConfig } from "next";
 
 import { redirects } from "./app/data/redirects";
 
+const scriptSrc =
+  process.env.NODE_ENV === "development"
+    ? "'self' 'unsafe-inline' 'unsafe-eval'"
+    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
@@ -51,7 +56,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: `
             default-src 'self';
-            script-src 'self' 'unsafe-inline' googletagmanager.com google-analytics.com;
+            script-src ${scriptSrc};
             style-src 'self' 'unsafe-inline' fonts.googleapis.com;
             font-src 'self' fonts.gstatic.com data:;
             img-src 'self' google-analytics.com https: data:;
