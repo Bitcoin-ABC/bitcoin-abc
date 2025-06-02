@@ -161,6 +161,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '706f6f6c2e6b7279707465782e636f6d', // ascii pool.kryptex.com
             },
         ],
+        [
+            '76a9147c4b31ab24ebafdb7b1770ac08b51ac77fc3839388ac',
+            {
+                miner: '90 01 Pte Ltd',
+                coinbaseHexFragment: '393020303120507465204c7464', // "90 01 Pte Ltd" ASCII
+            },
+        ],
     ],
 };
 

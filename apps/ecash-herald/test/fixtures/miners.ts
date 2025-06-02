@@ -381,6 +381,21 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'pool.minemine.online',
     },
+    {
+        height: '899450',
+        coinbaseHex:
+            '037ab90d04e2d53c680cfabe6d6d000000000000000000000000000000000000000000000000000000000000000001000000000000006800000661c4dee1ef0a000016393020303120507465204c7464203664323033393235',
+        payoutOutputScript:
+            '76a9147c4b31ab24ebafdb7b1770ac08b51ac77fc3839388ac',
+        parsed: '90 01 Pte Ltd',
+    },
+    {
+        height: '899450',
+        coinbaseHex:
+            '037ab90d04e2d53c680cfabe6d6d000000000000000000000000000000000000000000000000000000000000000001000000000000006800000661c4dee1ef0a000016393020303120507465204c7464203664323033393235',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: '90 01 Pte Ltd',
+    },
 ];
 
 export default minerTestFixtures;
