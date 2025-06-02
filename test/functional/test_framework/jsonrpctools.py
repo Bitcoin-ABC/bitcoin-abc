@@ -153,7 +153,7 @@ class ChronikElectrumClient:
         request = {"jsonrpc": "2.0", "method": method, "id": self.id}
         if params is not None:
             request["params"] = params
-        self.sock.send(json.dumps(request).encode("utf-8") + b"\n")
+        self.sock.sendall(json.dumps(request).encode("utf-8") + b"\n")
 
         json_reply = self._recv()
 
