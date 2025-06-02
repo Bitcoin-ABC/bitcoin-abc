@@ -38,7 +38,9 @@
 #include <interfaces/wallet.h>
 #include <qt/sendcoinsrecipient.h>
 
+#include <QNetworkReply>
 #include <QObject>
+#include <QSslError>
 #include <QString>
 
 class OptionsModel;
@@ -52,8 +54,6 @@ class QApplication;
 class QByteArray;
 class QLocalServer;
 class QNetworkAccessManager;
-class QNetworkReply;
-class QSslError;
 class QUrl;
 QT_END_NAMESPACE
 
