@@ -2051,4 +2051,19 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             "hex": hex::encode(proto_header.raw_header),
         }))
     }
+
+    #[rpc_method(name = "headers.get_tip")]
+    async fn headers_get_tip(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 0);
+
+        let indexer = self.indexer.read().await;
+        let blocks = indexer.blocks(&self.node);
+
+        let tip_height = blocks
+            .blockchain_info()
+            .map_err(|_| RPCError::InternalError)?
+            .tip_height;
+
+        self.header_get(json!([tip_height.to_string()])).await
+    }
 }

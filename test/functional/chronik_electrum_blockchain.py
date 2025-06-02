@@ -477,7 +477,35 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         ]
         block_hashes_bytes = [hex_to_be_bytes(bh) for bh in block_hashes]
         headers = [self.node.getblockheader(bh, False) for bh in block_hashes]
+
+        self.log.info("Testing the blockchain.headers.get_tip RPC")
+
         tip_height = len(headers) - 1
+        tip_hash = block_hashes[-1]
+        tip_header = headers[-1]
+
+        assert_equal(
+            self.client.blockchain.headers.get_tip(tip_height).error,
+            {
+                "code": -32602,
+                "message": "Expected at most 0 parameters",
+            },
+        )
+        assert_equal(
+            self.client.blockchain.headers.get_tip(tip_hash).error,
+            {
+                "code": -32602,
+                "message": "Expected at most 0 parameters",
+            },
+        )
+
+        assert_equal(
+            self.client.blockchain.headers.get_tip().result,
+            {
+                "height": tip_height,
+                "hex": tip_header,
+            },
+        )
 
         self.log.info(
             "Testing the blockchain.block.header and blockchain.header.get RPCs"
