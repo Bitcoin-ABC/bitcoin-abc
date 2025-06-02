@@ -49,3 +49,37 @@ here to get the effect */
   mask-image: linear-gradient(to left, black 50%, transparent 100%);
   -webkit-mask-image: linear-gradient(to left, black 50%, transparent 100%);
 }
+
+.logo-mask-gradient {
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 20),
+    rgba(0, 0, 0, 80),
+    rgba(0, 0, 0, 0)
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 20),
+    rgba(0, 0, 0, 80),
+    rgba(0, 0, 0, 0)
+  );
+}
+
+.srcoll-animation {
+  animation: scroll-animation 50s infinite linear;
+  --gap: 44px;
+  @media (max-width: 1024px) {
+    --gap: 20px;
+  }
+}
+
+@keyframes scroll-animation {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - var(--gap)));
+  }
+}
