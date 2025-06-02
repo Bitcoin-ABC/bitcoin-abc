@@ -317,6 +317,10 @@ mod ffi_inner {
         /// in sats/kB
         fn estimate_feerate_sats_per_kb(self: &ChronikBridge) -> i64;
 
+        /// Return the minimum relay fee rate for a tx to be accepted into the
+        /// node mempool in sats/kB
+        fn min_relay_feerate_sats_per_kb(self: &ChronikBridge) -> i64;
+
         /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
         fn bridge_tx(
             tx: &CTransaction,

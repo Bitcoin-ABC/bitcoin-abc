@@ -411,6 +411,14 @@ int64_t ChronikBridge::estimate_feerate_sats_per_kb() const {
     return feeRateSatsPerK / Amount::satoshi();
 }
 
+int64_t ChronikBridge::min_relay_feerate_sats_per_kb() const {
+    if (!m_node.mempool) {
+        return -1;
+    }
+
+    return m_node.mempool->m_min_relay_feerate.GetFeePerK() / Amount::satoshi();
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }

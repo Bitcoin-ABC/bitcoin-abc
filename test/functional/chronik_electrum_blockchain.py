@@ -78,6 +78,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_scripthash_subscribe()
         self.test_address_get_scripthash()
         self.test_estimate_fee()
+        self.test_relay_fee()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -1560,6 +1561,8 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             )
 
     def test_estimate_fee(self):
+        self.log.info("Test the blockchain.estimatefee endpoint")
+
         assert_equal(
             self.client.blockchain.estimatefee("foo").error,
             {
@@ -1587,6 +1590,33 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(
             self.client.blockchain.estimatefee(42).result,
             10,
+        )
+
+    def test_relay_fee(self):
+        self.log.info("Test the blockchain.relayfee endpoint")
+
+        # This endpoint accepts no parameter
+        assert_equal(
+            self.client.blockchain.relayfee(42).error,
+            {
+                "code": -32602,
+                "message": "Expected at most 0 parameters",
+            },
+        )
+
+        # Default min relay fee is 10 XEC/kB
+        assert_equal(
+            self.client.blockchain.relayfee().result,
+            10,
+        )
+
+        self.restart_node(0, extra_args=self.extra_args[0] + ["-minrelaytxfee=42"])
+        self.client = self.node.get_chronik_electrum_client(name="client")
+        self.wallet.rescan_utxos()
+
+        assert_equal(
+            self.client.blockchain.relayfee().result,
+            42,
         )
 
 

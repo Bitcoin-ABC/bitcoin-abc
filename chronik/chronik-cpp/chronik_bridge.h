@@ -100,6 +100,8 @@ public:
     WrappedBlockHash get_genesis_hash() const;
 
     int64_t estimate_feerate_sats_per_kb() const;
+
+    int64_t min_relay_feerate_sats_per_kb() const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);

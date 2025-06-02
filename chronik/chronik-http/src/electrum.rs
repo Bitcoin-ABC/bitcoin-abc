@@ -1976,6 +1976,23 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         Ok(json!(sats_per_kb as f64 / 100.0))
     }
 
+    #[rpc_method(name = "relayfee")]
+    async fn relay_fee(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 0);
+
+        let sats_per_kb = self.node.bridge.min_relay_feerate_sats_per_kb();
+        if sats_per_kb < 0 {
+            // Unable to estimate.
+            // Note that this is not specified by the protocol but it is
+            // consistent with the blockchain.estimatefee endpoint and is only
+            // reachable if the mempool is disabled.
+            return Ok(json!(-1));
+        }
+
+        // Return in XEC/kB, and 1 XEC = 100 sats
+        Ok(json!(sats_per_kb as f64 / 100.0))
+    }
+
     #[rpc_method(name = "header.get")]
     async fn header_get(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 1);
