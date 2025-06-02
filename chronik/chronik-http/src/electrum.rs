@@ -1966,7 +1966,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             )),
         }?;
 
-        let sats_per_kb = self.node.bridge.estimate_fee();
+        let sats_per_kb = self.node.bridge.estimate_feerate_sats_per_kb();
         if sats_per_kb < 0 {
             // Unable to estimate
             return Ok(json!(-1));

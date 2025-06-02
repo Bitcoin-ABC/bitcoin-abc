@@ -402,7 +402,7 @@ WrappedBlockHash ChronikBridge::get_genesis_hash() const {
                                 chronik::util::HashToArray(genesis.GetHash())};
 }
 
-int64_t ChronikBridge::estimate_fee() const {
+int64_t ChronikBridge::estimate_feerate_sats_per_kb() const {
     if (!m_node.mempool) {
         return -1;
     }

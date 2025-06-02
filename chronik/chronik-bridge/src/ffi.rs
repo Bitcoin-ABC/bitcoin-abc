@@ -315,7 +315,7 @@ mod ffi_inner {
 
         /// Return the estimated fee rate for a tx to be mined in the next block
         /// in sats/kB
-        fn estimate_fee(self: &ChronikBridge) -> i64;
+        fn estimate_feerate_sats_per_kb(self: &ChronikBridge) -> i64;
 
         /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
         fn bridge_tx(

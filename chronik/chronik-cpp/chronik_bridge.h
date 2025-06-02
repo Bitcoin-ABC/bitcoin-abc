@@ -99,7 +99,7 @@ public:
 
     WrappedBlockHash get_genesis_hash() const;
 
-    int64_t estimate_fee() const;
+    int64_t estimate_feerate_sats_per_kb() const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
