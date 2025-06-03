@@ -159,6 +159,7 @@ import {
     XECX_SWEEPER_ADDRESS,
     FIRMA_REDEEM_ADDRESS,
 } from 'constants/tokens';
+import UncontrolledLink from 'components/Common/UncontrolledLink';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -2843,21 +2844,14 @@ const Token: React.FC = () => {
                                 <TokenStatsTableRow>
                                     <label>URL</label>
                                     <TokenUrlCol>
-                                        <a
-                                            href={
-                                                url?.startsWith('https://')
+                                        <UncontrolledLink
+                                            url={
+                                                url?.startsWith('https://') ||
+                                                url?.startsWith('http://')
                                                     ? url
                                                     : `https://${url}`
                                             }
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {`${url?.slice(
-                                                url?.startsWith('https://')
-                                                    ? 8
-                                                    : 0,
-                                            )}`}
-                                        </a>
+                                        />
                                     </TokenUrlCol>
                                 </TokenStatsTableRow>
                             )}

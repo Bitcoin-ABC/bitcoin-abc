@@ -74,7 +74,8 @@ const ButtonHolder = styled.div`
 const ModalBaseButton = styled.button`
     font-size: var(--text-sm);
     line-height: var(--text-sm--line-height);
-    padding: 8px 0;
+    padding: 8px 0 !important;
+    display: inline-block !important;
     border-radius: 9px;
     transition: all 0.5s ease;
     width: 100px;
