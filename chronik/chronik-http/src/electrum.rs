@@ -1418,7 +1418,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     #[rpc_method(name = "transaction.get")]
     async fn transaction_get(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 2);
-        let txid_hex = get_param!(params, 0, "txid")?;
+        let txid_hex = get_param!(params, 0, "tx_hash")?;
         let txid = TxId::try_from(&txid_hex)
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
@@ -1486,7 +1486,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         params: Value,
     ) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 1);
-        let txid_hex = get_param!(params, 0, "txid")?;
+        let txid_hex = get_param!(params, 0, "tx_hash")?;
         let txid = TxId::try_from(&txid_hex)
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
@@ -1494,7 +1494,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let query_tx = indexer.txs(&self.node);
         let tx = query_tx
             .tx_by_id(txid)
-            .or(Err(RPCError::InvalidRequest("Unknown txid".to_string())))?;
+            .or(Err(RPCError::InvalidRequest("Unknown tx_hash".to_string())))?;
 
         match tx.block {
             Some(block) => Ok(json!(block.height)),
@@ -1508,7 +1508,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         params: Value,
     ) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 2);
-        let txid = TxId::try_from(&get_param!(params, 0, "txid")?)
+        let txid = TxId::try_from(&get_param!(params, 0, "tx_hash")?)
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
         let mut block_height = json_to_u31(
             get_optional_param!(params, 1, "height", json!(0))?,
