@@ -7,6 +7,7 @@ import Link from "next/link";
 import GridPattern from "./components/GridPattern";
 import ContentContainer from "./components/ContentContainer";
 import TrustedBy from "./components/TrustedBy";
+import WhatWeDo from "./components/WhatWeDo";
 
 export default function Home() {
   type HeroBoxProps = {
@@ -134,6 +135,7 @@ export default function Home() {
         </div>
       </div>
       <TrustedBy />
+      <WhatWeDo />
     </main>
   );
 }

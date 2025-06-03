@@ -83,3 +83,29 @@ here to get the effect */
     transform: translateX(calc(-50% - var(--gap)));
   }
 }
+
+h2 {
+  font-size: 40px;
+  font-weight: bold;
+  line-height: 120%;
+  letter-spacing: -1.2px;
+}
+
+.gradient-text {
+  background: linear-gradient(
+    to right,
+    var(--accentLight) 0%,
+    var(--accentMedium) 80%,
+    var(--accentDark) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (max-width: 1024px) {
+  h2 {
+    font-size: 30px;
+  }
+}
