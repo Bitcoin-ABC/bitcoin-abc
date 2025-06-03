@@ -367,3 +367,9 @@ export const AirdropIconCtn = styled.div`
     align-items: center;
     gap: 10px;
 `;
+
+export const TxInfoModalParagraph = styled.p`
+    color: ${props => props.theme.primaryText};
+    text-align: left;
+    padding: 12px;
+`;

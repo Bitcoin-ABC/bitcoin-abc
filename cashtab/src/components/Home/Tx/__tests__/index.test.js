@@ -915,6 +915,17 @@ describe('<Tx />', () => {
 
         // We see airdrop label
         expect(screen.getByText('Airdrop (XEC)')).toBeInTheDocument();
+
+        // We see an info button and can click it for more info
+        await userEvent.click(
+            await screen.findByRole('button', {
+                name: 'Airdrop Msg Info',
+            }),
+        );
+        expect(
+            screen.getByText('Beware of scams in links!'),
+        ).toBeInTheDocument();
+
         // We see the airdrop msg
         expect(
             screen.getByText(

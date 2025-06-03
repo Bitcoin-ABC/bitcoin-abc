@@ -40,6 +40,7 @@ import {
     MessageLabel,
     AirdropHeader,
     AirdropIconCtn,
+    TxInfoModalParagraph,
 } from 'components/Home/Tx/styled';
 import {
     SendIcon,
@@ -74,6 +75,7 @@ import {
     FirmaIcon,
     SolIcon,
     TetherIcon,
+    QuestionIcon,
 } from 'components/Common/CustomIcons';
 import CashtabSettings, {
     supportedFiatCurrencies,
@@ -100,8 +102,9 @@ import AvalancheFinalized from 'components/Common/AvalancheFinalized';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import CashtabCache from 'config/CashtabCache';
 import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
-import { CopyIconButton } from 'components/Common/Buttons';
+import { CopyIconButton, IconButton } from 'components/Common/Buttons';
 import { FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
+import { Alert } from 'components/Common/Atoms';
 
 interface TxProps {
     tx: CashtabTx;
@@ -310,7 +313,14 @@ const Tx: React.FC<TxProps> = ({
                                         <>
                                             <MessageLabel>
                                                 <CashtabMsgIcon />
-                                                Airdrop Msg
+                                                Airdrop Msg{' '}
+                                                <IconButton
+                                                    name={`Airdrop Msg Info`}
+                                                    icon={<QuestionIcon />}
+                                                    onClick={() =>
+                                                        setShowAirdropInfo(true)
+                                                    }
+                                                />
                                             </MessageLabel>
                                             <AppDescMsg>{msg}</AppDescMsg>
                                         </>
@@ -863,6 +873,7 @@ const Tx: React.FC<TxProps> = ({
 
     const [showPanel, setShowPanel] = useState(false);
     const [showAddNewContactModal, setShowAddNewContactModal] = useState(false);
+    const [showAirdropInfo, setShowAirdropInfo] = useState(false);
     interface TxFormData {
         newContactName: string;
     }
@@ -997,6 +1008,23 @@ const Tx: React.FC<TxProps> = ({
                         error={formDataErrors.newContactName}
                         handleInput={handleInput}
                     />
+                </Modal>
+            )}
+            {showAirdropInfo && (
+                <Modal
+                    title="Airdrop Message"
+                    handleOk={() => setShowAirdropInfo(false)}
+                    handleCancel={() => setShowAirdropInfo(false)}
+                    height={400}
+                >
+                    <Alert>Beware of scams in links!</Alert>
+                    <TxInfoModalParagraph>
+                        An Airdrop was sent to holders of this token.
+                    </TxInfoModalParagraph>
+                    <TxInfoModalParagraph>
+                        Anyone can send an airdrop (with any msg) to holders of
+                        any token.
+                    </TxInfoModalParagraph>
                 </Modal>
             )}
             <TxWrapper>
