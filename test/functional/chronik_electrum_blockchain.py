@@ -74,6 +74,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_transaction_get_height()
         self.test_transaction_broadcast()
         self.test_transaction_get_merkle()
+        self.test_transaction_id_from_pos()
         self.test_block_header()
         self.test_scripthash()
         self.test_headers_subscribe()
@@ -555,6 +556,101 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 {
                     "code": 1,
                     "message": "Invalid height argument; expected non-negative numeric value",
+                },
+            )
+
+    def test_transaction_id_from_pos(self):
+        for _ in range(42):
+            self.wallet.send_self_transfer(from_node=self.node)
+        block_hash = self.generate(self.node, 1)[0]
+        block_info = self.node.getblock(block_hash)
+        height = block_info["height"]
+        txids_hex = block_info["tx"]
+        txids = [hex_to_be_bytes(txid) for txid in txids_hex]
+
+        for i in range(len(txids)):
+            _root, branch = merkle_root_and_branch(txids, i)
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(height, i, False).result,
+                txids_hex[i],
+            )
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(height, i, True).result,
+                {
+                    "tx_hash": txids_hex[i],
+                    "merkle": [h[::-1].hex() for h in branch],
+                },
+            )
+
+        # The block at height of tip + 1 doesn't exist
+        assert_equal(
+            self.client.blockchain.transaction.id_from_pos(height + 1, 0).error,
+            {
+                "code": 1,
+                "message": f"No transaction at position 0 for height {height + 1}",
+            },
+        )
+        # The transaction at index numtx doesn't exist (because it's indexed
+        # from 0).
+        assert_equal(
+            self.client.blockchain.transaction.id_from_pos(height, len(txids)).error,
+            {
+                "code": 1,
+                "message": f"No transaction at position {len(txids)} for height {height}",
+            },
+        )
+
+        for bad_height in ["", "0", -1, "foo"]:
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(bad_height, 0).error,
+                {
+                    "code": 1,
+                    "message": "Invalid height argument; expected non-negative numeric value",
+                },
+            )
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(
+                    height=bad_height, tx_pos=0
+                ).error,
+                {
+                    "code": 1,
+                    "message": "Invalid height argument; expected non-negative numeric value",
+                },
+            )
+
+        for bad_tx_pos in ["", "0", -1, "foo"]:
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(0, bad_tx_pos).error,
+                {
+                    "code": 1,
+                    "message": "Invalid tx_pos argument; expected non-negative numeric value",
+                },
+            )
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(
+                    height=0, tx_pos=bad_tx_pos
+                ).error,
+                {
+                    "code": 1,
+                    "message": "Invalid tx_pos argument; expected non-negative numeric value",
+                },
+            )
+
+        for bad_merkle in ["", "false", 1, "foo"]:
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(0, 0, bad_merkle).error,
+                {
+                    "code": 1,
+                    "message": "Invalid merkle argument; expected boolean",
+                },
+            )
+            assert_equal(
+                self.client.blockchain.transaction.id_from_pos(
+                    height=0, tx_pos=0, merkle=bad_merkle
+                ).error,
+                {
+                    "code": 1,
+                    "message": "Invalid merkle argument; expected boolean",
                 },
             )
 

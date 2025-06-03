@@ -1046,6 +1046,31 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         Ok(serde_json::json!(status))
     }
+
+    fn block_txids(
+        &self,
+        indexer: &tokio::sync::RwLockReadGuard<'_, ChronikIndexer>,
+        block_hash: Vec<u8>,
+    ) -> Result<Vec<Sha256d>, RPCError> {
+        let bridge = &self.node.bridge;
+        let bindex = bridge
+            .lookup_block_index(
+                block_hash.try_into().map_err(|_| RPCError::InternalError)?,
+            )
+            .map_err(|_| RPCError::InternalError)?;
+        let block = indexer
+            .load_chronik_block(bridge, bindex)
+            .map_err(|_| RPCError::InternalError)?;
+
+        let txids: Vec<Sha256d> = block
+            .block_txs
+            .txs
+            .iter()
+            .map(|txentry| Sha256d(txentry.txid.to_bytes()))
+            .collect();
+
+        Ok(txids)
+    }
 }
 
 #[rpc_pubsub_impl(name = "blockchain")]
@@ -1619,22 +1644,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             }
         }?;
 
-        let bridge = &self.node.bridge;
-        let bindex = bridge
-            .lookup_block_index(
-                block_hash.try_into().map_err(|_| RPCError::InternalError)?,
-            )
-            .map_err(|_| RPCError::InternalError)?;
-        let block = indexer
-            .load_chronik_block(bridge, bindex)
-            .map_err(|_| RPCError::InternalError)?;
-
-        let txids: Vec<Sha256d> = block
-            .block_txs
-            .txs
-            .iter()
-            .map(|txentry| Sha256d(txentry.txid.to_bytes()))
-            .collect();
+        let txids = self.block_txids(&indexer, block_hash)?;
         let index_in_block = txids
             .iter()
             .position(|&id| id == Sha256d(txid.to_bytes()))
@@ -1652,6 +1662,72 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             "block_height": block_height,
             "pos": index_in_block,
         }))
+    }
+
+    #[rpc_method(name = "transaction.id_from_pos")]
+    async fn transaction_id_from_pos(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 3);
+
+        let block_height = json_to_u31(
+            get_param!(params, 0, "height")?,
+            "Invalid height argument; expected non-negative numeric value",
+        )?;
+        let tx_pos = json_to_u31(
+            get_param!(params, 1, "tx_pos")?,
+            "Invalid tx_pos argument; expected non-negative numeric value",
+        )? as usize;
+        let merkle =
+            match get_optional_param!(params, 2, "merkle", Value::Bool(false))?
+            {
+                Value::Bool(v) => Ok(v),
+                _ => Err(RPCError::CustomError(
+                    1,
+                    "Invalid merkle argument; expected boolean".to_string(),
+                )),
+            }?;
+
+        let indexer = self.indexer.read().await;
+        let blocks = indexer.blocks(&self.node);
+
+        let error_msg = format!(
+            "No transaction at position {tx_pos} for height {block_height}"
+        );
+
+        // We don't access the block txs via the indexer directly because we
+        // need all the txs, and pagination is in the way. Instead we retrieve
+        // the block hash and load the block via the bridge.
+        let block_hash = blocks
+            .by_hash_or_height(block_height.to_string())
+            .map_err(|_| RPCError::CustomError(1, error_msg.clone()))?
+            .block_info
+            .ok_or(RPCError::InternalError)?
+            .hash;
+
+        let txids = self.block_txids(&indexer, block_hash)?;
+
+        if tx_pos >= txids.len() {
+            return Err(RPCError::CustomError(1, error_msg));
+        }
+
+        if merkle {
+            let mut merkle_tree = MerkleTree::new();
+            let (_root, branch) =
+                merkle_tree.merkle_root_and_branch(&txids, tx_pos);
+            let branch: Vec<String> = branch
+                .iter()
+                .map(|h| hex::encode(h.to_be_bytes()))
+                .collect();
+
+            return Ok(json!({
+                "tx_hash": txids[tx_pos].hex_be(),
+                "merkle": branch,
+            }));
+        }
+
+        Ok(json!(txids[tx_pos].hex_be()))
     }
 
     #[rpc_method(name = "scripthash.get_balance")]
