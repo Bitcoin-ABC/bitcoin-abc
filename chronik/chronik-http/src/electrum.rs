@@ -1480,6 +1480,77 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }))
     }
 
+    #[rpc_method(name = "transaction.get_confirmed_blockhash")]
+    async fn transaction_get_confirmed_blockhash(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 2);
+
+        let txid_hex = get_param!(params, 0, "tx_hash")?;
+        let txid = TxId::try_from(&txid_hex)
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+
+        let include_header = match get_optional_param!(
+            params,
+            1,
+            "include_header",
+            Value::Bool(false)
+        )? {
+            Value::Bool(v) => v,
+            _ => {
+                return Err(RPCError::CustomError(
+                    1,
+                    "Invalid second argument; expected boolean".to_string(),
+                ))
+            }
+        };
+
+        let indexer = self.indexer.read().await;
+        let query_tx = indexer.txs(&self.node);
+
+        let no_confirmed_tx_message = "No confirmed transaction matching the \
+                                       requested hash was found"
+            .to_string();
+        let tx = query_tx.tx_by_id(txid).or(Err(RPCError::CustomError(
+            1,
+            no_confirmed_tx_message.clone(),
+        )))?;
+        let block = match tx.block {
+            Some(block) => block,
+            None => {
+                return Err(RPCError::CustomError(
+                    1,
+                    no_confirmed_tx_message.clone(),
+                ))
+            }
+        };
+
+        let block_hash = Sha256::from_le_slice(&block.hash)
+            .map_err(|_| RPCError::InternalError)?
+            .hex_be();
+        let block_height = block.height;
+
+        if include_header {
+            let blocks = indexer.blocks(&self.node);
+            let proto_header = blocks
+                .header(block_height.to_string(), 0)
+                .await
+                .map_err(|_| RPCError::InternalError)?;
+
+            return Ok(json!({
+                "block_hash": block_hash,
+                "block_header": hex::encode(proto_header.raw_header),
+                "block_height": block_height,
+            }));
+        }
+
+        Ok(json!({
+            "block_hash": block_hash,
+            "block_height": block_height,
+        }))
+    }
+
     #[rpc_method(name = "transaction.get_height")]
     async fn transaction_get_height(
         &self,

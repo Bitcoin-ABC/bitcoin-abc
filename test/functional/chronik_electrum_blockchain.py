@@ -11,6 +11,7 @@ from test_framework.address import (
 )
 from test_framework.blocktools import (
     GENESIS_BLOCK_HASH,
+    GENESIS_BLOCK_HEADER,
     GENESIS_CB_SCRIPT_PUBKEY,
     GENESIS_CB_SCRIPT_SIG,
     GENESIS_CB_TXID,
@@ -69,6 +70,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         self.test_invalid_params()
         self.test_transaction_get()
+        self.test_transaction_get_confirmed_blockhash()
         self.test_transaction_get_height()
         self.test_transaction_broadcast()
         self.test_transaction_get_merkle()
@@ -203,6 +205,86 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             203,
         )
 
+    def test_transaction_get_confirmed_blockhash(self):
+        for response in (
+            self.client.blockchain.transaction.get_confirmed_blockhash(GENESIS_CB_TXID),
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                GENESIS_CB_TXID, False
+            ),
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                tx_hash=GENESIS_CB_TXID
+            ),
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                tx_hash=GENESIS_CB_TXID, include_header=False
+            ),
+        ):
+            assert_equal(
+                response.result,
+                {
+                    "block_hash": GENESIS_BLOCK_HASH,
+                    "block_height": 0,
+                },
+            )
+
+        for response in (
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                GENESIS_CB_TXID, True
+            ),
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                tx_hash=GENESIS_CB_TXID, include_header=True
+            ),
+        ):
+            assert_equal(
+                response.result,
+                {
+                    "block_hash": GENESIS_BLOCK_HASH,
+                    "block_header": GENESIS_BLOCK_HEADER,
+                    "block_height": 0,
+                },
+            )
+
+        assert_equal(
+            self.client.blockchain.transaction.get_confirmed_blockhash("0" * 64).error,
+            {
+                "code": 1,
+                "message": "No confirmed transaction matching the requested hash was found",
+            },
+        )
+
+        assert_equal(
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                GENESIS_CB_TXID, "foo"
+            ).error,
+            {
+                "code": 1,
+                "message": "Invalid second argument; expected boolean",
+            },
+        )
+
+        mempool_txid = self.wallet.send_self_transfer(from_node=self.node)["txid"]
+        assert mempool_txid in self.node.getrawmempool()
+
+        assert_equal(
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                mempool_txid
+            ).error,
+            {
+                "code": 1,
+                "message": "No confirmed transaction matching the requested hash was found",
+            },
+        )
+
+        tip = self.generate(self.wallet, 1)[0]
+        assert_equal(
+            self.client.blockchain.transaction.get_confirmed_blockhash(
+                mempool_txid
+            ).result,
+            {
+                "block_hash": tip,
+                "block_height": self.node.getblockcount(),
+            },
+        )
+
     def test_transaction_get_height(self):
         response = self.client.blockchain.transaction.get_height(GENESIS_CB_TXID)
         assert_equal(response.result, 0)
@@ -224,7 +306,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         # Mine the tx
         self.generate(self.wallet, 1)
         response = self.client.blockchain.transaction.get_height(tx["txid"])
-        assert_equal(response.result, 203)
+        assert_equal(response.result, self.node.getblockcount())
 
         response = self.client.blockchain.transaction.get_height(32 * "ff")
         assert_equal(response.error, {"code": -32600, "message": "Unknown tx_hash"})
