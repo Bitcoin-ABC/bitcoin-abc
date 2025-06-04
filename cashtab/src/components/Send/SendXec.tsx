@@ -15,7 +15,7 @@ import {
     getSlpSendTargetOutputs,
 } from 'token-protocols/slpv1';
 import { getAlpSendTargetOutputs } from 'token-protocols/alp';
-import { sumOneToManyXec, confirmRawTx } from './helpers';
+import { sumOneToManyXec, confirmRawTx, getFirmaRedeemFee } from './helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
     isValidMultiSendUserInput,
@@ -75,7 +75,6 @@ import {
     FIRMA,
     FIRMA_REDEEM_ADDRESS,
     FIRMA_REDEEM_EMPP_RAW_LENGTH,
-    FIRMA_REDEEM_FEE,
 } from 'constants/tokens';
 import { FirmaIcon, TetherIcon } from 'components/Common/CustomIcons';
 
@@ -1583,7 +1582,14 @@ const SendXec: React.FC = () => {
                                                 parsedAddressInput
                                                     .token_decimalized_qty
                                                     .value,
-                                            ) - FIRMA_REDEEM_FEE
+                                            ) -
+                                            getFirmaRedeemFee(
+                                                Number(
+                                                    parsedAddressInput
+                                                        .token_decimalized_qty
+                                                        .value,
+                                                ),
+                                            )
                                         ).toLocaleString(userLocale, {
                                             maximumFractionDigits: 4,
                                             minimumFractionDigits: 4,

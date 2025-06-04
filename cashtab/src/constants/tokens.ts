@@ -24,8 +24,20 @@ export const XECX_SWEEPER_ADDRESS =
 export const FIRMA_REDEEM_ADDRESS =
     'ecash:qr8hdk8rxjc5nj6f450eth3nnslxa8k4gysrtyfxc5';
 
-/** Flat fee charged by firma.cash for redemptions, used to parse redeem txs */
-export const FIRMA_REDEEM_FEE = 2;
+/** firma.cash min fee for redemptions */
+export const FIRMA_REDEEM_FEE_MIN = 2;
+
+/** firma.cash charges 1% for redemptions */
+export const FIRMA_REDEEM_FEE_PCT = 0.01;
+
+/**
+ * Amounts >  FIRMA_REDEEM_AMOUNT_THRESHOLD are charged (FIRMA_REDEEM_FEE_PCT*redeemAmountFirma)
+ * Amounts <= FIRMA_REDEEM_AMOUNT_THRESHOLD are charged FIRMA_REDEEM_FEE_MIN
+ *
+ * Calc here as useful for getFirmaRedeemFee and depends on the above constants
+ */
+export const FIRMA_REDEEM_AMOUNT_THRESHOLD =
+    FIRMA_REDEEM_FEE_MIN / FIRMA_REDEEM_FEE_PCT;
 
 // 8-char lokad + 64-char for 32-byte sol pk
 export const FIRMA_REDEEM_EMPP_RAW_LENGTH = 72;

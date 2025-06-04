@@ -3,6 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { toast } from 'react-toastify';
+import {
+    FIRMA_REDEEM_FEE_MIN,
+    FIRMA_REDEEM_FEE_PCT,
+    FIRMA_REDEEM_AMOUNT_THRESHOLD,
+} from 'constants/tokens';
 
 /**
  * Get the total XEC amount sent in a one-to-many XEC tx
@@ -33,4 +38,16 @@ export const confirmRawTx = (notification: React.ReactNode) => {
     if (process.env.NODE_ENV === 'test') {
         toast(notification);
     }
+};
+
+/**
+ * Parse a FIRMA redeem tx (customized cashtab bip21) token_decimalized_qty
+ * to determine the redeem fee
+ *
+ * Fee is FIRMA_REDEEM_FEE_MIN FIRMA or FIRMA_REDEEM_FEE_PCT% of redeemAmountFirma, whichever is higher
+ */
+export const getFirmaRedeemFee = (redeemAmountFirma: number): number => {
+    return redeemAmountFirma <= FIRMA_REDEEM_AMOUNT_THRESHOLD
+        ? FIRMA_REDEEM_FEE_MIN
+        : FIRMA_REDEEM_FEE_PCT * redeemAmountFirma;
 };
