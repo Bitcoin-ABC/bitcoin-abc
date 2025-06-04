@@ -796,9 +796,21 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     indexed_transaction_set::index<entry_time>::type::iterator it =
         mapTx.get<entry_time>().begin();
     setEntries toremove;
+    size_t skippedFinalizedTxs{0};
     while (it != mapTx.get<entry_time>().end() && (*it)->GetTime() < time) {
-        toremove.insert(mapTx.project<0>(it));
+        if (isAvalancheFinalized((*it)->GetTx().GetId())) {
+            // Don't expire finalized transactions
+            ++skippedFinalizedTxs;
+        } else {
+            toremove.insert(mapTx.project<0>(it));
+        }
+
         it++;
+    }
+
+    if (skippedFinalizedTxs > 0) {
+        LogPrint(BCLog::MEMPOOL, "Not expiring %u finalized transaction\n",
+                 skippedFinalizedTxs);
     }
 
     setEntries stage;

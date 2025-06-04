@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test avalanche transaction finalization."""
 
+import time
+
 from test_framework.avatools import (
     assert_response,
     can_find_inv_in_poll,
@@ -374,6 +376,52 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             sorted(node.getrawmempool()), sorted([tx["txid"] for tx in txs[:5]])
         )
 
+    def test_expiry(self):
+        self.log.info("Check the finalized txs can't expire")
+
+        mempool_expiry_hours = 1
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                f"-mempoolexpiry={mempool_expiry_hours}",
+            ],
+        )
+        self.init()
+
+        node = self.nodes[0]
+
+        # Make some valid chained txs
+        num_txs = 3
+        self.generate(self.wallet, num_txs + 1)
+        self.finalize_tip()
+
+        now = int(time.time())
+        node.setmocktime(now)
+
+        assert_equal(node.getmempoolinfo()["size"], 0)
+        txs = self.wallet.send_self_transfer_chain(from_node=node, chain_length=num_txs)
+        assert_equal(node.getmempoolinfo()["size"], num_txs)
+
+        # Finalize them all by finalizing the last tx in the chain
+        txids = [tx["txid"] for tx in txs]
+        self.finalize_tx(
+            int(txids[-1], 16), other_response=AvalancheTxVoteError.UNKNOWN
+        )
+        assert all(node.isfinaltransaction(txid) for txid in txids)
+
+        # Move the time forward so all the chain is eligible for expiration
+        now += mempool_expiry_hours * 3600 + 1
+        node.setmocktime(now)
+
+        # Add another transaction to the mempool to trigger the expiration check
+        with node.assert_debug_log(
+            [f"Not expiring {len(txids)} finalized transaction"]
+        ):
+            trigger_tx = self.wallet.send_self_transfer(from_node=node)
+            assert_equal(node.getmempoolinfo()["size"], num_txs + 1)
+            assert trigger_tx["txid"] in node.getrawmempool()
+
     def init(self):
         def get_quorum():
             return [
@@ -406,6 +454,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.test_diamond_txs()
         self.test_block_full()
         self.test_blockmintxfee()
+        self.test_expiry()
 
 
 if __name__ == "__main__":
