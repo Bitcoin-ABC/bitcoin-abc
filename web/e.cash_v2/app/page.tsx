@@ -4,9 +4,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import GridPattern from "./components/gridPattern";
-import ContentContainer from "./components/contentContainer";
-import TrustedBy from "./components/trustedBy";
+import GridPattern from "./components/GridPattern";
+import ContentContainer from "./components/ContentContainer";
+import TrustedBy from "./components/TrustedBy";
 
 export default function Home() {
   type HeroBoxProps = {

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import ContentContainer from "./contentContainer";
+import ContentContainer from "./ContentContainer";
 import Image from "next/image";
 
 const Logos = ["bithumb", "upbit", "binance", "coinex", "indodax"];
