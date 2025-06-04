@@ -68,6 +68,7 @@ const config: TokenServerConfig = {
     whitelist: [
         'http://localhost:3000',
         'https://cashtab.com',
+        'https://cashtab.io',
         'https://cashtab-local-dev.netlify.app',
         'chrome-extension://aleabaopoakgpbijdnicepefdiglggfl', // dev extension
         'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag', // prod extension
