@@ -17,6 +17,7 @@
   --color-primaryText: var(--primaryText);
   --color-secondaryText: var(--secondaryText);
   --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-fira-code: "Fira Code", sans-serif;
 }
 
 body {
@@ -104,8 +105,56 @@ h2 {
   color: transparent;
 }
 
+.custom-box {
+  box-shadow: 0px 2px 0px 0px rgba(255, 255, 255, 0.1) inset;
+  backdrop-filter: blur(14px);
+}
+
+.perspective-container {
+  perspective: 1000px;
+}
+
+.custom-skew {
+  transform: rotateY(10deg) translateZ(100px) skewY(-4deg) scale(0.9);
+  transform-style: preserve-3d;
+}
+
+.animate-path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawLine 2s ease-in-out forwards;
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(3px);
+  animation: fadeUp 1s ease-in-out forwards;
+  animation-delay: 1s;
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 1024px) {
   h2 {
-    font-size: 30px;
+    font-size: 26px;
+  }
+
+  .perspective-container {
+    perspective: none;
+  }
+
+  .custom-skew {
+    transform: none;
   }
 }

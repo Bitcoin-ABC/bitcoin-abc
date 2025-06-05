@@ -8,6 +8,7 @@ import GridPattern from "./components/GridPattern";
 import ContentContainer from "./components/ContentContainer";
 import TrustedBy from "./components/TrustedBy";
 import WhatWeDo from "./components/WhatWeDo";
+import DigitalPaymentLandscape from "./components/DigitalPaymentLandscape";
 
 export default function Home() {
   type HeroBoxProps = {
@@ -136,6 +137,7 @@ export default function Home() {
       </div>
       <TrustedBy />
       <WhatWeDo />
+      <DigitalPaymentLandscape />
     </main>
   );
 }

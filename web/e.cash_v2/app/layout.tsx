@@ -3,13 +3,18 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/NavBar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
+});
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-fira-code",
 });
 
 const siteMeta = {
@@ -55,7 +60,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${spaceGrotesk.variable} antialiased`}>
+      <body
+        className={`${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
+      >
         <Navbar />
         {children}
       </body>
