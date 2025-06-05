@@ -69,10 +69,13 @@ private:
     // Whether to call TestBlockValidity() at the end of CreateNewBlock().
     const bool test_block_validity;
 
+    const bool add_finalized_txs;
+
 public:
     struct Options {
         bool fPrintPriority{DEFAULT_PRINTPRIORITY};
         bool test_block_validity{true};
+        bool add_finalized_txs{false};
     };
 
     BlockAssembler(const Config &config, Chainstate &chainstate,
@@ -97,6 +100,12 @@ public:
      * Add transactions from the mempool based on individual tx feerate.
      */
     void addTxs(const CTxMemPool &mempool) EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
+
+    /**
+     * Add the finalized transactions to the block template
+     */
+    void addFinalizedTxs(const CTxMemPool &mempool)
+        EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
 
     // The constructed block template
     std::unique_ptr<CBlockTemplate> pblocktemplate;

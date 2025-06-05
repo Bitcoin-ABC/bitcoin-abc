@@ -75,5 +75,23 @@ static void BlockAssemblerAddPackageTxns(benchmark::Bench &bench) {
     });
 }
 
+static void BlockAssemblerAddPackageTxnsPreconsensus(benchmark::Bench &bench) {
+    FastRandomContext det_rand{true};
+    auto testing_setup = MakeNoLogFileContext<AvalancheTestChain100Setup>(
+        ChainType::REGTEST, {"-avalanchepreconsensus=1"});
+    testing_setup->PopulateMempool(det_rand, /*num_transactions=*/1000,
+                                   /*submit=*/true);
+    const Config &config = testing_setup->m_node.chainman->GetConfig();
+    node::BlockAssembler::Options assembler_options;
+    assembler_options.test_block_validity = false;
+    assembler_options.add_finalized_txs = true;
+
+    bench.run([&] {
+        PrepareBlock(config, testing_setup->m_node, P2SH_OP_TRUE,
+                     assembler_options);
+    });
+}
+
 BENCHMARK(AssembleBlock);
 BENCHMARK(BlockAssemblerAddPackageTxns);
+BENCHMARK(BlockAssemblerAddPackageTxnsPreconsensus);

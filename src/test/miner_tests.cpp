@@ -10,6 +10,7 @@
 #include <coins.h>
 #include <common/system.h>
 #include <config.h>
+#include <consensus/activation.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
 #include <consensus/tx_verify.h>
@@ -40,9 +41,11 @@ using node::CBlockTemplate;
 using node::CBlockTemplateEntry;
 
 namespace miner_tests {
-struct MinerTestingSetup : public TestingSetup {
+struct MinerTestingSetup : public AvalancheTestingSetup {
+    bool m_preconsensus{false};
+
     MinerTestingSetup(const std::vector<const char *> &extra_args = {})
-        : TestingSetup(ChainType::MAIN, extra_args) {}
+        : AvalancheTestingSetup(ChainType::MAIN, extra_args) {}
 
     void TestPackageSelection(const CChainParams &chainparams,
                               const CScript &scriptPubKey,
@@ -57,6 +60,7 @@ struct MinerTestingSetup : public TestingSetup {
                                const CScript &scriptPubKey,
                                const std::vector<CTransactionRef> &txFirst)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs);
+    void CreateNewBlock_validity();
     bool TestSequenceLocks(const CTransaction &tx)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs) {
         CCoinsViewMemPool view_mempool(
@@ -74,12 +78,27 @@ struct MinerTestingSetup : public TestingSetup {
         AssertLockHeld(cs_main);
         AssertLockHeld(m_node.mempool->cs);
 
+        ChainstateManager &chainman = *Assert(m_node.chainman);
+        const Consensus::Params &params = chainman.GetConsensus();
+        const CBlockIndex &tip = *Assert(chainman.ActiveTip());
+
         m_node.mempool->addUnchecked(entry);
+        if (m_preconsensus) {
+            std::vector<TxId> dummy;
+            m_node.mempool->setAvalancheFinalized(entry, params, tip, dummy);
+        }
     }
 };
 
 struct MinerTestingSetupNoCheckpoints : public MinerTestingSetup {
     MinerTestingSetupNoCheckpoints() : MinerTestingSetup({"-checkpoints=0"}) {}
+};
+
+struct PreconsensusMinerTestingSetupNoCheckpoints : public MinerTestingSetup {
+    PreconsensusMinerTestingSetupNoCheckpoints()
+        : MinerTestingSetup({"-checkpoints=0", "-avalanchepreconsensus=1"}) {
+        m_preconsensus = true;
+    }
 };
 
 } // namespace miner_tests
@@ -89,11 +108,13 @@ BOOST_FIXTURE_TEST_SUITE(miner_tests, MinerTestingSetup)
 static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB);
 
 BlockAssembler MinerTestingSetup::AssemblerForTest(const CChainParams &params) {
-    BlockFitter::Options options;
-    options.blockMinFeeRate = blockMinFeeRate;
-    return BlockAssembler{BlockFitter(options),
-                          m_node.chainman->ActiveChainstate(),
-                          m_node.mempool.get()};
+    BlockFitter::Options fitter_options;
+    fitter_options.blockMinFeeRate = blockMinFeeRate;
+    BlockAssembler::Options assembler_options;
+    assembler_options.add_finalized_txs = m_preconsensus;
+    return BlockAssembler{
+        BlockFitter(fitter_options), m_node.chainman->ActiveChainstate(),
+        m_node.mempool.get(), assembler_options, m_node.avalanche.get()};
 }
 
 constexpr static struct {
@@ -178,7 +199,11 @@ void MinerTestingSetup::TestPackageSelection(
 
     // Since we use the mainnet for the test, the ordering is not enforced by
     // CTOR.
+    // But using preconsensus, CTOR is always enforced.
     std::vector<TxId> txids = {mediumFeeTxId, parentTxId, highFeeTxId};
+    if (m_preconsensus) {
+        std::sort(txids.begin(), txids.end());
+    }
     BOOST_CHECK(pblocktemplate->block.vtx[1]->GetId() == txids[0]);
     BOOST_CHECK(pblocktemplate->block.vtx[2]->GetId() == txids[1]);
     BOOST_CHECK(pblocktemplate->block.vtx[3]->GetId() == txids[2]);
@@ -190,6 +215,7 @@ void MinerTestingSetup::TestPackageSelection(
     tx.vout[0].nValue = int64_t(5000000000LL - 1000 - 50000) * SATOSHI;
     TxId freeTxId = tx.GetId();
     AddUnchecked(entry.Fee(Amount::zero()).FromTx(tx));
+    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(freeTxId));
 
     // Add a child transaction with high fee.
     Amount feeToUse = 50000 * SATOSHI;
@@ -199,6 +225,7 @@ void MinerTestingSetup::TestPackageSelection(
         int64_t(5000000000LL - 1000 - 50000) * SATOSHI - feeToUse;
     TxId highFeeDecendantTxId = tx.GetId();
     AddUnchecked(entry.Fee(feeToUse).FromTx(tx));
+    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(highFeeDecendantTxId));
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
 
     // Verify that the free tx and its high fee descendant tx didn't get
@@ -291,14 +318,17 @@ void MinerTestingSetup::TestBasicMining(
 
     BOOST_CHECK(pblocktemplate =
                     AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
-    // Orphan in mempool, template creation fails.
-    AddUnchecked(entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
-    BOOST_CHECK_EXCEPTION(
-        AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
-        std::runtime_error, HasReason("bad-txns-inputs-missingorspent"));
-    m_node.mempool->clear();
+    // Orphan in mempool, template creation fails. Note that finalizing it will
+    // finalize the parent, so we skip this test when preconsensus is enabled
+    if (!m_preconsensus) {
+        AddUnchecked(entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
+        BOOST_CHECK_EXCEPTION(
+            AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
+            std::runtime_error, HasReason("bad-txns-inputs-missingorspent"));
+    }
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     // Child with higher priority than parent.
     tx.vin[0].scriptSig = CScript() << OP_1;
@@ -316,7 +346,7 @@ void MinerTestingSetup::TestBasicMining(
     AddUnchecked(entry.Fee(HIGHERFEE).Time(GetTime()).FromTx(tx));
     BOOST_CHECK(pblocktemplate =
                     AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     // Coinbase in mempool, template creation fails.
     tx.vin.resize(1);
@@ -330,7 +360,7 @@ void MinerTestingSetup::TestBasicMining(
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
         std::runtime_error, HasReason("bad-tx-coinbase"));
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     // Double spend txn pair in mempool, template creation fails.
     tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
@@ -345,7 +375,7 @@ void MinerTestingSetup::TestBasicMining(
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
         std::runtime_error, HasReason("bad-txns-inputs-missingorspent"));
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     // Subsidy changing.
     int nHeight = m_node.chainman->ActiveHeight();
@@ -397,7 +427,7 @@ void MinerTestingSetup::TestBasicMining(
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
         std::runtime_error, HasReason("blk-bad-inputs"));
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     // Delete the dummy blocks again.
     while (m_node.chainman->ActiveHeight() > nHeight) {
@@ -605,6 +635,13 @@ void MinerTestingSetup::TestBasicMining(
     m_node.chainman->ActiveTip()->nHeight++;
     SetMockTime(m_node.chainman->ActiveTip()->GetMedianTimePast() + 1);
 
+    for (auto &mempool_entry : {height_locked_entry, time_locked_entry}) {
+        std::vector<TxId> dummy;
+        BOOST_CHECK(m_node.mempool->setAvalancheFinalized(
+            mempool_entry, chainparams.GetConsensus(),
+            *Assert(m_node.chainman->ActiveTip()), dummy));
+    }
+
     BOOST_CHECK(pblocktemplate =
                     AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
     BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 5UL);
@@ -615,16 +652,26 @@ void MinerTestingSetup::TestPrioritisedMining(
     const std::vector<CTransactionRef> &txFirst) {
     TestMemPoolEntryHelper entry;
 
-    auto prioritizeTx = [&](const CMutableTransaction &tx, const Amount &fee,
-                            const Amount &delta) NO_THREAD_SAFETY_ANALYSIS {
-        const TxId txid = tx.GetId();
-        auto pool_entry = entry.Fee(fee).Time(GetTime()).FromTx(tx);
+    auto finalizePrioritizedTx =
+        [&](const CMutableTransaction &tx, const Amount &fee,
+            const Amount &delta) NO_THREAD_SAFETY_ANALYSIS {
+            const TxId txid = tx.GetId();
+            auto pool_entry = entry.Fee(fee).Time(GetTime()).FromTx(tx);
 
-        m_node.mempool->addUnchecked(pool_entry);
-        m_node.mempool->PrioritiseTransaction(txid, delta);
+            m_node.mempool->addUnchecked(pool_entry);
+            m_node.mempool->PrioritiseTransaction(txid, delta);
 
-        return txid;
-    };
+            ChainstateManager &chainman = *Assert(m_node.chainman);
+            const CBlockIndex &tip = *Assert(chainman.ActiveTip());
+
+            if (m_preconsensus) {
+                std::vector<TxId> dummy;
+                m_node.mempool->setAvalancheFinalized(
+                    pool_entry, chainparams.GetConsensus(), tip, dummy);
+            }
+
+            return txid;
+        };
 
     // Test that a tx below min fee but prioritised is included
     CMutableTransaction tx;
@@ -636,25 +683,28 @@ void MinerTestingSetup::TestPrioritisedMining(
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreePrioritisedTx =
-        prioritizeTx(tx, Amount::zero(), 5 * COIN);
+        finalizePrioritizedTx(tx, Amount::zero(), 5 * COIN);
 
     // This tx has a low fee: 1000 satoshis
     tx.vin[0].prevout = COutPoint{txFirst[1]->GetId(), 0};
     tx.vout[0].nValue = (fiveBillion - 1000) * SATOSHI;
     // save this txid for later use
-    const TxId hashParentTx = prioritizeTx(tx, 1000 * SATOSHI, Amount::zero());
+    const TxId hashParentTx =
+        finalizePrioritizedTx(tx, 1000 * SATOSHI, Amount::zero());
 
     // This tx has a medium fee: 10000 satoshis
     tx.vin[0].prevout = COutPoint{txFirst[2]->GetId(), 0};
     tx.vout[0].nValue = (fiveBillion - 10000) * SATOSHI;
-    const TxId hashMediumFeeTx = prioritizeTx(tx, 10000 * SATOSHI, -5 * COIN);
+    const TxId hashMediumFeeTx =
+        finalizePrioritizedTx(tx, 10000 * SATOSHI, -5 * COIN);
+    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(hashMediumFeeTx));
 
     // This tx also has a low fee, but is prioritised
     tx.vin[0].prevout = COutPoint{hashParentTx, 0};
     // 1000 satoshi fee
     tx.vout[0].nValue = (fiveBillion - 1000 - 1000) * SATOSHI;
     const TxId hashPrioritisedChild =
-        prioritizeTx(tx, 1000 * SATOSHI, 2 * COIN);
+        finalizePrioritizedTx(tx, 1000 * SATOSHI, 2 * COIN);
 
     // Test that transaction selection properly updates ancestor fee
     // calculations as prioritised parents get included in a block. Create a
@@ -667,18 +717,21 @@ void MinerTestingSetup::TestPrioritisedMining(
     tx.vin[0].prevout = COutPoint{txFirst[3]->GetId(), 0};
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
-    const TxId hashFreeParent = prioritizeTx(tx, Amount::zero(), 10 * COIN);
+    const TxId hashFreeParent =
+        finalizePrioritizedTx(tx, Amount::zero(), 10 * COIN);
 
     tx.vin[0].prevout = COutPoint{hashFreeParent, 0};
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
-    const TxId hashFreeChild = prioritizeTx(tx, Amount::zero(), 1 * COIN);
+    const TxId hashFreeChild =
+        finalizePrioritizedTx(tx, Amount::zero(), 1 * COIN);
 
     tx.vin[0].prevout = COutPoint{hashFreeChild, 0};
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeGrandchild =
-        prioritizeTx(tx, Amount::zero(), Amount::zero());
+        finalizePrioritizedTx(tx, Amount::zero(), Amount::zero());
+    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(hashFreeGrandchild));
 
     auto pblocktemplate =
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
@@ -686,6 +739,9 @@ void MinerTestingSetup::TestPrioritisedMining(
     std::vector<TxId> txids = {hashFreeParent, hashFreePrioritisedTx,
                                hashFreeChild, hashParentTx,
                                hashPrioritisedChild};
+    if (m_preconsensus) {
+        std::sort(txids.begin(), txids.end());
+    }
     BOOST_CHECK(pblocktemplate->block.vtx[1]->GetId() == txids[0]);
     BOOST_CHECK(pblocktemplate->block.vtx[2]->GetId() == txids[1]);
     BOOST_CHECK(pblocktemplate->block.vtx[3]->GetId() == txids[2]);
@@ -702,8 +758,7 @@ void MinerTestingSetup::TestPrioritisedMining(
 }
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
-BOOST_FIXTURE_TEST_CASE(CreateNewBlock_validity,
-                        MinerTestingSetupNoCheckpoints) {
+void MinerTestingSetup::CreateNewBlock_validity() {
     // FIXME Update the below blocks to create a valid miner fund coinbase.
     // This requires to update the blockinfo nonces.
     gArgs.ForceSetArg("-enableminerfund", "0");
@@ -767,17 +822,26 @@ BOOST_FIXTURE_TEST_CASE(CreateNewBlock_validity,
 
     m_node.chainman->ActiveTip()->nHeight--;
     SetMockTime(0);
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     TestPackageSelection(chainparams, scriptPubKey, txFirst);
 
     m_node.chainman->ActiveChain().Tip()->nHeight--;
     SetMockTime(0);
-    m_node.mempool->clear();
+    m_node.mempool->clear(/*include_finalized_txs=*/true);
 
     TestPrioritisedMining(chainparams, scriptPubKey, txFirst);
 
     gArgs.ClearForcedArg("-enableminerfund");
+}
+
+BOOST_FIXTURE_TEST_CASE(CreateNewBlock_validity_no_preconsensus,
+                        MinerTestingSetupNoCheckpoints) {
+    CreateNewBlock_validity();
+}
+BOOST_FIXTURE_TEST_CASE(CreateNewBlock_validity_preconsensus,
+                        PreconsensusMinerTestingSetupNoCheckpoints) {
+    CreateNewBlock_validity();
 }
 
 static void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,

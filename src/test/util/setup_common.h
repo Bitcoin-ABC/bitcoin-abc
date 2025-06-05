@@ -248,6 +248,7 @@ template <class T> struct WithAvalanche : public T {
     }
 };
 
+using AvalancheTestingSetup = WithAvalanche<TestingSetup>;
 using AvalancheTestChain100Setup = WithAvalanche<TestChain100Setup>;
 
 /**

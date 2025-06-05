@@ -55,7 +55,7 @@ PrepareBlock(const Config &config, const NodeContext &node,
     auto block =
         std::make_shared<CBlock>(BlockAssembler{
             BlockFitter(config), Assert(node.chainman)->ActiveChainstate(),
-            Assert(node.mempool.get()), assembler_options}
+            Assert(node.mempool.get()), assembler_options, node.avalanche.get()}
                                      .CreateNewBlock(coinbase_scriptPubKey)
                                      ->block);
 

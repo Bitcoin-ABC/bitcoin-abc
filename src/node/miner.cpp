@@ -73,7 +73,9 @@ BlockAssembler::BlockAssembler(const BlockFitter &fitter,
     : blockFitter(fitter), chainParams(chainstate.m_chainman.GetParams()),
       m_mempool(mempool), m_chainstate(chainstate), m_avalanche(avalanche),
       fPrintPriority{options.fPrintPriority},
-      test_block_validity{options.test_block_validity} {}
+      test_block_validity{options.test_block_validity},
+      add_finalized_txs{avalanche && avalanche->m_preConsensus &&
+                        options.add_finalized_txs} {}
 
 BlockAssembler::BlockAssembler(const BlockFitter &fitter,
                                Chainstate &chainstate,
@@ -126,10 +128,16 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     if (m_mempool) {
         LOCK(m_mempool->cs);
-        addTxs(*m_mempool);
+        if (add_finalized_txs) {
+            addFinalizedTxs(*m_mempool);
+        } else {
+            addTxs(*m_mempool);
+        }
     }
 
-    if (IsMagneticAnomalyEnabled(consensusParams, pindexPrev)) {
+    // Canonical ordering is naturally enforced when using the radix tree
+    if (!add_finalized_txs &&
+        IsMagneticAnomalyEnabled(consensusParams, pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
         // canonically ordered.
         std::sort(std::begin(pblocktemplate->entries) + 1,
@@ -375,5 +383,20 @@ void BlockAssembler::addTxs(const CTxMemPool &mempool) {
             }
         }
     }
+}
+
+/**
+ * addFinalizedTxs fills the template with the finalized transactons. The radix
+ * tree is making sure it's all ready to go and already sorted so there is no
+ * check to do anymore.
+ */
+void BlockAssembler::addFinalizedTxs(const CTxMemPool &mempool) {
+    AssertLockHeld(mempool.cs);
+
+    mempool.finalizedTxs.forEachLeaf([this](const CTxMemPoolEntryRef &entry) {
+        // Tx can be added.
+        AddToBlock(entry);
+        return true;
+    });
 }
 } // namespace node
