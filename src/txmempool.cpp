@@ -17,6 +17,7 @@
 #include <policy/policy.h>
 #include <reverse_iterator.h>
 #include <undo.h>
+#include <util/check.h>
 #include <util/moneystr.h>
 #include <util/time.h>
 #include <validationinterface.h>
@@ -304,6 +305,9 @@ void CTxMemPool::removeConflicts(const CTransaction &tx) {
         if (it != mapNextTx.end()) {
             const CTransaction &txConflict = *it->second;
             if (txConflict != tx) {
+                // We reject blocks that contains a tx conflicting with a
+                // finalized tx, so this should never happen
+                Assume(!isAvalancheFinalized(txConflict.GetId()));
                 ClearPrioritisation(txConflict.GetId());
                 removeRecursive(txConflict, MemPoolRemovalReason::CONFLICT);
             }
