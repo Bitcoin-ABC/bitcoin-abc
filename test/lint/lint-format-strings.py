@@ -27,6 +27,11 @@ FALSE_POSITIVES = [
         "src/clientversion.cpp",
         "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)",
     ),
+    (
+        "src/test/logging_tests.cpp",
+        'tfm::format( "[%s:%s] [%s] %s%s", util::RemovePrefix(loc.file_name(),'
+        '"./"), loc.line(), loc.function_name(), prefix, msg)',
+    ),
     ("src/test/translation_tests.cpp", "strprintf(format, arg)"),
     (
         "src/validationinterface.cpp",
