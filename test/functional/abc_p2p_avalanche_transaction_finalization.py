@@ -21,7 +21,7 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, uint256_hex
+from test_framework.util import assert_equal, assert_greater_than_or_equal, uint256_hex
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
@@ -422,6 +422,108 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             assert_equal(node.getmempoolinfo()["size"], num_txs + 1)
             assert trigger_tx["txid"] in node.getrawmempool()
 
+    def test_mempool_full(self):
+        self.log.info(
+            "Check the finalized txs can't be evicted when the mempool is full"
+        )
+
+        max_mempool_mb = 5
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                f"-maxmempool={max_mempool_mb}",
+            ],
+        )
+        self.init()
+
+        node = self.nodes[0]
+
+        max_mempool = 1_000_000 * max_mempool_mb
+        big_tx_size = 100_000
+
+        num_finalized_txs = 10
+        # We create num_finalized_txs finalized txs + enough big txs to overflow the mempool.
+        # This number is overestimated because of the memory overhead of the mempool data structures.
+        num_txs = num_finalized_txs + max_mempool // big_tx_size + 1
+
+        self.generate(self.wallet, num_txs)
+        self.finalize_tip()
+
+        low_feerate = 1000
+        high_feerate = 2 * low_feerate
+        very_high_feerate = 2 * high_feerate
+
+        assert_equal(node.getmempoolinfo()["size"], 0)
+
+        # Add some txs with a low feerate
+        txs = []
+        for _ in range(5):
+            txs.append(
+                self.wallet.send_self_transfer(
+                    from_node=node, target_size=1000, fee_rate=low_feerate
+                )
+            )
+
+        # Also a chain of high fee txs with a low fee child
+        txs.extend(
+            self.wallet.send_self_transfer_chain(
+                from_node=node,
+                target_size=1000,
+                fee_rate=very_high_feerate,
+                chain_length=4,
+            )
+        )
+        txs.append(
+            self.wallet.send_self_transfer(
+                from_node=node,
+                utxo_to_spend=txs[-1]["new_utxo"],
+                target_size=1000,
+                fee_rate=low_feerate,
+            )
+        )
+
+        assert_equal(node.getmempoolinfo()["size"], num_finalized_txs)
+
+        # Finalize them all
+        finalized_txids = [tx["txid"] for tx in txs]
+        [self.finalize_tx(int(txid, 16)) for txid in finalized_txids]
+
+        assert_equal(node.getmempoolinfo()["bytes"], 1000 * num_finalized_txs)
+
+        # Time to fill up our mempool with high feerate txs
+        while node.getmempoolinfo()["usage"] + big_tx_size < max_mempool:
+            self.wallet.send_self_transfer(
+                from_node=node, target_size=big_tx_size, fee_rate=high_feerate
+            )
+
+        assert_greater_than_or_equal(
+            node.getmempoolinfo()["usage"], max_mempool - big_tx_size
+        )
+
+        # The next big tx will overflow the mempool and trigger eviction
+        mempool_num_txs = node.getmempoolinfo()["size"]
+        # 4 of the finalized txs are very high fee and are not even considered
+        with node.assert_debug_log(
+            [f"Not evicting {num_finalized_txs - 4} finalized txn for low fee"]
+        ):
+            # Make sure this tx isn't getting evicted by bumping its fee rate
+            self.wallet.send_self_transfer(
+                from_node=node, target_size=big_tx_size, fee_rate=very_high_feerate
+            )
+
+        assert_greater_than_or_equal(node.getmempoolinfo()["size"], mempool_num_txs)
+        assert_greater_than_or_equal(
+            node.getmempoolinfo()["usage"], max_mempool - big_tx_size
+        )
+
+        raw_mempool = node.getrawmempool()
+        assert all(txid in raw_mempool for txid in finalized_txids)
+
+        # Cleanup: empty the mempool
+        while node.getmempoolinfo()["size"] > 0:
+            self.generate(self.wallet, 1)
+
     def init(self):
         def get_quorum():
             return [
@@ -455,6 +557,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.test_block_full()
         self.test_blockmintxfee()
         self.test_expiry()
+        self.test_mempool_full()
 
 
 if __name__ == "__main__":

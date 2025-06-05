@@ -894,9 +894,33 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
     AssertLockHeld(cs);
 
     unsigned nTxnRemoved = 0;
+    size_t finalizedTxsSkipped = 0;
     CFeeRate maxFeeRateRemoved(Amount::zero());
     while (!mapTx.empty() && DynamicMemoryUsage() > sizelimit) {
-        auto it = mapTx.get<modified_feerate>().end();
+        auto &by_modified_feerate = mapTx.get<modified_feerate>();
+        // Lowest fee first
+        auto rit = by_modified_feerate.rbegin();
+
+        // We don't evict finalized transactions, even if they have lower fee
+        while (isAvalancheFinalized((*rit)->GetTx().GetId())) {
+            ++finalizedTxsSkipped;
+            ++rit;
+            if (rit == by_modified_feerate.rend()) {
+                // Nothing we can trim
+                break;
+            }
+        }
+
+        // Convert to forward iterator.
+        // If rit == rend(), the forward iterator will be equivalent to begin()
+        // and we can't decrement it, there is nothing to remove. This could
+        // only happen if all the transactions are finalized, which in turns
+        // implies that the mempool cannot contain a block worth of txs.
+        // In this case we still exit the loop so we get the proper log message.
+        if (rit == by_modified_feerate.rend()) {
+            break;
+        }
+        auto it = rit.base();
         --it;
 
         // We set the new mempool min fee to the feerate of the removed
@@ -931,6 +955,12 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         LogPrint(BCLog::MEMPOOL,
                  "Removed %u txn, rolling minimum fee bumped to %s\n",
                  nTxnRemoved, maxFeeRateRemoved.ToString());
+    }
+
+    if (finalizedTxsSkipped > 0) {
+        LogPrint(BCLog::AVALANCHE,
+                 "Not evicting %u finalized txn for low fee\n",
+                 finalizedTxsSkipped);
     }
 }
 
