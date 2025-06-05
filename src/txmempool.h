@@ -527,8 +527,9 @@ public:
                                std::vector<TxId> &finalizedTxIds)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
-    bool isAvalancheFinalized(const TxId &txid) const {
-        LOCK(cs);
+    bool isAvalancheFinalized(const TxId &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
         return finalizedTxs.get(txid) != nullptr;
     }
 

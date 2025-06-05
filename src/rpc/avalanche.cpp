@@ -1533,7 +1533,8 @@ static RPCHelpMan isfinaltransaction() {
                 return false;
             }
 
-            if (mempool.isAvalancheFinalized(txid)) {
+            if (WITH_LOCK(mempool.cs,
+                          return mempool.isAvalancheFinalized(txid))) {
                 // The transaction is finalized
                 return true;
             }
