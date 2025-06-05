@@ -25,6 +25,7 @@
 #include <qt/splashscreen.h>
 #include <qt/utilitydialog.h>
 #include <qt/winshutdownmonitor.h>
+#include <rpc/server.h>
 #include <uint256.h>
 #include <util/exception.h>
 #include <util/threadnames.h>
@@ -66,6 +67,8 @@ Q_IMPORT_PLUGIN(QMacStylePlugin);
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)
 Q_DECLARE_METATYPE(Amount)
+Q_DECLARE_METATYPE(HTTPRPCRequestProcessor *)
+Q_DECLARE_METATYPE(RPCServer *)
 Q_DECLARE_METATYPE(SynchronizationState)
 Q_DECLARE_METATYPE(SyncType)
 Q_DECLARE_METATYPE(uint256)
@@ -101,6 +104,8 @@ static void RegisterMetaTypes() {
     // copy-construct non-pointers to objects for invoking slots
     // behind-the-scenes in the 'Queued' connection case.
     qRegisterMetaType<Config *>();
+    qRegisterMetaType<RPCServer *>();
+    qRegisterMetaType<HTTPRPCRequestProcessor *>();
 
     // TODO: apply core-gui#623 if we ever backport core-gui#556
 }
