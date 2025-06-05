@@ -22,13 +22,6 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.noban_tx_relay = True
-        # Anything below 14241 will prevent transaction from being added
-        # to blocks. This is because the block reserves 100 sigchecks
-        # for the coinbase transaction, and max sigchecks is computed as
-        # 141 x block size. So we need at least 101 sigchecks >= 14241
-        # bytes as block size.
-        self.blockmaxsize = 15000
-        self.blockmintxfee = 20
         self.extra_args = [
             [
                 "-avalanchepreconsensus=1",
@@ -40,9 +33,8 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 # So we can build arbitrary size txs using several OP_RETURN outputs
                 "-acceptnonstdtxn",
-                f"-blockmaxsize={self.blockmaxsize}",
-                # Fee rate in XEC/kB
-                f"-blockmintxfee={self.blockmintxfee}",
+                # So we can reinit between the tests
+                "-persistavapeers=0",
             ]
         ]
 
@@ -179,6 +171,21 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
     def test_block_full(self):
         self.log.info("Check the finalization of tx when the next block is full")
 
+        # Anything below 14241 will prevent transaction from being added
+        # to blocks. This is because the block reserves 100 sigchecks
+        # for the coinbase transaction, and max sigchecks is computed as
+        # 141 x block size. So we need at least 101 sigchecks >= 14241
+        # bytes as block size.
+        blockmaxsize = 15000
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                f"-blockmaxsize={blockmaxsize}",
+            ],
+        )
+        self.init()
+
         node = self.nodes[0]
 
         self.generate(self.wallet, 30)
@@ -293,6 +300,17 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             "Check the finalization of tx when the fee is below blockmintxfee"
         )
 
+        # Fee rate in XEC/kB
+        blockmintxfee = 20
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                f"-blockmintxfee={blockmintxfee}",
+            ],
+        )
+        self.init()
+
         node = self.nodes[0]
 
         self.generate(self.wallet, 10)
@@ -300,7 +318,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
 
         txs = []
         # Fee rate in XEC/kB
-        for fee_rate in range(self.blockmintxfee - 5, self.blockmintxfee + 5, 1):
+        for fee_rate in range(blockmintxfee - 5, blockmintxfee + 5, 1):
             # Make sure to not include unconfirmed utxos! Otherwise may create
             # unexpected tx dependencies
             tx = self.wallet.send_self_transfer(
@@ -326,7 +344,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             sorted(node.getrawmempool()), sorted([tx["txid"] for tx in txs[:5]])
         )
 
-    def run_test(self):
+    def init(self):
         def get_quorum():
             return [
                 get_ava_p2p_interface(self, self.nodes[0])
@@ -349,6 +367,9 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.wallet = MiniWallet(self.nodes[0])
         # Mature the coinbases
         self.generate(self.wallet, COINBASE_MATURITY)
+
+    def run_test(self):
+        self.init()
 
         self.test_simple_txs()
         self.test_chained_txs()
