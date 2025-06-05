@@ -397,6 +397,8 @@ class MiniWallet:
         else:
             assert False
 
+        size = target_size or size
+
         send_value = satoshi_round(
             utxo_to_spend["value"] - (fee or (fee_rate * (Decimal(size) / 1000)))
         )
