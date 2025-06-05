@@ -83,6 +83,7 @@ const APPROVED_URLS = [
     'https://stakedXec.com',
     'https://cashtab.com',
     'https://cashtab.com/',
+    'https://agora.cash',
 ];
 
 const UncontrolledLink: React.FC<UncontrolledLinkProps> = ({ url }) => {
