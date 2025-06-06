@@ -6,11 +6,26 @@ import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import XEC, AvalancheVoteError, msg_block
+from test_framework.cashaddr import decode
+from test_framework.messages import (
+    XEC,
+    AvalancheVoteError,
+    CTransaction,
+    CTxOut,
+    FromHex,
+    msg_block,
+)
+from test_framework.p2p import P2PDataStore
+from test_framework.script import OP_EQUAL, OP_HASH160, CScript
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, chronik_sub_to_blocks
+from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal, chronik_sub_to_blocks, chronik_sub_txid
+from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+
+MINER_FUND_RATIO = 0.32 + 0.01
+MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
 
 
 class ChronikWsTest(BitcoinTestFramework):
@@ -257,6 +272,163 @@ class ChronikWsTest(BitcoinTestFramework):
 
         # ... but not for the second one
         ws.timeout = 2
+        try:
+            ws.recv()
+        except TimeoutError as e:
+            assert str(e).startswith(
+                "No message received"
+            ), "The websocket did receive an unexpected message"
+            pass
+        except Exception:
+            assert False, "The websocket did not time out as expected"
+            raise
+        else:
+            assert False, "The websocket did receive an unexpected message"
+            raise
+
+        # From now on we stop receiving the block events
+        chronik_sub_to_blocks(ws, node, is_unsub=True)
+
+        self.log.info("Testing the subscription to a txid")
+
+        # Mature some coinbase outputs
+        wallet = MiniWallet(node)
+        tip = self.generate(wallet, 101)[-1]
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        utxo = wallet.get_utxo()
+        tx = wallet.create_self_transfer(utxo_to_spend=utxo)
+        txid = tx["txid"]
+
+        chronik_sub_txid(ws, node, txid)
+
+        # Tx added to the mempool
+        wallet.sendrawtransaction(from_node=node, tx_hex=tx["hex"])
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        # Tx confirmed
+        tip = self.generate(wallet, 1)[0]
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_CONFIRMED,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        node.parkblock(tip)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo, fee_rate=1000)
+
+        now += 101
+        node.setmocktime(now)
+
+        gbt = node.getblocktemplate()
+
+        miner_fund_amount = gbt["coinbasetxn"]["minerfund"]["minimumvalue"]
+        _, _, script_hash = decode(gbt["coinbasetxn"]["minerfund"]["addresses"][0])
+
+        cb = create_coinbase(node.getblockcount() + 1)
+        cb.vout = cb.vout[:1]
+        cb.vout[0].nValue -= miner_fund_amount
+        cb.vout.append(
+            CTxOut(
+                nValue=miner_fund_amount,
+                scriptPubKey=CScript([OP_HASH160, script_hash, OP_EQUAL]),
+            )
+        )
+        pad_tx(cb)
+
+        block = create_block(
+            int(node.getbestblockhash(), 16),
+            cb,
+            now,
+            txlist=[FromHex(CTransaction(), conflicting_tx["hex"])],
+        )
+        block.solve()
+
+        peer = node.add_p2p_connection(P2PDataStore())
+        peer.send_blocks_and_test([block], node)
+
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        node.parkblock(block.hash)
+        node.unparkblock(tip)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_CONFIRMED,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        self.wait_until(lambda: has_finalized_tip(tip))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_FINALIZED,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        chronik_sub_txid(ws, node, txid, is_unsub=True)
+
+        # Build another tx to check the unsubscription
+        tx = wallet.create_self_transfer()
+        txid = tx["txid"]
+
+        chronik_sub_txid(ws, node, txid)
+
+        # Tx added to the mempool
+        wallet.sendrawtransaction(from_node=node, tx_hex=tx["hex"])
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        # Unsubscribe
+        chronik_sub_txid(ws, node, txid, is_unsub=True)
+
+        # Tx confirmed
+        tip = self.generate(wallet, 1)[0]
+        assert_equal(len(node.getrawmempool()), 0)
+
         try:
             ws.recv()
         except TimeoutError as e:

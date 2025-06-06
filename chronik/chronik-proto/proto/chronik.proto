@@ -463,6 +463,8 @@ message WsSub {
         WsSubLokadId lokad_id = 5;
         // Subscription to a plugin group
         WsPlugin plugin = 6;
+        // Subscription to a txid
+        WsSubTxId txid = 7;
     }
 }
 
@@ -505,6 +507,12 @@ message WsPlugin {
     string plugin_name = 1;
     // Group assigned by the plugin to subscribe to
     bytes group = 2;
+}
+
+// Subscription to a txid. They will be sent every time a tx status confirmation changes.
+message WsSubTxId {
+    // Hex txid to subscribe to.
+    string txid = 1;
 }
 
 // Message coming from the WebSocket

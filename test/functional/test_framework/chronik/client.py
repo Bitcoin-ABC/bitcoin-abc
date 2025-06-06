@@ -259,6 +259,10 @@ class ChronikWs:
         sub = pb.WsSub(is_unsub=is_unsub, blocks=pb.WsSubBlocks())
         self.send_bytes(sub.SerializeToString())
 
+    def sub_txid(self, txid: str, *, is_unsub=False) -> None:
+        sub = pb.WsSub(is_unsub=is_unsub, txid=pb.WsSubTxId(txid=txid))
+        self.send_bytes(sub.SerializeToString())
+
     def sub_script(self, script_type: str, payload: bytes, *, is_unsub=False) -> None:
         sub = pb.WsSub(
             is_unsub=is_unsub,

@@ -8,7 +8,7 @@ use std::{collections::HashMap, time::Duration};
 
 use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
-use bitcoinsuite_core::script::ScriptVariant;
+use bitcoinsuite_core::{script::ScriptVariant, tx::TxId};
 use bitcoinsuite_slp::{lokad_id::LokadId, token_id::TokenId};
 use chronik_db::plugins::PluginMember;
 use chronik_indexer::{
@@ -61,6 +61,7 @@ struct WsSub {
 
 enum WsSubType {
     Blocks,
+    TxId(TxId),
     Script(ScriptVariant),
     TokenId(TokenId),
     LokadId(LokadId),
@@ -68,6 +69,7 @@ enum WsSubType {
 }
 
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
+type SubRecvTxIds = HashMap<TxId, broadcast::Receiver<TxMsg>>;
 type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
 type SubRecvTokenId = HashMap<TokenId, broadcast::Receiver<TxMsg>>;
 type SubRecvLokadId = HashMap<LokadId, broadcast::Receiver<TxMsg>>;
@@ -75,6 +77,7 @@ type SubRecvPluginGroups = HashMap<PluginGroup, broadcast::Receiver<TxMsg>>;
 
 struct SubRecv {
     blocks: SubRecvBlocks,
+    txids: SubRecvTxIds,
     scripts: SubRecvScripts,
     token_ids: SubRecvTokenId,
     lokad_ids: SubRecvLokadId,
@@ -87,6 +90,7 @@ impl SubRecv {
         tokio::select! {
             biased;
             action = Self::recv_blocks(&mut self.blocks) => action,
+            action = Self::recv_txids(&mut self.txids) => action,
             action = Self::recv_scripts(&mut self.scripts) => action,
             action = Self::recv_token_ids(&mut self.token_ids) => action,
             action = Self::recv_lokad_ids(&mut self.lokad_ids) => action,
@@ -99,6 +103,18 @@ impl SubRecv {
         match blocks {
             Some(blocks) => sub_block_msg_action(blocks.recv().await),
             None => futures::future::pending().await,
+        }
+    }
+
+    async fn recv_txids(txids: &mut SubRecvTxIds) -> Result<WsAction> {
+        if txids.is_empty() {
+            futures::future::pending().await
+        } else {
+            let txids_receivers = select_all(
+                txids.values_mut().map(|receiver| Box::pin(receiver.recv())),
+            );
+            let (tx_msg, _, _) = txids_receivers.await;
+            sub_tx_msg_action(tx_msg)
         }
     }
 
@@ -189,6 +205,17 @@ impl SubRecv {
                     if self.blocks.is_none() {
                         self.blocks = Some(subs.sub_to_block_msgs());
                     }
+                }
+            }
+            WsSubType::TxId(txid) => {
+                if sub.is_unsub {
+                    log_chronik!("WS unsubscribe from txid {txid}\n");
+                    std::mem::drop(self.txids.remove(&txid));
+                    subs.subs_txid_mut().unsubscribe_from_member(&txid)
+                } else {
+                    log_chronik!("WS subscribe to txid {txid}\n");
+                    let recv = subs.subs_txid_mut().subscribe_to_member(&txid);
+                    self.txids.insert(txid, recv);
                 }
             }
             WsSubType::Script(script_variant) => {
@@ -298,6 +325,9 @@ fn sub_client_msg_action(
                 sub_type: match sub.sub_type {
                     None => return Err(MissingSubType.into()),
                     Some(SubType::Blocks(_)) => WsSubType::Blocks,
+                    Some(SubType::Txid(txid)) => {
+                        WsSubType::TxId(txid.txid.parse::<TxId>()?)
+                    }
                     Some(SubType::Script(script)) => {
                         WsSubType::Script(parse_script_variant(
                             &script.script_type,
@@ -397,6 +427,7 @@ pub async fn handle_subscribe_socket(
 ) {
     let mut recv = SubRecv {
         blocks: Default::default(),
+        txids: Default::default(),
         scripts: Default::default(),
         token_ids: Default::default(),
         lokad_ids: Default::default(),

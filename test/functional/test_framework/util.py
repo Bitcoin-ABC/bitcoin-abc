@@ -771,6 +771,13 @@ def chronik_sub_to_blocks(ws, node, *, is_unsub=False) -> None:
         ws.sub_to_blocks(is_unsub=is_unsub)
 
 
+def chronik_sub_txid(ws, node, txid: str, *, is_unsub=False) -> None:
+    """Subscribe to txid events and make sure the subscription is active before returning"""
+    subscribe_log = "unsubscribe from" if is_unsub else "subscribe to"
+    with node.assert_debug_log([f"WS {subscribe_log} txid {txid}"]):
+        ws.sub_txid(txid, is_unsub=is_unsub)
+
+
 def chronik_sub_script(
     ws, node, script_type: str, payload: bytes, *, is_unsub=False
 ) -> None:

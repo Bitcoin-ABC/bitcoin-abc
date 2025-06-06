@@ -7,7 +7,9 @@
 mod lokad_id;
 mod script;
 mod token_id;
+mod txid;
 
 pub use self::lokad_id::*;
 pub use self::script::*;
 pub use self::token_id::*;
+pub use self::txid::*;
