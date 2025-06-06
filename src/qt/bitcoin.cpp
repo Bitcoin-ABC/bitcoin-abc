@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <common/args.h>
+#include <common/init.h>
 #include <config.h>
 #include <httprpc.h>
 #include <init.h>
@@ -181,67 +182,49 @@ static void initTranslations(QTranslator &qtTranslatorBase,
     }
 }
 
-static bool InitSettings() {
-    gArgs.EnsureDataDir();
-    if (!gArgs.GetSettingsPath()) {
-        // Do nothing if settings file disabled.
-        return true;
+static bool ErrorSettingsRead(const bilingual_str &error,
+                              const std::vector<std::string> &details) {
+    QMessageBox messagebox(
+        QMessageBox::Critical, PACKAGE_NAME,
+        QString::fromStdString(strprintf("%s.", error.translated)),
+        QMessageBox::Reset | QMessageBox::Abort);
+    // Explanatory text shown on startup when the settings file cannot
+    // be read. Prompts user to make a choice between resetting or aborting.
+    messagebox.setInformativeText(
+        QObject::tr("Do you want to reset settings to default values, or to "
+                    "abort without making changes?"));
+    messagebox.setDetailedText(
+        QString::fromStdString(MakeUnorderedList(details)));
+    messagebox.setTextFormat(Qt::PlainText);
+    messagebox.setDefaultButton(QMessageBox::Reset);
+    switch (messagebox.exec()) {
+        case QMessageBox::Reset:
+            return false;
+        case QMessageBox::Abort:
+            return true;
+        default:
+            assert(false);
     }
+}
 
-    std::vector<std::string> errors;
-    if (!gArgs.ReadSettingsFile(&errors)) {
-        bilingual_str error = _("Settings file could not be read");
-        InitError(Untranslated(
-            strprintf("%s:\n%s\n", error.original, MakeUnorderedList(errors))));
-
-        QMessageBox messagebox(
-            QMessageBox::Critical, PACKAGE_NAME,
-            QString::fromStdString(strprintf("%s.", error.translated)),
-            QMessageBox::Reset | QMessageBox::Abort);
-        // Explanatory text shown on startup when the settings file cannot
-        // be read. Prompts user to make a choice between resetting or aborting.
-        messagebox.setInformativeText(
-            QObject::tr("Do you want to reset settings to default values, or "
-                        "to abort without making changes?"));
-        messagebox.setDetailedText(
-            QString::fromStdString(MakeUnorderedList(errors)));
-        messagebox.setTextFormat(Qt::PlainText);
-        messagebox.setDefaultButton(QMessageBox::Reset);
-        switch (messagebox.exec()) {
-            case QMessageBox::Reset:
-                break;
-            case QMessageBox::Abort:
-                return false;
-            default:
-                assert(false);
-        }
-    }
-
-    errors.clear();
-    if (!gArgs.WriteSettingsFile(&errors)) {
-        bilingual_str error = _("Settings file could not be written");
-        InitError(Untranslated(
-            strprintf("%s:\n%s\n", error.original, MakeUnorderedList(errors))));
-
-        QMessageBox messagebox(
-            QMessageBox::Critical, PACKAGE_NAME,
-            QString::fromStdString(strprintf("%s.", error.translated)),
-            QMessageBox::Ok);
-        // Explanatory text shown on startup when the settings file could
-        // not be written. Prompts user to check that we have the ability to
-        // write to the file. Explains that the user has the option of running
-        // without a settings file.
-        messagebox.setInformativeText(
-            QObject::tr("A fatal error occurred. Check that settings file is "
-                        "writable, or try running with -nosettings."));
-        messagebox.setDetailedText(
-            QString::fromStdString(MakeUnorderedList(errors)));
-        messagebox.setTextFormat(Qt::PlainText);
-        messagebox.setDefaultButton(QMessageBox::Ok);
-        messagebox.exec();
-        return false;
-    }
-    return true;
+static void ErrorSettingsWrite(const bilingual_str &error,
+                               const std::vector<std::string> &details) {
+    QMessageBox messagebox(
+        QMessageBox::Critical, PACKAGE_NAME,
+        QString::fromStdString(strprintf("%s.", error.translated)),
+        QMessageBox::Ok);
+    // Explanatory text shown on startup when the settings file could
+    // not be written. Prompts user to check that we have the ability to
+    // write to the file. Explains that the user has the option of running
+    // without a settings file.
+    messagebox.setInformativeText(
+        QObject::tr("A fatal error occurred. Check that settings file is "
+                    "writable, or try running with -nosettings."));
+    messagebox.setDetailedText(
+        QString::fromStdString(MakeUnorderedList(details)));
+    messagebox.setTextFormat(Qt::PlainText);
+    messagebox.setDefaultButton(QMessageBox::Ok);
+    messagebox.exec();
 }
 
 /* qDebug() message handler --> debug.log */
@@ -672,7 +655,7 @@ int GuiMain(int argc, char *argv[]) {
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
         InitError(strprintf(
-            Untranslated("Error parsing command line arguments: %s\n"), error));
+            Untranslated("Error parsing command line arguments: %s"), error));
         // Create a message box, because the gui has neither been created nor
         // has subscribed to core signals
         QMessageBox::critical(
@@ -724,55 +707,33 @@ int GuiMain(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-    /// 6. Determine availability of data directory and parse
-    /// bitcoin.conf
-    /// - Do not call gArgs.GetDataDirNet() before this step finishes.
-    if (!CheckDataDirOption(gArgs)) {
-        InitError(strprintf(
-            Untranslated("Specified data directory \"%s\" does not exist.\n"),
-            gArgs.GetArg("-datadir", "")));
-        QMessageBox::critical(
-            nullptr, PACKAGE_NAME,
-            QObject::tr(
-                "Error: Specified data directory \"%1\" does not exist.")
-                .arg(QString::fromStdString(gArgs.GetArg("-datadir", ""))));
-        return EXIT_FAILURE;
-    }
-    if (!gArgs.ReadConfigFiles(error)) {
-        InitError(strprintf(
-            Untranslated("Error reading configuration file: %s\n"), error));
-        QMessageBox::critical(
-            nullptr, PACKAGE_NAME,
-            QObject::tr("Error: Cannot parse configuration file: %1.")
-                .arg(QString::fromStdString(error)));
-        return EXIT_FAILURE;
-    }
-
-    /// 7. Determine network (and switch to network specific options)
-    // - Do not call Params() before this step.
-    // - Do this after parsing the configuration file, as the network can be
-    // switched there.
+    /// 6-7. Parse bitcoin.conf, determine network, switch to network specific
+    /// options, and create datadir and settings.json.
+    // - Do not call gArgs.GetDataDirNet() before this step finishes
+    // - Do not call Params() before this step
     // - QSettings() will use the new application name after this, resulting in
-    // network-specific settings.
-    // - Needs to be done before createOptionsModel.
-
-    // Check for -chain, -testnet or -regtest parameter (Params() calls are only
-    // valid after this clause)
-    try {
-        SelectParams(gArgs.GetChainType());
-    } catch (std::exception &e) {
-        InitError(Untranslated(strprintf("%s\n", e.what())));
-        QMessageBox::critical(nullptr, PACKAGE_NAME,
-                              QObject::tr("Error: %1").arg(e.what()));
+    // network-specific settings
+    // - Needs to be done before createOptionsModel
+    if (auto err = common::InitConfig(gArgs, ErrorSettingsRead)) {
+        InitError(err->message, err->details);
+        if (err->status == common::ConfigStatus::FAILED_WRITE) {
+            // Show a custom error message to provide more information in the
+            // case of a datadir write error.
+            ErrorSettingsWrite(err->message, err->details);
+        } else if (err->status != common::ConfigStatus::ABORTED) {
+            // Show a generic message in other cases, and no additional error
+            // message in the case of a read error if the user decided to abort.
+            QMessageBox::critical(
+                nullptr, PACKAGE_NAME,
+                QObject::tr("Error: %1")
+                    .arg(QString::fromStdString(err->message.translated)));
+        }
         return EXIT_FAILURE;
     }
 #ifdef ENABLE_WALLET
     // Parse URIs on command line -- this can affect Params()
     PaymentServer::ipcParseCommandLine(argc, argv);
 #endif
-    if (!InitSettings()) {
-        return EXIT_FAILURE;
-    }
 
     QScopedPointer<const NetworkStyle> networkStyle(
         NetworkStyle::instantiate(Params().GetChainType()));

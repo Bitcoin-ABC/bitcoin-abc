@@ -523,6 +523,7 @@ add_library(common
 	base58.cpp
 	common/args.cpp
 	common/bloom.cpp
+	common/init.cpp
 	common/configfile.cpp
 	common/system.cpp
 	cashaddr.cpp
