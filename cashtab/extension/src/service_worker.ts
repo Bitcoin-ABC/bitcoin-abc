@@ -2,12 +2,38 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+interface ChromeWindow {
+    id?: number;
+    tabs?: chrome.tabs.Tab[];
+    height?: number;
+    width?: number;
+    top?: number;
+    left?: number;
+}
+
+interface WindowOptions {
+    url: string;
+    type: 'popup';
+    width: number;
+    height: number;
+    left: number;
+    top: number;
+}
+
+interface ChromeMessage {
+    text?: string;
+    txInfo?: Record<string, string>;
+    addressRequest?: boolean;
+    addressRequestApproved?: boolean;
+    tabId?: number;
+}
+
 const NOTIFICATION_HEIGHT = 950;
 const NOTIFICATION_WIDTH = 450;
 const EXTENSION_DEV_ID = 'aleabaopoakgpbijdnicepefdiglggfl';
 const EXTENSION_PROD_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
 
-chrome.runtime.onMessage.addListener(function (request) {
+chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
     // Handle a transaction creation request
     if (request.text == `Cashtab` && request.txInfo) {
         console.log(
@@ -48,24 +74,30 @@ chrome.runtime.onMessage.addListener(function (request) {
 });
 
 // Fetch item from extension storage and return it as a variable
-const getObjectFromExtensionStorage = async function (key) {
+const getObjectFromExtensionStorage = async function (
+    key: string,
+): Promise<any> {
     return new Promise((resolve, reject) => {
         try {
-            chrome.storage.sync.get(key, function (value) {
-                resolve(value[key]);
-            });
+            chrome.storage.sync.get(
+                key,
+                function (value: { [key: string]: any }) {
+                    resolve(value[key]);
+                },
+            );
         } catch (err) {
             reject(err);
         }
     });
 };
+
 // Get the current active tab
-const getCurrentActiveTab = async function () {
+const getCurrentActiveTab = async function (): Promise<chrome.tabs.Tab> {
     return new Promise((resolve, reject) => {
         try {
             chrome.tabs.query(
                 { active: true, currentWindow: true },
-                function (tabs) {
+                function (tabs: chrome.tabs.Tab[]) {
                     resolve(tabs[0]);
                 },
             );
@@ -77,27 +109,36 @@ const getCurrentActiveTab = async function () {
 };
 
 // Fetch the active extension address from extension storage API
-async function fetchAddress(tabId) {
-    const fetchedAddress = await getObjectFromExtensionStorage(['address']);
+async function fetchAddress(tabId?: number): Promise<void> {
+    if (!tabId) return;
+    const fetchedAddress = await getObjectFromExtensionStorage('address');
     // Send this info back to the browser
     chrome.tabs.sendMessage(Number(tabId), { address: fetchedAddress });
 }
 
-async function handleDeniedAddressRequest(tabId) {
+async function handleDeniedAddressRequest(tabId?: number): Promise<void> {
+    if (!tabId) return;
     chrome.tabs.sendMessage(Number(tabId), {
         address: 'Address request denied by user',
     });
 }
 
 // Open Cashtab extension with a request for address sharing
-async function openAddressShareApproval(request, tab) {
+async function openAddressShareApproval(
+    request: string,
+    tab: chrome.tabs.Tab,
+): Promise<void> {
     let left = 0;
     let top = 0;
     try {
         const lastFocused = await getLastFocusedWindow();
         // Position window in top right corner of lastFocused window.
-        top = lastFocused.top;
-        left = lastFocused.left + (lastFocused.width - NOTIFICATION_WIDTH);
+        top = lastFocused.top || 0;
+        left = Math.max(
+            (lastFocused.left || 0) +
+                ((lastFocused.width || 0) - NOTIFICATION_WIDTH),
+            0,
+        );
     } catch {
         // The following properties are more than likely 0, due to being
         // opened from the background chrome process for the extension that
@@ -121,14 +162,18 @@ async function openAddressShareApproval(request, tab) {
 }
 
 // Open Cashtab extension with transaction information in the query string
-async function openSendXec(txInfo) {
+async function openSendXec(txInfo: Record<string, string>): Promise<void> {
     let left = 0;
     let top = 0;
     try {
         const lastFocused = await getLastFocusedWindow();
         // Position window in top right corner of lastFocused window.
-        top = lastFocused.top;
-        left = lastFocused.left + (lastFocused.width - NOTIFICATION_WIDTH);
+        top = lastFocused.top || 0;
+        left = Math.max(
+            (lastFocused.left || 0) +
+                ((lastFocused.width || 0) - NOTIFICATION_WIDTH),
+            0,
+        );
     } catch {
         // The following properties are more than likely 0, due to being
         // opened from the background chrome process for the extension that
@@ -153,24 +198,24 @@ async function openSendXec(txInfo) {
     });
 }
 
-function isCashtabWindow(window) {
-    return (
+function isCashtabWindow(window: ChromeWindow): boolean {
+    return Boolean(
         window &&
-        window.tabs &&
-        window.tabs.length === 1 &&
-        window.height === NOTIFICATION_HEIGHT &&
-        window.width === NOTIFICATION_WIDTH &&
-        (window.tabs[0].url.includes(EXTENSION_DEV_ID) ||
-            window.tabs[0].url.includes(EXTENSION_PROD_ID))
+            window.tabs &&
+            window.tabs.length === 1 &&
+            window.height === NOTIFICATION_HEIGHT &&
+            window.width === NOTIFICATION_WIDTH &&
+            (window.tabs[0].url?.includes(EXTENSION_DEV_ID) ||
+                window.tabs[0].url?.includes(EXTENSION_PROD_ID)),
     );
 }
 
-async function openWindow(options) {
+async function openWindow(options: WindowOptions): Promise<ChromeWindow> {
     // Close existing windows before opening a new window
     const windows = await chrome.windows.getAll({ populate: true });
-    for (let window of windows) {
+    for (const window of windows) {
         if (isCashtabWindow(window)) {
-            await chrome.windows.remove(window.id);
+            await chrome.windows.remove(window.id!);
         }
     }
 
@@ -180,25 +225,24 @@ async function openWindow(options) {
             if (error) {
                 return reject(error);
             }
+            if (!newWindow) {
+                return reject(new Error('Failed to create window'));
+            }
             return resolve(newWindow);
         });
     });
 }
 
-function checkForError() {
+function checkForError(): Error | undefined {
     const { lastError } = chrome.runtime;
     if (!lastError) {
         return undefined;
     }
-    // if it quacks like an Error, its an Error
-    if (lastError.stack && lastError.message) {
-        return lastError;
-    }
-    // repair incomplete error object (eg chromium v77)
+    // Create a new Error with the lastError message
     return new Error(lastError.message);
 }
 
-async function getLastFocusedWindow() {
+async function getLastFocusedWindow(): Promise<ChromeWindow> {
     return new Promise((resolve, reject) => {
         chrome.windows.getLastFocused(windowObject => {
             const error = checkForError();

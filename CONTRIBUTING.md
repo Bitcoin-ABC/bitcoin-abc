@@ -205,12 +205,6 @@ nvm use
 
 The specified version of nodejs will be installed and used.
 
-To work on the extension, you will need `browserify`
-
-```
-[sudo] npm install -g browserify
-```
-
 Contributing to Electrum ABC
 ----------------------------
 
