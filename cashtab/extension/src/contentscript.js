@@ -2,13 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-const extension = require('extensionizer');
-
 // Insert flag into window object to denote Cashtab is available and active as a browser extension
 // Could use a div or other approach for now, but emulate MetaMask this way so it is extensible to other items
 // Try window object approach
 let cashTabInject = document.createElement('script');
-cashTabInject.src = extension.runtime.getURL('script.js');
+cashTabInject.src = chrome.runtime.getURL('script.js');
 cashTabInject.onload = function () {
     this.remove();
 };
@@ -31,7 +29,7 @@ window.addEventListener(
         if (event.source != window) return;
 
         if (event.data.type && event.data.type == 'FROM_PAGE') {
-            await extension.runtime.sendMessage(event.data);
+            await chrome.runtime.sendMessage(event.data);
         }
     },
     false,
@@ -41,7 +39,7 @@ window.addEventListener(
 // Supported types
 // 1 - Extension pop-up window returning an address request approval / denial
 // 2 - The extension service_worker sending the address to the web page if approved
-extension.runtime.onMessage.addListener(message => {
+chrome.runtime.onMessage.addListener(message => {
     // Parse message for address
     if (typeof message.address !== 'undefined') {
         // Send as message that webpage can listen for
@@ -55,7 +53,7 @@ extension.runtime.onMessage.addListener(message => {
     }
     if (typeof message.addressRequestApproved !== 'undefined') {
         // We need to get the address from service_worker.js
-        return extension.runtime.sendMessage(message);
+        return chrome.runtime.sendMessage(message);
     }
     return true;
 });

@@ -141,6 +141,7 @@ export default tseslint.config(
             globals: {
                 ...globals.node,
                 ...globals.browser,
+                ...globals.webextensions,
                 structuredClone: true,
             },
         },

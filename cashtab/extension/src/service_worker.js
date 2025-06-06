@@ -2,14 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-const extension = require('extensionizer');
-
 const NOTIFICATION_HEIGHT = 950;
 const NOTIFICATION_WIDTH = 450;
 const EXTENSION_DEV_ID = 'aleabaopoakgpbijdnicepefdiglggfl';
 const EXTENSION_PROD_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
 
-extension.runtime.onMessage.addListener(function (request) {
+chrome.runtime.onMessage.addListener(function (request) {
     // Handle a transaction creation request
     if (request.text == `Cashtab` && request.txInfo) {
         console.log(
@@ -53,7 +51,7 @@ extension.runtime.onMessage.addListener(function (request) {
 const getObjectFromExtensionStorage = async function (key) {
     return new Promise((resolve, reject) => {
         try {
-            extension.storage.sync.get(key, function (value) {
+            chrome.storage.sync.get(key, function (value) {
                 resolve(value[key]);
             });
         } catch (err) {
@@ -65,7 +63,7 @@ const getObjectFromExtensionStorage = async function (key) {
 const getCurrentActiveTab = async function () {
     return new Promise((resolve, reject) => {
         try {
-            extension.tabs.query(
+            chrome.tabs.query(
                 { active: true, currentWindow: true },
                 function (tabs) {
                     resolve(tabs[0]);
@@ -82,11 +80,11 @@ const getCurrentActiveTab = async function () {
 async function fetchAddress(tabId) {
     const fetchedAddress = await getObjectFromExtensionStorage(['address']);
     // Send this info back to the browser
-    extension.tabs.sendMessage(Number(tabId), { address: fetchedAddress });
+    chrome.tabs.sendMessage(Number(tabId), { address: fetchedAddress });
 }
 
 async function handleDeniedAddressRequest(tabId) {
-    extension.tabs.sendMessage(Number(tabId), {
+    chrome.tabs.sendMessage(Number(tabId), {
         address: 'Address request denied by user',
     });
 }
@@ -169,15 +167,15 @@ function isCashtabWindow(window) {
 
 async function openWindow(options) {
     // Close existing windows before opening a new window
-    const windows = await extension.windows.getAll({ populate: true });
+    const windows = await chrome.windows.getAll({ populate: true });
     for (let window of windows) {
         if (isCashtabWindow(window)) {
-            await extension.windows.remove(window.id);
+            await chrome.windows.remove(window.id);
         }
     }
 
     return new Promise((resolve, reject) => {
-        extension.windows.create(options, newWindow => {
+        chrome.windows.create(options, newWindow => {
             const error = checkForError();
             if (error) {
                 return reject(error);
@@ -188,7 +186,7 @@ async function openWindow(options) {
 }
 
 function checkForError() {
-    const { lastError } = extension.runtime;
+    const { lastError } = chrome.runtime;
     if (!lastError) {
         return undefined;
     }
@@ -202,7 +200,7 @@ function checkForError() {
 
 async function getLastFocusedWindow() {
     return new Promise((resolve, reject) => {
-        extension.windows.getLastFocused(windowObject => {
+        chrome.windows.getLastFocused(windowObject => {
             const error = checkForError();
             if (error) {
                 return reject(error);

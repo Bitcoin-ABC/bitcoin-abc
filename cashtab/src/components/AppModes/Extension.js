@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Modal from 'components/Common/Modal';
-import extension from 'extensionizer';
 import PropTypes from 'prop-types';
 
 const Extension = ({ wallet }) => {
@@ -18,7 +17,7 @@ const Extension = ({ wallet }) => {
     const getObjectFromExtensionStorage = async function (key) {
         return new Promise((resolve, reject) => {
             try {
-                extension.storage.sync.get(key, function (value) {
+                chrome.storage.sync.get(key, function (value) {
                     resolve(value[key]);
                 });
             } catch (err) {
@@ -45,7 +44,7 @@ const Extension = ({ wallet }) => {
         }
 
         // If the address has not been set (or if the user has changed wallets since it was last set), set it
-        await extension.storage.sync.set({ address: address }, function () {
+        await chrome.storage.sync.set({ address: address }, function () {
             console.info(
                 `Address ${address} saved to storage under key 'address'`,
             );
@@ -53,7 +52,7 @@ const Extension = ({ wallet }) => {
     };
 
     const handleApprovedAddressShare = async () => {
-        await extension.tabs.sendMessage(addressRequestTabId, {
+        await chrome.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: true,
@@ -66,7 +65,7 @@ const Extension = ({ wallet }) => {
     };
 
     const handleRejectedAddressShare = async () => {
-        await extension.tabs.sendMessage(addressRequestTabId, {
+        await chrome.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: false,
