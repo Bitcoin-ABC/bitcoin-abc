@@ -28,6 +28,7 @@
 #include <rpc/server.h>
 #include <uint256.h>
 #include <util/exception.h>
+#include <util/string.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -180,11 +181,6 @@ static void initTranslations(QTranslator &qtTranslatorBase,
     }
 }
 
-static std::string JoinErrors(const std::vector<std::string> &errors) {
-    return Join(errors, "\n",
-                [](const std::string &error) { return "- " + error; });
-}
-
 static bool InitSettings() {
     gArgs.EnsureDataDir();
     if (!gArgs.GetSettingsPath()) {
@@ -196,7 +192,7 @@ static bool InitSettings() {
     if (!gArgs.ReadSettingsFile(&errors)) {
         bilingual_str error = _("Settings file could not be read");
         InitError(Untranslated(
-            strprintf("%s:\n%s\n", error.original, JoinErrors(errors))));
+            strprintf("%s:\n%s\n", error.original, MakeUnorderedList(errors))));
 
         QMessageBox messagebox(
             QMessageBox::Critical, PACKAGE_NAME,
@@ -207,7 +203,8 @@ static bool InitSettings() {
         messagebox.setInformativeText(
             QObject::tr("Do you want to reset settings to default values, or "
                         "to abort without making changes?"));
-        messagebox.setDetailedText(QString::fromStdString(JoinErrors(errors)));
+        messagebox.setDetailedText(
+            QString::fromStdString(MakeUnorderedList(errors)));
         messagebox.setTextFormat(Qt::PlainText);
         messagebox.setDefaultButton(QMessageBox::Reset);
         switch (messagebox.exec()) {
@@ -224,7 +221,7 @@ static bool InitSettings() {
     if (!gArgs.WriteSettingsFile(&errors)) {
         bilingual_str error = _("Settings file could not be written");
         InitError(Untranslated(
-            strprintf("%s:\n%s\n", error.original, JoinErrors(errors))));
+            strprintf("%s:\n%s\n", error.original, MakeUnorderedList(errors))));
 
         QMessageBox messagebox(
             QMessageBox::Critical, PACKAGE_NAME,
@@ -237,7 +234,8 @@ static bool InitSettings() {
         messagebox.setInformativeText(
             QObject::tr("A fatal error occurred. Check that settings file is "
                         "writable, or try running with -nosettings."));
-        messagebox.setDetailedText(QString::fromStdString(JoinErrors(errors)));
+        messagebox.setDetailedText(
+            QString::fromStdString(MakeUnorderedList(errors)));
         messagebox.setTextFormat(Qt::PlainText);
         messagebox.setDefaultButton(QMessageBox::Ok);
         messagebox.exec();

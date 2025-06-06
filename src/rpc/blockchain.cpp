@@ -40,6 +40,7 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
@@ -1304,8 +1305,8 @@ static RPCHelpMan verifychain() {
             {"checklevel", RPCArg::Type::NUM,
              RPCArg::DefaultHint{
                  strprintf("%d, range=0-4", DEFAULT_CHECKLEVEL)},
-             strprintf("How thorough the block verification is:\n - %s",
-                       Join(CHECKLEVEL_DOC, "\n- "))},
+             strprintf("How thorough the block verification is:\n%s",
+                       MakeUnorderedList(CHECKLEVEL_DOC))},
             {"nblocks", RPCArg::Type::NUM,
              RPCArg::DefaultHint{strprintf("%d, 0=all", DEFAULT_CHECKBLOCKS)},
              "The number of blocks to check."},
