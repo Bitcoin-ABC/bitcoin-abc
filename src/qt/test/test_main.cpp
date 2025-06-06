@@ -65,10 +65,16 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<interfaces::Node> node =
         interfaces::MakeNode(&node_context);
 
-    std::string error;
-    if (!gArgs.ReadConfigFiles(error, true)) {
-        qWarning() << error.c_str();
-    }
+    /**
+     * FIXME: enable this after PR27302 has been backported. Before this
+     * backport the datadir will be seen as empty and the configuration file
+     * path as a relative path, causing an assertion failure.
+     *
+     * std::string error;
+     * if (!gArgs.ReadConfigFiles(error, true)) {
+     *     qWarning() << error.c_str();
+     * }
+     */
 
     // Prefer the "minimal" platform for the test instead of the normal default
     // platform ("xcb", "windows", or "cocoa") so tests can't unintentionally
