@@ -16,6 +16,8 @@ from test_framework.blocktools import (
     GENESIS_CB_SCRIPT_SIG,
     GENESIS_CB_TXID,
     TIME_GENESIS_BLOCK,
+    create_block,
+    create_coinbase,
 )
 from test_framework.hash import hex_be_sha256
 from test_framework.merkle import merkle_root_and_branch
@@ -28,6 +30,7 @@ from test_framework.messages import (
     FromHex,
     ToHex,
 )
+from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -82,6 +85,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_address_get_scripthash()
         self.test_estimate_fee()
         self.test_relay_fee()
+        self.test_transaction_subscribe()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -1799,6 +1803,130 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         assert_equal(
             self.client.blockchain.relayfee().result,
             42,
+        )
+
+    def test_transaction_subscribe(self):
+        self.log.info(
+            "Test the blockchain.transaction.subscribe and unsubscribe endpoints"
+        )
+
+        utxo = self.wallet.get_utxo()
+        tx = self.wallet.create_self_transfer(utxo_to_spend=utxo)
+        txid = tx["txid"]
+
+        # At this point the txid is unknown
+        assert_equal(
+            self.client.blockchain.transaction.subscribe(txid).result,
+            None,
+        )
+
+        def check_notification(clients, txid, height):
+            for client in clients:
+                ret_txid, ret_height = client.wait_for_notification(
+                    "blockchain.transaction.subscribe"
+                )
+                assert_equal(ret_txid, txid)
+                assert_equal(ret_height, height)
+
+        # Tx added to the mempool
+        self.wallet.sendrawtransaction(from_node=self.node, tx_hex=tx["hex"])
+        check_notification([self.client], txid, 0)
+
+        # Tx confirmed
+        tip = self.generate(self.wallet, 1)[0]
+        height = self.node.getblockcount()
+        check_notification([self.client], txid, height)
+
+        # Tx added back to the mempool
+        self.node.parkblock(tip)
+        check_notification([self.client], txid, 0)
+
+        # Tx removed from mempool
+        conflicting_tx = self.wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=1000
+        )
+        block = create_block(
+            int(self.node.getbestblockhash(), 16),
+            create_coinbase(height),
+            txlist=[FromHex(CTransaction(), conflicting_tx["hex"])],
+        )
+        block.solve()
+
+        peer = self.node.add_p2p_connection(P2PDataStore())
+        peer.send_blocks_and_test([block], self.node)
+
+        check_notification([self.client], txid, None)
+
+        # Bring back the previous block, tx is confirmed again
+        self.node.parkblock(block.hash)
+        self.node.unparkblock(tip)
+
+        check_notification([self.client], txid, height)
+
+        # Unsubscribe
+        assert_equal(
+            self.client.blockchain.transaction.unsubscribe(txid).result,
+            True,
+        )
+        # Unsubscribing again is a no-op
+        for _ in range(3):
+            assert_equal(
+                self.client.blockchain.transaction.unsubscribe(txid).result,
+                False,
+            )
+
+        # Build another tx to check the unsubscription
+        tx = self.wallet.send_self_transfer(from_node=self.node)
+        txid = tx["txid"]
+
+        # This time the tx is in the mempool
+        assert_equal(
+            self.client.blockchain.transaction.subscribe(txid).result,
+            0,
+        )
+
+        # Add more clients and subscribe as well
+        client2 = self.node.get_chronik_electrum_client(name="client2")
+        assert_equal(
+            client2.blockchain.transaction.subscribe(txid).result,
+            0,
+        )
+        client3 = self.node.get_chronik_electrum_client(name="client3")
+        assert_equal(
+            client3.blockchain.transaction.subscribe(txid).result,
+            0,
+        )
+
+        # Unsubscribe client 1
+        assert_equal(
+            self.client.blockchain.transaction.unsubscribe(txid).result,
+            True,
+        )
+
+        # Tx confirmed
+        tip = self.generate(self.wallet, 1)[0]
+        assert_equal(len(self.node.getrawmempool()), 0)
+
+        # Clients 2 and 3 get the notification...
+        check_notification([client2, client3], txid, height + 1)
+
+        # ...but not client 1
+        try:
+            self.client.wait_for_notification(
+                "blockchain.transaction.subscribe", timeout=1
+            )
+            assert False, "Received an unexpected transaction notification"
+        except TimeoutError:
+            pass
+
+        # Unsubscribe clients 2 and 3
+        assert_equal(
+            client2.blockchain.transaction.unsubscribe(txid).result,
+            True,
+        )
+        assert_equal(
+            client3.blockchain.transaction.unsubscribe(txid).result,
+            True,
         )
 
 

@@ -925,9 +925,8 @@ async fn header_hex_from_height(
     Ok(hex::encode(header.raw_header))
 }
 
-fn script_hash_to_sub_id(script_hash: Sha256) -> u32 {
-    let script_hash_bytes: [u8; 32] = script_hash.into();
-    let id_bytes: [u8; 4] = script_hash_bytes[..4].try_into().unwrap();
+fn hash_to_sub_id(hash_bytes: &[u8; 32]) -> u32 {
+    let id_bytes: [u8; 4] = hash_bytes[..4].try_into().unwrap();
 
     u32::from_le_bytes(id_bytes)
 }
@@ -984,7 +983,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let node_clone = self.node.clone();
         let max_history = self.max_history;
 
-        let sub_id = script_hash_to_sub_id(script_hash);
+        let sub_id = hash_to_sub_id(&script_hash.into());
         if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
             tokio::spawn(async move {
                 log_chronik!("Subscription to electrum scripthash\n");
@@ -1218,6 +1217,82 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             .await
     }
 
+    #[rpc_method(name = "transaction.subscribe")]
+    async fn transaction_subscribe(
+        &self,
+        chan: Arc<Channel>,
+        method: String,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        let txid_hex = get_param!(params, 0, "tx_hash")?;
+        let txid = TxId::try_from(&txid_hex)
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+
+        let indexer = self.indexer.read().await;
+
+        // Subscribe
+        let mut subs: tokio::sync::RwLockWriteGuard<
+            '_,
+            chronik_indexer::subs::Subs,
+        > = indexer.subs().write().await;
+        let txid_subs = subs.subs_txid_mut();
+
+        let mut recv = txid_subs.subscribe_to_member(&txid);
+
+        let indexer_clone = self.indexer.clone();
+        let node_clone = self.node.clone();
+
+        let sub_id = hash_to_sub_id(txid.as_bytes());
+        if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
+            tokio::spawn(async move {
+                log_chronik!("Subscription to electrum txid {txid_hex}\n");
+
+                loop {
+                    let Ok(tx_msg) = recv.recv().await else {
+                        // Error, disconnect
+                        break;
+                    };
+
+                    // We want all the events except finalization (this might
+                    // change in the future):
+                    // - added to mempool
+                    // - removed from mempool
+                    // - confirmed
+                    if tx_msg.msg_type == TxMsgType::Finalized {
+                        continue;
+                    }
+
+                    let indexer = indexer_clone.read().await;
+                    let txs = indexer.txs(&node_clone);
+                    let height = txs.tx_by_id(txid).ok().map(|tx| {
+                        if let Some(block) = tx.block {
+                            return block.height;
+                        }
+                        0
+                    });
+
+                    if sub.notify(json!([txid_hex, height,])).await.is_err() {
+                        // Don't log, it's likely a client unsubscription or
+                        // disconnection
+                        break;
+                    }
+                }
+
+                log_chronik!("Unsubscription from electrum txid {txid_hex}\n");
+            });
+        }
+
+        let txs = indexer.txs(&self.node);
+        let height = txs.tx_by_id(txid).ok().map(|tx| {
+            if let Some(block) = tx.block {
+                return block.height;
+            }
+            0
+        });
+
+        Ok(json!(height))
+    }
+
     #[rpc_method(name = "scripthash.unsubscribe")]
     async fn scripthash_unsubscribe(
         &self,
@@ -1237,7 +1312,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 RPCError::CustomError(1, "Invalid scripthash".to_string())
             })?;
 
-        let sub_id = script_hash_to_sub_id(script_hash);
+        let sub_id = hash_to_sub_id(&script_hash.into());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
         Ok(serde_json::json!(success))
     }
@@ -1258,7 +1333,25 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let script_hash = address_to_scripthash(&address)?;
 
-        let sub_id = script_hash_to_sub_id(script_hash);
+        let sub_id = hash_to_sub_id(&script_hash.into());
+        let success = chan.remove_subscription(&sub_id).await.is_ok();
+        Ok(serde_json::json!(success))
+    }
+
+    #[rpc_method(name = "transaction.unsubscribe")]
+    async fn transaction_unsubscribe(
+        &self,
+        chan: Arc<Channel>,
+        _method: String,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 1);
+
+        let txid_hex = get_param!(params, 0, "tx_hash")?;
+        let txid = TxId::try_from(&txid_hex)
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+
+        let sub_id = hash_to_sub_id(txid.as_bytes());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
         Ok(serde_json::json!(success))
     }
@@ -1421,12 +1514,14 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 "Invalid raw_tx argument; expected hex string".to_string(),
             )),
         }?;
-        let raw_tx = Bytes::from(hex::decode(raw_tx).map_err(|_err| {
-            RPCError::CustomError(
-                1,
-                "Failed to decode raw_tx as a hex string".to_string(),
-            )
-        })?);
+        let raw_tx = Bytes::from(hex::decode(raw_tx).map_err(
+            |_err: hex::FromHexError| {
+                RPCError::CustomError(
+                    1,
+                    "Failed to decode raw_tx as a hex string".to_string(),
+                )
+            },
+        )?);
 
         let max_fee = ffi::calc_fee(
             raw_tx.len(),
