@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.26.8",
+    "version": "3.26.7",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -8,8 +8,8 @@
         "test": "node scripts/test.js",
         "debug": "DEBUG=true node scripts/test.js",
         "test:coverage": "CI=true npm run test --coverage",
-        "extension": "REACT_APP_BUILD_ENV=extension ./scripts/extension.sh",
-        "extension:tsc": "tsc -p extension/tsconfig.json"
+        "preextension": "npm  i -g browserify",
+        "extension": "REACT_APP_BUILD_ENV=extension ./scripts/extension.sh"
     },
     "browserslist": {
         "production": [
@@ -59,7 +59,6 @@
         "@testing-library/jest-dom": "^6.4.2",
         "@testing-library/react": "^16.0.1",
         "@testing-library/user-event": "^14.5.2",
-        "@types/chrome": "^0.0.260",
         "@types/jest": "^29.5.14",
         "@types/jest-when": "^3.5.5",
         "@types/lodash.debounce": "^4.0.9",
@@ -116,7 +115,6 @@
         "styled-components": "^4.4.0",
         "tailwindcss": "^3.0.2",
         "terser-webpack-plugin": "^5.2.5",
-        "typescript": "^5.3.3",
         "util": "^0.12.5",
         "web-vitals": "^2.1.4",
         "webpack": "^5.90.1",
