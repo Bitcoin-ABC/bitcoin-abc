@@ -3,7 +3,7 @@ The following tests will throw an error if skip-argument is not 1
 
 --- Good ones ---
 fprintf(skipped, "%d", 1);
-fprintf(skipped, "%a%b%z", 1, "anything", 3);
+fprintf(skipped, "%a%s%f", 1, "anything", 3);
 
 -- Too many arguments ---
 fprintf(skipped, "%d", 1, 2); => error
@@ -16,7 +16,7 @@ The following tests will throw an error if skip-argument is not 2
 
 --- Good ones ---
 snprintf(skip1, skip2, "%d", 1);
-snprintf(skip1, skip2, "%a%b%z", 1, "anything", 3);
+snprintf(skip1, skip2, "%a%s%f", 1, "anything", 3);
 
 -- Too many arguments ---
 snprintf(skip1, skip2, "%d", 1, 2); => error

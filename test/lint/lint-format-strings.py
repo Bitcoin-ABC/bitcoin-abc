@@ -311,21 +311,33 @@ def count_format_specifiers(format_string):
     1
     >>> [count_format_specifiers(i * "%" + "u") for i in range(10)]
     [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+    >>> count_format_specifiers("foo %5$d")
+    5
+    >>> count_format_specifiers("foo %5$*7$d")
+    7
     """
     assert isinstance(format_string, str)
-    n = 0
-    in_specifier = False
     # remove any number of escaped % characters
     format_string = format_string.replace("%%", "")
-    for i, char in enumerate(format_string):
-        if char == "%":
-            in_specifier = True
+    n = max_pos = 0
+    for m in re.finditer("%(.*?)[aAcdeEfFgGinopsuxX]", format_string, re.DOTALL):
+        # Increase the max position if the argument has a position number like
+        # "5$", otherwise increment the argument count.
+        (pos_num,) = re.match(r"(?:(^\d+)\$)?", m.group(1)).groups()
+        if pos_num is not None:
+            max_pos = max(max_pos, int(pos_num))
+        else:
             n += 1
-        elif char in "aAcdeEfFgGinopsuxX":
-            in_specifier = False
-        elif in_specifier and char == "*":
+
+        # Increase the max position if there is a "*" width argument with a
+        # position like "*7$", and increment the argument count if there is a
+        # "*" width argument with no position.
+        star, star_pos_num = re.match(r"(?:.*?(\*(?:(\d+)\$)?)|)", m.group(1)).groups()
+        if star_pos_num is not None:
+            max_pos = max(max_pos, int(star_pos_num))
+        elif star is not None:
             n += 1
-    return n
+    return max(n, max_pos)
 
 
 def main(args_in):
@@ -333,9 +345,11 @@ def main(args_in):
 
     >>> main(["test/lint/lint-format-strings-tests.txt"])
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 2 argument(s): printf("%d", 1, 2)
-    test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%a %b", 1, 2, "anything")
+    test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%a %f", 1, 2, "anything")
+    test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%1$d%2$d%1$d", 1, 2, 3)
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 0 argument(s): printf("%d")
-    test/lint/lint-format-strings-tests.txt: Expected 3 argument(s) after format string but found 2 argument(s): printf("%a%b%z", 1, "anything")
+    test/lint/lint-format-strings-tests.txt: Expected 3 argument(s) after format string but found 2 argument(s): printf("%a%s%f", 1, "anything")
+    test/lint/lint-format-strings-tests.txt: Expected 5 argument(s) after format string but found 1 argument(s): printf("%5$d", 1)
     test/lint/lint-format-strings-tests.txt: Expected 0 argument(s) after format string but found 1 argument(s): strprintf("%%%%u", scope_id)
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 0 argument(s): strprintf("%%%u")
 
