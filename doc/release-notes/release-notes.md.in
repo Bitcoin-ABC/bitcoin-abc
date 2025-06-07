@@ -4,4 +4,4 @@ Bitcoin ABC version ${PROJECT_VERSION} is now available from:
 
   <https://download.bitcoinabc.org/${PROJECT_VERSION}/>
 
-This release includes the following features and fixes:
+This is a maintenance release with no user-visible change.
