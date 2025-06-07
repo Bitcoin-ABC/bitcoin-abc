@@ -1,5 +1,4 @@
-++++++++++ With --skip_arguments=1 ++++++++++
-The following tests will throw an error if skip-argument is not 1
+++++++++++ With 1 skipped argument ++++++++++
 
 --- Good ones ---
 fprintf(skipped, "%d", 1);
@@ -11,8 +10,7 @@ fprintf(skipped, "%d", 1, 2); => error
 --- Not enough argument ---
 fprintf(skipped, "%d"); should throw => error
 
-++++++++++ With --skip_arguments=2 ++++++++++
-The following tests will throw an error if skip-argument is not 2
+++++++++++ With 2 skipped arguments ++++++++++
 
 --- Good ones ---
 snprintf(skip1, skip2, "%d", 1);
