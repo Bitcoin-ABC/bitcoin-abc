@@ -13,7 +13,7 @@ const ApiError = () => {
                 <b>Error in chronik connection</b>
                 <br /> If not corrected by refresh,{' '}
                 <a
-                    href="https://t.me/eCashDevelopment"
+                    href="https://t.me/eCashBuilders"
                     target="_blank"
                     rel="noreferrer"
                 >
