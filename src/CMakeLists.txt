@@ -410,7 +410,6 @@ add_library(util
 	random.cpp
 	randomenv.cpp
 	rcu.cpp
-	rpc/request.cpp
 	support/cleanse.cpp
 	support/lockedpool.cpp
 	sync.cpp
@@ -550,6 +549,7 @@ add_library(common
 	protocol.cpp
 	psbt.cpp
 	rpc/rawtransaction_util.cpp
+	rpc/request.cpp
 	rpc/util.cpp
 	scheduler.cpp
 	warnings.cpp
