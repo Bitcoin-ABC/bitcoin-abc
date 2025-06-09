@@ -42,10 +42,10 @@ factors that affect the dependency list.
 #### Options passed to `cmake`
 * MiniUPnPc is not needed with  `-DENABLE_UPNP=OFF`.
 * MiniUPnPc is not needed with  `-DENABLE_NATPMP=OFF`.
-* Berkeley DB and SQLite are not needed with `-DBUILD_BITCOIN_WALLET=OFF`.
+* Berkeley DB and SQLite are not needed with `-DBUILD_WALLET=OFF`.
 * OpenSSL is not needed with `-DENABLE_BIP70=OFF`.
 * protobuf is not needed with `-DENABLE_BIP70=OFF`.
-* Qt is not needed with `-DBUILD_BITCOIN_QT=OFF`.
+* Qt is not needed with `-DBUILD_QT=OFF`.
 * qrencode is not needed with `-DENABLE_QRCODE=OFF`.
 * systemtap is not needed with `-DENABLE_TRACING=OFF`.
-* ZeroMQ is not needed with the `-DBUILD_BITCOIN_ZMQ=OFF`.
+* ZeroMQ is not needed with the `-DBUILD_ZMQ=OFF`.

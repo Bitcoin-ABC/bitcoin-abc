@@ -25,13 +25,13 @@ include(Coverage)
 include(TestSuite)
 
 set(_TEST_TARGET_DEPENDS "")
-if(BUILD_BITCOIN_CLI)
+if(BUILD_CLI)
 	list(APPEND _TEST_TARGET_DEPENDS bitcoin-cli)
 endif()
-if(BUILD_BITCOIN_WALLET)
+if(BUILD_WALLET)
 	list(APPEND _TEST_TARGET_DEPENDS bitcoin-wallet)
 endif()
-if(BUILD_BITCOIN_CHRONIK)
+if(BUILD_CHRONIK)
 	find_package(Protobuf 3.0.0 REQUIRED)
 	protobuf_generate_python(
 		PROTOBUF_PY
@@ -107,7 +107,7 @@ add_functional_test_check(check-functional-upgrade-activated-extended
 )
 add_dependencies(check-upgrade-activated-extended check-functional-upgrade-activated-extended)
 
-if(BUILD_BITCOIN_TX)
+if(BUILD_TX)
 	add_test_custom_target(check-bitcoin-util
 		TEST_COMMAND
 			"${Python_EXECUTABLE}"

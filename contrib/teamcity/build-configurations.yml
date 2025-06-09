@@ -232,8 +232,8 @@ builds:
     runOnDiffRegex:
       - modules/bitcoinsuite-chronik-client/
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHRONIK_PLUGINS=ON'
     targets:
       - - all
     post_build: |
@@ -250,7 +250,7 @@ builds:
       - Cargo.toml
       - Cargo.lock
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
+      - '-DBUILD_CHRONIK=ON'
     targets:
       - - check-crates
       - - all
@@ -264,8 +264,8 @@ builds:
       - Cargo.toml
       - Cargo.lock
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHRONIK_PLUGINS=ON'
     targets:
       - - check-crates
       - - all
@@ -377,8 +377,8 @@ builds:
       static_depends: linux64
       toolchain: Linux64
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHAINSTATE=ON'
     templates:
       - check+secp256k1
     timeout: 3600
@@ -389,15 +389,15 @@ builds:
       toolchain: LinuxAArch64
       emulator: qemu-aarch64-static
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHAINSTATE=ON'
       # The ZMQ functional test will fail with qemu (due to a qemu limitation),
       # so disable it to avoid the failure.
       # Extracted from stderr:
       #   Unknown host QEMU_IFLA type: 50
       #   Unknown host QEMU_IFLA type: 51
       #   Unknown QEMU_IFLA_BRPORT type 33
-      - "-DBUILD_BITCOIN_ZMQ=OFF"
+      - "-DBUILD_ZMQ=OFF"
       # This is an horrible hack to workaround a qemu bug:
       # https://bugs.launchpad.net/qemu/+bug/1748612
       # Qemu emits a message for unsupported features called by the guest.
@@ -427,7 +427,7 @@ builds:
 
   build-master:
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
+      - '-DBUILD_CHAINSTATE=ON'
     Werror: true
     targets:
       - - all
@@ -448,9 +448,9 @@ builds:
       static_depends: osx
       toolchain: OSX
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
+      - '-DBUILD_CHAINSTATE=ON'
     # Uncomment to build Chronik once the cxx crate is working for OSX
-    #  - '-DBUILD_BITCOIN_CHRONIK=ON'
+    #  - '-DBUILD_CHRONIK=ON'
     targets:
       - - all
         - install
@@ -535,9 +535,9 @@ builds:
       static_depends: win64
       toolchain: Win64
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
-      - "-DBUILD_BITCOIN_SEEDER=OFF"
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHAINSTATE=ON'
+      - "-DBUILD_SEEDER=OFF"
       - "-DCPACK_STRIP_FILES=ON"
       - "-DUSE_JEMALLOC=OFF"
     targets:
@@ -575,7 +575,7 @@ builds:
   build-without-cli:
     Werror: true
     cmake_flags:
-      - '-DBUILD_BITCOIN_CLI=OFF'
+      - '-DBUILD_CLI=OFF'
     targets:
       - - all
         - install
@@ -585,7 +585,7 @@ builds:
   build-without-qt:
     Werror: true
     cmake_flags:
-      - '-DBUILD_BITCOIN_QT=OFF'
+      - '-DBUILD_QT=OFF'
     targets:
       - - all
         - install
@@ -595,8 +595,8 @@ builds:
   build-without-wallet:
     Werror: true
     cmake_flags:
-      - '-DBUILD_BITCOIN_WALLET=OFF'
-      - '-DBUILD_BITCOIN_CHAINSTATE=ON'
+      - '-DBUILD_WALLET=OFF'
+      - '-DBUILD_CHAINSTATE=ON'
     targets:
       - - all
         - install
@@ -609,7 +609,7 @@ builds:
   build-without-zmq:
     Werror: true
     cmake_flags:
-      - '-DBUILD_BITCOIN_ZMQ=OFF'
+      - '-DBUILD_ZMQ=OFF'
     targets:
       - - all
         - install
@@ -895,8 +895,8 @@ builds:
 
   ecash-agora-integration-tests:
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHRONIK_PLUGINS=ON'
     targets:
       - - all
     runOnDiffRegex:
@@ -920,7 +920,7 @@ builds:
 
   ecash-lib-integration-tests:
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
+      - '-DBUILD_CHRONIK=ON'
     targets:
       - - all
     runOnDiffRegex:
@@ -958,8 +958,8 @@ builds:
 
   chronik-client-integration-tests:
     cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHRONIK_PLUGINS=ON'
     targets:
       - - all
     runOnDiffRegex:

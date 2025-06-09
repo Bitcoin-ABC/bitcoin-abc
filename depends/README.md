@@ -114,7 +114,7 @@ The following can be set when running make: `make FOO=bar`
 If some packages are not built, for example by building the depends with
 `make NO_WALLET=1`, the appropriate options should be set when building Bitcoin
 ABC using these dependencies.
-In this example, `-DBUILD_BITCOIN_WALLET=OFF` should be passed to the `cmake`
+In this example, `-DBUILD_WALLET=OFF` should be passed to the `cmake`
 command line to ensure that the build will not fail due to missing dependencies.
 
 Additional targets:

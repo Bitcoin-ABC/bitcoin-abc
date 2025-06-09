@@ -93,6 +93,6 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ZeroMQ
 	REQUIRED_VARS ZeroMQ_INCLUDE_DIR
 	VERSION_VAR ZeroMQ_VERSION
-	REASON_FAILURE_MESSAGE "if the ZeroMQ feature is not required, it can be skipped by passing -DBUILD_BITCOIN_ZMQ=OFF to the cmake command line"
+	REASON_FAILURE_MESSAGE "if the ZeroMQ feature is not required, it can be skipped by passing -DBUILD_ZMQ=OFF to the cmake command line"
 	HANDLE_COMPONENTS
 )

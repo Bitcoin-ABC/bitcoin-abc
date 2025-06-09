@@ -5,7 +5,7 @@ export LC_ALL=C.UTF-8
 set -euxo pipefail
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
-CMAKE_FLAGS="-DBUILD_BITCOIN_CHRONIK=ON -DBUILD_BITCOIN_CHRONIK_PLUGINS=ON" "${TOPLEVEL}"/contrib/devtools/build_cmake.sh
+CMAKE_FLAGS="-DBUILD_CHRONIK=ON -DBUILD_CHRONIK_PLUGINS=ON" "${TOPLEVEL}"/contrib/devtools/build_cmake.sh
 pushd "${BUILD_DIR}"
 ninja check-functional-extended
 TIMING_SRC_FILE="${TOPLEVEL}"/test/functional/timing.json

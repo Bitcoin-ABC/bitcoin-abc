@@ -30,7 +30,7 @@ See remaining required dependencies [here](https://github.com/Bitcoin-ABC/bitcoi
 ```bash
 mkdir build
 cd build
-cmake -GNinja .. -DBUILD_BITCOIN_CHRONIK=on
+cmake -GNinja .. -DBUILD_CHRONIK=on
 ninja
 ```
 
@@ -41,7 +41,7 @@ This only builds what's necessary to run Chronik:
 ```bash
 mkdir build
 cd build
-cmake -GNinja .. -DBUILD_BITCOIN_CHRONIK=ON -DENABLE_UPNP=OFF -DENABLE_NATPMP=OFF -DBUILD_BITCOIN_WALLET=OFF -DBUILD_BITCOIN_QT=OFF -DBUILD_BITCOIN_ZMQ=OFF
+cmake -GNinja .. -DBUILD_CHRONIK=ON -DENABLE_UPNP=OFF -DENABLE_NATPMP=OFF -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF
 ninja
 ```
 
@@ -79,7 +79,7 @@ This only builds what's necessary to run Chronik:
 ```bash
 mkdir build
 cd build
-cmake -GNinja .. -DBUILD_BITCOIN_CHRONIK=ON -DENABLE_UPNP=OFF -DENABLE_NATPMP=OFF -DBUILD_BITCOIN_WALLET=OFF -DBUILD_BITCOIN_QT=OFF -DBUILD_BITCOIN_ZMQ=OFF
+cmake -GNinja .. -DBUILD_CHRONIK=ON -DENABLE_UPNP=OFF -DENABLE_NATPMP=OFF -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF
 ninja
 ```
 

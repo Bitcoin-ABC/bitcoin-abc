@@ -46,8 +46,8 @@ You can disable features to save on compilation time. A few common flags:
 ```sh
 -DENABLE_UPNP=OFF
 -DENABLE_NATPMP=OFF
--DBUILD_BITCOIN_WALLET=OFF
--DBUILD_BITCOIN_QT=OFF
+-DBUILD_WALLET=OFF
+-DBUILD_QT=OFF
 ```
 
 See [Options passed to cmake](dependencies.md#options-passed-to-cmake)

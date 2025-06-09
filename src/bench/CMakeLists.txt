@@ -77,7 +77,7 @@ add_executable(bitcoin-bench
 
 target_link_libraries(bitcoin-bench testutil)
 
-if(BUILD_BITCOIN_WALLET)
+if(BUILD_WALLET)
 	target_sources(bitcoin-bench
 		PRIVATE
 			coin_selection.cpp

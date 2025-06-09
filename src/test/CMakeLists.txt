@@ -64,7 +64,7 @@ add_library(testutil OBJECT
 
 target_link_libraries(testutil server)
 
-if(BUILD_BITCOIN_WALLET)
+if(BUILD_WALLET)
 	set(BITCOIN_WALLET_TEST_FIXTURE
 		../wallet/test/init_test_fixture.cpp
 		../wallet/test/wallet_test_fixture.cpp
@@ -108,7 +108,7 @@ gen_asmap_headers(ASMAP_HEADERS
 	data/asmap.raw
 )
 
-if(BUILD_BITCOIN_CHRONIK)
+if(BUILD_CHRONIK)
 	set(BITCOIN_CHRONIK_TESTS
 		../../chronik/test/bridgecompression_tests.cpp
 		../../chronik/test/bridgeprimitives_tests.cpp

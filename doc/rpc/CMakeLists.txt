@@ -1,6 +1,6 @@
 # Copyright (c) 2020 The Bitcoin developers
 
-if(BUILD_BITCOIN_CLI)
+if(BUILD_CLI)
 	add_custom_target(doc-rpc
 		COMMENT "Generating RPC documentation"
 		COMMAND

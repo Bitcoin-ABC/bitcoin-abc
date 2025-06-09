@@ -40,7 +40,7 @@ Before you start building, please make sure that your compiler supports C++17.
 
     Configure and build the headless Bitcoin ABC binaries as well as the GUI.
 
-    You can disable the GUI build by passing `-DBUILD_BITCOIN_QT=OFF` to cmake.
+    You can disable the GUI build by passing `-DBUILD_QT=OFF` to cmake.
 
     It is recommended to create a build directory to build out-of-tree.
 
@@ -62,7 +62,7 @@ Disable-wallet mode
 When the intention is to run only a P2P node without a wallet, Bitcoin ABC may be compiled in
 disable-wallet mode with:
 
-    cmake -GNinja .. -DBUILD_BITCOIN_WALLET=OFF
+    cmake -GNinja .. -DBUILD_WALLET=OFF
 
 Mining is also possible in disable-wallet mode using the `getblocktemplate` RPC call.
 

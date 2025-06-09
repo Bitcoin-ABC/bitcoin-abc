@@ -125,7 +125,7 @@ await chronik.broadcastTx(acceptTx.ser());
 ```
 mkdir build/
 cd build/
-cmake -GNinja .. -DBUILD_BITCOIN_CHRONIK=ON -DBUILD_BITCOIN_CHRONIK_PLUGINS=ON
+cmake -GNinja .. -DBUILD_CHRONIK=ON -DBUILD_CHRONIK_PLUGINS=ON
 ninja
 ```
 

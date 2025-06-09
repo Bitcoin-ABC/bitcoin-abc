@@ -112,7 +112,7 @@ Port mapping dependencies MiniUPnPc and NAT-PMP (can be disabled by passing `-DE
 
     sudo apt-get install libminiupnpc-dev libnatpmp-dev
 
-ZMQ dependencies (provides ZMQ API, can be disabled by passing `-DBUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
+ZMQ dependencies (provides ZMQ API, can be disabled by passing `-DBUILD_ZMQ=OFF` on the cmake command line):
 
     sudo apt-get install libzmq3-dev
 
@@ -129,13 +129,13 @@ Dependencies for the GUI: Ubuntu & Debian
 
 If you want to build bitcoin-qt, make sure that the required packages for Qt development
 are installed. Qt 5 is necessary to build the GUI.
-To build without GUI pass `-DBUILD_BITCOIN_QT=OFF` on the cmake command line.
+To build without GUI pass `-DBUILD_QT=OFF` on the cmake command line.
 
 To build with Qt 5 you need the following:
 
     sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
 
-To build with chronik and chronik plugins (`-DBUILD_BITCOIN_CHRONIK=ON -DBUILD_BITCOIN_CHRONIK_PLUGINS=ON`) you need the following:
+To build with chronik and chronik plugins (`-DBUILD_CHRONIK=ON -DBUILD_CHRONIK_PLUGINS=ON`) you need the following:
 
     sudo apt-get install protobuf-compiler libprotobuf-dev clang libclang-dev python3-dev
     # Install rust
@@ -156,7 +156,7 @@ Port mapping dependencies MiniUPnPc and NAT-PMP (can be disabled by passing `-DE
 
     sudo dnf install miniupnpc-devel libnatpmp-devel
 
-ZMQ dependencies (can be disabled by passing `-DBUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
+ZMQ dependencies (can be disabled by passing `-DBUILD_ZMQ=OFF` on the cmake command line):
 
     sudo dnf install zeromq-devel
 
@@ -251,7 +251,7 @@ Hardening enables the following features:
 Disable-wallet mode
 --------------------
 When the intention is to run only a P2P node without a wallet, Bitcoin ABC may be compiled in
-disable-wallet mode by passing `-DBUILD_BITCOIN_WALLET=OFF` on the cmake command line.
+disable-wallet mode by passing `-DBUILD_WALLET=OFF` on the cmake command line.
 
 Mining is also possible in disable-wallet mode using the `getblocktemplate` RPC call.
 
@@ -270,7 +270,7 @@ non-wallet distribution of the latest changes on Arch Linux:
     cd bitcoin-abc/
     mkdir build
     cd build
-    cmake -GNinja .. -DBUILD_BITCOIN_WALLET=OFF -DBUILD_BITCOIN_QT=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF -DUSE_JEMALLOC=OFF
+    cmake -GNinja .. -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DENABLE_UPNP=OFF -DBUILD_ZMQ=OFF -DUSE_JEMALLOC=OFF
     ninja
 
 AArch64 Cross-compilation

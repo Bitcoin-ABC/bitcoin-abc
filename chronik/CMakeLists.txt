@@ -36,7 +36,7 @@ find_program_or_fail(RUSTDOC_EXECUTABLE rustdoc
 
 set(CHRONIK_CARGO_FLAGS --locked)
 
-if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+if(BUILD_CHRONIK_PLUGINS)
     set(CHRONIK_FEATURE_FLAGS --features plugins)
 endif()
 
@@ -97,7 +97,7 @@ add_crate_test_single_target(bitcoinsuite-core)
 add_crate_test_single_target(bitcoinsuite-slp)
 add_crate_test_targets(chronik)
 
-if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+if(BUILD_CHRONIK_PLUGINS)
     add_cargo_custom_target(chronik-db-plugins-test
         test
         --package chronik-db
@@ -193,7 +193,7 @@ target_link_libraries(chronik
 )
 
 # Plugins require us to link against libpython
-if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+if(BUILD_CHRONIK_PLUGINS)
     # Plugins require us to link against libpython, but we need the right lib
     # when cross compiling, i.e. not the host one nor the depends native one,
     # but the depends sysrooted one. The easiest way to tell cmake to look at

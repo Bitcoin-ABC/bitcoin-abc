@@ -16,8 +16,8 @@ override_dh_auto_configure:
 		-DCLIENT_VERSION_IS_RELEASE=ON \
 		-DUSE_JEMALLOC=OFF \
 		-DBUILD_LIBBITCOINCONSENSUS=OFF \
-		-DBUILD_BITCOIN_SEEDER=OFF \
-		-DBUILD_BITCOIN_IGUANA=OFF
+		-DBUILD_SEEDER=OFF \
+		-DBUILD_IGUANA=OFF
 
 override_dh_auto_test:
 	ninja -C _build check

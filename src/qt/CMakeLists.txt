@@ -303,7 +303,7 @@ if(ENABLE_BIP70)
 endif()
 
 # Wallet
-if(BUILD_BITCOIN_WALLET)
+if(BUILD_WALLET)
 	# Automoc option.
 	set(AUTOMOC_MOC_OPTIONS -DENABLE_WALLET=1)
 
