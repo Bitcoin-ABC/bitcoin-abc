@@ -20,7 +20,7 @@ const GENESIS_PK_HEX: &str = "04678afdb0fe5548271967f1a67130b7105cd6a828e03\
 
 #[tokio::test]
 pub async fn test_broadcast_tx() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let response = client
         .broadcast_tx(hex::decode("00000000")?, false)
         .await
@@ -43,7 +43,7 @@ pub async fn test_broadcast_tx() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_broadcast_txs() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let response = client
         .broadcast_txs(vec![hex::decode("00000000")?], false)
         .await
@@ -66,7 +66,7 @@ pub async fn test_broadcast_txs() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_blockchain_info() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let blockchain_info = client.blockchain_info().await?;
     assert!(blockchain_info.tip_height > 243892);
     assert_eq!(blockchain_info.tip_hash[28..], [0; 4]);
@@ -75,7 +75,7 @@ pub async fn test_blockchain_info() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_block() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let block_hash = Sha256d::from_be_hex(
         "00000000d1145790a8694403d4063f323d499e655c83426834d4ce2f8dd4a2ee",
     )?;
@@ -109,7 +109,7 @@ pub async fn test_block() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_blocks() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let blocks = client.blocks(129_113, 129_120).await?;
     assert_eq!(blocks.len(), 8);
     Ok(())
@@ -117,7 +117,7 @@ pub async fn test_blocks() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_tx_missing() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let err = client
         .tx(&Sha256d([0; 32]))
         .await
@@ -142,7 +142,7 @@ pub async fn test_tx_missing() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_raw_tx_missing() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let err = client
         .raw_tx(&Sha256d([0; 32]))
         .await
@@ -167,7 +167,7 @@ pub async fn test_raw_tx_missing() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_tx() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let block_hash = Sha256d::from_be_hex(
         "00000000d1145790a8694403d4063f323d499e655c83426834d4ce2f8dd4a2ee",
     )?;
@@ -264,7 +264,7 @@ pub async fn test_tx() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_raw_tx() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let txid = Sha256d::from_be_hex(
         "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
     )?;
@@ -285,7 +285,7 @@ pub async fn test_raw_tx() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_block_txs() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let block_hash = Sha256d::from_be_hex(
         "00000000000053807791091d70e691abff37fc4f8196df306ade8fd8fc40b9e8",
     )?;
@@ -331,7 +331,7 @@ pub async fn test_block_txs() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_chronik_info() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let version_string = client.chronik_info().await?.version;
     let re = Regex::new(r"^v\d+\.\d+\.\d+(-[a-f0-9]+)?$").unwrap();
     assert_eq!(re.is_match(version_string.as_str()), true);
@@ -340,7 +340,7 @@ pub async fn test_chronik_info() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_slpv1_token() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let token_id = Sha256d::from_be_hex(
         "0daf200e3418f2df1158efef36fbb507f12928f1fdcf3543703e64e75a4a9073",
     )?;
@@ -381,7 +381,7 @@ pub async fn test_slpv1_token() -> Result<()> {
 
 #[tokio::test]
 pub async fn test_slpv2_token() -> Result<()> {
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let token_id = Sha256d::from_be_hex(
         "cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145",
     )?;
@@ -427,7 +427,7 @@ pub async fn test_slpv2_token() -> Result<()> {
 #[tokio::test]
 pub async fn test_history() -> Result<()> {
     let genesis_pk = hex::decode(GENESIS_PK_HEX)?;
-    let client = ChronikClient::new(CHRONIK_URL.to_string())?;
+    let client = ChronikClient::new(vec![CHRONIK_URL.to_string()])?;
     let history = client
         .script(ScriptType::P2pk, &genesis_pk)
         .confirmed_txs(0)

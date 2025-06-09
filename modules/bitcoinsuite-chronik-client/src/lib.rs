@@ -11,21 +11,21 @@ pub use chronik_proto::proto;
 use chronik_proto::proto::WsSubScript;
 use futures_util::{SinkExt, StreamExt};
 use prost::Message;
-use reqwest::{header::CONTENT_TYPE, StatusCode};
+use reqwest::StatusCode;
 use thiserror::Error;
 use tokio_tungstenite::WebSocketStream;
 use tungstenite::protocol::Message as WsMessage;
 
+use crate::failover::FailoverProxy;
 use crate::ChronikClientError::*;
 
+pub mod failover;
 pub mod handler;
 pub mod test_runner;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ChronikClient {
-    http_url: String,
-    ws_url: String,
-    client: reqwest::Client,
+    failover: FailoverProxy,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -93,27 +93,18 @@ pub struct WsSubscriptions {
 }
 
 impl ChronikClient {
-    pub fn new(url: String) -> Result<Self> {
-        if url.ends_with('/') {
-            return Err(CannotHaveTrailingSlashInUrl(url).into());
-        }
-        let ws_url = if url.starts_with("https://") {
-            "wss://".to_string() + url.strip_prefix("https://").unwrap()
-        } else if url.starts_with("http://") {
-            "ws://".to_string() + url.strip_prefix("http://").unwrap()
-        } else {
-            return Err(InvalidUrlSchema(url).into());
-        };
-        let ws_url = ws_url + "/ws";
+    pub fn new(urls: Vec<String>) -> Result<Self> {
         Ok(ChronikClient {
-            http_url: url,
-            ws_url,
-            client: reqwest::Client::new(),
+            failover: FailoverProxy::new(urls)?,
         })
     }
 
     pub fn ws_url(&self) -> &str {
-        &self.ws_url
+        &self.failover.endpoints[self
+            .failover
+            .working_index
+            .load(std::sync::atomic::Ordering::Relaxed)]
+        .ws_url
     }
 
     pub async fn broadcast_tx(
@@ -265,71 +256,18 @@ impl ChronikClient {
         url_suffix: &str,
         request: &MRequest,
     ) -> Result<MResponse> {
-        let response = self
-            .client
-            .post(format!("{}{}", self.http_url, url_suffix))
-            .header(CONTENT_TYPE, "application/x-protobuf")
-            .body(request.encode_to_vec())
-            .send()
-            .await
-            .wrap_err(HttpRequestError)?;
-        Self::_handle_response(response).await
+        self.failover.post(url_suffix, request).await
     }
 
     pub async fn ws(&self) -> Result<WsEndpoint> {
-        let (ws, response) =
-            tokio_tungstenite::connect_async(&self.ws_url).await?;
-
-        if response.status()
-            != tungstenite::http::StatusCode::SWITCHING_PROTOCOLS
-        {
-            abc_rust_error::bail!(
-                "WebSocket connection failed: expected status 101 (Switching \
-                 Protocols), got {}",
-                response.status()
-            )
-        }
-
-        Ok(WsEndpoint {
-            ws,
-            subs: WsSubscriptions::default(),
-        })
+        self.failover.connect_ws().await
     }
 
     async fn _get<MResponse: prost::Message + Default>(
         &self,
         url_suffix: &str,
     ) -> Result<MResponse> {
-        let response = self
-            .client
-            .get(format!("{}{}", self.http_url, url_suffix))
-            .header(CONTENT_TYPE, "application/x-protobuf")
-            .send()
-            .await
-            .wrap_err(HttpRequestError)?;
-        Self::_handle_response(response).await
-    }
-
-    async fn _handle_response<MResponse: prost::Message + Default>(
-        response: reqwest::Response,
-    ) -> Result<MResponse> {
-        use prost::Message as _;
-        let status_code = response.status();
-        if status_code != StatusCode::OK {
-            let data = response.bytes().await?;
-            let error = proto::Error::decode(data.as_ref())
-                .wrap_err_with(|| InvalidProtobuf(hex::encode(&data)))?;
-            return Err(ChronikError {
-                status_code,
-                error_msg: error.msg.clone(),
-                error,
-            }
-            .into());
-        }
-        let bytes = response.bytes().await.wrap_err(HttpRequestError)?;
-        let response = MResponse::decode(bytes.as_ref())
-            .wrap_err_with(|| InvalidProtobuf(hex::encode(&bytes)))?;
-        Ok(response)
+        self.failover.get(url_suffix).await
     }
 }
 
@@ -665,7 +603,7 @@ mod tests {
     #[test]
     fn test_constructor_trailing_slash() -> Result<()> {
         let url = "https://chronik.be.cash/xec/".to_string();
-        let err = ChronikClient::new(url.clone())
+        let err = ChronikClient::new(vec![url.clone()])
             .unwrap_err()
             .downcast::<ChronikClientError>()?;
         assert_eq!(err, ChronikClientError::CannotHaveTrailingSlashInUrl(url));
@@ -675,7 +613,7 @@ mod tests {
     #[test]
     fn test_constructor_invalid_schema() -> Result<()> {
         let url = "soap://chronik.be.cash/xec".to_string();
-        let err = ChronikClient::new(url.clone())
+        let err = ChronikClient::new(vec![url.clone()])
             .unwrap_err()
             .downcast::<ChronikClientError>()?;
         assert_eq!(err, ChronikClientError::InvalidUrlSchema(url));

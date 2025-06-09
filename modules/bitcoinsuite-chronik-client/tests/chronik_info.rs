@@ -31,7 +31,8 @@ impl IpcReader for ChronikInfoIPC {
             let chronik_url = handle_test_info(&test_info)
                 .expect("Failed to extract chronik URL from test_info message");
 
-            let client = match ChronikClient::new(chronik_url.to_string()) {
+            let client = match ChronikClient::new(vec![chronik_url.to_string()])
+            {
                 Ok(client) => client,
                 Err(e) => return Err(e),
             };

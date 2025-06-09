@@ -37,7 +37,7 @@ pub async fn get_tx(
     chronik_url: &str,
     txid: TxId,
 ) -> Result<proto::Tx, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
 
     let sha256d_hash = Sha256d(txid.to_bytes());
 
@@ -48,7 +48,7 @@ pub async fn get_validate_raw_tx(
     chronik_url: &str,
     raw_tx: Vec<u8>,
 ) -> Result<proto::Tx, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.validate_tx(raw_tx).await
 }
 
@@ -57,7 +57,7 @@ pub async fn do_broadcast_tx(
     raw_tx: Vec<u8>,
     skip_token_checks: bool,
 ) -> Result<proto::BroadcastTxResponse, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.broadcast_tx(raw_tx, skip_token_checks).await
 }
 
@@ -66,7 +66,7 @@ pub async fn do_broadcast_txs(
     raw_txs: Vec<Vec<u8>>,
     skip_token_checks: bool,
 ) -> Result<proto::BroadcastTxsResponse, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.broadcast_txs(raw_txs, skip_token_checks).await
 }
 

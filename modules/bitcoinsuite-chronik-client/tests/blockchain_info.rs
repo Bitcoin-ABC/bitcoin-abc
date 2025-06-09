@@ -24,7 +24,7 @@ struct BlockchaininfoIPC {
 pub async fn get_blockchain_info(
     chronik_url: String,
 ) -> Result<BlockchainInfo, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url])?;
     client.blockchain_info().await
 }
 

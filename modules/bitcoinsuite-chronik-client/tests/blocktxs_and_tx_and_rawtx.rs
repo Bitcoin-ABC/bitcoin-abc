@@ -59,7 +59,7 @@ pub async fn get_block_by_height(
     chronik_url: &str,
     block_height: i32,
 ) -> Result<Block, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.block_by_height(block_height).await
 }
 
@@ -68,7 +68,7 @@ pub async fn get_block_txs_by_height(
     height: i32,
     page: usize,
 ) -> Result<proto::TxHistoryPage, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.block_txs_by_height(height, page).await
 }
 
@@ -78,7 +78,7 @@ pub async fn get_block_txs_by_height_with_page_size(
     page: usize,
     page_size: usize,
 ) -> Result<proto::TxHistoryPage, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client
         .block_txs_by_height_with_page_size(height, page, page_size)
         .await
@@ -89,7 +89,7 @@ pub async fn get_block_txs_by_hash(
     block_hash: Vec<u8>,
     page: usize,
 ) -> Result<proto::TxHistoryPage, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
 
     let tx_hash = TxId::try_from(block_hash.as_slice()).map_err(|_| {
         abc_rust_error::Report::msg("Invalid block hash length")
@@ -104,7 +104,7 @@ pub async fn get_tx(
     chronik_url: &str,
     txid: TxId,
 ) -> Result<proto::Tx, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
 
     let sha256d_hash = Sha256d(txid.to_bytes());
 
@@ -115,7 +115,7 @@ pub async fn get_raw_tx(
     chronik_url: &str,
     raw_txid: TxId,
 ) -> Result<Bytes, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
 
     let sha256d_hash = Sha256d(raw_txid.to_bytes());
 

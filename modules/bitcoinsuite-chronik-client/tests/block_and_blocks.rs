@@ -528,7 +528,7 @@ pub async fn get_block_by_height(
     chronik_url: &str,
     block_height: i32,
 ) -> Result<Block, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.block_by_height(block_height).await
 }
 
@@ -536,7 +536,7 @@ pub async fn get_block_by_hash(
     chronik_url: &str,
     block_hash: Vec<u8>,
 ) -> Result<Block, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
 
     // Convert Vec<u8> to BlockHash
     let block_hash =
@@ -556,6 +556,6 @@ pub async fn get_blocks_in_range(
     start_height: i32,
     end_height: i32,
 ) -> Result<Vec<BlockInfo>, abc_rust_error::Report> {
-    let client = ChronikClient::new(chronik_url.to_string())?;
+    let client = ChronikClient::new(vec![chronik_url.to_string()])?;
     client.blocks(start_height, end_height).await
 }

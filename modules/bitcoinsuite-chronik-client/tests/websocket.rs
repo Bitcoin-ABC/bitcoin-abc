@@ -190,8 +190,9 @@ impl IpcReader for WebsocketIPC {
                 }
                 1 => {
                     let chronik_url = data.chronik_url.clone();
-                    data.endpoint =
-                        Some(ChronikClient::new(chronik_url)?.ws().await?);
+                    data.endpoint = Some(
+                        ChronikClient::new(vec![chronik_url])?.ws().await?,
+                    );
 
                     let p2pkh_addr =
                         data.p2pkh_address.parse::<CashAddress>()?;
