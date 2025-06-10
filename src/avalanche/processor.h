@@ -287,6 +287,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     bool isAccepted(const AnyVoteItem &item) const;
     int getConfidence(const AnyVoteItem &item) const;
+    bool isPolled(const AnyVoteItem &item) const;
 
     bool isRecentlyFinalized(const uint256 &itemId) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);

@@ -3,10 +3,17 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test avalanche transaction finalization."""
 
-from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.avatools import (
+    assert_response,
+    can_find_inv_in_poll,
+    get_ava_p2p_interface,
+)
 from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
+from test_framework.key import ECPubKey
 from test_framework.messages import (
+    MSG_TX,
     AvalancheTxVoteError,
+    AvalancheVote,
     CTransaction,
     FromHex,
     ToHex,
@@ -260,6 +267,29 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         assert_equal(node.getmempoolinfo()["bytes"], 14700)
         assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13800)
 
+        # Add a transaction that will not get polled because it doesn't fit
+        big_tx = self.wallet.send_self_transfer(
+            from_node=node,
+            target_size=2000,
+        )
+        assert big_tx["txid"] in node.getrawmempool()
+        assert_equal(node.getmempoolinfo()["size"], num_txs + 10)
+        assert_equal(node.getmempoolinfo()["bytes"], 16700)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 13800)
+
+        # This tx will not be polled. We can check this by looking at the vote
+        # status from the node
+        poll_node = self.quorum[0]
+        avakey = ECPubKey()
+        avakey.set(bytes.fromhex(node.getavalanchekey()))
+        txid = int(big_tx["txid"], 16)
+        poll_node.send_poll([txid], MSG_TX)
+        assert_response(
+            poll_node,
+            avakey,
+            [AvalancheVote(-3, txid)],
+        )
+
         # Mine the finalized txs
         txs_to_mine = [
             FromHex(CTransaction(), tx["hex"]) for tx in filler_txs + chained_txs[:4]
@@ -277,8 +307,8 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
 
         self.finalize_tip()
 
-        assert_equal(node.getmempoolinfo()["size"], 5)
-        assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100)
+        assert_equal(node.getmempoolinfo()["size"], 6)
+        assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100 + 2000)
         assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 0)
 
         mempool = node.getrawmempool()
@@ -291,9 +321,9 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
                 ],
             )
 
-        assert_equal(node.getmempoolinfo()["size"], 5)
-        assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100)
-        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 4 * 200 + 100)
+        assert_equal(node.getmempoolinfo()["size"], 6)
+        assert_equal(node.getmempoolinfo()["bytes"], 4 * 200 + 100 + 2000)
+        assert_equal(node.getmempoolinfo()["finalized_txs_bytes"], 4 * 200 + 100 + 2000)
 
     def test_blockmintxfee(self):
         self.log.info(

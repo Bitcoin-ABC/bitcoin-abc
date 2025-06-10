@@ -1609,11 +1609,13 @@ private:
     /**
      * Decide a response for an Avalanche poll about the given transaction.
      *
-     * @param[in] id       The id of the transaction being polled for
-     * @return             Our current vote for the transaction
+     * @param [in] avalanche The avalanche processor
+     * @param[in] id         The id of the transaction being polled for
+     * @return               Our current vote for the transaction
      */
-    uint32_t GetAvalancheVoteForTx(const TxId &id) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main,
+    uint32_t GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
+                                   const TxId &id) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, !m_mempool.cs,
                                  !m_recent_confirmed_transactions_mutex);
 
     /**
@@ -4679,12 +4681,29 @@ PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) const {
     return -3;
 };
 
-uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
-    // Accepted in mempool, or in a recent block
-    if (m_mempool.exists(id) ||
-        WITH_LOCK(m_recent_confirmed_transactions_mutex,
+uint32_t
+PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
+                                       const TxId &id) const {
+    // Finalized
+    if (WITH_LOCK(m_mempool.cs, return m_mempool.isAvalancheFinalized(id))) {
+        return 0;
+    }
+
+    // Recently confirmed
+    if (WITH_LOCK(m_recent_confirmed_transactions_mutex,
                   return m_recent_confirmed_transactions.contains(id))) {
         return 0;
+    }
+
+    // Accepted in mempool...
+    if (auto tx = m_mempool.get(id)) {
+        // ... and in the polled list
+        if (avalanche.isPolled(tx)) {
+            return 0;
+        }
+
+        // ... but not in the polled list
+        return -3;
     }
 
     // Conflicting tx
@@ -6614,8 +6633,9 @@ void PeerManagerImpl::ProcessMessage(
             switch (inv.type) {
                 case MSG_TX: {
                     if (m_opts.avalanche_preconsensus) {
-                        vote = WITH_LOCK(cs_main, return GetAvalancheVoteForTx(
-                                                      TxId(inv.hash)));
+                        vote = WITH_LOCK(cs_main,
+                                         return GetAvalancheVoteForTx(
+                                             *m_avalanche, TxId(inv.hash)));
                     }
                 } break;
                 case MSG_BLOCK: {

@@ -585,6 +585,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
     // Adding the item twice does nothing.
     BOOST_CHECK(addToReconcile(item));
     BOOST_CHECK(!addToReconcile(item));
+    BOOST_CHECK(m_processor->isPolled(item));
     BOOST_CHECK(m_processor->isAccepted(item));
 
     // Create nodes that supports avalanche so we can finalize the item.
@@ -652,6 +653,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, NullableVoteItemProviders) {
     P provider(this);
 
     // Check that null case is handled on the public interface
+    BOOST_CHECK(!m_processor->isPolled(nullptr));
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
 
@@ -665,6 +667,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, NullableVoteItemProviders) {
     item = provider.buildVoteItem();
     BOOST_CHECK(addToReconcile(item));
 
+    BOOST_CHECK(!m_processor->isPolled(nullptr));
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
 }
@@ -675,6 +678,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_zero, P, Uint256VoteItemProviders) {
     auto itemZero = decltype(provider.buildVoteItem())();
 
     // Check that zero case is handled on the public interface
+    BOOST_CHECK(!m_processor->isPolled(itemZero));
     BOOST_CHECK(!m_processor->isAccepted(itemZero));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(itemZero), -1);
 
@@ -687,6 +691,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_zero, P, Uint256VoteItemProviders) {
     auto item = provider.buildVoteItem();
     BOOST_CHECK(addToReconcile(item));
 
+    BOOST_CHECK(!m_processor->isPolled(itemZero));
     BOOST_CHECK(!m_processor->isAccepted(itemZero));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(itemZero), -1);
 }
@@ -702,6 +707,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     auto avanodes = ConnectNodes();
 
     // Querying for random item returns false.
+    BOOST_CHECK(!m_processor->isPolled(item));
     BOOST_CHECK(!m_processor->isAccepted(item));
 
     // Add a new item. Check it is added to the polls.
@@ -711,6 +717,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(invs[0].type, invType);
     BOOST_CHECK(invs[0].hash == itemid);
 
+    BOOST_CHECK(m_processor->isPolled(item));
     BOOST_CHECK(m_processor->isAccepted(item));
 
     int nextNodeIndex = 0;

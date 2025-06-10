@@ -488,6 +488,16 @@ int Processor::getConfidence(const AnyVoteItem &item) const {
     return it->second.getConfidence();
 }
 
+bool Processor::isPolled(const AnyVoteItem &item) const {
+    if (isNull(item)) {
+        return false;
+    }
+
+    auto r = voteRecords.getReadView();
+    auto it = r->find(item);
+    return it != r.end();
+}
+
 bool Processor::isRecentlyFinalized(const uint256 &itemId) const {
     return WITH_LOCK(cs_finalizedItems, return finalizedItems.contains(itemId));
 }
