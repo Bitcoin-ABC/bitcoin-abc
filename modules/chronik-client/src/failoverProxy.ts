@@ -311,6 +311,10 @@ export class FailoverProxy {
                         wsEndpoint.subs.tokens.forEach(tokenId =>
                             wsEndpoint.subscribeToTokenId(tokenId),
                         );
+                        // Subscribe to all previously-subscribed txids
+                        wsEndpoint.subs.txids.forEach(txid =>
+                            wsEndpoint.subscribeToTxid(txid),
+                        );
 
                         // Subscribe to blocks method, if previously subscribed
                         if (wsEndpoint.subs.blocks === true) {

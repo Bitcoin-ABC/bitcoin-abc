@@ -127,3 +127,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   3.1.0 - Add support for automatic node selection using `useStrategy` method [D17913](https://reviews.bitcoinabc.org/D17913)
 -   3.1.1 - Fix WebSocket retry loop issues during disconnection [D17974](https://reviews.bitcoinabc.org/D17974)
 -   3.2.0 - Add "UNKNOWN" token protocol type [D18155](https://reviews.bitcoinabc.org/D18155)
+-   3.3.0 - Add support for `subscribetoTxid` and `unsubscribeFromTxid` websocket methods [D18251](https://reviews.bitcoinabc.org/D18251)

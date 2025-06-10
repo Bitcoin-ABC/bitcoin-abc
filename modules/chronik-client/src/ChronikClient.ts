@@ -6,13 +6,14 @@ import { decodeCashAddress } from 'ecashaddrjs';
 import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
 import * as proto from '../proto/chronik';
-import { FailoverProxy, appendWsUrls } from './failoverProxy';
+import { appendWsUrls, FailoverProxy } from './failoverProxy';
 import { fromHex, toHex, toHexRev } from './hex';
 import {
     isValidWsSubscription,
     verifyLokadId,
     verifyPluginSubscription,
     verifyTokenId,
+    verifyTxid,
 } from './validation';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
@@ -761,6 +762,7 @@ export class WsEndpoint {
         this.subs = {
             scripts: [],
             tokens: [],
+            txids: [],
             lokadIds: [],
             plugins: [],
             blocks: false,
@@ -980,6 +982,40 @@ export class WsEndpoint {
         }
     }
 
+    /** Subscribe to a txid */
+    public subscribeToTxid(txid: string) {
+        verifyTxid(txid);
+
+        // Update ws.subs to include this txid
+        this.subs.txids.push(txid);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send subscribe msg to chronik server
+            this._subUnsubTxid(false, txid);
+        }
+    }
+
+    /** Unsubscribe from the given txid */
+    public unsubscribeFromTxid(txid: string) {
+        // Find the requested unsub txid and remove it
+        const unsubIndex = this.subs.txids.findIndex(
+            thisTxid => thisTxid === txid,
+        );
+        if (unsubIndex === -1) {
+            // If we cannot find this subscription in this.subs.txids, throw an error
+            // We do not want an app developer thinking they have unsubscribed from something if no action happened
+            throw new Error(`No existing sub to txid "${txid}"`);
+        }
+
+        // Remove the requested txid subscription from this.subs.txids
+        this.subs.txids.splice(unsubIndex, 1);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send unsubscribe msg to chronik server
+            this._subUnsubTxid(true, txid);
+        }
+    }
+
     /**
      * Close the WebSocket connection and prevent any future reconnection
      * attempts.
@@ -1041,6 +1077,21 @@ export class WsEndpoint {
             isUnsub,
             tokenId: {
                 tokenId: tokenId,
+            },
+        }).finish();
+
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+
+        this.ws.send(encodedSubscription);
+    }
+
+    private _subUnsubTxid(isUnsub: boolean, txid: string) {
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            txid: {
+                txid: txid,
             },
         }).finish();
 
@@ -2153,6 +2204,8 @@ interface WsSubscriptions {
     tokens: string[];
     /** Subscriptions to lokadIds */
     lokadIds: string[];
+    /** Subscriptions to txids */
+    txids: string[];
     /** Subscriptions to plugins */
     plugins: WsSubPluginClient[];
     /** Subscription to blocks */

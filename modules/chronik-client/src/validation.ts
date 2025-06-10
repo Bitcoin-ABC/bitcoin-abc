@@ -2,11 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { WsSubScriptClient, WsSubPluginClient } from './ChronikClient';
+import { WsSubPluginClient, WsSubScriptClient } from './ChronikClient';
 
 const VALID_HEX_REGEX = new RegExp(/^[a-f0-9]+$/);
 const VALID_LOKADID_REGEX = new RegExp(/^[a-f0-9]{8}$/);
-const VALID_TOKENID_REGEX = new RegExp(/^[a-f0-9]{64}$/);
+const VALID_TXID_REGEX = new RegExp(/^[a-f0-9]{64}$/);
 
 export const isValidWsSubscription = (
     subscription: WsSubScriptClient,
@@ -59,9 +59,17 @@ export const verifyLokadId = (lokadId: string) => {
 };
 
 export const verifyTokenId = (tokenId: string) => {
-    if (!VALID_TOKENID_REGEX.test(tokenId)) {
+    if (!VALID_TXID_REGEX.test(tokenId)) {
         throw new Error(
             `Invalid tokenId: "${tokenId}". tokenId must be 64 characters of lowercase hex.`,
+        );
+    }
+};
+
+export const verifyTxid = (txid: string) => {
+    if (!VALID_TXID_REGEX.test(txid)) {
+        throw new Error(
+            `Invalid txid: "${txid}". txid must be 64 characters of lowercase hex.`,
         );
     }
 };

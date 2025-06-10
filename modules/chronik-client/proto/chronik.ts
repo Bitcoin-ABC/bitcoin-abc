@@ -741,6 +741,8 @@ export interface WsSub {
     lokadId?: WsSubLokadId | undefined;
     /** Subscription to a plugin group */
     plugin?: WsPlugin | undefined;
+    /** Subscription to a txid */
+    txid?: WsSubTxId | undefined;
 }
 
 /**
@@ -792,6 +794,12 @@ export interface WsPlugin {
     pluginName: string;
     /** Group assigned by the plugin to subscribe to */
     group: Uint8Array;
+}
+
+/** Subscription to a txid. They will be sent every time a tx status confirmation changes. */
+export interface WsSubTxId {
+    /** Hex txid to subscribe to. */
+    txid: string;
 }
 
 /** Message coming from the WebSocket */
@@ -5455,6 +5463,7 @@ function createBaseWsSub(): WsSub {
         tokenId: undefined,
         lokadId: undefined,
         plugin: undefined,
+        txid: undefined,
     };
 }
 
@@ -5492,6 +5501,9 @@ export const WsSub = {
         }
         if (message.plugin !== undefined) {
             WsPlugin.encode(message.plugin, writer.uint32(50).fork()).ldelim();
+        }
+        if (message.txid !== undefined) {
+            WsSubTxId.encode(message.txid, writer.uint32(58).fork()).ldelim();
         }
         return writer;
     },
@@ -5558,6 +5570,13 @@ export const WsSub = {
 
                     message.plugin = WsPlugin.decode(reader, reader.uint32());
                     continue;
+                case 7:
+                    if (tag !== 58) {
+                        break;
+                    }
+
+                    message.txid = WsSubTxId.decode(reader, reader.uint32());
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -5587,6 +5606,9 @@ export const WsSub = {
             plugin: isSet(object.plugin)
                 ? WsPlugin.fromJSON(object.plugin)
                 : undefined,
+            txid: isSet(object.txid)
+                ? WsSubTxId.fromJSON(object.txid)
+                : undefined,
         };
     },
 
@@ -5609,6 +5631,9 @@ export const WsSub = {
         }
         if (message.plugin !== undefined) {
             obj.plugin = WsPlugin.toJSON(message.plugin);
+        }
+        if (message.txid !== undefined) {
+            obj.txid = WsSubTxId.toJSON(message.txid);
         }
         return obj;
     },
@@ -5638,6 +5663,10 @@ export const WsSub = {
         message.plugin =
             object.plugin !== undefined && object.plugin !== null
                 ? WsPlugin.fromPartial(object.plugin)
+                : undefined;
+        message.txid =
+            object.txid !== undefined && object.txid !== null
+                ? WsSubTxId.fromPartial(object.txid)
                 : undefined;
         return message;
     },
@@ -5998,6 +6027,71 @@ export const WsPlugin = {
         const message = createBaseWsPlugin();
         message.pluginName = object.pluginName ?? '';
         message.group = object.group ?? new Uint8Array(0);
+        return message;
+    },
+};
+
+function createBaseWsSubTxId(): WsSubTxId {
+    return { txid: '' };
+}
+
+export const WsSubTxId = {
+    encode(
+        message: WsSubTxId,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.txid !== '') {
+            writer.uint32(10).string(message.txid);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): WsSubTxId {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseWsSubTxId();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.txid = reader.string();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): WsSubTxId {
+        return {
+            txid: isSet(object.txid) ? globalThis.String(object.txid) : '',
+        };
+    },
+
+    toJSON(message: WsSubTxId): unknown {
+        const obj: any = {};
+        if (message.txid !== '') {
+            obj.txid = message.txid;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<WsSubTxId>, I>>(base?: I): WsSubTxId {
+        return WsSubTxId.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<WsSubTxId>, I>>(
+        object: I,
+    ): WsSubTxId {
+        const message = createBaseWsSubTxId();
+        message.txid = object.txid ?? '';
         return message;
     },
 };
