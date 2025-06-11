@@ -32,7 +32,7 @@ FUZZ_TARGET_INIT(pow, initialize_pow) {
         fuzzed_data_provider.ConsumeIntegral<uint32_t>();
     const uint32_t fixed_bits =
         fuzzed_data_provider.ConsumeIntegral<uint32_t>();
-    while (fuzzed_data_provider.remaining_bytes() > 0) {
+    while (fuzzed_data_provider.remaining_bytes() > 1) {
         const std::optional<CBlockHeader> block_header =
             ConsumeDeserializable<CBlockHeader>(fuzzed_data_provider);
         if (!block_header) {
@@ -71,7 +71,7 @@ FUZZ_TARGET_INIT(pow, initialize_pow) {
                     previous_block != nullptr
                         ? previous_block->nChainWork +
                               GetBlockProof(*previous_block)
-                        : arith_uint256{0};
+                        : arith_uint256{1};
             } else {
                 current_block.nChainWork =
                     ConsumeArithUInt256(fuzzed_data_provider);
