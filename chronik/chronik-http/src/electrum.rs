@@ -2339,7 +2339,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             .to_string();
         let out_n = match get_param!(params, 1, "out_n")? {
             Value::Number(n) => match n.as_i64() {
-                Some(n) if n >= 0 && n <= 4294967295 => usize::try_from(n)
+                Some(n) if (0..=4294967295).contains(&n) => usize::try_from(n)
                     .map_err(|_| RPCError::CustomError(1, out_n_err_msg)),
                 _ => Err(RPCError::CustomError(1, out_n_err_msg)),
             },
@@ -2369,19 +2369,15 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         match tx.block {
             // The tx is confirmed
-            Some(block) => {
-                return Ok(json!({
-                    "confirmed_height": block.height,
-                    "scripthash": script_hash,
-                    "value": output.sats,
-                }))
-            }
-            None => {
-                return Ok(json!({
-                    "scripthash": script_hash,
-                    "value": output.sats,
-                }))
-            }
+            Some(block) => Ok(json!({
+                "confirmed_height": block.height,
+                "scripthash": script_hash,
+                "value": output.sats,
+            })),
+            None => Ok(json!({
+                "scripthash": script_hash,
+                "value": output.sats,
+            })),
         }
     }
 }
