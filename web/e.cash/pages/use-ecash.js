@@ -129,23 +129,23 @@ function UseEcash(props) {
                 <Blob left="0" top="90%" />
                 <Container>
                     <TextImageBlock
-                        id="MUSD"
-                        title="Marianas U.S. Dollar"
+                        id="TUSDT"
+                        title="Tinian U.S. Dollar Token"
                         image={musd}
-                        alt="Marianas U.S. Dollar logo"
+                        alt="Tinian U.S. Dollar Token logo"
                     >
                         <p>
-                            MUSD is the first fully-reserved, fiat-backed stable
-                            token issued by a public entity in the United
+                            TUSDT is the first fully-reserved, fiat-backed
+                            stable token issued by a public entity in the United
                             States. Exclusively issued on the eCash blockchain.
                         </p>
                         <p>
-                            MUSD provides the foundation for blockchain
+                            TUSDT provides the foundation for blockchain
                             development and distribution of the functions for
                             government such as identity, finance, safety, and
                             administration. Ecosystem development partners can
                             quickly build financial services, standards, and
-                            applications with direct access to the MUSD API.
+                            applications with direct access to the TUSDT API.
                         </p>
                         <Button
                             text="Learn More"
