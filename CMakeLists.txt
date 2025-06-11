@@ -138,7 +138,6 @@ if(ENABLE_COVERAGE)
 	add_custom_target_coverage(check-upgrade-activated-extended)
 endif()
 
-add_subdirectory(src)
 
 include(Deprecation)
 deprecate_build_flag(BUILD_BITCOIN_CHRONIK BUILD_CHRONIK)
@@ -146,6 +145,8 @@ deprecate_build_flag(BUILD_BITCOIN_CHRONIK_PLUGINS BUILD_CHRONIK_PLUGINS)
 
 option(BUILD_CHRONIK "Activate the Chronik indexer" OFF)
 option(BUILD_CHRONIK_PLUGINS "Activate the plugin system for Chronik" OFF)
+
+add_subdirectory(src)
 if(BUILD_CHRONIK)
 	add_subdirectory(chronik)
 endif()
