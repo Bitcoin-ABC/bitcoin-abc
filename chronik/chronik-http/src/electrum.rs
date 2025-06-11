@@ -2325,4 +2325,63 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         self.header_get(json!([tip_height.to_string()])).await
     }
+
+    #[rpc_method(name = "utxo.get_info")]
+    async fn utxo_get_info(&self, params: Value) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 2);
+
+        let txid_hex = get_param!(params, 0, "tx_hash")?;
+        let txid = TxId::try_from(&txid_hex)
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+
+        let out_n_err_msg = "Invalid tx out number: expected a value >= 0 and \
+                             <= 4294967295"
+            .to_string();
+        let out_n = match get_param!(params, 1, "out_n")? {
+            Value::Number(n) => match n.as_i64() {
+                Some(n) if n >= 0 && n <= 4294967295 => usize::try_from(n)
+                    .map_err(|_| RPCError::CustomError(1, out_n_err_msg)),
+                _ => Err(RPCError::CustomError(1, out_n_err_msg)),
+            },
+            _ => Err(RPCError::CustomError(1, out_n_err_msg)),
+        }?;
+
+        let indexer = self.indexer.read().await;
+        let txs = indexer.txs(&self.node);
+        let tx = match txs.tx_by_id(txid) {
+            Ok(tx) => tx,
+            // The txid doesn't exist
+            Err(_) => return Ok(Value::Null),
+        };
+
+        if out_n >= tx.outputs.len() {
+            // No such output in that transaction
+            return Ok(Value::Null);
+        }
+
+        let output = &tx.outputs[out_n];
+        if output.spent_by.is_some() {
+            // This output is spent
+            return Ok(Value::Null);
+        }
+
+        let script_hash = Sha256::digest(&output.output_script).hex_be();
+
+        match tx.block {
+            // The tx is confirmed
+            Some(block) => {
+                return Ok(json!({
+                    "confirmed_height": block.height,
+                    "scripthash": script_hash,
+                    "value": output.sats,
+                }))
+            }
+            None => {
+                return Ok(json!({
+                    "scripthash": script_hash,
+                    "value": output.sats,
+                }))
+            }
+        }
+    }
 }

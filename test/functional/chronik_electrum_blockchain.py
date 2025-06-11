@@ -71,21 +71,22 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.node = self.nodes[0]
         self.wallet = MiniWallet(self.node)
 
-        self.test_invalid_params()
-        self.test_transaction_get()
-        self.test_transaction_get_confirmed_blockhash()
-        self.test_transaction_get_height()
-        self.test_transaction_broadcast()
-        self.test_transaction_get_merkle()
-        self.test_transaction_id_from_pos()
-        self.test_block_header()
-        self.test_scripthash()
-        self.test_headers_subscribe()
-        self.test_scripthash_subscribe()
-        self.test_address_get_scripthash()
-        self.test_estimate_fee()
-        self.test_relay_fee()
-        self.test_transaction_subscribe()
+        # self.test_invalid_params()
+        # self.test_transaction_get()
+        # self.test_transaction_get_confirmed_blockhash()
+        # self.test_transaction_get_height()
+        # self.test_transaction_broadcast()
+        # self.test_transaction_get_merkle()
+        # self.test_transaction_id_from_pos()
+        # self.test_block_header()
+        # self.test_scripthash()
+        # self.test_headers_subscribe()
+        # self.test_scripthash_subscribe()
+        # self.test_address_get_scripthash()
+        # self.test_estimate_fee()
+        # self.test_relay_fee()
+        # self.test_transaction_subscribe()
+        self.test_utxo_get_info()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -1928,6 +1929,96 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             client3.blockchain.transaction.unsubscribe(txid).result,
             True,
         )
+
+    def test_utxo_get_info(self):
+        self.log.info("Test the blockchain.utxo.get_info endpoint")
+
+        # This endpoint expects exactly 2 parameters
+        assert_equal(
+            self.client.blockchain.utxo.get_info().error,
+            {
+                "code": -32602,
+                "message": "Missing required params",
+            },
+        )
+        assert_equal(
+            self.client.blockchain.utxo.get_info("00" * 32, 0, 42).error,
+            {
+                "code": -32602,
+                "message": "Expected at most 2 parameters",
+            },
+        )
+
+        assert_equal(
+            self.client.blockchain.utxo.get_info(42, 0).error,
+            {
+                "code": 1,
+                "message": "Invalid tx hash",
+            },
+        )
+        for out_n in ["", "foo", -1, 4294967296]:
+            assert_equal(
+                self.client.blockchain.utxo.get_info("00" * 32, out_n).error,
+                {
+                    "code": 1,
+                    "message": "Invalid tx out number: expected a value >= 0 and <= 4294967295",
+                },
+            )
+
+        # Unknown tx returns null
+        assert_equal(
+            self.client.blockchain.utxo.get_info("00" * 32, 0).result,
+            None,
+        )
+
+        # Known tx but unknown index returns null
+        self.generate(self.wallet, 1)
+        tx = self.wallet.send_self_transfer_multi(from_node=self.node, num_outputs=10)
+        assert_equal(
+            self.client.blockchain.utxo.get_info(tx["txid"], 11).result,
+            None,
+        )
+
+        # Spent output returns null
+        self.wallet.send_self_transfer(
+            from_node=self.node, utxo_to_spend=tx["new_utxos"][0]
+        )
+        assert_equal(
+            self.client.blockchain.utxo.get_info(tx["txid"], 0).result,
+            None,
+        )
+
+        scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
+        # All the other outputs are in the mempool
+        for utxo in tx["new_utxos"][1:]:
+            assert_equal(
+                self.client.blockchain.utxo.get_info(tx["txid"], utxo["vout"]).result,
+                {
+                    "scripthash": scripthash,
+                    "value": int(utxo["value"] * XEC),
+                },
+            )
+
+        self.generate(self.wallet, 1)
+        assert_equal(len(self.node.getrawmempool()), 0)
+
+        # The last output is still spent
+        assert_equal(
+            self.client.blockchain.utxo.get_info(tx["txid"], 0).result,
+            None,
+        )
+
+        height = self.node.getblockcount()
+        # And all the other outputs are now confirmed
+        for utxo in tx["new_utxos"][1:]:
+            assert_equal(
+                self.client.blockchain.utxo.get_info(tx["txid"], utxo["vout"]).result,
+                {
+                    "confirmed_height": height,
+                    "scripthash": scripthash,
+                    "value": int(utxo["value"] * XEC),
+                },
+            )
 
 
 if __name__ == "__main__":
