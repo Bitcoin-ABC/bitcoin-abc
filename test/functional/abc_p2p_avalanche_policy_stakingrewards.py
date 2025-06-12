@@ -147,25 +147,25 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             assert_equal(node.getbestblockhash(), expected_tip)
 
             # Poll and check the node votes what we expect
-            poll_node.send_poll([block.sha256])
+            poll_node.send_poll([block.hash_int])
             expected_vote = (
                 AvalancheVoteError.ACCEPTED
                 if matches_policy
                 else AvalancheVoteError.PARKED
             )
             assert_response(
-                poll_node, avakey, [AvalancheVote(expected_vote, block.sha256)]
+                poll_node, avakey, [AvalancheVote(expected_vote, block.hash_int)]
             )
 
             # Vote yes on this block until the node accepts it
             self.wait_until(lambda: has_accepted_tip(block.hash))
             assert_equal(node.getbestblockhash(), block.hash)
 
-            poll_node.send_poll([block.sha256])
+            poll_node.send_poll([block.hash_int])
             assert_response(
                 poll_node,
                 avakey,
-                [AvalancheVote(AvalancheVoteError.ACCEPTED, block.sha256)],
+                [AvalancheVote(AvalancheVoteError.ACCEPTED, block.hash_int)],
             )
 
             return block

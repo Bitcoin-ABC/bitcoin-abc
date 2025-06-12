@@ -122,7 +122,7 @@ class ChronikPauseTest(BitcoinTestFramework):
         blockB1.solve()
 
         blockB2 = create_block(
-            blockB1.sha256, create_coinbase(103, b"\x03" * 33), 1300000500
+            blockB1.hash_int, create_coinbase(103, b"\x03" * 33), 1300000500
         )
         blockB2.solve()
 
@@ -141,7 +141,7 @@ class ChronikPauseTest(BitcoinTestFramework):
 
         self.log.info("Add block that mines the tx")
         blockB3 = create_block(
-            blockB2.sha256, create_coinbase(104, b"\x03" * 33), 1300000500
+            blockB2.hash_int, create_coinbase(104, b"\x03" * 33), 1300000500
         )
         blockB3.vtx += [conflict_tx]
         make_conform_to_ctor(blockB3)

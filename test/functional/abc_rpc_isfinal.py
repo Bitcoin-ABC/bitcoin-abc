@@ -206,7 +206,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             "Block data not downloaded yet.",
             node.isfinaltransaction,
             uint256_hex(random.randint(0, 2**256 - 1)),
-            uint256_hex(block.sha256),
+            uint256_hex(block.hash_int),
         )
 
 

@@ -258,7 +258,7 @@ class MiningTest(BitcoinTestFramework):
         )
         # Build a "good" block on top of the submitted bad block
         bad_block2 = copy.deepcopy(block)
-        bad_block2.hashPrevBlock = bad_block_lock.sha256
+        bad_block2.hashPrevBlock = bad_block_lock.hash_int
         bad_block2.solve()
         assert_raises_rpc_error(
             -25,

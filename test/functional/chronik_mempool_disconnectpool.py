@@ -84,7 +84,7 @@ class ChronikMempoolDisconnectPool(BitcoinTestFramework):
         reorg_block1.solve()
 
         reorg_block2 = create_block(
-            reorg_block1.sha256,
+            reorg_block1.hash_int,
             create_coinbase(node.getblockcount() + 2, b"\x03" * 33),
         )
         reorg_block2.hashMerkleRoot = reorg_block2.calc_merkle_root()

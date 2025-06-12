@@ -446,17 +446,17 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         # the first transaction be non-coinbase, etc.  The purpose of b44 is to
         # make sure this works.
         self.log.info("Build block 44 manually")
-        height = self.block_heights[self.tip.sha256] + 1
+        height = self.block_heights[self.tip.hash_int] + 1
         coinbase = create_coinbase(height, self.coinbase_pubkey)
         b44 = CBlock()
         b44.nTime = self.tip.nTime + 1
-        b44.hashPrevBlock = self.tip.sha256
+        b44.hashPrevBlock = self.tip.hash_int
         b44.nBits = 0x207FFFFF
         b44.vtx.append(coinbase)
         b44.hashMerkleRoot = b44.calc_merkle_root()
         b44.solve()
         self.tip = b44
-        self.block_heights[b44.sha256] = height
+        self.block_heights[b44.hash_int] = height
         self.blocks[44] = b44
         self.send_blocks([b44], True)
 
@@ -464,12 +464,12 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         non_coinbase = self.create_tx(out[15], 0, 1)
         b45 = CBlock()
         b45.nTime = self.tip.nTime + 1
-        b45.hashPrevBlock = self.tip.sha256
+        b45.hashPrevBlock = self.tip.hash_int
         b45.nBits = 0x207FFFFF
         b45.vtx.append(non_coinbase)
         b45.hashMerkleRoot = b45.calc_merkle_root()
         b45.solve()
-        self.block_heights[b45.sha256] = self.block_heights[self.tip.sha256] + 1
+        self.block_heights[b45.hash_int] = self.block_heights[self.tip.hash_int] + 1
         self.tip = b45
         self.blocks[45] = b45
         self.send_blocks(
@@ -480,12 +480,12 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         self.move_tip(44)
         b46 = CBlock()
         b46.nTime = b44.nTime + 1
-        b46.hashPrevBlock = b44.sha256
+        b46.hashPrevBlock = b44.hash_int
         b46.nBits = 0x207FFFFF
         b46.vtx = []
         b46.hashMerkleRoot = 0
         b46.solve()
-        self.block_heights[b46.sha256] = self.block_heights[b44.sha256] + 1
+        self.block_heights[b46.hash_int] = self.block_heights[b44.hash_int] + 1
         self.tip = b46
         assert 46 not in self.blocks
         self.blocks[46] = b46
@@ -497,7 +497,7 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         self.move_tip(44)
         b47 = self.next_block(47)
         target = uint256_from_compact(b47.nBits)
-        while b47.sha256 <= target:
+        while b47.hash_int <= target:
             # Rehash nonces until an invalid too-high-hash block is found.
             b47.nNonce += 1
         self.send_blocks(
@@ -955,12 +955,12 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         # add duplicate last transaction
         b71.vtx.append(b72.vtx[-1])
         # b71 builds off b69
-        self.block_heights[b71.sha256] = self.block_heights[b69.sha256] + 1
+        self.block_heights[b71.hash_int] = self.block_heights[b69.hash_int] + 1
         self.blocks[71] = b71
 
         assert_equal(len(b71.vtx), 4)
         assert_equal(len(b72.vtx), 3)
-        assert_equal(b72.sha256, b71.sha256)
+        assert_equal(b72.hash_int, b71.hash_int)
 
         self.move_tip(71)
         self.send_blocks(

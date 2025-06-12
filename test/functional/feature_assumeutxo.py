@@ -342,7 +342,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         )
         fork_block1.solve()
         fork_block2 = create_block(
-            fork_block1.sha256,
+            fork_block1.hash_int,
             create_coinbase(SNAPSHOT_BASE_HEIGHT + 1),
             block_time + 1,
         )

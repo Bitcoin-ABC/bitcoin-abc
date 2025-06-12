@@ -47,7 +47,7 @@ class SyncChainTest(BitcoinTestFramework):
             block = create_block(tip, create_coinbase(height), time)
             block.solve()
             blocks.append(block)
-            tip = block.sha256
+            tip = block.hash_int
             height += 1
             time += 1
 

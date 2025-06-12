@@ -86,7 +86,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
             base_block_hash = self.genesis_hash
             block_time = TEST_TIME
         else:
-            base_block_hash = base_block.sha256
+            base_block_hash = base_block.hash_int
             block_time = base_block.nTime + 1
         # First create the coinbase
         self.tip_height += 1

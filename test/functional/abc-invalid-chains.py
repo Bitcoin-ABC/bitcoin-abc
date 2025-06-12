@@ -25,7 +25,7 @@ class InvalidChainsTest(BitcoinTestFramework):
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:
-            base_block_hash = self.tip.sha256
+            base_block_hash = self.tip.hash_int
             block_time = self.tip.nTime + 1
 
         height = self.block_heights[base_block_hash] + 1
@@ -34,7 +34,7 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         block.solve()
         self.tip = block
-        self.block_heights[block.sha256] = height
+        self.block_heights[block.hash_int] = height
         assert number not in self.blocks
         self.blocks[number] = block
         return block

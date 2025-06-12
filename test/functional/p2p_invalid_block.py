@@ -53,7 +53,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block.solve()
         # Save the coinbase for later
         block1 = block
-        tip = block.sha256
+        tip = block.hash_int
         peer.send_blocks_and_test([block1], node, success=True)
 
         self.log.info("Mature the block.")
@@ -84,13 +84,13 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         )
         block_time += 1
         block2.solve()
-        orig_hash = block2.sha256
+        orig_hash = block2.hash_int
         block2_orig = copy.deepcopy(block2)
 
         # Mutate block 2
         block2.vtx.append(block2.vtx[2])
         assert_equal(block2.hashMerkleRoot, block2.calc_merkle_root())
-        assert_equal(orig_hash, block2.rehash())
+        assert_equal(orig_hash, block2.hash_int)
         assert block2_orig.vtx != block2.vtx
 
         peer.send_blocks_and_test(

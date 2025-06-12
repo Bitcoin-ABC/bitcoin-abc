@@ -45,7 +45,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
         else:
-            base_block_hash = self.tip.sha256
+            base_block_hash = self.tip.hash_int
             block_time = self.tip.nTime + 1
         # First create the coinbase
         height = self.block_heights[base_block_hash] + 1
@@ -99,7 +99,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # Do PoW, which is cheap on regnet
         block.solve()
         self.tip = block
-        self.block_heights[block.sha256] = height
+        self.block_heights[block.hash_int] = height
         assert number not in self.blocks
         self.blocks[number] = block
         return block
@@ -129,13 +129,13 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # update block state
         def update_block(block_number):
             block = self.blocks[block_number]
-            old_sha256 = block.sha256
+            old_sha256 = block.hash_int
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
             # Update the internal state just like in next_block
             self.tip = block
-            if block.sha256 != old_sha256:
-                self.block_heights[block.sha256] = self.block_heights[old_sha256]
+            if block.hash_int != old_sha256:
+                self.block_heights[block.hash_int] = self.block_heights[old_sha256]
                 del self.block_heights[old_sha256]
             self.blocks[block_number] = block
             return block

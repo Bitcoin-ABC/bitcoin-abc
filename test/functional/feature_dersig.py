@@ -118,7 +118,7 @@ class BIP66Test(BitcoinTestFramework):
         block.solve()
 
         peer.send_and_ping(msg_block(block))
-        assert_equal(int(self.nodes[0].getbestblockhash(), 16), block.sha256)
+        assert_equal(int(self.nodes[0].getbestblockhash(), 16), block.hash_int)
 
 
 if __name__ == "__main__":

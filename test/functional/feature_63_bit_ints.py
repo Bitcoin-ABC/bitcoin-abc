@@ -153,20 +153,18 @@ class Script63BitIntsTest(BitcoinTestFramework):
         coinbase_script=None,
         txs=None,
     ) -> CBlock:
-        assert prev_block.sha256 is not None
-
         block_time = prev_block.nTime + 1 if nTime is None else nTime
-        height = self.block_heights.get(prev_block.sha256, 0) + 1
+        height = self.block_heights.get(prev_block.hash_int, 0) + 1
         coinbase = create_coinbase(height)
         coinbase.vout[0].scriptPubKey = coinbase_script or P2SH_OP_TRUE
 
-        block = create_block(prev_block.sha256, coinbase, block_time)
+        block = create_block(prev_block.hash_int, coinbase, block_time)
         if txs:
             block.vtx += txs
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
-        self.block_heights[block.sha256] = height
+        self.block_heights[block.hash_int] = height
         return block
 
 

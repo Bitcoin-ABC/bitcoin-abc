@@ -412,7 +412,7 @@ class BIP68Test(BitcoinTestFramework):
         for i in range(2):
             block = create_block(tmpl=tmpl, ntime=cur_time)
             block.solve()
-            tip = block.sha256
+            tip = block.hash_int
             assert_equal(
                 None if i == 1 else "inconclusive",
                 self.nodes[0].submitblock(ToHex(block)),

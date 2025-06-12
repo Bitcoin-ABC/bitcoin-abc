@@ -479,7 +479,7 @@ class BlockchainTest(BitcoinTestFramework):
         b1 = solve_and_send_block(
             int(fork_hash, 16), fork_height + 1, fork_block["time"] + 1
         )
-        b2 = solve_and_send_block(b1.sha256, fork_height + 1, b1.nTime + 1)
+        b2 = solve_and_send_block(b1.hash_int, fork_height + 1, b1.nTime + 1)
 
         node.invalidateblock(b2.hash)
 

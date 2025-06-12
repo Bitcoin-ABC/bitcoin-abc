@@ -110,7 +110,7 @@ class BIP65Test(BitcoinTestFramework):
         assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 
         self.log.info("Test that blocks must now be at least version 4")
-        tip = block.sha256
+        tip = block.hash_int
         block_time += 1
         block = create_block(tip, create_coinbase(CLTV_HEIGHT), block_time, version=3)
         block.solve()
@@ -164,7 +164,7 @@ class BIP65Test(BitcoinTestFramework):
         tip = block.hash
         block_time += 1
         block = create_block(
-            block.sha256,
+            block.hash_int,
             create_coinbase(CLTV_HEIGHT + 1),
             block_time,
             version=4,

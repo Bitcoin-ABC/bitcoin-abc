@@ -519,13 +519,9 @@ class CBlockHeader:
         return hash256(self._serialize_header())[::-1].hex()
 
     @property
-    def sha256(self) -> int:
+    def hash_int(self) -> int:
         """Return block header hash as integer."""
         return uint256_from_str(hash256(self._serialize_header()))
-
-    # TODO: get rid of this method, replace call-sites by .sha256 access (if return value is used)
-    def rehash(self):
-        return self.sha256
 
     def __repr__(self):
         return (
@@ -572,7 +568,7 @@ class CBlock(CBlockHeader):
 
     def is_valid(self):
         target = uint256_from_compact(self.nBits)
-        if self.sha256 > target:
+        if self.hash_int > target:
             return False
         for tx in self.vtx:
             if not tx.is_valid():
@@ -583,7 +579,7 @@ class CBlock(CBlockHeader):
 
     def solve(self):
         target = uint256_from_compact(self.nBits)
-        while self.sha256 > target:
+        while self.hash_int > target:
             self.nNonce += 1
 
     def __repr__(self):

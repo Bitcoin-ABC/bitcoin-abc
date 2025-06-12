@@ -45,7 +45,7 @@ class WalletPruningTest(BitcoinTestFramework):
             # Submit to the node
             node.submitblock(block.serialize().hex())
 
-            previousblockhash = block.sha256
+            previousblockhash = block.hash_int
             height += 1
 
             # Simulate 10 minutes of work time per block

@@ -118,18 +118,16 @@ class TxVersionTest(BitcoinTestFramework):
         coinbase_version=None,
         txs=None,
     ) -> CBlock:
-        assert prev_block.sha256 is not None
-
         block_time = prev_block.nTime + 1 if nTime is None else nTime
-        height = self.block_heights.get(prev_block.sha256, 0) + 1
+        height = self.block_heights.get(prev_block.hash_int, 0) + 1
         coinbase = create_coinbase(height)
         coinbase.vout[0].scriptPubKey = P2SH_OP_TRUE
         if coinbase_version is not None:
             coinbase.nVersion = coinbase_version
 
-        block = create_block(prev_block.sha256, coinbase, block_time, txlist=txs)
+        block = create_block(prev_block.hash_int, coinbase, block_time, txlist=txs)
         block.solve()
-        self.block_heights[block.sha256] = height
+        self.block_heights[block.hash_int] = height
         return block
 
 

@@ -75,24 +75,24 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         block_height = node.getblockcount()
         blockhash = node.getblockhash(block_height)
         block = FromHex(CBlock(), node.getblock(blockhash, 0))
-        self.block_heights[block.sha256] = block_height
+        self.block_heights[block.hash_int] = block_height
         return block
 
     def build_block(self, parent, transactions=(), nTime=None):
         """Make a new block with an OP_1 coinbase output.
 
         Requires parent to have its height registered."""
-        block_height = self.block_heights[parent.sha256] + 1
+        block_height = self.block_heights[parent.hash_int] + 1
         block_time = (parent.nTime + 1) if nTime is None else nTime
 
         block = create_block(
-            parent.sha256,
+            parent.hash_int,
             create_coinbase(block_height),
             block_time,
             txlist=transactions,
         )
         block.solve()
-        self.block_heights[block.sha256] = block_height
+        self.block_heights[block.hash_int] = block_height
         return block
 
     def check_for_ban_on_rejected_tx(self, tx, reject_reason=None):
