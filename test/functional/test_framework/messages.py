@@ -465,14 +465,12 @@ class CTransaction:
 
 class CBlockHeader:
     __slots__ = (
-        "hash",
         "hashMerkleRoot",
         "hashPrevBlock",
         "nBits",
         "nNonce",
         "nTime",
         "nVersion",
-        "sha256",
     )
 
     def __init__(self, header=None):
@@ -485,8 +483,6 @@ class CBlockHeader:
             self.nTime = header.nTime
             self.nBits = header.nBits
             self.nNonce = header.nNonce
-            self.sha256 = header.sha256
-            self.hash = header.hash
             self.calc_sha256()
 
     def set_null(self):
@@ -496,8 +492,6 @@ class CBlockHeader:
         self.nTime = 0
         self.nBits = 0
         self.nNonce = 0
-        self.sha256 = None
-        self.hash = None
 
     def deserialize(self, f):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
@@ -506,8 +500,6 @@ class CBlockHeader:
         self.nTime = struct.unpack("<I", f.read(4))[0]
         self.nBits = struct.unpack("<I", f.read(4))[0]
         self.nNonce = struct.unpack("<I", f.read(4))[0]
-        self.sha256 = None
-        self.hash = None
 
     def serialize(self) -> bytes:
         return self._serialize_header()
@@ -522,15 +514,22 @@ class CBlockHeader:
             + struct.pack("<I", self.nNonce)
         )
 
-    def calc_sha256(self):
-        if self.sha256 is None:
-            r = self._serialize_header()
-            self.sha256 = uint256_from_str(hash256(r))
-            self.hash = hash256(r)[::-1].hex()
+    @property
+    def hash(self) -> str:
+        """Return block header hash as hex string."""
+        return hash256(self._serialize_header())[::-1].hex()
 
+    @property
+    def sha256(self) -> int:
+        """Return block header hash as integer."""
+        return uint256_from_str(hash256(self._serialize_header()))
+
+    # TODO: get rid of this method, remove call-sites
+    def calc_sha256(self):
+        pass
+
+    # TODO: get rid of this method, replace call-sites by .sha256 access (if return value is used)
     def rehash(self):
-        self.sha256 = None
-        self.calc_sha256()
         return self.sha256
 
     def __repr__(self):
