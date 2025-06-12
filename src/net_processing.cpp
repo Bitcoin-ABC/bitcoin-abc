@@ -7768,7 +7768,6 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     //  (4) checksum
     //  (x) data
     //
-    bool fMoreWork = false;
 
     PeerRef peer = GetPeerRef(pfrom->GetId());
     if (peer == nullptr) {
@@ -7806,21 +7805,14 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         return false;
     }
 
-    std::list<CNetMessage> msgs;
-    {
-        LOCK(pfrom->cs_vProcessMsg);
-        if (pfrom->vProcessMsg.empty()) {
-            return false;
-        }
-        // Just take one message
-        msgs.splice(msgs.begin(), pfrom->vProcessMsg,
-                    pfrom->vProcessMsg.begin());
-        pfrom->nProcessQueueSize -= msgs.front().m_raw_message_size;
-        pfrom->fPauseRecv =
-            pfrom->nProcessQueueSize > m_connman.GetReceiveFloodSize();
-        fMoreWork = !pfrom->vProcessMsg.empty();
+    auto poll_result{pfrom->PollMessage(m_connman.GetReceiveFloodSize())};
+    if (!poll_result) {
+        // No message to process
+        return false;
     }
-    CNetMessage &msg(msgs.front());
+
+    CNetMessage &msg{poll_result->first};
+    bool fMoreWork = poll_result->second;
 
     TRACE6(net, inbound_message, pfrom->GetId(), pfrom->m_addr_name.c_str(),
            pfrom->ConnectionTypeAsString().c_str(), msg.m_type.c_str(),

@@ -77,19 +77,7 @@ void ConnmanTestMsg::NodeReceiveMsgBytes(CNode &node,
                                          bool &complete) const {
     assert(node.ReceiveMsgBytes(*config, msg_bytes, complete));
     if (complete) {
-        size_t nSizeAdded = 0;
-        for (const auto &msg : node.vRecvMsg) {
-            // vRecvMsg contains only completed CNetMessage
-            // the single possible partially deserialized message are held by
-            // TransportDeserializer
-            nSizeAdded += msg.m_raw_message_size;
-        }
-        {
-            LOCK(node.cs_vProcessMsg);
-            node.vProcessMsg.splice(node.vProcessMsg.end(), node.vRecvMsg);
-            node.nProcessQueueSize += nSizeAdded;
-            node.fPauseRecv = node.nProcessQueueSize > nReceiveFloodSize;
-        }
+        node.MarkReceivedMsgsForProcessing(nReceiveFloodSize);
     }
 }
 
