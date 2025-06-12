@@ -222,6 +222,11 @@ impl Mempool {
         Ok(None)
     }
 
+    /// Get all mempool txs
+    pub fn txs(&self) -> &HashMap<TxId, MempoolTx> {
+        &self.txs
+    }
+
     /// Get a tx by [`TxId`], or [`None`], if not found.
     pub fn tx(&self, txid: &TxId) -> Option<&MempoolTx> {
         self.txs.get(txid)

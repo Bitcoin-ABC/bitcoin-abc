@@ -321,6 +321,14 @@ mod ffi_inner {
         /// node mempool in sats/kB
         fn min_relay_feerate_sats_per_kb(self: &ChronikBridge) -> i64;
 
+        /// Return the feerate information for the mempool tx
+        fn get_feerate_info(
+            self: &ChronikBridge,
+            mempool_txid: [u8; 32],
+            modified_fee_rate_sats_per_kb: &mut i64,
+            virtual_size_bytes: &mut u32,
+        ) -> bool;
+
         /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
         fn bridge_tx(
             tx: &CTransaction,

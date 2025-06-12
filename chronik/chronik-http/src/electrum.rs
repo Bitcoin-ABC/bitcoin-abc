@@ -192,10 +192,15 @@ impl ChronikElectrumServer {
 
         let blockchain_endpoint =
             Arc::new(ChronikElectrumRPCBlockchainEndpoint {
-                indexer: self.indexer,
-                node: self.node,
+                indexer: self.indexer.clone(),
+                node: self.node.clone(),
                 max_history: self.max_history,
             });
+
+        let mempool_endpoint = Arc::new(ChronikElectrumRPCMempoolEndpoint {
+            indexer: self.indexer,
+            node: self.node,
+        });
 
         let tls_cert_path = self.tls_cert_path.clone();
         let tls_privkey_path = self.tls_privkey_path.clone();
@@ -204,6 +209,7 @@ impl ChronikElectrumServer {
             self.hosts,
             std::iter::repeat(server_endpoint),
             std::iter::repeat(blockchain_endpoint),
+            std::iter::repeat(mempool_endpoint),
             std::iter::repeat(tls_cert_path),
             std::iter::repeat(tls_privkey_path)
         )
@@ -212,6 +218,7 @@ impl ChronikElectrumServer {
                 (host, protocol),
                 server_endpoint,
                 blockchain_endpoint,
+                mempool_endpoint,
                 tls_cert_path,
                 tls_privkey_path,
             )| {
@@ -285,6 +292,7 @@ impl ChronikElectrumServer {
                     let server = builder
                         .service(server_endpoint)
                         .service(blockchain_endpoint.clone())
+                        .service(mempool_endpoint)
                         .pubsub_service(blockchain_endpoint)
                         .build()
                         .await
@@ -422,6 +430,11 @@ struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
+}
+
+struct ChronikElectrumRPCMempoolEndpoint {
+    indexer: ChronikIndexerRef,
+    node: NodeRef,
 }
 
 fn get_version() -> String {
@@ -2379,5 +2392,75 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 "value": output.sats,
             })),
         }
+    }
+}
+
+#[rpc_impl(name = "mempool")]
+impl ChronikElectrumRPCMempoolEndpoint {
+    async fn get_fee_histogram(
+        &self,
+        params: Value,
+    ) -> Result<Value, RPCError> {
+        check_max_number_of_params!(params, 0);
+
+        let indexer = self.indexer.read().await;
+        let mempool_txs = indexer.mempool().txs();
+
+        let mut feerate_info: Vec<(u64, u64)> =
+            Vec::with_capacity(mempool_txs.len());
+        for txid in mempool_txs.keys() {
+            let mut feerate: i64 = 0;
+            let mut vsize: u32 = 0;
+
+            if self.node.bridge.get_feerate_info(
+                *txid.as_bytes(),
+                &mut feerate,
+                &mut vsize,
+            ) {
+                if feerate < 0 {
+                    // Clamp the feerate lowest bound to 0.
+                    feerate = 0;
+                }
+                // Convert the feerate to sat/B
+                feerate_info.push(((feerate / 1000) as u64, vsize as u64));
+            }
+        }
+
+        if feerate_info.is_empty() {
+            return Ok(json!([]));
+        }
+
+        // Sort by decreasing feerate
+        feerate_info.sort_by(|a: &(u64, u64), b| b.0.cmp(&a.0));
+
+        // Find the lowest power of 2 that is greater than the max fee rate,
+        // with 1 as a minimum.
+        let mut max_feerate =
+            cmp::max(1, feerate_info[0].0.next_power_of_two());
+
+        // Build the intervals from highest fee rate to lowest, by using powers
+        // of 2 down to 1. Initialze with zero as a cumulative vsize.
+        let mut histogram = vec![[max_feerate, 0]];
+        while max_feerate > 1 {
+            max_feerate /= 2;
+            histogram.push([max_feerate, 0]);
+        }
+
+        // Fill up the histogram with txs cumulative vsize
+        let mut histo_index = histogram.len() - 1;
+        for (feerate, vsize) in feerate_info.into_iter().rev() {
+            // Because the vector is sorted and the first interval is guaranteed
+            // greater or equal to the max feerate, the histo_index > 0 check is
+            // actually redundant and only here for good measure.
+            while feerate > histogram[histo_index][0] && histo_index > 0 {
+                histo_index -= 1;
+            }
+            histogram[histo_index][1] += vsize;
+        }
+
+        // Remove the empty intervals
+        histogram.retain(|interval| interval[1] > 0);
+
+        Ok(json!(histogram))
     }
 }

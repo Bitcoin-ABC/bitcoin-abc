@@ -102,6 +102,10 @@ public:
     int64_t estimate_feerate_sats_per_kb() const;
 
     int64_t min_relay_feerate_sats_per_kb() const;
+
+    bool get_feerate_info(std::array<uint8_t, 32> mempool_txid,
+                          int64_t &modified_fee_rate_sats_per_kb,
+                          uint32_t &virtual_size_bytes) const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);

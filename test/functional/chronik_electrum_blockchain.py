@@ -87,6 +87,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_relay_fee()
         self.test_transaction_subscribe()
         self.test_utxo_get_info()
+        self.test_mempool_get_fee_histogram()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -1806,6 +1807,11 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             42,
         )
 
+        # Restart to restore the default min relay fee
+        self.restart_node(0)
+        self.client = self.node.get_chronik_electrum_client(name="client")
+        self.wallet.rescan_utxos()
+
     def test_transaction_subscribe(self):
         self.log.info(
             "Test the blockchain.transaction.subscribe and unsubscribe endpoints"
@@ -2019,6 +2025,77 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     "value": int(utxo["value"] * XEC),
                 },
             )
+
+    def test_mempool_get_fee_histogram(self):
+        self.log.info("Test the mempool.get_fee_histogram endpoint")
+
+        # This endpoint takes no parameters
+        assert_equal(
+            self.client.mempool.get_fee_histogram(42).error,
+            {
+                "code": -32602,
+                "message": "Expected at most 0 parameters",
+            },
+        )
+
+        self.generate(self.wallet, 1)
+        assert_equal(len(self.node.getrawmempool()), 0)
+
+        # No mempool tx
+        assert_equal(
+            self.client.mempool.get_fee_histogram().result,
+            [],
+        )
+
+        self.generate(self.wallet, 15)
+        assert_equal(len(self.node.getrawmempool()), 0)
+
+        # Create a bunch of transactions with various feerates, all sized 100
+        # bytes. Since there is no sigcheck the vsize is 100 for each.
+        txs = []
+        for i in range(5):
+            for _ in range(3):
+                # fee_rate is in XEC/kB
+                tx = self.wallet.send_self_transfer(
+                    from_node=self.node, fee_rate=10 * (i + 1), target_size=100
+                )
+                assert tx["txid"] in self.node.getrawmempool()
+                txs.append(tx)
+
+        assert_equal(
+            self.client.mempool.get_fee_histogram().result,
+            [
+                [8, 300],  # 3 txs in the range (4..8] sat/vB
+                [4, 600],  # 6 txs in the range (2..4] sat/vB
+                [2, 300],  # 3 txs in the range (1..2] sat/vB
+                [1, 300],  # 3 txs in the range [0..1] sat/vB
+            ],
+        )
+
+        self.generate(self.wallet, 15)
+        assert_equal(len(self.node.getrawmempool()), 0)
+
+        # One more time but with a hole in the intervals
+        txs.clear()
+        for i in range(5):
+            for _ in range(3):
+                # fee_rate is in XEC/kB
+                tx = self.wallet.send_self_transfer(
+                    from_node=self.node, fee_rate=10 * (3 * i + 1), target_size=100
+                )
+                assert tx["txid"] in self.node.getrawmempool()
+                txs.append(tx)
+
+        assert_equal(
+            self.client.mempool.get_fee_histogram().result,
+            [
+                [16, 600],  # 6 txs in the range (8..16] sat/vB
+                [8, 300],  # 3 txs in the range (4..8] sat/vB
+                [4, 300],  # 3 txs in the range (1..4] sat/vB
+                # [2, 0], no txs in the range (1..2] sat/vB, the interval is skipped
+                [1, 300],  # 3 txs in the range [0..1] sat/vB
+            ],
+        )
 
 
 if __name__ == "__main__":

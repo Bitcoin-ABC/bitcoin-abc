@@ -419,6 +419,27 @@ int64_t ChronikBridge::min_relay_feerate_sats_per_kb() const {
     return m_node.mempool->m_min_relay_feerate.GetFeePerK() / Amount::satoshi();
 }
 
+bool ChronikBridge::get_feerate_info(std::array<uint8_t, 32> mempool_txid,
+                                     int64_t &modified_fee_rate_sats_per_kb,
+                                     uint32_t &virtual_size_bytes) const {
+    TxId txid{chronik::util::ArrayToHash(mempool_txid)};
+
+    if (!m_node.mempool) {
+        return false;
+    }
+
+    auto iter = m_node.mempool->GetIter(txid);
+    if (!iter) {
+        return false;
+    }
+
+    modified_fee_rate_sats_per_kb =
+        (**iter)->GetModifiedFeeRate().GetFeePerK() / Amount::satoshi();
+    virtual_size_bytes = (**iter)->GetTxVirtualSize();
+
+    return true;
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }

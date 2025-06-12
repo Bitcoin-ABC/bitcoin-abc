@@ -1095,6 +1095,11 @@ impl ChronikIndexer {
         let block = ffi::bridge_block(ffi_block, ffi_block_undo, block_index)?;
         Ok(self.make_chronik_block(block))
     }
+
+    /// Mempool, behind read/write lock
+    pub fn mempool(&self) -> &Mempool {
+        &self.mempool
+    }
 }
 
 fn verify_schema_version(db: &Db) -> Result<u64> {
