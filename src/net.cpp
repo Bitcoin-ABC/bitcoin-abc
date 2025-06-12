@@ -2982,11 +2982,8 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
       addrBind(addrBindIn),
       m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
       m_inbound_onion(inbound_onion), m_prefer_evict{node_opts.prefer_evict},
-      nKeyedNetGroup(nKeyedNetGroupIn),
-      // Don't relay addr messages to peers that we connect to as
-      // block-relay-only peers (to prevent adversaries from inferring these
-      // links from addr traffic).
-      id(idIn), nLocalHostNonce(nLocalHostNonceIn),
+      nKeyedNetGroup(nKeyedNetGroupIn), id(idIn),
+      nLocalHostNonce(nLocalHostNonceIn),
       nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in) {
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
