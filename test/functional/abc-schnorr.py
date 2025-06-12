@@ -78,7 +78,6 @@ class SchnorrTest(BitcoinTestFramework):
         block_height = node.getblockcount()
         blockhash = node.getblockhash(block_height)
         block = FromHex(CBlock(), node.getblock(blockhash, 0))
-        block.calc_sha256()
         self.block_heights[block.sha256] = block_height
         return block
 
@@ -86,7 +85,6 @@ class SchnorrTest(BitcoinTestFramework):
         """Make a new block with an OP_1 coinbase output.
 
         Requires parent to have its height registered."""
-        parent.calc_sha256()
         block_height = self.block_heights[parent.sha256] + 1
         block_time = (parent.nTime + 1) if nTime is None else nTime
 

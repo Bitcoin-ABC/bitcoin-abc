@@ -483,7 +483,6 @@ class CBlockHeader:
             self.nTime = header.nTime
             self.nBits = header.nBits
             self.nNonce = header.nNonce
-            self.calc_sha256()
 
     def set_null(self):
         self.nVersion = 1
@@ -523,10 +522,6 @@ class CBlockHeader:
     def sha256(self) -> int:
         """Return block header hash as integer."""
         return uint256_from_str(hash256(self._serialize_header()))
-
-    # TODO: get rid of this method, remove call-sites
-    def calc_sha256(self):
-        pass
 
     # TODO: get rid of this method, replace call-sites by .sha256 access (if return value is used)
     def rehash(self):
@@ -576,7 +571,6 @@ class CBlock(CBlockHeader):
         return self.get_merkle_root(hashes)
 
     def is_valid(self):
-        self.calc_sha256()
         target = uint256_from_compact(self.nBits)
         if self.sha256 > target:
             return False
@@ -588,11 +582,9 @@ class CBlock(CBlockHeader):
         return True
 
     def solve(self):
-        self.rehash()
         target = uint256_from_compact(self.nBits)
         while self.sha256 > target:
             self.nNonce += 1
-            self.rehash()
 
     def __repr__(self):
         return (

@@ -147,7 +147,6 @@ class BaseNode(P2PInterface):
         if len(message.headers):
             self.block_announced = True
             for x in message.headers:
-                x.calc_sha256()
                 # append because headers may be announced over multiple
                 # messages.
                 self.recent_headers_announced.append(x.sha256)

@@ -118,8 +118,6 @@ class TxVersionTest(BitcoinTestFramework):
         coinbase_version=None,
         txs=None,
     ) -> CBlock:
-        if prev_block.sha256 is None:
-            prev_block.rehash()
         assert prev_block.sha256 is not None
 
         block_time = prev_block.nTime + 1 if nTime is None else nTime

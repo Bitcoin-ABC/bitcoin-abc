@@ -58,15 +58,12 @@ class TestP2PConn(P2PInterface):
 
     def on_cmpctblock(self, message):
         self.last_cmpctblock = message
-        self.last_cmpctblock.header_and_shortids.header.calc_sha256()
 
     def on_getheaders(self, message):
         self.last_getheaders = message
 
     def on_headers(self, message):
         self.last_headers = message
-        for x in self.last_headers.headers:
-            x.calc_sha256()
 
     def clear_block_data(self):
         with p2p_lock:
@@ -284,7 +281,6 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Was it our block ?
         cmpctblk_header = test_p2p.last_cmpctblock.header_and_shortids.header
-        cmpctblk_header.calc_sha256()
         assert cmpctblk_header.sha256 == b1.sha256
 
         # Send a large block with numerous transactions.
@@ -302,7 +298,6 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Was it our block ?
         cmpctblk_header = test_p2p.last_cmpctblock.header_and_shortids.header
-        cmpctblk_header.calc_sha256()
         assert cmpctblk_header.sha256 == b2.sha256
 
         # In order to avoid having to resend a ton of transactions, we invalidate
