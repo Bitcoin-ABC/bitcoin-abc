@@ -510,6 +510,9 @@ class CBlockHeader:
         self.hash = None
 
     def serialize(self) -> bytes:
+        return self._serialize_header()
+
+    def _serialize_header(self) -> bytes:
         return (
             struct.pack("<i", self.nVersion)
             + ser_uint256(self.hashPrevBlock)
@@ -521,14 +524,7 @@ class CBlockHeader:
 
     def calc_sha256(self):
         if self.sha256 is None:
-            r = (
-                struct.pack("<i", self.nVersion)
-                + ser_uint256(self.hashPrevBlock)
-                + ser_uint256(self.hashMerkleRoot)
-                + struct.pack("<I", self.nTime)
-                + struct.pack("<I", self.nBits)
-                + struct.pack("<I", self.nNonce)
-            )
+            r = self._serialize_header()
             self.sha256 = uint256_from_str(hash256(r))
             self.hash = hash256(r)[::-1].hex()
 
