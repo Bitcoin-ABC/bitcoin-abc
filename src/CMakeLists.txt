@@ -669,8 +669,10 @@ add_library(server
 	node/coin.cpp
 	node/coinstats.cpp
 	node/coins_view_args.cpp
+	node/connection_types.cpp
 	node/context.cpp
 	node/database_args.cpp
+	node/eviction.cpp
 	node/interfaces.cpp
 	node/kernel_notifications.cpp
 	node/mempool_persist_args.cpp
@@ -973,13 +975,15 @@ if(BUILD_CHAINSTATE)
 		cashaddr.cpp         # via cashaddrenc.cpp
 		cashaddrenc.cpp      # via key_io.cpp
 		dnsseeds.cpp         # via net.cpp (GetRandomizedDNSSeeds)
-		i2p.cpp              # via net.cppTx
+		i2p.cpp              # via net.cpp
 		key_io.cpp           # avalanche/processor.cpp uses DecodeSecret
 		minerfund.cpp        # via policy/block/minerfund.cpp
 		net.cpp              # avalanche uses CConnman
 		netaddress.cpp       # via net.cpp
 		netbase.cpp          # via net.cpp
 		net_permissions.cpp  # via net.cpp
+		node/eviction.cpp    # via net.cpp
+		node/connection_types.cpp  # via net.cpp
 		policy/block/minerfund.cpp
 		policy/block/preconsensus.cpp
 		policy/block/rtt.cpp

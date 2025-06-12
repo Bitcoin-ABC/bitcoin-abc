@@ -9,6 +9,7 @@
 #include <net.h>
 #include <net_processing.h>
 #include <netmessagemaker.h>
+#include <node/eviction.h>
 #include <span.h>
 
 #include <vector>
