@@ -1245,22 +1245,23 @@ bool CConnman::AttemptToEvictConnection() {
             }
 
             NodeEvictionCandidate candidate = {
-                node->GetId(),
-                node->m_connected,
-                node->m_min_ping_time,
-                node->m_last_block_time,
-                node->m_last_proof_time,
-                node->m_last_tx_time,
-                node->m_has_all_wanted_services,
-                node->m_relays_txs.load(),
-                node->m_bloom_filter_loaded.load(),
-                node->nKeyedNetGroup,
-                node->m_prefer_evict,
-                node->addr.IsLocal(),
-                node->ConnectedThroughNetwork(),
-                node->m_avalanche_enabled
-                    ? node->getAvailabilityScore()
-                    : -std::numeric_limits<double>::infinity()};
+                .id = node->GetId(),
+                .m_connected = node->m_connected,
+                .m_min_ping_time = node->m_min_ping_time,
+                .m_last_block_time = node->m_last_block_time,
+                .m_last_proof_time = node->m_last_proof_time,
+                .m_last_tx_time = node->m_last_tx_time,
+                .fRelevantServices = node->m_has_all_wanted_services,
+                .m_relay_txs = node->m_relays_txs.load(),
+                .fBloomFilter = node->m_bloom_filter_loaded.load(),
+                .nKeyedNetGroup = node->nKeyedNetGroup,
+                .prefer_evict = node->m_prefer_evict,
+                .m_is_local = node->addr.IsLocal(),
+                .m_network = node->ConnectedThroughNetwork(),
+                .availabilityScore =
+                    node->m_avalanche_enabled
+                        ? node->getAvailabilityScore()
+                        : -std::numeric_limits<double>::infinity()};
             vEvictionCandidates.push_back(candidate);
         }
     }
