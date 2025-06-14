@@ -62,7 +62,7 @@ FUZZ_TARGET_INIT(process_messages, initialize_process_messages) {
     while (fuzzed_data_provider.ConsumeBool()) {
         const std::string random_message_type{
             fuzzed_data_provider
-                .ConsumeBytesAsString(CMessageHeader::COMMAND_SIZE)
+                .ConsumeBytesAsString(CMessageHeader::MESSAGE_TYPE_SIZE)
                 .c_str()};
 
         CSerializedNetMsg net_msg;

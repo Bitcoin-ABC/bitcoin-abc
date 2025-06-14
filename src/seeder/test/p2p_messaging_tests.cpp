@@ -107,12 +107,12 @@ BOOST_FIXTURE_TEST_CASE(process_verack_msg, MainNetSeederTestingSetup) {
     CDataStream sendBuffer = testNode->getSendBuffer();
     sendBuffer >> header;
     BOOST_CHECK(header.IsValidWithoutConfig(netMagic));
-    BOOST_CHECK_EQUAL(header.GetCommand(), NetMsgType::GETADDR);
+    BOOST_CHECK_EQUAL(header.GetMessageType(), NetMsgType::GETADDR);
 
     // Next message should be GETHEADERS
     sendBuffer >> header;
     BOOST_CHECK(header.IsValidWithoutConfig(netMagic));
-    BOOST_CHECK_EQUAL(header.GetCommand(), NetMsgType::GETHEADERS);
+    BOOST_CHECK_EQUAL(header.GetMessageType(), NetMsgType::GETHEADERS);
 
     CBlockLocator locator;
     uint256 hashStop;

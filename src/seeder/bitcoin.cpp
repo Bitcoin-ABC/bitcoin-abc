@@ -213,7 +213,7 @@ bool CSeederNode::ProcessMessages() {
             ban = 100000;
             return true;
         }
-        std::string strCommand = hdr.GetCommand();
+        std::string strCommand = hdr.GetMessageType();
         unsigned int nMessageSize = hdr.nMessageSize;
         if (nMessageSize > MAX_SIZE) {
             // tfm::format(std::cout, "%s: BAD (message too large)\n",

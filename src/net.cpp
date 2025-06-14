@@ -784,7 +784,7 @@ V1TransportDeserializer::GetMessage(const Config &config,
     uint256 hash = GetMessageHash();
 
     // store message type string, payload size
-    msg.m_type = hdr.GetCommand();
+    msg.m_type = hdr.GetMessageType();
     msg.m_message_size = hdr.nMessageSize;
     msg.m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
 
@@ -3170,7 +3170,8 @@ void CaptureMessageToFile(const CAddress &addr, const std::string &msg_type,
 
     ser_writedata64(f, now.count());
     f.write(MakeByteSpan(msg_type));
-    for (auto i = msg_type.length(); i < CMessageHeader::COMMAND_SIZE; ++i) {
+    for (auto i = msg_type.length(); i < CMessageHeader::MESSAGE_TYPE_SIZE;
+         ++i) {
         f << uint8_t{'\0'};
     }
     uint32_t size = data.size();

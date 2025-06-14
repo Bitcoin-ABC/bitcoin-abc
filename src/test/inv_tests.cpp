@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(validate_kind) {
 
 static void CheckCommand(int type, std::string expected) {
     CInv inv(type, uint256());
-    BOOST_CHECK_EQUAL(inv.GetCommand(), expected);
+    BOOST_CHECK_EQUAL(inv.GetMessageType(), expected);
 }
 
 /* Validate various inv facilities. */

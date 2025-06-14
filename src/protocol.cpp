@@ -91,35 +91,36 @@ static const std::vector<std::string>
 CMessageHeader::CMessageHeader(const MessageMagic &pchMessageStartIn) {
     memcpy(std::begin(pchMessageStart), std::begin(pchMessageStartIn),
            MESSAGE_START_SIZE);
-    memset(pchCommand.data(), 0, sizeof(pchCommand));
+    memset(m_msg_type.data(), 0, sizeof(m_msg_type));
     nMessageSize = -1;
     memset(pchChecksum, 0, CHECKSUM_SIZE);
 }
 
 CMessageHeader::CMessageHeader(const MessageMagic &pchMessageStartIn,
-                               const char *pszCommand,
+                               const char *msg_type,
                                unsigned int nMessageSizeIn) {
     memcpy(std::begin(pchMessageStart), std::begin(pchMessageStartIn),
            MESSAGE_START_SIZE);
-    // Copy the command name, zero-padding to COMMAND_SIZE bytes
+    // Copy the message type name, zero-padding to MESSAGE_TYPE_SIZE bytes
     size_t i = 0;
-    for (; i < pchCommand.size() && pszCommand[i] != 0; ++i) {
-        pchCommand[i] = pszCommand[i];
+    for (; i < m_msg_type.size() && msg_type[i] != 0; ++i) {
+        m_msg_type[i] = msg_type[i];
     }
-    // Assert that the command name passed in is not longer than COMMAND_SIZE
-    assert(pszCommand[i] == 0);
-    for (; i < pchCommand.size(); ++i) {
-        pchCommand[i] = 0;
+    // Assert that the message type name passed in is not longer than
+    // MESSAGE_TYPE_SIZE
+    assert(msg_type[i] == 0);
+    for (; i < m_msg_type.size(); ++i) {
+        m_msg_type[i] = 0;
     }
 
     nMessageSize = nMessageSizeIn;
     memset(pchChecksum, 0, CHECKSUM_SIZE);
 }
 
-std::string CMessageHeader::GetCommand() const {
-    return std::string(pchCommand.data(),
-                       pchCommand.data() +
-                           strnlen(pchCommand.data(), COMMAND_SIZE));
+std::string CMessageHeader::GetMessageType() const {
+    return std::string(m_msg_type.data(),
+                       m_msg_type.data() +
+                           strnlen(m_msg_type.data(), MESSAGE_TYPE_SIZE));
 }
 
 static bool
@@ -131,12 +132,14 @@ CheckHeaderMagicAndCommand(const CMessageHeader &header,
         return false;
     }
 
-    // Check the command string for errors
-    for (const char *p1 = header.pchCommand.data();
-         p1 < header.pchCommand.data() + CMessageHeader::COMMAND_SIZE; p1++) {
+    // Check the message type string for errors
+    for (const char *p1 = header.m_msg_type.data();
+         p1 < header.m_msg_type.data() + CMessageHeader::MESSAGE_TYPE_SIZE;
+         p1++) {
         if (*p1 == 0) {
             // Must be all zeros after the first zero
-            for (; p1 < header.pchCommand.data() + CMessageHeader::COMMAND_SIZE;
+            for (; p1 <
+                   header.m_msg_type.data() + CMessageHeader::MESSAGE_TYPE_SIZE;
                  p1++) {
                 if (*p1 != 0) {
                     return false;
@@ -160,7 +163,7 @@ bool CMessageHeader::IsValid(const Config &config) const {
     // Message size
     if (IsOversized(config)) {
         LogPrintf("CMessageHeader::IsValid(): (%s, %u bytes) is oversized\n",
-                  GetCommand(), nMessageSize);
+                  GetMessageType(), nMessageSize);
         return false;
     }
 
@@ -184,7 +187,7 @@ bool CMessageHeader::IsValidWithoutConfig(const MessageMagic &magic) const {
     if (nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
         LogPrintf(
             "CMessageHeader::IsValidForSeeder(): (%s, %u bytes) is oversized\n",
-            GetCommand(), nMessageSize);
+            GetMessageType(), nMessageSize);
         return false;
     }
 
@@ -194,7 +197,7 @@ bool CMessageHeader::IsValidWithoutConfig(const MessageMagic &magic) const {
 bool CMessageHeader::IsOversized(const Config &config) const {
     // Scale the maximum accepted size with the block size for messages with
     // block content
-    if (NetMsgType::IsBlockLike(GetCommand())) {
+    if (NetMsgType::IsBlockLike(GetMessageType())) {
         return nMessageSize > 2 * config.GetMaxBlockSize();
     }
 
@@ -213,7 +216,7 @@ void SetServiceFlagsIBDCache(bool state) {
     g_initial_block_download_completed = state;
 }
 
-std::string CInv::GetCommand() const {
+std::string CInv::GetMessageType() const {
     std::string cmd;
     switch (GetKind()) {
         case MSG_TX:
@@ -231,14 +234,14 @@ std::string CInv::GetCommand() const {
             // contender-specific message, so we hard code the name here.
             return cmd.append("stakecontender");
         default:
-            throw std::out_of_range(
-                strprintf("CInv::GetCommand(): type=%d unknown type", type));
+            throw std::out_of_range(strprintf(
+                "CInv::GetMessageType(): type=%d unknown type", type));
     }
 }
 
 std::string CInv::ToString() const {
     try {
-        return strprintf("%s %s", GetCommand(), hash.ToString());
+        return strprintf("%s %s", GetMessageType(), hash.ToString());
     } catch (const std::out_of_range &) {
         return strprintf("0x%08x %s", type, hash.ToString());
     }

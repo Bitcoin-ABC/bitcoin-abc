@@ -27,47 +27,48 @@ static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 2 * 1024 * 1024;
 /**
  * Message header.
  * (4) message start.
- * (12) command.
+ * (12) message type.
  * (4) size.
  * (4) checksum.
  */
 class CMessageHeader {
 public:
     static constexpr size_t MESSAGE_START_SIZE = 4;
-    static constexpr size_t COMMAND_SIZE = 12;
+    static constexpr size_t MESSAGE_TYPE_SIZE = 12;
     static constexpr size_t MESSAGE_SIZE_SIZE = 4;
     static constexpr size_t CHECKSUM_SIZE = 4;
     static constexpr size_t MESSAGE_SIZE_OFFSET =
-        MESSAGE_START_SIZE + COMMAND_SIZE;
+        MESSAGE_START_SIZE + MESSAGE_TYPE_SIZE;
     static constexpr size_t CHECKSUM_OFFSET =
         MESSAGE_SIZE_OFFSET + MESSAGE_SIZE_SIZE;
-    static constexpr size_t HEADER_SIZE =
-        MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE + CHECKSUM_SIZE;
+    static constexpr size_t HEADER_SIZE = MESSAGE_START_SIZE +
+                                          MESSAGE_TYPE_SIZE +
+                                          MESSAGE_SIZE_SIZE + CHECKSUM_SIZE;
     typedef std::array<uint8_t, MESSAGE_START_SIZE> MessageMagic;
 
     explicit CMessageHeader(const MessageMagic &pchMessageStartIn);
 
     /**
-     * Construct a P2P message header from message-start characters, a command
-     * and the size of the message.
-     * @note Passing in a `pszCommand` longer than COMMAND_SIZE will result in a
-     * run-time assertion error.
+     * Construct a P2P message header from message-start characters, a message
+     * type and the size of the message.
+     * @note Passing in a `msg_type` longer than MESSAGE_TYPE_SIZE will result
+     * in a run-time assertion error.
      */
-    CMessageHeader(const MessageMagic &pchMessageStartIn,
-                   const char *pszCommand, unsigned int nMessageSizeIn);
+    CMessageHeader(const MessageMagic &pchMessageStartIn, const char *msg_type,
+                   unsigned int nMessageSizeIn);
 
-    std::string GetCommand() const;
+    std::string GetMessageType() const;
     bool IsValid(const Config &config) const;
     bool IsValidWithoutConfig(const MessageMagic &magic) const;
     bool IsOversized(const Config &config) const;
 
     SERIALIZE_METHODS(CMessageHeader, obj) {
-        READWRITE(obj.pchMessageStart, obj.pchCommand, obj.nMessageSize,
+        READWRITE(obj.pchMessageStart, obj.m_msg_type, obj.nMessageSize,
                   obj.pchChecksum);
     }
 
     MessageMagic pchMessageStart;
-    std::array<char, COMMAND_SIZE> pchCommand;
+    std::array<char, MESSAGE_TYPE_SIZE> m_msg_type;
     uint32_t nMessageSize;
     uint8_t pchChecksum[CHECKSUM_SIZE];
 };
@@ -592,7 +593,7 @@ public:
         return a.type < b.type || (a.type == b.type && a.hash < b.hash);
     }
 
-    std::string GetCommand() const;
+    std::string GetMessageType() const;
     std::string ToString() const;
 
     uint32_t GetKind() const { return type & MSG_TYPE_MASK; }

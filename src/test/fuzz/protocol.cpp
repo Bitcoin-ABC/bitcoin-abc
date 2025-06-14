@@ -21,7 +21,7 @@ FUZZ_TARGET(protocol) {
         return;
     }
     try {
-        (void)inv->GetCommand();
+        (void)inv->GetMessageType();
     } catch (const std::out_of_range &) {
     }
     (void)inv->GetKind();

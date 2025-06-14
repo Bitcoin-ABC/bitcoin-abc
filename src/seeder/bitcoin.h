@@ -54,7 +54,7 @@ private:
 
     std::chrono::seconds GetTimeout() { return you.IsTor() ? 120s : 30s; }
 
-    void BeginMessage(const char *pszCommand);
+    void BeginMessage(const char *msg_type);
 
     void AbortMessage();
 
