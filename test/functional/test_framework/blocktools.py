@@ -295,10 +295,14 @@ class BlockTestMixin:
         block_number: Union[int, str],
         new_transactions: list[CTransaction],
         reorder=True,
+        *,
+        nTime: Optional[int] = None,
     ) -> CBlock:
         block = self.blocks[block_number]
         block.vtx.extend(new_transactions)
         old_sha256 = block.sha256
+        if nTime is not None:
+            block.nTime = nTime
         if reorder:
             make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()

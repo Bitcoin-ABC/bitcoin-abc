@@ -187,9 +187,10 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework, BlockTestMixin):
         txfund3, tx_post1 = create_fund_and_post_fork_only_tx(out[3])
 
         # Create blocks to activate the fork. Mine all funding transactions.
-        bfork = block(5555)
-        bfork.nTime = ACTIVATION_TIME - 1
-        self.update_block(5555, [txfund0, txfund1, txfund2, txfund3])
+        block(5555)
+        self.update_block(
+            5555, [txfund0, txfund1, txfund2, txfund3], nTime=ACTIVATION_TIME - 1
+        )
         peer.send_blocks_and_test([self.tip], node)
 
         for i in range(5):

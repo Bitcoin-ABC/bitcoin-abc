@@ -568,8 +568,7 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         # valid timestamp
         self.move_tip(53)
         b55 = self.next_block(55, spend=out[15])
-        b55.nTime = b35.nTime
-        self.update_block(55, [])
+        self.update_block(55, [], nTime=b35.nTime)
         self.send_blocks([b55], True)
         self.save_spendable_output()
 

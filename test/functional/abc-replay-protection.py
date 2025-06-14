@@ -153,9 +153,8 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
         self.move_tip(1)
 
         # Create a block that would activate the replay protection.
-        bfork = block(5555)
-        bfork.nTime = REPLAY_PROTECTION_START_TIME - 1
-        self.update_block(5555, [])
+        block(5555)
+        self.update_block(5555, [], nTime=REPLAY_PROTECTION_START_TIME - 1)
         peer.send_blocks_and_test([self.tip], node)
 
         activation_blocks = []
