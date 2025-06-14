@@ -110,7 +110,7 @@ enum BindFlags {
 // The sleep time needs to be small to avoid new sockets stalling
 static const uint64_t SELECT_TIMEOUT_MILLISECONDS = 50;
 
-const std::string NET_MESSAGE_COMMAND_OTHER = "*other*";
+const std::string NET_MESSAGE_TYPE_OTHER = "*other*";
 
 // SHA256("netgroup")[0:8]
 static const uint64_t RANDOMIZER_ID_NETGROUP = 0x6c0edd8036ef4036ULL;
@@ -645,12 +645,12 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_bip152_highbandwidth_from = m_bip152_highbandwidth_from;
     {
         LOCK(cs_vSend);
-        stats.mapSendBytesPerMsgCmd = mapSendBytesPerMsgCmd;
+        stats.mapSendBytesPerMsgType = mapSendBytesPerMsgType;
         stats.nSendBytes = nSendBytes;
     }
     {
         LOCK(cs_vRecv);
-        stats.mapRecvBytesPerMsgCmd = mapRecvBytesPerMsgCmd;
+        stats.mapRecvBytesPerMsgType = mapRecvBytesPerMsgType;
         stats.nRecvBytes = nRecvBytes;
     }
     stats.m_permission_flags = m_permission_flags;
@@ -690,12 +690,13 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
 
             // Store received bytes per message command to prevent a memory DOS,
             // only allow valid commands.
-            mapMsgCmdSize::iterator i = mapRecvBytesPerMsgCmd.find(msg.m_type);
-            if (i == mapRecvBytesPerMsgCmd.end()) {
-                i = mapRecvBytesPerMsgCmd.find(NET_MESSAGE_COMMAND_OTHER);
+            mapMsgTypeSize::iterator i =
+                mapRecvBytesPerMsgType.find(msg.m_type);
+            if (i == mapRecvBytesPerMsgType.end()) {
+                i = mapRecvBytesPerMsgType.find(NET_MESSAGE_TYPE_OTHER);
             }
 
-            assert(i != mapRecvBytesPerMsgCmd.end());
+            assert(i != mapRecvBytesPerMsgType.end());
             i->second += msg.m_raw_message_size;
 
             // push the message to the process queue,
@@ -2981,9 +2982,9 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
     }
 
     for (const std::string &msg : getAllNetMessageTypes()) {
-        mapRecvBytesPerMsgCmd[msg] = 0;
+        mapRecvBytesPerMsgType[msg] = 0;
     }
-    mapRecvBytesPerMsgCmd[NET_MESSAGE_COMMAND_OTHER] = 0;
+    mapRecvBytesPerMsgType[NET_MESSAGE_TYPE_OTHER] = 0;
 
     if (fLogIPs) {
         LogPrint(BCLog::NET, "Added connection to %s peer=%d\n", m_addr_name,

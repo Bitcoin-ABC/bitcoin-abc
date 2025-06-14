@@ -201,9 +201,9 @@ extern GlobalMutex g_maplocalhost_mutex;
 extern std::map<CNetAddr, LocalServiceInfo>
     mapLocalHost GUARDED_BY(g_maplocalhost_mutex);
 
-extern const std::string NET_MESSAGE_COMMAND_OTHER;
+extern const std::string NET_MESSAGE_TYPE_OTHER;
 // Command, total bytes
-typedef std::map<std::string, uint64_t> mapMsgCmdSize;
+typedef std::map<std::string, uint64_t> mapMsgTypeSize;
 
 /**
  * POD that contains various stats about a node.
@@ -229,9 +229,9 @@ struct CNodeStats {
     bool m_bip152_highbandwidth_from;
     int m_starting_height;
     uint64_t nSendBytes;
-    mapMsgCmdSize mapSendBytesPerMsgCmd;
+    mapMsgTypeSize mapSendBytesPerMsgType;
     uint64_t nRecvBytes;
-    mapMsgCmdSize mapRecvBytesPerMsgCmd;
+    mapMsgTypeSize mapRecvBytesPerMsgType;
     NetPermissionFlags m_permission_flags;
     std::chrono::microseconds m_last_ping_time;
     std::chrono::microseconds m_min_ping_time;
@@ -485,7 +485,7 @@ public:
      */
     void AccountForSentBytes(const std::string &msg_type, size_t sent_bytes)
         EXCLUSIVE_LOCKS_REQUIRED(cs_vSend) {
-        mapSendBytesPerMsgCmd[msg_type] += sent_bytes;
+        mapSendBytesPerMsgType[msg_type] += sent_bytes;
     }
 
     bool IsOutboundOrBlockRelayConn() const {
@@ -763,8 +763,8 @@ private:
     /** The last computed score */
     std::atomic<double> availabilityScore{0.};
 
-    mapMsgCmdSize mapSendBytesPerMsgCmd GUARDED_BY(cs_vSend);
-    mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
+    mapMsgTypeSize mapSendBytesPerMsgType GUARDED_BY(cs_vSend);
+    mapMsgTypeSize mapRecvBytesPerMsgType GUARDED_BY(cs_vRecv);
 };
 
 /**

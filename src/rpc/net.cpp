@@ -206,7 +206,7 @@ static RPCHelpMan getpeerinfo() {
                        "Only known message types can appear as keys in the "
                        "object and all bytes received\n"
                        "of unknown message types are listed under '" +
-                           NET_MESSAGE_COMMAND_OTHER + "'."}}},
+                           NET_MESSAGE_TYPE_OTHER + "'."}}},
                     {RPCResult::Type::NUM, "availability_score",
                      "DEPRECATED: Avalanche availability score of this node "
                      "(if any). Only present if the "
@@ -309,21 +309,21 @@ static RPCHelpMan getpeerinfo() {
                 }
                 obj.pushKV("permissions", permissions);
 
-                UniValue sendPerMsgCmd(UniValue::VOBJ);
-                for (const auto &i : stats.mapSendBytesPerMsgCmd) {
+                UniValue sendPerMsgType(UniValue::VOBJ);
+                for (const auto &i : stats.mapSendBytesPerMsgType) {
                     if (i.second > 0) {
-                        sendPerMsgCmd.pushKV(i.first, i.second);
+                        sendPerMsgType.pushKV(i.first, i.second);
                     }
                 }
-                obj.pushKV("bytessent_per_msg", sendPerMsgCmd);
+                obj.pushKV("bytessent_per_msg", sendPerMsgType);
 
-                UniValue recvPerMsgCmd(UniValue::VOBJ);
-                for (const auto &i : stats.mapRecvBytesPerMsgCmd) {
+                UniValue recvPerMsgType(UniValue::VOBJ);
+                for (const auto &i : stats.mapRecvBytesPerMsgType) {
                     if (i.second > 0) {
-                        recvPerMsgCmd.pushKV(i.first, i.second);
+                        recvPerMsgType.pushKV(i.first, i.second);
                     }
                 }
-                obj.pushKV("bytesrecv_per_msg", recvPerMsgCmd);
+                obj.pushKV("bytesrecv_per_msg", recvPerMsgType);
                 obj.pushKV("connection_type",
                            ConnectionTypeAsString(stats.m_conn_type));
 
