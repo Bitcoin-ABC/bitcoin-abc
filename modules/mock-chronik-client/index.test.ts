@@ -230,6 +230,15 @@ describe('MockChronikClient', () => {
         ws.unsubscribeFromTokenId(tokenId);
         expect(ws.subs.tokens).to.deep.equal([]);
 
+        const testTxid = '33'.repeat(32);
+        // We can subscribe to a token by txid
+        ws.subscribeToTxid(testTxid);
+        expect(ws.subs.txids).to.deep.equal([testTxid]);
+
+        // We can unsubscribe from a txid
+        ws.unsubscribeFromTxid(testTxid);
+        expect(ws.subs.txids).to.deep.equal([]);
+
         const lokadId = '00'.repeat(2);
 
         // We can subscribe to a token by lokadId

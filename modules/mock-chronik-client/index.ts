@@ -743,6 +743,8 @@ interface WsSubscriptions {
     scripts: WsSubScriptClient[];
     /** Subscriptions to tokens by tokenId */
     tokens: string[];
+    /** Subscriptions to txids */
+    txids: string[];
     /** Subscriptions to lokadIds */
     lokadIds: string[];
     /** Subscriptions to plugins */
@@ -803,6 +805,7 @@ export class MockWsEndpoint {
         this.subs = {
             scripts: [],
             tokens: [],
+            txids: [],
             lokadIds: [],
             plugins: [],
             blocks: false,
@@ -926,6 +929,28 @@ export class MockWsEndpoint {
 
         // Remove the requested tokenId subscription from this.subs.tokens
         this.subs.tokens.splice(unsubIndex, 1);
+    }
+
+    /** Subscribe to a txid */
+    public subscribeToTxid(txid: string) {
+        // Update ws.subs to include this txid
+        this.subs.txids.push(txid);
+    }
+
+    /** Unsubscribe from the given txid */
+    public unsubscribeFromTxid(txid: string) {
+        // Find the requested unsub txid and remove it
+        const unsubIndex = this.subs.txids.findIndex(
+            thisTxid => thisTxid === txid,
+        );
+        if (unsubIndex === -1) {
+            // If we cannot find this subscription in this.subs.txids, throw an error
+            // We do not want an app developer thinking they have unsubscribed from something if no action happened
+            throw new Error(`No existing sub at txid "${txid}"`);
+        }
+
+        // Remove the requested txid subscription from this.subs.txids
+        this.subs.txids.splice(unsubIndex, 1);
     }
 
     /** Subscribe to a plugin */

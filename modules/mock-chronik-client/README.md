@@ -124,3 +124,7 @@ If you have any implementation questions regarding this mock tool please check t
 3.0.0
 
 -   Update types to match latest breaking changes in `chronik-client` [D17727](https://reviews.bitcoinabc.org/D17727)
+
+3.1.0
+
+-   Support for txid websocket subscriptions [D18262](https://reviews.bitcoinabc.org/D18262)
