@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { navitems } from '../../data/navitems';
 import { socials } from '../../data/socials';
 import { NavbarOuter, NavbarCtn, EnvVarMessage, SocialCtn } from './styles';
-import AnnouncementBar from '/components/announcement-bar';
 import { useApiData } from './getNavbarData';
 
 export default function Navbar() {
@@ -52,12 +51,6 @@ export default function Navbar() {
 
     return (
         <NavbarOuter navBackground={navBackground}>
-            <AnnouncementBar navBackground={navBackground} href="/upgrade">
-                <span>
-                    <span>The eCash network upgrade has activated!</span>
-                    <span>Click here for more details</span>
-                </span>
-            </AnnouncementBar>
             {!process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
                 <EnvVarMessage>
                     Google Analytics is disabled, set the env
