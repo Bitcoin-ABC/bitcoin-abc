@@ -9,6 +9,7 @@ import ContentContainer from "./components/ContentContainer";
 import TrustedBy from "./components/TrustedBy";
 import WhatWeDo from "./components/WhatWeDo";
 import DigitalPaymentLandscape from "./components/DigitalPaymentLandscape";
+import PoweringPayments from "./components/PoweringPayments";
 
 export default function Home() {
   type HeroBoxProps = {
@@ -138,6 +139,7 @@ export default function Home() {
       <TrustedBy />
       <WhatWeDo />
       <DigitalPaymentLandscape />
+      <PoweringPayments />
     </main>
   );
 }

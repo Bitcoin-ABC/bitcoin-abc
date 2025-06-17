@@ -105,6 +105,14 @@ h2 {
   color: transparent;
 }
 
+.pink-gradient-text {
+  background: linear-gradient(141deg, #baecfd 4.22%, #ffaeee 95.78%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
 .custom-box {
   box-shadow: 0px 2px 0px 0px rgba(255, 255, 255, 0.1) inset;
   backdrop-filter: blur(14px);
@@ -142,6 +150,35 @@ h2 {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 1000ms ease-in-out forwards;
+}
+
+@media (pointer: fine) {
+  .scrollx-container::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .scrollx-container::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .scrollx-container::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: var(--accentMedium);
   }
 }
 

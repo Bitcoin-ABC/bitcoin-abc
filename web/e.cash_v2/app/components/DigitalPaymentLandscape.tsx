@@ -184,7 +184,7 @@ export default function DigitalPaymentLandscape() {
     );
   };
   return (
-    <ContentContainer className="my-20 px-0 lg:px-4">
+    <ContentContainer className="my-20 mb-0 px-0 lg:px-4">
       <div className="custom-box from-white/1 to-white/1 py-15 lg:py-22 flex flex-col items-center rounded-lg border border-white/10 bg-gradient-to-br via-[#15172A] px-6 lg:flex-row lg:gap-6 lg:px-20 lg:pb-20 lg:pr-10">
         <div className="order-3 flex w-full flex-col gap-4 self-stretch lg:order-1 lg:w-1/2">
           <h2>
