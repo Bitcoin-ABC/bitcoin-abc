@@ -268,8 +268,6 @@ LogPrintf_(const std::string &logging_function, const std::string &source_file,
 
 // Deprecated unconditional logging.
 #define LogPrintf(...) LogInfo(__VA_ARGS__)
-#define LogPrintfCategory(category, ...)                                       \
-    LogPrintLevel_(category, BCLog::Level::Info, __VA_ARGS__)
 
 // Use a macro instead of a function for conditional logging to prevent
 // evaluating arguments when logging for the category is not enabled.

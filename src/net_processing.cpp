@@ -6041,9 +6041,8 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         if (received_new_header) {
-            LogPrintfCategory(BCLog::NET,
-                              "Saw new cmpctblock header hash=%s peer=%d\n",
-                              blockhash.ToString(), pfrom.GetId());
+            LogInfo("Saw new cmpctblock header hash=%s peer=%d\n",
+                    blockhash.ToString(), pfrom.GetId());
         }
 
         // When we succeed in decoding a block's txids from a cmpctblock
