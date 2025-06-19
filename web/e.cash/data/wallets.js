@@ -98,4 +98,11 @@ export const wallets = [
         link: 'https://www.ballet.com/',
         availableOn: ['Hardware Wallet'],
     },
+    {
+        name: 'Edge Wallet',
+        text: 'Edge Wallet is a user-friendly multi-coin wallet that features backup with username and password rather than seed phrase.',
+        image: '/images/Edge_Secondary_Logo_White.png',
+        link: 'https://edge.app/',
+        availableOn: ['iOS', 'Android'],
+    },
 ];
