@@ -4811,6 +4811,54 @@ export const dailyTxs: Tx[] = [
             timestamp: 1728985449,
         },
     },
+    // Coinex hot wallet withdrawal
+    {
+        txid: '7b6b6d223efdf3400f9422fc037ce47bcdf86d1bc8487aed26ae80863aeb4b3c',
+        version: 1,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'c3ec9aec8ad66cdc2445fae9357d5af226ddc4a0a15bf2c2b09b1b46f0d6583d',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '473044022033a161e9b5c077b922a97481b7c51324aca2252063eede3da6cd842c3ca8f63f02200954bb2e82d5367ff1ae895a9751dc9cb7941ab78419e26ab874f36d24a6dcfe4121034ae766bc7d2426281a7a49348d4e27aeb9ce7277bdc4200c749688f1c71e8f0b',
+                sats: 49206310708n,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9144e769ab920efff63715004e92739e7735343291d88ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 45622413619n,
+                outputScript:
+                    '76a914dc3bf71f94fa0e00ec76fb9de1cad4c344fdf26a88ac',
+            },
+            {
+                sats: 3583896681n,
+                outputScript:
+                    '76a9144e769ab920efff63715004e92739e7735343291d88ac',
+                spentBy: {
+                    txid: '456144fe0996f1dbd767d630d662d77959f904f6297a733922cba88fda04fb4b',
+                    outIdx: 12,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1750025593,
+        size: 225,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        isFinal: true,
+        block: {
+            height: 901418,
+            hash: '000000000000000021d778a06e085cfbf6032eb8897d468380ed86604eb4f61f',
+            timestamp: 1750025984,
+        },
+    },
 ];
 
 export const tokenInfoMap: Map<string, GenesisInfo> = new Map([

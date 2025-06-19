@@ -459,8 +459,8 @@ describe('parse.js functions', function () {
             ),
             [
                 '<b>14 Oct 2024</b>\n' +
-                    '📦61,585 blocks\n' +
-                    '➡️37 txs\n' +
+                    '📦90,011 blocks\n' +
+                    '➡️38 txs\n' +
                     `💧<i>0.00% capacity</i>\n` +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
@@ -521,7 +521,9 @@ describe('parse.js functions', function () {
                     '💸 <b>1</b> Paywall tx\n' +
                     '\n' +
                     '🏦 <b><i>Binance</i></b>\n' +
-                    '<b>1</b> withdrawal, $0.688',
+                    '<b>1</b> withdrawal, $0.688\n' +
+                    '🏦 <b><i>CoinEx</i></b>\n' +
+                    '<b>1</b> withdrawal, $15.91k',
             ],
         );
     });
@@ -545,8 +547,8 @@ describe('parse.js functions', function () {
             ),
             [
                 '<b>14 Oct 2024</b>\n' +
-                    '📦61,585 blocks\n' +
-                    '➡️37 txs\n' +
+                    '📦90,011 blocks\n' +
+                    '➡️38 txs\n' +
                     `💧<i>0.00% capacity</i>\n` +
                     '\n' +
                     '📉<b>1 XEC = $0.00003487</b> <i>(-0.40%)</i>\n' +
@@ -607,7 +609,9 @@ describe('parse.js functions', function () {
                     '💸 <b>1</b> Paywall tx\n' +
                     '\n' +
                     '🏦 <b><i>Binance</i></b>\n' +
-                    '<b>1</b> withdrawal, $0.688',
+                    '<b>1</b> withdrawal, $0.688\n' +
+                    '🏦 <b><i>CoinEx</i></b>\n' +
+                    '<b>1</b> withdrawal, $15.91k',
             ],
         );
     });
@@ -623,8 +627,8 @@ describe('parse.js functions', function () {
             ),
             [
                 '<b>14 Oct 2024</b>\n' +
-                    '📦61,585 blocks\n' +
-                    '➡️37 txs\n' +
+                    '📦90,011 blocks\n' +
+                    '➡️38 txs\n' +
                     `💧<i>0.00% capacity</i>\n` +
                     '\n' +
                     '<b><i>⛏️3 miners found blocks</i></b>\n' +
@@ -680,7 +684,9 @@ describe('parse.js functions', function () {
                     '💸 <b>1</b> Paywall tx\n' +
                     '\n' +
                     '🏦 <b><i>Binance</i></b>\n' +
-                    '<b>1</b> withdrawal, 20k XEC',
+                    '<b>1</b> withdrawal, 20k XEC\n' +
+                    '🏦 <b><i>CoinEx</i></b>\n' +
+                    '<b>1</b> withdrawal, 456M XEC',
             ],
         );
     });

@@ -22,6 +22,7 @@ import BigNumber from 'bignumber.js';
 import {
     TOKEN_SERVER_OUTPUTSCRIPT,
     BINANCE_OUTPUTSCRIPT,
+    COINEX_OUTPUTSCRIPT,
 } from '../constants/senders';
 import { prepareStringForTelegramHTML, splitOverflowTgMsg } from './telegram';
 import { OutputscriptInfo } from './chronik';
@@ -2424,6 +2425,8 @@ export const summarizeTxHistory = (
     let cashtabCachetRewardCount = 0;
     let binanceWithdrawalCount = 0;
     let binanceWithdrawalSats = 0n;
+    let coinexWithdrawalCount = 0;
+    let coinexWithdrawalSats = 0n;
 
     let fungibleTokenTxs = 0;
     let appTxs = 0;
@@ -2541,6 +2544,21 @@ export const summarizeTxHistory = (
                     // We also call this a withdrawal
                     // Note that 1 tx from the hot wallet may include more than 1 withdrawal
                     binanceWithdrawalCount += 1;
+                }
+            }
+        }
+        if (senderOutputScript === COINEX_OUTPUTSCRIPT) {
+            // Tx sent by CoinEx
+            // Make sure it's not just a utxo consolidation
+            for (const output of outputs) {
+                const { sats, outputScript } = output;
+                if (outputScript !== COINEX_OUTPUTSCRIPT) {
+                    // If we have an output that is not sending to the coinex hot wallet
+                    // Increment total value amount withdrawn
+                    coinexWithdrawalSats += sats;
+                    // We also call this a withdrawal
+                    // Note that 1 tx from the hot wallet may include more than 1 withdrawal
+                    coinexWithdrawalCount += 1;
                 }
             }
         }
@@ -4005,6 +4023,20 @@ export const summarizeTxHistory = (
             `<b>${binanceWithdrawalCount}</b> withdrawal${
                 binanceWithdrawalCount > 1 ? 's' : ''
             }, ${renderedBinanceWithdrawalQty}`,
+        );
+    }
+
+    if (coinexWithdrawalCount > 0) {
+        // CoinEx hot wallet
+        const renderedCoinexWithdrawalQty = satsToFormattedValue(
+            coinexWithdrawalSats,
+            xecPriceUsd,
+        );
+        tgMsg.push(`${config.emojis.bank} <b><i>CoinEx</i></b>`);
+        tgMsg.push(
+            `<b>${coinexWithdrawalCount}</b> withdrawal${
+                coinexWithdrawalCount > 1 ? 's' : ''
+            }, ${renderedCoinexWithdrawalQty}`,
         );
     }
 

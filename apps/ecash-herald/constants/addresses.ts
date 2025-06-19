@@ -17,6 +17,12 @@ const addressDirectory: Map<string, { tag: string }> = new Map();
 addressDirectory.set('ecash:qq337uy8jdmgg7gdzpyjjne6a7w0k7c9m5m5gnpx4u', {
     tag: 'Binance',
 });
+// CoinEx Hot Wallet
+addressDirectory.set('ecash:qp88dx4eyrhl7cm32qzwjfeeuae4xsefr58vqy4vp3', {
+    tag: 'CoinEx',
+});
+
+// CoinEx associated wallets that are not currently tracked
 addressDirectory.set('ecash:qq580luw0dkypdlrply9ulk3rht6nrqfugvgm9le8a', {
     tag: 'Coinex 1',
 });
