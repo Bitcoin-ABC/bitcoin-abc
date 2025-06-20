@@ -2039,18 +2039,18 @@ dependencies = [
 
 [[package]]
 name = "karyon_async_rustls"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0cc011f407d223f3b8b0b7e53e5f0f547fcb167c825d561f9325bc349305606"
+checksum = "1cc5581fee9df4a457b4b45b21853f5754b1b50d30f48fb69bd000cd17c83e3c"
 dependencies = [
  "tokio-rustls",
 ]
 
 [[package]]
 name = "karyon_core"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1be9f4c063e068982ac75d2c96d137862b3bd60934b24da8df7eea60daeb500a"
+checksum = "394276beccdcfe37879b0eeafe316d9313b4945c4b2d565f1e28fd0f37fa2b29"
 dependencies = [
  "async-channel",
  "bincode 2.0.1",
@@ -2068,9 +2068,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4670d7ed4295c379f2db89ea3798789eea33aca7bf39a5212dbe57db1584ac1"
+checksum = "a5f8abaa03cd27533fa07224360aba8fa01ee82a9a16764ad58d7c92db5e50bf"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -2087,9 +2087,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc_macro"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "111edc893c9078fd91155755c396514d1edb4bd254cf77bcb091b9679b87bc01"
+checksum = "10c68d2b80a28e587cf28b1d7e3f952e0c9a1bd9d58a0336946f8c5a5f1aca69"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2099,9 +2099,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_net"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de590b4f2e7071b28dccf004ed8ae2ead0a83795727c58668d1353a638897ea1"
+checksum = "95e38fba17f50e9796c86d441bfa3c7467a722e39301bc30104e4cd28fd371b0"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -2155,7 +2155,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -4142,7 +4142,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
