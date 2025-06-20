@@ -45,6 +45,7 @@ use rustls::pki_types::{
     {CertificateDer, PrivateKeyDer},
 };
 use serde_json::{json, Map, Value};
+use sha2::Digest;
 use thiserror::Error;
 use versions::Versioning;
 
@@ -899,18 +900,16 @@ async fn get_scripthash_status(
     }
 
     // Then compute the status
-    let mut status_parts = Vec::<String>::new();
+    let mut hasher = sha2::Sha256::new();
 
     for tx in tx_history {
         let tx_hash =
-            hex::encode(tx.txid.iter().copied().rev().collect::<Vec<u8>>());
+            hex::encode(tx.txid.into_iter().rev().collect::<Vec<u8>>());
         let height = tx.block.as_ref().unwrap().height;
-        status_parts.push(format!("{tx_hash}:{height}:"));
+        hasher.update(format!("{tx_hash}:{height}:"));
     }
 
-    let status_string = status_parts.join("");
-
-    Ok(Some(Sha256::digest(status_string.as_bytes()).hex_le()))
+    Ok(Some(Sha256(hasher.finalize().into()).hex_le()))
 }
 
 fn get_tx_fee(tx: &Tx) -> i64 {
