@@ -764,7 +764,7 @@ async fn get_scripthash_history(
         // Return the confirmed txs in ascending block height order, with txs
         // ordered as they appear in the block
         let history = script_history
-            .confirmed_txs(
+            .confirmed_txs_no_spent_by(
                 GroupMember::MemberHash(script_hash).as_ref(),
                 page as usize,
                 MAX_HISTORY_PAGE_SIZE,

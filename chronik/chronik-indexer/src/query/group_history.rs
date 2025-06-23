@@ -127,15 +127,12 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         }
     }
 
-    /// Return the confirmed txs of the group in the order as txs occur on the
-    /// blockchain, i.e.:
-    /// - Sorted by block height ascendingly.
-    /// - Within a block, sorted as txs occur in the block.
-    pub fn confirmed_txs(
+    fn _confirmed_txs(
         &self,
         member: GroupMember<G::Member<'_>>,
         request_page_num: usize,
         request_page_size: usize,
+        include_spent_by: bool,
     ) -> Result<proto::TxHistoryPage> {
         if request_page_size < MIN_HISTORY_PAGE_SIZE {
             return Err(RequestPageSizeTooSmall(request_page_size).into());
@@ -201,7 +198,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 .page_txs(member_ser.as_ref(), current_page_num as u32)?
                 .unwrap_or_default();
             for &tx_num in db_page_tx_nums.iter().skip(first_inner_idx) {
-                page_txs.push(self.read_block_tx(tx_num)?);
+                page_txs.push(self.read_block_tx(tx_num, include_spent_by)?);
                 // We filled up the requested page size -> return
                 if page_txs.len() == request_page_size {
                     return Ok(make_result(page_txs));
@@ -212,6 +209,35 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
 
         // Couldn't fill requested page size completely
         Ok(make_result(page_txs))
+    }
+
+    /// Return the confirmed txs of the group in the order as txs occur on the
+    /// blockchain, i.e.:
+    /// - Sorted by block height ascendingly.
+    /// - Within a block, sorted as txs occur in the block.
+    pub fn confirmed_txs(
+        &self,
+        member: GroupMember<G::Member<'_>>,
+        request_page_num: usize,
+        request_page_size: usize,
+    ) -> Result<proto::TxHistoryPage> {
+        self._confirmed_txs(member, request_page_num, request_page_size, true)
+    }
+
+    /// Return the confirmed txs of the group in the order as txs occur on the
+    /// blockchain, i.e.:
+    /// - Sorted by block height ascendingly.
+    /// - Within a block, sorted as txs occur in the block.
+    ///
+    /// The tx spent_by data is not queried to save on execution time, this
+    /// field should not be used.
+    pub fn confirmed_txs_no_spent_by(
+        &self,
+        member: GroupMember<G::Member<'_>>,
+        request_page_num: usize,
+        request_page_size: usize,
+    ) -> Result<proto::TxHistoryPage> {
+        self._confirmed_txs(member, request_page_num, request_page_size, false)
     }
 
     /// Return the group history in reverse chronological order, i.e. the latest
@@ -374,7 +400,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 .unwrap_or_default();
             for inner_idx in (0..=first_inner_idx).rev() {
                 let tx_num = db_page_tx_nums[inner_idx];
-                page_txs.push(self.read_block_tx(tx_num)?);
+                page_txs.push(self.read_block_tx(tx_num, true)?);
                 // Filled up page: break out of outer loop.
                 if page_txs.len() == request_page_size {
                     break 'outer;
@@ -465,10 +491,13 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         })
     }
 
-    fn read_block_tx(&self, tx_num: TxNum) -> Result<proto::Tx> {
+    fn read_block_tx(
+        &self,
+        tx_num: TxNum,
+        include_spent_by: bool,
+    ) -> Result<proto::Tx> {
         let tx_reader = TxReader::new(self.db)?;
         let block_reader = BlockReader::new(self.db)?;
-        let spent_by_reader = SpentByReader::new(self.db)?;
         let block_tx =
             tx_reader.tx_by_tx_num(tx_num)?.ok_or(MissingDbTx(tx_num))?;
         let block = block_reader
@@ -479,12 +508,16 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             block_tx.entry.data_pos,
             block_tx.entry.undo_pos,
         )?);
-        let outputs_spent = OutputsSpent::query(
-            &spent_by_reader,
-            &tx_reader,
-            self.mempool.spent_by().outputs_spent(&block_tx.entry.txid),
-            tx_num,
-        )?;
+        let mut outputs_spent: OutputsSpent<'_> = Default::default();
+        if include_spent_by {
+            let spent_by_reader = SpentByReader::new(self.db)?;
+            outputs_spent = OutputsSpent::query(
+                &spent_by_reader,
+                &tx_reader,
+                self.mempool.spent_by().outputs_spent(&block_tx.entry.txid),
+                tx_num,
+            )?;
+        }
         let token = TxTokenData::from_db(
             self.db,
             tx_num,
