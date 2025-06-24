@@ -1116,8 +1116,11 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                         break;
                     };
 
-                    if block_msg.msg_type != BlockMsgType::Connected {
-                        // We're only sending headers upon block connection.
+                    if !matches!(
+                        block_msg.msg_type,
+                        BlockMsgType::Connected | BlockMsgType::Disconnected
+                    ) {
+                        // We're only sending headers upon block dis/connection.
                         // At some point we might want to wait for block
                         // finalization instead, but this behavior would differ
                         // from Fulcrum.
@@ -1128,9 +1131,16 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     let blocks: chronik_indexer::query::QueryBlocks<'_> =
                         indexer.blocks(&node_clone);
 
-                    match header_hex_from_height(&blocks, block_msg.height)
-                        .await
-                    {
+                    let height =
+                        if block_msg.msg_type == BlockMsgType::Disconnected {
+                            // Send the tip, so upon disconnection it's the
+                            // previous block
+                            block_msg.height - 1
+                        } else {
+                            block_msg.height
+                        };
+
+                    match header_hex_from_height(&blocks, height).await {
                         Err(err) => {
                             log_chronik!("{err}\n");
                             break;
@@ -1138,7 +1148,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                         Ok(header_hex) => {
                             if sub
                                 .notify(json!([{
-                                            "height": block_msg.height,
+                                            "height": height,
                                             "hex": header_hex,
                                 }]))
                                 .await

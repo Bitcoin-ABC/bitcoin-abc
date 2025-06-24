@@ -1395,10 +1395,21 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 "hex": header_hex,
             },
         )
+        (prev_height, prev_header_hex) = (height, header_hex)
 
         # At this stage self.client, client2 and client3 will receive header
         # notifications
         (height, header_hex) = new_header()
+        check_notification([self.client, client2, client3], height, header_hex)
+
+        # Clients also get headers upon block disconnect
+        tip = self.node.getbestblockhash()
+        self.node.parkblock(tip)
+        check_notification(
+            [self.client, client2, client3], prev_height, prev_header_hex
+        )
+
+        self.node.unparkblock(tip)
         check_notification([self.client, client2, client3], height, header_hex)
 
         # Unsubscribe client2
