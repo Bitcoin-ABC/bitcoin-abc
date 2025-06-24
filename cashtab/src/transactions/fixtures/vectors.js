@@ -15,8 +15,87 @@ import { Script } from 'ecash-lib';
 import { getCashtabMsgTargetOutput } from 'opreturn';
 const OP_RETURN_CASHTAB_MSG_TEST = getCashtabMsgTargetOutput('test');
 
+/**
+ * Say we require a handful of dust utxos, like in a token tx
+ */
+const requiredUtxos = [
+    {
+        outpoint: {
+            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+            outIdx: 0,
+        },
+        blockHeight: -1,
+        isCoinbase: false,
+        isFinal: true,
+        path: 1899,
+        sats: 546n,
+    },
+    {
+        outpoint: {
+            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+            outIdx: 0,
+        },
+        blockHeight: -1,
+        isCoinbase: false,
+        isFinal: true,
+        path: 1899,
+        sats: 546n,
+    },
+    {
+        outpoint: {
+            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+            outIdx: 0,
+        },
+        blockHeight: -1,
+        isCoinbase: false,
+        isFinal: true,
+        path: 1899,
+        sats: 546n,
+    },
+];
+
 export const sendXecVectors = {
     txs: [
+        {
+            description:
+                'Sending a tx that we can afford but need every utxo to cover',
+            wallet: {
+                ...wallet,
+                state: {
+                    ...wallet.state,
+                    slpUtxos: requiredUtxos,
+                    nonSlpUtxos: [
+                        {
+                            outpoint: {
+                                txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+                                outIdx: 0,
+                            },
+                            blockHeight: -1,
+                            isCoinbase: false,
+                            isFinal: true,
+                            path: 1899,
+                            // More than enough to cover the tx
+                            sats: 100_000_000n,
+                        },
+                    ],
+                },
+            },
+            targetOutputs: [
+                {
+                    // We send an amount that is less than what token dust would cover
+                    // but enough so that we still need a sats utxo to cover the fee
+                    sats: 3n * 546n - 1n,
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
+                },
+            ],
+            requiredInputs: requiredUtxos,
+            satsPerKb: 1000n,
+            chaintipBlockheight: 800000,
+            txid: '3064f73730ddc83f96405b7e2e5c0e02b26a4893394ded8defaf7d7fc017100a',
+            hex: '0200000004c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef1546800000000644105a3400dd269d1730eae6b758a07cbed1ec4285bcf96ec2628604886a5ad12b51ecc8234afe07872994709758c39dc6b1053285ded4f291bd41b8bc61e5083024121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef1546800000000644105a3400dd269d1730eae6b758a07cbed1ec4285bcf96ec2628604886a5ad12b51ecc8234afe07872994709758c39dc6b1053285ded4f291bd41b8bc61e5083024121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef1546800000000644105a3400dd269d1730eae6b758a07cbed1ec4285bcf96ec2628604886a5ad12b51ecc8234afe07872994709758c39dc6b1053285ded4f291bd41b8bc61e5083024121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441917314c6641d2bcca3f064add29adec3b0d3b84f0ed224519bd06a2880c9cbfdc693740eb497ff31c32677a76c157dfb4d4a8c026480a484cdeb5daf2ce18ef54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0265060000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac7fdef505000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
+        },
         {
             description:
                 '1000 satoshis with 1 change output at 1 sat/byte to p2pkh address',
@@ -268,6 +347,23 @@ export const sendXecVectors = {
             chaintipBlockheight: 800000,
             txid: 'eb3f211e3ac485fd82271ceae4ad715cb625f25560e13a00e5e7caf912d49458',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441456c92b6ce2d253d687b7a8650a9558af0a9385799754efa61a52462bb745f7e1c6965e54fc64477f04c9095ea70654193708eab23add2301bfffa782dc3861b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff06e80300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087d00700000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087b80b00000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087a00f00000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087881300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087b7250000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
+        },
+        {
+            description:
+                'Sending a tx that we can afford but need every utxo to cover',
+            wallet,
+            targetOutputs: [
+                {
+                    sats: BigInt(wallet.state.balanceSats - 467), // 467 sats is the 1 sat/byte fee of expected rawtx
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
+                },
+            ],
+            satsPerKb: 1000n,
+            chaintipBlockheight: 800000,
+            txid: '8b06141cb254fbec10bb795f45f9055ea6e605a42070f2fee833d7e2ce1cf715',
+            hex: '0200000003c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006441ce2f1f62f007a45fbf056d6ed39638896623a971bbf4d3337ea2908c8bdb0093d47075a7c6e85d37ef6e265840feea9082a7467430f2c841805c0afbc5bb10f54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff09fb259435ad29ff0a032d6fe5063d0e0172f68ce48a38756a3a2935ff061490000000006441e60efa3856a20147a3626222539be2d28880297c1690d2f354ca5266cad671da2c156715c9ff8eb18fba118cdd38f55cba15546bc28f95ec8575a48b83ef518e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff50343ff586cf6bfba195ab0a982178fa077a6772d3fa46c8c886a679ce2c20bc00000000644132f2f5189ad6940c3ac3bf7abf4c501835f1e8f411005951106072eb75ebdc5885cc89ba5b140e83e71aa25dde77e15b10a50ccef0a5e4257848d5c2438908b64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff01850d0200000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000',
         },
     ],
     errors: [

@@ -124,11 +124,16 @@ export const sendXec = async (
         }
     }
 
-    let needsAnotherUtxo = inputSatoshis <= satoshisToSend;
-
     // Add and sign required inputUtxos to create tx with specified targetOutputs
-    for (const utxo of spendableUtxos) {
+    for (let i = 0; i < spendableUtxos.length + 1; i++) {
+        const needsAnotherUtxo = inputSatoshis <= satoshisToSend;
+        const utxo = i === spendableUtxos.length ? null : spendableUtxos[i];
+
         if (needsAnotherUtxo) {
+            // If we have already iterated through all utxos, we cannot add any more
+            if (utxo === null) {
+                break;
+            }
             // If inputSatoshis is less than or equal to satoshisToSend, we know we need
             // to add another input
             const pathInfo = wallet.paths.get(utxo.path);
@@ -146,13 +151,9 @@ export const sendXec = async (
             });
             inputSatoshis += utxo.sats;
 
-            needsAnotherUtxo = inputSatoshis <= satoshisToSend;
-
-            if (needsAnotherUtxo) {
-                // Do not bother trying to build and broadcast the tx unless
-                // we probably have enough inputSatoshis to cover satoshisToSend + fee
-                continue;
-            }
+            // Do not bother trying to build and broadcast the tx unless
+            // we probably have enough inputSatoshis to cover satoshisToSend + fee
+            continue;
         }
 
         // If value of inputs exceeds value of outputs, we check to see if we also cover the fee
@@ -172,9 +173,24 @@ export const sendXec = async (
                 typeof err.message !== 'undefined' &&
                 err.message.startsWith('Insufficient input sats')
             ) {
-                // If we have insufficient funds to cover satoshisToSend + fee
-                // we need to add another input
-                needsAnotherUtxo = true;
+                // If we have already iterated through all utxos, we cannot add any more
+                if (utxo === null) {
+                    break;
+                }
+                const pathInfo = wallet.paths.get(utxo.path);
+                const { sk, pk, hash } = pathInfo;
+                inputs.push({
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData: {
+                            sats: utxo.sats,
+                            // Cashtab inputs will always be p2pkh utxos
+                            outputScript: Script.p2pkh(fromHex(hash)),
+                        },
+                    },
+                    signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+                });
+                inputSatoshis += utxo.sats;
                 continue;
             }
 

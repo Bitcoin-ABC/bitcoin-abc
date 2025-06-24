@@ -38,6 +38,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 description,
                 wallet,
                 targetOutputs,
+                requiredInputs,
                 satsPerKb,
                 chaintipBlockheight,
                 txid,
@@ -54,6 +55,7 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                         targetOutputs,
                         satsPerKb,
                         chaintipBlockheight,
+                        requiredInputs,
                     ),
                 ).toStrictEqual({ hex, response: { txid } });
             });
@@ -61,8 +63,16 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
 
         // Error cases
         errors.forEach(async error => {
-            const { description, wallet, targetOutputs, satsPerKb, msg, hex } =
-                error;
+            const {
+                description,
+                wallet,
+                targetOutputs,
+                requiredInputs,
+                satsPerKb,
+                chaintipBlockheight,
+                msg,
+                hex,
+            } = error;
 
             it(`sendXec: ${description}`, async () => {
                 const chronik = new MockChronikClient();
@@ -74,7 +84,15 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 }
 
                 await expect(
-                    sendXec(chronik, ecc, wallet, targetOutputs, satsPerKb),
+                    sendXec(
+                        chronik,
+                        ecc,
+                        wallet,
+                        targetOutputs,
+                        satsPerKb,
+                        chaintipBlockheight,
+                        requiredInputs,
+                    ),
                 ).rejects.toThrow(msg);
             });
         });
