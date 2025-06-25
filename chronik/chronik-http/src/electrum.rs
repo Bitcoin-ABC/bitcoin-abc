@@ -1600,27 +1600,89 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         if blockchaininfo.is_err() {
             return Err(RPCError::InternalError);
         }
+
+        // Some of the verbose fields are not directly accessible via chronik
+        // and are not implemented. They are annotated as comments in the code
+        // below.
+        let inputs: Vec<Value> = tx
+            .inputs
+            .iter()
+            .map(|input| {
+                if tx.is_coinbase {
+                    json!({
+                        "coinbase": hex::encode(&input.input_script),
+                        "sequence": input.sequence_no,
+                    })
+                } else {
+                    let prev_out = input.prev_out.clone().unwrap_or_default();
+                    let prev_txid = TxId::try_from(prev_out.txid.as_slice())
+                        .unwrap_or_default()
+                        .to_string();
+                    json!({
+                        "txid": prev_txid,
+                        "vout": prev_out.out_idx,
+                        "scriptSig": json!({
+                            // "asm": ,
+                            "hex": hex::encode(&input.input_script),
+                        }),
+                        "sequence": input.sequence_no,
+                    })
+                }
+            })
+            .collect();
+        let outputs: Vec<Value> = tx
+            .outputs
+            .iter()
+            .enumerate()
+            .map(|(index, output)| {
+                json!({
+                    "value": output.sats as f64 / 100.0,
+                    "n": index,
+                    "scriptPubKey": json!({
+                        // "asm": ,
+                        "hex": hex::encode(&output.output_script),
+                        // "reqSigs": ,
+                        // "type": ,
+                        // "addresses": ,
+                    }),
+                })
+            })
+            .collect();
+
+        // The tx is in the mempool, there is no block info
         if tx.block.is_none() {
             // mempool transaction
             return Ok(json!({
-                "confirmations": 0,
-                "hash": txid.to_string(),
                 "hex": raw_tx,
+                "txid": txid.to_string(),
+                "hash": txid.to_string(),
+                "size": tx.size,
+                "version": tx.version,
+                "locktime": tx.lock_time,
+                "vin": inputs,
+                "vout": outputs,
+                "confirmations": 0,
                 "time": tx.time_first_seen,
             }));
         }
+
         let block = tx.block.unwrap();
         let blockhash = Sha256::from_le_slice(block.hash.as_ref()).unwrap();
         let confirmations =
             blockchaininfo.ok().unwrap().tip_height - block.height + 1;
-        // TODO: more verbose fields, inputs, outputs
-        //      (but for now only "confirmations" is used in Electrum ABC)
+
         Ok(json!({
-            "blockhash": blockhash.hex_be(),
-            "blocktime": block.timestamp,
-            "confirmations": confirmations,
-            "hash": txid.to_string(),
             "hex": raw_tx,
+            "txid": txid.to_string(),
+            "hash": txid.to_string(),
+            "size": tx.size,
+            "version": tx.version,
+            "locktime": tx.lock_time,
+            "vin": inputs,
+            "vout": outputs,
+            "blockhash": blockhash.hex_be(),
+            "confirmations": confirmations,
+            "blocktime": block.timestamp,
             "time": tx.time_first_seen,
         }))
     }

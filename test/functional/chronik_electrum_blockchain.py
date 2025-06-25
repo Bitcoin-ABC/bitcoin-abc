@@ -4,6 +4,8 @@
 """
 Test Chronik's electrum interface: blockchain.* methods
 """
+import time
+
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     ADDRESS_ECREG_UNSPENDABLE,
@@ -39,7 +41,7 @@ from test_framework.util import (
     chronikelectrum_port,
     hex_to_be_bytes,
 )
-from test_framework.wallet import MiniWallet
+from test_framework.wallet import SCRIPTSIG_OP_TRUE, MiniWallet
 
 COINBASE_TX_HEX = (
     "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d"
@@ -195,11 +197,30 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             assert_equal(
                 response.result,
                 {
-                    "blockhash": GENESIS_BLOCK_HASH,
-                    "blocktime": TIME_GENESIS_BLOCK,
-                    "confirmations": 201,
-                    "hash": GENESIS_CB_TXID,
                     "hex": COINBASE_TX_HEX,
+                    "txid": GENESIS_CB_TXID,
+                    "hash": GENESIS_CB_TXID,
+                    "size": len(COINBASE_TX_HEX) // 2,
+                    "version": 1,
+                    "locktime": 0,
+                    "vin": [
+                        {
+                            "coinbase": GENESIS_CB_SCRIPT_SIG.hex(),
+                            "sequence": 0xFFFFFFFF,
+                        }
+                    ],
+                    "vout": [
+                        {
+                            "n": 0,
+                            "scriptPubKey": {
+                                "hex": GENESIS_CB_SCRIPT_PUBKEY.hex(),
+                            },
+                            "value": 50_000_000.00,
+                        }
+                    ],
+                    "blockhash": GENESIS_BLOCK_HASH,
+                    "confirmations": 201,
+                    "blocktime": TIME_GENESIS_BLOCK,
                     "time": 0,
                 },
             )
@@ -210,6 +231,105 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 tx_hash=GENESIS_CB_TXID, verbose=True
             ).result["confirmations"],
             203,
+        )
+
+        now = int(time.time())
+        self.node.setmocktime(now)
+
+        # Create a mempool transaction
+        utxo = self.wallet.get_utxo()
+        tx = self.wallet.send_self_transfer_multi(
+            from_node=self.node,
+            utxos_to_spend=[utxo],
+            num_outputs=2,
+            fee_per_output=100 * XEC,
+        )
+        assert_equal(
+            self.client.blockchain.transaction.get(
+                tx_hash=tx["txid"], verbose=True
+            ).result,
+            {
+                "hex": tx["hex"],
+                "txid": tx["txid"],
+                "hash": tx["txid"],
+                "size": len(tx["hex"]) // 2,
+                "version": 1,
+                "locktime": 0,
+                "vin": [
+                    {
+                        "txid": utxo["txid"],
+                        "vout": utxo["vout"],
+                        "scriptSig": {
+                            "hex": SCRIPTSIG_OP_TRUE.hex(),
+                        },
+                        "sequence": 0,
+                    }
+                ],
+                "vout": [
+                    {
+                        "n": 0,
+                        "scriptPubKey": {
+                            "hex": self.wallet.get_scriptPubKey().hex(),
+                        },
+                        "value": utxo["value"] / 2 - 100,
+                    },
+                    {
+                        "n": 1,
+                        "scriptPubKey": {
+                            "hex": self.wallet.get_scriptPubKey().hex(),
+                        },
+                        "value": utxo["value"] / 2 - 100,
+                    },
+                ],
+                "confirmations": 0,
+                "time": now,
+            },
+        )
+
+        # Mine the transaction
+        tip = self.generate(self.wallet, 1)[0]
+        assert_equal(
+            self.client.blockchain.transaction.get(
+                tx_hash=tx["txid"], verbose=True
+            ).result,
+            {
+                "hex": tx["hex"],
+                "txid": tx["txid"],
+                "hash": tx["txid"],
+                "size": len(tx["hex"]) // 2,
+                "version": 1,
+                "locktime": 0,
+                "vin": [
+                    {
+                        "txid": utxo["txid"],
+                        "vout": utxo["vout"],
+                        "scriptSig": {
+                            "hex": SCRIPTSIG_OP_TRUE.hex(),
+                        },
+                        "sequence": 0,
+                    }
+                ],
+                "vout": [
+                    {
+                        "n": 0,
+                        "scriptPubKey": {
+                            "hex": self.wallet.get_scriptPubKey().hex(),
+                        },
+                        "value": utxo["value"] / 2 - 100,
+                    },
+                    {
+                        "n": 1,
+                        "scriptPubKey": {
+                            "hex": self.wallet.get_scriptPubKey().hex(),
+                        },
+                        "value": utxo["value"] / 2 - 100,
+                    },
+                ],
+                "blockhash": tip,
+                "confirmations": 1,
+                "blocktime": now,
+                "time": now,
+            },
         )
 
     def test_transaction_get_confirmed_blockhash(self):
