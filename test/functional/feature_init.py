@@ -50,11 +50,18 @@ class InitStressTest(BitcoinTestFramework):
                 timeout=300,
             )
 
-        def check_clean_start():
+        def check_clean_start(extra_args):
             """Ensure that node restarts successfully after various interrupts."""
-            node.start()
+            node.start(extra_args)
             node.wait_for_rpc_connection()
-            assert_equal(200, node.getblockcount())
+            height = node.getblockcount()
+            assert_equal(200, height)
+            self.wait_until(
+                lambda: all(
+                    i["synced"] and i["best_block_height"] == height
+                    for i in node.getindexinfo().values()
+                )
+            )
 
         lines_to_terminate_after = [
             b"Validating signatures for all blocks",
@@ -80,22 +87,19 @@ class InitStressTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             lines_to_terminate_after.append(b"Verifying wallet")
 
+        args = ["-txindex=1", "-blockfilterindex=1", "-coinstatsindex=1"]
         for terminate_line in lines_to_terminate_after:
             self.log.info(
                 f"Starting node and will terminate after line {terminate_line}"
             )
             with node.wait_for_debug_log([terminate_line]):
-                node.start(
-                    extra_args=[
-                        "-txindex=1",
-                        "-blockfilterindex=1",
-                        "-coinstatsindex=1",
-                    ]
-                )
+                node.start(extra_args=args)
             self.log.debug("Terminating node after terminate line was found")
             sigterm_node()
 
-        check_clean_start()
+        # Prior to deleting/perturbing index files, start node with all indexes enabled.
+        # 'check_clean_start' will ensure indexes are synchronized (i.e., data exists to modify)
+        check_clean_start(args)
         self.stop_node(0)
 
         self.log.info("Test startup errors after removing certain essential files")
@@ -184,7 +188,7 @@ class InitStressTest(BitcoinTestFramework):
                 self.log.debug(f"Restoring file from {bak_path} and restarting")
                 Path(bak_path).rename(target_file)
 
-            check_clean_start()
+            check_clean_start(args)
             self.stop_node(0)
 
         self.log.info("Test startup errors after perturbing certain essential files")
