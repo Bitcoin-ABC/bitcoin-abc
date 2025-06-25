@@ -10,6 +10,7 @@ import TrustedBy from "./components/TrustedBy";
 import WhatWeDo from "./components/WhatWeDo";
 import DigitalPaymentLandscape from "./components/DigitalPaymentLandscape";
 import PoweringPayments from "./components/PoweringPayments";
+import BentoGrid from "./components/BentoGrid";
 
 export default function Home() {
   type HeroBoxProps = {
@@ -140,6 +141,7 @@ export default function Home() {
       <WhatWeDo />
       <DigitalPaymentLandscape />
       <PoweringPayments />
+      <BentoGrid />
     </main>
   );
 }
