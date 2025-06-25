@@ -1,54 +1,70 @@
-from typing import Any
+# Electrum ABC - lightweight eCash client
+# Copyright (C) 2023-present The Electrum ABC developers
+# Copyright (C) 2023 The Electron Cash Developers
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files
+# (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
-import pytest
+import unittest
+
 from jsonrpcclient import request
 
-# See https://docs.pytest.org/en/7.1.x/how-to/fixtures.html
-from .util import (  # noqa: F401
-    EC_DAEMON_RPC_URL,
-    SUPPORTED_PLATFORM,
-    bitcoind_rpc_connection,
-    docker_compose_command,
-    docker_compose_file,
-    fulcrum_service,
-    poll_for_answer,
-)
+from .framework import ElectrumABCTestCase
+from .util import EC_DAEMON_RPC_URL, poll_for_answer
 
 
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
-def test_addrequest(fulcrum_service: Any) -> None:  # noqa: F811
-    """Verify the `addrequest` RPC by creating a request, pay it and remove it"""
+class TestAddrRequest(ElectrumABCTestCase):
+    def test_addrequest(self):
+        """Verify the `addrequest` RPC by creating a request, pay it and remove it"""
+        result = poll_for_answer(EC_DAEMON_RPC_URL, request("listrequests"))
+        assert len(result) == 0
 
-    bitcoind = bitcoind_rpc_connection()
+        result = poll_for_answer(
+            EC_DAEMON_RPC_URL, request("addrequest", params={"amount": 2_500_000})
+        )
+        assert result["status"] == "Pending"
+        assert result["amount"] == 250_000_000
+        addr = result["address"]
 
-    result = poll_for_answer(EC_DAEMON_RPC_URL, request("listrequests"))
-    assert len(result) == 0
+        self.node.sendtoaddress(addr, 2_500_000)
+        result = poll_for_answer(
+            EC_DAEMON_RPC_URL,
+            request("listrequests"),
+            expected_answer=("[0].status", "Unconfirmed"),
+        )
+        assert len(result) == 1
+        assert result[0]["status"] == "Unconfirmed"
 
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL, request("addrequest", params={"amount": 2_500_000})
-    )
-    assert result["status"] == "Pending"
-    assert result["amount"] == 250_000_000
-    addr = result["address"]
+        addr2 = self.node.getnewaddress()
+        self.generatetoaddress(1, addr2)
+        result = poll_for_answer(
+            EC_DAEMON_RPC_URL,
+            request("listrequests"),
+            expected_answer=("[0].status", "Paid"),
+        )
+        assert result[0]["status"] == "Paid"
 
-    bitcoind.sendtoaddress(addr, 2_500_000)
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("listrequests"),
-        expected_answer=("[0].status", "Unconfirmed"),
-    )
-    assert len(result) == 1
-    assert result[0]["status"] == "Unconfirmed"
+        poll_for_answer(EC_DAEMON_RPC_URL, request("clearrequests"))
+        result = poll_for_answer(EC_DAEMON_RPC_URL, request("listrequests"))
+        assert len(result) == 0
 
-    addr2 = bitcoind.getnewaddress()
-    bitcoind.generatetoaddress(1, addr2)
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("listrequests"),
-        expected_answer=("[0].status", "Paid"),
-    )
-    assert result[0]["status"] == "Paid"
 
-    poll_for_answer(EC_DAEMON_RPC_URL, request("clearrequests"))
-    result = poll_for_answer(EC_DAEMON_RPC_URL, request("listrequests"))
-    assert len(result) == 0
+if __name__ == "__main__":
+    unittest.main()

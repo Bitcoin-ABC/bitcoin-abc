@@ -114,10 +114,15 @@ ninja check-electrum
 
 Functional tests can be run with the following command:
 ```shell
-pytest electrumabc/tests/regtest
+python3 test_runner.py functional
 ```
 
-This requires `docker` and additional python dependencies:
+or as a `ninja` target:
+```shell
+ninja check-electrum-functional
+```
+
+This requires a few additional python dependencies:
 ```shell
 pip3 install -r contrib/requirements/requirements-regtest.txt
 ```

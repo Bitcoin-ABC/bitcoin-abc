@@ -1,29 +1,17 @@
-import contextlib
 import os
-import platform
 import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Callable, Generator, Optional
+from typing import Any, Callable, Optional
 
-import pytest
 import requests
-from bitcoinrpc.authproxy import AuthServiceProxy
 from jsonpath_ng import parse as path_parse
 from jsonrpcclient import Ok as rpc_Ok
 from jsonrpcclient import parse as rpc_parse
 from jsonrpcclient import request
 
-_bitcoind = None
-
-SUPPORTED_PLATFORM = (
-    platform.machine() in ("AMD64", "x86_64") and platform.system() == "Linux"
-)
-
 EC_DAEMON_RPC_URL = "http://user:pass@localhost:12342"
-FULCRUM_STATS_URL = "http://localhost:8081/stats"
-BITCOIND_RPC_URL = "http://user:pass@0.0.0.0:18333"
 
 ELECTRUM_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
 ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
@@ -32,24 +20,6 @@ DEFAULT_TIMEOUT = 10
 DEFAULT_POLL_INTERVAL = 1
 
 COINBASE_MATURITY = 100
-
-
-def get_fulcrum_stat(json_path: str) -> Any:
-    """Get fulcrum's stats, parse the answer and return a particular field defined
-    by the json path.
-    Return None in case of connection error or if the field is not found.
-    """
-    try:
-        json_result = requests.get(FULCRUM_STATS_URL).json()
-    except requests.exceptions.ConnectionError:
-        return None
-
-    jsonpath_expr = path_parse(json_path)
-    expect_element = jsonpath_expr.find(json_result)
-
-    if len(expect_element) > 0:
-        return expect_element[0].value
-    return None
 
 
 def poll_for_answer(
@@ -68,8 +38,8 @@ def poll_for_answer(
 
     while current < start + poll_timeout:
         try:
-            resp = requests.post(url, json=json_req)
-        except requests.exceptions.ConnectionError:
+            resp = requests.post(url, json=json_req, timeout=poll_timeout)
+        except (requests.exceptions.ConnectionError, TimeoutError):
             current = sleep_and_get_time()
             continue
 
@@ -94,26 +64,6 @@ def poll_for_answer(
         current = sleep_and_get_time()
 
     raise TimeoutError("Timed out waiting for an answer")
-
-
-def bitcoind_rpc_connection() -> AuthServiceProxy:
-    """Connects to bitcoind, generates 100 blocks and returns the connection"""
-    global _bitcoind
-    if _bitcoind is not None:
-        return _bitcoind
-    _bitcoind = AuthServiceProxy(BITCOIND_RPC_URL)
-
-    poll_for_answer(BITCOIND_RPC_URL, request("uptime"))
-    block_count = _bitcoind.getblockcount()
-    if block_count < 101:
-        _bitcoind.createwallet("test_wallet")
-        addr = _bitcoind.getnewaddress()
-        _bitcoind.generatetoaddress(101, addr)
-
-    # Let Fulcrum catch up with the indexing
-    wait_until(lambda: get_fulcrum_stat("Controller.TxNum") == 102)
-
-    return _bitcoind
 
 
 # Creates a temp directory on disk for wallet storage
@@ -167,28 +117,6 @@ def stop_ec_daemon(datadir) -> None:
     )
 
 
-@pytest.fixture(scope="session")
-def docker_compose_file(pytestconfig) -> str:
-    """Needed since the docker-compose.yml is not in the root directory"""
-    return os.path.join(
-        str(pytestconfig.rootdir),
-        "electrumabc",
-        "tests",
-        "regtest",
-        "docker-compose.yml",
-    )
-
-
-@pytest.fixture(scope="session")
-def docker_compose_command() -> str:
-    """Use the docker-compose command rather than `docker compose`. This is no longer
-    the default since pytest-docker 2.0.0 was released, so we need to specify it.
-    The docker version installed on CI seems to be too old to be compatible with the
-    way pytest-docker calls the `docker compose` command.
-    """
-    return "docker-compose"
-
-
 def make_tmp_electrum_data_dir() -> str:
     """Create a temporary directory with a regtest subdirectory, and copy the Electrum
     config file into it.
@@ -207,31 +135,6 @@ def make_tmp_electrum_data_dir() -> str:
         os.path.join(datadir, "regtest", "config"),
     )
     return datadir
-
-
-@pytest.fixture(scope="function")
-def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
-    """Makes sure all services (bitcoind, fulcrum and the electrum daemon) are up and
-    running, make a temporary data dir for Electrum ABC, delete it at the end of the
-    test session.
-    """
-    electrum_datadir = make_tmp_electrum_data_dir()
-    bitcoind_rpc_connection()
-
-    # Sanity check that fulcrum is running and responding
-    assert get_fulcrum_stat("Controller.Chain") == "regtest"
-
-    try:
-        start_ec_daemon(electrum_datadir)
-        yield
-        stop_ec_daemon(electrum_datadir)
-    finally:
-        # Remove the data directory, ignore race conditions caused by tmp wallet files
-        # created and deleted in WalletStorage._write while the daemon process is
-        # stopping
-        # See https://github.com/python/cpython/pull/14064
-        with contextlib.suppress(FileNotFoundError):
-            shutil.rmtree(electrum_datadir)
 
 
 def wait_for_len(json_req, expected_len: int, timeout=DEFAULT_TIMEOUT):

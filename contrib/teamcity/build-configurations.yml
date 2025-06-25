@@ -998,11 +998,13 @@ builds:
       - - check-electrum
 
   electrum-functional-tests:
-    script: |
-      "${TOPLEVEL}"/electrum/contrib/make_secp
-      pip3 install -r "${TOPLEVEL}/electrum/contrib/requirements/requirements.txt"
-      pip3 install -r "${TOPLEVEL}/electrum/contrib/requirements/requirements-regtest.txt"
-      pytest "${TOPLEVEL}/electrum/electrumabc/tests/regtest"
+    cmake_flags:
+      - '-DBUILD_CHRONIK=ON'
+    targets:
+      - - check-electrum-functional
+    runOnDiffRegex:
+      - electrum/
+      - chronik/chronik-http/
 
   preview-e.cash:
     docker:
