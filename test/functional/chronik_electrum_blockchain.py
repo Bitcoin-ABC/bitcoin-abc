@@ -1412,6 +1412,24 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.node.unparkblock(tip)
         check_notification([self.client, client2, client3], height, header_hex)
 
+        headers = [(height, header_hex)]
+        for _ in range(3):
+            (height, header_hex) = new_header()
+            headers.append((height, header_hex))
+            check_notification([self.client, client2, client3], height, header_hex)
+
+        # Upon deep reorgs, we still get notified for the tip change (but only
+        # once)
+        self.node.parkblock(tip)
+        check_notification(
+            [self.client, client2, client3], prev_height, prev_header_hex
+        )
+
+        self.node.unparkblock(tip)
+        for _ in range(4):
+            (height, header_hex) = headers.pop(0)
+            check_notification([self.client, client2, client3], height, header_hex)
+
         # Unsubscribe client2
         unsub_message = client2.blockchain.headers.unsubscribe()
         assert_equal(unsub_message.result, True)

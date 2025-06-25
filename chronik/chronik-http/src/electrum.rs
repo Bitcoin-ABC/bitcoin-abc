@@ -1143,7 +1143,10 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     match header_hex_from_height(&blocks, height).await {
                         Err(err) => {
                             log_chronik!("{err}\n");
-                            break;
+                            // Under deep reorg conditions, the header might be
+                            // missing. In this case we simply skip sending it
+                            // so only the actual tip will be sent.
+                            continue;
                         }
                         Ok(header_hex) => {
                             if sub
