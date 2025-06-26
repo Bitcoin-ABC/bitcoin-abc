@@ -18,6 +18,26 @@ KNOWN_FAILURES = [
 ELECTRUM_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+class CustomTestLoader(unittest.TestLoader):
+    """Recursive test loader that skips tests in the regtest subdirectory"""
+
+    def discover(self, start_dir, pattern, top_level_dir=None):
+        suite = super().discover(start_dir, pattern, top_level_dir)
+        return self._filter_suite(suite)
+
+    def _filter_suite(self, suite):
+        if isinstance(suite, unittest.TestSuite):
+            filtered_tests = []
+            for test in suite:
+                if isinstance(test, unittest.TestSuite):
+                    filtered_tests.append(self._filter_suite(test))
+                    continue
+                if "regtest" not in test.__class__.__module__:
+                    filtered_tests.append(test)
+            return unittest.TestSuite(filtered_tests)
+        return suite
+
+
 def test_setup():
     # Exercise the setup.py to find obvious errors
     os.chdir(ELECTRUM_DIR)
@@ -36,7 +56,7 @@ def test_setup():
 
 def run_unit_tests() -> unittest.TestSuite:
     suite = unittest.TestSuite()
-    for all_test_suite in unittest.defaultTestLoader.discover(
+    for all_test_suite in CustomTestLoader().discover(
         ELECTRUM_DIR, pattern="test_*.py"
     ):
         for test_suite in all_test_suite:
