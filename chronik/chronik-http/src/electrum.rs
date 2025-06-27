@@ -7,7 +7,7 @@
 use std::{
     cmp,
     net::{IpAddr, SocketAddr, ToSocketAddrs},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 use abc_rust_error::Result;
@@ -31,6 +31,7 @@ use chronik_util::log_chronik;
 use futures::future;
 use itertools::izip;
 use karyon_jsonrpc::{
+    client::ClientBuilder,
     error::RPCError,
     message,
     net::{Addr, Endpoint},
@@ -40,13 +41,17 @@ use karyon_jsonrpc::{
         ServerBuilder,
     },
 };
-use rustls::pki_types::{
-    pem::PemObject,
-    {CertificateDer, PrivateKeyDer},
+use rustls::{
+    pki_types::{
+        pem::PemObject,
+        {CertificateDer, PrivateKeyDer},
+    },
+    RootCertStore,
 };
 use serde_json::{json, Map, Value};
 use sha2::Digest;
 use thiserror::Error;
+use tokio::sync::Mutex;
 use versions::Versioning;
 
 use crate::{
@@ -89,6 +94,8 @@ pub struct ChronikElectrumServerParams {
     pub max_history: u32,
     /// Server donation address
     pub donation_address: String,
+    /// Peers validation interval in seconds
+    pub peers_validation_interval: u32,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
@@ -103,6 +110,7 @@ pub struct ChronikElectrumServer {
     tls_privkey_path: String,
     max_history: u32,
     donation_address: String,
+    peers_validation_interval: u32,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -173,6 +181,7 @@ impl ChronikElectrumServer {
             tls_privkey_path: params.tls_privkey_path,
             max_history: params.max_history,
             donation_address: params.donation_address,
+            peers_validation_interval: params.peers_validation_interval,
         })
     }
 
@@ -190,6 +199,32 @@ impl ChronikElectrumServer {
             genesis_hash,
             peers: Mutex::new(Vec::new()),
         });
+
+        // Validate peers periodically in the background unless validation is
+        // disabled (i.e. validation interval is set to 0)
+        if self.peers_validation_interval > 0 {
+            let moved_endpoint = server_endpoint.clone();
+            tokio::spawn(async move {
+                let mut interval =
+                    tokio::time::interval(tokio::time::Duration::from_secs(
+                        self.peers_validation_interval as u64,
+                    ));
+
+                loop {
+                    interval.tick().await;
+                    let Ok(_) = moved_endpoint.validate_peers().await else {
+                        // This might fail, in this case we just wait for the
+                        // next interval and retry
+                        continue;
+                    };
+                }
+            });
+        } else {
+            log_chronik!(
+                "Electrum peers validation is disabled, \
+                 server.peers.subscribe will not share any peer\n"
+            );
+        }
 
         let blockchain_endpoint =
             Arc::new(ChronikElectrumRPCBlockchainEndpoint {
@@ -443,6 +478,136 @@ fn get_version() -> String {
     format!("Bitcoin ABC {version_number}")
 }
 
+impl ChronikElectrumRPCServerEndpoint {
+    async fn validate_peers(&self) -> Result<(), RPCError> {
+        let mut peers = self.peers.lock().await;
+
+        let check_protocol_features = async |peer: &ElectrumPeer,
+                                             feature_field: &str,
+                                             scheme: &str,
+                                             expected_port: i64|
+               -> bool {
+            let endpoint =
+                format!("{}://{}:{}", scheme, peer.ip_addr, expected_port);
+            let Ok(client) = (
+                match ClientBuilder::new_with_codec(
+                    endpoint,
+                    ElectrumCodec {},
+                ) {
+                    Ok(client) => {
+                        let client = match scheme {
+                            "tls" => {
+                                let root_store = RootCertStore {
+                                    roots: webpki_roots::TLS_SERVER_ROOTS
+                                        .into(),
+                                };
+                                let tls_config =
+                                    rustls::ClientConfig::builder()
+                                        .with_root_certificates(root_store)
+                                        .with_no_client_auth();
+                                let Ok(client) =
+                                    client.tls_config(
+                                        tls_config,
+                                        &peer.url,
+                                    ) else {
+                                    return false;
+                                };
+                                client
+                            },
+                            _ => client,
+                        };
+                        client.build().await
+                    },
+                    Err(_) => {
+                        return false;
+                    },
+                }
+            ) else {
+                return false;
+            };
+
+            let Ok(features): Result<Value, _> = client
+                .call("server.features", ()).await else {
+                    return false;
+                };
+
+            if !features.get("genesis_hash").is_some_and(|genesis| {
+                genesis
+                    .as_str()
+                    .is_some_and(|genesis| genesis == self.genesis_hash)
+            }) {
+                // The genesis doesn't match, the peer might be on another
+                // chain
+                return false;
+            };
+
+            features.get("hosts").is_some_and(|hosts| {
+                hosts.get(&peer.url).is_some_and(|host| {
+                    host.get(feature_field).is_some_and(|port| {
+                        if !port.is_i64() {
+                            return false;
+                        }
+                        port.as_i64().unwrap() == expected_port
+                    })
+                })
+            })
+        };
+
+        for peer in (*peers).as_mut_slice() {
+            if peer.tcp_port.is_none() && peer.ssl_port.is_none() {
+                // No tcp nor ssl, nothing to validate
+                continue;
+            }
+
+            // Check the ip is within the resolved url ips
+            let mut ip_found = false;
+            if let Ok(addrs) = format!("{}:0", peer.url).to_socket_addrs() {
+                for addr in addrs {
+                    ip_found |= addr.ip() == peer.ip_addr;
+                }
+            }
+            if !ip_found {
+                continue;
+            }
+
+            // Validate the tcp port is reachable and advertised properly
+            if let Some(port) = peer.tcp_port {
+                if !check_protocol_features(
+                    peer,
+                    "tcp_port",
+                    "tcp",
+                    port as i64,
+                )
+                .await
+                {
+                    peer.validated = false;
+                    continue;
+                }
+            }
+
+            // Repeat with the ssl port
+            if let Some(port) = peer.ssl_port {
+                if !check_protocol_features(
+                    peer,
+                    "ssl_port",
+                    "tls",
+                    port as i64,
+                )
+                .await
+                {
+                    peer.validated = false;
+                    continue;
+                }
+            }
+
+            // Everything was correct, validate the peer
+            peer.validated = true;
+        }
+
+        Ok(())
+    }
+}
+
 #[rpc_impl(name = "server")]
 impl ChronikElectrumRPCServerEndpoint {
     async fn donation_address(&self, params: Value) -> Result<Value, RPCError> {
@@ -541,8 +706,7 @@ impl ChronikElectrumRPCServerEndpoint {
     }
 
     async fn add_peer(&self, params: Value) -> Result<Value, RPCError> {
-        let mut peers =
-            self.peers.lock().map_err(|_| RPCError::InternalError)?;
+        let mut peers = self.peers.lock().await;
 
         // Limit the number of peers we can store. If the peers list is full
         // already, bail early
@@ -656,7 +820,7 @@ impl ChronikElectrumRPCServerEndpoint {
     // must send no notifications.
     #[rpc_method(name = "peers.subscribe")]
     async fn peers_subscribe(&self, _params: Value) -> Result<Value, RPCError> {
-        let peers = self.peers.lock().map_err(|_| RPCError::InternalError)?;
+        let peers = self.peers.lock().await;
 
         let mut peers_data = Vec::new();
         for peer in &*peers {

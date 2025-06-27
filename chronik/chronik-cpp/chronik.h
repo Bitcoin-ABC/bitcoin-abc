@@ -5,6 +5,7 @@
 #ifndef BITCOIN_CHRONIK_CPP_CHRONIK_H
 #define BITCOIN_CHRONIK_CPP_CHRONIK_H
 
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,8 @@ static const size_t DEFAULT_TX_NUM_CACHE_BUCKET_SIZE = 100'000;
 static const uint32_t DEFAULT_ELECTRUM_MAX_HISTORY{200'000};
 
 static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
+
+static constexpr auto DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL{10min};
 
 // Registers Chronik indexer as ValidationInterface, listens to HTTP queries
 bool Start(const ArgsManager &args, const Config &config,

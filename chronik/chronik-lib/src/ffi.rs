@@ -59,6 +59,8 @@ mod ffi_inner {
         pub electrum_max_history: u32,
         /// Donation address for public Electrum servers.
         pub electrum_donation_address: String,
+        /// Time interval between Electrum peers validation
+        pub electrum_peers_validation_interval: u32,
     }
 
     /// Settings for tuning the TxNumCache.

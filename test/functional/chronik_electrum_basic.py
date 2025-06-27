@@ -16,14 +16,22 @@ ELECTRUM_PROTOCOL_VERSION = "1.4"
 class ChronikElectrumBasic(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 1
-        self.chronik_url = "electrum.regtest"
+        self.num_nodes = 2
+        self.chronik_url = "localhost"
+        self.tcp_port = [chronikelectrum_port(i) for i in range(2)]
         self.extra_args = [
             [
                 "-chronik",
-                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                f"-chronikelectrumbind=127.0.0.1:{self.tcp_port[0]}:t",
                 f"-chronikelectrumurl={self.chronik_url}",
-            ]
+                # Validate the peers as fast as possible for the test
+                "-chronikelectrumpeersvalidationinterval=1",
+            ],
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{self.tcp_port[1]}:t",
+                "-chronikelectrumpeersvalidationinterval=1",
+            ],
         ]
 
     def skip_test_if_missing_module(self):
@@ -149,8 +157,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             "pruning": 1000,
             "hosts": {
                 "localhost": {
-                    "tcp_port": 50001,
-                    "ssl_port": 50002,
+                    "tcp_port": self.tcp_port[0],
                 },
             },
             "dsproof": False,
@@ -161,25 +168,19 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             True,
         )
 
-        # Expected result after the peer validation is implemented:
-        # assert_equal(
-        #     self.client.server.peers.subscribe().result,
-        #     [
-        #         [
-        #             "127.0.0.1",
-        #             "localhost",
-        #             [
-        #                 "v1.4.5",
-        #                 "p1000",
-        #                 "t50001",
-        #                 "s50002",
-        #             ],
-        #         ],
-        #     ],
-        # )
-        assert_equal(
-            self.client.server.peers.subscribe().result,
-            [],
+        self.wait_until(
+            lambda: self.client.server.peers.subscribe().result
+            == [
+                [
+                    "127.0.0.1",
+                    "localhost",
+                    [
+                        "v1.4.5",
+                        "p1000",
+                        f"t{self.tcp_port[0]}",
+                    ],
+                ],
+            ],
         )
 
         # Re-submitting is forbidden
@@ -188,7 +189,8 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             False,
         )
 
-        # All optional fields are absent, use an ip address as the host
+        # All optional fields are absent but the tcp port,
+        # use an ip address as the host
         features = {
             "genesis_hash": GENESIS_BLOCK_HASH,
             "hash_function": "sha256",
@@ -196,7 +198,9 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             "protocol_min": "1.4",
             "protocol_max": "1.4.5",
             "hosts": {
-                "127.0.0.1": {},
+                "127.0.0.1": {
+                    "tcp_port": self.tcp_port[1],
+                },
             },
             "dsproof": False,
         }
@@ -204,32 +208,27 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             self.client.server.add_peer(features).result,
             True,
         )
-        # Expected result after the peer validation is implemented:
-        # assert_equal(
-        #     self.client.server.peers.subscribe().result,
-        #     [
-        #         [
-        #             "127.0.0.1",
-        #             "localhost",
-        #             [
-        #                 "v1.4.5",
-        #                 "p1000",
-        #                 "t50001",
-        #                 "s50002",
-        #             ],
-        #         ],
-        #         [
-        #             "127.0.0.1",
-        #             "127.0.0.1",
-        #             [
-        #                 "v1.4.5",
-        #             ],
-        #         ],
-        #     ],
-        # )
-        assert_equal(
-            self.client.server.peers.subscribe().result,
-            [],
+        self.wait_until(
+            lambda: self.client.server.peers.subscribe().result
+            == [
+                [
+                    "127.0.0.1",
+                    "localhost",
+                    [
+                        "v1.4.5",
+                        "p1000",
+                        f"t{self.tcp_port[0]}",
+                    ],
+                ],
+                [
+                    "127.0.0.1",
+                    "127.0.0.1",
+                    [
+                        "v1.4.5",
+                        f"t{self.tcp_port[1]}",
+                    ],
+                ],
+            ],
         )
 
         # No host
@@ -262,6 +261,19 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             self.client.server.add_peer(features).result,
             False,
         )
+
+        # Check we can disable peer validation
+        self.stop_node(1)
+        with self.nodes[1].assert_debug_log(
+            [
+                "Electrum peers validation is disabled, server.peers.subscribe will not share any peer"
+            ]
+        ):
+            self.start_node(
+                1,
+                extra_args=self.extra_args[1]
+                + ["-chronikelectrumpeersvalidationinterval=0"],
+            )
 
     def test_server_features(self):
         version = f"{self.config['environment']['PACKAGE_NAME']} {get_cli_version(self, self.node)}"
@@ -342,6 +354,26 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             ],
             "Error: Chronik Electrum TLS configuration failed to open the certificate chain file dummy",
             match=ErrorMatch.PARTIAL_REGEX,
+        )
+
+        # The peers validation interval must be within range
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                "-chronikelectrumpeersvalidationinterval=-1",
+            ],
+            "Error: The -chronikelectrumpeersvalidationinterval value should be "
+            "within the range [1, 4294967295]",
+        )
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                "-chronikelectrumpeersvalidationinterval=4294967296",
+            ],
+            "Error: The -chronikelectrumpeersvalidationinterval value should be "
+            "within the range [1, 4294967295]",
         )
 
         self.start_node(0, self.extra_args[0])

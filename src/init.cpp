@@ -784,6 +784,20 @@ void SetupServerArgs(NodeContext &node) {
             chronik::MAX_LENGTH_DONATION_ADDRESS),
         ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
         OptionsCategory::HIDDEN);
+    argsman.AddArg(
+        "-chronikelectrumpeersvalidationinterval",
+        strprintf(
+            "The peers submitted via the Chronik Electrum server.add_peer "
+            "endpoint are periodically checked for validity and are only "
+            "returned after they passed the validation. This option controls "
+            "the interval duration between successive peers validation "
+            "processes in seconds (default: %u). Setting this value to 0 "
+            "disables the peer validation completely.",
+            std::chrono::duration_cast<std::chrono::seconds>(
+                chronik::DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL)
+                .count()),
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::HIDDEN);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

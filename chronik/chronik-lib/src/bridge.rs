@@ -192,6 +192,8 @@ fn try_setup_chronik(
                 tls_privkey_path: params.electrum_privkey_path,
                 max_history: params.electrum_max_history,
                 donation_address: params.electrum_donation_address,
+                peers_validation_interval: params
+                    .electrum_peers_validation_interval,
             })?;
         runtime.spawn({
             let node = Arc::clone(&node);

@@ -79,6 +79,9 @@ tower-service = "0.3"
 # Semantic version string parser
 versions = "6.2"
 
+# Root certificates for use with rustls
+webpki-roots = "1.0.1"
+
 # Async runtime
 [dependencies.tokio]
 version = "1.25"

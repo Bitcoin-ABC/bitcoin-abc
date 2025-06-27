@@ -96,6 +96,20 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                    .c_str())}};
     }
 
+    const int64_t electrum_peers_validation_interval =
+        args.GetIntArg("-chronikelectrumpeersvalidationinterval",
+                       std::chrono::duration_cast<std::chrono::seconds>(
+                           chronik::DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL)
+                           .count());
+    if (electrum_peers_validation_interval < 0 ||
+        electrum_peers_validation_interval >
+            std::numeric_limits<uint32_t>::max()) {
+        return {{_(strprintf("The -chronikelectrumpeersvalidationinterval "
+                             "value should be within the range [1, %d]",
+                             std::numeric_limits<uint32_t>::max())
+                       .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.GetChainType()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -132,6 +146,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .electrum_max_history = static_cast<uint32_t>(electrum_max_history),
         .electrum_donation_address =
             args.GetArg("-chronikelectrumdonationaddress", ""),
+        .electrum_peers_validation_interval =
+            static_cast<uint32_t>(electrum_peers_validation_interval),
     }};
 }
 
