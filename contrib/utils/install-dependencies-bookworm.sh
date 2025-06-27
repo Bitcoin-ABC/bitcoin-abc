@@ -104,7 +104,9 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}"
 mkdir -p /opt
 pushd /opt
 # Pinpoint the version to the latest tag at the time of writing
-git clone --depth 1 --branch 2024.19 https://we.phorge.it/source/arcanist.git
+# We use the github mirror for now:
+# https://we.phorge.it/phame/post/view/8/anonymous_cloning_disabled_on_phorge.it/
+git clone --depth 1 --branch 2024.19 https://github.com/phorgeit/arcanist.git
 git config --system --add safe.directory /opt/arcanist
 echo "export PATH=\"/opt/arcanist/bin:\$PATH\"" >> ~/.bashrc
 popd
