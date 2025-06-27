@@ -81,7 +81,7 @@ Before the integration of Chronik into the node, it was available as a standalon
 - You can read about the reasoning behind this indexer in [this article by Mengerian](https://mengerian.medium.com/why-i-am-excited-about-the-ecash-chronik-project-1401b945eb21).
 
 ## Telegram
-You can also join the Chronik Work Group on Telegram if you have issues, contact Tobias Ruck to add you.
+You can join the [eCash Node Support Telegram group](https://t.me/eCashNode) if you have questions or need help.
 
 ## Known limitations
 
