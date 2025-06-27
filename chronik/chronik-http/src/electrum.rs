@@ -519,7 +519,7 @@ impl ChronikElectrumRPCServerEndpoint {
                 }
                 ChronikElectrumProtocol::Tls => {
                     protocol_ports
-                        .insert("tls_port".to_owned(), host.port().into());
+                        .insert("ssl_port".to_owned(), host.port().into());
                 }
             };
         }
