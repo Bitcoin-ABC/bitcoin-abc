@@ -12,6 +12,7 @@ import DigitalPaymentLandscape from "./components/DigitalPaymentLandscape";
 import PoweringPayments from "./components/PoweringPayments";
 import BentoGrid from "./components/BentoGrid";
 import AvalancheEnhanced from "./components/AvalancheEnhanced";
+import Developers from "./components/Developers";
 
 export default function Home() {
   type HeroBoxProps = {
@@ -144,6 +145,7 @@ export default function Home() {
       <PoweringPayments />
       <BentoGrid />
       <AvalancheEnhanced />
+      <Developers />
     </main>
   );
 }

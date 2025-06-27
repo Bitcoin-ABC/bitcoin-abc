@@ -73,7 +73,7 @@ export default function AvalancheEnhanced() {
   };
 
   return (
-    <ContentContainer className="mb-50 pb-30 max-w-[1200px] rounded-[44px] bg-zinc-950/40 pt-10">
+    <ContentContainer className="pb-30 z-30 max-w-[1200px] rounded-[44px] bg-zinc-950 pt-10">
       <div className="flex flex-col text-center">
         <div className="relative m-auto mb-[-20px] h-[150px] w-[150px] lg:mb-[-40px] lg:h-[220px] lg:w-[220px]">
           <Image

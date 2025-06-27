@@ -7,6 +7,7 @@
   --accentDark: #224da8;
   --primaryText: #ffffff;
   --secondaryText: #cccccc;
+  --borderLight: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
@@ -16,6 +17,7 @@
   --color-accentDark: var(--accentDark);
   --color-primaryText: var(--primaryText);
   --color-secondaryText: var(--secondaryText);
+  --color-borderLight: var(--borderLight);
   --font-space-grotesk: "Space Grotesk", sans-serif;
   --font-fira-code: "Fira Code", sans-serif;
 }
@@ -28,6 +30,7 @@ body {
 
 p {
   color: var(--secondaryText);
+  font-weight: 300;
 }
 
 /* The tailwinds backdrop-blur class was acting up. Utilizing a custom class 
@@ -170,6 +173,7 @@ h2 {
 @media (pointer: fine) {
   .scrollx-container::-webkit-scrollbar {
     height: 4px;
+    width: 1px;
   }
 
   .scrollx-container::-webkit-scrollbar-track {
@@ -180,6 +184,25 @@ h2 {
     border-radius: 10px;
     background-color: var(--accentMedium);
   }
+}
+
+.react-syntax-highlighter,
+.react-syntax-highlighter code,
+.react-syntax-highlighter span {
+  background: transparent !important;
+}
+.react-syntax-highlighter::-webkit-scrollbar {
+  height: 2px;
+  width: 2px;
+}
+
+.react-syntax-highlighter::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.react-syntax-highlighter::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: var(--borderLight);
 }
 
 @media (max-width: 1024px) {
