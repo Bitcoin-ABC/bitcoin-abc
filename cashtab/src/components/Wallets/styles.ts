@@ -86,3 +86,60 @@ export const ActivateButton = styled.button`
         color: ${props => props.theme.primaryText};
     }
 `;
+
+export const AddressShareModal = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+
+export const WalletAddressRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background-color: ${props => props.theme.secondaryBackground};
+    border-radius: 9px;
+    gap: 12px;
+`;
+
+export const WalletInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+`;
+
+export const WalletNameText = styled.div`
+    font-weight: bold;
+    color: ${props => props.theme.primaryText};
+    margin-bottom: 4px;
+`;
+
+export const WalletAddress = styled.div`
+    font-family: monospace;
+    font-size: 14px;
+    color: ${props => props.theme.secondaryText};
+    word-break: break-all;
+`;
+
+export const CopyButton = styled.button`
+    background: ${props => props.theme.accent};
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: ${props => props.theme.primaryText};
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: ${props => props.theme.secondaryAccent};
+    }
+`;
+
+export const ActiveIndicator = styled.span`
+    color: ${props => props.theme.accent};
+    margin-left: 4px;
+`;

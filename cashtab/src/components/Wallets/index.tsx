@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import {
     TrashcanIcon,
@@ -30,6 +30,13 @@ import {
     SvgButtonPanel,
     WalletBalance,
     ActivateButton,
+    AddressShareModal,
+    WalletAddressRow,
+    WalletInfo,
+    WalletNameText,
+    WalletAddress,
+    CopyButton,
+    ActiveIndicator,
 } from 'components/Wallets/styles';
 import { getWalletNameError, validateMnemonic } from 'validation';
 import {
@@ -93,6 +100,37 @@ const Wallets = () => {
         useState<null | CashtabWallet>(null);
     const [showImportWalletModal, setShowImportWalletModal] =
         useState<boolean>(false);
+    const [showAddressShareModal, setShowAddressShareModal] =
+        useState<boolean>(false);
+
+    // Check for address sharing URL parameter on component mount
+    useEffect(() => {
+        if (
+            !window.location ||
+            !window.location.hash ||
+            window.location.hash === '#/wallets'
+        ) {
+            return;
+        }
+
+        try {
+            const windowHash = window.location.hash;
+            const queryStringArray = windowHash.split('#/wallets?');
+            if (queryStringArray.length < 2) {
+                return;
+            }
+            const queryString = queryStringArray[1];
+            const queryStringParams = new URLSearchParams(queryString);
+            const shareAddresses = queryStringParams.get('shareAddresses');
+
+            if (shareAddresses === 'true') {
+                setShowAddressShareModal(true);
+            }
+        } catch {
+            // If you can't parse this, forget about it
+            return;
+        }
+    }, []);
 
     /**
      * Update formData with user input
@@ -335,6 +373,30 @@ const Wallets = () => {
         }
     };
 
+    /**
+     * Copy wallet address and close tab
+     */
+    const copyWalletAddress = async (address: string, _walletName: string) => {
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(address);
+        }
+        toast.success(`"${address}" copied to clipboard`);
+
+        // Close the tab after copying - this works when the tab was opened by JavaScript
+        window.close();
+    };
+
+    /**
+     * Get abbreviated address for display
+     */
+    const getAbbreviatedAddress = (address: string) => {
+        const addressParts = address.split(':');
+        const unprefixedAddress = addressParts[addressParts.length - 1];
+        return `${unprefixedAddress.slice(0, 5)}...${unprefixedAddress.slice(
+            -5,
+        )}`;
+    };
+
     const activateWallet = (
         walletToActivate: CashtabWallet,
         wallets: CashtabWallet[],
@@ -433,6 +495,47 @@ const Wallets = () => {
                         error={formDataErrors.mnemonic}
                         handleInput={handleInput}
                     />
+                </Modal>
+            )}
+            {showAddressShareModal && (
+                <Modal
+                    height={400}
+                    title="Share Wallet Address"
+                    handleCancel={() => setShowAddressShareModal(false)}
+                    showCancelButton
+                    showButtons={false}
+                >
+                    <AddressShareModal>
+                        {wallets.map((wallet, index) => (
+                            <WalletAddressRow key={`${wallet.name}_${index}`}>
+                                <WalletInfo>
+                                    <WalletNameText>
+                                        {wallet.name}
+                                        {index === 0 && (
+                                            <ActiveIndicator>
+                                                [active]
+                                            </ActiveIndicator>
+                                        )}
+                                    </WalletNameText>
+                                    <WalletAddress>
+                                        {getAbbreviatedAddress(
+                                            wallet.paths.get(1899).address,
+                                        )}
+                                    </WalletAddress>
+                                </WalletInfo>
+                                <CopyButton
+                                    onClick={() =>
+                                        copyWalletAddress(
+                                            wallet.paths.get(1899).address,
+                                            wallet.name,
+                                        )
+                                    }
+                                >
+                                    Copy
+                                </CopyButton>
+                            </WalletAddressRow>
+                        ))}
+                    </AddressShareModal>
                 </Modal>
             )}
             <WalletsList title="Wallets">
