@@ -4,6 +4,9 @@
 """
 Test Chronik's electrum interface
 """
+import json
+
+import websocket
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import GENESIS_BLOCK_HASH
 from test_framework.test_framework import BitcoinTestFramework
@@ -16,21 +19,26 @@ ELECTRUM_PROTOCOL_VERSION = "1.4"
 class ChronikElectrumBasic(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 2
+        self.num_nodes = 3
         self.chronik_url = "localhost"
-        self.tcp_port = [chronikelectrum_port(i) for i in range(2)]
+        self.chronik_port = [chronikelectrum_port(i) for i in range(self.num_nodes)]
         self.extra_args = [
             [
                 "-chronik",
-                f"-chronikelectrumbind=127.0.0.1:{self.tcp_port[0]}:t",
+                f"-chronikelectrumbind=127.0.0.1:{self.chronik_port[0]}:t",
                 f"-chronikelectrumurl={self.chronik_url}",
                 # Validate the peers as fast as possible for the test
                 "-chronikelectrumpeersvalidationinterval=1",
             ],
             [
                 "-chronik",
-                f"-chronikelectrumbind=127.0.0.1:{self.tcp_port[1]}:t",
+                f"-chronikelectrumbind=127.0.0.1:{self.chronik_port[1]}:t",
                 "-chronikelectrumpeersvalidationinterval=1",
+            ],
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{self.chronik_port[2]}:w",
+                f"-chronikelectrumurl={self.chronik_url}",
             ],
         ]
 
@@ -47,6 +55,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.test_server_peers()
         self.test_server_features()
         self.test_server_banner()
+        self.test_ws()
         # Run this last as it invalidates self.client
         self.test_init_errors()
 
@@ -157,7 +166,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             "pruning": 1000,
             "hosts": {
                 "localhost": {
-                    "tcp_port": self.tcp_port[0],
+                    "tcp_port": self.chronik_port[0],
                 },
             },
             "dsproof": False,
@@ -177,7 +186,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                     [
                         "v1.4.5",
                         "p1000",
-                        f"t{self.tcp_port[0]}",
+                        f"t{self.chronik_port[0]}",
                     ],
                 ],
             ],
@@ -199,7 +208,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             "protocol_max": "1.4.5",
             "hosts": {
                 "127.0.0.1": {
-                    "tcp_port": self.tcp_port[1],
+                    "tcp_port": self.chronik_port[1],
                 },
             },
             "dsproof": False,
@@ -217,7 +226,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                     [
                         "v1.4.5",
                         "p1000",
-                        f"t{self.tcp_port[0]}",
+                        f"t{self.chronik_port[0]}",
                     ],
                 ],
                 [
@@ -225,7 +234,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                     "127.0.0.1",
                     [
                         "v1.4.5",
-                        f"t{self.tcp_port[1]}",
+                        f"t{self.chronik_port[1]}",
                     ],
                 ],
             ],
@@ -301,6 +310,44 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             self.client.server.banner().result,
             f"Connected to {version} server",
         )
+
+    def test_ws(self):
+        self.log.info("Test the websocket transport")
+
+        features_request = {
+            "jsonrpc": "2.0",
+            "method": "server.features",
+            "params": [],
+            "id": 42,
+        }
+
+        ws = websocket.WebSocket()
+        ws.connect(f"ws://127.0.0.1:{self.chronik_port[2]}", timeout=60)
+        ws.send(json.dumps(features_request))
+
+        features_reponse = json.loads(ws.recv())
+
+        assert_equal(features_reponse["id"], 42)
+        version = f"{self.config['environment']['PACKAGE_NAME']} {get_cli_version(self, self.node)}"
+        assert_equal(
+            features_reponse["result"],
+            {
+                "genesis_hash": GENESIS_BLOCK_HASH,
+                "hash_function": "sha256",
+                "server_version": version,
+                "protocol_min": "1.4",
+                "protocol_max": "1.4.5",
+                "pruning": None,
+                "hosts": {
+                    self.chronik_url: {
+                        "ws_port": self.chronik_port[2],
+                    },
+                },
+                "dsproof": False,
+            },
+        )
+
+        ws.close()
 
     def test_init_errors(self):
         self.node.stop_node()

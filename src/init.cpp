@@ -726,16 +726,17 @@ void SetupServerArgs(NodeContext &node) {
                    "(default: 1 if chronikelectrumbind is set, 0 otherwise) ",
                    ArgsManager::ALLOW_ANY, OptionsCategory::CHRONIK);
     argsman.AddArg(
-        "-chronikelectrumbind=<addr>[:port][:t|s]",
+        "-chronikelectrumbind=<addr>[:port][:t|s|w|y]",
         strprintf(
             "Bind the Chronik Electrum interface to the given "
             "address:port:protocol. If not set, the Electrum interface will "
             "not start. This option can be specified multiple times. The "
-            "protocol is selected by a single letter, where 't' means TCP and "
-            "'s' means TLS. If TLS is selected, the certificate chain and "
-            "private key must both be passed (see -chronikelectrumcert and "
-            "-chronikelectrumprivkey (default: disabled; default port: %u, "
-            "testnet: %u, regtest: %u; default protocol: TLS)",
+            "protocol is selected by a single letter, where 't' means TCP, 's' "
+            "means TLS, 'w' means WS and 'y' means WSS. If TLS and/or WSS is "
+            "selected, the certificate chain and private key must both be "
+            "passed (see -chronikelectrumcert and -chronikelectrumprivkey "
+            "(default: disabled; default port: %u, testnet: %u, regtest: %u; "
+            "default protocol: TLS)",
             defaultBaseParams->ChronikElectrumPort(),
             testnetBaseParams->ChronikElectrumPort(),
             regtestBaseParams->ChronikElectrumPort()),

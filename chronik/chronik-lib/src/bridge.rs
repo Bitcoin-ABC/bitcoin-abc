@@ -250,6 +250,8 @@ fn parse_socket_addr_protocol(
     let protocol = match protocol_letter {
         b't' => ChronikElectrumProtocol::Tcp,
         b's' => ChronikElectrumProtocol::Tls,
+        b'w' => ChronikElectrumProtocol::Ws,
+        b'y' => ChronikElectrumProtocol::Wss,
         _ => {
             return Err(
                 InvalidChronikElectrumHostProtocol(protocol_letter).into()

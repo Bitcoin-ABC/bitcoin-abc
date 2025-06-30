@@ -28,6 +28,9 @@ chronik-util = { path = "../chronik-util" }
 # Allow traits to use async functions
 async-trait = "0.1"
 
+# Async websocket library
+async-tungstenite = "0.29.1"
+
 # HTTP webapps
 axum = { version = "0.7", features = ["ws"] }
 
@@ -53,7 +56,7 @@ hyper = "1.1"
 itertools = "0.13.0"
 
 # JSON RPC network library
-karyon_jsonrpc = { version = "0.3.4", default-features = false, features = ["tokio", "tcp", "tls"] }
+karyon_jsonrpc = { version = "0.3.4", default-features = false, features = ["tokio", "tcp", "tls", "ws"] }
 
 # Protobuf en-/decoding
 prost = "0.11"

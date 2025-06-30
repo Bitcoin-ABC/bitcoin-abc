@@ -729,6 +729,7 @@ dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
  "async-trait",
+ "async-tungstenite",
  "axum 0.7.9",
  "bitcoinsuite-core 0.1.0",
  "bitcoinsuite-slp",

@@ -71,6 +71,10 @@ pub enum ChronikElectrumProtocol {
     Tcp,
     /// TLS
     Tls,
+    /// WS
+    Ws,
+    /// WSS
+    Wss,
 }
 
 /// Params defining what and where to serve for [`ChronikElectrumServer`].
@@ -269,6 +273,13 @@ impl ChronikElectrumServer {
                         ChronikElectrumProtocol::Tls => {
                             require_tls_config = true;
                             Endpoint::Tls(Addr::Ip(host.ip()), host.port())
+                        }
+                        ChronikElectrumProtocol::Ws => {
+                            Endpoint::Ws(Addr::Ip(host.ip()), host.port())
+                        }
+                        ChronikElectrumProtocol::Wss => {
+                            require_tls_config = true;
+                            Endpoint::Wss(Addr::Ip(host.ip()), host.port())
                         }
                     };
 
@@ -685,6 +696,14 @@ impl ChronikElectrumRPCServerEndpoint {
                 ChronikElectrumProtocol::Tls => {
                     protocol_ports
                         .insert("ssl_port".to_owned(), host.port().into());
+                }
+                ChronikElectrumProtocol::Ws => {
+                    protocol_ports
+                        .insert("ws_port".to_owned(), host.port().into());
+                }
+                ChronikElectrumProtocol::Wss => {
+                    protocol_ports
+                        .insert("wss_port".to_owned(), host.port().into());
                 }
             };
         }

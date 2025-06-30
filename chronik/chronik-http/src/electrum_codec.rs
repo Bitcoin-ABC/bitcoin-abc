@@ -2,8 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+use async_tungstenite::tungstenite::Message;
 use karyon_jsonrpc::{
-    codec::{ByteBuffer, Codec, Decoder, Encoder},
+    codec::{
+        ByteBuffer, Codec, Decoder, Encoder, WebSocketCodec, WebSocketDecoder,
+        WebSocketEncoder,
+    },
     error::{Error, Result},
 };
 
@@ -56,5 +60,48 @@ impl Decoder for ElectrumCodec {
         };
 
         Ok(Some((iter.byte_offset(), item)))
+    }
+}
+
+impl WebSocketCodec for ElectrumCodec {
+    type Error = Error;
+    type Message = serde_json::Value;
+}
+
+impl WebSocketEncoder for ElectrumCodec {
+    type EnError = Error;
+    type EnMessage = serde_json::Value;
+
+    fn encode(&self, src: &Self::EnMessage) -> Result<Message> {
+        let msg = match serde_json::to_string(src) {
+            Ok(m) => m,
+            Err(err) => return Err(Error::Encode(err.to_string())),
+        };
+        Ok(Message::Text(msg.into()))
+    }
+}
+
+impl WebSocketDecoder for ElectrumCodec {
+    type DeError = Error;
+    type DeMessage = serde_json::Value;
+
+    fn decode(&self, src: &Message) -> Result<Option<Self::DeMessage>> {
+        match src {
+            Message::Text(s) => match serde_json::from_str(s) {
+                Ok(m) => Ok(Some(m)),
+                Err(err) => Err(Error::Decode(err.to_string())),
+            },
+            Message::Binary(s) => match serde_json::from_slice(s) {
+                Ok(m) => Ok(m),
+                Err(err) => Err(Error::Decode(err.to_string())),
+            },
+            Message::Close(_) => {
+                Err(Error::IO(std::io::ErrorKind::ConnectionAborted.into()))
+            }
+            m => Err(Error::Decode(format!(
+                "Receive unexpected websocket message: {:?}",
+                m
+            ))),
+        }
     }
 }
