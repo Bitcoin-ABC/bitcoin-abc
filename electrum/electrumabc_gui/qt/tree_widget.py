@@ -71,7 +71,8 @@ class TreeSortingMixin:
                 and all(isinstance(i, int) for i in default)
             ):
                 self.tree_view.setSortingEnabled(True)
-                self.tree_view.sortByColumn(default[0], default[1])
+                order = Qt.AscendingOrder if default[1] == 0 else Qt.DescendingOrder
+                self.tree_view.sortByColumn(default[0], order)
             if self.storage:
                 # Paranoia; hold a weak reference just in case subclass code
                 # does unusual things.

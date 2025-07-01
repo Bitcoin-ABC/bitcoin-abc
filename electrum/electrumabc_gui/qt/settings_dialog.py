@@ -5,6 +5,7 @@ import sys
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Optional, Tuple
 
+import qtpy
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QIcon
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
 
 from . import exception_window
 from .amountedit import XECSatsByteEdit
+from .qrreader.camera_dialog import get_camera_path
 from .util import Buttons, CloseButton, ColorScheme, HelpLabel, WindowModalDialog
 
 
@@ -787,11 +789,16 @@ class SettingsDialog(WindowModalDialog):
             return
         self.qr_did_scan = True
         try:
-            from qtpy.QtMultimedia import QCameraInfo
+            if qtpy.QT5:
+                from qtpy.QtMultimedia import QCameraInfo
+            else:
+                from qtpy.QtMultimedia import QMediaDevices
         except ImportError as e:
             self.set_no_camera(e)
             return
-        system_cameras = QCameraInfo.availableCameras()
+        system_cameras = (
+            QCameraInfo.availableCameras() if qtpy.QT5 else QMediaDevices.videoInputs()
+        )
         self.qr_combo.clear()
         self.qr_combo.addItem(_("Default"), "default")
         self.qr_label.setText(_("Video device") + ":")
@@ -799,7 +806,7 @@ class SettingsDialog(WindowModalDialog):
         self.qr_combo.setToolTip(self.qr_label.help_text)
         self.qr_label.setToolTip(self.qr_label.help_text)
         for cam in system_cameras:
-            self.qr_combo.addItem(cam.description(), cam.deviceName())
+            self.qr_combo.addItem(cam.description(), get_camera_path(cam))
         video_device = self.config.get("video_device")
         video_device_index = 0
         if video_device:

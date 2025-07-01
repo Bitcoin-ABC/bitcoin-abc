@@ -25,20 +25,32 @@
 
 from typing import List, Optional
 
+import qtpy
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtGui import QImage
-from qtpy.QtMultimedia import (
-    QAbstractVideoBuffer,
-    QAbstractVideoSurface,
-    QVideoFrame,
-    QVideoSurfaceFormat,
-)
 
+if qtpy.QT5:
+    from qtpy.QtMultimedia import (
+        QAbstractVideoBuffer,
+        QAbstractVideoSurface,
+        QVideoFrame,
+        QVideoSurfaceFormat,
+    )
+
+    ParentClass = QAbstractVideoSurface
+else:
+    from qtpy.QtMultimedia import (
+        QVideoFrame,
+        QVideoFrameFormat,
+        QVideoSink,
+    )
+
+    ParentClass = QVideoSink
 from electrumabc.i18n import _
 from electrumabc.printerror import print_error
 
 
-class QrReaderVideoSurface(QAbstractVideoSurface):
+class QrReaderVideoSurface(ParentClass):
     """
     Receives QVideoFrames from QCamera, converts them into a QImage, flips the X and Y axis if
     necessary and sends them to listeners via the frame_available event.
@@ -46,57 +58,107 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
 
     def __init__(self, parent: Optional[QObject] = None):
         super().__init__(parent)
+        if qtpy.QT6:
+            self.videoFrameChanged.connect(self._on_new_frame)
 
-    def present(self, frame: QVideoFrame) -> bool:
-        if not frame.isValid():
-            return False
+    if qtpy.QT5:
 
-        image_format = QVideoFrame.imageFormatFromPixelFormat(frame.pixelFormat())
-        if image_format == QVideoFrame.Format_Invalid:
-            print_error(_("QR code scanner for video frame with invalid pixel format"))
-            return False
+        def present(self, frame: QVideoFrame) -> bool:
+            if not frame.isValid():
+                return False
 
-        if not frame.map(QAbstractVideoBuffer.ReadOnly):
-            print_error(_("QR code scanner failed to map video frame"))
-            return False
+            image_format = QVideoFrame.imageFormatFromPixelFormat(frame.pixelFormat())
+            if image_format == QVideoFrame.Format_Invalid:
+                print_error(
+                    _("QR code scanner for video frame with invalid pixel format")
+                )
+                return False
 
-        try:
-            img = QImage(frame.bits(), frame.width(), frame.height(), image_format)
+            if not frame.map(QAbstractVideoBuffer.ReadOnly):
+                print_error(_("QR code scanner failed to map video frame"))
+                return False
 
-            # Check whether we need to flip the image on any axis
-            surface_format = self.surfaceFormat()
-            flip_x = surface_format.isMirrored()
-            flip_y = (
-                surface_format.scanLineDirection() == QVideoSurfaceFormat.BottomToTop
+            try:
+                img = QImage(frame.bits(), frame.width(), frame.height(), image_format)
+
+                # Check whether we need to flip the image on any axis
+                surface_format = self.surfaceFormat()
+                flip_x = surface_format.isMirrored()
+                flip_y = (
+                    surface_format.scanLineDirection()
+                    == QVideoSurfaceFormat.BottomToTop
+                )
+
+                # Mirror the image if needed
+                if flip_x or flip_y:
+                    img = img.mirrored(flip_x, flip_y)
+
+                # Create a copy of the image so the original frame data can be freed
+                img = img.copy()
+            finally:
+                frame.unmap()
+
+            self.frame_available.emit(img)
+
+            return True
+
+        def supportedPixelFormats(
+            self, handle_type: QAbstractVideoBuffer.HandleType
+        ) -> List[QVideoFrame.PixelFormat]:
+            if handle_type == QAbstractVideoBuffer.NoHandle:
+                # We support all pixel formats that can be understood by QImage directly
+                return [
+                    QVideoFrame.Format_ARGB32,
+                    QVideoFrame.Format_ARGB32_Premultiplied,
+                    QVideoFrame.Format_RGB32,
+                    QVideoFrame.Format_RGB24,
+                    QVideoFrame.Format_RGB565,
+                    QVideoFrame.Format_RGB555,
+                    QVideoFrame.Format_ARGB8565_Premultiplied,
+                ]
+            return []
+
+    else:
+
+        def _on_new_frame(self, frame: QVideoFrame) -> None:
+            if not frame.isValid():
+                return
+
+            image_format = QVideoFrameFormat.imageFormatFromPixelFormat(
+                frame.pixelFormat()
             )
+            if image_format == QVideoFrameFormat.PixelFormat.Format_Invalid:
+                print_error(
+                    _("QR code scanner for video frame with invalid pixel format")
+                )
+                return
 
-            # Mirror the image if needed
-            if flip_x or flip_y:
-                img = img.mirrored(flip_x, flip_y)
+            if not frame.map(QVideoFrame.MapMode.ReadOnly):
+                print_error(_("QR code scanner failed to map video frame"))
+                return
 
-            # Create a copy of the image so the original frame data can be freed
-            img = img.copy()
-        finally:
-            frame.unmap()
+            try:
+                img = frame.toImage()
 
-        self.frame_available.emit(img)
+                # Check whether we need to flip the image on any axis
+                surface_format = frame.surfaceFormat()
+                flip_x = surface_format.isMirrored()
+                flip_y = (
+                    surface_format.scanLineDirection()
+                    == QVideoFrameFormat.Direction.BottomToTop
+                )
 
-        return True
+                # Mirror the image if needed
+                if flip_x or flip_y:
+                    img = img.mirrored(flip_x, flip_y)
 
-    def supportedPixelFormats(
-        self, handle_type: QAbstractVideoBuffer.HandleType
-    ) -> List[QVideoFrame.PixelFormat]:
-        if handle_type == QAbstractVideoBuffer.NoHandle:
-            # We support all pixel formats that can be understood by QImage directly
-            return [
-                QVideoFrame.Format_ARGB32,
-                QVideoFrame.Format_ARGB32_Premultiplied,
-                QVideoFrame.Format_RGB32,
-                QVideoFrame.Format_RGB24,
-                QVideoFrame.Format_RGB565,
-                QVideoFrame.Format_RGB555,
-                QVideoFrame.Format_ARGB8565_Premultiplied,
-            ]
-        return []
+                # Create a copy of the image so the original frame data can be freed
+                img = img.copy()
+            finally:
+                frame.unmap()
+
+            self.frame_available.emit(img)
+
+            return True
 
     frame_available = Signal(QImage)

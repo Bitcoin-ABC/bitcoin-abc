@@ -11,6 +11,7 @@ from functools import partial, wraps
 from locale import atof
 from typing import Optional
 
+import qtpy
 from qtpy import QtWidgets
 from qtpy.QtCore import QObject, Qt, QThread, QTimer, Signal
 from qtpy.QtGui import (
@@ -875,7 +876,11 @@ class _ColorScheme:
             self.GRAY = ColorSchemeItem("#777777", "#a0a0a4")  # darkGray, gray
 
     def has_dark_background(self, widget):
-        brightness = sum(widget.palette().color(QPalette.Background).getRgb()[0:3])
+        if qtpy.QT5:
+            bg_color_role = QPalette.Background
+        else:
+            bg_color_role = QPalette.ColorRole.Window
+        brightness = sum(widget.palette().color(bg_color_role).getRgb()[0:3])
         return brightness < (255 * 3 / 2)
 
     def update_from_widget(self, widget, *, force_dark=False):

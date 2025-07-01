@@ -10,6 +10,7 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Optional, Tuple
 
+import qtpy
 from qtpy import QtWidgets
 from qtpy.QtCore import QEventLoop, QRect, Qt, QThread, Signal
 from qtpy.QtGui import QIcon, QPainter, QPalette, QPen
@@ -91,7 +92,10 @@ class CosignWidget(QtWidgets.QWidget):
         self.update()
 
     def paintEvent(self, event):
-        bgcolor = self.palette().color(QPalette.Background)
+        if qtpy.QT5:
+            bgcolor = self.palette().color(QPalette.Background)
+        else:
+            bgcolor = self.palette().color(QPalette.ColorRole.Window)
         pen = QPen(bgcolor, 7, Qt.SolidLine)
         qp = QPainter()
         qp.begin(self)

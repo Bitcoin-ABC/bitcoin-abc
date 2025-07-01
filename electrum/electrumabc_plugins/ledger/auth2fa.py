@@ -171,11 +171,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.helpmsg.setVisible(True)
         self.pinbox.setVisible(self.cfg["mode"] == 0)
         self.cardbox.setVisible(self.cfg["mode"] == 1)
-        (
-            self.pintxt.setFocus(True)
-            if self.cfg["mode"] == 0
-            else self.cardtxt.setFocus(True)
-        )
+        (self.pintxt.setFocus() if self.cfg["mode"] == 0 else self.cardtxt.setFocus())
         self.setMaximumHeight(200)
 
     def getDevice2FAMode(self):

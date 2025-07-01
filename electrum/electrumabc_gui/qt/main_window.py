@@ -352,7 +352,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.gui_object.update_available_signal.connect(
             self.status_bar.on_update_available
         )
-        self.history_list.setFocus(True)
+        self.history_list.setFocus()
 
         # update fee slider in case we missed the callback
         self.fee_slider.update()
@@ -796,8 +796,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         wallet_menu = menubar.addMenu(_("&Wallet"))
         wallet_menu.addAction(
-            _("&Information"), self.show_master_public_keys, QKeySequence("Ctrl+I")
-        )
+            _("&Information"),
+            self.show_master_public_keys,
+        ).setShortcut(QKeySequence("Ctrl+I"))
         wallet_menu.addSeparator()
         self.password_menu = wallet_menu.addAction(
             _("&Password"), self.change_password_dialog
@@ -853,11 +854,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         hist_menu.addAction(_("Export") + "...", self.export_history_dialog)
 
         wallet_menu.addSeparator()
-        wallet_menu.addAction(
-            _("&Find"), self.status_bar.toggle_search, QKeySequence("Ctrl+F")
+        wallet_menu.addAction(_("&Find"), self.status_bar.toggle_search).setShortcut(
+            QKeySequence("Ctrl+F")
         )
-        wallet_menu.addAction(
-            _("Refresh GUI"), self.update_wallet, QKeySequence("Ctrl+R")
+        wallet_menu.addAction(_("Refresh GUI"), self.update_wallet).setShortcut(
+            QKeySequence("Ctrl+R")
         )
 
         def add_toggle_action(view_menu, tab):
@@ -880,9 +881,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         tools_menu = menubar.addMenu(_("&Tools"))
 
         prefs_tit = _("Preferences") + "..."
-        a = tools_menu.addAction(
-            prefs_tit, self.settings_dialog, QKeySequence("Ctrl+,")
-        )
+        a = tools_menu.addAction(prefs_tit, self.settings_dialog)
+        a.setShortcut(QKeySequence("Ctrl+,"))
         if sys.platform == "darwin":
             # This turns off the heuristic matching based on name and keeps the
             # "Preferences" action out of the application menu and into the
@@ -893,18 +893,15 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         tools_menu.addAction(
             _("&Network") + "...",
             lambda: gui_object.show_network_dialog(weakSelf()),
-            QKeySequence("Ctrl+K"),
-        )
+        ).setShortcut(QKeySequence("Ctrl+K"))
         tools_menu.addAction(
             _("Optional &Features") + "...",
             self.internal_plugins_dialog,
-            QKeySequence("Shift+Ctrl+P"),
-        )
+        ).setShortcut(QKeySequence("Shift+Ctrl+P"))
         tools_menu.addAction(
             _("Installed &Plugins") + "...",
             self.external_plugins_dialog,
-            QKeySequence("Ctrl+P"),
-        )
+        ).setShortcut(QKeySequence("Ctrl+P"))
         if sys.platform.startswith("linux"):
             tools_menu.addSeparator()
             tools_menu.addAction(
@@ -919,20 +916,20 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         tools_menu.addSeparator()
 
-        tools_menu.addAction(_("&Pay to Many"), self.paytomany, QKeySequence("Ctrl+M"))
+        tools_menu.addAction(_("&Pay to Many"), self.paytomany).setShortcut(
+            QKeySequence("Ctrl+M")
+        )
 
         raw_transaction_menu = tools_menu.addMenu(_("&Load Transaction"))
         raw_transaction_menu.addAction(
             _("From &File") + "...", self.do_process_from_file
         )
         raw_transaction_menu.addAction(
-            _("From &Text") + "...", self.do_process_from_text, QKeySequence("Ctrl+T")
-        )
+            _("From &Text") + "...", self.do_process_from_text
+        ).setShortcut(QKeySequence("Ctrl+T"))
         raw_transaction_menu.addAction(
-            _("From the &Blockchain") + "...",
-            self.do_process_from_txid,
-            QKeySequence("Ctrl+B"),
-        )
+            _("From the &Blockchain") + "...", self.do_process_from_txid
+        ).setShortcut(QKeySequence("Ctrl+B"))
         raw_transaction_menu.addAction(
             _("From &QR Code") + "...", self.read_tx_from_qrcode
         )
@@ -1683,7 +1680,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.expires_label.hide()
         self.expires_combo.show()
         self.request_list.setCurrentItem(None)
-        self.receive_message_e.setFocus(1)
+        self.receive_message_e.setFocus()
 
     def set_receive_address(self, addr: Address):
         self.receive_address = addr
@@ -1855,7 +1852,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.payto_e, 1, 1, 1, -1)
 
         completer = QtWidgets.QCompleter(self.payto_e)
-        completer.setCaseSensitivity(False)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.payto_e.set_completer(completer)
         completer.setModel(self.completions)
 

@@ -1,8 +1,8 @@
 from functools import partial
 
 from qtpy import QtWidgets
-from qtpy.QtCore import QEventLoop, QRegExp, Qt, Signal
-from qtpy.QtGui import QRegExpValidator
+from qtpy.QtCore import QEventLoop, QRegularExpression, Qt, Signal
+from qtpy.QtGui import QRegularExpressionValidator
 
 from electrumabc.bip32 import is_xprv
 from electrumabc.constants import PROJECT_NAME
@@ -282,7 +282,9 @@ class QtPlugin(QtPluginBase):
             vbox.addWidget(QtWidgets.QLabel(msg))
             vbox.addWidget(text)
             pin = QtWidgets.QLineEdit()
-            pin.setValidator(QRegExpValidator(QRegExp("[1-9]{0,9}")))
+            pin.setValidator(
+                QRegularExpressionValidator(QRegularExpression("[1-9]{0,9}"))
+            )
             pin.setMaximumWidth(100)
             hbox_pin = QtWidgets.QHBoxLayout()
             hbox_pin.addWidget(QtWidgets.QLabel(_("Enter your PIN (digits 1-9):")))

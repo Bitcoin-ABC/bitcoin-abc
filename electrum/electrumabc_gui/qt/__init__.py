@@ -1029,7 +1029,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # quit the app. https://doc.qt.io/qt-5/qguiapplication.html#lastWindowClosed
             # This check and early return fixes issue #1727.
             return
-        QtWidgets.qApp.quit()
+        QtWidgets.QApplication.quit()
 
     def notify(self, message):
         """Display a message in the system tray popup notification. On macOS

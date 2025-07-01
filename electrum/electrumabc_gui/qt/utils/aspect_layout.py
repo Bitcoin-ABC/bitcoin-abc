@@ -126,5 +126,5 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
             result = result.expandedTo(item.minimumSize())
         return self._get_contents_margins_size() + result
 
-    def expandingDirections(self) -> Qt.Orientations:
-        return Qt.Horizontal | Qt.Vertical
+    def expandingDirections(self) -> Qt.Orientation:
+        return Qt.Orientation.Horizontal | Qt.Orientation.Vertical

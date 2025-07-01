@@ -31,8 +31,8 @@ from typing import TYPE_CHECKING, List, Optional
 
 import requests
 from qtpy import QtWidgets
-from qtpy.QtCore import QObject, QRegExp, Qt, QThread, Signal
-from qtpy.QtGui import QFont, QIcon, QPixmap, QRegExpValidator
+from qtpy.QtCore import QObject, QRegularExpression, Qt, QThread, Signal
+from qtpy.QtGui import QFont, QIcon, QPixmap, QRegularExpressionValidator
 
 from electrumabc import alias, networks, web
 from electrumabc.address import Address
@@ -547,7 +547,9 @@ class FetchAliasDialog(WindowModalDialog):
         self.alias_edit.setToolTip(
             _("Provide a valid alias: 1-21 lowercase alphanumeric characters")
         )
-        alias_validator = QRegExpValidator(QRegExp(alias.ALIAS_VALIDATOR_REGEXP))
+        alias_validator = QRegularExpressionValidator(
+            QRegularExpression(alias.ALIAS_VALIDATOR_REGEXP)
+        )
         self.alias_edit.setValidator(alias_validator)
         alias_edit_layout.addWidget(self.alias_edit)
         vbox.addLayout(alias_edit_layout)
