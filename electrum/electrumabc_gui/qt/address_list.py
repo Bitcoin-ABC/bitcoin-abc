@@ -29,9 +29,9 @@ from enum import IntEnum
 from functools import partial
 from typing import TYPE_CHECKING, List
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont, QKeySequence
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtGui import QFont, QKeySequence
 
 import electrumabc.web as web
 from electrumabc import networks
@@ -65,8 +65,8 @@ class AddressList(MyTreeWidget):
         can_edit_label = Qt.UserRole + 1
 
     # Emits the total number of satoshis for coins on selected addresses.
-    selected_amount_changed = pyqtSignal("quint64")
-    selection_cleared = pyqtSignal()
+    selected_amount_changed = Signal("quint64")
+    selection_cleared = Signal()
 
     def __init__(self, main_window: ElectrumWindow, *, picker=False):
         super().__init__(

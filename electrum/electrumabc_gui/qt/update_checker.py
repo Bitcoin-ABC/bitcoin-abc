@@ -34,8 +34,8 @@ import threading
 import time
 
 import requests
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, Signal
 
 from electrumabc import address, version
 from electrumabc.constants import PROJECT_NAME, RELEASES_JSON_URL
@@ -68,19 +68,19 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
     # in a 'checked' signal or a 'failed' signal to be emitted.
     # got_new_version is only emitted if the new version is actually newer than
     # our version.
-    checked = pyqtSignal(object)
+    checked = Signal(object)
     """emitted whenever the server gave us a (properly signed) version string.
     This may or may not mean it's a new version."""
-    got_new_version = pyqtSignal(object)
+    got_new_version = Signal(object)
     """emitted in tandem with 'checked' above ONLY if the server gave us a
     (properly signed) version string we recognize as *newer*"""
-    failed = pyqtSignal()
+    failed = Signal()
     """emitted when there is an exception, network error, or verify error
     on version check."""
 
-    _req_finished = pyqtSignal(object)
+    _req_finished = Signal(object)
     """internal use by _Req thread"""
-    _dl_prog = pyqtSignal(object, int)
+    _dl_prog = Signal(object, int)
     """[0 -> 100] range"""
 
     # Release URL

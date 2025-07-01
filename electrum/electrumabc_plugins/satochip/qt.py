@@ -1,9 +1,6 @@
 from functools import partial
 from os import urandom
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-
 # pysatochip
 from pysatochip.CardConnector import CardError, CardNotPresentError, UnexpectedSW12Error
 from pysatochip.Satochip2FA import Satochip2FA
@@ -11,6 +8,8 @@ from pysatochip.version import (
     SATOCHIP_PROTOCOL_MAJOR_VERSION,
     SATOCHIP_PROTOCOL_MINOR_VERSION,
 )
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
 
 from electrumabc.i18n import _
 from electrumabc.printerror import print_error

@@ -23,7 +23,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtGui import QColor
+from qtpy.QtGui import QColor
 
 
 def QColorLerp(a: QColor, b: QColor, t: float):

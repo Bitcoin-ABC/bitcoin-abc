@@ -26,9 +26,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QIcon
 
 from electrumabc.address import Address
 from electrumabc.i18n import _

@@ -1,7 +1,7 @@
 import copy
 
 from btchip.btchip import BTChipException
-from PyQt5 import QtWidgets
+from qtpy import QtWidgets
 
 from electrumabc import networks
 from electrumabc.address import Address

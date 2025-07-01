@@ -30,9 +30,9 @@ import queue
 import socket
 from functools import partial
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
-from PyQt5.QtGui import QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, Qt, QThread, QTimer, Signal
+from qtpy.QtGui import QIcon
 
 from electrumabc import networks
 from electrumabc.constants import PROJECT_NAME
@@ -68,7 +68,7 @@ protocol_letters = "ts"
 
 
 class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
-    network_updated_signal = pyqtSignal()
+    network_updated_signal = Signal()
 
     def __init__(self, network: Network, config):
         QtWidgets.QDialog.__init__(self)
@@ -1397,7 +1397,7 @@ class NetworkChoiceLayout(QObject, PrintError):
 
 
 class TorDetector(QThread):
-    found_proxy = pyqtSignal(object)
+    found_proxy = Signal(object)
 
     def __init__(self, parent, network: Network):
         super().__init__(parent)

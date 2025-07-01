@@ -4,7 +4,7 @@ import json
 import struct
 from typing import List, Optional, Union
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 
 from electrumabc.address import Address, AddressError
 from electrumabc.avalanche.primitives import Key, PublicKey
@@ -72,7 +72,7 @@ class StakesWidget(QtWidgets.QTableWidget):
     immature stakes or stakes below the dust threshold.
     """
 
-    total_amount_changed = QtCore.pyqtSignal("quint64")
+    total_amount_changed = QtCore.Signal("quint64")
     """Emit total stake amount in sats."""
 
     def __init__(self, blockchain__height: int):

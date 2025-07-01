@@ -30,9 +30,9 @@ from enum import IntEnum
 from typing import TYPE_CHECKING, List, Optional
 
 import requests
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, QRegExp, Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QFont, QIcon, QPixmap, QRegExpValidator
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, QRegExp, Qt, QThread, Signal
+from qtpy.QtGui import QFont, QIcon, QPixmap, QRegExpValidator
 
 from electrumabc import alias, networks, web
 from electrumabc.address import Address
@@ -67,14 +67,14 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     # Name, Label, Address
     filter_columns = [1, 2, 3]
 
-    contact_updated = pyqtSignal()
+    contact_updated = Signal()
     """Emitted when a contact is added, renamed or deleted"""
 
-    payto_contacts_triggered = pyqtSignal(list)
+    payto_contacts_triggered = Signal(list)
     """Emits a list of selected contacts when the user clicks "Pay to" in the context
     menu"""
 
-    sign_verify_message_triggered = pyqtSignal(Address)
+    sign_verify_message_triggered = Signal(Address)
     """Emits the selected address when the user clicks Sign/Verify in the context
     menu"""
 
@@ -503,8 +503,8 @@ class NewContactDialog(WindowModalDialog):
 
 
 class FetchAliasWorker(QObject):
-    finished = pyqtSignal()
-    timeout = pyqtSignal()
+    finished = Signal()
+    timeout = Signal()
 
     def __init__(self, alias_: str):
         super().__init__()

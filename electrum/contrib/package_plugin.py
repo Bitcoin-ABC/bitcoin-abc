@@ -42,8 +42,8 @@ import tempfile
 import traceback
 import urllib.parse
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
 
 
 def versiontuple(v):

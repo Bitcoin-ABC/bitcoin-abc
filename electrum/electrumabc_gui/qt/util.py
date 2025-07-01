@@ -11,9 +11,9 @@ from functools import partial, wraps
 from locale import atof
 from typing import Optional
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
-from PyQt5.QtGui import (
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, Qt, QThread, QTimer, Signal
+from qtpy.QtGui import (
     QColor,
     QCursor,
     QFocusEvent,
@@ -431,7 +431,7 @@ class WaitingDialog(WindowModalDialog):
     close the dialog. Sometimes this is desirable, and sometimes it isn't, hence
     why the option is offered."""
 
-    _update_progress_sig = pyqtSignal(int)
+    _update_progress_sig = Signal(int)
 
     def __init__(
         self,
@@ -777,7 +777,7 @@ class TaskThread(PrintError, QThread):
     to happen in the context of its parent."""
 
     Task = namedtuple("Task", "task cb_success cb_done cb_error")
-    doneSig = pyqtSignal(object, object, object)
+    doneSig = Signal(object, object, object)
 
     def __init__(self, parent, on_error=None, *, name=None):
         QThread.__init__(self, parent)

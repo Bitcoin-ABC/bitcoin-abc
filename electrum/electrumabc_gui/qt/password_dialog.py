@@ -26,9 +26,9 @@
 import math
 import re
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QIcon, QPixmap
 
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook

@@ -5,9 +5,9 @@ import sys
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtGui import QIcon
 
 from electrumabc import networks, paymentrequest, web
 from electrumabc.address import Address
@@ -61,16 +61,16 @@ def set_windows_qt_use_freetype(config, b):
 
 
 class SettingsDialog(WindowModalDialog):
-    shown_signal = pyqtSignal()
-    num_zeros_changed = pyqtSignal()
-    custom_fee_changed = pyqtSignal()
-    show_fee_changed = pyqtSignal(bool)
-    alias_changed = pyqtSignal()
-    unit_changed = pyqtSignal()
-    enable_opreturn_changed = pyqtSignal(bool)
-    currency_changed = pyqtSignal()
-    show_history_rates_toggled = pyqtSignal(bool)
-    show_fiat_balance_toggled = pyqtSignal()
+    shown_signal = Signal()
+    num_zeros_changed = Signal()
+    custom_fee_changed = Signal()
+    show_fee_changed = Signal(bool)
+    alias_changed = Signal()
+    unit_changed = Signal()
+    enable_opreturn_changed = Signal(bool)
+    currency_changed = Signal()
+    show_history_rates_toggled = Signal(bool)
+    show_fiat_balance_toggled = Signal()
 
     def __init__(
         self,
@@ -787,7 +787,7 @@ class SettingsDialog(WindowModalDialog):
             return
         self.qr_did_scan = True
         try:
-            from PyQt5.QtMultimedia import QCameraInfo
+            from qtpy.QtMultimedia import QCameraInfo
         except ImportError as e:
             self.set_no_camera(e)
             return

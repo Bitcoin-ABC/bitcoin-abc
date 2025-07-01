@@ -4,8 +4,8 @@ import base64
 from functools import partial
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (
     QDialog,
     QFrame,
     QGridLayout,

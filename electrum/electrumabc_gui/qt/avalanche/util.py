@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PyQt5 import QtWidgets
+from qtpy import QtWidgets
 
 from electrumabc.address import PublicKey
 from electrumabc.bitcoin import is_private_key

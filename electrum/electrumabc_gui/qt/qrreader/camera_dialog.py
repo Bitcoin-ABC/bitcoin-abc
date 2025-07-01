@@ -29,10 +29,10 @@ import sys
 import time
 from typing import List
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import PYQT_VERSION, QRect, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraViewfinderSettings
+from qtpy import QtWidgets
+from qtpy.QtCore import PYQT_VERSION, QRect, QSize, Qt, Signal
+from qtpy.QtGui import QImage, QPixmap
+from qtpy.QtMultimedia import QCamera, QCameraInfo, QCameraViewfinderSettings
 
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
@@ -78,7 +78,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
     # Try to crop so we have minimum 512 dimensions
     SCAN_SIZE: int = 512
 
-    qr_finished = pyqtSignal(bool, str, object)
+    qr_finished = Signal(bool, str, object)
 
     def __init__(self, parent):
         """Note: make sure parent is a "top_level_window()" as per

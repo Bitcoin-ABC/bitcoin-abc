@@ -24,9 +24,9 @@
 # SOFTWARE.
 from typing import Optional
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, QPoint, QRect, Qt
-from PyQt5.QtGui import QPainter, QRegion, QTransform
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, QPoint, QRect, Qt
+from qtpy.QtGui import QPainter, QRegion, QTransform
 
 
 class QrReaderCropBlurEffect(QtWidgets.QGraphicsBlurEffect):

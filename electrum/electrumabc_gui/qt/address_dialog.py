@@ -23,8 +23,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QTimer
+from qtpy import QtWidgets
+from qtpy.QtCore import QTimer
 
 from electrumabc.address import Address
 from electrumabc.i18n import _

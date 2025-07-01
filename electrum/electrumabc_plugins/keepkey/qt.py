@@ -1,8 +1,8 @@
 from functools import partial
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QEventLoop, QRegExp, Qt, pyqtSignal
-from PyQt5.QtGui import QRegExpValidator
+from qtpy import QtWidgets
+from qtpy.QtCore import QEventLoop, QRegExp, Qt, Signal
+from qtpy.QtGui import QRegExpValidator
 
 from electrumabc.bip32 import is_xprv
 from electrumabc.constants import PROJECT_NAME
@@ -147,9 +147,9 @@ class CharacterDialog(WindowModalDialog):
 
 
 class QtHandler(QtHandlerBase):
-    char_signal = pyqtSignal(object)
-    pin_signal = pyqtSignal(object)
-    close_char_dialog_signal = pyqtSignal()
+    char_signal = Signal(object)
+    pin_signal = Signal(object)
+    close_char_dialog_signal = Signal()
 
     def __init__(self, win, pin_matrix_widget_class, device):
         super(QtHandler, self).__init__(win, device)

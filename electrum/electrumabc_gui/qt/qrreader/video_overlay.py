@@ -25,10 +25,10 @@
 
 from typing import List, Optional
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QPoint, QRect, QRectF, QSize, Qt
-from PyQt5.QtGui import QColor, QPainter, QPainterPath, QPaintEvent, QPen, QTransform
-from PyQt5.QtSvg import QSvgRenderer
+from qtpy import QtWidgets
+from qtpy.QtCore import QPoint, QRect, QRectF, QSize, Qt
+from qtpy.QtGui import QColor, QPainter, QPainterPath, QPaintEvent, QPen, QTransform
+from qtpy.QtSvg import QSvgRenderer
 
 from electrumabc.qrreaders import QrCodeResult
 

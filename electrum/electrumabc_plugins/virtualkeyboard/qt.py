@@ -1,7 +1,7 @@
 import random
 
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import QFont
+from qtpy import QtWidgets
+from qtpy.QtGui import QFont
 
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook

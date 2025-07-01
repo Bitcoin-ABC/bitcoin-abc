@@ -7,8 +7,8 @@ from __future__ import annotations
 from collections import namedtuple
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, QTimer, Signal
 
 from electrumabc.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
 from electrumabc.simple_config import SimpleConfig
@@ -107,7 +107,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget, TreeSortingMixin):
     # the QTreeWidgetItem data role to use when searching data columns
     filter_data_role: int = Qt.UserRole
 
-    edited = pyqtSignal()
+    edited = Signal()
 
     def __init__(
         self,

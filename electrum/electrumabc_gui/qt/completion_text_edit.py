@@ -21,8 +21,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtCore import Qt
+from qtpy import QtGui, QtWidgets
+from qtpy.QtCore import Qt
 
 from .util import ButtonsTextEdit
 

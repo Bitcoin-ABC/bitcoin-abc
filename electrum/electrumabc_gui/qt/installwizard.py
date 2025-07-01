@@ -10,9 +10,9 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QEventLoop, QRect, Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QIcon, QPainter, QPalette, QPen
+from qtpy import QtWidgets
+from qtpy.QtCore import QEventLoop, QRect, Qt, QThread, Signal
+from qtpy.QtGui import QIcon, QPainter, QPalette, QPen
 
 from electrumabc import keystore
 from electrumabc.base_wizard import HWD_SETUP_DECRYPT_WALLET, BaseWizard, GoBack
@@ -135,7 +135,7 @@ class WalletAlreadyOpenInMemory(Exception):
 
 # WindowModalDialog must come first as it overrides show_error
 class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
-    accept_signal = pyqtSignal()
+    accept_signal = Signal()
 
     def __init__(
         self,
@@ -927,7 +927,7 @@ class DerivationPathScanner(QThread):
 
 
 class DerivationDialog(QtWidgets.QDialog):
-    scan_result_signal = pyqtSignal(object, object)
+    scan_result_signal = Signal(object, object)
 
     def __init__(self, parent, bip32_seed: bytes, paths):
         QtWidgets.QDialog.__init__(self, parent)

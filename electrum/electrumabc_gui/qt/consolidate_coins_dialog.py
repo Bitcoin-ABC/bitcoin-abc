@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, Sequence
 
-from PyQt5 import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets
 
 from electrumabc.address import Address, AddressError
 from electrumabc.consolidate import (
@@ -26,12 +26,12 @@ class TransactionsStatus(Enum):
 
 
 class ConsolidateWorker(QtCore.QObject):
-    finished = QtCore.pyqtSignal()
-    status_changed = QtCore.pyqtSignal(TransactionsStatus)
-    transactions_ready = QtCore.pyqtSignal(list)
+    finished = QtCore.Signal()
+    status_changed = QtCore.Signal(TransactionsStatus)
+    transactions_ready = QtCore.Signal(list)
     """Emits the list of :class:`Transaction` after the last transaction is
      generated."""
-    progress = QtCore.pyqtSignal(int)
+    progress = QtCore.Signal(int)
     """Emits the number of generated transactions after each new transaction."""
 
     def __init__(

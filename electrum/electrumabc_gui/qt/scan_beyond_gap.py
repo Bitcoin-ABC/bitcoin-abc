@@ -23,8 +23,8 @@
 # SOFTWARE.
 import threading
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QTimer, pyqtSignal
+from qtpy import QtWidgets
+from qtpy.QtCore import QTimer, Signal
 
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
@@ -34,9 +34,9 @@ from .util import Buttons, WindowModalDialog
 
 
 class ScanBeyondGap(WindowModalDialog, PrintError):
-    progress_sig = pyqtSignal(int, int, int, int)
-    done_sig = pyqtSignal(int, int)
-    error_sig = pyqtSignal(Exception)
+    progress_sig = Signal(int, int, int, int)
+    done_sig = Signal(int, int)
+    error_sig = Signal(Exception)
 
     def __init__(self, main_window):
         super().__init__(parent=main_window, title=_("Scan Beyond Gap"))

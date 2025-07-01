@@ -28,8 +28,8 @@ import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from typing import Dict, List
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QFontMetrics
+from qtpy.QtCore import Signal
+from qtpy.QtGui import QFontMetrics
 
 from electrumabc import alias, bitcoin, networks, web
 from electrumabc.address import Address, AddressError, ScriptOutput
@@ -52,7 +52,7 @@ normal_style = "PayToEdit { }"
 
 
 class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
-    alias_resolved = pyqtSignal(dict)
+    alias_resolved = Signal(dict)
 
     def __init__(self, win):
         from .main_window import ElectrumWindow

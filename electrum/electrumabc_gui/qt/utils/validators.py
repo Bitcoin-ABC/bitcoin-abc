@@ -26,9 +26,9 @@ import re
 import warnings
 from typing import Tuple
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QIntValidator, QValidator
-from PyQt5.QtWidgets import QLineEdit, QWidget
+from qtpy.QtCore import Signal
+from qtpy.QtGui import QIntValidator, QValidator
+from qtpy.QtWidgets import QLineEdit, QWidget
 
 
 def mark_widget(state: QValidator.State, widget: QWidget):
@@ -71,7 +71,7 @@ class PortValidator(QIntValidator):
     """A generic IP port validator.  Accepts any number in the range [1,65535]
     by default."""
 
-    stateChanged = pyqtSignal(QValidator.State)
+    stateChanged = Signal(QValidator.State)
 
     def __init__(self, parent, minimum=1, accept_zero=False):
         super().__init__(0, 65535, parent)
@@ -116,7 +116,7 @@ class HostValidator(QValidator):
     Validates a host string, accepts either IPV4, IPV6 or domain names
     """
 
-    stateChanged = pyqtSignal(QValidator.State)
+    stateChanged = Signal(QValidator.State)
 
     def __init__(self, parent):
         super().__init__(parent)

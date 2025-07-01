@@ -31,8 +31,8 @@ import sys
 from typing import TYPE_CHECKING
 
 import requests
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, QTimer
 
 from electrumabc.i18n import _
 from electrumabc.util import get_user_dir

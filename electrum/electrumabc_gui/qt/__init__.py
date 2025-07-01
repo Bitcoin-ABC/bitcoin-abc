@@ -35,30 +35,30 @@ import traceback
 from typing import TYPE_CHECKING, Callable, Optional
 
 try:
-    from PyQt5 import QtCore, QtWidgets
-    from PyQt5.QtGui import QFontDatabase, QGuiApplication, QIcon, QScreen
+    from qtpy import QtCore, QtWidgets
+    from qtpy.QtGui import QFontDatabase, QGuiApplication, QIcon, QScreen
 except Exception:
     if sys.platform.startswith("win"):
         msg = (
-            "\n\nError: Could not import PyQt5.\nIf you are running the release .exe,"
+            "\n\nError: Could not import Qt binding.\nIf you are running the release .exe,"
             " this is a bug (please contact the developers in that case).\nIf you are"
             " running from source, then you may try this from the command-line:\n\n   "
-            " python -m pip install pyqt5\n\n"
+            " python -m pip install pyqt5 qtpy\n\n"
         )
     elif sys.platform.startswith("darw"):
         msg = (
-            "\n\nError: Could not import PyQt5.\nIf you are running the release .app,"
+            "\n\nError: Could not import Qt binding.\nIf you are running the release .app,"
             " this is a bug (please contact the developers in that case).\nIf you are"
             " running from source, then you may try this from the command-line:\n\n   "
-            " python3 -m pip install --user -I pyqt5\n\n"
+            " python3 -m pip install --user -I pyqt5 qtpy\n\n"
         )
     else:
         msg = (
-            "\n\nError: Could not import PyQt5.\n"
+            "\n\nError: Could not import Qt binding.\n"
             "You may try:\n\n"
-            "    python3 -m pip install --user -I pyqt5\n\n"
+            "    python3 -m pip install --user -I pyqt5 qtpy\n\n"
             "Or, if on Linux Ubuntu, Debian, etc:\n\n"
-            "    sudo apt-get install python3-pyqt5\n\n"
+            "    sudo apt-get install python3-pyqt5 python3-qtpy \n\n"
         )
     sys.exit(msg)
 
@@ -182,12 +182,12 @@ def init_qapplication(config):
 
 
 class ElectrumGui(QtCore.QObject, PrintError):
-    new_window_signal = QtCore.pyqtSignal(str, object)
-    update_available_signal = QtCore.pyqtSignal(bool)
-    addr_fmt_changed = QtCore.pyqtSignal()
-    cashaddr_status_button_hidden_signal = QtCore.pyqtSignal(bool)
-    shutdown_signal = QtCore.pyqtSignal()
-    do_in_main_thread_signal = QtCore.pyqtSignal(object, object, object)
+    new_window_signal = QtCore.Signal(str, object)
+    update_available_signal = QtCore.Signal(bool)
+    addr_fmt_changed = QtCore.Signal()
+    cashaddr_status_button_hidden_signal = QtCore.Signal(bool)
+    shutdown_signal = QtCore.Signal()
+    do_in_main_thread_signal = QtCore.Signal(object, object, object)
 
     instance = None
 
@@ -314,15 +314,15 @@ class ElectrumGui(QtCore.QObject, PrintError):
         func(*args, **kwargs)
 
     def _exit_if_required_pyqt_is_missing(self):
-        """Will check if required PyQt5 modules are present and if not,
+        """Will check if required qt binding for python are present and if not,
         display an error message box to the user and immediately quit the app.
 
-        This is because some Linux systems break up PyQt5 into multiple
-        subpackages, and for instance PyQt5 QtSvg is its own package, and it
+        This is because some Linux systems break up the binding into multiple
+        subpackages, and for instance QtSvg is its own package, and it
         may be missing.
         """
         try:
-            from PyQt5 import QtSvg  # noqa: F401
+            from qtpy import QtSvg  # noqa: F401
         except ImportError:
             # Closes #1436 -- Some "Run from source" Linux users lack QtSvg
             # (partial PyQt5 install)
@@ -542,7 +542,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         if sys.platform == "linux" and self.qt_version() < (5, 12):
             msg = _(
                 f"{PROJECT_NAME} on Linux requires PyQt5 5.12+.\n\n"
-                f"You have version {QtCore.QT_VERSION_STR} installed.\n\n"
+                f"You have version {QtCore.__version__} installed.\n\n"
                 "Please upgrade otherwise you may experience "
                 "font rendering issues with emojis and other unicode "
                 f"characters used by {PROJECT_NAME}."

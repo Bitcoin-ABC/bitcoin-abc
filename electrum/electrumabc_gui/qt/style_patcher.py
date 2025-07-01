@@ -5,7 +5,7 @@ It reads the current stylesheet, appends our modifications and sets the new styl
 
 from typing import Optional
 
-from PyQt5 import QtWidgets
+from qtpy import QtWidgets
 
 from electrumabc.printerror import print_error
 

@@ -27,9 +27,9 @@ import hashlib
 import sys
 import urllib.parse
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QIcon
 
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _

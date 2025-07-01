@@ -1,7 +1,7 @@
 import qrcode
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 
 from electrumabc import util
 from electrumabc.i18n import _

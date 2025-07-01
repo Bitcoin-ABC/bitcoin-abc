@@ -27,9 +27,9 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QFont, QIcon
 
 from electrumabc.i18n import _
 from electrumabc.paymentrequest import PR_UNPAID, pr_tooltips

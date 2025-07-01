@@ -31,9 +31,9 @@ import threading
 from functools import partial
 from typing import TYPE_CHECKING, Optional, Union
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, Signal
+from qtpy.QtGui import QIcon
 
 from electrumabc.i18n import _
 from electrumabc.plugins import hook
@@ -68,16 +68,16 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
     """An interface between the GUI (here, Qt) and the device handling
     logic for handling I/O."""
 
-    passphrase_signal = pyqtSignal(object, object)
-    message_signal = pyqtSignal(object, object)
-    error_signal = pyqtSignal(object)
-    warning_signal = pyqtSignal(object)
-    word_signal = pyqtSignal(object)
-    clear_signal = pyqtSignal()
-    query_signal = pyqtSignal(object, object)
-    yes_no_signal = pyqtSignal(object)
-    status_signal = pyqtSignal(object)
-    wait_signal = pyqtSignal(object, object, object)
+    passphrase_signal = Signal(object, object)
+    message_signal = Signal(object, object)
+    error_signal = Signal(object)
+    warning_signal = Signal(object)
+    word_signal = Signal(object)
+    clear_signal = Signal()
+    query_signal = Signal(object, object)
+    yes_no_signal = Signal(object)
+    status_signal = Signal(object)
+    wait_signal = Signal(object, object, object)
 
     def __init__(self, win: Union[ElectrumWindow, InstallWizard], device: str):
         super(QtHandlerBase, self).__init__()

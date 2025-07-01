@@ -8,8 +8,9 @@
 #
 import sys
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import (
+from qtpy import QtWidgets
+from qtpy.QtCore import (
+    Property,
     QAbstractAnimation,
     QEvent,
     QObject,
@@ -19,10 +20,9 @@ from PyQt5.QtCore import (
     QRectF,
     Qt,
     QTimer,
-    pyqtProperty,
-    pyqtSignal,
+    Signal,
 )
-from PyQt5.QtGui import QBrush, QColor, QPainter, QPalette, QPen
+from qtpy.QtGui import QBrush, QColor, QPainter, QPalette, QPen
 
 from electrumabc.util import finalization_print_error
 
@@ -40,10 +40,10 @@ class PopupWidget(QtWidgets.QWidget):
     LR_MARGIN = 10.0  # 8.0 #/* left / right margin  */
     TB_MARGIN = 8.0  # 5.5 #/* top / bottom margin */
 
-    didHide = pyqtSignal()
-    didShow = pyqtSignal()
-    onClick = pyqtSignal()
-    onRightClick = pyqtSignal()
+    didHide = Signal()
+    didShow = Signal()
+    onClick = Signal()
+    onRightClick = Signal()
 
     def __init__(
         self,
@@ -94,7 +94,7 @@ class PopupWidget(QtWidgets.QWidget):
         self.pointerPos = r
         self.update()
 
-    @pyqtProperty(float)
+    @Property(float)
     def popupOpacity(self):
         return self.popup_opacity
 
@@ -103,7 +103,7 @@ class PopupWidget(QtWidgets.QWidget):
         self.popup_opacity = value
         self.setWindowOpacity(value)
 
-    @pyqtProperty(float)
+    @Property(float)
     def finalOpacity(self):
         return self.final_opacity
 

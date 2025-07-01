@@ -30,9 +30,9 @@ import weakref
 from functools import partial
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QCursor, QIcon, QImage, QPainter
+from qtpy import QtWidgets
+from qtpy.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, Signal
+from qtpy.QtGui import QCursor, QIcon, QImage, QPainter
 
 from electrumabc.address import Address
 from electrumabc.i18n import _, ngettext
@@ -108,7 +108,7 @@ def get_image_red_exclamation():
 
 
 class Plugin(FusionPlugin, QObject):
-    server_status_changed_signal = pyqtSignal(bool, tuple)
+    server_status_changed_signal = Signal(bool, tuple)
 
     fusions_win = None
     weak_settings_tab = None
@@ -1168,7 +1168,7 @@ class FusionButton(StatusBarButton):
 
 class SettingsWidget(QtWidgets.QWidget):
     torscanthread = None
-    torscanthread_update = pyqtSignal(object)
+    torscanthread_update = Signal(object)
 
     def __init__(self, plugin, parent=None):
         super().__init__(parent)

@@ -30,9 +30,9 @@ from enum import IntEnum
 from functools import wraps
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QPoint, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QFont
+from qtpy import QtWidgets
+from qtpy.QtCore import QPoint, Qt, Signal
+from qtpy.QtGui import QColor, QFont
 
 from electrumabc.address import Address
 from electrumabc.bitcoin import COINBASE_MATURITY
@@ -92,8 +92,8 @@ class UTXOList(MyTreeWidget):
     # sort by amount, descending
     default_sort = MyTreeWidget.SortSpec(Col.amount, Qt.DescendingOrder)
 
-    selected_amount_changed = pyqtSignal("quint64")
-    selection_cleared = pyqtSignal()
+    selected_amount_changed = Signal("quint64")
+    selection_cleared = Signal()
 
     def __init__(self, main_window: ElectrumWindow):
         columns = [

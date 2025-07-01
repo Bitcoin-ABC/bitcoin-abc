@@ -29,9 +29,9 @@ import json
 import time
 from enum import Enum, auto
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer, QUrl, pyqtSignal
-from PyQt5.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFormat
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, QTimer, QUrl, Signal
+from qtpy.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFormat
 
 from electrumabc import web
 from electrumabc.address import Address, PublicKey, ScriptOutput
@@ -70,10 +70,10 @@ def show_transaction(tx, parent, desc=None, prompt_if_unsaved=False):
 
 class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
     # connected to self.throttled_update -- emit from thread to do update in main thread
-    throttled_update_sig = pyqtSignal()
+    throttled_update_sig = Signal()
 
     # connected to an inner function to get a callback in main thread upon dl completion
-    dl_done_sig = pyqtSignal()
+    dl_done_sig = Signal()
 
     BROADCAST_COOLDOWN_SECS: int = 5
 

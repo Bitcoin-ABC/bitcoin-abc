@@ -1,6 +1,6 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QCursor
 
 from electrumabc.i18n import _
 

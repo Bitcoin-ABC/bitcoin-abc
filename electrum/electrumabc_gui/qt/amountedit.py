@@ -3,9 +3,9 @@
 from decimal import Decimal
 from typing import Optional, Union
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QPainter
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtGui import QPainter
 
 from electrumabc.constants import BASE_UNITS_BY_DECIMALS
 from electrumabc.util import format_satoshis_plain
@@ -14,7 +14,7 @@ from .util import ColorScheme, char_width_in_lineedit
 
 
 class MyLineEdit(QtWidgets.QLineEdit):
-    frozen = pyqtSignal()
+    frozen = Signal()
 
     def setFrozen(self, b: bool):
         self.setReadOnly(b)
@@ -23,7 +23,7 @@ class MyLineEdit(QtWidgets.QLineEdit):
 
 
 class AmountEdit(MyLineEdit):
-    shortcut = pyqtSignal()
+    shortcut = Signal()
 
     def __init__(
         self,

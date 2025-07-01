@@ -32,8 +32,8 @@ import sys
 import traceback
 from xmlrpc.client import ServerProxy, Transport
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, pyqtSignal
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, Signal
 
 from electrumabc import keystore, transaction, util
 from electrumabc.bip32 import deserialize_xprv, deserialize_xpub
@@ -160,7 +160,7 @@ class State(QObject):
     """Window-specific state. Gets inserted into cosigner_pool_state attribute
     for window."""
 
-    cosigner_receive_signal = pyqtSignal(object, object)
+    cosigner_receive_signal = Signal(object, object)
     listener = None
     keys = []
     cosigner_list = []

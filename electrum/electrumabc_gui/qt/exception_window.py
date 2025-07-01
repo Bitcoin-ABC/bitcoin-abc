@@ -31,10 +31,10 @@ import urllib.parse
 import webbrowser
 from typing import Optional
 
-import PyQt5.QtCore as QtCore
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject
-from PyQt5.QtGui import QIcon
+import qtpy.QtCore as QtCore
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject
+from qtpy.QtGui import QIcon
 
 from electrumabc.constants import PROJECT_NAME, REPOSITORY_URL
 from electrumabc.i18n import _
@@ -200,7 +200,7 @@ class ExceptionHook(QObject):
     created by the ElectrumGui singleton, and it lives forever until app exit.
     (But ONLY if the `show_crash_reporter` config key is set.)"""
 
-    _report_exception = QtCore.pyqtSignal(object, object, object, object)
+    _report_exception = QtCore.Signal(object, object, object, object)
     _instance = None
 
     def __init__(self, config):

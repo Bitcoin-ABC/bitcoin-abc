@@ -5,7 +5,7 @@ import re
 import sys
 import traceback
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 
 from electrumabc import util
 from electrumabc.i18n import _
@@ -51,7 +51,7 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
 
     CONFIRM_TEXT = _("I UNDERSTAND THE RISK").upper()
 
-    acknowledged = QtCore.pyqtSignal(bool)
+    acknowledged = QtCore.Signal(bool)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -137,14 +137,14 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
         """
         return self.input_edit.text().strip().upper() == self.CONFIRM_TEXT
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_text_changed(self):
         """
         Enables the confirm button when the input text matches
         """
         self.confirm_btn.setEnabled(self.input_ok())
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_confirm(self):
         """
         Closes the dialog if the input text matches

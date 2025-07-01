@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from PyQt5 import QtWidgets
+from qtpy import QtWidgets
 
 from electrumabc import address
 from electrumabc.avalanche.delegation import (

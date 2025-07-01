@@ -23,8 +23,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
 
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _

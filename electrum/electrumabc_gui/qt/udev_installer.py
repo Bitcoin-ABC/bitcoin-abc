@@ -30,8 +30,8 @@ import grp
 import os
 import tempfile
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
 
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _

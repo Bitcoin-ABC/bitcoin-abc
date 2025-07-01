@@ -5,17 +5,17 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import (
+from qtpy import QtWidgets
+from qtpy.QtCore import (
     QBuffer,
     QByteArray,
     QEventLoop,
     QIODevice,
     QStandardPaths,
     Qt,
-    pyqtSignal,
+    Signal,
 )
-from PyQt5.QtGui import QBitmap, QImage, qBlue, qGray, qGreen, qRed
+from qtpy.QtGui import QBitmap, QImage, qBlue, qGray, qGreen, qRed
 
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
@@ -143,9 +143,9 @@ class MatrixDialog(WindowModalDialog):
 
 
 class QtHandler(QtHandlerBase):
-    pin_signal = pyqtSignal(object)
-    matrix_signal = pyqtSignal(object)
-    close_matrix_dialog_signal = pyqtSignal()
+    pin_signal = Signal(object)
+    matrix_signal = Signal(object)
+    close_matrix_dialog_signal = Signal()
 
     def __init__(self, win, pin_matrix_widget_class, device):
         super(QtHandler, self).__init__(win, device)

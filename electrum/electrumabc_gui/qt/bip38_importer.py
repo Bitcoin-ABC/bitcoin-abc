@@ -3,9 +3,9 @@
 #
 import threading
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QFont
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt, QTimer, Signal
+from qtpy.QtGui import QFont
 
 from electrumabc import address, bitcoin, util
 from electrumabc.constants import PROJECT_NAME
@@ -33,7 +33,7 @@ class Bip38Importer(WindowModalDialog, PrintError):
 
     # Decrypt thread emits this with _decrypt_thread.self, (decrypted_wif, Address)
     # or _decrypt_thread.self, () on failure due to bad password
-    decrypted_sig = pyqtSignal(object, object)
+    decrypted_sig = Signal(object, object)
 
     def __init__(
         self,

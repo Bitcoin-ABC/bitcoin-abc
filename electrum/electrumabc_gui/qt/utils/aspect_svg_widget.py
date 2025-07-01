@@ -24,8 +24,8 @@
 # SOFTWARE.
 from typing import Optional
 
-from PyQt5.QtCore import QObject, QSize
-from PyQt5.QtSvg import QSvgWidget
+from qtpy.QtCore import QObject, QSize
+from qtpy.QtSvg import QSvgWidget
 
 
 class FixedAspectRatioSvgWidget(QSvgWidget):

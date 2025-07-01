@@ -23,9 +23,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, Qt
-from PyQt5.QtGui import QImage, QPainter, QPixmap
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, Qt
+from qtpy.QtGui import QImage, QPainter, QPixmap
 
 
 class ImageGraphicsEffect(QObject):

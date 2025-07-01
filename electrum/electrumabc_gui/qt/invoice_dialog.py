@@ -29,7 +29,7 @@ from http.client import InvalidURL
 from typing import TYPE_CHECKING, List, Optional, Union
 from urllib.error import URLError
 
-from PyQt5 import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets
 
 from electrumabc.address import Address, AddressError
 from electrumabc.i18n import _
@@ -220,7 +220,7 @@ class InvoiceDialog(QtWidgets.QDialog):
 
 
 class AmountCurrencyEdit(QtWidgets.QWidget):
-    currencyChanged = QtCore.pyqtSignal(str)
+    currencyChanged = QtCore.Signal(str)
 
     def __init__(
         self, parent: Optional[QtWidgets.QWidget] = None, fx: Optional[FxThread] = None

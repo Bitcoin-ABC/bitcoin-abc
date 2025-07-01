@@ -34,8 +34,8 @@ from email.mime.multipart import MIMEMultipart
 from functools import partial
 from typing import TYPE_CHECKING
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, pyqtSignal
+from qtpy import QtWidgets
+from qtpy.QtCore import QObject, Signal
 
 from electrumabc.i18n import _
 from electrumabc.paymentrequest import PaymentRequest
@@ -141,8 +141,8 @@ class Processor(threading.Thread, PrintError):
 
 
 class EmailSignalObject(QObject):
-    email_new_invoice_signal = pyqtSignal()
-    email_error = pyqtSignal(str)
+    email_new_invoice_signal = Signal()
+    email_error = Signal(str)
 
 
 class Plugin(BasePlugin):

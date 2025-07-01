@@ -5,8 +5,8 @@ import zlib
 from functools import partial
 from io import BytesIO
 
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import QIcon
+from qtpy import QtWidgets
+from qtpy.QtGui import QIcon
 
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook

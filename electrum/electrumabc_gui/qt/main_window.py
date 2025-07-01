@@ -38,17 +38,17 @@ from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import (
+from qtpy import QtWidgets
+from qtpy.QtCore import (
     QObject,
     QRect,
     QStringListModel,
     Qt,
     QTimer,
-    pyqtBoundSignal,
-    pyqtSignal,
+    Signal,
+    SignalInstance,
 )
-from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
+from qtpy.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
 
 import electrumabc.constants
 import electrumabc.web as web
@@ -161,7 +161,7 @@ try:
     # callbacks led to crashes on Linux, likely due to
     # bugs in PyQt5 (crashes wouldn't happen when testing
     # with PySide2!).
-    from PyQt5.QtMultimedia import QCameraInfo
+    from qtpy.QtMultimedia import QCameraInfo
 
     del QCameraInfo  # defensive programming: not always available so don't keep name around
 except ImportError:
@@ -174,20 +174,20 @@ if TYPE_CHECKING:
 class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     # Note: self.clean_up_connections automatically detects signals named XXX_signal
     # and disconnects them on window close.
-    payment_request_ok_signal = pyqtSignal()
-    payment_request_error_signal = pyqtSignal()
-    new_fx_quotes_signal = pyqtSignal()
-    new_fx_history_signal = pyqtSignal()
-    network_signal = pyqtSignal(str, object)
-    alias_received_signal = pyqtSignal()
-    history_updated_signal = pyqtSignal()
+    payment_request_ok_signal = Signal()
+    payment_request_error_signal = Signal()
+    new_fx_quotes_signal = Signal()
+    new_fx_history_signal = Signal()
+    network_signal = Signal(str, object)
+    alias_received_signal = Signal()
+    history_updated_signal = Signal()
     # note this signal occurs when an explicit update_labels() call happens. Interested
     # GUIs should also listen for history_updated_signal as well which also indicates
     # labels may have changed.
-    labels_updated_signal = pyqtSignal()
+    labels_updated_signal = Signal()
     # functions wanting to be executed from timer_actions should connect to this
     # signal, preferably via Qt.DirectConnection
-    on_timer_signal = pyqtSignal()
+    on_timer_signal = Signal()
 
     def __init__(self, gui_object: ElectrumGui, wallet: AbstractWallet):
         QtWidgets.QMainWindow.__init__(self)
@@ -4038,8 +4038,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             bip38 = passphrase  # overwrite arg with passphrase.. for use down below ;)
 
         class MyWindowModalDialog(WindowModalDialog):
-            computing_privkeys_signal = pyqtSignal()
-            show_privkeys_signal = pyqtSignal()
+            computing_privkeys_signal = Signal()
+            show_privkeys_signal = Signal()
 
         d = MyWindowModalDialog(self.top_level_window(), _("Private keys"))
         weak_d = Weak.ref(d)
@@ -4794,7 +4794,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             for attr_name in dir(self):
                 if attr_name.endswith("_signal"):
                     sig = getattr(self, attr_name)
-                    if isinstance(sig, pyqtBoundSignal):
+                    if isinstance(sig, SignalInstance):
                         try:
                             sig.disconnect()
                         except TypeError:

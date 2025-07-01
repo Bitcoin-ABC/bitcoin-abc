@@ -27,9 +27,9 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush, QColor, QFont, QIcon
+from qtpy import QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QBrush, QColor, QFont, QIcon
 
 import electrumabc.web as web
 from electrumabc.i18n import _

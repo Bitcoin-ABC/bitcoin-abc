@@ -26,8 +26,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QColor
 
 from electrumabc.i18n import _
 from electrumabc.qrreaders import QrCodeResult

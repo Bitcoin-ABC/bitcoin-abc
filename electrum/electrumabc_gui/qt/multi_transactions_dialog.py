@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
-from PyQt5 import QtGui, QtWidgets
+from qtpy import QtGui, QtWidgets
 
 from electrumabc import transaction
 from electrumabc.constants import XEC

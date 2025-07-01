@@ -25,9 +25,9 @@
 
 from typing import List, Optional
 
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import QImage
-from PyQt5.QtMultimedia import (
+from qtpy.QtCore import QObject, Signal
+from qtpy.QtGui import QImage
+from qtpy.QtMultimedia import (
     QAbstractVideoBuffer,
     QAbstractVideoSurface,
     QVideoFrame,
@@ -99,4 +99,4 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
             ]
         return []
 
-    frame_available = pyqtSignal(QImage)
+    frame_available = Signal(QImage)
