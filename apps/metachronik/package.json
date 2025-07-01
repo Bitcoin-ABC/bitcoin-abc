@@ -1,0 +1,54 @@
+{
+    "name": "metachronik",
+    "version": "1.0.0",
+    "description": "Chronik-based database indexer for eCash network activity",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc && npm run copy-assets",
+        "copy-assets": "cp src/database/schema.sql dist/database/",
+        "start": "node --max-old-space-size=4096 dist/index.js",
+        "postinstall": "npm run build",
+        "dev": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts",
+        "dev:reindex": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts --reindex",
+        "dev:reindex-prices": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts --reindex-prices",
+        "check-integrity": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/scripts/checkIntegrity.ts",
+        "test": "mocha",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "eslint src/**/*.ts --fix"
+    },
+    "dependencies": {
+        "chronik-client": "file:../../modules/chronik-client",
+        "dotenv": "^16.3.1",
+        "node-cron": "^3.0.3",
+        "pg": "^8.11.3",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "@railway/cli": "^4.5.5",
+        "@types/chai": "^4.3.11",
+        "@types/chai-as-promised": "^7.1.8",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.19.4",
+        "@types/node-cron": "^3.0.11",
+        "@types/pg": "^8.10.7",
+        "@typescript-eslint/eslint-plugin": "^6.12.0",
+        "@typescript-eslint/parser": "^6.12.0",
+        "chai": "^4.3.10",
+        "chai-as-promised": "^7.1.1",
+        "eslint": "^8.54.0",
+        "mocha": "^10.2.0",
+        "ts-node": "^10.9.1",
+        "tsx": "^4.20.3",
+        "typescript": "^5.2.2"
+    },
+    "keywords": [
+        "ecash",
+        "chronik",
+        "charts",
+        "agora",
+        "slp",
+        "alp"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT"
+}

@@ -313,7 +313,8 @@
             ],
             "exclude": [
                 "(^web/explorer/)",
-                "(^src/)"
+                "(^src/)",
+                "(next-env.d.ts)"
             ]
         },
         "lint-python-flynt": {

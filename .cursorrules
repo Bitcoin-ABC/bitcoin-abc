@@ -1,0 +1,34 @@
+# General JavaScript/TypeScript Rules
+
+Use single quotes for strings.
+Use arrow functions for anonymous functions.
+Follow Prettier defaults: 2-space indentation, semicolons, no trailing commas.
+Avoid the explicit any type.
+
+# React-Specific Rules
+
+Use functional components with hooks.
+Define prop types using TypeScript interfaces.
+Name components in PascalCase.
+
+# Best Practices
+
+Always include try-catch for async operations.
+Add JSDoc comments for exported functions.
+Return early for invalid inputs to reduce nesting.
+Always install npm dependencies with @latest to ensure the most recent version
+
+# Testing
+
+NextJS and react apps use jest and react testing library
+nodejs apps use mocha with chai expect, sinon, and chaiAsPromised for testing async errors
+If a function uses ChronikClient, we test it with MockChronikClient from the 'mock-chronik-client' library
+
+# eCash-specific rules
+
+1 XEC is equal to 100 satoshis
+
+# Checking after code changes
+
+The command to check lint in this monorepo is `arc lint`, it can be run at any level
+The command to check lint for a specific file is arc lint -- /path/to/file
