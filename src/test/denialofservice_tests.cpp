@@ -27,23 +27,6 @@
 
 #include <cstdint>
 
-namespace {
-struct CConnmanTest : public CConnman {
-    using CConnman::CConnman;
-    void AddNode(CNode &node) {
-        LOCK(m_nodes_mutex);
-        m_nodes.push_back(&node);
-    }
-    void ClearNodes() {
-        LOCK(m_nodes_mutex);
-        for (CNode *node : m_nodes) {
-            delete node;
-        }
-        m_nodes.clear();
-    }
-};
-} // namespace
-
 static CService ip(uint32_t i) {
     struct in_addr s;
     s.s_addr = i;
@@ -127,7 +110,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 static void AddRandomOutboundPeer(const Config &config,
                                   std::vector<CNode *> &vNodes,
                                   PeerManager &peerLogic,
-                                  CConnmanTest *connman) {
+                                  ConnmanTestMsg *connman) {
     CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
     vNodes.emplace_back(new CNode(id++, /*sock=*/nullptr, addr,
                                   /* nKeyedNetGroupIn */ 0,
@@ -142,14 +125,14 @@ static void AddRandomOutboundPeer(const Config &config,
     peerLogic.InitializeNode(config, node, ServiceFlags(NODE_NETWORK));
     node.fSuccessfullyConnected = true;
 
-    connman->AddNode(node);
+    connman->AddTestNode(node);
 }
 
 BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     const Config &config = m_node.chainman->GetConfig();
 
-    auto connman =
-        std::make_unique<CConnmanTest>(config, 0x1337, 0x1337, *m_node.addrman);
+    auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,
+                                                    *m_node.addrman);
     auto peerLogic =
         PeerManager::make(*connman, *m_node.addrman, nullptr, *m_node.chainman,
                           *m_node.mempool, /*avalanche=*/nullptr, {});
@@ -225,7 +208,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
         peerLogic->FinalizeNode(config, *node);
     }
 
-    connman->ClearNodes();
+    connman->ClearTestNodes();
 }
 
 BOOST_AUTO_TEST_CASE(peer_discouragement) {

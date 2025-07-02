@@ -23,6 +23,7 @@
 #include <validation.h>
 
 #include <avalanche/test/util.h>
+#include <test/util/net.h>
 #include <test/util/setup_common.h>
 
 #include <boost/mpl/list.hpp>
@@ -108,21 +109,6 @@ struct TestVoteRecord : public VoteRecord {
 } // namespace avalanche
 
 namespace {
-struct CConnmanTest : public CConnman {
-    using CConnman::CConnman;
-    void AddNode(CNode &node) {
-        LOCK(m_nodes_mutex);
-        m_nodes.push_back(&node);
-    }
-    void ClearNodes() {
-        LOCK(m_nodes_mutex);
-        for (CNode *node : m_nodes) {
-            delete node;
-        }
-        m_nodes.clear();
-    }
-};
-
 CService ip(uint32_t i) {
     struct in_addr s;
     s.s_addr = i;
@@ -131,7 +117,7 @@ CService ip(uint32_t i) {
 
 struct AvalancheTestingSetup : public TestChain100Setup {
     const ::Config &config;
-    CConnmanTest *m_connman;
+    ConnmanTestMsg *m_connman;
 
     std::unique_ptr<Processor> m_processor;
 
@@ -144,8 +130,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         : TestChain100Setup(), config(GetConfig()),
           masterpriv(CKey::MakeCompressedKey()) {
         // Deterministic randomness for tests.
-        auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337,
-                                                      *m_node.addrman);
+        auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,
+                                                        *m_node.addrman);
         m_connman = connman.get();
         m_node.connman = std::move(connman);
 
@@ -168,7 +154,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     }
 
     ~AvalancheTestingSetup() {
-        m_connman->ClearNodes();
+        m_connman->ClearTestNodes();
         SyncWithValidationInterfaceQueue();
 
         ArgsManager &argsman = *Assert(m_node.args);
@@ -196,7 +182,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         node->nVersion = 1;
         node->fSuccessfullyConnected = true;
 
-        m_connman->AddNode(*node);
+        m_connman->AddTestNode(*node);
         return node;
     }
 
