@@ -53,14 +53,34 @@ int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
     return nNewTime - nOldTime;
 }
 
+void ApplyArgsManOptions(const ArgsManager &args,
+                         BlockAssembler::Options &options) {
+    options.fPrintPriority =
+        args.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
+}
+
+static BlockAssembler::Options ConfiguredOptions() {
+    BlockAssembler::Options options;
+    ApplyArgsManOptions(gArgs, options);
+    return options;
+}
+
+BlockAssembler::BlockAssembler(const BlockFitter &fitter,
+                               Chainstate &chainstate,
+                               const CTxMemPool *mempool,
+                               const Options &options,
+                               const avalanche::Processor *avalanche)
+    : blockFitter(fitter), chainParams(chainstate.m_chainman.GetParams()),
+      m_mempool(mempool), m_chainstate(chainstate), m_avalanche(avalanche),
+      fPrintPriority{options.fPrintPriority},
+      test_block_validity{options.test_block_validity} {}
+
 BlockAssembler::BlockAssembler(const BlockFitter &fitter,
                                Chainstate &chainstate,
                                const CTxMemPool *mempool,
                                const avalanche::Processor *avalanche)
-    : blockFitter(fitter), chainParams(chainstate.m_chainman.GetParams()),
-      m_mempool(mempool), m_chainstate(chainstate), m_avalanche(avalanche),
-      fPrintPriority(
-          gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY)) {}
+    : BlockAssembler(fitter, chainstate, mempool, ConfiguredOptions(),
+                     avalanche) {}
 
 BlockAssembler::BlockAssembler(const Config &config, Chainstate &chainstate,
                                const CTxMemPool *mempool,
@@ -187,7 +207,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries[0].sigChecks = 0;
 
     BlockValidationState state;
-    if (!TestBlockValidity(
+    if (test_block_validity &&
+        !TestBlockValidity(
             state, chainParams, m_chainstate, *pblock, pindexPrev,
             GetAdjustedTime,
             BlockValidationOptions(blockFitter.getMaxGeneratedBlockSize())

@@ -66,12 +66,23 @@ private:
 
     const bool fPrintPriority;
 
+    // Whether to call TestBlockValidity() at the end of CreateNewBlock().
+    const bool test_block_validity;
+
 public:
+    struct Options {
+        bool fPrintPriority{DEFAULT_PRINTPRIORITY};
+        bool test_block_validity{true};
+    };
+
     BlockAssembler(const Config &config, Chainstate &chainstate,
                    const CTxMemPool *mempool,
                    const avalanche::Processor *avalanche = nullptr);
     BlockAssembler(const node::BlockFitter &fitter, Chainstate &chainstate,
                    const CTxMemPool *mempool,
+                   const avalanche::Processor *avalanche = nullptr);
+    BlockAssembler(const node::BlockFitter &fitter, Chainstate &chainstate,
+                   const CTxMemPool *mempool, const Options &options,
                    const avalanche::Processor *avalanche = nullptr);
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
@@ -108,6 +119,9 @@ private:
 
 int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
                    const CBlockIndex *pindexPrev, int64_t adjustedTime);
+/** Apply options from ArgsManager to BlockAssembler options. */
+void ApplyArgsManOptions(const ArgsManager &args,
+                         BlockAssembler::Options &options);
 } // namespace node
 
 #endif // BITCOIN_NODE_MINER_H

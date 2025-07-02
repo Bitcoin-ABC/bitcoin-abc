@@ -37,13 +37,12 @@ BlockFitter::BlockFitter(const Options &options) {
     resetBlock();
 }
 
-static BlockFitter::Options DefaultOptions(const Config &config) {
+void ApplyArgsManOptions(const ArgsManager &args, const Config &config,
+                         BlockFitter::Options &options) {
     // Block resource limits
     // If -blockmaxsize is not given, limit to DEFAULT_MAX_GENERATED_BLOCK_SIZE
     // If only one is given, only restrict the specified resource.
     // If both are given, restrict both.
-    BlockFitter::Options options;
-
     options.nExcessiveBlockSize = config.GetMaxBlockSize();
 
     if (gArgs.IsArgSet("-blockmaxsize")) {
@@ -56,12 +55,16 @@ static BlockFitter::Options DefaultOptions(const Config &config) {
         ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n)) {
         options.blockMinFeeRate = CFeeRate(n);
     }
+}
 
+static BlockFitter::Options ConfiguredOptions(const Config &config) {
+    BlockFitter::Options options;
+    ApplyArgsManOptions(gArgs, config, options);
     return options;
 }
 
 BlockFitter::BlockFitter(const Config &config)
-    : BlockFitter(DefaultOptions(config)) {}
+    : BlockFitter(ConfiguredOptions(config)) {}
 
 void BlockFitter::resetBlock() {
     // Reserve space for coinbase tx.

@@ -3,17 +3,25 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
+
 #include <config.h>
 #include <consensus/validation.h>
+#include <node/miner.h>
 #include <script/standard.h>
+#include <txmempool.h>
+#include <validation.h>
+
 #include <test/util/mining.h>
 #include <test/util/script.h>
 #include <test/util/setup_common.h>
 #include <test/util/wallet.h>
-#include <txmempool.h>
-#include <validation.h>
 
 #include <vector>
+
+const CScript redeemScript = CScript() << OP_DROP << OP_TRUE;
+const CScript SCRIPT_PUB = CScript()
+                           << OP_HASH160
+                           << ToByteVector(CScriptID(redeemScript)) << OP_EQUAL;
 
 static void AssembleBlock(benchmark::Bench &bench) {
     const auto test_setup = MakeNoLogFileContext<const TestingSetup>();
@@ -52,4 +60,20 @@ static void AssembleBlock(benchmark::Bench &bench) {
     bench.run([&] { PrepareBlock(config, test_setup->m_node, P2SH_OP_TRUE); });
 }
 
+static void BlockAssemblerAddPackageTxns(benchmark::Bench &bench) {
+    FastRandomContext det_rand{true};
+    auto testing_setup{MakeNoLogFileContext<TestChain100Setup>()};
+    testing_setup->PopulateMempool(det_rand, /*num_transactions=*/1000,
+                                   /*submit=*/true);
+    const Config &config = testing_setup->m_node.chainman->GetConfig();
+    node::BlockAssembler::Options assembler_options;
+    assembler_options.test_block_validity = false;
+
+    bench.run([&] {
+        PrepareBlock(config, testing_setup->m_node, P2SH_OP_TRUE,
+                     assembler_options);
+    });
+}
+
 BENCHMARK(AssembleBlock);
+BENCHMARK(BlockAssemblerAddPackageTxns);

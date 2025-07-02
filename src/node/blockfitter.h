@@ -10,6 +10,7 @@
 
 #include <cstdint>
 
+class ArgsManager;
 class Config;
 
 namespace node {
@@ -59,6 +60,10 @@ public:
     /* Check if the tx feerate is enough to be included in the block */
     bool isBelowBlockMinFeeRate(const CFeeRate &txFeeRate) const;
 };
+
+/** Apply options from ArgsManager to BlockFitter options. */
+void ApplyArgsManOptions(const ArgsManager &args, const Config &config,
+                         BlockFitter::Options &options);
 } // namespace node
 
 #endif // BITCOIN_NODE_BLOCKFITTER_H

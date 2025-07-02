@@ -5,6 +5,8 @@
 #ifndef BITCOIN_TEST_UTIL_MINING_H
 #define BITCOIN_TEST_UTIL_MINING_H
 
+#include <node/miner.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -24,8 +26,12 @@ CTxIn MineBlock(const Config &config, const node::NodeContext &,
 
 /** Prepare a block to be mined */
 std::shared_ptr<CBlock> PrepareBlock(const Config &config,
-                                     const node::NodeContext &,
+                                     const node::NodeContext &node,
                                      const CScript &coinbase_scriptPubKey);
+std::shared_ptr<CBlock>
+PrepareBlock(const Config &config, const node::NodeContext &node,
+             const CScript &coinbase_scriptPubKey,
+             const node::BlockAssembler::Options &assembler_options);
 
 /** RPC-like helper function, returns the generated coin */
 CTxIn generatetoaddress(const Config &config, const node::NodeContext &,
