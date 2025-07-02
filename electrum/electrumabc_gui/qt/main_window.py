@@ -804,12 +804,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("&Password"), self.change_password_dialog
         )
         self.seed_menu = wallet_menu.addAction(_("&Seed"), self.show_seed_dialog)
-        self.private_keys_menu = wallet_menu.addMenu(_("Private Keys"))
-        self.private_keys_menu.addAction(_("&Sweep"), self.sweep_key_dialog)
-        self.import_privkey_menu = self.private_keys_menu.addAction(
+        private_keys_menu = wallet_menu.addMenu(_("Private Keys"))
+        private_keys_menu.addAction(_("&Sweep"), self.sweep_key_dialog)
+        self.import_privkey_menu = private_keys_menu.addAction(
             _("&Import"), self.do_import_privkey
         )
-        self.export_menu = self.private_keys_menu.addMenu(_("&Export"))
+        self.export_menu = private_keys_menu.addMenu(_("&Export"))
         self.export_menu.addAction(_("&WIF Plaintext"), self.export_privkeys_dialog)
         self.export_menu.addAction(_("&BIP38 Encrypted"), self.export_bip38_dialog)
         self.import_address_menu = wallet_menu.addAction(
@@ -822,10 +822,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self._rebuild_history_action = wallet_menu.addAction(
             _("&Rebuild History"), self.rebuild_history
         )
-        self._scan_beyond_gap_action = wallet_menu.addAction(
+        scan_beyond_gap_action = wallet_menu.addAction(
             _("Scan &More Addresses..."), self.scan_beyond_gap
         )
-        self._scan_beyond_gap_action.setEnabled(
+        scan_beyond_gap_action.setEnabled(
             bool(self.wallet.is_deterministic() and self.network)
         )
         wallet_menu.addSeparator()
@@ -936,7 +936,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         raw_transaction_menu.addAction(
             _("From &Multiple files") + "...", self.do_process_from_multiple_files
         )
-        self.raw_transaction_menu = raw_transaction_menu
 
         invoice_menu = tools_menu.addMenu(_("&Invoice"))
         invoice_menu.addAction(_("Create new invoice"), self.do_create_invoice)
