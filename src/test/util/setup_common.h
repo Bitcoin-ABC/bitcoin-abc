@@ -5,6 +5,7 @@
 #ifndef BITCOIN_TEST_UTIL_SETUP_COMMON_H
 #define BITCOIN_TEST_UTIL_SETUP_COMMON_H
 
+#include <avalanche/processor.h>
 #include <blockindex.h>
 #include <common/args.h>
 #include <config.h>
@@ -27,6 +28,7 @@
 
 class CFeeRate;
 class Config;
+struct ConnmanTestMsg;
 class FastRandomContext;
 
 // Enable BOOST_CHECK_EQUAL for enum class types
@@ -184,6 +186,22 @@ struct TestChain100Setup : public TestingSetup {
     std::vector<CTransactionRef> m_coinbase_txns;
     // private/public key needed to spend coinbase transactions.
     CKey coinbaseKey;
+};
+
+struct AvalancheTestingSetup : TestChain100Setup {
+    const ::Config &config;
+    ConnmanTestMsg *m_connman;
+
+    // The master private key we delegate to.
+    CKey masterpriv;
+
+    std::unordered_set<std::string> m_overridden_args;
+
+    AvalancheTestingSetup(const ChainType chain_type = ChainType::REGTEST,
+                          const std::vector<const char *> &extra_args = {});
+    ~AvalancheTestingSetup();
+
+    void setArg(std::string key, const std::string &value);
 };
 
 /**
