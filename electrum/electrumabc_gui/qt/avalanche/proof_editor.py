@@ -7,6 +7,7 @@ from typing import List, Optional, Union
 from qtpy import QtCore, QtGui, QtWidgets
 
 from electrumabc.address import Address, AddressError
+from electrumabc.amount import format_satoshis
 from electrumabc.avalanche.primitives import Key, PublicKey
 from electrumabc.avalanche.proof import (
     Proof,
@@ -23,7 +24,7 @@ from electrumabc.serialize import DeserializationError, compact_size, serialize_
 from electrumabc.storage import StorageKeys
 from electrumabc.transaction import OutPoint, get_address_from_output_script
 from electrumabc.uint256 import UInt256
-from electrumabc.util import UserCancelled, format_satoshis
+from electrumabc.util import UserCancelled
 from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
 
 from .delegation_editor import AvaDelegationDialog

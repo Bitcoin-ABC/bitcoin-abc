@@ -55,6 +55,11 @@ import electrumabc.web as web
 from electrumabc import bitcoin, commands, keystore, networks, paymentrequest, util
 from electrumabc.address import Address
 from electrumabc.alias import DEFAULT_ENABLE_ALIASES
+from electrumabc.amount import (
+    format_fee_satoshis,
+    format_satoshis,
+    format_satoshis_plain,
+)
 from electrumabc.bip32 import InvalidXKeyFormat, InvalidXKeyNotBase58, deserialize_xpub
 from electrumabc.bitcoin import TYPE_ADDRESS
 from electrumabc.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
@@ -82,9 +87,6 @@ from electrumabc.util import (
     Weak,
     bfh,
     bh2u,
-    format_fee_satoshis,
-    format_satoshis,
-    format_satoshis_plain,
     format_time,
 )
 from electrumabc.wallet import AbstractWallet, MultisigWallet, sweep_preparations

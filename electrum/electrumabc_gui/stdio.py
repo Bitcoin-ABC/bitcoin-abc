@@ -3,12 +3,12 @@ import getpass
 from decimal import Decimal as PyDecimal
 
 from electrumabc.address import Address
+from electrumabc.amount import format_satoshis
 from electrumabc.bitcoin import CASH, TYPE_ADDRESS
 from electrumabc.constants import SCRIPT_NAME
 from electrumabc.printerror import set_verbosity
 from electrumabc.storage import WalletStorage
 from electrumabc.transaction import TxOutput
-from electrumabc.util import format_satoshis
 from electrumabc.wallet import Wallet
 
 

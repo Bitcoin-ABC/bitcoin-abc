@@ -35,10 +35,10 @@ from qtpy.QtCore import QPoint, Qt, Signal
 from qtpy.QtGui import QColor, QFont
 
 from electrumabc.address import Address
+from electrumabc.amount import format_satoshis
 from electrumabc.bitcoin import COINBASE_MATURITY
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
-from electrumabc.util import format_satoshis
 from electrumabc.wallet import ImportedAddressWallet, ImportedPrivkeyWallet
 
 from .avalanche.proof_editor import AvaProofDialog

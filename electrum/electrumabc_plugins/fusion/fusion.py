@@ -46,6 +46,7 @@ from random import Random
 from google.protobuf.message import DecodeError
 
 from electrumabc import schnorr
+from electrumabc.amount import format_satoshis
 from electrumabc.constants import XEC
 from electrumabc.ecc import CURVE_ORDER, ECPrivkey
 from electrumabc.i18n import _
@@ -55,7 +56,6 @@ from electrumabc.util import (
     TimeoutException,
     TxHashMismatch,
     do_in_main_thread,
-    format_satoshis,
 )
 from electrumabc.wallet import MultisigWallet, StandardWallet
 

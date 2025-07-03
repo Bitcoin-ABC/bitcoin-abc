@@ -38,6 +38,7 @@ from functools import wraps
 
 from . import alias, bitcoin, util, web
 from .address import Address, AddressError
+from .amount import format_satoshis
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
@@ -56,7 +57,7 @@ from .transaction import (
     multisig_script,
     rawtx_from_str,
 )
-from .util import format_satoshis, to_bytes
+from .util import to_bytes
 from .version import PACKAGE_VERSION
 from .wallet import create_new_wallet, restore_wallet_from_text
 

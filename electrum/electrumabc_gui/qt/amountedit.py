@@ -7,8 +7,8 @@ from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QPainter
 
+from electrumabc.amount import format_satoshis_plain
 from electrumabc.constants import BASE_UNITS_BY_DECIMALS
-from electrumabc.util import format_satoshis_plain
 
 from .util import ColorScheme, char_width_in_lineedit
 

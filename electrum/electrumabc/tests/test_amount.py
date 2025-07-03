@@ -1,4 +1,9 @@
-"""Tests for the util.py module.
+# Electrum ABC - lightweight eCash client
+# Copyright (c) 2025 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+"""Tests for the amount.py module.
 
 To enable tests for various locales, you need to install them first.
 
@@ -10,7 +15,7 @@ For ubuntu:
 import locale
 import unittest
 
-from ..util import (
+from ..amount import (
     _fmt_sats_cache,
     clear_cached_dp,
     format_satoshis,

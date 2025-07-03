@@ -35,9 +35,10 @@ from typing import Dict, Union
 
 from . import bitcoin, networks
 from .address import Address
+from .amount import format_satoshis_plain
 from .i18n import _
 from .printerror import print_error
-from .util import bfh, do_in_main_thread, format_satoshis_plain
+from .util import bfh, do_in_main_thread
 
 
 class ExplorerUrlParts(enum.Enum):
