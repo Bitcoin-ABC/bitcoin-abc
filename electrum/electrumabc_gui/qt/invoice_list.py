@@ -46,6 +46,8 @@ if TYPE_CHECKING:
 class InvoiceList(MyTreeWidget):
     filter_columns = [0, 1, 2, 3]  # Date, Requestor, Description, Amount
     visibility_changed = Signal(bool)
+    pay_invoice_signal = Signal(str)
+    delete_invoice_signal = Signal(str)
 
     def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
@@ -124,6 +126,6 @@ class InvoiceList(MyTreeWidget):
             )
         menu.addAction(_("Details"), lambda: self.main_window.show_invoice(key))
         if status == PR_UNPAID:
-            menu.addAction(_("Pay Now"), lambda: self.main_window.do_pay_invoice(key))
-        menu.addAction(_("Delete"), lambda: self.main_window.delete_invoice(key))
+            menu.addAction(_("Pay Now"), lambda: self.pay_invoice_signal.emit(key))
+        menu.addAction(_("Delete"), lambda: self.delete_invoice_signal.emit(key))
         menu.exec_(self.viewport().mapToGlobal(position))

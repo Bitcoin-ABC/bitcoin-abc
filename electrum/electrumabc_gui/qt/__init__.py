@@ -554,7 +554,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         """This event filter allows us to open ecash: URIs on macOS"""
         if event.type() == QtCore.QEvent.FileOpen:
             if len(self.windows) >= 1:
-                self.windows[0].pay_to_URI(event.url().toString())
+                self.windows[0].send_tab.pay_to_URI(event.url().toString())
                 return True
         return False
 
@@ -733,7 +733,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             return
 
         if uri:
-            window.pay_to_URI(uri)
+            window.send_tab.pay_to_URI(uri)
         window.bring_to_top()
         window.setWindowState(
             window.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive

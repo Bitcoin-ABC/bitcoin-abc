@@ -296,7 +296,7 @@ class UTXOList(MyTreeWidget):
                 warning_dialog.exec_()
                 if warning_dialog.has_cancelled():
                     return
-            self.main_window.spend_coins(spendable_coins)
+            self.main_window.send_tab.spend_coins(spendable_coins)
 
         # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
         spend_action = menu.addAction(_("Spend"), warn_if_tokens_and_spend)

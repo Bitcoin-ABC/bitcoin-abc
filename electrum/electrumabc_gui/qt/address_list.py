@@ -421,7 +421,7 @@ class AddressList(MyTreeWidget):
         coins = self.wallet.get_spendable_coins(domain=addrs, config=self.config)
         if coins:
             menu.addAction(
-                _("Spend from"), partial(self.main_window.spend_coins, coins)
+                _("Spend from"), partial(self.main_window.send_tab.spend_coins, coins)
             )
 
         run_hook("address_list_context_menu_setup", self, menu, addrs)

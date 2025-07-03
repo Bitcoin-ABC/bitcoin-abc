@@ -303,7 +303,8 @@ class Plugin(FusionPlugin, QObject):
                 if window:
                     wallet = window.wallet
                     Conf(wallet).spend_only_fused_coins = b
-                    window.do_update_fee()  # trigger send tab to re-calculate things
+                    # trigger send tab to re-calculate things
+                    window.send_tab.do_update_fee()
 
             spend_only_fused_chk.toggled.connect(on_chk)
             self.widgets.add(spend_only_fused_chk)

@@ -359,7 +359,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
         self.main_window.push_top_level_window(self)
         try:
-            self.main_window.broadcast_transaction(
+            self.main_window.send_tab.broadcast_transaction(
                 self.tx, self.desc, callback=broadcast_done
             )
         finally:

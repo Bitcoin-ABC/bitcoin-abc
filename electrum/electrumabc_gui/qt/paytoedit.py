@@ -22,11 +22,12 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QFontMetrics
@@ -41,6 +42,9 @@ from . import util
 from .completion_text_edit import CompletionTextEdit
 from .qrtextedit import ScanQRTextEdit
 
+if TYPE_CHECKING:
+    from send_tab import SendTab
+
 RE_ALIAS = r"^(.*?)\s*<\s*([0-9A-Za-z:]{26,})\s*>$"
 RE_AMT = r"^.*\s*,\s*([0-9,.]*)\s*$"
 
@@ -53,16 +57,14 @@ normal_style = "PayToEdit { }"
 
 class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
     alias_resolved = Signal(dict)
+    new_contact_added = Signal()
 
-    def __init__(self, win, contact_manager: Contacts):
-        from .main_window import ElectrumWindow
-
-        assert isinstance(win, ElectrumWindow) and win.amount_e and win.wallet
+    def __init__(self, send_tab: SendTab, contact_manager: Contacts):
         CompletionTextEdit.__init__(self)
         ScanQRTextEdit.__init__(self)
-        self.win = win
+        self.send_tab = send_tab
         self.contact_manager = contact_manager
-        self.amount_edit = win.amount_e
+        self.amount_edit = send_tab.amount_e
         document = self.document()
         document.contentsChanged.connect(self.update_size)
 
@@ -83,7 +85,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         self.errors = []
         self.is_pr = False
         self.is_alias = self.validated = False
-        self.scan_f = win.pay_to_URI
+        self.scan_f = send_tab.pay_to_URI
         self.update_size()
         self.payto_address = None
         self._original_style_sheet = self.styleSheet() or ""
@@ -182,7 +184,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         except Exception:
             pass
         else:
-            self.win.lock_amount(False)
+            self.send_tab.lock_amount(False)
 
     def _parse_as_multiline(self, lines):
         outputs = []
@@ -201,15 +203,15 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
             else:
                 total += output.value
 
-        self.win.max_button.setChecked(is_max)
+        self.send_tab.max_button.setChecked(is_max)
         self.outputs = outputs
         self.payto_address = None
 
-        if self.win.max_button.isChecked():
-            self.win.spend_max()
+        if self.send_tab.max_button.isChecked():
+            self.send_tab.spend_max()
         else:
             self.amount_edit.setAmount(total if outputs else None)
-        self.win.lock_amount(self.win.max_button.isChecked() or bool(outputs))
+        self.send_tab.lock_amount(self.send_tab.max_button.isChecked() or bool(outputs))
 
     def get_errors(self):
         return self.errors
@@ -368,8 +370,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
             self.contact_manager.add(
                 Contact(name=name, address=address_str, type=_type), unique=True
             )
-            self.win.contact_list.update()
-            self.win.update_completions()
+            self.new_contact_added.emit()
 
         self.setFrozen(True)
 
