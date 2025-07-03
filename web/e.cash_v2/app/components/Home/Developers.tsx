@@ -73,7 +73,7 @@ export default function Developers() {
           ))}
         </div>
       </div>
-      <div className="relative m-auto w-full lg:px-[35px]">
+      <div className="relative m-auto w-full lg:px-[35px]" id="developers">
         <ContentContainer className="relative max-w-[1400px]">
           <div className="absolute left-[-15px] top-[-5%] hidden h-[110%] w-[30px] flex-col items-center border-l border-white/10 lg:flex">
             <Lines />

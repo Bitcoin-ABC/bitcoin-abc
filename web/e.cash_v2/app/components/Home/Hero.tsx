@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import GridPattern from "../Atoms/GridPattern";
 import Spline from "@splinetool/react-spline";
+import Button from "../Atoms/Button";
 
 export default function Hero() {
   type HeroBoxProps = {
@@ -72,10 +73,11 @@ export default function Hero() {
             <h1 className="m-auto mb-2 w-auto max-w-[200px] text-center text-4xl font-bold tracking-tighter lg:m-0 lg:mb-6 lg:w-96 lg:max-w-none lg:text-left lg:text-6xl lg:leading-[60px]">
               Cash for the Internet
             </h1>
-            <p className="lg:w-70 m-auto mb-10 max-w-[280px] text-center lg:m-0 lg:mb-0 lg:text-left">
+            <p className="lg:w-70 m-auto mb-10 max-w-[280px] text-center lg:m-0 lg:mb-6 lg:text-left">
               Scalable payments to meet the{" "}
               <span className="text-primaryText">demands of tomorrow.</span>
             </p>
+            <Button href="#developers">Start Building</Button>
           </div>
 
           <div className="relative z-20 mt-8 hidden w-full flex-col items-end lg:my-20 lg:flex lg:w-[45%]">

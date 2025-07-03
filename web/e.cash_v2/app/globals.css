@@ -22,6 +22,10 @@
   --font-fira-code: "Fira Code", sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--primaryText);
