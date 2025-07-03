@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import ContentContainer from "./ContentContainer";
-import PlusHeader from "./PlusHeader";
-import CodeSnippet from "./CodeSnippet";
+import ContentContainer from "../Atoms/ContentContainer";
+import PlusHeader from "../Atoms/PlusHeader";
+import CodeSnippet from "../Atoms/CodeSnippet";
 import Image from "next/image";
 import Link from "next/link";
 

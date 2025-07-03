@@ -4,9 +4,9 @@
 
 "use client";
 import { useRef, useState, useEffect } from "react";
-import ContentContainer from "./ContentContainer";
+import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
-import { cn } from "../utils/cn";
+import { cn } from "../../utils/cn";
 
 const eCashFeatures = [
   {

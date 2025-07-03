@@ -4,8 +4,8 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import ContentContainer from "./ContentContainer";
-import { cn } from "../utils/cn";
+import ContentContainer from "../Atoms/ContentContainer";
+import { cn } from "../../utils/cn";
 
 interface Feature {
   feature: string;

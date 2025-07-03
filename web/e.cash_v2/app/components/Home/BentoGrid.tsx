@@ -3,10 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from "react";
-import ContentContainer from "./ContentContainer";
+import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
-import { cn } from "../utils/cn";
-import GridPattern from "./GridPattern";
+import { cn } from "../../utils/cn";
+import GridPattern from "../Atoms/GridPattern";
 
 export default function BentoGrid() {
   type CardProps = {

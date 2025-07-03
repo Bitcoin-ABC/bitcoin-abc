@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from "react";
-import { cn } from "../utils/cn";
+import { cn } from "../../utils/cn";
 
 type ContentContainerProps = {
   children: React.ReactNode;

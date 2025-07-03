@@ -2,14 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import Hero from "./components/Hero";
-import TrustedBy from "./components/TrustedBy";
-import WhatWeDo from "./components/WhatWeDo";
-import DigitalPaymentLandscape from "./components/DigitalPaymentLandscape";
-import PoweringPayments from "./components/PoweringPayments";
-import BentoGrid from "./components/BentoGrid";
-import AvalancheEnhanced from "./components/AvalancheEnhanced";
-import Developers from "./components/Developers";
+import Hero from "./components/Home/Hero";
+import TrustedBy from "./components/Home/TrustedBy";
+import WhatWeDo from "./components/Home/WhatWeDo";
+import DigitalPaymentLandscape from "./components/Home/DigitalPaymentLandscape";
+import PoweringPayments from "./components/Home/PoweringPayments";
+import BentoGrid from "./components/Home/BentoGrid";
+import AvalancheEnhanced from "./components/Home/AvalancheEnhanced";
+import Developers from "./components/Home/Developers";
 
 export default function Home() {
   return (

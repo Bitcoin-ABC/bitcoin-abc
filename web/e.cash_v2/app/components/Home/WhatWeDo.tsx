@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import ContentContainer from "./ContentContainer";
+import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
-import PlusHeader from "./PlusHeader";
+import PlusHeader from "../Atoms/PlusHeader";
 
 export default function WhatWeDo() {
   type CardProps = {

@@ -4,10 +4,10 @@
 
 "use client";
 import React, { useState } from "react";
-import ContentContainer from "./ContentContainer";
+import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import Link from "next/link";
-import GridPattern from "./GridPattern";
+import GridPattern from "../Atoms/GridPattern";
 import Spline from "@splinetool/react-spline";
 
 export default function Hero() {
