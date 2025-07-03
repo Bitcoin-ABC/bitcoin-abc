@@ -22,16 +22,23 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt
 
+from electrumabc.amount import format_amount
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.util import Weak
 
 from .qrcodewidget import QRCodeWidget, copy_to_clipboard, save_to_file
 from .util import Buttons, MessageBoxMixin, WWLabel
+
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
 
 
 class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
@@ -91,7 +98,7 @@ class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
 
     def set_content(
         self,
-        win,
+        win: ElectrumWindow,
         address_text,
         amount,
         message,
@@ -107,7 +114,9 @@ class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
             )
         self.address_label.setText(address_text)
         if amount:
-            amount_text = "{} {}".format(win.format_amount(amount), win.base_unit())
+            amount_text = "{} {}".format(
+                format_amount(amount, win.config), win.base_unit()
+            )
         else:
             amount_text = ""
         self.amount_label.setText(amount_text)

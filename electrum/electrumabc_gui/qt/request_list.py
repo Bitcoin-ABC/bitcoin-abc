@@ -31,6 +31,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QIcon
 
 from electrumabc.address import Address
+from electrumabc.amount import format_amount
 from electrumabc.i18n import _
 from electrumabc.paymentrequest import PR_UNKNOWN, pr_tooltips
 from electrumabc.plugins import run_hook
@@ -145,7 +146,7 @@ class RequestList(MyTreeWidget):
             status = req.get("status")
             signature = req.get("sig")
             requestor = req.get("name", "")
-            amount_str = self.main_window.format_amount(amount) if amount else ""
+            amount_str = format_amount(amount, self.config) if amount else ""
             item = QtWidgets.QTreeWidgetItem(
                 [
                     date,

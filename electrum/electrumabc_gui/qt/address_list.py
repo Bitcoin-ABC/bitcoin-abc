@@ -36,6 +36,7 @@ from qtpy.QtGui import QFont, QKeySequence
 import electrumabc.web as web
 from electrumabc import networks
 from electrumabc.address import Address
+from electrumabc.amount import format_amount
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.util import profiler
@@ -223,7 +224,7 @@ class AddressList(MyTreeWidget):
                 balance = sum(self.wallet.get_addr_balance(address))
                 address_text = address.to_ui_string()
                 label = self.wallet.labels.get(address.to_storage_string(), "")
-                balance_text = self.main_window.format_amount(balance, whitespaces=True)
+                balance_text = format_amount(balance, self.config, whitespaces=True)
                 columns = [address_text, str(n), label, balance_text, str(num)]
                 if fx:
                     rate = fx.exchange_rate()
@@ -392,8 +393,8 @@ class AddressList(MyTreeWidget):
                     [
                         a.to_ui_string()
                         + ", "
-                        + self.main_window.format_amount(
-                            sum(self.wallet.get_addr_balance(a))
+                        + format_amount(
+                            sum(self.wallet.get_addr_balance(a)), self.config
                         )
                         for a in addrs
                     ]

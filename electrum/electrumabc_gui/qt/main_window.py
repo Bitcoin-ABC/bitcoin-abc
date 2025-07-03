@@ -50,14 +50,15 @@ from qtpy.QtCore import (
 )
 from qtpy.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
 
-import electrumabc.constants
 import electrumabc.web as web
 from electrumabc import bitcoin, commands, keystore, networks, paymentrequest, util
 from electrumabc.address import Address
 from electrumabc.alias import DEFAULT_ENABLE_ALIASES
 from electrumabc.amount import (
+    base_unit,
+    format_amount,
+    format_amount_and_units,
     format_fee_satoshis,
-    format_satoshis,
     format_satoshis_plain,
 )
 from electrumabc.bip32 import InvalidXKeyFormat, InvalidXKeyNotBase58, deserialize_xpub
@@ -1106,22 +1107,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # called here (see TxUpdateMgr.do_check).
         self.on_timer_signal.emit()
 
-    def format_amount(self, x, is_diff=False, whitespaces=False):
-        return format_satoshis(
-            x,
-            self.get_num_zeros(),
-            self.get_decimal_point(),
-            is_diff=is_diff,
-            whitespaces=whitespaces,
-        )
-
-    def format_amount_and_units(self, amount, is_diff=False):
-        text = self.format_amount(amount, is_diff=is_diff) + " " + self.base_unit()
-        x = self.fx.format_amount_and_units(amount, is_diff=is_diff)
-        if text and x:
-            text += " (%s)" % x
-        return text
-
     def format_fee_rate(self, fee_rate):
         sats_per_byte = format_fee_satoshis(
             fee_rate / 1000, max(self.get_num_zeros(), 1)
@@ -1135,11 +1120,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return int(self.config.get("num_zeros", 2))
 
     def base_unit(self):
-        if self.get_decimal_point() in electrumabc.constants.BASE_UNITS_BY_DECIMALS:
-            return electrumabc.constants.BASE_UNITS_BY_DECIMALS[
-                self.get_decimal_point()
-            ]
-        raise Exception("Unknown base unit")
+        return base_unit(self.config)
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
         def edit_changed(edit):
@@ -1211,20 +1192,20 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
                 text_items = [
                     _("Balance: {amount_and_unit}").format(
-                        amount_and_unit=self.format_amount_and_units(c)
+                        amount_and_unit=format_amount_and_units(c, self.config, self.fx)
                     )
                 ]
                 if u:
                     text_items.append(
                         _("[{amount} unconfirmed]").format(
-                            amount=self.format_amount(u, True).strip()
+                            amount=format_amount(u, self.config, True).strip()
                         )
                     )
 
                 if x:
                     text_items.append(
                         _("[{amount} unmatured]").format(
-                            amount=self.format_amount(x, True).strip()
+                            amount=format_amount(x, self.config, True).strip()
                         )
                     )
 
@@ -2077,7 +2058,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 if c + u + x:
                     text += (
                         " ("
-                        + self.format_amount(c + u + x).strip()
+                        + format_amount(c + u + x, self.config).strip()
                         + " "
                         + self.base_unit()
                         + " "
@@ -2292,7 +2273,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         def new(item, is_unremovable=False):
             ret = QtWidgets.QTreeWidgetItem(
-                [format_outpoint_and_address(item), self.format_amount(item["value"])]
+                [
+                    format_outpoint_and_address(item),
+                    format_amount(item["value"], self.config),
+                ]
             )
             ret.setData(0, Qt.UserRole, name(item))
             ret.setData(0, Qt.UserRole + 1, is_unremovable)
@@ -2589,8 +2573,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         # confirmation dialog
         msg = [
-            _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
-            _("Mining fee") + ": " + self.format_amount_and_units(fee),
+            _("Amount to be sent")
+            + ": "
+            + format_amount_and_units(amount, self.config, self.fx),
+            _("Mining fee") + ": " + format_amount_and_units(fee, self.config, self.fx),
         ]
 
         if fee < (tx.estimated_size()):
@@ -3012,7 +2998,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     "The amount field has been populated by a BIP21 payment URI with a "
                     "value of {amount_and_unit}. Please check the amount and destination "
                     "carefully before sending the transaction."
-                ).format(amount_and_unit=self.format_amount_and_units(total_amount))
+                ).format(
+                    amount_and_unit=format_amount_and_units(
+                        total_amount, self.config, self.fx
+                    )
+                )
             )
 
     def amount_exceeds_warning_threshold(self, amount_sats: int) -> bool:
@@ -3155,7 +3145,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         address_list.selection_cleared.connect(self.status_bar.clear_selected_amount)
         address_list.selected_amount_changed.connect(
             lambda satoshis: self.status_bar.set_selected_amount(
-                self.format_amount_and_units(satoshis)
+                format_amount_and_units(satoshis, self.config, self.fx)
             )
         )
         return address_list
@@ -3165,7 +3155,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         utxo_list.selection_cleared.connect(self.status_bar.clear_selected_amount)
         utxo_list.selected_amount_changed.connect(
             lambda satoshis: self.status_bar.set_selected_amount(
-                self.format_amount_and_units(satoshis)
+                format_amount_and_units(satoshis, self.config, self.fx)
             )
         )
         self.gui_object.addr_fmt_changed.connect(utxo_list.update)
@@ -3255,7 +3245,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(QtWidgets.QLabel(pr.get_requestor()), 0, 1)
         grid.addWidget(QtWidgets.QLabel(_("Amount") + ":"), 1, 0)
         outputs_str = "\n".join(
-            self.format_amount(x[2]) + self.base_unit() + " @ " + x[1].to_ui_string()
+            format_amount(x[2], self.config)
+            + self.base_unit()
+            + " @ "
+            + x[1].to_ui_string()
             for x in pr.get_outputs()
         )
         grid.addWidget(QtWidgets.QLabel(outputs_str), 1, 1)
@@ -5121,7 +5114,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         max_fee = new_tx.output_value()
         grid.addWidget(QtWidgets.QLabel(_("Input amount") + ":"), 1, 0)
         grid.addWidget(
-            QtWidgets.QLabel(self.format_amount(max_fee) + " " + self.base_unit()), 1, 1
+            QtWidgets.QLabel(
+                format_amount(max_fee, self.config) + " " + self.base_unit()
+            ),
+            1,
+            1,
         )
         output_amount = QtWidgets.QLabel("")
         grid.addWidget(QtWidgets.QLabel(_("Output amount") + ":"), 2, 0)
@@ -5131,7 +5128,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         def f(x):
             a = max_fee - fee_e.get_amount()
             output_amount.setText(
-                (self.format_amount(a) + " " + self.base_unit()) if a else ""
+                (format_amount(a, self.config) + " " + self.base_unit()) if a else ""
             )
 
         fee_e.textChanged.connect(f)
@@ -5270,7 +5267,7 @@ class TxUpdateMgr(QObject, PrintError):
     notifications from the network thread. It collates them and sends them to
     the appropriate GUI controls in the main_window in an efficient manner."""
 
-    def __init__(self, main_window_parent):
+    def __init__(self, main_window_parent: ElectrumWindow):
         assert isinstance(
             main_window_parent, ElectrumWindow
         ), "TxUpdateMgr must be constructed with an ElectrumWindow as its parent"
@@ -5465,6 +5462,8 @@ class TxUpdateMgr(QObject, PrintError):
         self.print_error(f"Notifying GUI {n_ok} tx")
         parent.notify(
             _("New transaction: {}").format(
-                parent.format_amount_and_units(total_amount, is_diff=True)
+                format_amount_and_units(
+                    total_amount, parent.config, parent.fx, is_diff=True
+                )
             )
         )

@@ -2,12 +2,19 @@
 # Copyright (c) 2025 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+from __future__ import annotations
 
 import locale
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from .caches import ExpiringCache
+from .constants import BASE_UNITS_BY_DECIMALS
 from .i18n import _
+
+if TYPE_CHECKING:
+    from .exchange_rate import FxThread
+    from .simple_config import SimpleConfig
 
 
 def format_satoshis_plain(x, decimal_point=8):
@@ -113,6 +120,32 @@ def format_satoshis(
         result = " " * (15 - len(result)) + result
     _fmt_sats_cache.put(cache_key, result)
     return result
+
+
+def format_amount(x, config: SimpleConfig, is_diff=False, whitespaces=False) -> str:
+    """Wrapper for format_satoshis with a config parameter"""
+    return format_satoshis(
+        x,
+        config.get("num_zeros", 2),
+        config.get("decimal_point", 2),
+        is_diff=is_diff,
+        whitespaces=whitespaces,
+    )
+
+
+def base_unit(config: SimpleConfig):
+    decimal_point = config.get("decimal_point", 2)
+    if decimal_point in BASE_UNITS_BY_DECIMALS:
+        return BASE_UNITS_BY_DECIMALS[decimal_point]
+    raise Exception("Unknown base unit")
+
+
+def format_amount_and_units(amount, config: SimpleConfig, fx: FxThread, is_diff=False):
+    text = format_amount(amount, config, is_diff=is_diff) + " " + base_unit(config)
+    x = fx.format_amount_and_units(amount, is_diff=is_diff)
+    if text and x:
+        text += " (%s)" % x
+    return text
 
 
 def format_fee_satoshis(fee, num_zeros=0):

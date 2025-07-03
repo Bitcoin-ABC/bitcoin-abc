@@ -35,6 +35,7 @@ from qtpy.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, Signal
 from qtpy.QtGui import QCursor, QIcon, QImage, QPainter
 
 from electrumabc.address import Address
+from electrumabc.amount import base_unit, format_amount
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import hook, run_hook
 from electrumabc.tor.controller import TorController
@@ -500,13 +501,14 @@ class Plugin(FusionPlugin, QObject):
         ]
         total = sum(c["value"] for c in needs_fuz)
         n_coins = len(needs_fuz)
+        config = window.config
         if total and needs_fuz:
             return ngettext(
                 "{total_bch} in {n_coins} unfused coin",
                 "{total_bch} in {n_coins} unfused coins",
                 n_coins,
             ).format(
-                total_bch=window.format_amount(total) + " " + window.base_unit(),
+                total_bch=format_amount(total, config) + " " + base_unit(config),
                 n_coins=n_coins,
             )
 

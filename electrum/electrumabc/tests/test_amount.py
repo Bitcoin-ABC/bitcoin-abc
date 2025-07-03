@@ -18,9 +18,11 @@ import unittest
 from ..amount import (
     _fmt_sats_cache,
     clear_cached_dp,
+    format_amount,
     format_satoshis,
     set_locale_has_thousands_separator,
 )
+from ..simple_config import SimpleConfig
 
 initial_locale = locale.getlocale(locale.LC_NUMERIC)
 
@@ -134,6 +136,48 @@ class _TestFormatSatoshis(unittest.TestCase):
         result = format_satoshis(-1234, is_diff=True)
         expected = "-12" + self.dp + "34"
         self.assertEqual(expected, result)
+
+    def test_format_satoshis_num_zeros(self):
+        self.assertEqual(format_satoshis(1200, num_zeros=0), "12" + self.dp)
+        for num_zeros, expected in (
+            # num_zeros  expected_result
+            (0, "12" + self.dp + "34"),
+            (2, "12" + self.dp + "34"),
+            (4, "12" + self.dp + "3400"),
+            (10, "12" + self.dp + "3400000000"),
+        ):
+            self.assertEqual(format_satoshis(1234, num_zeros=num_zeros), expected)
+            self.assertEqual(
+                format_amount(1234, SimpleConfig({"num_zeros": num_zeros})), expected
+            )
+
+    def test_format_satoshis_decimal_point(self):
+        self.assertEqual(
+            format_satoshis(1200, decimal_point=0), "1" + self.ts + "200" + self.dp
+        )
+        for decimal_point, expected in (
+            # decimal_point  expected_result
+            (0, "1" + self.ts + "234" + self.dp),
+            (2, "12" + self.dp + "34"),
+            (4, "0" + self.dp + "1234"),
+            (10, "0" + self.dp + "0000001234"),
+        ):
+            self.assertEqual(
+                format_satoshis(1234, decimal_point=decimal_point), expected
+            )
+            self.assertEqual(
+                format_amount(
+                    1234, SimpleConfig({"decimal_point": decimal_point, "num_zeros": 0})
+                ),
+                expected,
+            )
+
+        expected = "1" + self.ts + "234" + self.dp + "00"
+        self.assertEqual(format_satoshis(1234, decimal_point=0, num_zeros=2), expected)
+        self.assertEqual(
+            format_amount(1234, SimpleConfig({"decimal_point": 0, "num_zeros": 2})),
+            expected,
+        )
 
 
 class TestFormatSatoshisLocaleC(_TestFormatSatoshis):

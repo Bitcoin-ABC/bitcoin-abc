@@ -104,7 +104,6 @@ class AddressDialog(WindowModalDialog):
         vbox.addWidget(self.hw)
 
         vbox.addLayout(Buttons(CloseButton(self)))
-        self.format_amount = self.parent.format_amount
         self.hw.update()
 
     def connect_signals(self):

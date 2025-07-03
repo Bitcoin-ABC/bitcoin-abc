@@ -31,6 +31,7 @@ from qtpy import QtWidgets
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QIcon
 
+from electrumabc.amount import format_amount
 from electrumabc.i18n import _
 from electrumabc.paymentrequest import PR_UNPAID, pr_tooltips
 from electrumabc.util import FileImportFailed, format_time
@@ -75,7 +76,7 @@ class InvoiceList(MyTreeWidget):
                     date_str,
                     requestor,
                     pr.memo,
-                    self.main_window.format_amount(pr.get_amount(), whitespaces=True),
+                    format_amount(pr.get_amount(), self.config, whitespaces=True),
                     _(pr_tooltips.get(status, "")),
                 ]
             )
