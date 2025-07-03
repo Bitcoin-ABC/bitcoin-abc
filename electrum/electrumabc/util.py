@@ -41,24 +41,8 @@ from collections import defaultdict
 from datetime import datetime
 
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
+from .i18n import _, ngettext
 from .printerror import PrintError, print_error, print_stderr
-
-
-# https://docs.python.org/3/library/gettext.html#deferred-translations
-def _(message):
-    return message
-
-
-fee_levels = [
-    _("Within 25 blocks"),
-    _("Within 10 blocks"),
-    _("Within 5 blocks"),
-    _("Within 2 blocks"),
-    _("In the next block"),
-]
-
-del _
-from .i18n import _, ngettext  # noqa: E402
 
 
 def inv_dict(d):

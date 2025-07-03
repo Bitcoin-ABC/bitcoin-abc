@@ -1973,11 +1973,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         self.fee_e_label = HelpLabel(_("F&ee"), msg)
 
-        def fee_cb(dyn, pos, fee_rate):
-            if dyn:
-                self.config.set_key("fee_level", pos, False)
-            else:
-                self.config.set_key("fee_per_kb", fee_rate, False)
+        def fee_cb(fee_rate):
+            self.config.set_key("fee_per_kb", fee_rate, False)
             self.spend_max() if self.max_button.isChecked() else self.update_fee()
 
         self.fee_slider = FeeSlider(self, self.config, fee_cb)
@@ -5137,7 +5134,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(QtWidgets.QLabel(_("Fee" + ":")), 3, 0)
         grid.addWidget(fee_e, 3, 1)
 
-        def on_rate(dyn, pos, fee_rate):
+        def on_rate(fee_rate):
             fee = fee_rate * total_size / 1000
             fee = min(max_fee, fee)
             fee_e.setAmount(fee)
