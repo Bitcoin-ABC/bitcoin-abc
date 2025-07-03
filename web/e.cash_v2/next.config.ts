@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
             script-src ${scriptSrc};
             style-src 'self' 'unsafe-inline' fonts.googleapis.com;
             font-src 'self' fonts.gstatic.com data:;
-            img-src 'self' google-analytics.com https: data:;
+            img-src 'self' blob: google-analytics.com https: data:;
             connect-src 'self' google-analytics.com region1.google-analytics.com;
             object-src 'none';
             base-uri 'self';
