@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,6 +16,8 @@ interface ChromeMessage {
     addressRequestApproved?: boolean;
     address?: string;
     tabId?: number;
+    success?: boolean;
+    reason?: string;
 }
 
 // Insert flag into window object to denote Cashtab is available and active as a browser extension
@@ -57,13 +59,15 @@ window.addEventListener(
 // 1 - Extension pop-up window returning an address request approval / denial
 // 2 - The extension service_worker sending the address to the web page if approved
 chrome.runtime.onMessage.addListener((message: ChromeMessage) => {
-    // Parse message for address
-    if (typeof message.address !== 'undefined') {
-        // Send as message that webpage can listen for
+    // Parse message for address request response
+    if (typeof message.success !== 'undefined') {
+        // Send structured response that webpage can listen for
         return window.postMessage(
             {
                 type: 'FROM_CASHTAB',
+                success: message.success,
                 address: message.address,
+                reason: message.reason,
             },
             '*',
         );

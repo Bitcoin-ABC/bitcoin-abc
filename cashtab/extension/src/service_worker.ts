@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -113,13 +113,17 @@ async function fetchAddress(tabId?: number): Promise<void> {
     if (!tabId) return;
     const fetchedAddress = await getObjectFromExtensionStorage('address');
     // Send this info back to the browser
-    chrome.tabs.sendMessage(Number(tabId), { address: fetchedAddress });
+    chrome.tabs.sendMessage(Number(tabId), {
+        address: fetchedAddress,
+        success: true,
+    });
 }
 
 async function handleDeniedAddressRequest(tabId?: number): Promise<void> {
     if (!tabId) return;
     chrome.tabs.sendMessage(Number(tabId), {
-        address: 'Address request denied by user',
+        success: false,
+        reason: 'User denied the request',
     });
 }
 

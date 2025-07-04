@@ -1,0 +1,25 @@
+# Source files (not needed in published package)
+src/
+test/
+example.ts
+
+# Demo files (not needed in published package)
+demo/
+
+# Development files
+.eslintrc.js
+.prettierrc
+tsconfig.json
+jest.config.js
+jest.setup.js
+
+# Build artifacts
+*.tsbuildinfo
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db 

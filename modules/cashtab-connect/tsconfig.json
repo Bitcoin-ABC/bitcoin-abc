@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "commonjs",
+        "outDir": "./dist",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "alwaysStrict": true,
+        "skipLibCheck": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "typeRoots": ["./src", "./node_modules/@types"],
+        "types": ["@types/mocha", "@types/node"]
+    },
+    "include": ["src/**/*", "src/global.d.ts", "test/**/*"],
+    "exclude": ["node_modules", "dist"]
+}

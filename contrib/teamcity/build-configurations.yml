@@ -674,6 +674,12 @@ builds:
       npm ci
       npm run build
 
+  cashtab-connect:
+    script: |
+      pushd "${TOPLEVEL}/modules/cashtab-connect"
+      npm ci
+      npm run build
+
   ecashaddrjs:
     script: |
       pushd "${TOPLEVEL}/modules/ecashaddrjs"
@@ -1036,3 +1042,11 @@ builds:
       dockerfile: cashtab.Dockerfile
       build_args:
         - "NGINX_CONF=nginx-preview.conf"
+
+  cashtab-connect-tests:
+    runOnDiffRegex:
+      - modules/cashtab-connect/
+    env:
+      JS_PROJECT_ROOT: modules/cashtab-connect
+    templates:
+      - js-mocha
