@@ -28,12 +28,14 @@ import {
 } from '../../../../../modules/mock-chronik-client';
 import Collection from 'components/Agora/Collection/';
 import { Bounce, ToastContainer } from 'react-toastify';
+import { ChronikClient } from 'chronik-client';
+import { Agora } from 'ecash-agora';
 
 /**
  * Test expected behavior of the Collection component
  */
 describe('<Collection />', () => {
-    let mockedChronik;
+    let mockedChronik: MockChronikClient;
     const FIAT_PRICE = 0.00003;
     const CHAINTIPBLOCKHEIGHT = 800000;
     beforeEach(async () => {
@@ -56,8 +58,8 @@ describe('<Collection />', () => {
             <ThemeProvider theme={theme}>
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
-                    agora={mockedAgora}
-                    chronik={mockedChronik}
+                    agora={mockedAgora as unknown as Agora}
+                    chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
                     settings={SettingsUsd}
                     fiatPrice={FIAT_PRICE}
@@ -99,8 +101,8 @@ describe('<Collection />', () => {
             <ThemeProvider theme={theme}>
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
-                    agora={mockedAgora}
-                    chronik={mockedChronik}
+                    agora={mockedAgora as unknown as Agora}
+                    chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
                     settings={SettingsUsd}
                     fiatPrice={FIAT_PRICE}
@@ -144,11 +146,11 @@ describe('<Collection />', () => {
         ]) {
             mockedChronik.setToken(
                 tokenCacheMock.token.tokenId,
-                tokenCacheMock.token,
+                tokenCacheMock.token as any,
             );
             mockedChronik.setTx(
                 tokenCacheMock.token.tokenId,
-                tokenCacheMock.tx,
+                tokenCacheMock.tx as any,
             );
         }
 
@@ -170,8 +172,8 @@ describe('<Collection />', () => {
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
-                    agora={mockedAgora}
-                    chronik={mockedChronik}
+                    agora={mockedAgora as unknown as Agora}
+                    chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={new CashtabCache()}
                     settings={SettingsUsd}
                     fiatPrice={FIAT_PRICE}
@@ -230,11 +232,11 @@ describe('<Collection />', () => {
         ]) {
             mockedChronik.setToken(
                 tokenCacheMock.token.tokenId,
-                tokenCacheMock.token,
+                tokenCacheMock.token as any,
             );
             mockedChronik.setTx(
                 tokenCacheMock.token.tokenId,
-                tokenCacheMock.tx,
+                tokenCacheMock.tx as any,
             );
         }
 
@@ -256,8 +258,8 @@ describe('<Collection />', () => {
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
-                    agora={mockedAgora}
-                    chronik={mockedChronik}
+                    agora={mockedAgora as unknown as Agora}
+                    chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={new CashtabCache()}
                     settings={SettingsUsd}
                     fiatPrice={FIAT_PRICE}
@@ -334,8 +336,8 @@ describe('<Collection />', () => {
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
-                    agora={mockedAgora}
-                    chronik={mockedChronik}
+                    agora={mockedAgora as unknown as Agora}
+                    chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
                     settings={SettingsUsd}
                     fiatPrice={FIAT_PRICE}
@@ -433,8 +435,8 @@ describe('<Collection />', () => {
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
-                    agora={mockedAgora}
-                    chronik={mockedChronik}
+                    agora={mockedAgora as unknown as Agora}
+                    chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
                     settings={SettingsUsd}
                     fiatPrice={FIAT_PRICE}
