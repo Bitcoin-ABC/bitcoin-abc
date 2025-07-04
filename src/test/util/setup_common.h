@@ -11,6 +11,7 @@
 #include <config.h>
 #include <consensus/amount.h>
 #include <key.h>
+#include <net_processing.h>
 #include <node/caches.h>
 #include <node/context.h>
 #include <primitives/transaction.h>
@@ -21,14 +22,16 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/string.h>
+#include <util/translation.h>
 #include <util/vector.h>
+
+#include <test/util/net.h>
 
 #include <type_traits>
 #include <vector>
 
 class CFeeRate;
 class Config;
-struct ConnmanTestMsg;
 class FastRandomContext;
 
 // Enable BOOST_CHECK_EQUAL for enum class types
@@ -188,7 +191,7 @@ struct TestChain100Setup : public TestingSetup {
     CKey coinbaseKey;
 };
 
-struct AvalancheTestingSetup : TestChain100Setup {
+template <class T> struct WithAvalanche : public T {
     const ::Config &config;
     ConnmanTestMsg *m_connman;
 
@@ -197,12 +200,55 @@ struct AvalancheTestingSetup : TestChain100Setup {
 
     std::unordered_set<std::string> m_overridden_args;
 
-    AvalancheTestingSetup(const ChainType chain_type = ChainType::REGTEST,
-                          const std::vector<const char *> &extra_args = {});
-    ~AvalancheTestingSetup();
+    WithAvalanche(const ChainType chain_type = ChainType::REGTEST,
+                  const std::vector<const char *> &extra_args = {})
+        : T(chain_type, extra_args), config(GetConfig()),
+          masterpriv(CKey::MakeCompressedKey()) {
+        // Deterministic randomness for tests.
+        auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,
+                                                        *T::m_node.addrman);
+        m_connman = connman.get();
+        T::m_node.connman = std::move(connman);
 
-    void setArg(std::string key, const std::string &value);
+        // Get the processor ready.
+        setArg("-avaminquorumstake", "0");
+        setArg("-avaminquorumconnectedstakeratio", "0");
+        setArg("-avaminavaproofsnodecount", "0");
+        setArg("-avaproofstakeutxoconfirmations", "1");
+        bilingual_str error;
+        T::m_node.avalanche = avalanche::Processor::MakeProcessor(
+            *T::m_node.args, *T::m_node.chain, T::m_node.connman.get(),
+            *Assert(T::m_node.chainman), T::m_node.mempool.get(),
+            *T::m_node.scheduler, error);
+        assert(T::m_node.avalanche);
+
+        T::m_node.peerman = PeerManager::make(
+            *m_connman, *T::m_node.addrman, T::m_node.banman.get(),
+            *T::m_node.chainman, *T::m_node.mempool, T::m_node.avalanche.get(),
+            {});
+        T::m_node.chain =
+            interfaces::MakeChain(T::m_node, config.GetChainParams());
+    }
+
+    ~WithAvalanche() {
+        m_connman->ClearTestNodes();
+        SyncWithValidationInterfaceQueue();
+
+        ArgsManager &argsman = *Assert(T::m_node.args);
+        for (const std::string &key : m_overridden_args) {
+            argsman.ClearForcedArg(key);
+        }
+        m_overridden_args.clear();
+    }
+
+    void setArg(std::string key, const std::string &value) {
+        ArgsManager &argsman = *Assert(T::m_node.args);
+        argsman.ForceSetArg(key, value);
+        m_overridden_args.emplace(std::move(key));
+    }
 };
+
+using AvalancheTestChain100Setup = WithAvalanche<TestChain100Setup>;
 
 /**
  * Make a test setup that has disk access to the debug.log file disabled. Can

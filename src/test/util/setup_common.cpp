@@ -22,7 +22,6 @@
 #include <logging.h>
 #include <mempool_args.h>
 #include <net.h>
-#include <net_processing.h>
 #include <node/blockstorage.h>
 #include <node/chainstate.h>
 #include <node/chainstatemanager_args.h>
@@ -51,14 +50,12 @@
 #include <util/thread.h>
 #include <util/threadnames.h>
 #include <util/time.h>
-#include <util/translation.h>
 #include <util/vector.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <walletinitinterface.h>
 
 #include <test/util/mining.h>
-#include <test/util/net.h>
 #include <test/util/random.h>
 
 #include <algorithm>
@@ -535,51 +532,6 @@ void TestChain100Setup::MockMempoolMinFee(const CFeeRate &target_feerate) {
 
     m_node.mempool->TrimToSize(0);
     assert(m_node.mempool->GetMinFee() == target_feerate);
-}
-
-AvalancheTestingSetup::AvalancheTestingSetup(
-    const ChainType chain_type, const std::vector<const char *> &extra_args)
-    : TestChain100Setup(chain_type, extra_args), config(GetConfig()),
-      masterpriv(CKey::MakeCompressedKey()) {
-    // Deterministic randomness for tests.
-    auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,
-                                                    *m_node.addrman);
-    m_connman = connman.get();
-    m_node.connman = std::move(connman);
-
-    // Get the processor ready.
-    setArg("-avaminquorumstake", "0");
-    setArg("-avaminquorumconnectedstakeratio", "0");
-    setArg("-avaminavaproofsnodecount", "0");
-    setArg("-avaproofstakeutxoconfirmations", "1");
-    bilingual_str error;
-    m_node.avalanche = avalanche::Processor::MakeProcessor(
-        *m_node.args, *m_node.chain, m_node.connman.get(),
-        *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
-        error);
-    assert(m_node.avalanche);
-
-    m_node.peerman = PeerManager::make(
-        *m_connman, *m_node.addrman, m_node.banman.get(), *m_node.chainman,
-        *m_node.mempool, m_node.avalanche.get(), {});
-    m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
-}
-
-AvalancheTestingSetup::~AvalancheTestingSetup() {
-    m_connman->ClearTestNodes();
-    SyncWithValidationInterfaceQueue();
-
-    ArgsManager &argsman = *Assert(m_node.args);
-    for (const std::string &key : m_overridden_args) {
-        argsman.ClearForcedArg(key);
-    }
-    m_overridden_args.clear();
-}
-
-void AvalancheTestingSetup::setArg(std::string key, const std::string &value) {
-    ArgsManager &argsman = *Assert(m_node.args);
-    argsman.ForceSetArg(key, value);
-    m_overridden_args.emplace(std::move(key));
 }
 
 CTxMemPoolEntryRef

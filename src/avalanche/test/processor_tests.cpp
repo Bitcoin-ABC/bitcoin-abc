@@ -115,7 +115,7 @@ CService ip(uint32_t i) {
     return CService(CNetAddr(s), Params().GetDefaultPort());
 }
 
-struct AvalancheProcessorTestingSetup : public AvalancheTestingSetup {
+struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
     CNode *ConnectNode(ServiceFlags nServices) {
         static NodeId id = 0;
 
