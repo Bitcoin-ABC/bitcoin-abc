@@ -58,7 +58,6 @@ from electrumabc.amount import (
     base_unit,
     format_amount,
     format_amount_and_units,
-    format_fee_satoshis,
     format_satoshis_plain,
 )
 from electrumabc.bip32 import InvalidXKeyFormat, InvalidXKeyNotBase58, deserialize_xpub
@@ -1107,12 +1106,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # called here (see TxUpdateMgr.do_check).
         self.on_timer_signal.emit()
 
-    def format_fee_rate(self, fee_rate):
-        sats_per_byte = format_fee_satoshis(
-            fee_rate / 1000, max(self.get_num_zeros(), 1)
-        )
-        return _("{sats_per_byte} sat/byte").format(sats_per_byte=sats_per_byte)
-
     def get_decimal_point(self) -> int:
         return self.config.get("decimal_point", 2)
 
@@ -1977,7 +1970,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.config.set_key("fee_per_kb", fee_rate, False)
             self.spend_max() if self.max_button.isChecked() else self.update_fee()
 
-        self.fee_slider = FeeSlider(self, self.config, fee_cb)
+        self.fee_slider = FeeSlider(self.config, fee_cb)
         self.fee_e_label.setBuddy(self.fee_slider)
         self.fee_slider.setFixedWidth(self.amount_e.width())
 
@@ -5139,7 +5132,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             fee = min(max_fee, fee)
             fee_e.setAmount(fee)
 
-        fee_slider = FeeSlider(self, self.config, on_rate)
+        fee_slider = FeeSlider(self.config, on_rate)
         fee_slider.update()
         grid.addWidget(fee_slider, 4, 1)
         vbox.addLayout(grid)

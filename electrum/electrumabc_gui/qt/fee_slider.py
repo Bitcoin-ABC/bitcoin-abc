@@ -2,14 +2,14 @@ from qtpy import QtWidgets
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QCursor
 
+from electrumabc.amount import format_fee_rate
 from electrumabc.i18n import _
 
 
 class FeeSlider(QtWidgets.QSlider):
-    def __init__(self, window, config, callback):
+    def __init__(self, config, callback):
         QtWidgets.QSlider.__init__(self, Qt.Horizontal)
         self.config = config
-        self.window = window
         self.callback = callback
         self.update()
         self.valueChanged.connect(self.moved)
@@ -22,7 +22,7 @@ class FeeSlider(QtWidgets.QSlider):
         self.callback(fee_rate)
 
     def get_tooltip(self, fee_rate):
-        rate_str = self.window.format_fee_rate(fee_rate) if fee_rate else _("unknown")
+        rate_str = format_fee_rate(fee_rate, self.config) if fee_rate else _("unknown")
         if self.config.has_custom_fee_rate():
             tooltip = _("Custom rate: ") + rate_str
         else:

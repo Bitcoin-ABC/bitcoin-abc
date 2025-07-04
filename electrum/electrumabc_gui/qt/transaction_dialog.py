@@ -37,7 +37,7 @@ from qtpy.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFor
 
 from electrumabc import web
 from electrumabc.address import Address, PublicKey, ScriptOutput
-from electrumabc.amount import base_unit, format_amount
+from electrumabc.amount import base_unit, format_amount, format_fee_rate
 from electrumabc.bitcoin import base_encode
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import run_hook
@@ -654,7 +654,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             fee_str = fee_str.format(
                 fee_amount=format_amount(fee, self.config),
                 fee_unit=bu,
-                fee_rate=self.main_window.format_fee_rate(fee / size * 1000),
+                fee_rate=format_fee_rate(fee / size * 1000, self.config),
             )
             dusty_fee = sum(
                 o.value for o in self.tx.outputs() if o.value < DUST_THRESHOLD

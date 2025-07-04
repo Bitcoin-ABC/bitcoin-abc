@@ -150,3 +150,10 @@ def format_amount_and_units(amount, config: SimpleConfig, fx: FxThread, is_diff=
 
 def format_fee_satoshis(fee, num_zeros=0):
     return format_satoshis(fee, num_zeros, 0, precision=num_zeros)
+
+
+def format_fee_rate(fee_rate, config: SimpleConfig):
+    sats_per_byte = format_fee_satoshis(
+        fee_rate / 1000, max(config.get("num_zeros", 2), 1)
+    )
+    return _("{sats_per_byte} sat/byte").format(sats_per_byte=sats_per_byte)
