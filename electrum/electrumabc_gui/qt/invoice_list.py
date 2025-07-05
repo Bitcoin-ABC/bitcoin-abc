@@ -61,11 +61,11 @@ class InvoiceList(MyTreeWidget):
         self.setColumnWidth(1, 200)
 
     def on_update(self):
-        inv_list = self.main_window.invoices.unpaid_invoices()
+        inv_list = self.wallet.invoices.unpaid_invoices()
         self.clear()
         for pr in inv_list:
             key = pr.get_id()
-            status = self.main_window.invoices.get_status(key)
+            status = self.wallet.invoices.get_status(key)
             if status is None:
                 continue
             requestor = pr.get_requestor()
@@ -89,7 +89,7 @@ class InvoiceList(MyTreeWidget):
         self.chkVisible(inv_list)
 
     def chkVisible(self, inv_list=None):
-        inv_list = inv_list or self.main_window.invoices.unpaid_invoices()
+        inv_list = inv_list or self.wallet.invoices.unpaid_invoices()
         b = len(inv_list) > 0 and self.main_window.isVisible()
         self.setVisible(b)
         self.main_window.invoices_label.setVisible(b)
@@ -102,7 +102,7 @@ class InvoiceList(MyTreeWidget):
         if not filename:
             return
         try:
-            self.main_window.invoices.import_file(filename)
+            self.wallet.invoices.import_file(filename)
         except FileImportFailed as e:
             self.main_window.show_message(str(e))
         self.on_update()
@@ -116,8 +116,8 @@ class InvoiceList(MyTreeWidget):
         column = self.currentColumn()
         column_title = self.headerItem().text(column)
         column_data = item.text(column)
-        self.main_window.invoices.get(key)
-        status = self.main_window.invoices.get_status(key)
+        self.wallet.invoices.get(key)
+        status = self.wallet.invoices.get_status(key)
         if column_data:
             menu.addAction(
                 _("Copy {}").format(column_title),

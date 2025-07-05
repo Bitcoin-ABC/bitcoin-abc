@@ -207,7 +207,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.network = gui_object.daemon.network
         self.fx = gui_object.daemon.fx
-        self.invoices = wallet.invoices
         self.contacts = wallet.contacts
         self.tray = gui_object.tray
         self.app = gui_object.app
@@ -2718,8 +2717,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             status = bool(ack_status or status)
 
             if status:
-                self.invoices.set_paid(pr, tx.txid())
-                self.invoices.save()
+                self.wallet.invoices.set_paid(pr, tx.txid())
+                self.wallet.invoices.save()
                 self.payment_request = None
 
             return status, msg
@@ -2809,13 +2808,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return True
 
     def delete_invoice(self, key):
-        self.invoices.remove(key)
+        self.wallet.invoices.remove(key)
         self.invoice_list.update()
 
     def payment_request_ok(self):
         pr = self.payment_request
-        key = self.invoices.add(pr)
-        status = self.invoices.get_status(key)
+        key = self.wallet.invoices.add(pr)
+        status = self.wallet.invoices.get_status(key)
         self.invoice_list.update()
         if status == PR_PAID:
             self.show_message("invoice already paid")
@@ -3222,7 +3221,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.update_completions()
 
     def show_invoice(self, key):
-        pr = self.invoices.get(key)
+        pr = self.wallet.invoices.get(key)
         pr.verify(self.contacts)
         self.show_pr_details(pr)
 
@@ -3266,7 +3265,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         def do_delete():
             if self.question(_("Delete invoice?")):
-                self.invoices.remove(key)
+                self.wallet.invoices.remove(key)
                 self.history_list.update()
                 self.history_updated_signal.emit()  # inform things like address_dialog that there's a new history
                 self.invoice_list.update()
@@ -3280,7 +3279,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d.setParent(None)  # So Python can GC
 
     def do_pay_invoice(self, key):
-        pr = self.invoices.get(key)
+        pr = self.wallet.invoices.get(key)
         self.payment_request = pr
         self.prepare_for_payment_request()
         pr.error = None  # this forces verify() to re-run
