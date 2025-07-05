@@ -40,7 +40,7 @@ import Button from '/components/button';
 
 import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
-import pay2stay from '/public/images/Pay2Stay.png';
+import tixtown from '/public/images/tixtown_logo.png';
 import xecxLogo from '/public/images/xecx-logo-white.png';
 import localecashLogo from '/public/images/localecash.png';
 import musd from '/public/images/MUSD.png';
@@ -156,10 +156,10 @@ function UseEcash(props) {
                         />
                     </TextImageBlock>
                     <TextImageBlock
-                        id="pay2stay"
-                        title="Pay2Stay"
-                        image={pay2stay}
-                        alt="Pay2Stay logo"
+                        id="tixtown"
+                        title="TixTown"
+                        image={tixtown}
+                        alt="TixTown logo"
                     >
                         <p>
                             Experience the fastest, safest, and fairest private
@@ -176,7 +176,7 @@ function UseEcash(props) {
                         <p>Built using eCash&apos;s eToken technology.</p>
                         <Button
                             text="Get Started"
-                            link="https://pay2stay.com/"
+                            link="https://www.tixtown.com/"
                             corner="bottomRight"
                             color="accent"
                             openInNewTab
