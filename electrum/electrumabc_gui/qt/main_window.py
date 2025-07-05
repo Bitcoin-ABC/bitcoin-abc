@@ -4707,8 +4707,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d.custom_fee_changed.connect(self.fee_slider_mogrifier)
         d.show_fee_changed.connect(self.fee_e.setVisible)
         d.alias_changed.connect(self.fetch_alias)
-        d.unit_changed.connect(self.update_tabs)
-        d.unit_changed.connect(self.update_status)
+        d.unit_changed.connect(lambda _decimal_point: self.update_tabs())
+        d.unit_changed.connect(lambda _decimal_point: self.update_status())
         d.enable_opreturn_changed.connect(self.on_toggled_opreturn)
         d.currency_changed.connect(self.update_fiat)
         d.show_fiat_balance_toggled.connect(self.address_list.refresh_headers)
@@ -4726,11 +4726,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         d.show_history_rates_toggled.connect(on_show_history)
 
-        def update_amounts():
-            edits = self.amount_e, self.fee_e, self.receive_amount_e
-            amounts = [edit.get_amount() for edit in edits]
-            for edit, amount in zip(edits, amounts):
-                edit.setAmount(amount)
+        def update_amounts(decimal_point: int):
+            for edit in self.amount_e, self.fee_e, self.receive_amount_e:
+                edit.update_unit(decimal_point)
 
         d.unit_changed.connect(update_amounts)
 

@@ -68,7 +68,7 @@ class SettingsDialog(WindowModalDialog):
     custom_fee_changed = Signal()
     show_fee_changed = Signal(bool)
     alias_changed = Signal()
-    unit_changed = Signal()
+    unit_changed = Signal(int)
     enable_opreturn_changed = Signal(bool)
     currency_changed = Signal()
     show_history_rates_toggled = Signal(bool)
@@ -91,7 +91,6 @@ class SettingsDialog(WindowModalDialog):
         self.wallet = wallet
         self.fx = fx
         self.gui_object = gui_object
-        self.base_unit = base_unit
 
         self.need_restart = False
         self.need_wallet_reopen = False
@@ -272,7 +271,7 @@ class SettingsDialog(WindowModalDialog):
         unit_label = HelpLabel(_("Base unit") + ":", msg)
         self.unit_combo = QtWidgets.QComboBox()
         self.unit_combo.addItems(units_for_menu)
-        self.unit_combo.setCurrentIndex(self.unit_names.index(self.base_unit))
+        self.unit_combo.setCurrentIndex(self.unit_names.index(base_unit))
         self.unit_combo.currentIndexChanged.connect(self.on_unit)
         gui_widgets.append((unit_label, self.unit_combo))
 
@@ -737,13 +736,10 @@ class SettingsDialog(WindowModalDialog):
 
     def on_unit(self, x):
         unit_index = self.unit_combo.currentIndex()
-        unit_result = self.unit_names[unit_index]
-        if self.base_unit == unit_result:
-            return
         dp = BASE_UNITS[unit_index].decimals
         self.config.set_key("decimal_point", dp, True)
         self.nz.setMaximum(dp)
-        self.unit_changed.emit()
+        self.unit_changed.emit(dp)
         self.need_restart = True
 
     def on_customfee(self, x):

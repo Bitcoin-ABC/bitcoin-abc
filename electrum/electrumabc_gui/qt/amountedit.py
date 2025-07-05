@@ -108,6 +108,12 @@ class XECAmountEdit(AmountEdit):
         else:
             self.setText(format_satoshis_plain(amount, self.decimal_point))
 
+    def update_unit(self, decimal_point: int):
+        sats = self.get_amount()
+        self.decimal_point = decimal_point
+        self.set_base_unit(BASE_UNITS_BY_DECIMALS[decimal_point])
+        self.setAmount(sats)
+
 
 class XECSatsByteEdit(XECAmountEdit):
     def __init__(self, parent=None):
