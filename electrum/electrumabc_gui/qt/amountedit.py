@@ -88,8 +88,8 @@ class XECAmountEdit(AmountEdit):
     def __init__(self, decimal_point: int, is_int=False, parent=None):
         if decimal_point not in BASE_UNITS_BY_DECIMALS:
             raise Exception("Unknown base unit")
-        self._base_unit: str = BASE_UNITS_BY_DECIMALS[decimal_point]
-        AmountEdit.__init__(self, self._base_unit, is_int, parent)
+        base_unit: str = BASE_UNITS_BY_DECIMALS[decimal_point]
+        AmountEdit.__init__(self, base_unit, is_int, parent)
         self.decimal_point = decimal_point
 
     def get_amount(self) -> Optional[int]:
@@ -112,7 +112,7 @@ class XECAmountEdit(AmountEdit):
 class XECSatsByteEdit(XECAmountEdit):
     def __init__(self, parent=None):
         XECAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
-        self._base_unit = "sats/B"
+        self.set_base_unit("sats/B")
 
     def get_amount(self) -> Optional[float]:
         try:
