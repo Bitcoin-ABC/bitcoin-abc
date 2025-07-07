@@ -33,7 +33,7 @@ from qtpy.QtGui import QFontMetrics
 
 from electrumabc import alias, bitcoin, networks, web
 from electrumabc.address import Address, AddressError, ScriptOutput
-from electrumabc.contacts import Contact
+from electrumabc.contacts import Contact, Contacts
 from electrumabc.printerror import PrintError
 from electrumabc.transaction import TxOutput
 
@@ -54,13 +54,14 @@ normal_style = "PayToEdit { }"
 class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
     alias_resolved = Signal(dict)
 
-    def __init__(self, win):
+    def __init__(self, win, contact_manager: Contacts):
         from .main_window import ElectrumWindow
 
         assert isinstance(win, ElectrumWindow) and win.amount_e and win.wallet
         CompletionTextEdit.__init__(self)
         ScanQRTextEdit.__init__(self)
         self.win = win
+        self.contact_manager = contact_manager
         self.amount_edit = win.amount_e
         document = self.document()
         document.contentsChanged.connect(self.update_size)
@@ -364,7 +365,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         #       contact string (e.g. "Monero Development" <donate.monero.org>) or alias
         #       (e.g. "john <john.xec>") in the "Pay To" field.
         if _type != "openalias":
-            self.win.contacts.add(
+            self.contact_manager.add(
                 Contact(name=name, address=address_str, type=_type), unique=True
             )
             self.win.contact_list.update()

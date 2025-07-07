@@ -207,7 +207,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.network = gui_object.daemon.network
         self.fx = gui_object.daemon.fx
-        self.contacts = wallet.contacts
         self.tray = gui_object.tray
         self.app = gui_object.app
         self.cleaned_up = False
@@ -555,7 +554,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             alias = str(alias)
 
             def f():
-                self.alias_info = self.contacts.resolve_openalias(alias)
+                self.alias_info = self.wallet.contacts.resolve_openalias(alias)
                 self.alias_received_signal.emit()
 
             t = threading.Thread(target=f)
@@ -1787,7 +1786,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.setColumnStretch(3, 1)
 
         self.amount_e = XECAmountEdit(self.get_decimal_point())
-        self.payto_e = PayToEdit(self)
+        self.payto_e = PayToEdit(self, self.wallet.contacts)
         # NB: the translators hopefully will not have too tough a time with this
         # *fingers crossed* :)
         msg = (
@@ -2847,7 +2846,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def on_pr(self, request):
         self.payment_request = request
-        if self.payment_request.verify(self.contacts):
+        if self.payment_request.verify(self.wallet.contacts):
             self.payment_request_ok_signal.emit()
         else:
             self.payment_request_error_signal.emit()
@@ -3222,7 +3221,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def show_invoice(self, key):
         pr = self.wallet.invoices.get(key)
-        pr.verify(self.contacts)
+        pr.verify(self.wallet.contacts)
         self.show_pr_details(pr)
 
     def show_pr_details(self, pr):
@@ -3283,7 +3282,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.payment_request = pr
         self.prepare_for_payment_request()
         pr.error = None  # this forces verify() to re-run
-        if pr.verify(self.contacts):
+        if pr.verify(self.wallet.contacts):
             self.payment_request_ok()
         else:
             self.payment_request_error()
@@ -3293,7 +3292,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return self.console
 
     def create_contacts_tab(self) -> ContactList:
-        contact_list = ContactList(self.contacts, self.config, self.wallet)
+        contact_list = ContactList(self.wallet.contacts, self.config, self.wallet)
         contact_list.contact_updated.connect(self.on_contact_updated)
         contact_list.payto_contacts_triggered.connect(self.payto_contacts)
         contact_list.sign_verify_message_triggered.connect(self.sign_verify_message)
