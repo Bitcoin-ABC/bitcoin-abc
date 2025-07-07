@@ -184,13 +184,15 @@ impl IpcReader for WebsocketIPC {
             match self.counter.load(Ordering::SeqCst) {
                 // New regtest chain
                 0 => {
+                    self.counter.fetch_add(1, Ordering::SeqCst);
+                    handler.send_message("next").await?;
+                    return Ok(());
+                }
+                1 => {
                     let chronik_url = data.chronik_url.clone();
                     data.endpoint =
                         Some(ChronikClient::new(chronik_url)?.ws().await?);
-                }
 
-                // Subscribe to scripts and blocks
-                1 => {
                     let p2pkh_addr =
                         data.p2pkh_address.parse::<CashAddress>()?;
                     let p2pkh_hash = p2pkh_addr.hash();

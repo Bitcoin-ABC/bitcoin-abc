@@ -52,6 +52,8 @@ class ChronikClient_Websocket_Setup(SetupFramework):
 
         yield True
 
+        self.log.info("Step 1: Initialized regtest chain")
+
         # p2pkh
         # IFP address p2pkh
         # Note: we use this instead of node.getnewaddress() so we don't get change
@@ -115,7 +117,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         assert not node.isfinaltransaction(cb_txid, finalized_blockhash)
         yield True
 
-        self.log.info("Step 1: Avalanche finalize a block")
+        self.log.info("Step 2: Avalanche finalize a block")
 
         with node.assert_debug_log(
             [f"Avalanche finalized block {finalized_blockhash}"]
@@ -130,7 +132,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         assert node.isfinaltransaction(cb_txid, finalized_blockhash)
         yield True
 
-        self.log.info("Step 2: Broadcast 1 tx to a p2pk, p2pkh, and p2sh address")
+        self.log.info("Step 3: Broadcast 1 tx to a p2pk, p2pkh, and p2sh address")
 
         # p2pkh
         p2pkh_txid = node.sendtoaddress(p2pkh_address, 1000)
@@ -164,13 +166,13 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         assert_equal(node.getblockcount(), finalized_height)
         yield True
 
-        self.log.info("Step 3: Mine a block with these txs")
+        self.log.info("Step 4: Mine a block with these txs")
         next_blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
         send_ipc_message({"next_blockhash": next_blockhash})
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 4: Finalize the block containing these txs with Avalanche")
+        self.log.info("Step 5: Finalize the block containing these txs with Avalanche")
         next_cb_txid = node.getblock(next_blockhash)["tx"][0]
         assert not node.isfinalblock(next_blockhash)
         with node.assert_debug_log([f"Avalanche finalized block {next_blockhash}"]):
@@ -193,28 +195,28 @@ class ChronikClient_Websocket_Setup(SetupFramework):
             send_ipc_message({"coinbase_out_value": coinbase_out_value})
             send_ipc_message({"coinbase_out_scriptpubkey": coinbase_out_scriptpubkey})
 
-        self.log.info("Step 5: Park the block containing those txs")
+        self.log.info("Step 6: Park the block containing those txs")
         send_coinbase_data(next_blockhash)
         node.parkblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height)
         yield True
 
-        self.log.info("Step 8: Unpark the block containing those txs")
+        self.log.info("Step 7: Unpark the block containing those txs")
         node.unparkblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 9: Manually invalidate the block containing those txs")
+        self.log.info("Step 8: Manually invalidate the block containing those txs")
         node.invalidateblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height)
         yield True
 
-        self.log.info("Step 10: Reconsider the block containing those txs")
+        self.log.info("Step 9: Reconsider the block containing those txs")
         node.reconsiderblock(next_blockhash)
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 11: Broadcast a tx with mixed outputs")
+        self.log.info("Step 10: Broadcast a tx with mixed outputs")
         mixed_output_tx = CTransaction()
         mixed_output_tx.vout.append(CTxOut(1000000, p2pkh_output_script))
         mixed_output_tx.vout.append(CTxOut(1000000, p2sh_output_script))
@@ -231,7 +233,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         send_ipc_message({"mixed_output_txid": mixed_output_txid})
         yield True
 
-        self.log.info("Step 12: Mine another block")
+        self.log.info("Step 11: Mine another block")
         next_blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
         send_ipc_message({"next_blockhash": next_blockhash})
         assert_equal(node.getblockcount(), finalized_height + 2)
@@ -244,13 +246,13 @@ class ChronikClient_Websocket_Setup(SetupFramework):
                     return tip["status"] == "parked"
             return False
 
-        self.log.info("Step 13: Avalanche rejects the block")
+        self.log.info("Step 12: Avalanche rejects the block")
         send_coinbase_data(next_blockhash)
         self.wait_until(lambda: is_rejected_block(next_blockhash))
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 14: Avalanche invalidates the block")
+        self.log.info("Step 13: Avalanche invalidates the block")
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {next_blockhash}".encode()],
             chatty_callable=lambda: can_find_inv_in_poll(
@@ -261,7 +263,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 15: Mine another block")
+        self.log.info("Step 14: Mine another block")
         node.bumpmocktime(1)
         next_blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
         send_ipc_message({"block_timestamp": now + 1})
