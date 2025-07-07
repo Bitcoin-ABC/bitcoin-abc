@@ -2088,9 +2088,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.message_opreturn_e.editingFinished.connect(entry_changed)
         self.opreturn_rawhex_cb.stateChanged.connect(entry_changed)
 
+        invoices_should_be_visible = len(self.wallet.invoices.unpaid_invoices()) > 0
         self.invoices_label = QtWidgets.QLabel(_("Invoices"))
+        self.invoices_label.setVisible(invoices_should_be_visible)
         self.invoice_list = InvoiceList(self)
-        self.invoice_list.chkVisible()
+        self.invoice_list.setVisible(invoices_should_be_visible)
+        self.invoice_list.visibility_changed.connect(self.invoices_label.setVisible)
 
         vbox0 = QtWidgets.QVBoxLayout()
         vbox0.addLayout(grid)

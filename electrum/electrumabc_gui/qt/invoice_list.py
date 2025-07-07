@@ -28,7 +28,7 @@ import os
 from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QFont, QIcon
 
 from electrumabc.amount import format_amount
@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 
 class InvoiceList(MyTreeWidget):
     filter_columns = [0, 1, 2, 3]  # Date, Requestor, Description, Amount
+    visibility_changed = Signal(bool)
 
     def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
@@ -86,13 +87,11 @@ class InvoiceList(MyTreeWidget):
             item.setFont(3, QFont(MONOSPACE_FONT))
             self.addTopLevelItem(item)
         self.setCurrentItem(self.topLevelItem(0))
-        self.chkVisible(inv_list)
-
-    def chkVisible(self, inv_list=None):
-        inv_list = inv_list or self.wallet.invoices.unpaid_invoices()
-        b = len(inv_list) > 0 and self.main_window.isVisible()
-        self.setVisible(b)
-        self.main_window.invoices_label.setVisible(b)
+        was_visible = self.isVisible()
+        should_be_visible = len(inv_list) > 0
+        self.setVisible(should_be_visible)
+        if should_be_visible != was_visible:
+            self.visibility_changed.emit(should_be_visible)
 
     def import_invoices(self):
         wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
