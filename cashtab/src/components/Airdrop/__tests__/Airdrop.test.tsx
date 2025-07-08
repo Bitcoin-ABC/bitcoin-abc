@@ -21,19 +21,51 @@ import { when } from 'jest-when';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import appConfig from 'config/app';
-import {
-    initializeCashtabStateForTests,
-    clearLocalForage,
-} from 'components/App/fixtures/helpers';
+import { clearLocalForage } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
+import {
+    MockAgora,
+    MockChronikClient,
+} from '../../../../../modules/mock-chronik-client';
 import {
     agoraOfferCachetAlphaOne,
     cachetCacheMocks,
 } from 'components/Agora/fixtures/mocks';
+import { prepareContext } from 'test';
+import { chronikTokenMocks } from 'chronik/fixtures/mocks';
+
+// Create token mocks for the tokens used in Airdrop tests
+const tokenMocks = new Map();
+// Easter Egg Token
+tokenMocks.set(easterEggTokenChronikTokenDetails.tokenId, {
+    tx: easterEggTokenChronikGenesisTx,
+    tokenInfo: easterEggTokenChronikTokenDetails,
+});
+// Decimals Token
+tokenMocks.set(decimalsTokenGenesis.txid, {
+    tx: decimalsTokenGenesis,
+    tokenInfo: decimalsTokenInfo,
+});
+// CACHET Token
+tokenMocks.set(cachetCacheMocks.token.tokenId, {
+    tx: cachetCacheMocks.tx,
+    tokenInfo: cachetCacheMocks.token,
+});
+// BEAR Token
+const bearTokenId =
+    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109';
+const bearTokenData = chronikTokenMocks[bearTokenId];
+tokenMocks.set(bearTokenId, {
+    tx: bearTokenData.tx,
+    tokenInfo: bearTokenData.token,
+});
+
+// TODO you cannot use the tokenMocks just for stuff you want to be available, unles
+// you update prepareContext
 
 describe('<Airdrop />', () => {
-    let user;
+    let user: ReturnType<typeof userEvent.setup>;
+
     beforeEach(() => {
         // Set up userEvent
         user = userEvent.setup();
@@ -54,17 +86,20 @@ describe('<Airdrop />', () => {
             .calledWith(priceApiUrl)
             .mockResolvedValue({
                 json: () => Promise.resolve(priceResponse),
-            });
+            } as Response);
     });
+
     afterEach(async () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
     });
+
     it('We can send a pro-rata airdrop and equal tx to a tokenId not in our cache using custom settings', async () => {
         // Mock the app with context at the Send screen
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const mockedChronik: MockChronikClient = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
         const mockedAgora = new MockAgora();
 
@@ -73,17 +108,18 @@ describe('<Airdrop />', () => {
 
         // No agora offers
         mockedAgora.setActiveOffersByTokenId(airdropTokenId, []);
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(
-            airdropTokenId,
-            easterEggTokenChronikTokenDetails,
-        );
-
-        // Set tx mock so we can get its minting address
-        mockedChronik.setTx(airdropTokenId, easterEggTokenChronikGenesisTx);
 
         // Mock the chronik.tokenId(formData.tokenId).utxos(); call
         mockedChronik.setUtxosByTokenId(airdropTokenId, tokenUtxos.utxos);
+
+        // Mock the chronik.token(tokenId) call that getTokenGenesisInfo makes
+        const easterEggTokenMock = tokenMocks.get(airdropTokenId);
+        if (easterEggTokenMock) {
+            mockedChronik.setToken(
+                airdropTokenId,
+                easterEggTokenMock.tokenInfo as any,
+            );
+        }
 
         render(
             <CashtabTestWrapper
@@ -93,11 +129,15 @@ describe('<Airdrop />', () => {
             />,
         );
 
-        // Wait for the app to load
+        // Wait for the app to load (Cashtab Loading spinner gone)
         await waitFor(() =>
             expect(
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
+        );
+        // Wait for any other loading indicators (e.g. 'Loading...')
+        await waitFor(() =>
+            expect(screen.queryByText('Loading...')).not.toBeInTheDocument(),
         );
 
         await user.type(
@@ -194,11 +234,13 @@ describe('<Airdrop />', () => {
             ].join('\n'),
         );
     });
+
     it('We can ignore addresses with less than a token balance for a token with decimals', async () => {
         // Mock the app with context at the Send screen
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
 
         const airdropTokenId =
@@ -209,17 +251,20 @@ describe('<Airdrop />', () => {
         // No agora offers
         mockedAgora.setActiveOffersByTokenId(airdropTokenId, []);
 
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(airdropTokenId, decimalsTokenInfo);
-
-        // Set tx mock so we can get its minting address
-        mockedChronik.setTx(airdropTokenId, decimalsTokenGenesis);
-
         // Mock the chronik.tokenId(formData.tokenId).utxos(); call
         mockedChronik.setUtxosByTokenId(
             airdropTokenId,
-            tokenUtxosDecimals.utxos,
+            tokenUtxosDecimals.utxos as any,
         );
+
+        // Mock the chronik.token(tokenId) call that getTokenGenesisInfo makes
+        const decimalsTokenMock = tokenMocks.get(airdropTokenId);
+        if (decimalsTokenMock) {
+            mockedChronik.setToken(
+                airdropTokenId,
+                decimalsTokenMock.tokenInfo as any,
+            );
+        }
 
         render(
             <CashtabTestWrapper
@@ -229,11 +274,15 @@ describe('<Airdrop />', () => {
             />,
         );
 
-        // Wait for the app to load
+        // Wait for the app to load (Cashtab Loading spinner gone)
         await waitFor(() =>
             expect(
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
+        );
+        // Wait for any other loading indicators (e.g. 'Loading...')
+        await waitFor(() =>
+            expect(screen.queryByText('Loading...')).not.toBeInTheDocument(),
         );
 
         await user.type(
@@ -320,11 +369,13 @@ describe('<Airdrop />', () => {
             `ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj, 500000`,
         );
     });
+
     it('We can include the p2pkh address of the creators of active agora listings together with those of p2pkh holders', async () => {
         // Mock the app with context at the Send screen
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
         const mockedAgora = new MockAgora();
 
@@ -335,16 +386,12 @@ describe('<Airdrop />', () => {
         mockedAgora.setActiveOffersByTokenId(airdropTokenId, [
             agoraOfferCachetAlphaOne,
         ]);
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(airdropTokenId, cachetCacheMocks.token);
-        // Set tx mock so we can get its minting address
-        mockedChronik.setTx(airdropTokenId, cachetCacheMocks.tx);
 
         // Mock a CACHET holder without an agora airdrop
         const mockOutpoint = { txid: '11'.repeat(32), outIdx: 0 };
         const mockTokenType = {
-            protocol: 'SLP',
-            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            protocol: 'SLP' as const,
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE' as const,
             number: 1,
         };
         const mockToken = {
@@ -365,6 +412,15 @@ describe('<Airdrop />', () => {
         };
         mockedChronik.setUtxosByTokenId(airdropTokenId, [mockHolderP2pkh]);
 
+        // Mock the chronik.token(tokenId) call that getTokenGenesisInfo makes
+        const cachetTokenMock = tokenMocks.get(airdropTokenId);
+        if (cachetTokenMock) {
+            mockedChronik.setToken(
+                airdropTokenId,
+                cachetTokenMock.tokenInfo as any,
+            );
+        }
+
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -373,11 +429,15 @@ describe('<Airdrop />', () => {
             />,
         );
 
-        // Wait for the app to load
+        // Wait for the app to load (Cashtab Loading spinner gone)
         await waitFor(() =>
             expect(
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
+        );
+        // Wait for any other loading indicators (e.g. 'Loading...')
+        await waitFor(() =>
+            expect(screen.queryByText('Loading...')).not.toBeInTheDocument(),
         );
 
         await user.type(

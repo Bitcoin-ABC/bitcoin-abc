@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { ScriptUtxo } from 'chronik-client';
+import { ScriptUtxo, TokenInfo } from 'chronik-client';
 import {
     CashtabTx,
     CashtabWallet,
@@ -2939,14 +2939,14 @@ export const cachetTokenAndTx = {
     },
 };
 
-export const easterEggTokenChronikTokenDetails = {
+export const easterEggTokenChronikTokenDetails: TokenInfo = {
     tokenId: '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
     tokenType: {
         protocol: 'SLP',
         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
         number: 1,
     },
-    timeFirstSeen: '0',
+    timeFirstSeen: 0,
     genesisInfo: {
         tokenTicker: 'TBC',
         tokenName: 'tabcash',
@@ -3483,7 +3483,7 @@ export const MOCK_CHRONIK_TOKEN_CALL = {
         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
         number: 1,
     },
-    timefirstSeen: 0,
+    timeFirstSeen: 0,
     genesisInfo: {
         tokenTicker: 'CGEN',
         tokenName: 'Cashtab Genesis',

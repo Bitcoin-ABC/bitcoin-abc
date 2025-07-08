@@ -14824,7 +14824,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'ST',
                 tokenName: 'ST',
@@ -14960,7 +14960,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'TAP',
                 tokenName: 'Thoughts and Prayers',
@@ -15092,7 +15092,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'TBC',
                 tokenName: 'tabcash',
@@ -15224,7 +15224,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'POW',
                 tokenName: 'ProofofWriting.com Token',
@@ -15339,7 +15339,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'test',
                 tokenName: 'test',
@@ -15454,7 +15454,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'coin',
                 tokenName: 'johncoin',
@@ -15565,7 +15565,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'KAT',
                 tokenName: 'KA_Test',
@@ -15680,7 +15680,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'IFP',
                 tokenName: 'Infrastructure Funding Proposal Token',
@@ -15795,7 +15795,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CTLv3',
                 tokenName: 'Cashtab Token Launch Launch Token v3',
@@ -15910,7 +15910,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'SA',
                 tokenName: 'Spinner Alpha',
@@ -16025,7 +16025,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'Alita',
                 tokenName: 'Alita',
@@ -16152,7 +16152,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'UDT',
                 tokenName: 'UpdateTest',
@@ -16254,7 +16254,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CTB',
                 tokenName: 'CashTabBits',
@@ -16386,7 +16386,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CTL2',
                 tokenName: 'Cashtab Token Launch Launch Token v2',
@@ -16501,7 +16501,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'NAKAMOTO',
                 tokenName: 'NAKAMOTO',
@@ -16628,7 +16628,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'XGB',
                 tokenName: 'Garmonbozia',
@@ -16743,7 +16743,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'HONK',
                 tokenName: 'HONK HONK',
@@ -16858,7 +16858,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'Service',
                 tokenName: 'Evc token',
@@ -16973,7 +16973,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CLNSP',
                 tokenName: 'ComponentLongNameSpeedLoad',
@@ -17088,7 +17088,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'XBIT',
                 tokenName: 'eBits',
@@ -17220,7 +17220,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CBB',
                 tokenName: 'Cashtab Beta Bits',
@@ -17335,7 +17335,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'NOCOVID',
                 tokenName: 'Covid19 Lifetime Immunity',
@@ -17467,7 +17467,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'SRM',
                 tokenName: 'Server Redundancy Mint',
@@ -17582,7 +17582,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CTD',
                 tokenName: 'Cashtab Dark',
@@ -17697,7 +17697,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'NCBT',
                 tokenName: 'newChatBotTest',
@@ -17808,7 +17808,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'NCBT',
                 tokenName: 'newChatBotTest',
@@ -17919,7 +17919,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'NCBT',
                 tokenName: 'newChatBotTest',
@@ -18030,7 +18030,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'OMI',
                 tokenName: 'Omicron',
@@ -18145,7 +18145,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CLB',
                 tokenName: 'Cashtab Local Beta',
@@ -18260,7 +18260,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'VSP',
                 tokenName: 'Vespene Gas',
@@ -18366,7 +18366,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'LVV',
                 tokenName: 'Lambda Variant Variants',
@@ -18481,7 +18481,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'DVV',
                 tokenName: 'Delta Variant Variants',
@@ -18596,7 +18596,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'WDT',
                 tokenName:
@@ -18757,7 +18757,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'DNR',
                 tokenName: 'Denarius',
@@ -18872,7 +18872,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CLT',
                 tokenName: 'Cashtab Local Tests',
@@ -18978,7 +18978,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'TBS',
                 tokenName: 'TestBits',
@@ -19110,7 +19110,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CFL',
                 tokenName: 'Cashtab Facelift',
@@ -19225,7 +19225,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CMA',
                 tokenName: 'CashtabMintAlpha',
@@ -19340,7 +19340,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'IWF',
                 tokenName: 'Insanity Wolf',
@@ -19451,7 +19451,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'GYP',
                 tokenName: 'Gypsum',
@@ -19566,7 +19566,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'GRP',
                 tokenName: 'GRUMPY',
@@ -19681,7 +19681,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'TRIB',
                 tokenName: 'eCash Herald',
@@ -19796,7 +19796,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'BEAR',
                 tokenName: 'BearNip',
@@ -19911,7 +19911,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'BULL',
                 tokenName: 'Bull',
@@ -20022,7 +20022,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CPG',
                 tokenName: 'Cashtab Prod Gamma',
@@ -20137,7 +20137,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'ABC',
                 tokenName: 'ABC',
@@ -20350,7 +20350,7 @@ export const chronikTokenMocks = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'CGEN',
                 tokenName: 'Cashtab Genesis',
@@ -21551,7 +21551,7 @@ export const tokensInHistory = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'VSP',
                 tokenName: 'Vespene Gas',
@@ -21657,7 +21657,7 @@ export const tokensInHistory = {
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                 number: 1,
             },
-            timefirstSeen: 0,
+            timeFirstSeen: 0,
             genesisInfo: {
                 tokenTicker: 'BEAR',
                 tokenName: 'BearNip',

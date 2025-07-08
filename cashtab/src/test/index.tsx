@@ -39,7 +39,7 @@ export enum SupportedCashtabStorageKeys {
  * Going forward this is the standard
  */
 export interface TokenMock {
-    tokenId: string;
+    tokenId?: string; // If not provided, we will use the tokenId from the tx
     tx: Tx;
     tokenInfo: TokenInfo;
 }
@@ -100,10 +100,14 @@ export const mockPrice = (price: number) => {
 export const prepareMockedChronikCallsForWallet = (
     mockChronik: MockChronikClient,
     wallet: CashtabWallet,
+    /**
+     * We need to add tokenMocks to cover all utxos in the wallet
+     * We can also optionally pass tokenMocks that we need in a test
+     */
     tokenMocks: Map<string, TokenMock>,
 ) => {
     // If we have token utxo or token tx in this wallet, we need a mock for its cached info
-    const requiredTokenMocks: Set<string> = new Set();
+    const requiredTokenMocks: Set<string> = new Set([...tokenMocks.keys()]);
 
     for (const utxo of wallet.state.slpUtxos) {
         requiredTokenMocks.add(utxo.token.tokenId);
@@ -154,6 +158,10 @@ export const prepareMockedChronikCallsForWallet = (
 export const prepareContext = async (
     localForage: LocalForage,
     wallets: CashtabWallet[],
+    /**
+     * We need to add tokenMocks to cover all utxos in the wallet
+     * We can also optionally pass tokenMocks that we need in a test
+     */
     tokenMocks: Map<string, TokenMock>,
 ) => {
     // Mock successful utxos calls in chronik

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { TokenIdUtxos } from 'chronik-client';
+import { TokenIdUtxos, TokenInfo } from 'chronik-client';
 // In-node chronik return data for chronik.tokenId(50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e).utxos()
 export const tokenUtxos: TokenIdUtxos = {
     tokenId: '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
@@ -360,14 +360,14 @@ export const tokenUtxosDecimals = {
         },
     ],
 };
-export const decimalsTokenInfo = {
+export const decimalsTokenInfo: TokenInfo = {
     tokenId: 'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
     tokenType: {
         protocol: 'SLP',
         type: 'SLP_TOKEN_TYPE_FUNGIBLE',
         number: 1,
     },
-    timeFirstSeen: '0',
+    timeFirstSeen: 0,
     genesisInfo: {
         tokenTicker: 'CTP',
         tokenName: 'Cash Tab Points',
