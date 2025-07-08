@@ -155,18 +155,24 @@ export const DepthBar = styled.div<{
     depthPercent: number;
     isMaker: boolean;
     isUnacceptable: boolean;
+    isUnaffordable: boolean;
 }>`
     display: flex;
     flex-direction: row;
     position: absolute;
     top: 0;
     right: 0;
-    background-color: ${props =>
-        props.isMaker
-            ? props.isUnacceptable
+    background-color: ${props => {
+        if (props.isUnaffordable) {
+            return props.theme.agoraDepthBarUnaffordable;
+        }
+        if (props.isMaker) {
+            return props.isUnacceptable
                 ? props.theme.agoraDepthBarUnacceptable
-                : props.theme.agoraDepthBarOwnOffer
-            : props.theme.agoraDepthBar};
+                : props.theme.agoraDepthBarOwnOffer;
+        }
+        return props.theme.agoraDepthBar;
+    }};
     height: 100%;
     width: ${props => props.depthPercent}%;
 `;
@@ -180,24 +186,6 @@ export const TentativeAcceptBar = styled.div<{ acceptPercent: number }>`
     background-color: ${props => props.theme.genesisGreen};
     height: 100%;
     width: ${props => props.acceptPercent}%;
-`;
-
-export const SliderRow = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 20px 20px 0px;
-    & > span {
-        margin-right: 10px;
-        font-weight: 600;
-        font-size: var(--text-lg);
-        line-height: var(--text-lg--line-height);
-        color: ${props => props.theme.genesisGreen};
-    }
-    input {
-        accent-color: ${props => props.theme.genesisGreen};
-    }
 `;
 
 export const BuyOrderCtn = styled.div`
@@ -245,4 +233,55 @@ export const AgoraWarningParagraph = styled.div`
     font-weight: bold;
     text-align: center;
     color: ${props => props.theme.secondaryAccent};
+`;
+
+export const PercentageButton = styled.button<{ isActive?: boolean }>`
+    background-color: ${props =>
+        props.isActive ? props.theme.genesisGreen : 'rgba(255, 255, 255, 0.1)'};
+    color: ${props =>
+        props.isActive
+            ? props.theme.primaryBackground
+            : props.theme.primaryText};
+    border: 1px solid
+        ${props =>
+            props.isActive
+                ? props.theme.genesisGreen
+                : 'rgba(255, 255, 255, 0.2)'};
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all ease-in-out 200ms;
+    flex: 1;
+    margin: 0 2px;
+    :hover:not(:disabled) {
+        opacity: 0.8;
+    }
+    :disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+`;
+
+export const SliderContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 20px 20px 0px;
+`;
+
+export const SliderInputRow = styled.div`
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+`;
+
+export const PercentageButtonsRow = styled.div`
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
 `;

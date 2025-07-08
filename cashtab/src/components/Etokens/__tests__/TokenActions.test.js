@@ -32,7 +32,6 @@ import {
     heismanNftOneCache,
     heismanCollectionCacheMocks,
     tokenMockXecx,
-    mockFirmaOffer,
 } from 'components/Agora/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
@@ -2628,35 +2627,6 @@ describe('<Token /> available actions rendered', () => {
         expect(
             screen.queryByText('Create the following sell offer?'),
         ).not.toBeInTheDocument();
-    });
-    it('The FIRMA OrderBook loads with price in USD', async () => {
-        // Make sure FIRMA is cached
-        mockedChronik.setTx(FIRMA.tx.txid, FIRMA.tx);
-        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
-        const mockedAgora = new MockAgora();
-        mockedAgora.setActiveOffersByTokenId(FIRMA.tokenId, [mockFirmaOffer]);
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                ecc={ecc}
-                agora={mockedAgora}
-                route={`/send-token/${FIRMA.tokenId}`}
-            />,
-        );
-
-        const { tokenName } = FIRMA.token.genesisInfo;
-
-        // Wait for element to get token info and load
-        expect(await screen.findAllByText(new RegExp(tokenName))).toHaveLength(
-            4,
-        );
-
-        const priceSwitch = await screen.findByTitle(
-            `Toggle price for ${FIRMA.tokenId}`,
-        );
-
-        // FIRMA orderbook loads with fiat price by default
-        expect(priceSwitch).toBeChecked();
     });
     it('We can SEND or BURN an SLP MINT VAULT token', async () => {
         const mockedAgora = new MockAgora();

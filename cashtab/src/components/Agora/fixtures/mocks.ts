@@ -1393,6 +1393,106 @@ export const mockFirmaOffer = new AgoraOffer({
     },
 });
 
+// Affordable CACHET offer for testing auto-selection
+// Created by approx params offering 100, min 0.1, 1,000 XEC per CACHET (affordable)
+const agoraPartialCachetAffordable = new AgoraPartial({
+    dustSats: 546n,
+    enforcedLockTime: 1040365320,
+    minAcceptedScaledTruncAtoms: 1000n, // Small min accepted
+    numSatsTruncBytes: 1,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 1000n, // Much smaller scaling factor
+    scriptLen: 214,
+    tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+    tokenProtocol: 'SLP',
+    atomsScaleFactor: 1000n, // Much smaller scale factor
+    tokenType: 1,
+    truncAtoms: 10000n,
+    makerPk: agoraPartialAlphaKeypair.pk,
+});
+export const agoraOfferCachetAffordable = new AgoraOffer({
+    outpoint: {
+        txid: 'affordable123456789abcdef123456789abcdef123456789abcdef123456789abc',
+        outIdx: 1,
+    },
+    status: 'OPEN',
+    token: {
+        atoms: 10000n,
+        isMintBaton: false,
+        tokenId:
+            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+        tokenType: {
+            number: 1,
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        },
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 1,
+            txid: 'affordable123456789abcdef123456789abcdef123456789abcdef123456789abc',
+        },
+        signData: {
+            redeemScript: agoraPartialCachetAffordable.script(),
+            sats: 546n,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: agoraPartialCachetAffordable,
+    },
+});
+
+// Unaffordable CACHET offer for testing auto-selection
+// Created by approx params offering 100, min 50, 50,000 XEC per CACHET (unaffordable)
+const agoraPartialCachetUnaffordable = new AgoraPartial({
+    dustSats: 546n,
+    enforcedLockTime: 1040365320,
+    minAcceptedScaledTruncAtoms: 1073735000n, // Much higher min accepted
+    numSatsTruncBytes: 1,
+    numAtomsTruncBytes: 0,
+    scaledTruncAtomsPerTruncSat: 5497n,
+    scriptLen: 214,
+    tokenId: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+    tokenProtocol: 'SLP',
+    atomsScaleFactor: 214747n,
+    tokenType: 1,
+    truncAtoms: 10000n,
+    makerPk: agoraPartialAlphaKeypair.pk,
+});
+export const agoraOfferCachetUnaffordable = new AgoraOffer({
+    outpoint: {
+        txid: 'unaffordable123456789abcdef123456789abcdef123456789abcdef123456789abc',
+        outIdx: 1,
+    },
+    status: 'OPEN',
+    token: {
+        atoms: 10000n,
+        isMintBaton: false,
+        tokenId:
+            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+        tokenType: {
+            number: 1,
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        },
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 1,
+            txid: 'unaffordable123456789abcdef123456789abcdef123456789abcdef123456789abc',
+        },
+        signData: {
+            redeemScript: agoraPartialCachetUnaffordable.script(),
+            sats: 546n,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: agoraPartialCachetUnaffordable,
+    },
+});
+
 export const cachetCacheMocks = {
     token: {
         tokenId:
@@ -2473,5 +2573,33 @@ export const lkCacheMocks = {
             hash: '0000000000000000017ea24ea1849cee3d33c33e641de3c4527186ac77a84085',
             timestamp: 1714049079,
         },
+    },
+};
+
+export const agoraPartialAlphaHighBalanceWallet: CashtabWallet = {
+    ...agoraPartialAlphaWallet,
+    state: {
+        ...agoraPartialAlphaWallet.state,
+        balanceSats: 10_000_000,
+        nonSlpUtxos: [
+            {
+                ...agoraPartialAlphaWallet.state.nonSlpUtxos[0],
+                sats: 10_000_000n,
+            },
+        ],
+    },
+};
+
+export const agoraPartialBetaHighBalanceWallet: CashtabWallet = {
+    ...agoraPartialBetaWallet,
+    state: {
+        ...agoraPartialBetaWallet.state,
+        balanceSats: 10_000_000,
+        nonSlpUtxos: [
+            {
+                ...agoraPartialBetaWallet.state.nonSlpUtxos[0],
+                sats: 10_000_000n,
+            },
+        ],
     },
 };

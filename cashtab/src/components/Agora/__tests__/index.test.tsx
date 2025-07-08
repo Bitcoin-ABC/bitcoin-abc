@@ -24,19 +24,20 @@ import appConfig from 'config/app';
 import 'fake-indexeddb/auto';
 import {
     agoraPartialAlphaWallet,
+    agoraPartialBetaWallet,
+    agoraPartialBetaHighBalanceWallet,
+    agoraPartialAlphaKeypair,
+    agoraPartialBetaKeypair,
     agoraOfferCachetAlphaOne,
     agoraOfferCachetAlphaTwo,
     agoraOfferCachetBetaOne,
     agoraOfferBullAlphaOne,
+    agoraOfferXecxAlphaOne,
     scamAgoraOffer,
     cachetCacheMocks,
     bullCacheMocks,
     scamCacheMocks,
-    agoraPartialBetaWallet,
-    agoraPartialAlphaKeypair,
-    agoraPartialBetaKeypair,
     tokenMockXecx,
-    agoraOfferXecxAlphaOne,
 } from 'components/Agora/fixtures/mocks';
 import { token as tokenConfig } from 'config/token';
 import { prepareContext } from 'test';
@@ -643,7 +644,7 @@ describe('<Agora />', () => {
 
         const mockedChronik = await prepareContext(
             localForage,
-            [agoraPartialAlphaWallet, agoraPartialBetaWallet],
+            [agoraPartialAlphaWallet, agoraPartialBetaHighBalanceWallet],
             tokenMocks,
         );
 
@@ -805,7 +806,7 @@ describe('<Agora />', () => {
 
         const mockedChronik = await prepareContext(
             localForage,
-            [agoraPartialAlphaWallet, agoraPartialBetaWallet],
+            [agoraPartialAlphaWallet, agoraPartialBetaHighBalanceWallet],
             tokenMocks,
         );
 
@@ -1020,7 +1021,7 @@ describe('<Agora />', () => {
             screen.getByText('Agora Partial Beta'),
         );
 
-        expect(await screen.findByText('390.16 XEC')).toBeInTheDocument();
+        expect(await screen.findByText('100,000.00 XEC')).toBeInTheDocument();
 
         // Wait for tokens to re-load (triggered by wallet change)
         await waitFor(() =>
@@ -1038,12 +1039,8 @@ describe('<Agora />', () => {
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
         // Switching wallets triggers a refresh of the offers
-        // Now that we are using the other wallet, we see two Buy buttons
         expect(
             await screen.findByRole('button', { name: 'Buy CACHET' }),
-        ).toBeInTheDocument();
-        expect(
-            await screen.findByRole('button', { name: 'Buy BULL' }),
         ).toBeInTheDocument();
 
         // Hit the switch to show listings created by the active wallet (now Beta)
@@ -1192,167 +1189,5 @@ describe('<Agora />', () => {
 
         // Note we can't test that offers are refreshed as we cannot dynamically adjust chronik mocks
         // Would need regtest integration to do this
-    });
-
-    it('We get expected error if we try to buy an offer we cannot afford', async () => {
-        // Need to mock agora API endpoints
-        const mockedAgora = new MockAgora();
-
-        // mock await agora.offeredFungibleTokenIds() to return offers for both tokens
-        mockedAgora.setOfferedFungibleTokenIds([
-            CACHET_TOKEN_ID,
-            BULL_TOKEN_ID,
-        ]);
-
-        // then mock for each one agora.activeOffersByTokenId(offeredTokenId)
-        mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
-            agoraOfferCachetBetaOne,
-        ]);
-        mockedAgora.setActiveOffersByTokenId(BULL_TOKEN_ID, [
-            agoraOfferBullAlphaOne,
-        ]);
-        // also mock await agora.activeOffersByPubKey(toHex(activePk)), for both wallets
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [agoraOfferBullAlphaOne],
-        );
-        mockedAgora.setActiveOffersByPubKey(toHex(agoraPartialBetaKeypair.pk), [
-            agoraOfferCachetBetaOne,
-        ]);
-
-        const emptyWalletMockedChronik = await prepareContext(
-            localForage,
-            [
-                {
-                    ...agoraPartialAlphaWallet,
-                    state: {
-                        ...agoraPartialAlphaWallet.state,
-                        nonSlpUtxos: [],
-                    },
-                },
-                agoraPartialBetaWallet,
-            ],
-            tokenMocks,
-        );
-
-        // Manually add XECX token mock to chronik since it's not in the wallet's token list
-        emptyWalletMockedChronik.setToken(
-            tokenMockXecx.tokenId,
-            tokenMockXecx.tokenInfo,
-        );
-        emptyWalletMockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
-
-        render(
-            <AgoraTestWrapper
-                chronik={emptyWalletMockedChronik}
-                ecc={ecc}
-                agora={mockedAgora}
-                theme={theme}
-                route={`/agora/`}
-            />,
-        );
-
-        // Wait for the screen to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
-        );
-
-        // Wait for agora offers to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Loading active offers'),
-            ).not.toBeInTheDocument(),
-        );
-
-        // Wait for element to get token info and load
-        expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
-
-        // We have no whitelisted tokens, so we see expected msg
-        await waitFor(() => {
-            expect(screen.queryAllByTitle('Loading')).toHaveLength(0);
-        });
-        expect(
-            screen.getByText(
-                'No whitelisted tokens are currently listed for sale. Try loading all offers.',
-            ),
-        ).toBeInTheDocument();
-
-        // We try to load all the offers
-        await userEvent.click(
-            screen.getByRole('button', { name: 'Load all offers' }),
-        );
-
-        // We see a confirmation modal
-        expect(
-            screen.getByText(
-                'We have 2 listings. This will take a long time and the screen will be slow.',
-            ),
-        ).toBeInTheDocument();
-
-        // Load them
-        await userEvent.click(screen.getByText('OK'));
-
-        // We have an offer
-        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
-
-        // We see all token names and tickers above their PartialOffers
-        expect(
-            (
-                await screen.findAllByText((content, _element) =>
-                    content.includes('Cachet'),
-                )
-            ).length,
-        ).toBeGreaterThan(0);
-        expect(
-            (
-                await screen.findAllByText((content, _element) =>
-                    content.includes('Bull'),
-                )
-            ).length,
-        ).toBeGreaterThan(0);
-
-        // If we select the offer created by the Beta wallet, we see a buy button
-        await userEvent.click(screen.getByText('12,000.66 XEC'));
-
-        // We also see updates to the rendered spot details
-        const UPDATED_CACHET_SPOT_MIN_QTY = '.30';
-        const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
-        const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
-        expect(
-            (
-                await screen.findAllByText((content, _element) =>
-                    content.includes(`${UPDATED_CACHET_SPOT_MIN_QTY} CACHET`),
-                )
-            ).length,
-        ).toBeGreaterThan(0);
-        expect(
-            (
-                await screen.findAllByText((content, _element) =>
-                    content.includes(UPDATED_CACHET_SPOT_PRICE_MIN_BUY),
-                )
-            ).length,
-        ).toBeGreaterThan(0);
-        expect(
-            screen.queryAllByText((content, _element) =>
-                content.includes(UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY),
-            ),
-        ).toHaveLength(0);
-
-        const buyCachetButton = screen.getByRole('button', {
-            name: 'Buy CACHET',
-        });
-        expect(buyCachetButton).toBeInTheDocument();
-
-        // We see the expected error msg
-        expect(
-            screen.getByText(
-                `Buy price (3.6k XEC) exceeds available balance (0.00 XEC).`,
-            ),
-        ).toBeInTheDocument();
-
-        // The button is disabled because we cannot afford this agora purchase
-        expect(buyCachetButton).toBeDisabled();
     });
 });

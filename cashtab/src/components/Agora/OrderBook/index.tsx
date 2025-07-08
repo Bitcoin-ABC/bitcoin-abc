@@ -56,7 +56,6 @@ import {
     TentativeAcceptBar,
     OrderBookRow,
     OrderbookPrice,
-    SliderRow,
     OrderBookLoading,
     OfferWrapper,
     OfferHeader,
@@ -67,6 +66,10 @@ import {
     DeltaSpan,
     AgoraWarningParagraph,
     OfferHeaderRow,
+    SliderContainer,
+    SliderInputRow,
+    PercentageButton,
+    PercentageButtonsRow,
 } from './styled';
 import {
     AgoraPreviewParagraph,
@@ -141,6 +144,11 @@ export interface PartialOffer extends AgoraOffer {
      * and know they need to be canceled
      */
     isUnacceptable: boolean;
+    /**
+     * Indicates if the user cannot afford even the minimum buy amount for this offer
+     * These offers are still shown to the user but visually indicated as unaffordable
+     */
+    isUnaffordable: boolean;
     /**
      * Cumulative quantity of token available on the market
      * In units of base tokens (aka "token satoshis") so we
@@ -583,6 +591,165 @@ const OrderBook: React.FC<OrderBookProps> = ({
         setTakeTokenDecimalizedQty(e.target.value);
     };
 
+    /**
+     * Set the slider to the 25%/50%/75%/100% of what the user can afford
+     * OR the selected agora offer
+     *
+     * Note that if the user can buy the whole offer, this is the whole offer
+     * Otherwise it is the most the user can afford based on the user balance
+     *
+     * Traditional exchange UX would always be the user balance -- but we
+     * will need to add the ability for a user to cover multiple "candles"
+     * in a single action later, should be coordinated with ecash-wallet
+     */
+    const handlePercentageButtonClick = (percentage: number) => {
+        if (
+            !canRenderOrderbook ||
+            typeof selectedOffer === 'undefined' ||
+            typeof decimals === 'undefined' ||
+            typeof decimalizedTokenQtyMax === 'undefined'
+        ) {
+            return;
+        }
+
+        // Calculate the maximum amount the user can afford
+        const maxAffordableTokenSatoshis = calculateMaxAffordableAmount(
+            selectedOffer,
+            balanceSats,
+        );
+
+        // The maximum amount available in the selected offer
+        const maxAvailableTokenSatoshis = selectedOffer.token.atoms;
+
+        // Determine the reference amount for percentage calculation
+        // If user can afford the whole offer, use the offer amount
+        // If user cannot afford the whole offer, use the affordable amount
+        const referenceAmount =
+            maxAffordableTokenSatoshis < maxAvailableTokenSatoshis
+                ? maxAffordableTokenSatoshis
+                : maxAvailableTokenSatoshis;
+
+        // Calculate the amount based on percentage of the reference amount
+        const percentageAmount =
+            (referenceAmount * BigInt(percentage)) / BigInt(100);
+
+        // Ensure the amount is at least the minimum accepted amount
+        const minAcceptedAmount =
+            selectedOffer.variant.params.minAcceptedAtoms();
+        const adjustedAmount =
+            percentageAmount < minAcceptedAmount
+                ? minAcceptedAmount
+                : percentageAmount;
+
+        // Round to the nearest valid step
+        const step =
+            maxAvailableTokenSatoshis / selectedOffer.variant.params.truncAtoms;
+        const validAmount = (adjustedAmount / step) * step;
+
+        // Check if the user can afford this amount
+        const priceForThisAmount = selectedOffer.askedSats(validAmount);
+        if (priceForThisAmount > balanceSats) {
+            return; // User cannot afford this amount
+        }
+
+        // Convert to decimalized amount for the slider
+        const decimalizedQty = decimalizeTokenAmount(
+            validAmount.toString(),
+            decimals,
+        );
+
+        setTakeTokenDecimalizedQty(decimalizedQty);
+    };
+
+    const canAffordPercentage = (percentage: number): boolean => {
+        if (!canRenderOrderbook || typeof selectedOffer === 'undefined') {
+            return false;
+        }
+
+        // Calculate the maximum amount the user can afford
+        const maxAffordableTokenSatoshis = calculateMaxAffordableAmount(
+            selectedOffer,
+            balanceSats,
+        );
+
+        // The maximum amount available in the selected offer
+        const maxAvailableTokenSatoshis = selectedOffer.token.atoms;
+
+        // Determine the reference amount for percentage calculation
+        // If user can afford the whole offer, use the offer amount
+        // If user cannot afford the whole offer, use the affordable amount
+        const referenceAmount =
+            maxAffordableTokenSatoshis < maxAvailableTokenSatoshis
+                ? maxAffordableTokenSatoshis
+                : maxAvailableTokenSatoshis;
+
+        // Calculate the amount based on percentage of the reference amount
+        const percentageAmount =
+            (referenceAmount * BigInt(percentage)) / BigInt(100);
+
+        // Ensure the amount is at least the minimum accepted amount
+        const minAcceptedAmount =
+            selectedOffer.variant.params.minAcceptedAtoms();
+        const adjustedAmount =
+            percentageAmount < minAcceptedAmount
+                ? minAcceptedAmount
+                : percentageAmount;
+
+        // Round to the nearest valid step
+        const step =
+            maxAvailableTokenSatoshis / selectedOffer.variant.params.truncAtoms;
+        const validAmount = (adjustedAmount / step) * step;
+
+        const priceForThisAmount = selectedOffer.askedSats(validAmount);
+        return priceForThisAmount <= balanceSats;
+    };
+
+    const calculateMaxAffordableAmount = (
+        offer: PartialOffer,
+        userBalanceSats: number,
+    ): bigint => {
+        // Start with the maximum amount available in the offer
+        const maxAmount = offer.token.atoms;
+
+        // Fast path: Check if user can afford the whole offer
+        const fullOfferPrice = offer.askedSats(maxAmount);
+        if (fullOfferPrice <= userBalanceSats) {
+            return maxAmount;
+        }
+
+        // Binary search to find the maximum amount the user can afford
+        let low = offer.variant.params.minAcceptedAtoms();
+        let high = maxAmount;
+
+        while (low <= high) {
+            const mid = (low + high) / BigInt(2);
+
+            // Round down to the nearest valid step
+            const step = maxAmount / offer.variant.params.truncAtoms;
+            const validMid = (mid / step) * step;
+
+            if (validMid < offer.variant.params.minAcceptedAtoms()) {
+                low = mid + step;
+                continue;
+            }
+
+            const priceForThisAmount = offer.askedSats(validMid);
+
+            if (priceForThisAmount <= userBalanceSats) {
+                // User can afford this amount, try a higher amount
+                low = validMid + step;
+            } else {
+                // User cannot afford this amount, try a lower amount
+                high = validMid - step;
+            }
+        }
+
+        // Return the highest affordable amount
+        return high >= offer.variant.params.minAcceptedAtoms()
+            ? high
+            : BigInt(0);
+    };
+
     // We can only calculate params to render the orderbook depth chart and slider after
     // we have successfully called fetchAndPrepareActiveOffers() and set activeOffers in state
     let selectedOffer: undefined | PartialOffer,
@@ -695,9 +862,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
      * depthPercent - the cumulative size of the offer at this spot price compared to other active offers for this token
      */
     const fetchAndPrepareActiveOffers = async () => {
-        // We set selected index to 0 every time we update the offers
-        // This ensures the selected offer is always the spot offer and exists
-        setSelectedIndex(0);
         try {
             const activeOffers = (await agora.activeOffersByTokenId(
                 tokenId,
@@ -730,6 +894,17 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     } else {
                         continue;
                     }
+                }
+
+                // Check if user can afford the minimum amount of this offer
+                const minPriceSats = activeOffer.askedSats(minOfferTokens);
+                const canAffordMin = minPriceSats <= balanceSats;
+
+                // Mark offers as unaffordable if user cannot afford even the minimum (unless they made it)
+                if (!canAffordMin && !isMakerThisOffer) {
+                    activeOffer.isUnaffordable = true;
+                } else {
+                    activeOffer.isUnaffordable = false;
                 }
 
                 totalOfferedTokenSatoshis += maxOfferTokens;
@@ -795,12 +970,23 @@ const OrderBook: React.FC<OrderBookProps> = ({
             if (typeof orderBookInfoMap !== 'undefined') {
                 orderBookInfoMap.set(tokenId, {
                     totalOfferedTokenSatoshis,
-                    spotPriceNanoSatsPerTokenSat: activeOffers[0]
+                    spotPriceNanoSatsPerTokenSat: renderedActiveOffers[0]
                         .spotPriceNanoSatsPerTokenSat as bigint,
-                    offerCount: activeOffers.length,
+                    offerCount: renderedActiveOffers.length,
                 });
             }
             setActiveOffers(renderedActiveOffers);
+
+            // Find the best offer to auto-select
+            // Priority: 1) First affordable offer, 2) First offer (lowest price) if no affordable offers exist
+            let bestOfferIndex = 0;
+            for (let i = 0; i < renderedActiveOffers.length; i++) {
+                if (!renderedActiveOffers[i].isUnaffordable) {
+                    bestOfferIndex = i;
+                    break;
+                }
+            }
+            setSelectedIndex(bestOfferIndex);
         } catch (err) {
             console.error(`Error loading activeOffers for ${tokenId}`, err);
             setAgoraQueryError(true);
@@ -976,6 +1162,13 @@ const OrderBook: React.FC<OrderBookProps> = ({
             );
         }
     }, [activeOffers, selectedIndex]);
+
+    // Re-fetch offers when wallet balance changes to re-evaluate affordability
+    useEffect(() => {
+        if (activeOffers !== null) {
+            fetchAndPrepareActiveOffers();
+        }
+    }, [balanceSats]);
 
     return (
         <>
@@ -1248,6 +1441,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                         depthPercent,
                                         cumulativeBaseTokens,
                                         isUnacceptable,
+                                        isUnaffordable,
                                     } = activeOffer;
                                     const acceptPercent =
                                         ((depthPercent as number) *
@@ -1310,6 +1504,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                 }
                                                 isMaker={isMakerThisOffer}
                                                 isUnacceptable={isUnacceptable}
+                                                isUnaffordable={isUnaffordable}
                                             ></DepthBar>
                                             {index === selectedIndex && (
                                                 <TentativeAcceptBar
@@ -1354,21 +1549,136 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     );
                                 })}
                             </DepthBarCol>
-                            <SliderRow>
-                                <Slider
-                                    name={`Select buy qty ${tokenId}`}
-                                    value={takeTokenDecimalizedQty}
-                                    error={takeTokenDecimalizedQtyError}
-                                    handleSlide={
-                                        handleTakeTokenDecimalizedQtySlide
-                                    }
-                                    // Note that we can only be here if canRenderOrderbook
-                                    min={decimalizedTokenQtyMin as string}
-                                    max={decimalizedTokenQtyMax as string}
-                                    step={parseFloat(`1e-${decimals}`)}
-                                    allowTypedInput
-                                />
-                            </SliderRow>
+                            {typeof selectedOffer !== 'undefined' &&
+                            selectedOffer.isUnaffordable ? (
+                                <SliderContainer>
+                                    <Alert noWordBreak>
+                                        This offer requires a minimum purchase
+                                        that exceeds your available balance.
+                                    </Alert>
+                                </SliderContainer>
+                            ) : (
+                                <SliderContainer>
+                                    <SliderInputRow>
+                                        <Slider
+                                            name={`Select buy qty ${tokenId}`}
+                                            value={takeTokenDecimalizedQty}
+                                            error={takeTokenDecimalizedQtyError}
+                                            handleSlide={
+                                                handleTakeTokenDecimalizedQtySlide
+                                            }
+                                            // Note that we can only be here if canRenderOrderbook
+                                            min={
+                                                decimalizedTokenQtyMin as string
+                                            }
+                                            max={
+                                                decimalizedTokenQtyMax as string
+                                            }
+                                            step={parseFloat(`1e-${decimals}`)}
+                                            allowTypedInput
+                                        />
+                                    </SliderInputRow>
+                                    {!isMaker && (
+                                        <PercentageButtonsRow>
+                                            <PercentageButton
+                                                onClick={() =>
+                                                    handlePercentageButtonClick(
+                                                        25,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !canRenderOrderbook ||
+                                                    typeof selectedOffer ===
+                                                        'undefined' ||
+                                                    !canAffordPercentage(25)
+                                                }
+                                                title={
+                                                    canAffordPercentage(25)
+                                                        ? 'Set to 25% of reference amount'
+                                                        : 'Cannot afford 25% of reference amount'
+                                                }
+                                            >
+                                                25%
+                                            </PercentageButton>
+                                            <PercentageButton
+                                                onClick={() =>
+                                                    handlePercentageButtonClick(
+                                                        50,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !canRenderOrderbook ||
+                                                    typeof selectedOffer ===
+                                                        'undefined' ||
+                                                    !canAffordPercentage(50)
+                                                }
+                                                title={
+                                                    canAffordPercentage(50)
+                                                        ? 'Set to 50% of reference amount'
+                                                        : 'Cannot afford 50% of reference amount'
+                                                }
+                                            >
+                                                50%
+                                            </PercentageButton>
+                                            <PercentageButton
+                                                onClick={() =>
+                                                    handlePercentageButtonClick(
+                                                        75,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !canRenderOrderbook ||
+                                                    typeof selectedOffer ===
+                                                        'undefined' ||
+                                                    !canAffordPercentage(75)
+                                                }
+                                                title={
+                                                    canAffordPercentage(75)
+                                                        ? 'Set to 75% of reference amount'
+                                                        : 'Cannot afford 75% of reference amount'
+                                                }
+                                            >
+                                                75%
+                                            </PercentageButton>
+                                            <PercentageButton
+                                                onClick={() =>
+                                                    handlePercentageButtonClick(
+                                                        100,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !canRenderOrderbook ||
+                                                    typeof selectedOffer ===
+                                                        'undefined'
+                                                }
+                                                title={(() => {
+                                                    if (
+                                                        !canRenderOrderbook ||
+                                                        typeof selectedOffer ===
+                                                            'undefined'
+                                                    ) {
+                                                        return 'Set to maximum amount';
+                                                    }
+                                                    const maxAffordable =
+                                                        calculateMaxAffordableAmount(
+                                                            selectedOffer as PartialOffer,
+                                                            balanceSats,
+                                                        );
+                                                    const maxAvailable = (
+                                                        selectedOffer as PartialOffer
+                                                    ).token.atoms;
+                                                    return maxAffordable <
+                                                        maxAvailable
+                                                        ? 'Set to maximum affordable amount'
+                                                        : 'Set to maximum available amount';
+                                                })()}
+                                            >
+                                                Max
+                                            </PercentageButton>
+                                        </PercentageButtonsRow>
+                                    )}
+                                </SliderContainer>
+                            )}
                             <BuyOrderCtn>
                                 <div>
                                     {decimalizedTokenQtyToLocaleFormat(
@@ -1411,7 +1721,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                         disabled={
                                             takeTokenDecimalizedQtyError !==
                                                 false ||
-                                            preparedTokenSatoshis === null
+                                            preparedTokenSatoshis === null ||
+                                            (typeof selectedOffer !==
+                                                'undefined' &&
+                                                selectedOffer.isUnaffordable)
                                         }
                                     >
                                         Buy{' '}
