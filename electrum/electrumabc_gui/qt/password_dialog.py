@@ -100,7 +100,7 @@ class PasswordLayout:
             logo_grid.setColumnStretch(1, 1)
 
             logo = QtWidgets.QLabel()
-            logo.setAlignment(Qt.AlignCenter)
+            logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             logo_grid.addWidget(logo, 0, 0)
             logo_grid.addWidget(label, 0, 1, 1, 2)
@@ -133,13 +133,13 @@ class PasswordLayout:
         f = self.show_cb.font()
         f.setPointSize(f.pointSize() - 1)
         self.show_cb.setFont(f)  # make font -1
-        grid.addWidget(self.show_cb, 3, 2, Qt.AlignRight)
+        grid.addWidget(self.show_cb, 3, 2, Qt.AlignmentFlag.AlignRight)
 
         def toggle_show_pws():
             show = self.show_cb.isChecked()
             for le in self.all_lineedits:
                 le.setEchoMode(
-                    QtWidgets.QLineEdit.Password
+                    QtWidgets.QLineEdit.EchoMode.Password
                     if not show
                     else QtWidgets.QLineEdit.Normal
                 )
@@ -233,7 +233,7 @@ class PasswordLayoutForHW(object):
         logo_grid.setColumnStretch(1, 1)
 
         logo = QtWidgets.QLabel()
-        logo.setAlignment(Qt.AlignCenter)
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         logo_grid.addWidget(logo, 0, 0)
         logo_grid.addWidget(label, 0, 1, 1, 2)

@@ -62,13 +62,13 @@ class PinMatrixWidget(QWidget):
         self.password.setValidator(
             QRegularExpressionValidator(QRegularExpression("[1-9]+"), None)
         )
-        self.password.setEchoMode(QLineEdit.Password)
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.password.textChanged.connect(self._password_changed)
 
         self.strength = QLabel()
         self.strength.setMinimumWidth(75)
-        self.strength.setAlignment(Qt.AlignCenter)
+        self.strength.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._set_strength(0)
 
         grid = QGridLayout()
@@ -76,8 +76,10 @@ class PinMatrixWidget(QWidget):
         for y in range(3)[::-1]:
             for x in range(3):
                 button = PinButton(self.password, x + y * 3 + 1)
-                button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                button.setFocusPolicy(Qt.NoFocus)
+                button.setSizePolicy(
+                    QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+                )
+                button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
                 grid.addWidget(button, 3 - y, x)
 
         hbox = QHBoxLayout()

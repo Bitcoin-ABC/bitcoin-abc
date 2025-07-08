@@ -447,7 +447,7 @@ class ServerListWidget(QtWidgets.QTreeWidget):
                     self.lightenItemText(x, range(1, 4))
                 x.setData(2, Qt.UserRole, server)
                 x.setData(0, Qt.UserRole, flagval)
-                x.setTextAlignment(0, Qt.AlignHCenter)
+                x.setTextAlignment(0, Qt.AlignmentFlag.AlignHCenter)
                 self.addTopLevelItem(x)
 
         h = self.header()
@@ -742,8 +742,16 @@ class NetworkChoiceLayout(QObject, PrintError):
         # Custom Tor port
         hbox = QtWidgets.QHBoxLayout()
         hbox.addSpacing(20)  # indentation
-        hbox.addWidget(self.tor_custom_port_cb, 0, Qt.AlignLeft | Qt.AlignVCenter)
-        hbox.addWidget(self.tor_socks_port, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        hbox.addWidget(
+            self.tor_custom_port_cb,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
+        hbox.addWidget(
+            self.tor_socks_port,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         hbox.addStretch(2)
         hbox.setContentsMargins(0, 0, 0, 6)  # a bit of a "paragraph break" here
         grid.addLayout(hbox, 2, 0, 1, 3)
@@ -838,12 +846,20 @@ class NetworkChoiceLayout(QObject, PrintError):
         hbox.addWidget(QtWidgets.QLabel(_("Limit:")))
         self.req_max_sb = sb = QtWidgets.QSpinBox()
         sb.setRange(1, 2000)
-        sb.setFocusPolicy(Qt.TabFocus | Qt.ClickFocus | Qt.WheelFocus)
+        sb.setFocusPolicy(
+            Qt.FocusPolicy.TabFocus
+            | Qt.FocusPolicy.ClickFocus
+            | Qt.FocusPolicy.WheelFocus
+        )
         hbox.addWidget(sb)
         hbox.addWidget(QtWidgets.QLabel(_("ChunkSize:")))
         self.req_chunk_sb = sb = QtWidgets.QSpinBox()
         sb.setRange(1, 100)
-        sb.setFocusPolicy(Qt.TabFocus | Qt.ClickFocus | Qt.WheelFocus)
+        sb.setFocusPolicy(
+            Qt.FocusPolicy.TabFocus
+            | Qt.FocusPolicy.ClickFocus
+            | Qt.FocusPolicy.WheelFocus
+        )
         hbox.addWidget(sb)
         but = QtWidgets.QPushButton(_("Reset"))
         f = but.font()
@@ -853,7 +869,9 @@ class NetworkChoiceLayout(QObject, PrintError):
         but.setAutoDefault(False)
         hbox.addWidget(but)
         grid.addLayout(hbox, row, 1, 1, 3)
-        grid.setAlignment(hbox, Qt.AlignLeft | Qt.AlignVCenter)
+        grid.setAlignment(
+            hbox, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         grid.setColumnStretch(3, 1)
         grid.addWidget(HelpButton(msg), row, 4)
         row += 1

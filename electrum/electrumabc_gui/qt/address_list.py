@@ -231,10 +231,14 @@ class AddressList(MyTreeWidget):
                     fiat_balance = fx.value_str(balance, rate)
                     columns.insert(4, fiat_balance)
                 address_item = SortableTreeWidgetItem(columns)
-                address_item.setTextAlignment(3, Qt.AlignRight | Qt.AlignVCenter)
+                address_item.setTextAlignment(
+                    3, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+                )
                 address_item.setFont(3, self.monospace_font)
                 if fx:
-                    address_item.setTextAlignment(4, Qt.AlignRight | Qt.AlignVCenter)
+                    address_item.setTextAlignment(
+                        4, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+                    )
                     address_item.setFont(4, self.monospace_font)
 
                 # Set col0 address font to monospace

@@ -342,7 +342,7 @@ class PopupLabel(PopupWidget):
         super().__init__(parent, **kwargs)
         self.label = QtWidgets.QLabel(text, self)
         if alignment is None:
-            alignment = Qt.AlignCenter
+            alignment = Qt.AlignmentFlag.AlignCenter
         self.label.setAlignment(alignment)
         self.label.setWordWrap(True)
         self.label.setScaledContents(True)

@@ -92,8 +92,11 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
         free_space = contents.size() - item_rect.size()
 
         for item in self.items:
-            if free_space.width() > 0 and not item.alignment() & Qt.AlignLeft:
-                if item.alignment() & Qt.AlignRight:
+            if (
+                free_space.width() > 0
+                and not item.alignment() & Qt.AlignmentFlag.AlignLeft
+            ):
+                if item.alignment() & Qt.AlignmentFlag.AlignRight:
                     item_rect.moveRight(contents.width() + content_margins.right())
                 else:
                     item_rect.moveLeft(
@@ -102,8 +105,11 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
             else:
                 item_rect.moveLeft(content_margins.left())
 
-            if free_space.height() > 0 and not item.alignment() & Qt.AlignTop:
-                if item.alignment() & Qt.AlignBottom:
+            if (
+                free_space.height() > 0
+                and not item.alignment() & Qt.AlignmentFlag.AlignTop
+            ):
+                if item.alignment() & Qt.AlignmentFlag.AlignBottom:
                     item_rect.moveBottom(contents.height() + content_margins.bottom())
                 else:
                     item_rect.moveTop(

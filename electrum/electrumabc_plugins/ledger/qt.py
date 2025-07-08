@@ -46,7 +46,7 @@ class LedgerHandler(QtHandlerBase):
             self.top_level_window(),
             "Ledger Wallet Authentication",
             msg,
-            QtWidgets.QLineEdit.Password,
+            QtWidgets.QLineEdit.EchoMode.Password,
         )
         if not response[1]:
             self.word = None

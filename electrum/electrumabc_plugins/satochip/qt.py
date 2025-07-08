@@ -118,7 +118,7 @@ class SatochipSettingsDialog(WindowModalDialog):
         )
         title.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
 
-        grid.addWidget(title, 0, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(title, 0, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y = 3
 
         rows = [
@@ -135,8 +135,10 @@ class SatochipSettingsDialog(WindowModalDialog):
                 Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
             )
 
-            grid.addWidget(QtWidgets.QLabel(label), y, 0, 1, 1, Qt.AlignRight)
-            grid.addWidget(widget, y, 1, 1, 1, Qt.AlignLeft)
+            grid.addWidget(
+                QtWidgets.QLabel(label), y, 0, 1, 1, Qt.AlignmentFlag.AlignRight
+            )
+            grid.addWidget(widget, y, 1, 1, 1, Qt.AlignmentFlag.AlignLeft)
             setattr(self, member_name, widget)
             y += 1
 
@@ -188,19 +190,19 @@ class SatochipSettingsDialog(WindowModalDialog):
         change_card_label_btn.clicked.connect(_change_card_label)
 
         y += 3
-        grid.addWidget(pin_btn, y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(pin_btn, y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y += 2
-        grid.addWidget(seed_btn, y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(seed_btn, y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y += 2
-        grid.addWidget(set_2FA_btn, y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(set_2FA_btn, y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y += 2
-        grid.addWidget(reset_2FA_btn, y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(reset_2FA_btn, y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y += 2
-        grid.addWidget(verify_card_btn, y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(verify_card_btn, y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y += 2
-        grid.addWidget(change_card_label_btn, y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(change_card_label_btn, y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
         y += 2
-        grid.addWidget(CloseButton(self), y, 0, 1, 2, Qt.AlignHCenter)
+        grid.addWidget(CloseButton(self), y, 0, 1, 2, Qt.AlignmentFlag.AlignHCenter)
 
         dialog_vbox = QtWidgets.QVBoxLayout(self)
         dialog_vbox.addWidget(body)

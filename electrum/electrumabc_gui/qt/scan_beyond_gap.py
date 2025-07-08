@@ -70,7 +70,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         )
         label.setWordWrap(True)
         label.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed
         )
         vbox.addWidget(label)
 

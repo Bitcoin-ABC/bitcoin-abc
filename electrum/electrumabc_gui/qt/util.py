@@ -156,7 +156,7 @@ class HelpButton(HelpMixin, QtWidgets.QPushButton):
         HelpMixin.__init__(self, text, custom_parent=custom_parent)
         self.setToolTip(tool_tip or _("Show help"))
         self.setCursor(QCursor(Qt.PointingHandCursor))
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         if fixed_size:
             self.setFixedWidth(round(2.2 * char_width_in_lineedit()))
         if icon:
@@ -770,7 +770,7 @@ class ButtonsTextEdit(OverlayControlMixin, QtWidgets.QPlainTextEdit):
 class PasswordLineEdit(QtWidgets.QLineEdit):
     def __init__(self, *args, **kwargs):
         QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
-        self.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
 
 
 class TaskThread(PrintError, QThread):

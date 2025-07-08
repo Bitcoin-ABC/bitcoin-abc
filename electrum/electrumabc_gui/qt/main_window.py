@@ -275,7 +275,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
 
         tabs.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
         )
         self.setCentralWidget(tabs)
 
@@ -1348,7 +1349,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         grid.addWidget(label, 3, 0)
         grid.addWidget(self.receive_opreturn_e, 3, 1, 1, 3)
-        grid.addWidget(self.receive_opreturn_rawhex_cb, 3, 4, Qt.AlignLeft)
+        grid.addWidget(
+            self.receive_opreturn_rawhex_cb, 3, 4, Qt.AlignmentFlag.AlignLeft
+        )
         self.receive_opreturn_e.textChanged.connect(self.update_receive_qr)
         self.receive_opreturn_rawhex_cb.clicked.connect(self.update_receive_qr)
         self.receive_tab_opreturn_widgets = [
@@ -1367,7 +1370,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.fiat_receive_e = AmountEdit(self.fx.get_currency() if self.fx else "")
         if not self.fx or not self.fx.is_enabled():
             self.fiat_receive_e.setVisible(False)
-        grid.addWidget(self.fiat_receive_e, 4, 2, Qt.AlignLeft)
+        grid.addWidget(self.fiat_receive_e, 4, 2, Qt.AlignmentFlag.AlignLeft)
         self.connect_fields(self, self.receive_amount_e, self.fiat_receive_e, None)
 
         self.expires_combo = QtWidgets.QComboBox()
@@ -1438,7 +1441,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         vbox2 = QtWidgets.QVBoxLayout()
         vbox2.setContentsMargins(0, 0, 0, 0)
         vbox2.setSpacing(4)
-        vbox2.addWidget(self.receive_qr, Qt.AlignHCenter | Qt.AlignTop)
+        vbox2.addWidget(
+            self.receive_qr, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+        )
         self.receive_qr.setToolTip(_("Receive request QR code (click for details)"))
         but = uribut = QtWidgets.QPushButton(_("Copy &URI"))
 
@@ -1450,10 +1455,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 )
 
         but.clicked.connect(on_copy_uri)
-        but.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        but.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         but.setToolTip(_("Click to copy the receive request URI to the clipboard"))
         vbox2.addWidget(but)
-        vbox2.setAlignment(but, Qt.AlignHCenter | Qt.AlignVCenter)
+        vbox2.setAlignment(
+            but, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
 
         hbox.addLayout(vbox2)
 
@@ -2989,7 +2998,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         hbox = QtWidgets.QHBoxLayout(fee_time_w)
         hbox.setContentsMargins(20, 0, 0, 0)
-        hbox.addWidget(QtWidgets.QLabel(_("Timeout:")), 0, Qt.AlignRight)
+        hbox.addWidget(QtWidgets.QLabel(_("Timeout:")), 0, Qt.AlignmentFlag.AlignRight)
         fee_time_sb = QtWidgets.QSpinBox()
         fee_time_sb.setMinimum(10)
         fee_time_sb.setMaximum(9999)
@@ -2997,7 +3006,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         fee_time_sb.setValue(30)
         fee_dl_chk.clicked.connect(fee_time_w.setEnabled)
         fee_time_w.setEnabled(fee_dl_chk.isChecked())
-        hbox.addWidget(fee_time_sb, 0, Qt.AlignLeft)
+        hbox.addWidget(fee_time_sb, 0, Qt.AlignmentFlag.AlignLeft)
         hbox.addStretch(1)
         vbox.addWidget(fee_time_w)
         vbox.addStretch(1)
@@ -3785,7 +3794,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             t_lbl = QtWidgets.QLabel(
                 "<font size=+1><b>" + (title or "") + "</b></font>"
             )
-            hbox.addWidget(t_lbl, 0, Qt.AlignLeft)
+            hbox.addWidget(t_lbl, 0, Qt.AlignmentFlag.AlignLeft)
             hbox.addStretch(1)
             vbox.addLayout(hbox)
         vbox.addWidget(QtWidgets.QLabel(_("Choose an address") + ":"))

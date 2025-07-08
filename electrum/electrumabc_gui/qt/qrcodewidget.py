@@ -17,12 +17,14 @@ class QRCodeWidget(QtWidgets.QWidget, PrintError):
         self.qr = None
         self.fixedSize = fixedSize
         self.setSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding,
-            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
         )
         if fixedSize:
             self.setFixedSize(fixedSize, fixedSize)
-            self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+            self.setSizePolicy(
+                QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+            )
         self.setData(data)
 
     def setData(self, data):

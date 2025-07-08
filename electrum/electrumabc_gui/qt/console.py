@@ -91,7 +91,8 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
 
         warning_label = QtWidgets.QLabel(warning_text)
         warning_label.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
         )
         warning_label.setWordWrap(True)
         warning_label.setOpenExternalLinks(True)
@@ -109,7 +110,7 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
         hbox_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(hbox_layout)
 
-        fixed = QtWidgets.QSizePolicy.Fixed
+        fixed = QtWidgets.QSizePolicy.Policy.Fixed
         hbox_layout.addSpacerItem(
             QtWidgets.QSpacerItem(self.BORDER_RADIUS, 0, fixed, fixed)
         )
@@ -254,7 +255,7 @@ class Console(QtWidgets.QWidget):
             blur_effect = QtWidgets.QGraphicsBlurEffect()
             blur_effect.setBlurRadius(5)
             self.editor.setGraphicsEffect(blur_effect)
-            self.editor.setFocusPolicy(QtCore.Qt.NoFocus)
+            self.editor.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
             self.editor.setFocusProxy(self.warningOverlay)
 
             def on_acknowledged(dontaskagain: bool):

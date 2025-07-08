@@ -733,7 +733,9 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.schnorr_label = QtWidgets.QLabel(
             _("{} = Schnorr signed").format(SCHNORR_SIGIL)
         )
-        self.schnorr_label.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
+        self.schnorr_label.setAlignment(
+            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
+        )
         f = self.schnorr_label.font()
         f.setPointSize(f.pointSize() - 1)  # make it a little smaller
         self.schnorr_label.setFont(f)

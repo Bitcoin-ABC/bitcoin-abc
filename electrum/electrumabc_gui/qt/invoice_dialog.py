@@ -83,7 +83,7 @@ class InvoiceDialog(QtWidgets.QDialog):
                 " unicode characters."
             )
         )
-        layout.addWidget(self.id_edit, alignment=QtCore.Qt.AlignLeft)
+        layout.addWidget(self.id_edit, alignment=QtCore.Qt.AlignmentFlag.AlignLeft)
         layout.addSpacing(10)
 
         layout.addWidget(QtWidgets.QLabel(_("Label")))
@@ -378,7 +378,9 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         layout.addWidget(self.keys_edit)
 
         self.test_api_button = QtWidgets.QPushButton(_("Test API"))
-        layout.addWidget(self.test_api_button, alignment=QtCore.Qt.AlignLeft)
+        layout.addWidget(
+            self.test_api_button, alignment=QtCore.Qt.AlignmentFlag.AlignLeft
+        )
 
         # signals
         self.request_url_edit.currentIndexChanged.connect(self._on_api_url_selected)

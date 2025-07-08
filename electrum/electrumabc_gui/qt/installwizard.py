@@ -167,7 +167,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.next_button.setDefault(True)
         self.logo = QtWidgets.QLabel()
         self.please_wait = QtWidgets.QLabel(_("Please wait..."))
-        self.please_wait.setAlignment(Qt.AlignCenter)
+        self.please_wait.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.icon_filename = None
         self.loop = QEventLoop()
         self.rejected.connect(lambda: self.loop.exit(0))
@@ -642,7 +642,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         vbox = QtWidgets.QVBoxLayout()
         vbox.addSpacing(100)
         label.setMinimumWidth(300)
-        label.setAlignment(Qt.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vbox.addWidget(label)
         self.set_layout(vbox, next_enabled=False)
         self.back_button.setEnabled(False)

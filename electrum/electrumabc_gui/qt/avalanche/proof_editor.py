@@ -175,7 +175,10 @@ class StakesWidget(QtWidgets.QTableWidget):
             amount_item = QtWidgets.QTableWidgetItem(
                 format_satoshis(stake.amount, num_zeros=2)
             )
-            amount_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            amount_item.setTextAlignment(
+                QtCore.Qt.AlignmentFlag.AlignRight
+                | QtCore.Qt.AlignmentFlag.AlignVCenter
+            )
             if stake.amount < PROOF_DUST_THRESHOLD:
                 amount_item.setForeground(QtGui.QColor("red"))
                 amount_item.setToolTip(
@@ -990,7 +993,10 @@ class UtxosDialog(QtWidgets.QDialog):
             amount_item = QtWidgets.QTableWidgetItem(
                 format_satoshis(utxo["value"], num_zeros=2)
             )
-            amount_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            amount_item.setTextAlignment(
+                QtCore.Qt.AlignmentFlag.AlignRight
+                | QtCore.Qt.AlignmentFlag.AlignVCenter
+            )
             if utxo["value"] < PROOF_DUST_THRESHOLD:
                 amount_item.setForeground(QtGui.QColor("red"))
                 amount_item.setToolTip(

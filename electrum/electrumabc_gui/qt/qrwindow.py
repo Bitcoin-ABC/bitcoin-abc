@@ -48,18 +48,18 @@ class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
         self.setWindowTitle(f"{PROJECT_NAME} - " + _("Payment Request"))
         self.label = ""
         self.amount = 0
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding,
-            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
         )
 
         main_box = QtWidgets.QHBoxLayout(self)
         main_box.setContentsMargins(12, 12, 12, 12)
         self.qrw = QRCodeWidget()
         self.qrw.setSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding,
-            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
         )
         main_box.addWidget(self.qrw, 2)
 

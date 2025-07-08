@@ -197,7 +197,10 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             seed_type_text = mnemo.format_seed_type_name_for_ui(seed_type)
             grid_maybe.addWidget(QtWidgets.QLabel(_("Seed format") + ":"), grid_row, 0)
             grid_maybe.addWidget(
-                QtWidgets.QLabel(f"<b>{seed_type_text}</b>"), grid_row, 1, Qt.AlignLeft
+                QtWidgets.QLabel(f"<b>{seed_type_text}</b>"),
+                grid_row,
+                1,
+                Qt.AlignmentFlag.AlignLeft,
             )
             grid_row += 1
         if passphrase:

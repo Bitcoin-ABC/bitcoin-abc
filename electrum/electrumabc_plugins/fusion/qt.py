@@ -886,13 +886,16 @@ class PasswordDialog(WindowModalDialog):
         self.msglabel.setWordWrap(True)
         self.msglabel.setMinimumWidth(250)
         self.msglabel.setSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
         )
         hbox = QtWidgets.QHBoxLayout()
         iconlabel = QtWidgets.QLabel()
         iconlabel.setPixmap(get_icon_fusion_logo().pixmap(32))
         hbox.addWidget(iconlabel)
-        hbox.addWidget(self.msglabel, 1, Qt.AlignLeft | Qt.AlignVCenter)
+        hbox.addWidget(
+            self.msglabel, 1, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         cmargins = hbox.contentsMargins()
         cmargins.setBottom(10)
         hbox.setContentsMargins(cmargins)  # pad the bottom a bit
@@ -1182,7 +1185,9 @@ class SettingsWidget(QtWidgets.QWidget):
         main_layout = QtWidgets.QVBoxLayout(self)
 
         box = QtWidgets.QGroupBox(_("Network"))
-        main_layout.addWidget(box, 0, Qt.AlignTop | Qt.AlignHCenter)
+        main_layout.addWidget(
+            box, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter
+        )
         slayout = QtWidgets.QVBoxLayout(box)
 
         grid = QtWidgets.QGridLayout()
@@ -1196,7 +1201,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.combo_server_host.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
         self.combo_server_host.setCompleter(None)
         self.combo_server_host.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed
         )
         self.combo_server_host.activated.connect(self.combo_server_activated)
         self.combo_server_host.lineEdit().textEdited.connect(self.user_changed_server)
@@ -1219,7 +1224,9 @@ class SettingsWidget(QtWidgets.QWidget):
         hbox.addWidget(self.cb_server_ssl)
 
         self.server_error_label = QtWidgets.QLabel()
-        self.server_error_label.setAlignment(Qt.AlignTop | Qt.AlignJustify)
+        self.server_error_label.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignJustify
+        )
         grid.addWidget(self.server_error_label, 1, 0, 1, -1)
 
         grid.addWidget(QtWidgets.QLabel(_("Tor")), 2, 0)
@@ -1253,7 +1260,7 @@ class SettingsWidget(QtWidgets.QWidget):
         btn.setAutoDefault(False)
         btn.clicked.connect(self.plugin.show_util_window)
         buts = Buttons(btn)
-        buts.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        buts.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
         main_layout.addLayout(buts)
 
         main_layout.addStretch(1)
@@ -1523,7 +1530,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.confkey2idx["normal"] = stacked_layout.addWidget(normal_page_w)
         mode_cb.addItem(_("Normal"))
         lbl = QtWidgets.QLabel("- " + _("Normal mode") + " -")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         normal_page_layout.addWidget(lbl)
 
         # Consolidate
@@ -1532,7 +1539,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.confkey2idx["consolidate"] = stacked_layout.addWidget(consolidate_page_w)
         mode_cb.addItem(_("Consolidate"))
         lbl = QtWidgets.QLabel("- " + _("Consolidation mode") + " -")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         consolidate_page_layout.addWidget(lbl)
 
         # Fan-out
@@ -1541,7 +1548,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.confkey2idx["fan-out"] = stacked_layout.addWidget(fanout_page_w)
         mode_cb.addItem(_("Fan-out"))
         lbl = QtWidgets.QLabel("- " + _("Fan-out mode") + " -")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         fanout_page_layout.addWidget(lbl)
 
         # Custom
@@ -1607,14 +1614,17 @@ class WalletSettingsDialog(WindowModalDialog):
         )
         self.l_warn_selection.setToolTip(low_warn_tooltip)
         self.l_warn_selection.linkActivated.connect(self._show_low_warn_help)
-        self.l_warn_selection.setAlignment(Qt.AlignJustify | Qt.AlignVCenter)
+        self.l_warn_selection.setAlignment(
+            Qt.AlignmentFlag.AlignJustify | Qt.AlignmentFlag.AlignVCenter
+        )
         qs = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
         )
         qs.setRetainSizeWhenHidden(True)
         self.l_warn_selection.setSizePolicy(qs)
         slayout.addWidget(self.l_warn_selection)
-        slayout.setAlignment(self.l_warn_selection, Qt.AlignCenter)
+        slayout.setAlignment(self.l_warn_selection, Qt.AlignmentFlag.AlignCenter)
 
         box = QtWidgets.QGroupBox(_("Auto-Fusion Limits"))
         custom_page_layout.addWidget(box)
@@ -1952,7 +1962,6 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
 
         self.serverbox = QtWidgets.QGroupBox(_("Server"))
         main_layout.addWidget(self.serverbox)
-        # self.serverbox.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
         slayout = QtWidgets.QVBoxLayout(self.serverbox)
 

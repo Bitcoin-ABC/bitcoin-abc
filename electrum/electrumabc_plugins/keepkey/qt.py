@@ -613,8 +613,8 @@ class SettingsDialog(WindowModalDialog):
             w = advanced_glayout.itemAt(i).widget()
             if isinstance(w, QtWidgets.QLabel) and w.wordWrap():
                 sp = w.sizePolicy()
-                sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Ignored)
-                sp.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
+                sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Policy.Ignored)
+                sp.setVerticalPolicy(QtWidgets.QSizePolicy.Policy.MinimumExpanding)
                 w.setSizePolicy(sp)
         advanced_layout.addLayout(advanced_glayout)
         advanced_layout.addStretch(1)

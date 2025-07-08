@@ -168,15 +168,15 @@ class SettingsDialog(WindowModalDialog):
         customfee_label = HelpLabel(
             _("Custom fee rate:"), _("Custom Fee Rate in Satoshis per byte")
         )
-        fee_lo.addWidget(customfee_label, 0, 0, 1, 1, Qt.AlignRight)
-        fee_lo.addWidget(self.customfee_e, 0, 1, 1, 1, Qt.AlignLeft)
+        fee_lo.addWidget(customfee_label, 0, 0, 1, 1, Qt.AlignmentFlag.AlignRight)
+        fee_lo.addWidget(self.customfee_e, 0, 1, 1, 1, Qt.AlignmentFlag.AlignLeft)
 
         feebox_cb = QtWidgets.QCheckBox(_("Edit fees manually"))
         feebox_cb.setChecked(self.config.get("show_fee", False))
         feebox_cb.setToolTip(_("Show fee edit box in send tab."))
 
         feebox_cb.stateChanged.connect(self.on_feebox)
-        fee_lo.addWidget(feebox_cb, 1, 0, 1, 2, Qt.AlignJustify)
+        fee_lo.addWidget(feebox_cb, 1, 0, 1, 2, Qt.AlignmentFlag.AlignJustify)
 
         # Fees box up top
         misc_widgets.append((fee_gb, None))
@@ -251,8 +251,8 @@ class SettingsDialog(WindowModalDialog):
         )
         # The below dance ensures the checkbox is horizontally centered in the widget
         cr_grid.addWidget(QtWidgets.QWidget(), 0, 0, 1, 1)  # dummy spacer
-        cr_grid.addWidget(cr_chk, 0, 1, 1, 1, Qt.AlignRight)
-        cr_grid.addWidget(cr_help, 0, 2, 1, 1, Qt.AlignLeft)
+        cr_grid.addWidget(cr_chk, 0, 1, 1, 1, Qt.AlignmentFlag.AlignRight)
+        cr_grid.addWidget(cr_help, 0, 2, 1, 1, Qt.AlignmentFlag.AlignLeft)
         cr_grid.addWidget(QtWidgets.QWidget(), 0, 3, 1, 1)  # dummy spacer
         cr_grid.setColumnStretch(0, 1)
         cr_grid.setColumnStretch(3, 1)

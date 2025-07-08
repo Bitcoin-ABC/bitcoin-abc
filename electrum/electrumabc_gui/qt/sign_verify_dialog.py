@@ -54,7 +54,9 @@ class CollapsibleSection(QWidget):
         self.header_line = QFrame(self)
         self.header_line.setFrameShape(QFrame.HLine)
         self.header_line.setFrameShadow(QFrame.Sunken)
-        self.header_line.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        self.header_line.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum
+        )
 
         content_layout = QHBoxLayout()
         self.contentFrame = QFrame(self)
@@ -64,7 +66,7 @@ class CollapsibleSection(QWidget):
         content_layout.addWidget(content_widget)
         self.contentFrame.setVisible(False)
 
-        main_layout.addWidget(self.toggleButton, 0, 0, 1, 1, Qt.AlignLeft)
+        main_layout.addWidget(self.toggleButton, 0, 0, 1, 1, Qt.AlignmentFlag.AlignLeft)
         main_layout.addWidget(self.header_line, 0, 2, 1, 1)
         main_layout.addWidget(self.contentFrame, 1, 0, 1, 3)
 

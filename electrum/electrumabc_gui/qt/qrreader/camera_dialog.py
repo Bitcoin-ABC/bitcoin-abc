@@ -149,7 +149,9 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
             )
         )
         self.lowres_label.setWordWrap(True)
-        self.lowres_label.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+        self.lowres_label.setAlignment(
+            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter
+        )
         vbox.addWidget(self.lowres_label)
         self.lowres_label.setHidden(True)
 

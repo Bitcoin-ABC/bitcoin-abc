@@ -121,12 +121,14 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.descriptionLabel.setWordWrap(True)
         # Long description labels that wrap should push the form layout's row to grow
         p = self.descriptionLabel.sizePolicy()
-        p.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
+        p.setVerticalPolicy(QtWidgets.QSizePolicy.Policy.MinimumExpanding)
         self.descriptionLabel.setSizePolicy(p)
         self.metadataFormLayout.addRow(_("Description"), self.descriptionLabel)
         self.supportedInterfacesLayout = QtWidgets.QVBoxLayout()
         self.supportedInterfacesLabel = QtWidgets.QLabel(_("Integration"))
-        self.supportedInterfacesLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self.supportedInterfacesLabel.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+        )
         self.supportedInterfacesLabel.setToolTip(
             _("Plugins should support one or more of these interfaces.")
         )
@@ -162,7 +164,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
 
         if self.is_preview:
             confirmLayout = QtWidgets.QVBoxLayout()
-            confirmLayout.setAlignment(Qt.AlignHCenter)
+            confirmLayout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             confirmGroupBox = QtWidgets.QGroupBox(_("Risks and Dangers"))
             liabilityLabel = QtWidgets.QLabel(
                 _(
@@ -339,7 +341,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         # The warning message box at the top of the dialog window about dangers of installing plugins.
         self.descriptionGroupBox = QtWidgets.QGroupBox()
         self.descriptionGroupBox.setTitle(_("Security Warning"))
-        self.descriptionGroupBox.setAlignment(Qt.AlignHCenter)
+        self.descriptionGroupBox.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         descriptionGroupLayout = QtWidgets.QVBoxLayout()
         self.descriptionGroupBox.setLayout(descriptionGroupLayout)
         self.descriptionLabel = QtWidgets.QLabel(
@@ -348,7 +350,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
                 f" access to {PROJECT_NAME}'s internals."
             )
         )
-        self.descriptionLabel.setAlignment(Qt.AlignCenter)
+        self.descriptionLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         descriptionGroupLayout.addWidget(self.descriptionLabel)
         vbox.addWidget(self.descriptionGroupBox)
 
@@ -615,17 +617,25 @@ class ExternalPluginTable(QtWidgets.QTableWidget):
 
             displayNameLabel = QtWidgets.QLabel(fullname)
             displayNameLabel.setWordWrap(True)
-            displayNameLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+            displayNameLabel.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+            )
             self.setCellWidget(row_index, 0, displayNameLabel)
             descriptionLabel = QtWidgets.QLabel(description)
             descriptionLabel.setWordWrap(True)
-            descriptionLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+            descriptionLabel.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+            )
             self.setCellWidget(row_index, 1, descriptionLabel)
             versionLabel = QtWidgets.QLabel(str(version))
-            versionLabel.setAlignment(Qt.AlignRight | Qt.AlignTop)
+            versionLabel.setAlignment(
+                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop
+            )
             self.setCellWidget(row_index, 2, versionLabel)
             enabledLabel = QtWidgets.QLabel(
                 "Yes" if plugin is not None and plugin.is_enabled() else "No"
             )
-            enabledLabel.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
+            enabledLabel.setAlignment(
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+            )
             self.setCellWidget(row_index, 3, enabledLabel)

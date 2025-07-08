@@ -88,11 +88,15 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         hbox.addStretch(2)
         status_title = QtWidgets.QLabel()
         status_title.setText(_("udev Rules Status:"))
-        status_title.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        status_title.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        )
         hbox.addWidget(status_title)
         hbox.addStretch(1)
         self.status_label = QtWidgets.QLabel()
-        self.status_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.status_label.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         font = self.status_label.font()
         font.setPointSize(15)
         self.status_label.setFont(font)

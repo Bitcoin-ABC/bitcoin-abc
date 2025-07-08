@@ -71,7 +71,11 @@ class AmountEdit(MyLineEdit):
             textRect.adjust(2, 0, -10, 0)
             painter = QPainter(self)
             painter.setPen(ColorScheme.GRAY.as_color())
-            painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, self.base_unit)
+            painter.drawText(
+                textRect,
+                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                self.base_unit,
+            )
 
     def get_amount(self) -> Optional[Union[int, Decimal]]:
         try:
