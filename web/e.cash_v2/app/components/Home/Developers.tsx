@@ -64,7 +64,7 @@ export default function Developers() {
   };
 
   return (
-    <div className="py-30 relative m-auto mt-[-160px] w-full max-w-[2000px] bg-[linear-gradient(-135deg,_#1F1428,_#090916,_#0F1528,_#090916)] pt-60">
+    <div className="py-30 relative m-auto mt-[-160px] w-full max-w-[2000px] pt-60">
       <div className="from-background absolute top-0 h-[100px] w-full bg-gradient-to-b to-transparent" />
       <div className="m-auto mb-10 flex w-full select-none items-center overflow-hidden lg:mb-20">
         <div className="srcoll-animation flex items-center gap-10">
