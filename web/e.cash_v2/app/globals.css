@@ -209,6 +209,32 @@ h2 {
   background-color: var(--borderLight);
 }
 
+.scrollx-fade::-webkit-scrollbar {
+  /* Safari & Chrome */
+  display: none;
+}
+
+.scrollx-fade {
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE 10+ */
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+}
+
 @media (max-width: 1024px) {
   h2 {
     font-size: 26px;
