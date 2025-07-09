@@ -222,7 +222,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         b.setToolTip(_("Show transaction QR code"))
         b.setIcon(QIcon(icon))
         b.clicked.connect(self.show_qr)
-        b.setShortcut(QKeySequence(Qt.ALT + Qt.Key_Q))
+        b.setShortcut(QKeySequence(Qt.ALT | Qt.Key_Q))
 
         self.copy_button = b = CopyButton(
             lambda: str(weakSelfRef() and weakSelfRef().tx),
