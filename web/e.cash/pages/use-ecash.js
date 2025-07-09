@@ -42,6 +42,7 @@ import elps from '/public/images/eLPS.png';
 import paybutton from '/public/images/paybutton.png';
 import tixtown from '/public/images/tixtown_logo.png';
 import xecxLogo from '/public/images/xecx-logo-white.png';
+import firmaLogo from '/public/images/firma.png';
 import localecashLogo from '/public/images/localecash.png';
 import musd from '/public/images/MUSD.png';
 
@@ -261,6 +262,47 @@ function UseEcash(props) {
                             <Button
                                 text="Get XECX"
                                 link="https://cashtab.com/#/token/c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4"
+                                corner="bottomRight"
+                                color="white"
+                                openInNewTab
+                            />
+                        </FlexButtons>
+                    </TextImageBlock>
+                    <TextImageBlock
+                        id="firma"
+                        title="Firma"
+                        image={firmaLogo}
+                        alt="Firma logo"
+                    >
+                        <p>
+                            Firma is a stablecoin that pays daily yield. Firma
+                            can be instantly bought or sold for XEC on the Agora
+                            marketplace. Users can also buy Firma with USDT or
+                            USDC (Solana) and redeem Firma for USDT (Solana) at
+                            firma.cash.
+                        </p>
+                        <p>Built using eCash&apos;s ALP technology.</p>
+                        <p>
+                            <i>
+                                Firma is a token project built on XEC by a
+                                third-party. Firma&apos;s US dollar peg, and
+                                operation of it&apos;s Solana USDT/USDC bridge,
+                                are based on trust in the operators and their
+                                incentives. It is not risk-free.
+                            </i>
+                        </p>
+
+                        <FlexButtons>
+                            <Button
+                                text="Learn more"
+                                link="https://firma.cash/"
+                                corner="bottomRight"
+                                color="accent"
+                                openInNewTab
+                            />
+                            <Button
+                                text="Get Firma"
+                                link="https://cashtab.com/#/token/0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0"
                                 corner="bottomRight"
                                 color="white"
                                 openInNewTab
