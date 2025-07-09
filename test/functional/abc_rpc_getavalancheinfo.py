@@ -44,6 +44,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "-avaminquorumconnectedstakeratio=0.9",
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaminavaproofsnodecount=0",
+                "-avalanchepeerreplacementcooldown=0",
             ]
         ]
 
@@ -51,6 +52,16 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         privkey, proof = gen_proof(self, node, expiry=2000000000)
+
+        stakes = create_coinbase_stakes(
+            node, [node.getbestblockhash()], node.get_deterministic_priv_key().key
+        )
+        better_conflicting_proof_hex = node.buildavalancheproof(
+            43, 0, bytes_to_wif(privkey.get_bytes()), stakes
+        )
+        better_conflicting_proof = avalanche_proof_from_hex(
+            better_conflicting_proof_hex
+        )
 
         def assert_avalancheinfo(expected):
             assert_equal(node.getavalancheinfo(), expected)
@@ -89,6 +100,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 f"-avaproof={proof.serialize().hex()}",
                 f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
                 "-avaproofstakeutxoconfirmations=1",
+                "-avalancheconflictingproofcooldown=0",
+                "-persistavapeers=0",
             ],
         )
 
@@ -193,13 +206,80 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             }
         )
 
+        # Trigger the proof verification
+        self.generate(node, 1, sync_fun=self.no_op)
+
+        assert_avalancheinfo(
+            {
+                "ready_to_poll": False,
+                "local": {
+                    "verified": True,
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+                },
+                "network": {
+                    "proof_count": 1,
+                    "connected_proof_count": 1,
+                    "dangling_proof_count": 0,
+                    "finalized_proof_count": 0,
+                    "conflicting_proof_count": 0,
+                    "immature_proof_count": 0,
+                    "total_stake_amount": coinbase_amount,
+                    "connected_stake_amount": coinbase_amount,
+                    "dangling_stake_amount": Decimal("0.00"),
+                    "immature_stake_amount": Decimal("0.00"),
+                    "node_count": 1,
+                    "connected_node_count": 1,
+                    "pending_node_count": 0,
+                },
+            }
+        )
+
+        # Now let a peer send the better proof to our node
+        sender.send_avaproof(better_conflicting_proof)
+
+        # Check we properly report the conflicting utxo status
+        self.wait_until(
+            lambda: node.getavalancheinfo()
+            == {
+                "ready_to_poll": False,
+                "local": {
+                    "verified": False,
+                    "verification_status": "conflicting-utxos",
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+                },
+                "network": {
+                    "proof_count": 1,
+                    "connected_proof_count": 0,
+                    "dangling_proof_count": 1,
+                    "finalized_proof_count": 0,
+                    "conflicting_proof_count": 1,
+                    "immature_proof_count": 0,
+                    "total_stake_amount": coinbase_amount,
+                    "connected_stake_amount": Decimal("0.00"),
+                    "dangling_stake_amount": coinbase_amount,
+                    "immature_stake_amount": Decimal("0.00"),
+                    "node_count": 0,
+                    "connected_node_count": 0,
+                    "pending_node_count": 0,
+                },
+            }
+        )
+
         self.restart_node(
             0,
             self.extra_args[0]
             + [
                 f"-avaproof={proof.serialize().hex()}",
                 f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
-                "-avaproofstakeutxoconfirmations=4",
+                "-avaproofstakeutxoconfirmations=5",
             ],
         )
 
@@ -362,7 +442,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             conflicting_proofs.append(conflicting_proof)
 
             # Make the proof and its conflicting proof mature
-            self.generate(node, 3, sync_fun=self.no_op)
+            self.generate(node, 4, sync_fun=self.no_op)
 
             n = AvaP2PInterface()
             n.proof = _proof

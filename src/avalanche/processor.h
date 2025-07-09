@@ -323,7 +323,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_delayedAvahelloNodeIds);
 
     ProofRef getLocalProof() const;
-    ProofRegistrationState getLocalProofRegistrationState() const;
+    ProofRegistrationState getLocalProofRegistrationState() const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
 
     /*
      * Return whether the avalanche service flag should be set.

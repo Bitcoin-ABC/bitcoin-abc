@@ -767,9 +767,22 @@ ProofRef Processor::getLocalProof() const {
 }
 
 ProofRegistrationState Processor::getLocalProofRegistrationState() const {
-    return peerData
-               ? WITH_LOCK(peerData->cs_proofState, return peerData->proofState)
-               : ProofRegistrationState();
+    AssertLockNotHeld(cs_peerManager);
+
+    ProofRegistrationState state;
+    if (!peerData) {
+        return state;
+    }
+
+    if (peerData->proof &&
+        WITH_LOCK(cs_peerManager, return peerManager->isInConflictingPool(
+                                      peerData->proof->getId()))) {
+        state.Invalid(ProofRegistrationResult::CONFLICTING,
+                      "conflicting-utxos");
+        return state;
+    }
+
+    return WITH_LOCK(peerData->cs_proofState, return peerData->proofState);
 }
 
 bool Processor::startEventLoop(CScheduler &scheduler) {
