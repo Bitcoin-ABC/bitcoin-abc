@@ -2,7 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-export const mockChronikUtxos = [
+import { ScriptUtxo } from 'chronik-client';
+
+export const mockChronikUtxos: ScriptUtxo[] = [
     {
         outpoint: {
             txid: '71c0f2d76c81bb91c6bf4de69693d95e8f043af9e055e949616443090f961d80',
@@ -10,7 +12,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755309,
         isCoinbase: false,
-        address: 'ecash:qz5lf9pxde9neq3hzte8mmwts03sktl9numh06k74t',
         isFinal: true,
         sats: 12233856n,
     },
@@ -21,7 +22,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680782,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -43,7 +43,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680784,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 546n,
     },
@@ -54,7 +53,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680784,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 546n,
     },
@@ -65,7 +63,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 680784,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -87,7 +84,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 681190,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -109,7 +105,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 681191,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -131,7 +126,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 685181,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -153,7 +147,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 687240,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -175,7 +168,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 692599,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -197,7 +189,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 692599,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -219,7 +210,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700185,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -241,7 +231,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700572,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -263,7 +252,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700677,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -285,7 +273,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 700915,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -307,7 +294,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -329,7 +315,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -351,7 +336,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -373,7 +357,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -395,7 +378,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701079,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -417,7 +399,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701189,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -439,7 +420,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701189,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -461,7 +441,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701191,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -483,7 +462,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701194,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -505,7 +483,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701208,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -527,7 +504,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701211,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -549,7 +525,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701211,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -571,7 +546,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701221,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -593,7 +567,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 701223,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -615,7 +588,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 709251,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -637,7 +609,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 709259,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -659,7 +630,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 709668,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -681,7 +651,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 710065,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -703,7 +672,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 711227,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -725,7 +693,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 715815,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -747,7 +714,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 715815,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -769,7 +735,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 715816,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -791,7 +756,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 717055,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -813,7 +777,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 717824,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -835,7 +798,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 718091,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -857,7 +819,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 718280,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -879,7 +840,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 718790,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -901,7 +861,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720056,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -923,7 +882,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -945,7 +903,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -967,7 +924,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -989,7 +945,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720070,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1011,7 +966,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720078,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1033,7 +987,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 720951,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1055,7 +1008,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 721083,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1077,7 +1029,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 724822,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 546n,
     },
@@ -1088,7 +1039,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 725143,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 546n,
     },
@@ -1099,7 +1049,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 725871,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1121,7 +1070,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 725882,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1143,7 +1091,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726001,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1165,7 +1112,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726009,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1187,7 +1133,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726019,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1209,7 +1154,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726053,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1231,7 +1175,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726277,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1253,7 +1196,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726809,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1275,7 +1217,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1297,7 +1238,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1319,7 +1259,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 726826,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1341,7 +1280,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 727176,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1363,7 +1301,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728150,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1385,7 +1322,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728285,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1407,7 +1343,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728707,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1429,7 +1364,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 728726,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1451,7 +1385,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 731918,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 546n,
     },
@@ -1462,7 +1395,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 737787,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1484,7 +1416,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 738246,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1506,7 +1437,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 738929,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1528,7 +1458,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 739911,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -1539,7 +1468,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740052,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 600n,
     },
@@ -1550,7 +1478,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740198,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -1561,7 +1488,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740198,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 7700n,
     },
@@ -1572,7 +1498,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740963,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 700n,
     },
@@ -1583,7 +1508,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 740963,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1245n,
     },
@@ -1594,7 +1518,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741057,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1700n,
     },
@@ -1605,7 +1528,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741057,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 800n,
     },
@@ -1616,7 +1538,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741057,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 600n,
     },
@@ -1627,7 +1548,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1100n,
     },
@@ -1638,7 +1558,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 6600n,
     },
@@ -1649,7 +1568,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1000n,
     },
@@ -1660,7 +1578,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1200n,
     },
@@ -1671,7 +1588,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 5500n,
     },
@@ -1682,7 +1598,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 23200n,
     },
@@ -1693,7 +1608,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741058,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 10100n,
     },
@@ -1704,7 +1618,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741063,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2300n,
     },
@@ -1715,7 +1628,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741063,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -1726,7 +1638,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741182,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -1737,7 +1648,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741190,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1759,7 +1669,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741195,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1781,7 +1690,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741195,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1803,7 +1711,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741195,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1825,7 +1732,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741197,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1847,7 +1753,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 700n,
     },
@@ -1858,7 +1763,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1880,7 +1784,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741200,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 800n,
     },
@@ -1891,7 +1794,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741207,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -1902,7 +1804,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741208,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -1913,7 +1814,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741210,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2195n,
     },
@@ -1924,7 +1824,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741769,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -1935,7 +1834,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741791,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1957,7 +1855,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741791,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -1968,7 +1865,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741791,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -1990,7 +1886,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2012,7 +1907,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2034,7 +1928,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2056,7 +1949,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741796,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2078,7 +1970,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741797,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2100,7 +1991,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741798,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2122,7 +2012,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741798,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2144,7 +2033,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741799,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2155,7 +2043,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 741799,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2177,7 +2064,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742051,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1100n,
     },
@@ -2188,7 +2074,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742051,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1200n,
     },
@@ -2199,7 +2084,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2221,7 +2105,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3400n,
     },
@@ -2232,7 +2115,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3500n,
     },
@@ -2243,7 +2125,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742074,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2254,7 +2135,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742075,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2276,7 +2156,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742075,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2298,7 +2177,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742792,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 200000n,
     },
@@ -2309,7 +2187,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742792,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 100000n,
     },
@@ -2320,7 +2197,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742796,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 250000n,
     },
@@ -2331,7 +2207,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742796,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 50000n,
     },
@@ -2342,7 +2217,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742797,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 250000n,
     },
@@ -2353,7 +2227,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742799,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 155500n,
     },
@@ -2364,7 +2237,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742799,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 333300n,
     },
@@ -2375,7 +2247,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742800,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 333300n,
     },
@@ -2386,7 +2257,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742800,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 111100n,
     },
@@ -2397,7 +2267,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742800,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 88800n,
     },
@@ -2408,7 +2277,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742994,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3330n,
     },
@@ -2419,7 +2287,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742994,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2430,7 +2297,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 742999,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1600n,
     },
@@ -2441,7 +2307,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743101,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2452,7 +2317,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743138,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1100n,
     },
@@ -2463,7 +2327,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743158,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -2474,7 +2337,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743228,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3400n,
     },
@@ -2485,7 +2347,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743228,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2200n,
     },
@@ -2496,7 +2357,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743228,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2507,7 +2367,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743257,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 11100n,
     },
@@ -2518,7 +2377,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743350,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1200n,
     },
@@ -2529,7 +2387,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743775,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3700n,
     },
@@ -2540,7 +2397,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743782,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1700n,
     },
@@ -2551,7 +2407,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 743972,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 7700n,
     },
@@ -2562,7 +2417,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744136,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2573,7 +2427,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744138,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 4200n,
     },
@@ -2584,7 +2437,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744138,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 12000n,
     },
@@ -2595,7 +2447,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744138,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 12100n,
     },
@@ -2606,7 +2457,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744841,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 7700n,
     },
@@ -2617,7 +2467,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 744841,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 700n,
     },
@@ -2628,7 +2477,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745157,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3700n,
     },
@@ -2639,7 +2487,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745157,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2650,7 +2497,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745158,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 4200n,
     },
@@ -2661,7 +2507,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745160,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 9990n,
     },
@@ -2672,7 +2517,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745160,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 10081n,
     },
@@ -2683,7 +2527,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745251,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 50000n,
     },
@@ -2694,7 +2537,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745254,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 55000n,
     },
@@ -2705,7 +2547,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745275,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 250779n,
     },
@@ -2716,7 +2557,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 745520,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 49400n,
     },
@@ -2727,7 +2567,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747209,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 5500n,
     },
@@ -2738,7 +2577,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747210,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 5821n,
     },
@@ -2749,7 +2587,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747210,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3500n,
     },
@@ -2760,7 +2597,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747210,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2782,7 +2618,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747433,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 5000n,
     },
@@ -2793,7 +2628,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747433,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 15000n,
     },
@@ -2804,7 +2638,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 747604,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 7700n,
     },
@@ -2815,7 +2648,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 749030,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 5500n,
     },
@@ -2826,7 +2658,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 753929,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3300n,
     },
@@ -2837,7 +2668,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 754182,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 79785n,
     },
@@ -2848,7 +2678,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 754318,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 83715n,
     },
@@ -2859,7 +2688,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 754464,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 5500n,
     },
@@ -2870,7 +2698,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755028,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 10000n,
     },
@@ -2881,7 +2708,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755294,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2903,7 +2729,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755309,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 7077n,
     },
@@ -2914,7 +2739,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 755325,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 9145n,
     },
@@ -2925,7 +2749,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756151,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2947,7 +2770,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756151,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -2969,7 +2791,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756151,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 48182n,
     },
@@ -2980,7 +2801,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 3182n,
     },
@@ -2991,7 +2811,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 39176n,
     },
@@ -3002,7 +2821,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 48182n,
     },
@@ -3013,7 +2831,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 6434n,
     },
@@ -3024,7 +2841,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 600155n,
     },
@@ -3035,7 +2851,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756154,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1046n,
     },
@@ -3046,7 +2861,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756159,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1155n,
     },
@@ -3057,7 +2871,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756224,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 1482n,
     },
@@ -3068,7 +2881,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756225,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 54429518n,
     },
@@ -3079,7 +2891,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756229,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 7255n,
     },
@@ -3090,7 +2901,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756229,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         token: {
             tokenId:
@@ -3112,7 +2922,6 @@ export const mockChronikUtxos = [
         },
         blockHeight: 756229,
         isCoinbase: false,
-        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         isFinal: true,
         sats: 2255n,
     },
@@ -3127,7 +2936,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680782,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3149,7 +2957,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680784,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3171,7 +2978,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 681190,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3193,7 +2999,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 681191,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3215,7 +3020,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 685181,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3237,7 +3041,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 687240,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3259,7 +3062,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 692599,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3281,7 +3083,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 692599,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3303,7 +3104,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700185,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3325,7 +3125,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700572,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3347,7 +3146,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700677,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3369,7 +3167,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 700915,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3391,7 +3188,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3413,7 +3209,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3435,7 +3230,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3457,7 +3251,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3479,7 +3272,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701079,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3501,7 +3293,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701189,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3523,7 +3314,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701189,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3545,7 +3335,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701191,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3567,7 +3356,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701194,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3589,7 +3377,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701208,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3611,7 +3398,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701211,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3633,7 +3419,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701211,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3655,7 +3440,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701221,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3677,7 +3461,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 701223,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3699,7 +3482,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 709251,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3721,7 +3503,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 709259,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3743,7 +3524,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 709668,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3765,7 +3545,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 710065,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3787,7 +3566,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 711227,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3809,7 +3587,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 715815,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3831,7 +3608,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 715815,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3853,7 +3629,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 715816,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3875,7 +3650,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 717055,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3897,7 +3671,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 717824,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3919,7 +3692,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 718091,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3941,7 +3713,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 718280,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3963,7 +3734,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 718790,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -3985,7 +3755,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720056,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4007,7 +3776,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4029,7 +3797,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4051,7 +3818,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4073,7 +3839,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720070,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4095,7 +3860,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720078,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4117,7 +3881,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 720951,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4139,7 +3902,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 721083,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4161,7 +3923,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 725871,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4183,7 +3944,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 725882,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4205,7 +3965,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726001,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4227,7 +3986,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726009,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4249,7 +4007,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726019,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4271,7 +4028,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726053,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4293,7 +4049,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726277,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4315,7 +4070,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726809,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4337,7 +4091,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726826,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4359,7 +4112,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726826,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4381,7 +4133,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 726826,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4403,7 +4154,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 727176,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4425,7 +4175,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728150,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4447,7 +4196,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728285,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4469,7 +4217,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728707,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4491,7 +4238,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 728726,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4513,7 +4259,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 737787,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4535,7 +4280,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 738246,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4557,7 +4301,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 738929,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4579,7 +4322,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741190,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4601,7 +4343,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741195,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4623,7 +4364,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741195,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4645,7 +4385,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741195,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4667,7 +4406,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741197,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4689,7 +4427,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741200,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4711,7 +4448,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741791,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4733,7 +4469,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741791,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4755,7 +4490,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4777,7 +4511,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4799,7 +4532,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4821,7 +4553,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741796,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4843,7 +4574,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741797,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4865,7 +4595,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741798,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4887,7 +4616,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741798,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4909,7 +4637,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741799,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4931,7 +4658,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4953,7 +4679,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742075,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4975,7 +4700,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742075,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -4997,7 +4721,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747210,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -5019,7 +4742,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755294,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -5041,7 +4763,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756151,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -5063,7 +4784,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756151,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -5085,7 +4805,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756229,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             token: {
                 tokenId:
@@ -5109,7 +4828,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755309,
             isCoinbase: false,
-            address: 'ecash:qz5lf9pxde9neq3hzte8mmwts03sktl9numh06k74t',
             isFinal: true,
             sats: 12233856n,
         },
@@ -5120,7 +4838,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680784,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 546n,
         },
@@ -5131,7 +4848,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 680784,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 546n,
         },
@@ -5142,7 +4858,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 724822,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 546n,
         },
@@ -5153,7 +4868,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 725143,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 546n,
         },
@@ -5164,7 +4878,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 731918,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 546n,
         },
@@ -5175,7 +4888,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 739911,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5186,7 +4898,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740052,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 600n,
         },
@@ -5197,7 +4908,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740198,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5208,7 +4918,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740198,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 7700n,
         },
@@ -5219,7 +4928,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740963,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 700n,
         },
@@ -5230,7 +4938,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 740963,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1245n,
         },
@@ -5241,7 +4948,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741057,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1700n,
         },
@@ -5252,7 +4958,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741057,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 800n,
         },
@@ -5263,7 +4968,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741057,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 600n,
         },
@@ -5274,7 +4978,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1100n,
         },
@@ -5285,7 +4988,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 6600n,
         },
@@ -5296,7 +4998,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1000n,
         },
@@ -5307,7 +5008,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1200n,
         },
@@ -5318,7 +5018,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 5500n,
         },
@@ -5329,7 +5028,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 23200n,
         },
@@ -5340,7 +5038,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741058,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 10100n,
         },
@@ -5351,7 +5048,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741063,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2300n,
         },
@@ -5362,7 +5058,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741063,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5373,7 +5068,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741182,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5384,7 +5078,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741200,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 700n,
         },
@@ -5395,7 +5088,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741200,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 800n,
         },
@@ -5406,7 +5098,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741207,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5417,7 +5108,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741208,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5428,7 +5118,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741210,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2195n,
         },
@@ -5439,7 +5128,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741769,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5450,7 +5138,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741791,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5461,7 +5148,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 741799,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5472,7 +5158,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742051,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1100n,
         },
@@ -5483,7 +5168,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742051,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1200n,
         },
@@ -5494,7 +5178,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3400n,
         },
@@ -5505,7 +5188,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3500n,
         },
@@ -5516,7 +5198,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742074,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5527,7 +5208,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742792,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 200000n,
         },
@@ -5538,7 +5218,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742792,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 100000n,
         },
@@ -5549,7 +5228,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742796,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 250000n,
         },
@@ -5560,7 +5238,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742796,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 50000n,
         },
@@ -5571,7 +5248,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742797,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 250000n,
         },
@@ -5582,7 +5258,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742799,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 155500n,
         },
@@ -5593,7 +5268,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742799,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 333300n,
         },
@@ -5604,7 +5278,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742800,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 333300n,
         },
@@ -5615,7 +5288,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742800,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 111100n,
         },
@@ -5626,7 +5298,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742800,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 88800n,
         },
@@ -5637,7 +5308,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742994,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3330n,
         },
@@ -5648,7 +5318,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742994,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5659,7 +5328,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 742999,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1600n,
         },
@@ -5670,7 +5338,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743101,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5681,7 +5348,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743138,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1100n,
         },
@@ -5692,7 +5358,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743158,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5703,7 +5368,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743228,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3400n,
         },
@@ -5714,7 +5378,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743228,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2200n,
         },
@@ -5725,7 +5388,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743228,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5736,7 +5398,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743257,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 11100n,
         },
@@ -5747,7 +5408,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743350,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1200n,
         },
@@ -5758,7 +5418,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743775,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3700n,
         },
@@ -5769,7 +5428,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743782,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1700n,
         },
@@ -5780,7 +5438,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 743972,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 7700n,
         },
@@ -5791,7 +5448,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744136,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5802,7 +5458,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744138,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 4200n,
         },
@@ -5813,7 +5468,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744138,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 12000n,
         },
@@ -5824,7 +5478,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744138,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 12100n,
         },
@@ -5835,7 +5488,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744841,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 7700n,
         },
@@ -5846,7 +5498,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 744841,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 700n,
         },
@@ -5857,7 +5508,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745157,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3700n,
         },
@@ -5868,7 +5518,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745157,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -5879,7 +5528,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745158,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 4200n,
         },
@@ -5890,7 +5538,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745160,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 9990n,
         },
@@ -5901,7 +5548,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745160,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 10081n,
         },
@@ -5912,7 +5558,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745251,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 50000n,
         },
@@ -5923,7 +5568,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745254,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 55000n,
         },
@@ -5934,7 +5578,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745275,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 250779n,
         },
@@ -5945,7 +5588,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 745520,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 49400n,
         },
@@ -5956,7 +5598,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747209,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 5500n,
         },
@@ -5967,7 +5608,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747210,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 5821n,
         },
@@ -5978,7 +5618,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747210,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3500n,
         },
@@ -5989,7 +5628,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747433,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 5000n,
         },
@@ -6000,7 +5638,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747433,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 15000n,
         },
@@ -6011,7 +5648,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 747604,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 7700n,
         },
@@ -6022,7 +5658,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 749030,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 5500n,
         },
@@ -6033,7 +5668,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 753929,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3300n,
         },
@@ -6044,7 +5678,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 754182,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 79785n,
         },
@@ -6055,7 +5688,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 754318,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 83715n,
         },
@@ -6066,7 +5698,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 754464,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 5500n,
         },
@@ -6077,7 +5708,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755028,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 10000n,
         },
@@ -6088,7 +5718,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755309,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 7077n,
         },
@@ -6099,7 +5728,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 755325,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 9145n,
         },
@@ -6110,7 +5738,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756151,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 48182n,
         },
@@ -6121,7 +5748,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 3182n,
         },
@@ -6132,7 +5758,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 39176n,
         },
@@ -6143,7 +5768,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 48182n,
         },
@@ -6154,7 +5778,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 6434n,
         },
@@ -6165,7 +5788,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 600155n,
         },
@@ -6176,7 +5798,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756154,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1046n,
         },
@@ -6187,7 +5808,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756159,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1155n,
         },
@@ -6198,7 +5818,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756224,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 1482n,
         },
@@ -6209,7 +5828,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756225,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 54429518n,
         },
@@ -6220,7 +5838,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756229,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 7255n,
         },
@@ -6231,7 +5848,6 @@ export const mockOrganizedUtxosByType = {
             },
             blockHeight: 756229,
             isCoinbase: false,
-            address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             isFinal: true,
             sats: 2255n,
         },
