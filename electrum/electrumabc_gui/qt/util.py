@@ -736,8 +736,7 @@ class OverlayControlMixin:
         return self.addButton(":icons/copy.png", self.on_copy, _("Copy to clipboard"))
 
     def on_copy(self):
-        QtWidgets.QApplication.instance().clipboard().setText(self.text())
-        QtWidgets.QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), self)
+        copy_to_clipboard(self.text(), self)
 
     def keyPressEvent(self, e):
         if not self.hasFocus():
@@ -1314,6 +1313,21 @@ def getSaveFileName(title, filename, config: SimpleConfig, filtr="", parent=None
     if fileName and directory != os.path.dirname(fileName):
         config.set_key("io_dir", os.path.dirname(fileName), True)
     return fileName
+
+
+def copy_to_clipboard(
+    text: str = "", widget: Optional[QtWidgets.QWidget] = None, tooltip: str = ""
+):
+    """Copy text to clipboard and show a tooltip.
+    If text is not specified and widget is a QTextEdit, copy the selected text in the widget.
+    """
+    tooltip = tooltip or _("Text copied to clipboard")
+    if not text and isinstance(widget, QtWidgets.QTextEdit):
+        widget.copy()
+    else:
+        QtWidgets.QApplication.instance().clipboard().setText(text)
+    if widget is not None:
+        QtWidgets.QToolTip.showText(QCursor.pos(), tooltip, widget)
 
 
 if __name__ == "__main__":

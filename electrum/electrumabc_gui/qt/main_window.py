@@ -131,6 +131,7 @@ from .util import (
     WaitingDialog,
     WindowModalDialog,
     WWLabel,
+    copy_to_clipboard,
     destroyed_print_error,
     expiration_values,
     filename_field,
@@ -1450,8 +1451,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         def on_copy_uri():
             if self.receive_qr.data:
                 uri = str(self.receive_qr.data)
-                self.copy_to_clipboard(
-                    uri, _("Receive request URI copied to clipboard"), uribut
+                copy_to_clipboard(
+                    uri, uribut, _("Receive request URI copied to clipboard")
                 )
 
         but.clicked.connect(on_copy_uri)
@@ -3768,12 +3769,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d = ScanBeyondGap(self)
         d.exec_()
         d.setParent(None)  # help along Python by dropping refct to 0
-
-    def copy_to_clipboard(self, text, tooltip=None, widget=None):
-        tooltip = tooltip or _("Text copied to clipboard")
-        widget = widget or self
-        QtWidgets.qApp.clipboard().setText(text)
-        QtWidgets.QToolTip.showText(QCursor.pos(), tooltip, widget)
 
     def _pick_address(self, *, title=None, icon=None) -> Address:
         """Returns None on user cancel, or a valid is_mine Address object

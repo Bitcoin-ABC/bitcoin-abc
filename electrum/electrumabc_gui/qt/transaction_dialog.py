@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, QTimer, QUrl, Signal
-from qtpy.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFormat
+from qtpy.QtGui import QBrush, QFont, QIcon, QKeySequence, QTextCharFormat
 
 from electrumabc import web
 from electrumabc.address import Address, PublicKey, ScriptOutput
@@ -54,6 +54,7 @@ from .util import (
     CopyButton,
     MessageBoxMixin,
     TextBrowserKeyboardFocusFilter,
+    copy_to_clipboard,
     getSaveFileName,
     rate_limited,
     webopen,
@@ -950,16 +951,6 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.recv_legend.setVisible(bool(rec_ct))
         self.change_legend.setVisible(bool(chg_ct))
 
-    @staticmethod
-    def _copy_to_clipboard(text, widget):
-        if not text and isinstance(widget, QtWidgets.QTextEdit):
-            widget.copy()
-        else:
-            QtWidgets.qApp.clipboard().setText(text)
-        QtWidgets.QToolTip.showText(
-            QCursor.pos(), _("Text copied to clipboard"), widget
-        )
-
     def _open_internal_link(self, target):
         """accepts either a str txid, str address, or a QUrl which should be
         of the bare form "txid" and/or "address" -- used by the clickable
@@ -1008,7 +999,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                     copy_list += [
                         (
                             _("Copy Prevout"),
-                            lambda: self._copy_to_clipboard(utxo, i_text),
+                            lambda: copy_to_clipboard(utxo, i_text),
                         )
                     ]
                 addr = inp.get("address")
@@ -1020,7 +1011,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                     copy_list += [
                         (
                             _("Copy Amount"),
-                            lambda: self._copy_to_clipboard(value_fmtd, i_text),
+                            lambda: copy_to_clipboard(value_fmtd, i_text),
                         )
                     ]
         except (TypeError, ValueError, IndexError, KeyError, AttributeError) as e:
@@ -1038,7 +1029,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         if self.i_text_has_selection:
             # Add this if they have a selection
             menu.addAction(
-                _("Copy Selected Text"), lambda: self._copy_to_clipboard(None, i_text)
+                _("Copy Selected Text"), lambda: copy_to_clipboard(widget=i_text)
             )
         menu.addAction(_("Select All"), i_text.selectAll)
         menu.exec_(global_pos)
@@ -1061,9 +1052,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 action_text = _("Copy Public Key")
             else:
                 action_text = _("Copy Address")
-            copy_list += [
-                (action_text, lambda: self._copy_to_clipboard(addr_text, widget))
-            ]
+            copy_list += [(action_text, lambda: copy_to_clipboard(addr_text, widget))]
             # also add script hex copy to clipboard
             if isinstance(addr, ScriptOutput):
                 hex_text = addr.to_script().hex() or ""
@@ -1071,7 +1060,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                     copy_list += [
                         (
                             _("Copy Script Hex"),
-                            lambda: self._copy_to_clipboard(hex_text, widget),
+                            lambda: copy_to_clipboard(hex_text, widget),
                         )
                     ]
 
@@ -1100,7 +1089,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 copy_list += [
                     (
                         _("Copy Amount"),
-                        lambda: self._copy_to_clipboard(value_fmtd, o_text),
+                        lambda: copy_to_clipboard(value_fmtd, o_text),
                     )
                 ]
         except (TypeError, ValueError, IndexError, KeyError, AttributeError) as e:
@@ -1118,7 +1107,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         if self.o_text_has_selection:
             # Add this if they have a selection
             menu.addAction(
-                _("Copy Selected Text"), lambda: self._copy_to_clipboard(None, o_text)
+                _("Copy Selected Text"), lambda: copy_to_clipboard(widget=o_text)
             )
         menu.addAction(_("Select All"), o_text.selectAll)
         menu.exec_(global_pos)

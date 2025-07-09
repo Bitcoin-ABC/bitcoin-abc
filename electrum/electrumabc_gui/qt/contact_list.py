@@ -52,6 +52,7 @@ from .util import (
     OkButton,
     WindowModalDialog,
     char_width_in_lineedit,
+    copy_to_clipboard,
     getSaveFileName,
     rate_limited,
     webopen,
@@ -218,9 +219,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 column_title += f" ({len(selected)})"
             menu.addAction(
                 _("Copy {}").format(column_title),
-                lambda: QtWidgets.QApplication.instance()
-                .clipboard()
-                .setText(column_data),
+                copy_to_clipboard(column_data),
             )
             if (
                 item

@@ -44,7 +44,13 @@ from electrumabc.wallet import ImportedAddressWallet, ImportedPrivkeyWallet
 from .avalanche.proof_editor import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .tree_widget import MyTreeWidget
-from .util import MONOSPACE_FONT, ColorScheme, SortableTreeWidgetItem, rate_limited
+from .util import (
+    MONOSPACE_FONT,
+    ColorScheme,
+    SortableTreeWidgetItem,
+    copy_to_clipboard,
+    rate_limited,
+)
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow
@@ -349,16 +355,12 @@ class UTXOList(MyTreeWidget):
                 copy_text = copy_text.strip()
             menu.addAction(
                 _("Copy {}").format(column_title),
-                lambda: QtWidgets.QApplication.instance()
-                .clipboard()
-                .setText(copy_text),
+                lambda: copy_to_clipboard(copy_text),
             )
             if alt_copy_text and alt_column_title:
                 menu.addAction(
                     _("Copy {}").format(alt_column_title),
-                    lambda: QtWidgets.QApplication.instance()
-                    .clipboard()
-                    .setText(alt_copy_text),
+                    lambda: copy_to_clipboard(alt_copy_text),
                 )
 
             # single selection, offer them the "Details" option and also

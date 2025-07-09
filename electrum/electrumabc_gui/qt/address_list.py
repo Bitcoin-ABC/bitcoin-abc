@@ -49,6 +49,7 @@ from .util import (
     MONOSPACE_FONT,
     ColorScheme,
     SortableTreeWidgetItem,
+    copy_to_clipboard,
     rate_limited,
     webopen,
 )
@@ -299,7 +300,7 @@ class AddressList(MyTreeWidget):
 
         def doCopy(txt):
             txt = txt.strip()
-            self.main_window.copy_to_clipboard(txt)
+            copy_to_clipboard(txt, widget=self)
 
         col = self.currentColumn()
         column_title = self.headerItem().text(col)
