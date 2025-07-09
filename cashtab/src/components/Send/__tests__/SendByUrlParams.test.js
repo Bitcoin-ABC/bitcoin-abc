@@ -125,7 +125,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is not disabled because we have a valid amount
         expect(
-            await screen.findByRole('button', { name: 'Send' }),
+            await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
     });
     it('Legacy params. Address and value keys are set and valid. Invalid bip21 string is ignored.', async () => {
@@ -183,7 +183,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is not disabled because we have a valid amount
         expect(
-            await screen.findByRole('button', { name: 'Send' }),
+            await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
@@ -247,9 +247,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
-            'cursor: not-allowed',
-        );
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
@@ -312,9 +312,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
-            'cursor: not-allowed',
-        );
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
@@ -368,9 +368,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
-            'cursor: not-allowed',
-        );
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
@@ -426,9 +426,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
-            'cursor: not-allowed',
-        );
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
@@ -493,7 +493,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is not disabled because we have a valid amount
         expect(
-            await screen.findByRole('button', { name: 'Send' }),
+            await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
@@ -606,7 +606,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is enabled as we have valid address and amount params
         expect(
-            await screen.findByRole('button', { name: 'Send' }),
+            await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
@@ -687,9 +687,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toBeInTheDocument();
 
         // The Send button is disabled
-        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
-            'cursor: not-allowed',
-        );
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
 
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
         expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
@@ -855,7 +855,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is enabled as we have valid address and amount params
         expect(
-            await screen.findByRole('button', { name: 'Send' }),
+            await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
@@ -960,7 +960,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The send button is enabled as we have valid bip21 token send for a token qty supported
         // by the wallet
-        expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
 
         // The Cashtab Msg switch is disabled because bip21 token tx is set
         expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();
@@ -1062,7 +1062,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The send button is enabled as we have valid bip21 token send for a token qty supported
         // by the wallet
-        expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
 
         // The Cashtab Msg switch is disabled because bip21 token tx is set
         expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();
@@ -1167,7 +1167,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The send button is enabled as we have valid bip21 token send for a token qty supported
         // by the wallet
-        expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
 
         // The Cashtab Msg switch is disabled because bip21 token tx is set
         expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();

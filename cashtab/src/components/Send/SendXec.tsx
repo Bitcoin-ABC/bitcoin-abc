@@ -6,7 +6,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import Modal from 'components/Common/Modal';
-import PrimaryButton, { CopyIconButton } from 'components/Common/Buttons';
+import PrimaryButton, {
+    SecondaryButton,
+    CopyIconButton,
+} from 'components/Common/Buttons';
 import { toSatoshis, toXec, SlpDecimals } from 'wallet';
 import { getSendTokenInputs, TokenInputInfo } from 'token-protocols';
 import {
@@ -322,6 +325,13 @@ const SendXec: React.FC = () => {
         useState<boolean>(false);
     const [tokenIdQueryError, setTokenIdQueryError] = useState<boolean>(false);
 
+    // Extension transaction handling
+    const [isExtensionTransaction, setIsExtensionTransaction] =
+        useState<boolean>(false);
+    const [extensionTabId, setExtensionTabId] = useState<number | null>(null);
+    const [isUrlBasedTransaction, setIsUrlBasedTransaction] =
+        useState<boolean>(false);
+
     // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)
     // hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.cashtabMsgByteLimit
     const pushDataByteCount = 1;
@@ -481,6 +491,122 @@ const SendXec: React.FC = () => {
         setIsModalVisible(false);
     };
 
+    // Extension transaction handling
+    const handleTransactionApproval = async (txid: string) => {
+        console.log(
+            'Transaction approved, txid:',
+            txid,
+            'extensionTabId:',
+            extensionTabId,
+        );
+
+        if (isExtensionTransaction) {
+            // For extension transactions, send message to extension
+            try {
+                const message = {
+                    type: 'FROM_CASHTAB',
+                    text: 'Cashtab',
+                    txResponse: {
+                        approved: true,
+                        txid: txid,
+                    },
+                    tabId: extensionTabId,
+                };
+                console.info(
+                    '[Cashtab] Sending txResponse success message:',
+                    message,
+                );
+
+                if (typeof chrome !== 'undefined' && chrome.runtime) {
+                    await chrome.runtime.sendMessage(message);
+                }
+            } catch (error: unknown) {
+                console.error('Failed to send transaction approval:', error);
+                console.error('Error details:', {
+                    extensionTabId,
+                    chromeAvailable: typeof chrome !== 'undefined',
+                    chromeRuntimeAvailable:
+                        typeof chrome !== 'undefined' && chrome.runtime,
+                    error:
+                        error instanceof Error ? error.message : String(error),
+                });
+                toast.error('Failed to send transaction approval');
+            }
+        } else {
+            // For non-extension URL-based transactions, just close the window
+            console.info(
+                '[Cashtab] Non-extension transaction approved, closing window',
+            );
+        }
+
+        // Close the window for both cases
+        // Note that JS will not allow this to happen unless the window was
+        // opened by JS, i.e. from a link opening a tab or the extension
+        // This means the "Reject" button will not reject txs for the
+        // special case of a user directly typing in a URL to a tx, but
+        // this is acceptable behavior
+        window.close();
+    };
+
+    const handleTransactionRejection = async (
+        reason: string = 'User rejected the transaction',
+    ) => {
+        console.info(
+            '[Cashtab] Reject button clicked, extensionTabId:',
+            extensionTabId,
+        );
+
+        if (isExtensionTransaction) {
+            // For extension transactions, send message to extension
+            try {
+                const message = {
+                    type: 'FROM_CASHTAB',
+                    text: 'Cashtab',
+                    txResponse: {
+                        approved: false,
+                        reason: reason,
+                    },
+                    tabId: extensionTabId,
+                };
+                console.log(
+                    '[Cashtab] Sending txReponse rejection message:',
+                    message,
+                );
+
+                // Use chrome.runtime.sendMessage like address sharing does
+                if (typeof chrome !== 'undefined' && chrome.runtime) {
+                    await chrome.runtime.sendMessage(message);
+                    console.log('Message sent via chrome.runtime.sendMessage');
+                } else {
+                    console.log('Chrome runtime not available');
+                }
+
+                console.log(
+                    'Rejection message sent successfully, closing window',
+                );
+            } catch (error: unknown) {
+                console.error('Failed to send transaction rejection:', error);
+                console.error('Error details:', {
+                    extensionTabId,
+                    chromeAvailable: typeof chrome !== 'undefined',
+                    chromeRuntimeAvailable:
+                        typeof chrome !== 'undefined' && chrome.runtime,
+                    error:
+                        error instanceof Error ? error.message : String(error),
+                });
+                toast.error('Failed to send transaction rejection');
+            }
+        } else {
+            // For non-extension URL-based transactions, just close the window
+            console.log(
+                '[Cashtab] Non-extension transaction rejected, closing window',
+            );
+        }
+
+        // Close the window for both cases
+        window.close();
+    };
+
     useEffect(() => {
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
@@ -549,6 +675,9 @@ const SendXec: React.FC = () => {
         const txInfoStr = hashRoute.slice(hashRoute.indexOf('?') + 1);
         const txInfo: CashtabTxInfo = {};
 
+        // Set URL-based transaction flag as soon as we detect URL parameters
+        setIsUrlBasedTransaction(true);
+
         // If bip21 is the first param, parse the whole string as a bip21 param string
         const parseAllAsBip21 = txInfoStr.startsWith('bip21');
 
@@ -594,6 +723,14 @@ const SendXec: React.FC = () => {
             // Save this flag in state var so it can be parsed in useEffect
             txInfo.parseAllAsBip21 = parseAllAsBip21;
             setTxInfoFromUrl(txInfo);
+
+            // Check if this is an extension transaction by looking for tabId in URL parameters
+            const urlParams = new URLSearchParams(txInfoStr);
+            const tabId = urlParams.get('tabId');
+            if (tabId) {
+                setIsExtensionTransaction(true);
+                setExtensionTabId(parseInt(tabId));
+            }
         }
     }, []);
 
@@ -602,10 +739,15 @@ const SendXec: React.FC = () => {
             return;
         }
         if (txInfoFromUrl.parseAllAsBip21) {
+            // Strip tabId from BIP21 URI before entering into address field
+            let bip21Uri = txInfoFromUrl.bip21;
+            if (bip21Uri && bip21Uri.includes('&tabId=')) {
+                bip21Uri = bip21Uri.replace(/&tabId=\d+/, '');
+            }
             handleAddressChange({
                 target: {
                     name: 'address',
-                    value: txInfoFromUrl.bip21,
+                    value: bip21Uri,
                 },
             } as React.ChangeEvent<HTMLInputElement>);
         } else {
@@ -761,7 +903,10 @@ const SendXec: React.FC = () => {
                 </a>,
             );
 
-            if (txInfoFromUrl) {
+            // Handle extension transaction response
+            if (isExtensionTransaction) {
+                await handleTransactionApproval(response.txid);
+            } else if (txInfoFromUrl) {
                 // Close window after successful tx
                 window.close();
             }
@@ -889,7 +1034,11 @@ const SendXec: React.FC = () => {
             clearInputForms();
             setAirdropFlag(false);
             setIsSending(false);
-            if (txInfoFromUrl) {
+
+            // Handle extension transaction response
+            if (isExtensionTransaction) {
+                await handleTransactionApproval(txObj.response.txid);
+            } else if (txInfoFromUrl) {
                 // Close window after successful tx
                 window.close();
             }
@@ -1766,22 +1915,53 @@ const SendXec: React.FC = () => {
                 )}
             </AmountPreviewCtn>
             <SendButtonContainer>
-                <PrimaryButton
-                    disabled={
-                        (!isBip21TokenSend(parsedAddressInput) &&
-                            disableSendButton) ||
-                        (isBip21TokenSend(parsedAddressInput) &&
-                            tokenError !== false) ||
-                        tokenIdQueryError
-                    }
-                    onClick={
-                        isBip21TokenSend(parsedAddressInput)
-                            ? checkForConfirmationBeforeBip21TokenSend
-                            : checkForConfirmationBeforeSendXec
-                    }
-                >
-                    {isSending ? <InlineLoader /> : 'Send'}
-                </PrimaryButton>
+                {isUrlBasedTransaction ? (
+                    <>
+                        <PrimaryButton
+                            disabled={
+                                (!isBip21TokenSend(parsedAddressInput) &&
+                                    disableSendButton) ||
+                                (isBip21TokenSend(parsedAddressInput) &&
+                                    tokenError !== false) ||
+                                tokenIdQueryError ||
+                                isSending
+                            }
+                            onClick={
+                                isBip21TokenSend(parsedAddressInput)
+                                    ? checkForConfirmationBeforeBip21TokenSend
+                                    : checkForConfirmationBeforeSendXec
+                            }
+                        >
+                            {isSending ? <InlineLoader /> : 'Accept'}
+                        </PrimaryButton>
+                        <SecondaryButton
+                            disabled={isSending}
+                            onClick={() => handleTransactionRejection()}
+                            style={{
+                                marginLeft: '10px',
+                            }}
+                        >
+                            Reject
+                        </SecondaryButton>
+                    </>
+                ) : (
+                    <PrimaryButton
+                        disabled={
+                            (!isBip21TokenSend(parsedAddressInput) &&
+                                disableSendButton) ||
+                            (isBip21TokenSend(parsedAddressInput) &&
+                                tokenError !== false) ||
+                            tokenIdQueryError
+                        }
+                        onClick={
+                            isBip21TokenSend(parsedAddressInput)
+                                ? checkForConfirmationBeforeBip21TokenSend
+                                : checkForConfirmationBeforeSendXec
+                        }
+                    >
+                        {isSending ? <InlineLoader /> : 'Send'}
+                    </PrimaryButton>
+                )}
             </SendButtonContainer>
             {apiError && <ApiError />}
         </OuterCtn>

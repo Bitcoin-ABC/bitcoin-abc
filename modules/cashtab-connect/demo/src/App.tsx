@@ -7,6 +7,7 @@ import {
     CashtabConnect,
     CashtabExtensionUnavailableError,
     CashtabAddressDeniedError,
+    CashtabTransactionDeniedError,
     CashtabTimeoutError,
 } from 'cashtab-connect';
 import './App.css';
@@ -111,18 +112,33 @@ function App() {
             return;
         }
         try {
-            await cashtab.sendXec(txAddress, txAmount);
-            setTxResult({
-                message: 'Transaction window opened in Cashtab',
-                type: 'success',
-            });
+            const response = await cashtab.sendXec(txAddress, txAmount);
+            if (response.success && response.txid) {
+                setTxResult({
+                    message: `Transaction approved! TXID: ${response.txid}`,
+                    type: 'success',
+                });
+            } else {
+                setTxResult({
+                    message: response.reason || 'Transaction was rejected',
+                    type: 'error',
+                });
+            }
             setTxAddress('ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0');
             setTxAmount('100');
         } catch (error) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to create transaction';
+            let errorMessage = 'Failed to create transaction';
+
+            if (error instanceof CashtabExtensionUnavailableError) {
+                errorMessage = 'Extension is not available';
+            } else if (error instanceof CashtabTransactionDeniedError) {
+                errorMessage = 'User denied the transaction';
+            } else if (error instanceof CashtabTimeoutError) {
+                errorMessage = 'Transaction request timed out';
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
             setTxResult({ message: errorMessage, type: 'error' });
         }
     };
@@ -137,20 +153,40 @@ function App() {
             return;
         }
         try {
-            await cashtab.sendToken(txAddress, tokenId, tokenQty);
-            setTokenResult({
-                message: 'Token transaction window opened in Cashtab',
-                type: 'success',
-            });
+            const response = await cashtab.sendToken(
+                txAddress,
+                tokenId,
+                tokenQty,
+            );
+            if (response.success && response.txid) {
+                setTokenResult({
+                    message: `Token transaction approved! TXID: ${response.txid}`,
+                    type: 'success',
+                });
+            } else {
+                setTokenResult({
+                    message:
+                        response.reason || 'Token transaction was rejected',
+                    type: 'error',
+                });
+            }
             setTokenId(
                 '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
             );
             setTokenQty('1.1234');
         } catch (error) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to create token transaction';
+            let errorMessage = 'Failed to create token transaction';
+
+            if (error instanceof CashtabExtensionUnavailableError) {
+                errorMessage = 'Extension is not available';
+            } else if (error instanceof CashtabTransactionDeniedError) {
+                errorMessage = 'User denied the token transaction';
+            } else if (error instanceof CashtabTimeoutError) {
+                errorMessage = 'Token transaction request timed out';
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
             setTokenResult({ message: errorMessage, type: 'error' });
         }
     };
@@ -165,19 +201,35 @@ function App() {
             return;
         }
         try {
-            await cashtab.sendBip21(bip21);
-            setBip21Result({
-                message: 'BIP21 transaction window opened in Cashtab',
-                type: 'success',
-            });
+            const response = await cashtab.sendBip21(bip21);
+            if (response.success && response.txid) {
+                setBip21Result({
+                    message: `BIP21 transaction approved! TXID: ${response.txid}`,
+                    type: 'success',
+                });
+            } else {
+                setBip21Result({
+                    message:
+                        response.reason || 'BIP21 transaction was rejected',
+                    type: 'error',
+                });
+            }
             setBip21(
                 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035?op_return_raw=0401020304',
             );
         } catch (error) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to create BIP21 transaction';
+            let errorMessage = 'Failed to create BIP21 transaction';
+
+            if (error instanceof CashtabExtensionUnavailableError) {
+                errorMessage = 'Extension is not available';
+            } else if (error instanceof CashtabTransactionDeniedError) {
+                errorMessage = 'User denied the BIP21 transaction';
+            } else if (error instanceof CashtabTimeoutError) {
+                errorMessage = 'BIP21 transaction request timed out';
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
             setBip21Result({ message: errorMessage, type: 'error' });
         }
     };
@@ -198,42 +250,17 @@ function App() {
                             className={`status-dot ${
                                 isExtensionAvailable
                                     ? 'available'
-                                    : isCheckingExtension
-                                    ? 'checking'
                                     : 'unavailable'
                             }`}
-                        ></div>
-                        <span className="status-text">
-                            {isExtensionAvailable
+                        />
+                        <span>
+                            {isCheckingExtension
+                                ? 'Checking...'
+                                : isExtensionAvailable
                                 ? 'Extension Available'
-                                : isCheckingExtension
-                                ? 'Checking for Extension...'
                                 : 'Extension Not Available'}
                         </span>
                     </div>
-                    <p>
-                        {isExtensionAvailable
-                            ? 'Great! The Cashtab extension is detected and ready to use.'
-                            : isCheckingExtension
-                            ? "Looking for the Cashtab browser extension... Please make sure it's installed and enabled."
-                            : 'The Cashtab browser extension is not available. Please install it and refresh the page.'}
-                    </p>
-                    {!isExtensionAvailable && !isCheckingExtension && (
-                        <div className="demo-controls">
-                            <a
-                                href="https://chromewebstore.google.com/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="demo-button primary"
-                                style={{
-                                    textDecoration: 'none',
-                                    display: 'inline-block',
-                                }}
-                            >
-                                Download Cashtab Extension
-                            </a>
-                        </div>
-                    )}
                 </section>
 
                 {/* Address Request */}
@@ -243,156 +270,237 @@ function App() {
                         Request the user's eCash address from their Cashtab
                         wallet.
                     </p>
-
-                    <div className="demo-controls">
-                        <button
-                            onClick={handleRequestAddress}
-                            disabled={!isExtensionAvailable || isLoading}
-                            className="demo-button primary"
-                        >
-                            {isLoading ? 'Requesting...' : 'Request Address'}
-                        </button>
-                    </div>
-
+                    <button
+                        onClick={handleRequestAddress}
+                        disabled={!isExtensionAvailable || isLoading}
+                        className="demo-button"
+                    >
+                        {isLoading ? 'Requesting...' : 'Request Address'}
+                    </button>
+                    {currentAddress && (
+                        <div className="result">
+                            <strong>Current Address:</strong> {currentAddress}
+                        </div>
+                    )}
                     {addressResult && (
                         <div className={`result ${addressResult.type}`}>
                             {addressResult.message}
                         </div>
                     )}
-
-                    {currentAddress && (
-                        <div className="address-display">
-                            <h3>Current Address:</h3>
-                            <code>{currentAddress}</code>
-                        </div>
-                    )}
                 </section>
 
-                {/* Transaction Creation */}
+                {/* XEC Transaction */}
                 <section className="demo-section">
                     <h2>Send XEC</h2>
-                    <p>
-                        Send XEC using Cashtab Connect (BIP21 under the hood).
-                    </p>
+                    <p>Create a transaction to send XEC to an address.</p>
                     <div className="form-group">
-                        <label htmlFor="tx-address">Recipient Address:</label>
+                        <label htmlFor="txAddress">Address:</label>
                         <input
-                            id="tx-address"
+                            id="txAddress"
                             type="text"
                             value={txAddress}
                             onChange={e => setTxAddress(e.target.value)}
-                            placeholder="Enter eCash address"
-                            disabled={!isExtensionAvailable}
+                            placeholder="eCash address"
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="tx-amount">Amount (XEC):</label>
+                        <label htmlFor="txAmount">Amount (XEC):</label>
                         <input
-                            id="tx-amount"
-                            type="number"
+                            id="txAmount"
+                            type="text"
                             value={txAmount}
                             onChange={e => setTxAmount(e.target.value)}
-                            placeholder="Enter amount in XEC"
-                            disabled={!isExtensionAvailable}
+                            placeholder="0.001"
                         />
                     </div>
-
-                    <div className="demo-controls">
-                        <button
-                            onClick={handleSendXec}
-                            disabled={
-                                !isExtensionAvailable || !txAddress || !txAmount
-                            }
-                            className="demo-button secondary"
-                        >
-                            Send XEC
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleSendXec}
+                        disabled={!isExtensionAvailable}
+                        className="demo-button"
+                    >
+                        Send XEC
+                    </button>
                     {txResult && (
                         <div className={`result ${txResult.type}`}>
-                            {txResult.message}
+                            {txResult.type === 'error' &&
+                            txResult.message
+                                .toLowerCase()
+                                .includes('reject') ? (
+                                <span
+                                    style={{ color: 'red', fontWeight: 'bold' }}
+                                >
+                                    Transaction rejected by user
+                                </span>
+                            ) : txResult.type === 'success' &&
+                              txResult.message.includes('TXID:') ? (
+                                <span
+                                    style={{
+                                        color: 'green',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    Transaction approved!
+                                    <br />
+                                    TXID:{' '}
+                                    <code
+                                        style={{
+                                            background: '#eee',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                        }}
+                                    >
+                                        {txResult.message
+                                            .split('TXID:')[1]
+                                            .trim()}
+                                    </code>
+                                </span>
+                            ) : (
+                                txResult.message
+                            )}
                         </div>
                     )}
                 </section>
+
+                {/* Token Transaction */}
                 <section className="demo-section">
                     <h2>Send Token</h2>
-                    <p>
-                        Send a token using Cashtab Connect (BIP21 under the
-                        hood).
-                    </p>
+                    <p>Create a transaction to send tokens to an address.</p>
                     <div className="form-group">
-                        <label htmlFor="token-id">Token ID:</label>
+                        <label htmlFor="tokenAddress">Address:</label>
                         <input
-                            id="token-id"
+                            id="tokenAddress"
+                            type="text"
+                            value={txAddress}
+                            onChange={e => setTxAddress(e.target.value)}
+                            placeholder="eCash address"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="tokenId">Token ID:</label>
+                        <input
+                            id="tokenId"
                             type="text"
                             value={tokenId}
                             onChange={e => setTokenId(e.target.value)}
-                            placeholder="Enter token ID"
-                            disabled={!isExtensionAvailable}
+                            placeholder="Token ID"
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="token-qty">
-                            Token Quantity (decimalized):
-                        </label>
+                        <label htmlFor="tokenQty">Quantity:</label>
                         <input
-                            id="token-qty"
-                            type="number"
+                            id="tokenQty"
+                            type="text"
                             value={tokenQty}
                             onChange={e => setTokenQty(e.target.value)}
-                            placeholder="Enter token quantity"
-                            disabled={!isExtensionAvailable}
+                            placeholder="1.0"
                         />
                     </div>
-
-                    <div className="demo-controls">
-                        <button
-                            onClick={handleSendToken}
-                            disabled={
-                                !isExtensionAvailable ||
-                                !txAddress ||
-                                !tokenId ||
-                                !tokenQty
-                            }
-                            className="demo-button secondary"
-                        >
-                            Send Token
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleSendToken}
+                        disabled={!isExtensionAvailable}
+                        className="demo-button"
+                    >
+                        Send Token
+                    </button>
                     {tokenResult && (
                         <div className={`result ${tokenResult.type}`}>
-                            {tokenResult.message}
+                            {tokenResult.type === 'error' &&
+                            tokenResult.message
+                                .toLowerCase()
+                                .includes('reject') ? (
+                                <span
+                                    style={{ color: 'red', fontWeight: 'bold' }}
+                                >
+                                    Token transaction rejected by user
+                                </span>
+                            ) : tokenResult.type === 'success' &&
+                              tokenResult.message.includes('TXID:') ? (
+                                <span
+                                    style={{
+                                        color: 'green',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    Token transaction approved!
+                                    <br />
+                                    TXID:{' '}
+                                    <code
+                                        style={{
+                                            background: '#eee',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                        }}
+                                    >
+                                        {tokenResult.message
+                                            .split('TXID:')[1]
+                                            .trim()}
+                                    </code>
+                                </span>
+                            ) : (
+                                tokenResult.message
+                            )}
                         </div>
                     )}
                 </section>
+
+                {/* BIP21 Transaction */}
                 <section className="demo-section">
-                    <h2>Send Raw BIP21</h2>
-                    <p>
-                        Advanced: Send a raw BIP21 string using Cashtab Connect.
-                    </p>
+                    <h2>Send BIP21</h2>
+                    <p>Create a transaction using a raw BIP21 URI string.</p>
                     <div className="form-group">
-                        <label htmlFor="bip21">BIP21 String:</label>
-                        <input
+                        <label htmlFor="bip21">BIP21 URI:</label>
+                        <textarea
                             id="bip21"
-                            type="text"
                             value={bip21}
                             onChange={e => setBip21(e.target.value)}
-                            placeholder="ecash:qq...?..."
-                            disabled={!isExtensionAvailable}
+                            placeholder="ecash:address?amount=0.001&memo=Payment"
+                            rows={3}
                         />
                     </div>
-                    <div className="demo-controls">
-                        <button
-                            onClick={handleSendBip21}
-                            disabled={!isExtensionAvailable || !bip21}
-                            className="demo-button secondary"
-                        >
-                            Send BIP21
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleSendBip21}
+                        disabled={!isExtensionAvailable}
+                        className="demo-button"
+                    >
+                        Send BIP21
+                    </button>
                     {bip21Result && (
                         <div className={`result ${bip21Result.type}`}>
-                            {bip21Result.message}
+                            {bip21Result.type === 'error' &&
+                            bip21Result.message
+                                .toLowerCase()
+                                .includes('reject') ? (
+                                <span
+                                    style={{ color: 'red', fontWeight: 'bold' }}
+                                >
+                                    BIP21 transaction rejected by user
+                                </span>
+                            ) : bip21Result.type === 'success' &&
+                              bip21Result.message.includes('TXID:') ? (
+                                <span
+                                    style={{
+                                        color: 'green',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
+                                    BIP21 transaction approved!
+                                    <br />
+                                    TXID:{' '}
+                                    <code
+                                        style={{
+                                            background: '#eee',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                        }}
+                                    >
+                                        {bip21Result.message
+                                            .split('TXID:')[1]
+                                            .trim()}
+                                    </code>
+                                </span>
+                            ) : (
+                                bip21Result.message
+                            )}
                         </div>
                     )}
                 </section>

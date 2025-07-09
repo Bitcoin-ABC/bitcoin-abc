@@ -400,6 +400,10 @@ npm run build
 npm run lint
 ```
 
+## Changelog
+
+-   1.1.0 - Add transaction approval/rejection support for transactions. Extension transactions send responses back to the originating webpage. [D18348](https://reviews.bitcoinabc.org/D18348)
+
 ## License
 
 MIT License - see COPYING file at top level of the monorepo for details.

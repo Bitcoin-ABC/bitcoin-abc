@@ -26,6 +26,11 @@ interface ChromeMessage {
     addressRequest?: boolean;
     addressRequestApproved?: boolean;
     tabId?: number;
+    txResponse?: {
+        approved: boolean;
+        txid?: string;
+        reason?: string;
+    };
 }
 
 const NOTIFICATION_HEIGHT = 950;
@@ -70,6 +75,11 @@ chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
             // If denied, let the webpage know that the user denied this request
             handleDeniedAddressRequest(request.tabId);
         }
+    }
+
+    // Handle transaction response from Cashtab
+    if (request.text === `Cashtab` && request.txResponse) {
+        handleTransactionResponse(request.tabId, request.txResponse);
     }
 });
 
@@ -124,6 +134,24 @@ async function handleDeniedAddressRequest(tabId?: number): Promise<void> {
     chrome.tabs.sendMessage(Number(tabId), {
         success: false,
         reason: 'User denied the request',
+    });
+}
+
+async function handleTransactionResponse(
+    tabId?: number,
+    txResponse?: {
+        approved: boolean;
+        txid?: string;
+        reason?: string;
+    },
+): Promise<void> {
+    if (!tabId || !txResponse) {
+        return;
+    }
+    chrome.tabs.sendMessage(Number(tabId), {
+        type: 'FROM_CASHTAB',
+        text: 'Cashtab',
+        txResponse: txResponse,
     });
 }
 
@@ -182,14 +210,17 @@ async function openSendXec(txInfo: Record<string, string>): Promise<void> {
         // The following properties are more than likely 0, due to being
         // opened from the background chrome process for the extension that
         // has no physical dimensions
-        const { screenX, screenY, outerWidth } = window;
+        const { screenX, screenY, outerWidth } = globalThis;
         top = Math.max(screenY, 0);
         left = Math.max(screenX + (outerWidth - NOTIFICATION_WIDTH), 0);
     }
 
-    const queryString = Object.keys(txInfo)
-        .map(key => key + '=' + txInfo[key])
-        .join('&');
+    // Get the current active tab to pass the tabId
+    const currentTab = await getCurrentActiveTab();
+    const queryString =
+        Object.keys(txInfo)
+            .map(key => key + '=' + txInfo[key])
+            .join('&') + `&tabId=${currentTab.id}`;
 
     // create new notification popup
     await openWindow({

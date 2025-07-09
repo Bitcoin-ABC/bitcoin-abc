@@ -58,6 +58,7 @@ window.addEventListener(
 // Supported types
 // 1 - Extension pop-up window returning an address request approval / denial
 // 2 - The extension service_worker sending the address to the web page if approved
+// 3 - The extension service_worker sending transaction responses to the web page
 chrome.runtime.onMessage.addListener((message: ChromeMessage) => {
     // Parse message for address request response
     if (typeof message.success !== 'undefined') {
@@ -72,6 +73,19 @@ chrome.runtime.onMessage.addListener((message: ChromeMessage) => {
             '*',
         );
     }
+
+    // Parse message for transaction response
+    if (message.txResponse) {
+        // Send structured response that webpage can listen for
+        return window.postMessage(
+            {
+                type: 'FROM_CASHTAB',
+                txResponse: message.txResponse,
+            },
+            '*',
+        );
+    }
+
     if (typeof message.addressRequestApproved !== 'undefined') {
         // We need to get the address from service_worker.js
         return chrome.runtime.sendMessage(message);

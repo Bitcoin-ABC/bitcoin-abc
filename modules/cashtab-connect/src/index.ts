@@ -8,11 +8,22 @@ export interface CashtabMessage {
     addressRequest?: boolean;
     txInfo?: Record<string, string>;
     id?: string;
+    txResponse?: {
+        approved: boolean;
+        txid?: string;
+        reason?: string;
+    };
 }
 
 export interface AddressResponse {
     success: boolean;
     address?: string;
+    reason?: string;
+}
+
+export interface TransactionResponse {
+    success: boolean;
+    txid?: string;
     reason?: string;
 }
 
@@ -27,6 +38,13 @@ export class CashtabAddressDeniedError extends Error {
     constructor(reason?: string) {
         super(reason || 'User denied address request');
         this.name = 'CashtabAddressDeniedError';
+    }
+}
+
+export class CashtabTransactionDeniedError extends Error {
+    constructor(reason?: string) {
+        super(reason || 'User denied transaction request');
+        this.name = 'CashtabTransactionDeniedError';
     }
 }
 
@@ -52,11 +70,12 @@ export class CashtabConnect {
                 if (event.source !== window) return;
                 if (event.data && event.data.type === 'FROM_CASHTAB') {
                     // Handle address response - support both new and old formats
-                    const listener = this.messageListeners.get('address');
-                    if (listener) {
+                    const addressListener =
+                        this.messageListeners.get('address');
+                    if (addressListener) {
                         // New format: success, address, reason
                         if (typeof event.data.success !== 'undefined') {
-                            listener({
+                            addressListener({
                                 success: event.data.success,
                                 address: event.data.address,
                                 reason: event.data.reason,
@@ -71,13 +90,13 @@ export class CashtabConnect {
                             ) {
                                 // User approved - address should be available
                                 if (event.data.address) {
-                                    listener({
+                                    addressListener({
                                         success: true,
                                         address: event.data.address,
                                     });
                                 } else {
                                     // Address not provided in old format - this is an error
-                                    listener({
+                                    addressListener({
                                         success: false,
                                         address: undefined,
                                         reason: 'Address not provided in response',
@@ -85,7 +104,7 @@ export class CashtabConnect {
                                 }
                             } else {
                                 // User denied
-                                listener({
+                                addressListener({
                                     success: false,
                                     address: undefined,
                                     reason: 'User denied the address request',
@@ -95,13 +114,25 @@ export class CashtabConnect {
                         }
                         // Old format: explicit denial
                         else if (event.data.addressRequestApproved === false) {
-                            listener({
+                            addressListener({
                                 success: false,
                                 address: undefined,
                                 reason: 'User denied the address request',
                             });
                             this.messageListeners.delete('address');
                         }
+                    }
+
+                    // Handle transaction response
+                    const transactionListener =
+                        this.messageListeners.get('transaction');
+                    if (transactionListener && event.data.txResponse) {
+                        transactionListener({
+                            success: event.data.txResponse.approved,
+                            txid: event.data.txResponse.txid,
+                            reason: event.data.txResponse.reason,
+                        });
+                        this.messageListeners.delete('transaction');
                     }
                 }
             });
@@ -122,10 +153,34 @@ export class CashtabConnect {
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 this.messageListeners.delete('address');
+                this.messageListeners.delete('transaction');
                 reject(new CashtabTimeoutError());
             }, this.timeout);
 
             this.messageListeners.set('address', response => {
+                clearTimeout(timeoutId);
+                resolve(response);
+            });
+
+            if (typeof window !== 'undefined' && window.postMessage) {
+                window.postMessage(message, '*');
+            } else {
+                reject(new CashtabExtensionUnavailableError());
+            }
+        });
+    }
+
+    // When a web page creates a transaction, a response is expected
+    private sendTransactionMessage(
+        message: CashtabMessage,
+    ): Promise<TransactionResponse> {
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                this.messageListeners.delete('transaction');
+                reject(new CashtabTimeoutError());
+            }, this.timeout);
+
+            this.messageListeners.set('transaction', response => {
                 clearTimeout(timeoutId);
                 resolve(response);
             });
@@ -171,23 +226,36 @@ export class CashtabConnect {
     /**
      * Create a transaction using a BIP21 URI directly
      * @param bip21Uri - The BIP21 URI (e.g., "ecash:address?amount=0.001&memo=Payment")
+     * @returns Promise that resolves with transaction response
      */
-    async createTransactionFromBip21(bip21Uri: string): Promise<void> {
+    async createTransactionFromBip21(
+        bip21Uri: string,
+    ): Promise<TransactionResponse> {
         const request: CashtabMessage = {
             text: 'Cashtab',
             type: 'FROM_PAGE',
             txInfo: { bip21: bip21Uri },
         };
 
-        this.sendMessageNoResponse(request);
+        const response = await this.sendTransactionMessage(request);
+
+        if (!response.success) {
+            throw new CashtabTransactionDeniedError(response.reason);
+        }
+
+        return response;
     }
 
     /**
      * Send XEC to an address using Cashtab (dev-friendly)
      * @param address - eCash address
      * @param amount - Amount in XEC (string or number)
+     * @returns Promise that resolves with transaction response
      */
-    async sendXec(address: string, amount: string | number): Promise<void> {
+    async sendXec(
+        address: string,
+        amount: string | number,
+    ): Promise<TransactionResponse> {
         const bip21 = `${address}?amount=${amount}`;
         return this.sendBip21(bip21);
     }
@@ -197,12 +265,13 @@ export class CashtabConnect {
      * @param address - eCash address
      * @param tokenId - Token ID
      * @param tokenDecimalizedQty - Decimalized token quantity (string or number)
+     * @returns Promise that resolves with transaction response
      */
     async sendToken(
         address: string,
         tokenId: string,
         tokenDecimalizedQty: string | number,
-    ): Promise<void> {
+    ): Promise<TransactionResponse> {
         const bip21 = `${address}?token_id=${tokenId}&token_decimalized_qty=${tokenDecimalizedQty}`;
         return this.sendBip21(bip21);
     }
@@ -210,14 +279,22 @@ export class CashtabConnect {
     /**
      * Send a raw BIP21 string using Cashtab
      * @param bip21 - BIP21 URI string
+     * @returns Promise that resolves with transaction response
      */
-    async sendBip21(bip21: string): Promise<void> {
+    async sendBip21(bip21: string): Promise<TransactionResponse> {
         const request: CashtabMessage = {
             text: 'Cashtab',
             type: 'FROM_PAGE',
             txInfo: { bip21 },
         };
-        this.sendMessageNoResponse(request);
+
+        const response = await this.sendTransactionMessage(request);
+
+        if (!response.success) {
+            throw new CashtabTransactionDeniedError(response.reason);
+        }
+
+        return response;
     }
 
     destroy(): void {
