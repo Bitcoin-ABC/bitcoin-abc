@@ -13,7 +13,7 @@ import Link from "next/link";
 import { cn } from "../../utils/cn";
 
 /** Visual style variants */
-type Variant = "gradient" | "white" | "outline";
+type Variant = "gradient" | "white" | "outline" | "ghost";
 
 /** Props common to both button and link */
 interface CommonProps {
@@ -72,6 +72,8 @@ export default function Button(props: ButtonProps) {
         ]
       : variant === "white"
       ? ["bg-white text-background hover:text-accentMedium"]
+      : variant === "ghost"
+      ? ["bg-white/5 text-white hover:text-background hover:bg-white"]
       : [
           "bg-transparent border-1 border-white text-white hover:bg-white hover:text-background",
         ];

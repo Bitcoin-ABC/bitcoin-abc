@@ -15,6 +15,7 @@ import Quotes from "./components/Home/Quotes";
 import FeaturedArticles from "./components/Home/FeaturedArticles";
 import GettingStarted from "./components/Home/GettingStarted";
 import FAQ from "./components/Home/FAQ";
+import TeamList from "./components/Home/TeamList";
 
 export default function Home() {
   return (
@@ -30,6 +31,7 @@ export default function Home() {
         <Developers />
         <CardCarousel />
         <Quotes />
+        <TeamList />
       </div>
       <GettingStarted />
       <FeaturedArticles />
