@@ -125,10 +125,17 @@ export default function Quotes() {
     if (!el || !child) return;
 
     isProgrammaticScroll.current = true;
-    child.scrollIntoView({
+
+    // Calculate the target scroll position to center the child horizontally
+    const containerWidth = el.clientWidth;
+    const childLeft = child.offsetLeft;
+    const childWidth = child.offsetWidth;
+    const targetScrollLeft = childLeft - (containerWidth - childWidth) / 2;
+
+    // Use scrollTo for horizontal-only scrolling
+    el.scrollTo({
+      left: targetScrollLeft,
       behavior: "smooth",
-      inline: "center",
-      block: "nearest",
     });
   };
 
