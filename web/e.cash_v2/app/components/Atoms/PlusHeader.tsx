@@ -3,21 +3,36 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import Image from "next/image";
+import { cn } from "../../utils/cn";
 
 interface PlusHeaderProps {
   text: string;
+  inverse?: boolean;
 }
 
-export default function PlusHeader({ text }: PlusHeaderProps) {
+export default function PlusHeader({ text, inverse = false }: PlusHeaderProps) {
   return (
-    <h3 className="flex items-center font-medium">
-      <div className="relative mr-2 flex items-center justify-center rounded-full bg-white p-1">
+    <h3
+      className={cn(
+        "flex items-center font-medium",
+        inverse ? "text-background" : "text-white"
+      )}
+    >
+      <div
+        className={cn(
+          "relative mr-2 flex items-center justify-center rounded-full p-1",
+          inverse ? "bg-background" : "bg-white"
+        )}
+      >
         <div className="relative flex h-3 w-3 items-center justify-center rounded-full">
           <Image
             src="/plus.png"
             alt="plus icon"
             fill
-            className="object-contain"
+            className={cn(
+              "object-contain",
+              inverse && "brightness-0 invert filter"
+            )}
           />
         </div>
       </div>

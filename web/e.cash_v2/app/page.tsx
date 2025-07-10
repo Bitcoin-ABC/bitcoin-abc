@@ -12,6 +12,7 @@ import AvalancheEnhanced from "./components/Home/AvalancheEnhanced";
 import Developers from "./components/Home/Developers";
 import CardCarousel from "./components/Home/CardCarousel";
 import Quotes from "./components/Home/Quotes";
+import GettingStarted from "./components/Home/GettingStarted";
 
 export default function Home() {
   return (
@@ -23,11 +24,13 @@ export default function Home() {
       <PoweringPayments />
       <BentoGrid />
       <AvalancheEnhanced />
+
       <div className="pb-30 bg-[linear-gradient(-135deg,_#1F1428,_#090916,_#0F1528,_#090916)]">
         <Developers />
         <CardCarousel />
         <Quotes />
       </div>
+      <GettingStarted />
     </main>
   );
 }
