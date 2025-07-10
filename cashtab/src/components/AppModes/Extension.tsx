@@ -4,17 +4,26 @@
 
 import React, { useState, useEffect } from 'react';
 import Modal from 'components/Common/Modal';
-import PropTypes from 'prop-types';
+import { CashtabWallet } from 'wallet';
 
-const Extension = ({ wallet }) => {
+interface ExtensionProps {
+    wallet: CashtabWallet | false;
+}
+
+const Extension: React.FC<ExtensionProps> = ({ wallet }) => {
     // Extension-only state fields
     const [showApproveAddressShareModal, setShowApproveAddressShareModal] =
-        useState(false);
-    const [addressRequestTabId, setAddressRequestTabId] = useState(null);
-    const [addressRequestTabUrl, setAddressRequestTabUrl] = useState('');
+        useState<boolean>(false);
+    const [addressRequestTabId, setAddressRequestTabId] = useState<
+        number | null
+    >(null);
+    const [addressRequestTabUrl, setAddressRequestTabUrl] =
+        useState<string>('');
 
     // Extension storage get method
-    const getObjectFromExtensionStorage = async function (key) {
+    const getObjectFromExtensionStorage = async function (
+        key: string,
+    ): Promise<any> {
         return new Promise((resolve, reject) => {
             try {
                 chrome.storage.sync.get(key, function (value) {
@@ -25,19 +34,27 @@ const Extension = ({ wallet }) => {
             }
         });
     };
-    const copyAddressToExtensionStorage = async wallet => {
+
+    const copyAddressToExtensionStorage = async (
+        wallet: CashtabWallet | false,
+    ): Promise<void> => {
         // Get address from active wallet
-        let address;
+        if (wallet === false) {
+            // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.
+            return;
+        }
+
+        let address: string;
         try {
             address = wallet.paths.get(1899).address;
         } catch {
-            // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.
+            // Handle any other errors
             return;
         }
         // Save the address to extension storage API
 
         // Check for stored value
-        const storedAddress = await getObjectFromExtensionStorage(['address']);
+        const storedAddress = await getObjectFromExtensionStorage('address');
         if (address === storedAddress) {
             // No need to store it again
             return;
@@ -51,7 +68,9 @@ const Extension = ({ wallet }) => {
         });
     };
 
-    const handleApprovedAddressShare = async () => {
+    const handleApprovedAddressShare = async (): Promise<void> => {
+        if (addressRequestTabId === null) return;
+
         await chrome.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
@@ -64,7 +83,9 @@ const Extension = ({ wallet }) => {
         window.close();
     };
 
-    const handleRejectedAddressShare = async () => {
+    const handleRejectedAddressShare = async (): Promise<void> => {
+        if (addressRequestTabId === null) return;
+
         await chrome.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
@@ -96,13 +117,13 @@ const Extension = ({ wallet }) => {
         }
 
         try {
-            let windowHash = window.location.hash;
-            let queryStringArray = windowHash.split('#/wallet?');
-            let queryString = queryStringArray[1];
-            let queryStringParams = new URLSearchParams(queryString);
-            let request = queryStringParams.get('request');
-            let tabId = parseInt(queryStringParams.get('tabId'));
-            let tabUrl = queryStringParams.get('tabUrl');
+            const windowHash = window.location.hash;
+            const queryStringArray = windowHash.split('#/wallet?');
+            const queryString = queryStringArray[1];
+            const queryStringParams = new URLSearchParams(queryString);
+            const request = queryStringParams.get('request');
+            const tabId = parseInt(queryStringParams.get('tabId') || '0');
+            const tabUrl = queryStringParams.get('tabUrl') || '';
             if (request !== 'addressRequest') {
                 return;
             }
@@ -133,10 +154,6 @@ const Extension = ({ wallet }) => {
             )}
         </>
     );
-};
-
-Extension.propTypes = {
-    wallet: PropTypes.object | PropTypes.bool,
 };
 
 export default Extension;
