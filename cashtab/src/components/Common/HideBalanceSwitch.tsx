@@ -5,11 +5,24 @@
 import React from 'react';
 import Eye from 'assets/eye.png';
 import EyeInvisible from 'assets/eye-invisible.png';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import CashtabSettings from 'config/CashtabSettings';
 
-const HideBalanceSwitch = ({ settings, updateCashtabState }) => {
-    const handleShowHideBalance = e => {
+interface HideBalanceSwitchProps {
+    settings: CashtabSettings;
+    updateCashtabState: (
+        key: string,
+        value: CashtabSettings,
+    ) => Promise<boolean>;
+}
+
+const HideBalanceSwitch: React.FC<HideBalanceSwitchProps> = ({
+    settings,
+    updateCashtabState,
+}) => {
+    const handleShowHideBalance = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ): void => {
         // Update settings in state and localforage
         updateCashtabState('settings', {
             ...settings,
@@ -30,7 +43,7 @@ const HideBalanceSwitch = ({ settings, updateCashtabState }) => {
         display: none;
     `;
 
-    const CustomCheckbox = styled.div`
+    const CustomCheckbox = styled.div<{ checked: boolean }>`
         width: 100%;
         height: 100%;
         background-color: ${({ checked }) =>
@@ -64,20 +77,6 @@ const HideBalanceSwitch = ({ settings, updateCashtabState }) => {
             </CustomCheckbox>
         </SwitchInputWrapper>
     );
-};
-
-HideBalanceSwitch.propTypes = {
-    settings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSender: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
-        }),
-        PropTypes.bool,
-    ]),
-    updateCashtabState: PropTypes.func,
 };
 
 export default HideBalanceSwitch;

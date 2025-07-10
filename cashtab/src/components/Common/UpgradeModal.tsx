@@ -4,7 +4,11 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
+
+interface UpgradeModalProps {
+    handleOk: () => void;
+    handleCancel: () => void;
+}
 
 const VersionModalContainer = styled.div`
     position: fixed;
@@ -73,7 +77,10 @@ const ModalExit = styled.button`
     }
 `;
 
-export const UpgradeModal = ({ handleOk, handleCancel }) => {
+export const UpgradeModal: React.FC<UpgradeModalProps> = ({
+    handleOk,
+    handleCancel,
+}) => {
     return (
         <VersionModalContainer>
             <ModalExit onClick={handleCancel}>X</ModalExit>
@@ -84,11 +91,6 @@ export const UpgradeModal = ({ handleOk, handleCancel }) => {
             </ButtonHolder>
         </VersionModalContainer>
     );
-};
-
-UpgradeModal.propTypes = {
-    handleOk: PropTypes.func.isRequired,
-    handleCancel: PropTypes.func.isRequired,
 };
 
 export default UpgradeModal;

@@ -4,7 +4,10 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
+
+interface SeedProps {
+    mnemonic: string;
+}
 
 const SeedHolder = styled.div`
     display: flex;
@@ -20,9 +23,9 @@ const SeedRow = styled.code`
 const CASHTAB_SEED_WORDCOUNT = 12;
 const CASHTAB_SEED_SLICE_SIZE = 4;
 
-const Seed = ({ mnemonic }) => {
+const Seed: React.FC<SeedProps> = ({ mnemonic }) => {
     const seedArray = mnemonic.split(' ');
-    const rowArray = [];
+    const rowArray: string[][] = [];
     for (
         let i = 0;
         i < CASHTAB_SEED_WORDCOUNT / CASHTAB_SEED_SLICE_SIZE;
@@ -42,10 +45,6 @@ const Seed = ({ mnemonic }) => {
             })}
         </SeedHolder>
     );
-};
-
-Seed.propTypes = {
-    mnemonic: PropTypes.string.isRequired,
 };
 
 export default Seed;

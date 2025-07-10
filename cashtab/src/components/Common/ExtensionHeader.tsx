@@ -6,7 +6,10 @@ import React from 'react';
 import styled from 'styled-components';
 import Cashtab from 'assets/cashtab_xec.png';
 import PopOut from 'assets/popout.svg';
-import PropTypes from 'prop-types';
+
+interface ExtensionHeaderProps {
+    path?: string;
+}
 
 const OpenInTabBtn = styled.button`
     background: none;
@@ -45,9 +48,9 @@ const ExtTabImg = styled.img`
 
 const FlexSpacer = styled.div``;
 
-const ExtensionHeader = ({ path }) => {
+const ExtensionHeader: React.FC<ExtensionHeaderProps> = ({ path }) => {
     // openInTab is an extension-only method
-    const openInTab = () => {
+    const openInTab = (): void => {
         window.open(`index.html#${path}`);
     };
     return (
@@ -59,10 +62,6 @@ const ExtensionHeader = ({ path }) => {
             </OpenInTabBtn>
         </LogoCtn>
     );
-};
-
-ExtensionHeader.propTypes = {
-    path: PropTypes.string,
 };
 
 export default ExtensionHeader;
