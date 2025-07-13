@@ -6,16 +6,10 @@ import config from './config';
 import secrets from './secrets';
 import 'dotenv/config';
 import { startExpressServer } from './src/routes';
-import { ChronikClient } from 'chronik-client';
 import { initializeTelegramBot } from './src/telegram';
 import fs from 'fs';
-import { Ecc } from 'ecash-lib';
-import { rateLimit } from 'express-rate-limit';
 import { MongoClient } from 'mongodb';
 import { initializeDb } from './src/db';
-
-// Connect to available in-node chronik servers
-const chronik = new ChronikClient(config.chronikUrls);
 
 // Connect to database
 // Connection URL (default)
@@ -26,7 +20,6 @@ const client = new MongoClient(MONGODB_URL);
 // Initialize websocket connection and log incoming blocks
 initializeDb(client).then(
     db => {
-        const ecc = new Ecc();
         // Initialize telegramBot
         const telegramBot = initializeTelegramBot(
             secrets.prod.botId,
@@ -36,16 +29,7 @@ initializeDb(client).then(
         );
 
         // Start the express app to expose API endpoints
-        const server = startExpressServer(
-            config.port,
-            db,
-            chronik,
-            telegramBot,
-            fs,
-            ecc,
-            rateLimit(config.limiter),
-            rateLimit(config.tokenLimiter),
-        );
+        const server = startExpressServer(config.port, db, telegramBot, fs);
         console.log(`Express server started on port ${config.port}`);
 
         // Gracefully shut down on app termination

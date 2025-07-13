@@ -819,9 +819,9 @@ builds:
     templates:
       - js-mocha
 
-  token-server-tests:
+  cashtab-faucet-tests:
     runOnDiffRegex:
-      - apps/token-server/
+      - apps/cashtab-faucet/
       - modules/mock-chronik-client/
       - modules/ecashaddrjs/
       - modules/chronik-client/
@@ -833,6 +833,15 @@ builds:
       - chronik-client
       - mock-chronik-client
       - ecash-lib
+    templates:
+      - js-mocha
+
+  token-server-tests:
+    runOnDiffRegex:
+      - apps/token-server/
+    env:
+      JS_PROJECT_ROOT: apps/token-server
+      RUN_NPM_BUILD: "true"
     templates:
       - js-mocha
 

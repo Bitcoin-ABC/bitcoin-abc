@@ -1,0 +1,5 @@
+/** tsconfig for building token-server */
+{
+    "extends": "./tsconfig.json",
+    "exclude": ["test", "**/*.test.ts"]
+}

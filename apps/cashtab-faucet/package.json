@@ -1,20 +1,18 @@
 {
-    "name": "token-server",
+    "name": "cashtab-faucet",
     "version": "0.0.0",
     "description": "Manage a token issuing hot wallet for Cashtab rewards tokens",
     "main": "index.js",
     "scripts": {
         "test": "mocha",
         "build": "tsc -p ./tsconfig.build.json",
-        "prebuild": "ts-node scripts/prepSecrets.ts",
-        "pretest": "ts-node scripts/prepSecrets.ts",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
-        "directory": "apps/token-server"
+        "directory": "apps/cashtab-faucet"
     },
     "keywords": [
         "ecash",
@@ -52,11 +50,15 @@
         "axios": "^1.7.7",
         "bip32": "^4.0.0",
         "bip39": "^3.1.0",
+        "chronik-client": "file:../../modules/chronik-client",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
+        "ecash-lib": "file:../../modules/ecash-lib",
+        "ecashaddrjs": "file:../../modules/ecashaddrjs",
         "ecpair": "^2.1.0",
         "ethereum-blockies-base64": "^1.0.2",
         "express": "^4.18.3",
+        "express-rate-limit": "^7.4.0",
         "helmet": "^7.1.0",
         "mongodb": "^6.10.0",
         "multer": "^1.4.5-lts.1",
