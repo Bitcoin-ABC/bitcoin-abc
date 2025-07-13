@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -60,10 +60,10 @@ import { ReactComponent as IsMintAddress } from 'assets/is-mint-address.svg';
 
 import appConfig from 'config/app';
 
-export const CashReceivedNotificationIcon = () => (
+export const CashReceivedNotificationIcon: React.FC = () => (
     <img height={'24px'} width={'24px'} src={appConfig.logo} />
 );
-export const TokenNotificationIcon = () => (
+export const TokenNotificationIcon: React.FC = () => (
     <img src={appConfig.tokenLogo} height={'24px'} width={'24px'} />
 );
 
@@ -135,9 +135,9 @@ export const LoadingBlock = styled.div`
 const MineRotate = styled.div`
     transform: rotate(45deg);
 `;
-export const SendIcon = () => <Send title="tx-sent" />;
+export const SendIcon: React.FC = () => <Send title="tx-sent" />;
 
-export const MinedIcon = () => (
+export const MinedIcon: React.FC = () => (
     <MineRotate>
         <Mined title="tx-mined" />
     </MineRotate>
@@ -146,18 +146,24 @@ const PayButtonImg = styled.img`
     color: transparent;
     filter: brightness(0) invert(1);
 `;
-export const EncryptedMsgIcon = () => (
+export const EncryptedMsgIcon: React.FC = () => (
     <CashtabEncrypted title="tx-encrypted-msg" />
 );
-export const TokenBurnIcon = () => <TokenBurn title="tx-token-burn" />;
-export const TokenSendIcon = () => <TokenSend title="Token Send" />;
-export const PayButtonIcon = () => (
+export const TokenBurnIcon: React.FC = () => (
+    <TokenBurn title="tx-token-burn" />
+);
+export const TokenSendIcon: React.FC = () => <TokenSend title="Token Send" />;
+export const PayButtonIcon: React.FC = () => (
     <PayButtonImg src={PayButton} alt="tx-paybutton" />
 );
-export const XecxIcon = () => <img src={XecxSrc} alt="XECX reward" />;
-export const FirmaIcon = () => <img src={FirmaSrc} alt="Firma reward" />;
-export const SolIcon = () => <img src={SolSrc} alt="SOL logo" />;
-export const TetherIcon = () => <img src={TetherSrc} alt="USDT Tether logo" />;
+export const XecxIcon: React.FC = () => <img src={XecxSrc} alt="XECX reward" />;
+export const FirmaIcon: React.FC = () => (
+    <img src={FirmaSrc} alt="Firma reward" />
+);
+export const SolIcon: React.FC = () => <img src={SolSrc} alt="SOL logo" />;
+export const TetherIcon: React.FC = () => (
+    <img src={TetherSrc} alt="USDT Tether logo" />
+);
 
 const PaywallPaymentIconWrapper = styled.div`
     svg,
@@ -167,24 +173,26 @@ const PaywallPaymentIconWrapper = styled.div`
     }
     fill: ${props => props.theme.accent};
 `;
-export const PaywallPaymentIcon = () => (
+export const PaywallPaymentIcon: React.FC = () => (
     <PaywallPaymentIconWrapper>
         <Audit title="tx-paywall" />
     </PaywallPaymentIconWrapper>
 );
-export const ChatIcon = () => <Chat title="tx-chat" />;
-export const MintIcon = () => <Mint title="tx-mint" />;
-export const IsMintAddressIcon = () => (
+export const ChatIcon: React.FC = () => <Chat title="tx-chat" />;
+export const MintIcon: React.FC = () => <Mint title="tx-mint" />;
+export const IsMintAddressIcon: React.FC = () => (
     <IsMintAddress title="Listed by token creator" />
 );
-export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
-export const AddContactIcon = () => <AddContact title="add-contact" />;
+export const CopyPasteIcon: React.FC = () => <CopyPaste title="copy-paste" />;
+export const AddContactIcon: React.FC = () => (
+    <AddContact title="add-contact" />
+);
 const TrashCanWrapper = styled.div`
     stroke: ${props => props.theme.accent};
     fill: ${props => props.theme.accent};
     cursor: pointer;
 `;
-export const TrashcanIcon = () => (
+export const TrashcanIcon: React.FC = () => (
     <TrashCanWrapper>
         <Trashcan title="trashcan" />
     </TrashCanWrapper>
@@ -194,37 +202,45 @@ const EditWrapper = styled.div`
     fill: ${props => props.theme.accent};
     cursor: pointer;
 `;
-export const EditIcon = () => (
+export const EditIcon: React.FC = () => (
     <EditWrapper>
         <Edit title="edit" />
     </EditWrapper>
 );
-export const ReplyIcon = () => <Reply title="reply" />;
-export const UnknownIcon = () => <Unknown title="tx-unknown" />;
-export const CashtabMsgIcon = () => <CashtabMsg title="tx-cashtab-msg" />;
-export const AliasIconTx = () => <Alias title="tx-alias-registration" />;
-export const GenesisIcon = () => <Genesis title="tx-genesis" />;
-export const ReceiveIcon = () => <Receive title="tx-received" />;
-export const AirdropIcon = () => <Airdrop title="tx-airdrop" />;
-export const SwapIcon = () => <Swap title="swap" />;
-export const DollarIcon = () => <Dollar title="dollar sign" />;
-export const WalletIcon = () => <Wallet title="wallet" />;
-export const BankIcon = () => <Bank title="wallets" />;
-export const SettingsIcon = () => <Settings title="settings" />;
-export const ContactsIcon = () => <Contacts title="Contact List" />;
-export const TokensIcon = () => <Tokens title="Tokens" />;
-export const QuestionIcon = () => <Question title="More Info" />;
-export const RewardIcon = () => <Reward title="Cashtab Rewards" />;
-export const SelfSendIcon = () => <SelfSend title="Self Send" />;
-export const FanOutIcon = () => <FanOut title="Fan Out" />;
-export const MintNftIcon = () => <MintNft title="Mint NFT" />;
-export const NftIcon = () => <Nft title="NFT" />;
-export const AgoraOfferIcon = () => <AgoraOffer title="Agora Offer" />;
-export const AgoraBuyIcon = () => <AgoraBuy title="Agora Purchase" />;
-export const AgoraSaleIcon = () => <AgoraSale title="Agora Sale" />;
-export const AgoraCancelIcon = () => <AgoraCancel title="Agora Cancel" />;
-export const DogeIcon = () => <Doge title="Meme Agora" />;
-export const CollapseDownIcon = () => <CollapseDown title="Expand" />;
+export const ReplyIcon: React.FC = () => <Reply title="reply" />;
+export const UnknownIcon: React.FC = () => <Unknown title="tx-unknown" />;
+export const CashtabMsgIcon: React.FC = () => (
+    <CashtabMsg title="tx-cashtab-msg" />
+);
+export const AliasIconTx: React.FC = () => (
+    <Alias title="tx-alias-registration" />
+);
+export const GenesisIcon: React.FC = () => <Genesis title="tx-genesis" />;
+export const ReceiveIcon: React.FC = () => <Receive title="tx-received" />;
+export const AirdropIcon: React.FC = () => <Airdrop title="tx-airdrop" />;
+export const SwapIcon: React.FC = () => <Swap title="swap" />;
+export const DollarIcon: React.FC = () => <Dollar title="dollar sign" />;
+export const WalletIcon: React.FC = () => <Wallet title="wallet" />;
+export const BankIcon: React.FC = () => <Bank title="wallets" />;
+export const SettingsIcon: React.FC = () => <Settings title="settings" />;
+export const ContactsIcon: React.FC = () => <Contacts title="Contact List" />;
+export const TokensIcon: React.FC = () => <Tokens title="Tokens" />;
+export const QuestionIcon: React.FC = () => <Question title="More Info" />;
+export const RewardIcon: React.FC = () => <Reward title="Cashtab Rewards" />;
+export const SelfSendIcon: React.FC = () => <SelfSend title="Self Send" />;
+export const FanOutIcon: React.FC = () => <FanOut title="Fan Out" />;
+export const MintNftIcon: React.FC = () => <MintNft title="Mint NFT" />;
+export const NftIcon: React.FC = () => <Nft title="NFT" />;
+export const AgoraOfferIcon: React.FC = () => (
+    <AgoraOffer title="Agora Offer" />
+);
+export const AgoraBuyIcon: React.FC = () => <AgoraBuy title="Agora Purchase" />;
+export const AgoraSaleIcon: React.FC = () => <AgoraSale title="Agora Sale" />;
+export const AgoraCancelIcon: React.FC = () => (
+    <AgoraCancel title="Agora Cancel" />
+);
+export const DogeIcon: React.FC = () => <Doge title="Meme Agora" />;
+export const CollapseDownIcon: React.FC = () => <CollapseDown title="Expand" />;
 
 const GithubIconWrapper = styled.div`
     svg {
@@ -238,12 +254,12 @@ const GithubIconWrapper = styled.div`
     }
     fill: ${props => props.theme.primaryText};
 `;
-export const GithubIcon = () => (
+export const GithubIcon: React.FC = () => (
     <GithubIconWrapper>
         <Github height="142px" width="142px" title="Github" />
     </GithubIconWrapper>
 );
-export const QRCodeIcon = () => <QRCode />;
-export const UnparsedIcon = () => <Unparsed />;
-export const HomeIcon = () => <Home />;
+export const QRCodeIcon: React.FC = () => <QRCode />;
+export const UnparsedIcon: React.FC = () => <Unparsed />;
+export const HomeIcon: React.FC = () => <Home />;
 export const AliasIcon = styled(User)``;
