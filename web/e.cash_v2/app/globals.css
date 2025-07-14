@@ -37,6 +37,33 @@ p {
   font-weight: 300;
 }
 
+article p,
+article img,
+article h2,
+article h3,
+article li {
+  margin: 20px 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+article {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+article h3 {
+  font-weight: bold;
+  font-size: 30px;
+}
+
+article ul {
+  color: var(--secondaryText);
+  list-style: disc;
+  padding-left: 20px;
+  margin: 20px 0;
+}
+
 /* The tailwinds backdrop-blur class was acting up. Utilizing a custom class 
 here to get the effect */
 

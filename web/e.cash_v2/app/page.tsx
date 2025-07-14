@@ -12,6 +12,7 @@ import AvalancheEnhanced from "./components/Home/AvalancheEnhanced";
 import Developers from "./components/Home/Developers";
 import CardCarousel from "./components/Home/CardCarousel";
 import Quotes from "./components/Home/Quotes";
+import FeaturedArticles from "./components/Home/FeaturedArticles";
 import GettingStarted from "./components/Home/GettingStarted";
 
 export default function Home() {
@@ -31,6 +32,7 @@ export default function Home() {
         <Quotes />
       </div>
       <GettingStarted />
+      <FeaturedArticles />
     </main>
   );
 }
