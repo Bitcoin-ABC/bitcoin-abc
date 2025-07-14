@@ -7,6 +7,7 @@ import {
     walletWithXecAndTokens,
     vipTokenChronikTokenMocks,
     cachetTokenAndTx,
+    bearTokenAndTx,
     requiredUtxoThisToken,
 } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -16,43 +17,66 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
-import {
-    initializeCashtabStateForTests,
-    clearLocalForage,
-} from 'components/App/fixtures/helpers';
-import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { explorer } from 'config/explorer';
-import { undecimalizeTokenAmount } from 'wallet';
+import { prepareContext, mockPrice } from 'test';
+import { ThemeProvider } from 'styled-components';
+import { theme } from 'assets/styles/theme';
+import { MemoryRouter } from 'react-router-dom';
+import { WalletProvider } from 'wallet/context';
+import { ChronikClient } from 'chronik-client';
 import { Ecc } from 'ecash-lib';
-import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
+import { Agora } from 'ecash-agora';
+import {
+    MockAgora,
+    MockChronikClient,
+} from '../../../../../modules/mock-chronik-client';
+import App from 'components/App/App';
+import { explorer } from 'config/explorer';
+import { undecimalizeTokenAmount, CashtabWallet } from 'wallet';
+
+interface ConfigureTestWrapperProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    theme: any;
+    route?: string;
+}
+
+const ConfigureTestWrapper: React.FC<ConfigureTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    theme,
+    route = '/configure',
+}) => (
+    <WalletProvider
+        chronik={chronik as unknown as ChronikClient}
+        agora={agora as unknown as Agora}
+        ecc={ecc}
+    >
+        <MemoryRouter initialEntries={[route]}>
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
+        </MemoryRouter>
+    </WalletProvider>
+);
 
 describe('<Configure />', () => {
     const ecc = new Ecc();
-    let user, mockAgora;
+    let user: ReturnType<typeof userEvent.setup>;
+    let mockAgora: MockAgora;
+
     beforeEach(() => {
         mockAgora = new MockAgora();
         // Set up userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
-        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
-        const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs requiring different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003;
-        const priceResponse = {
-            ecash: {
-                usd: xecPrice,
-                last_updated_at: 1706644626,
-            },
-        };
-        when(fetch)
-            .calledWith(priceApiUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
-            });
+        mockPrice(0.00003);
+
         // Mock another price URL for a user that changes fiat currency
         const altFiat = 'gbp';
+        const cryptoId = appConfig.coingeckoId;
         const altFiatPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${altFiat}&include_last_updated_at=true`;
         const xecPriceAltFiat = 0.00002;
         const altFiatPriceResponse = {
@@ -65,7 +89,7 @@ describe('<Configure />', () => {
             .calledWith(altFiatPriceApiUrl)
             .mockResolvedValue({
                 json: () => Promise.resolve(altFiatPriceResponse),
-            });
+            } as Response);
 
         // Mock firma price API call
         const firmaPriceGbp = 0.5;
@@ -80,16 +104,26 @@ describe('<Configure />', () => {
             )
             .mockResolvedValue({
                 json: () => Promise.resolve(firmaPriceResponse),
-            });
+            } as Response);
     });
+
     afterEach(async () => {
         jest.clearAllMocks();
-        await clearLocalForage(localforage);
+        await localforage.clear();
     });
+
     it('Setting "Send Confirmations" settings will show send confirmations', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
 
         const hex =
@@ -99,18 +133,23 @@ describe('<Configure />', () => {
         mockedChronik.setBroadcastTx(hex, txid);
 
         render(
-            <CashtabTestWrapper
+            <ConfigureTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
+                theme={theme}
             />,
         );
 
         // Default route is home
-        await screen.findByTestId('tx-history');
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
 
         // Click the hamburger menu
-        await user.click(screen.queryByTitle('Show Other Screens'));
+        await user.click(screen.queryByTitle('Show Other Screens')!);
 
         // Navigate to Settings screen
         await user.click(
@@ -164,6 +203,7 @@ describe('<Configure />', () => {
             ),
         );
     });
+
     it('"ABSOLUTE MINIMUM fees" setting is unavailable if wallet holds 0.01 less than required balance of Cachet', async () => {
         const CACHET_DECIMALS = 2;
         // Modify walletWithXecAndTokens to have the required token for this feature
@@ -175,9 +215,15 @@ describe('<Configure />', () => {
                     ...walletWithXecAndTokens.state.slpUtxos,
                     {
                         ...requiredUtxoThisToken,
+                        path: 1899,
                         token: {
                             ...requiredUtxoThisToken.token,
                             tokenId: appConfig.vipTokens.cachet.tokenId,
+                            tokenType: {
+                                protocol: 'SLP' as const,
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE' as const,
+                                number: 1,
+                            },
                             atoms: BigInt(
                                 undecimalizeTokenAmount(
                                     '999.99',
@@ -188,30 +234,43 @@ describe('<Configure />', () => {
                     },
                 ],
             },
-        };
+        } as CashtabWallet;
 
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithVipToken,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        tokenMocks.set(appConfig.vipTokens.cachet.tokenId, {
+            tx: cachetTokenAndTx.tx,
+            tokenInfo: cachetTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithVipToken],
+            tokenMocks,
         );
 
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(
-            appConfig.vipTokens.cachet.tokenId,
-            cachetTokenAndTx.token,
+        render(
+            <ConfigureTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+                theme={theme}
+            />,
         );
-        mockedChronik.setTx(
-            appConfig.vipTokens.cachet.tokenId,
-            cachetTokenAndTx.tx,
-        );
-
-        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
         // Default route is home
-        await screen.findByTestId('tx-history');
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
 
         // Click the hamburger menu
-        await user.click(screen.queryByTitle('Show Other Screens'));
+        await user.click(screen.queryByTitle('Show Other Screens')!);
 
         await user.click(
             screen.getByRole('button', {
@@ -232,6 +291,7 @@ describe('<Configure />', () => {
             ),
         ).not.toBeInTheDocument();
     });
+
     it('"ABSOLUTE MINIMUM fees" setting is available and effective if wallet holds exactly required balance of Cachet', async () => {
         const CACHET_DECIMALS = 2;
         // Modify walletWithXecAndTokens to have the required token for this feature
@@ -243,9 +303,15 @@ describe('<Configure />', () => {
                     ...walletWithXecAndTokens.state.slpUtxos,
                     {
                         ...requiredUtxoThisToken,
+                        path: 1899,
                         token: {
                             ...requiredUtxoThisToken.token,
                             tokenId: appConfig.vipTokens.cachet.tokenId,
+                            tokenType: {
+                                protocol: 'SLP' as const,
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE' as const,
+                                number: 1,
+                            },
                             atoms: BigInt(
                                 undecimalizeTokenAmount(
                                     appConfig.vipTokens.cachet.vipBalance,
@@ -256,21 +322,23 @@ describe('<Configure />', () => {
                     },
                 ],
             },
-        };
+        } as CashtabWallet;
 
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithVipToken,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        tokenMocks.set(appConfig.vipTokens.cachet.tokenId, {
+            tx: cachetTokenAndTx.tx,
+            tokenInfo: cachetTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
-        );
-
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(
-            appConfig.vipTokens.cachet.tokenId,
-            cachetTokenAndTx.token,
-        );
-        mockedChronik.setTx(
-            appConfig.vipTokens.cachet.tokenId,
-            cachetTokenAndTx.tx,
+            [walletWithVipToken],
+            tokenMocks,
         );
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
@@ -281,18 +349,23 @@ describe('<Configure />', () => {
         mockedChronik.setBroadcastTx(hex, txid);
 
         render(
-            <CashtabTestWrapper
+            <ConfigureTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
+                theme={theme}
             />,
         );
 
         // Default route is home
-        await screen.findByTestId('tx-history');
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
 
         // Click the hamburger menu
-        await user.click(screen.queryByTitle('Show Other Screens'));
+        await user.click(screen.queryByTitle('Show Other Screens')!);
 
         await user.click(
             screen.getByRole('button', {
@@ -346,6 +419,7 @@ describe('<Configure />', () => {
             ),
         );
     });
+
     it('Setting "ABSOLUTE MINIMUM fees" settings will reduce fees to absolute min', async () => {
         // Modify walletWithXecAndTokens to have the required token for this feature
         const walletWithVipToken = {
@@ -354,24 +428,29 @@ describe('<Configure />', () => {
                 ...walletWithXecAndTokens.state,
                 slpUtxos: [
                     ...walletWithXecAndTokens.state.slpUtxos,
-                    requiredUtxoThisToken,
+                    {
+                        ...requiredUtxoThisToken,
+                        path: 1899,
+                    },
                 ],
             },
-        };
+        } as CashtabWallet;
 
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithVipToken,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        tokenMocks.set(appConfig.vipTokens.grumpy.tokenId, {
+            tx: vipTokenChronikTokenMocks.tx,
+            tokenInfo: vipTokenChronikTokenMocks.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
-        );
-
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setToken(
-            appConfig.vipTokens.grumpy.tokenId,
-            vipTokenChronikTokenMocks.token,
-        );
-        mockedChronik.setTx(
-            appConfig.vipTokens.grumpy.tokenId,
-            vipTokenChronikTokenMocks.tx,
+            [walletWithVipToken],
+            tokenMocks,
         );
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
@@ -390,18 +469,23 @@ describe('<Configure />', () => {
         mockedChronik.setBroadcastTx(tokenSendHex, tokenSendTxid);
 
         render(
-            <CashtabTestWrapper
+            <ConfigureTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
+                theme={theme}
             />,
         );
 
         // Default route is home
-        await screen.findByTestId('tx-history');
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
 
         // Click the hamburger menu
-        await user.click(screen.queryByTitle('Show Other Screens'));
+        await user.click(screen.queryByTitle('Show Other Screens')!);
 
         await user.click(
             screen.getByRole('button', {
@@ -494,16 +578,27 @@ describe('<Configure />', () => {
 
         // See SendXec test, "If the user has minFeeSends set to true but no longer has the right token amount, the feature is disabled"
     });
+
     it('We can choose a new fiat currency', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
+
         render(
-            <CashtabTestWrapper
+            <ConfigureTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
+                theme={theme}
                 route="/configure"
             />,
         );
@@ -527,8 +622,8 @@ describe('<Configure />', () => {
         );
 
         // We expect localforage to be updated
-        expect((await localforage.getItem('settings')).fiatCurrency).toEqual(
-            'gbp',
-        );
+        expect(
+            ((await localforage.getItem('settings')) as any).fiatCurrency,
+        ).toEqual('gbp');
     });
 });

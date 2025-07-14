@@ -2809,6 +2809,116 @@ export const vipTokenChronikTokenMocks = {
         },
     },
 };
+export const bearTokenAndTx = {
+    token: {
+        tokenId:
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            number: 1,
+        },
+        timeFirstSeen: 0,
+        genesisInfo: {
+            tokenTicker: 'BEAR',
+            tokenName: 'BearNip',
+            url: 'https://cashtab.com/',
+            decimals: 0,
+            hash: '',
+        },
+        block: {
+            height: 782665,
+            hash: '00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb',
+            timestamp: 1678408305,
+        },
+    },
+    tx: {
+        txid: '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '0e737a2f6373649341b406334341202a5ddbbdb389c55da40570b641dc23d036',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '473044022055444db90f98b462ca29a6f51981da4015623ddc34dc1f575852426ccb785f0402206e786d4056be781ca1720a0a915b040e0a9e8716b8e4d30b0779852c191fdeb3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 6231556n,
+                sequenceNo: 4294967294,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 4444n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '9e7f91826cfd3adf9867c1b3d102594eff4743825fad9883c35d26fb3bdc1693',
+                    outIdx: 1,
+                },
+            },
+            {
+                sats: 6230555n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                spentBy: {
+                    txid: '27a2471afab33d82b9404df12e1fa242488a9439a68e540dcf8f811ef39c11cf',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 0,
+        size: 299,
+        isCoinbase: false,
+        isFinal: true,
+        tokenEntries: [
+            {
+                tokenId:
+                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 782665,
+            hash: '00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb',
+            timestamp: 1678408305,
+        },
+    },
+};
+
 export const cachetTokenAndTx = {
     token: {
         tokenId:
