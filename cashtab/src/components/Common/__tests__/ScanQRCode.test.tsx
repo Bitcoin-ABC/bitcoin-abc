@@ -17,7 +17,7 @@ describe('<ScanQRCode />', () => {
     it('Does not render the modal on load, but it can be opened and closed on click', async () => {
         render(
             <ThemeProvider theme={theme}>
-                <ScanQRCode />
+                <ScanQRCode onScan={() => null} />
             </ThemeProvider>,
         );
 
@@ -29,7 +29,7 @@ describe('<ScanQRCode />', () => {
         expect(screen.queryByTitle('Video Preview')).not.toBeInTheDocument();
 
         // Click the open modal button
-        await userEvent.click(StartScanningButton);
+        await userEvent.click(StartScanningButton!);
 
         // The modal is rendered
         expect(await screen.findByTitle('Video Preview')).toBeInTheDocument();
