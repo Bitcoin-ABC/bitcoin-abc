@@ -168,6 +168,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '393020303120507465204c7464', // "90 01 Pte Ltd" ASCII
             },
         ],
+        [
+            '76a9147b5e3b3c03c577cabc88275af797b15637b0fdcd88ac',
+            {
+                miner: 'Node Miner',
+                coinbaseHexFragment: '6e6f64652f', // "node/" ASCII
+            },
+        ],
     ],
 };
 

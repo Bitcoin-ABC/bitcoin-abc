@@ -396,6 +396,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: '90 01 Pte Ltd',
     },
+    // Node Miner - parsed from payout script
+    {
+        height: '905735',
+        coinbaseHex:
+            '0307d20d000453d6766804dbbb590e0be6e984b7a07c7ee00629000a062f6e6f64652f',
+        payoutOutputScript:
+            '76a9147b5e3b3c03c577cabc88275af797b15637b0fdcd88ac',
+        parsed: 'Node Miner',
+    },
+    // Node Miner - parsed from coinbase hex fragment
+    {
+        height: '905736',
+        coinbaseHex:
+            '0308d20d000458dd7668047fc02c3b0b81637c16d693af36702d000a062f6e6f64652f',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'Node Miner',
+    },
 ];
 
 export default minerTestFixtures;
