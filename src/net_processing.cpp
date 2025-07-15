@@ -7149,8 +7149,10 @@ void PeerManagerImpl::ProcessMessage(
                             }
 
                             std::vector<TxId> finalizedTxIds;
-                            m_mempool.setAvalancheFinalized(**it,
-                                                            finalizedTxIds);
+                            m_mempool.setAvalancheFinalized(
+                                **it, m_chainparams.GetConsensus(),
+                                *Assert(m_chainman.ActiveTip()),
+                                finalizedTxIds);
 
                             for (const auto &finalized_txid : finalizedTxIds) {
                                 m_avalanche->setRecentlyFinalized(

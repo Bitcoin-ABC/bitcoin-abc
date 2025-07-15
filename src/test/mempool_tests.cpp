@@ -5,11 +5,13 @@
 #include <txmempool.h>
 
 #include <common/system.h>
+#include <consensus/tx_verify.h>
 #include <kernel/disconnected_transactions.h>
 #include <kernel/mempool_entry.h>
 #include <policy/settings.h>
 #include <reverse_iterator.h>
 #include <util/time.h>
+#include <validation.h>
 
 #include <test/util/setup_common.h>
 
@@ -584,9 +586,12 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
 
 BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
     CTxMemPool &pool = *Assert(m_node.mempool);
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const Consensus::Params &params = chainman.GetConsensus();
     TestMemPoolEntryHelper entry;
 
     LOCK2(cs_main, pool.cs);
+    const CBlockIndex &tip = *Assert(chainman.ActiveTip());
 
     std::vector<CTransactionRef> txs;
     txs.reserve(100);
@@ -599,7 +604,8 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
         BOOST_CHECK(pool.exists(txid));
 
         std::vector<TxId> finalizedTxIds;
-        BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry, finalizedTxIds));
+        BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry, params, tip,
+                                               finalizedTxIds));
         BOOST_CHECK(pool.isAvalancheFinalized(txid));
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
         BOOST_CHECK_EQUAL(finalizedTxIds[0], txid);
@@ -635,6 +641,110 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
     for (const auto &tx : txs) {
         // No longer in the radix tree
         BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(setAvalancheFinalized_ContextualCheckTransactionFailures) {
+    CTxMemPool &mempool = *Assert(m_node.mempool);
+    const Consensus::Params &params = Assert(m_node.chainman)->GetConsensus();
+    TestMemPoolEntryHelper entry;
+
+    // Fake chain tip
+    CBlockIndex active_chain_tip;
+    active_chain_tip.nHeight = params.wellingtonHeight;
+
+    std::array<CBlockIndex, 12> blocks;
+    for (size_t i = 0; i < blocks.size(); ++i) {
+        blocks[i].nHeight = active_chain_tip.nHeight - i - 1;
+        blocks[i].nTime = LOCKTIME_THRESHOLD + i;
+        blocks[i].pprev = (i == 0) ? nullptr : &blocks[i - 1];
+    }
+    active_chain_tip.pprev = &blocks.back();
+    BOOST_CHECK_GE(active_chain_tip.GetMedianTimePast(), LOCKTIME_THRESHOLD);
+
+    // Create a base transaction
+    CMutableTransaction good_tx;
+    good_tx.vin.resize(1);
+    good_tx.vin[0].prevout = COutPoint(TxId{FastRandomContext().rand256()}, 0);
+    CScript scriptSig;
+    for (int i = 0; i < 100; ++i) {
+        scriptSig << OP_1;
+    }
+    good_tx.vin[0].scriptSig = scriptSig;
+    good_tx.vout.resize(1);
+    good_tx.vout[0].nValue = 1000 * SATOSHI;
+    good_tx.nLockTime = 0;
+    BOOST_CHECK_GE(entry.Fee(1000 * SATOSHI).FromTx(good_tx)->GetTxSize(),
+                   MIN_TX_SIZE);
+
+    LOCK2(cs_main, mempool.cs);
+
+    auto checkTx = [&](const CMutableTransaction &bad,
+                       const CMutableTransaction &good,
+                       const std::string &&reason) NO_THREAD_SAFETY_ANALYSIS {
+        auto bad_entry = entry.Fee(1000 * SATOSHI).FromTx(bad);
+        // Add the entry to the mempool
+        mempool.addUnchecked(bad_entry);
+        BOOST_CHECK(mempool.exists(bad.GetId()));
+
+        // Check it fails for the expected reasons
+        TxValidationState state;
+        BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
+            active_chain_tip, params, bad_entry->GetTx(), state));
+        BOOST_CHECK_EQUAL(state.GetRejectReason(), reason);
+
+        // Check it can't be finalized
+        std::vector<TxId> finalizedTxIds;
+        BOOST_CHECK(!mempool.setAvalancheFinalized(
+            bad_entry, params, active_chain_tip, finalizedTxIds));
+        BOOST_CHECK(finalizedTxIds.empty());
+
+        mempool.clear(/*include_finalized_txs=*/true);
+
+        // Check the good transaction can be finalized
+        auto good_entry = entry.Fee(1000 * SATOSHI).FromTx(good);
+        mempool.addUnchecked(good_entry);
+        BOOST_CHECK(mempool.exists(good.GetId()));
+
+        BOOST_CHECK(mempool.setAvalancheFinalized(
+            good_entry, params, active_chain_tip, finalizedTxIds));
+        BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
+
+        mempool.clear(/*include_finalized_txs=*/true);
+    };
+
+    // Locked by a higher block height
+    {
+        CMutableTransaction bad_tx{good_tx};
+        // Next block is at height + 1, so we lock for the subsequent block
+        bad_tx.nLockTime = active_chain_tip.nHeight + 1;
+        bad_tx.vin[0].nSequence = 0;
+        checkTx(bad_tx, good_tx, "bad-txns-nonfinal");
+    }
+
+    // Locked by a time in the future
+    {
+        CMutableTransaction bad_tx{good_tx};
+        bad_tx.nLockTime = active_chain_tip.GetMedianTimePast() + 1;
+        bad_tx.vin[0].nSequence = 0;
+        checkTx(bad_tx, good_tx, "bad-txns-nonfinal");
+    }
+
+    // Transaction size is below 100 bytes
+    {
+        CMutableTransaction bad_tx{good_tx};
+        bad_tx.vin.clear();
+        bad_tx.vin.resize(1);
+        BOOST_CHECK_LT(entry.Fee(1000 * SATOSHI).FromTx(bad_tx)->GetTxSize(),
+                       MIN_TX_SIZE);
+        checkTx(bad_tx, good_tx, "bad-txns-undersize");
+    }
+
+    // Transaction version is 3
+    {
+        CMutableTransaction bad_tx{good_tx};
+        bad_tx.nVersion = 3;
+        checkTx(bad_tx, good_tx, "bad-txns-version");
     }
 }
 

@@ -354,9 +354,14 @@ void CTxMemPool::_clear() {
     ++nTransactionsUpdated;
 }
 
-void CTxMemPool::clear() {
+void CTxMemPool::clear(bool include_finalized_txs) {
     LOCK(cs);
     _clear();
+    if (include_finalized_txs) {
+        RadixTree<CTxMemPoolEntry, MemPoolEntryRadixTreeAdapter> empty;
+        std::swap(finalizedTxs, empty);
+        m_finalizedTxsFitter.resetBlock();
+    }
 }
 
 void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
@@ -520,7 +525,10 @@ std::vector<TxMempoolInfo> CTxMemPool::infoAll() const {
 }
 
 bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
+                                       const Consensus::Params &params,
+                                       const CBlockIndex &active_chain_tip,
                                        std::vector<TxId> &finalizedTxIds) {
+    AssertLockHeld(::cs_main);
     AssertLockHeld(cs);
 
     auto it = mapTx.find(tx->GetTx().GetId());
@@ -544,6 +552,21 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
     for (auto iter_it = setAncestors.begin(); iter_it != setAncestors.end();) {
         // iter_it is an iterator of mapTx iterator (aka txiter)
         CTxMemPoolEntryRef entry = **iter_it;
+
+        TxValidationState state;
+        if (!ContextualCheckTransactionForCurrentBlock(active_chain_tip, params,
+                                                       entry->GetTx(), state)) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Delay storing finalized tx %s that would cause the block "
+                     "to be invalid%s (%s)\n",
+                     tx->GetTx().GetId().ToString(),
+                     entry->GetSharedTx()->GetId() == tx->GetSharedTx()->GetId()
+                         ? ""
+                         : strprintf(" for parent %s",
+                                     entry->GetSharedTx()->GetId().ToString()),
+                     state.ToString());
+            return false;
+        }
 
         if (m_finalizedTxsFitter.isBelowBlockMinFeeRate(
                 entry->GetModifiedFeeRate())) {

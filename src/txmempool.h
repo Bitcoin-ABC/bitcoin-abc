@@ -38,10 +38,15 @@
 #include <utility>
 #include <vector>
 
+class CBlockIndex;
 class CChain;
 class Chainstate;
 class ChainstateManager;
 class Config;
+
+namespace Consensus {
+struct Params;
+} // namespace Consensus
 
 /**
  * Fake height value used in Coins to signify they are only in the memory
@@ -382,7 +387,7 @@ public:
     void removeForFinalizedBlock(const std::vector<CTransactionRef> &vtx)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
-    void clear();
+    void clear(bool include_finalized_txs = false);
     // lock free
     void _clear() EXCLUSIVE_LOCKS_REQUIRED(cs);
     bool CompareTopologically(const TxId &txida, const TxId &txidb) const;
@@ -524,8 +529,10 @@ public:
     }
 
     bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
+                               const Consensus::Params &params,
+                               const CBlockIndex &active_chain_tip,
                                std::vector<TxId> &finalizedTxIds)
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main, cs);
 
     bool isAvalancheFinalized(const TxId &txid) const
         EXCLUSIVE_LOCKS_REQUIRED(cs) {
