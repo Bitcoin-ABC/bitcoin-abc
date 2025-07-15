@@ -5,6 +5,9 @@
 #ifndef BITCOIN_CONSENSUS_TX_VERIFY_H
 #define BITCOIN_CONSENSUS_TX_VERIFY_H
 
+#include <kernel/cs_main.h>
+#include <threadsafety.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -40,6 +43,15 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
                                 const CTransaction &tx,
                                 TxValidationState &state, int nHeight,
                                 int64_t nMedianTimePast);
+
+/**
+ * This is a variant of ContextualCheckTransaction which computes the contextual
+ * check for a transaction based on the chain tip.
+ */
+bool ContextualCheckTransactionForCurrentBlock(
+    const CBlockIndex &active_chain_tip, const Consensus::Params &params,
+    const CTransaction &tx, TxValidationState &state)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
 /**
  * Calculates the block height and previous block's median time past at which

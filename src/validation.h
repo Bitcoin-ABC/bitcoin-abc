@@ -577,17 +577,6 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
                 BlockValidationOptions validationOptions);
 
 /**
- * This is a variant of ContextualCheckTransaction which computes the contextual
- * check for a transaction based on the chain tip.
- *
- * See consensus/consensus.h for flag definitions.
- */
-bool ContextualCheckTransactionForCurrentBlock(
-    const CBlockIndex &active_chain_tip, const Consensus::Params &params,
-    const CTransaction &tx, TxValidationState &state)
-    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
-/**
  * Check a block is completely valid from start to finish (only works on top of
  * our current best block)
  */

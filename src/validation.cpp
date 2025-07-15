@@ -4511,32 +4511,6 @@ static bool ContextualCheckBlockHeader(
     return true;
 }
 
-bool ContextualCheckTransactionForCurrentBlock(
-    const CBlockIndex &active_chain_tip, const Consensus::Params &params,
-    const CTransaction &tx, TxValidationState &state) {
-    AssertLockHeld(cs_main);
-
-    // ContextualCheckTransactionForCurrentBlock() uses
-    // active_chain_tip.Height()+1 to evaluate nLockTime because when
-    // IsFinalTx() is called within AcceptBlock(), the height of the
-    // block *being* evaluated is what is used. Thus if we want to know if a
-    // transaction can be part of the *next* block, we need to call
-    // ContextualCheckTransaction() with one more than
-    // active_chain_tip.Height().
-    const int nBlockHeight = active_chain_tip.nHeight + 1;
-
-    // BIP113 will require that time-locked transactions have nLockTime set to
-    // less than the median time of the previous block they're contained in.
-    // When the next block is created its previous block will be the current
-    // chain tip, so we use that to calculate the median time passed to
-    // ContextualCheckTransaction().
-    // This time can also be used for consensus upgrades.
-    const int64_t nMedianTimePast{active_chain_tip.GetMedianTimePast()};
-
-    return ContextualCheckTransaction(params, tx, state, nBlockHeight,
-                                      nMedianTimePast);
-}
-
 /**
  * NOTE: This function is not currently invoked by ConnectBlock(), so we
  * should consider upgrade issues if we change which consensus rules are
