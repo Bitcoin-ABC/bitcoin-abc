@@ -6,54 +6,88 @@ import React from 'react';
 import {
     walletWithXecAndTokens,
     populatedContactList,
+    validSavedWallets,
+    bearTokenAndTx,
 } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
-import { when } from 'jest-when';
-import appConfig from 'config/app';
+import { prepareContext, mockPrice } from 'test';
+import { ThemeProvider } from 'styled-components';
+import { theme } from 'assets/styles/theme';
+import { MemoryRouter } from 'react-router-dom';
+import { WalletProvider } from 'wallet/context';
+import { ChronikClient } from 'chronik-client';
+import { Ecc } from 'ecash-lib';
+import { Agora } from 'ecash-agora';
 import {
-    initializeCashtabStateForTests,
-    clearLocalForage,
-} from 'components/App/fixtures/helpers';
-import { validSavedWallets } from 'components/App/fixtures/mocks';
-import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+    MockAgora,
+    MockChronikClient,
+} from '../../../../../modules/mock-chronik-client';
+import App from 'components/App/App';
+
+interface ContactsTestWrapperProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    theme: any;
+    route?: string;
+}
+
+const ContactsTestWrapper: React.FC<ContactsTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    theme,
+    route = '/contacts',
+}) => (
+    <WalletProvider
+        chronik={chronik as unknown as ChronikClient}
+        agora={agora as unknown as Agora}
+        ecc={ecc}
+    >
+        <MemoryRouter initialEntries={[route]}>
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
+        </MemoryRouter>
+    </WalletProvider>
+);
 
 describe('<Contacts />', () => {
-    let user;
+    const ecc = new Ecc();
+    let user: ReturnType<typeof userEvent.setup>;
+    let mockAgora: MockAgora;
+
     beforeEach(() => {
+        mockAgora = new MockAgora();
         // Set up userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
-        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
-        const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs requiring different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003;
-        const priceResponse = {
-            ecash: {
-                usd: xecPrice,
-                last_updated_at: 1706644626,
-            },
-        };
-        when(fetch)
-            .calledWith(priceApiUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
-            });
+        mockPrice(0.00003);
     });
+
     afterEach(async () => {
         jest.clearAllMocks();
-        await clearLocalForage(localforage);
+        await localforage.clear();
     });
+
     it('We can add, delete, rename, contacts from the Configure screen, and add a savedWallet as a contact', async () => {
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
         // localforage defaults
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
 
         // Custom contact list
@@ -67,7 +101,12 @@ describe('<Contacts />', () => {
         ]);
 
         render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/contacts" />,
+            <ContactsTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+                theme={theme}
+            />,
         );
 
         // Wait for the app to load
@@ -238,18 +277,32 @@ describe('<Contacts />', () => {
             ).toBeInTheDocument();
         });
     });
+
     it('We can send a tx to an address in contacts', async () => {
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
         // localforage defaults
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
 
         // Custom contact list
         await localforage.setItem('contactList', populatedContactList);
 
         render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/contacts" />,
+            <ContactsTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+                theme={theme}
+            />,
         );
 
         // Wait for the app to load
