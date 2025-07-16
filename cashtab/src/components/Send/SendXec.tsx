@@ -85,6 +85,12 @@ const OuterCtn = styled.div`
     background: ${props => props.theme.primaryBackground};
     padding: 20px;
     border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 250px);
+    @media (max-width: 768px) {
+        min-height: calc(100vh - 300px);
+    }
 `;
 
 const SendXecForm = styled.div`
@@ -92,6 +98,7 @@ const SendXecForm = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex-grow: 1;
 `;
 const SendXecRow = styled.div``;
 const SwitchAndLabel = styled.div`
