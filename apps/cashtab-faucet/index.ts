@@ -32,7 +32,7 @@ const server = startExpressServer(
     ecc,
     rateLimit(config.limiter),
     rateLimit(config.tokenLimiter),
-    process.env.RECAPTCHA_SECRET || '',
+    process.env.RECAPTCHA_SK || '',
     wallet,
 );
 console.log(`Express server started on port ${config.port}`);
