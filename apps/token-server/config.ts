@@ -38,6 +38,7 @@ const config: TokenServerConfig = {
         'https://cashtab.com',
         'https://cashtab.io',
         'https://cashtab-local-dev.netlify.app',
+        'https://cashtab-testnet.fabien.cash',
         'chrome-extension://aleabaopoakgpbijdnicepefdiglggfl', // dev extension
         'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag', // prod extension
     ],
