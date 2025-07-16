@@ -974,7 +974,7 @@ const SendXec: React.FC = () => {
             const cleanAddress = formData.address.split('?')[0];
 
             const satoshisToSend =
-                selectedCurrency === 'XEC'
+                selectedCurrency === appConfig.ticker
                     ? toSatoshis(parseFloat(formData.amount))
                     : fiatToSatoshis(formData.amount, fiatPrice as number);
 
@@ -1402,7 +1402,8 @@ const SendXec: React.FC = () => {
         }
     }
 
-    const priceApiError = fiatPrice === null && selectedCurrency !== 'XEC';
+    const priceApiError =
+        fiatPrice === null && selectedCurrency !== appConfig.ticker;
 
     const disableSendButton = shouldSendXecBeDisabled(
         formData,

@@ -109,7 +109,7 @@ export const Receive: React.FC = () => {
                                 src: receiveFirma ? firmaLogo : appConfig.logo,
                                 alt: receiveFirma ? 'Firma Logo' : 'eCash Logo',
                             }}
-                            suffix={receiveFirma ? 'FIRMA' : 'XEC'}
+                            suffix={receiveFirma ? 'FIRMA' : appConfig.ticker}
                             name="bip21Qty"
                             value={bip21Qty}
                             error={bip21QtyError}

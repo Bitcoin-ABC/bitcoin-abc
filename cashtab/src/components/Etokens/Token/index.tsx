@@ -869,10 +869,10 @@ const Token: React.FC = () => {
     }, [switches]);
 
     useEffect(() => {
-        if (fiatPrice === null && selectedCurrency !== 'XEC') {
+        if (fiatPrice === null && selectedCurrency !== appConfig.ticker) {
             // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable
             handleSelectedCurrencyChange({
-                target: { value: 'XEC' },
+                target: { value: appConfig.ticker },
             } as React.ChangeEvent<HTMLSelectElement>);
         }
     }, [fiatPrice]);
