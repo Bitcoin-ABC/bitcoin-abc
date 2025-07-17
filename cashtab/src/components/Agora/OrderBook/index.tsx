@@ -1650,11 +1650,25 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                 75%
                                             </PercentageButton>
                                             <PercentageButton
-                                                onClick={() =>
+                                                onClick={() => {
+                                                    // If user cannot afford the whole offer, use 99% instead of 100%
+                                                    const maxAffordable =
+                                                        calculateMaxAffordableAmount(
+                                                            selectedOffer as PartialOffer,
+                                                            balanceSats,
+                                                        );
+                                                    const maxAvailable = (
+                                                        selectedOffer as PartialOffer
+                                                    ).token.atoms;
+                                                    const percentage =
+                                                        maxAffordable <
+                                                        maxAvailable
+                                                            ? 99
+                                                            : 100;
                                                     handlePercentageButtonClick(
-                                                        100,
-                                                    )
-                                                }
+                                                        percentage,
+                                                    );
+                                                }}
                                                 disabled={
                                                     !canRenderOrderbook ||
                                                     typeof selectedOffer ===
@@ -1678,7 +1692,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                     ).token.atoms;
                                                     return maxAffordable <
                                                         maxAvailable
-                                                        ? 'Set to maximum affordable amount'
+                                                        ? 'Set to 99% of maximum affordable amount'
                                                         : 'Set to maximum available amount';
                                                 })()}
                                             >
