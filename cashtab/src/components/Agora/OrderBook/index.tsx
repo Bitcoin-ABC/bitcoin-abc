@@ -448,17 +448,26 @@ const OrderBook: React.FC<OrderBookProps> = ({
         }
 
         // Use an arbitrary sk, pk for the convenant
-        const acceptTxSer = agoraPartial
-            .acceptTx({
-                covenantSk: DUMMY_KEYPAIR.sk,
-                covenantPk: DUMMY_KEYPAIR.pk,
-                fuelInputs: signedFuelInputs,
-                // Accept at default path, 1899
-                recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
-                feePerKb: satsPerKb,
-                acceptedAtoms: preparedTokenSatoshis,
-            })
-            .ser();
+        let acceptTxSer;
+        try {
+            acceptTxSer = agoraPartial
+                .acceptTx({
+                    covenantSk: DUMMY_KEYPAIR.sk,
+                    covenantPk: DUMMY_KEYPAIR.pk,
+                    fuelInputs: signedFuelInputs,
+                    // Accept at default path, 1899
+                    recipientScript: Script.p2pkh(
+                        fromHex(defaultPathInfo.hash),
+                    ),
+                    feePerKb: satsPerKb,
+                    acceptedAtoms: preparedTokenSatoshis,
+                })
+                .ser();
+        } catch (err) {
+            console.error('Error accepting offer', err);
+            toast.error(`${err}`);
+            return;
+        }
 
         // We need hex so we can log it to get integration test mocks
         const hex = toHex(acceptTxSer);
