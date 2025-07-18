@@ -78,6 +78,11 @@ WORKDIR /app/modules/ecash-lib
 RUN npm ci
 RUN npm run build
 
+# ecash-wallet
+WORKDIR /app/modules/ecash-wallet
+RUN npm ci
+RUN npm run build
+
 # Now that local dependencies are ready, build cashtab-faucet
 WORKDIR /app/apps/cashtab-faucet
 

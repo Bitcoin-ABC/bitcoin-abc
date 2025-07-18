@@ -822,6 +822,7 @@ builds:
   cashtab-faucet-tests:
     runOnDiffRegex:
       - apps/cashtab-faucet/
+      - modules/ecash-wallet/
       - modules/mock-chronik-client/
       - modules/ecashaddrjs/
       - modules/chronik-client/

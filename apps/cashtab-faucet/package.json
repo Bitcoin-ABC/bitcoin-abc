@@ -49,11 +49,11 @@
     "dependencies": {
         "axios": "^1.7.7",
         "bip32": "^4.0.0",
-        "bip39": "^3.1.0",
         "chronik-client": "file:../../modules/chronik-client",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
         "ecash-lib": "file:../../modules/ecash-lib",
+        "ecash-wallet": "file:../../modules/ecash-wallet",
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
         "ecpair": "^2.1.0",
         "ethereum-blockies-base64": "^1.0.2",

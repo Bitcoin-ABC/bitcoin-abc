@@ -24,7 +24,7 @@ import {
     SLP_TOKEN_TYPE_FUNGIBLE,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
-import Wallet, { SatsSelectionStrategy } from '../src/wallet';
+import { Wallet, SatsSelectionStrategy } from '../src/wallet';
 
 use(chaiAsPromised);
 

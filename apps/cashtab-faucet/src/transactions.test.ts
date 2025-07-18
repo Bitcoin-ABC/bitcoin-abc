@@ -3,89 +3,44 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as assert from 'assert';
-import {
-    getSlpInputsAndOutputs,
-    sendReward,
-    sendXecAirdrop,
-} from '../src/transactions';
+import { sendReward, sendXecAirdrop } from '../src/transactions';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import vectors from '../test/vectors';
-import { Ecc } from 'ecash-lib';
+import { fromHex } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
+import { Wallet } from 'ecash-wallet';
+
+const MOCK_SK = fromHex(
+    'd8b9d9868e5e55f98e241a48f905dce1fc6ae5d0d7be69109ccac8c7d09ce57a',
+);
 
 describe('transactions.ts', function () {
-    const ecc = new Ecc();
-    describe('We can get slpInputs and slpOutputs for a token rewards tx to one destinationAddress', function () {
-        const { returns, errors } = vectors.getSlpInputsAndOutputs;
-        returns.forEach(vector => {
-            const {
-                description,
-                rewardAmountTokenSats,
-                destinationAddress,
-                tokenId,
-                utxos,
-                changeAddress,
-                returned,
-            } = vector;
-            it(description, function () {
-                assert.deepEqual(
-                    getSlpInputsAndOutputs(
-                        rewardAmountTokenSats,
-                        destinationAddress,
-                        tokenId,
-                        utxos,
-                        changeAddress,
-                    ),
-                    returned,
-                );
-            });
-        });
-        errors.forEach(vector => {
-            const {
-                description,
-                rewardAmountTokenSats,
-                destinationAddress,
-                tokenId,
-                utxos,
-                changeAddress,
-                error,
-            } = vector;
-            it(description, function () {
-                assert.throws(
-                    () =>
-                        getSlpInputsAndOutputs(
-                            rewardAmountTokenSats,
-                            destinationAddress,
-                            tokenId,
-                            utxos,
-                            changeAddress,
-                        ),
-                    error,
-                );
-            });
-        });
-    });
     describe('We can build and broadcast a token reward tx', function () {
         const { returns, errors } = vectors.sendReward;
         returns.forEach(vector => {
             const {
                 description,
-                wallet,
                 utxos,
                 tokenId,
                 rewardAmountTokenSats,
                 destinationAddress,
+                rawTx,
                 returned,
             } = vector;
+            const mockChronik = new MockChronikClient();
+
+            const wallet = Wallet.fromSk(
+                MOCK_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+
             // Set mocks in chronik-client
-            const mockedChronik = new MockChronikClient();
-            mockedChronik.setUtxosByAddress(wallet.address, utxos);
-            mockedChronik.setBroadcastTx(returned.hex, returned.response.txid);
+            mockChronik.setUtxosByAddress(wallet.address, utxos);
+            mockChronik.setBroadcastTx(rawTx, returned.txid);
+
             it(description, async function () {
                 assert.deepEqual(
                     await sendReward(
-                        mockedChronik as unknown as ChronikClient,
-                        ecc,
                         wallet,
                         tokenId,
                         rewardAmountTokenSats,
@@ -98,21 +53,23 @@ describe('transactions.ts', function () {
         errors.forEach(vector => {
             const {
                 description,
-                wallet,
                 utxos,
                 tokenId,
                 rewardAmountTokenSats,
                 destinationAddress,
                 error,
             } = vector;
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromSk(
+                MOCK_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+
             // Set mocks in chronik-client
-            const mockedChronik = new MockChronikClient();
-            mockedChronik.setUtxosByAddress(wallet.address, utxos);
+            mockChronik.setUtxosByAddress(wallet.address, utxos);
             it(description, async function () {
                 await assert.rejects(
                     sendReward(
-                        mockedChronik as unknown as ChronikClient,
-                        ecc,
                         wallet,
                         tokenId,
                         rewardAmountTokenSats,
@@ -128,21 +85,23 @@ describe('transactions.ts', function () {
         returns.forEach(vector => {
             const {
                 description,
-                wallet,
                 utxos,
                 xecAirdropAmountSats,
                 destinationAddress,
+                rawTx,
                 returned,
             } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
+            const wallet = Wallet.fromSk(
+                MOCK_SK,
+                mockedChronik as unknown as ChronikClient,
+            );
             mockedChronik.setUtxosByAddress(wallet.address, utxos);
-            mockedChronik.setBroadcastTx(returned.hex, returned.response.txid);
+            mockedChronik.setBroadcastTx(rawTx, returned.txid);
             it(description, async function () {
                 assert.deepEqual(
                     await sendXecAirdrop(
-                        mockedChronik as unknown as ChronikClient,
-                        ecc,
                         wallet,
                         xecAirdropAmountSats,
                         destinationAddress,
@@ -154,7 +113,6 @@ describe('transactions.ts', function () {
         errors.forEach(vector => {
             const {
                 description,
-                wallet,
                 utxos,
                 xecAirdropAmountSats,
                 destinationAddress,
@@ -162,12 +120,14 @@ describe('transactions.ts', function () {
             } = vector;
             // Set mocks in chronik-client
             const mockedChronik = new MockChronikClient();
+            const wallet = Wallet.fromSk(
+                MOCK_SK,
+                mockedChronik as unknown as ChronikClient,
+            );
             mockedChronik.setUtxosByAddress(wallet.address, utxos);
             it(description, async function () {
                 await assert.rejects(
                     sendXecAirdrop(
-                        mockedChronik as unknown as ChronikClient,
-                        ecc,
                         wallet,
                         xecAirdropAmountSats,
                         destinationAddress,

@@ -29,7 +29,8 @@ import {
     TokenType,
 } from 'chronik-client';
 import { MockChronikClient } from 'mock-chronik-client';
-import Wallet, {
+import {
+    Wallet,
     validateTokenActions,
     getActionTotals,
     getTokenType,
@@ -187,6 +188,23 @@ describe('wallet.ts', () => {
             DUMMY_SK,
             mockChronik as unknown as ChronikClient,
         );
+
+        // We can create a wallet from a mnemonic
+        const mnemonicWallet = Wallet.fromMnemonic(
+            'morning average minor stable parrot refuse credit exercise february mirror just begin',
+            mockChronik as unknown as ChronikClient,
+        );
+
+        const mnemonicSk = mnemonicWallet.sk;
+
+        // We can generate the same wallet from an sk
+        const mnemonicWalletFromSk = Wallet.fromSk(
+            mnemonicSk,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // They are the same wallet
+        expect(mnemonicWallet.sk).to.deep.equal(mnemonicWalletFromSk.sk);
 
         // sk and chronik are directly set by constructor
         expect(testWallet.sk).to.equal(DUMMY_SK);

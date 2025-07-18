@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,12 +12,6 @@ import {
     ScriptUtxo,
     TokenType,
 } from 'chronik-client';
-import { ServerWallet } from '../src/wallet';
-import {
-    SlpInputsAndOutputs,
-    RewardBroadcastSuccess,
-} from '../src/transactions';
-import { Script } from 'ecash-lib';
 
 const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
 const IFP_OUTPUTSCRIPT = 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
@@ -30,23 +24,11 @@ const MOCK_OTHER_CHECKED_OUTPUTSCRIPT =
     '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac';
 const MOCK_TOKENID_ONES =
     '1111111111111111111111111111111111111111111111111111111111111111';
-const MOCK_TOKENID_TWOS =
-    '2222222222222222222222222222222222222222222222222222222222222222';
+
 const MOCK_REWARD_TOKENID =
     'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa';
 const MOCK_OTHER_TOKENID =
     'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7';
-
-const MOCK_WALLET = {
-    address: 'ecash:qzj6laqtj74j59dd6qv9hhx5e5868htmrqrttcqzxn',
-    sk: Uint8Array.from(
-        Buffer.from(
-            'd8b9d9868e5e55f98e241a48f905dce1fc6ae5d0d7be69109ccac8c7d09ce57a',
-            'hex',
-        ),
-    ),
-    utxos: [],
-};
 
 export const MOCK_OUTPOINT: OutPoint = {
     txid: '1111111111111111111111111111111111111111111111111111111111111111',
@@ -103,14 +85,6 @@ export const MOCK_UTXO_TOKEN: Token = {
 export const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo = {
     ...MOCK_SCRIPT_UTXO,
     token: MOCK_UTXO_TOKEN,
-};
-const MOCK_MINT_BATON_TOKEN_UTXO: ScriptUtxo = {
-    ...MOCK_SPENDABLE_TOKEN_UTXO,
-    token: {
-        ...MOCK_UTXO_TOKEN,
-        atoms: 0n,
-        isMintBaton: true,
-    },
 };
 
 const MOCK_BLOCK_METADATA: BlockMetadata = {
@@ -203,66 +177,6 @@ interface isAddressEligibleForTokenRewardReturn {
     returned: boolean | number;
 }
 
-interface GetWalletFromSeedReturn {
-    description: string;
-    mnemonic: string;
-    returned: ServerWallet;
-}
-
-interface GetWalletFromSeedError {
-    description: string;
-    mnemonic: string;
-    error: Error;
-}
-
-interface GetWalletFromSeedVector {
-    returns: GetWalletFromSeedReturn[];
-    errors: GetWalletFromSeedError[];
-}
-
-interface SyncWalletVector {
-    returns: SyncWalletReturn[];
-    errors: SyncWalletError[];
-}
-
-interface SyncWalletReturn {
-    description: string;
-    wallet: ServerWallet;
-    mockUtxos: ScriptUtxo[];
-    returned: ServerWallet;
-}
-
-interface SyncWalletError {
-    description: string;
-    wallet: ServerWallet;
-    error: Error;
-}
-
-interface GetSlpInputsAndOutputsVector {
-    returns: GetSlpInputsAndOutputsReturn[];
-    errors: GetSlpInputsAndOutputsError[];
-}
-
-interface GetSlpInputsAndOutputsReturn {
-    description: string;
-    rewardAmountTokenSats: bigint;
-    destinationAddress: string;
-    tokenId: string;
-    utxos: ScriptUtxo[];
-    changeAddress: string;
-    returned: SlpInputsAndOutputs;
-}
-
-interface GetSlpInputsAndOutputsError {
-    description: string;
-    rewardAmountTokenSats: bigint;
-    destinationAddress: string;
-    tokenId: string;
-    utxos: ScriptUtxo[];
-    changeAddress: string;
-    error: Error;
-}
-
 interface SendRewardVector {
     returns: SendRewardReturn[];
     errors: SendRewardError[];
@@ -270,16 +184,15 @@ interface SendRewardVector {
 
 interface SendRewardReturn {
     description: string;
-    wallet: ServerWallet;
     utxos: ScriptUtxo[];
     tokenId: string;
     rewardAmountTokenSats: bigint;
     destinationAddress: string;
-    returned: RewardBroadcastSuccess;
+    rawTx: string;
+    returned: { txid: string };
 }
 interface SendRewardError {
     description: string;
-    wallet: ServerWallet;
     utxos: Error | ScriptUtxo[];
     tokenId: string;
     rewardAmountTokenSats: bigint;
@@ -294,16 +207,15 @@ interface SendXecAirdropVector {
 
 interface SendXecAirdropReturn {
     description: string;
-    wallet: ServerWallet;
     utxos: ScriptUtxo[];
     xecAirdropAmountSats: bigint;
     destinationAddress: string;
-    returned: RewardBroadcastSuccess;
+    rawTx: string;
+    returned: { txid: string };
 }
 
 interface SendXecAirdropError {
     description: string;
-    wallet: ServerWallet;
     utxos: Error | ScriptUtxo[];
     xecAirdropAmountSats: bigint;
     destinationAddress: string;
@@ -316,9 +228,6 @@ interface TestVectors {
     getTxTimestamp: GetTxTimestampReturnVector;
     getHistoryAfterTimestamp: GetHistoryAfterTimestampVector;
     isAddressEligibleForTokenReward: isAddressEligibleForTokenRewardVector;
-    getWalletFromSeed: GetWalletFromSeedVector;
-    syncWallet: SyncWalletVector;
-    getSlpInputsAndOutputs: GetSlpInputsAndOutputsVector;
     sendReward: SendRewardVector;
     sendXecAirdrop: SendXecAirdropVector;
 }
@@ -738,254 +647,10 @@ const vectors: TestVectors = {
             },
         ],
     },
-    // wallet.ts
-    getWalletFromSeed: {
-        returns: [
-            {
-                description:
-                    'We can get an ecash address and a wif from a valid 12-word bip39 seed',
-                mnemonic:
-                    'prevent history faith square peace prevent year frame curtain excite issue vicious',
-                returned: {
-                    address: 'ecash:qrha2rrjwcqq7q384f5ndq4mnsg28dx23cqs9c397r',
-                    sk: Uint8Array.from(
-                        Buffer.from(
-                            'f7f7c12f3857082e9a4ecec79fded199bf78040de0b4ac8f0a7d5f9552b28031',
-                            'hex',
-                        ),
-                    ),
-                },
-            },
-        ],
-        errors: [
-            {
-                description:
-                    'We throw expected error if called with an invalid bip39 mnemonic',
-                mnemonic: 'just some string',
-                error: new Error(
-                    'getWalletFromSeed called with invalid mnemonic',
-                ),
-            },
-        ],
-    },
-    // Todo add mock utxos
-    // todo test, confirm the object changes without passing the var
-    syncWallet: {
-        returns: [
-            {
-                description: 'We can update the utxo set of a wallet',
-                wallet: {
-                    address: 'ecash:qpm0kyq9x2clugajdycwwqqalaucn5km25zv644uxe',
-                    sk: Uint8Array.from(
-                        Buffer.from(
-                            '78c6bfffd52b70404de0719962966adb34b61cf20414feebed7435b96dca479a',
-                            'hex',
-                        ),
-                    ),
-                    utxos: [],
-                },
-                mockUtxos: [
-                    MOCK_SCRIPT_UTXO,
-                    MOCK_SCRIPT_UTXO,
-                    MOCK_SCRIPT_UTXO,
-                ],
-                returned: {
-                    address: 'ecash:qpm0kyq9x2clugajdycwwqqalaucn5km25zv644uxe',
-                    sk: Uint8Array.from(
-                        Buffer.from(
-                            '78c6bfffd52b70404de0719962966adb34b61cf20414feebed7435b96dca479a',
-                            'hex',
-                        ),
-                    ),
-                    utxos: [
-                        MOCK_SCRIPT_UTXO,
-                        MOCK_SCRIPT_UTXO,
-                        MOCK_SCRIPT_UTXO,
-                    ],
-                },
-            },
-        ],
-        errors: [
-            {
-                description: 'We throw expected error if chronik call fails',
-                wallet: {
-                    address: 'ecash:qpm0kyq9x2clugajdycwwqqalaucn5km25zv644uxe',
-                    sk: Uint8Array.from(
-                        Buffer.from(
-                            '78c6bfffd52b70404de0719962966adb34b61cf20414feebed7435b96dca479a',
-                            'hex',
-                        ),
-                    ),
-                    utxos: [],
-                },
-                error: new Error('error from chronik'),
-            },
-        ],
-    },
-    getSlpInputsAndOutputs: {
-        returns: [
-            {
-                description:
-                    'We get expected inputs and outputs if we have sufficient token utxos to exactly cover the reward amount',
-                rewardAmountTokenSats: 3n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                tokenId: MOCK_TOKENID_ONES,
-                utxos: [
-                    MOCK_SPENDABLE_TOKEN_UTXO,
-                    MOCK_SPENDABLE_TOKEN_UTXO,
-                    MOCK_SPENDABLE_TOKEN_UTXO,
-                ],
-                changeAddress: MOCK_WALLET.address,
-                returned: {
-                    slpInputs: [
-                        MOCK_SPENDABLE_TOKEN_UTXO,
-                        MOCK_SPENDABLE_TOKEN_UTXO,
-                        MOCK_SPENDABLE_TOKEN_UTXO,
-                    ],
-                    slpOutputs: [
-                        {
-                            script: new Script(
-                                new Uint8Array([
-                                    106, 4, 83, 76, 80, 0, 1, 1, 4, 83, 69, 78,
-                                    68, 32, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-                                    17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-                                    17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-                                    17, 8, 0, 0, 0, 0, 0, 0, 0, 3,
-                                ]),
-                            ),
-                            sats: 0n,
-                        },
-                        {
-                            script: Script.fromAddress(
-                                'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx',
-                            ),
-                            sats: 546n,
-                        },
-                    ],
-                },
-            },
-            {
-                description:
-                    'We get expected inputs and outputs if we have sufficient token utxos to cover the reward amount with change',
-                rewardAmountTokenSats: 3n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                tokenId: MOCK_TOKENID_ONES,
-                utxos: [
-                    {
-                        ...MOCK_SPENDABLE_TOKEN_UTXO,
-                        token: {
-                            ...MOCK_UTXO_TOKEN,
-                            atoms: 5n,
-                        },
-                    },
-                ],
-                changeAddress: MOCK_WALLET.address,
-                returned: {
-                    slpInputs: [
-                        {
-                            ...MOCK_SPENDABLE_TOKEN_UTXO,
-                            token: {
-                                ...MOCK_UTXO_TOKEN,
-                                atoms: 5n,
-                            },
-                        },
-                    ],
-                    slpOutputs: [
-                        {
-                            script: new Script(
-                                new Uint8Array([
-                                    106, 4, 83, 76, 80, 0, 1, 1, 4, 83, 69, 78,
-                                    68, 32, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-                                    17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-                                    17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-                                    17, 8, 0, 0, 0, 0, 0, 0, 0, 3, 8, 0, 0, 0,
-                                    0, 0, 0, 0, 2,
-                                ]),
-                            ),
-                            sats: 0n,
-                        },
-                        {
-                            script: Script.fromAddress(
-                                'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx',
-                            ),
-                            sats: 546n,
-                        },
-                        {
-                            script: Script.fromAddress(MOCK_WALLET.address),
-                            sats: 546n,
-                        },
-                    ],
-                },
-            },
-        ],
-        errors: [
-            {
-                description: 'We have insufficient utxos if we have no utxos',
-                rewardAmountTokenSats: 1n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                tokenId: MOCK_TOKENID_ONES,
-                utxos: [],
-                changeAddress: MOCK_WALLET.address,
-                error: new Error('Insufficient token utxos'),
-            },
-            {
-                description:
-                    'We have insufficient utxos if we have utxos of total amount one less than rewardAmountTokenSats',
-                rewardAmountTokenSats: 3n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                tokenId: MOCK_TOKENID_ONES,
-                utxos: [MOCK_SPENDABLE_TOKEN_UTXO, MOCK_SPENDABLE_TOKEN_UTXO],
-                changeAddress: MOCK_WALLET.address,
-                error: new Error('Insufficient token utxos'),
-            },
-            {
-                description:
-                    'We have insufficient utxos if we have mint batons, eCash utxos, and spendable token utxos of other tokenIds, but not enough spendable utxos for the right token',
-                rewardAmountTokenSats: 5n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                tokenId: MOCK_TOKENID_ONES,
-                utxos: [
-                    MOCK_MINT_BATON_TOKEN_UTXO,
-                    MOCK_SPENDABLE_TOKEN_UTXO,
-                    MOCK_MINT_BATON_TOKEN_UTXO,
-                    {
-                        ...MOCK_SPENDABLE_TOKEN_UTXO,
-                        token: {
-                            ...MOCK_UTXO_TOKEN,
-                            tokenId: MOCK_TOKENID_TWOS,
-                            atoms: 5n,
-                        },
-                    },
-                ],
-                changeAddress: MOCK_WALLET.address,
-                error: new Error('Insufficient token utxos'),
-            },
-            {
-                description:
-                    'We have insufficient utxos if we have only mint batons, even if they are (somehow) of enough quantity',
-                rewardAmountTokenSats: 1n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                tokenId: MOCK_TOKENID_ONES,
-                utxos: [
-                    {
-                        ...MOCK_MINT_BATON_TOKEN_UTXO,
-                        token: {
-                            ...MOCK_UTXO_TOKEN,
-                            isMintBaton: true,
-                            atoms: 5n,
-                        },
-                    },
-                ],
-                changeAddress: MOCK_WALLET.address,
-                error: new Error('Insufficient token utxos'),
-            },
-        ],
-    },
     sendReward: {
         returns: [
             {
                 description: 'Token reward tx with no token change',
-                wallet: MOCK_WALLET,
                 utxos: [
                     { ...MOCK_SCRIPT_UTXO, sats: 10000n },
                     {
@@ -996,16 +661,13 @@ const vectors: TestVectors = {
                 tokenId: MOCK_TOKENID_ONES,
                 rewardAmountTokenSats: 1n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
+                rawTx: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441c877154b78ac6c96d6fa23efb1f607c97ade73a78ce8a78467e518e503860c2cd1a58779976acf9af9c987847434406fad0762931821cd17fa782b6387f5ac6a41210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111010000006441c0a1edbd5459595b90d947de9d66196a86eaec6977a8c4083416dd4593ec47851bd624e517f154734a7c3acda0f64b5b2d8eaee9100362940bdff93b6181c31641210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff030000000000000000376a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000122020000000000001976a914000000000000000000000000000000000000000088ac68250000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
                 returned: {
-                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006441bd8fbfe0948c55c240cc59a2310383cfcf8384bbef43f006e10a9066bc5326598da467b04cf5a3923c483f5f71e70562d9e9857b44223873e7d356655081573541210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111000000006441488697564a9838c49c43060b65cfdce99007f7cb7ba4934d3e8bd190e7f23fdb5c4649b2b1e9d7893feb5130cb6e71969bb54b4150e8af7d4f5e3cf6a2a4ab6941210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff030000000000000000376a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000122020000000000001976a914000000000000000000000000000000000000000088ac68250000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
-                    response: {
-                        txid: '67be6282c95a9462db206f4618f74d6a61f76e2306ee8f444951e86aa17c79ba',
-                    },
+                    txid: '7fef362d4749cbeb7519c89d7db6e561c5c6ea19d12cb516de48013271bd8450',
                 },
             },
             {
                 description: 'Token reward tx with change',
-                wallet: MOCK_WALLET,
                 utxos: [
                     { ...MOCK_SCRIPT_UTXO, sats: 10000n },
                     {
@@ -1017,18 +679,15 @@ const vectors: TestVectors = {
                 tokenId: MOCK_TOKENID_ONES,
                 rewardAmountTokenSats: 5n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
+                rawTx: '0200000002111111111111111111111111111111111111111111111111111111111111111100000000644121ae6cfd7dd7477805ddc450105989439d2528a6b826b5114b434e8896afc02a44c2334ad62224e0a75fa933fb37d4bc0b9577835875d61aba95334bf2d7ef4b41210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff11111111111111111111111111111111111111111111111111111111111111110100000064411f607711df2017150dc78bc9b0964d8ec5b5c2a1c13ff5cff274d5a0327ddef5d2dd7b82d8b04e2ce79fc43c4bcb4212fe76c34f3b0e01e838af7035ce45979d41210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff040000000000000000406a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000508000000000000000522020000000000001976a914000000000000000000000000000000000000000088ac22020000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac1b230000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
                 returned: {
-                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006441a65f21241c03203fd90c1573fc8d464ad5e70f1122195137da262eca3110c573532f9729a6b21dbcf27d3f8d493af74a256d54279bbaf6a028516e1c75f1d62c41210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff11111111111111111111111111111111111111111111111111111111111111110000000064417d207e7edb2e1fb7cdd4e1933bba1ef52e835055b8f73707d9c061b9597b8be84071917b9e9264aa676190143a4479f1e3a5fc23eafef6852495610517dc6bb941210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff040000000000000000406a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000508000000000000000522020000000000001976a914000000000000000000000000000000000000000088ac22020000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac1b230000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
-                    response: {
-                        txid: 'a5acb50ef2e93ffc19dcd19b93c536fdda8dc41c430dfc619eb1458658e615c1',
-                    },
+                    txid: '5f35bddd3f2736b05319da64a9df2abca91bf5ae2726338254500fc4dcffd62f',
                 },
             },
         ],
         errors: [
             {
                 description: 'Expected error if wallet fails to sync utxo set',
-                wallet: MOCK_WALLET,
                 utxos: new Error('Some chronik error trying to fetch utxos'),
                 tokenId: MOCK_TOKENID_ONES,
                 rewardAmountTokenSats: 100n,
@@ -1037,7 +696,6 @@ const vectors: TestVectors = {
             },
             {
                 description: 'Expected error if insufficient token balance',
-                wallet: MOCK_WALLET,
                 utxos: [
                     { ...MOCK_SCRIPT_UTXO, sats: 10000n },
                     {
@@ -1048,34 +706,9 @@ const vectors: TestVectors = {
                 tokenId: MOCK_TOKENID_ONES,
                 rewardAmountTokenSats: 2n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
-                error: new Error('Insufficient token utxos'),
-            },
-            {
-                description:
-                    'Expected error if insufficient non-token utxos to send a tx',
-                wallet: MOCK_WALLET,
-                utxos: [
-                    // Only token utxos are available
-                    // Enough XEC to send the tx, but only if token amounts are calculated properly
-                    // TODO optimize token utxo selection for xec-free txs
-                    {
-                        ...MOCK_SPENDABLE_TOKEN_UTXO,
-                        outpoint: { ...MOCK_OUTPOINT, outIdx: 2 },
-                    },
-                    {
-                        ...MOCK_SPENDABLE_TOKEN_UTXO,
-                        outpoint: { ...MOCK_OUTPOINT, outIdx: 3 },
-                    },
-                    {
-                        ...MOCK_SPENDABLE_TOKEN_UTXO,
-                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
-                        token: { ...MOCK_UTXO_TOKEN, atoms: 2n },
-                    },
-                ],
-                tokenId: MOCK_TOKENID_ONES,
-                rewardAmountTokenSats: 2n,
-                destinationAddress: MOCK_DESTINATION_ADDRESS,
-                error: new Error('Insufficient XEC utxos to complete tx'),
+                error: new Error(
+                    'Missing required token utxos: 1111111111111111111111111111111111111111111111111111111111111111 => Missing 1 atom',
+                ),
             },
         ],
     },
@@ -1083,21 +716,17 @@ const vectors: TestVectors = {
         returns: [
             {
                 description: 'XEC Airdrop with no change',
-                wallet: MOCK_WALLET,
                 utxos: [{ ...MOCK_SCRIPT_UTXO, sats: 2185n }],
                 xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
+                rawTx: '0200000001111111111111111111111111111111111111111111111111111111111111111100000000644119ee30fd7a03ffe1b969c994842e5190a47e64a634efb4a8743762c7db6a9e76996fd119abddbc84c911bcab99da86e361d49d1a7452871f918f9ab7574cf3d041210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
                 returned: {
-                    hex: '0200000001111111111111111111111111111111111111111111111111111111111111111100000000644119ee30fd7a03ffe1b969c994842e5190a47e64a634efb4a8743762c7db6a9e76996fd119abddbc84c911bcab99da86e361d49d1a7452871f918f9ab7574cf3d041210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
-                    response: {
-                        txid: '9bc8d27609cf7b70317de9c9f1137c5d0211100be38d10847b7054da0feb551c',
-                    },
+                    txid: '9bc8d27609cf7b70317de9c9f1137c5d0211100be38d10847b7054da0feb551c',
                 },
             },
             {
                 description:
                     'XEC Airdrop with no change, where we try to build the tx without enough XEC to cover the fee',
-                wallet: MOCK_WALLET,
                 utxos: [
                     { ...MOCK_SCRIPT_UTXO, sats: 2001n },
                     {
@@ -1108,31 +737,25 @@ const vectors: TestVectors = {
                 ],
                 xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
+                rawTx: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441f3db06231bd7aed9e487caf1f509aa99b28b3685ac98b4410003ba1458989989b19d844e987f0b3a7fbfaae5dc56fee2a74c81856d68b492cab1e1321b1e0ca841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111010000006441cce8ff45845e94742322d073244151c8558c4e346ed5f017dd3e0fc5476a12a7cdffdaf737d2e8a9cdade5a780e1ad96217868cbfc4f06340646d4c2c9b5d70341210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
                 returned: {
-                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441f3db06231bd7aed9e487caf1f509aa99b28b3685ac98b4410003ba1458989989b19d844e987f0b3a7fbfaae5dc56fee2a74c81856d68b492cab1e1321b1e0ca841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111010000006441cce8ff45845e94742322d073244151c8558c4e346ed5f017dd3e0fc5476a12a7cdffdaf737d2e8a9cdade5a780e1ad96217868cbfc4f06340646d4c2c9b5d70341210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
-                    response: {
-                        txid: '00016cda2a142789255bcc5a15fa18744e18f662172159ed90b5e4362cb51e2a',
-                    },
+                    txid: '00016cda2a142789255bcc5a15fa18744e18f662172159ed90b5e4362cb51e2a',
                 },
             },
             {
                 description: 'XEC Airdrop with change',
-                wallet: MOCK_WALLET,
                 utxos: [{ ...MOCK_SCRIPT_UTXO, sats: 10000n }],
                 xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
+                rawTx: '02000000011111111111111111111111111111111111111111111111111111111111111111000000006441180e2b57a8e5f90717049afc9800699a95e84b260004c1b67f178e1a111b663cc3692d7b7890b2dce93003ebbfce466c465000137d8c0aa5a4e5c5d3719a729841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff02d0070000000000001976a914000000000000000000000000000000000000000088ac651e0000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
                 returned: {
-                    hex: '02000000011111111111111111111111111111111111111111111111111111111111111111000000006441180e2b57a8e5f90717049afc9800699a95e84b260004c1b67f178e1a111b663cc3692d7b7890b2dce93003ebbfce466c465000137d8c0aa5a4e5c5d3719a729841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff02d0070000000000001976a914000000000000000000000000000000000000000088ac651e0000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
-                    response: {
-                        txid: '59e8251fec3ef6ead7fde0f23bff39ddd5d814e0d92d7d3e1dc0beca3112db55',
-                    },
+                    txid: '59e8251fec3ef6ead7fde0f23bff39ddd5d814e0d92d7d3e1dc0beca3112db55',
                 },
             },
         ],
         errors: [
             {
                 description: 'Expected error if wallet fails to sync utxo set',
-                wallet: MOCK_WALLET,
                 utxos: new Error('Some chronik error trying to fetch utxos'),
                 xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
@@ -1141,18 +764,16 @@ const vectors: TestVectors = {
             {
                 description:
                     'Expected error if XEC balance is one satoshi too little to cover the tx',
-                wallet: MOCK_WALLET,
                 utxos: [{ ...MOCK_SCRIPT_UTXO, sats: 2184n }],
                 xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error(
-                    'Insufficient XEC utxos to complete XEC airdrop tx',
+                    'Insufficient satoshis in available utxos (2184) to cover outputs of this tx (2000) + fee',
                 ),
             },
             {
                 description:
                     'Expected error if XEC balance is sufficient to cover the tx, but the only available utxos are token utxos (we confirm token utxos are not spent)',
-                wallet: MOCK_WALLET,
                 utxos: [
                     {
                         ...MOCK_SPENDABLE_TOKEN_UTXO,
@@ -1163,7 +784,7 @@ const vectors: TestVectors = {
                 xecAirdropAmountSats: 2000n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error(
-                    'Insufficient XEC utxos to complete XEC airdrop tx',
+                    'Insufficient sats to complete tx. Need 2000 additional satoshis to complete this Action.',
                 ),
             },
         ],

@@ -14,31 +14,16 @@ import {
     MOCK_OUTPOINT,
     MOCK_UTXO_TOKEN,
 } from '../test/vectors';
-import { Ecc } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { ChronikClient, ScriptUtxo, Tx } from 'chronik-client';
+import { Wallet } from 'ecash-wallet';
+import { fromHex } from 'ecash-lib';
 
 describe('routes.js', function () {
-    // Initialize Ecc
-    const ecc = new Ecc();
-
     let app: http.Server;
-    // Dummy for tests
-    const mockServerWallet = {
-        address: 'ecash:qpm0kyq9x2clugajdycwwqqalaucn5km25zv644uxe',
-        sk: Uint8Array.from(
-            Buffer.from(
-                '78c6bfffd52b70404de0719962966adb34b61cf20414feebed7435b96dca479a',
-                'hex',
-            ),
-        ),
-    };
-    const SERVER_WALLET_ADDRESS = mockServerWallet.address;
-    const SERVER_WALLET_OUTPUTSCRIPT = getOutputScriptFromAddress(
-        SERVER_WALLET_ADDRESS,
-    );
+
     const ELIGIBLE_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
     const ELIGIBLE_OUTPUTSCRIPT = getOutputScriptFromAddress(ELIGIBLE_ADDRESS);
     const INELIGIBLE_ADDRESS =
@@ -52,6 +37,17 @@ describe('routes.js', function () {
         '0000000000000000000000000000000000000000',
     );
     const mockedChronikClient = new MockChronikClient();
+    // Dummy for tests
+    const mockServerWallet = Wallet.fromSk(
+        fromHex(
+            '78c6bfffd52b70404de0719962966adb34b61cf20414feebed7435b96dca479a',
+        ),
+        mockedChronikClient as unknown as ChronikClient,
+    );
+    const SERVER_WALLET_ADDRESS = mockServerWallet.address;
+    const SERVER_WALLET_OUTPUTSCRIPT = getOutputScriptFromAddress(
+        SERVER_WALLET_ADDRESS,
+    );
     // Set an eligible mock
     // Seen ~ 2x before the amount of time required
     const eligibleTimeFirstSeen =
@@ -85,9 +81,14 @@ describe('routes.js', function () {
             },
         },
     ] as ScriptUtxo[]);
+
+    const mockCachetClaim = {
+        rawTx: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441bba10be120fe1552207b5d0608fd96b93b007a4559e5589135284e2645dad0a9028742091b37b483918e58ee3c23d6f25fa219d83d658362adc67baea639241641210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff1111111111111111111111111111111111111111111111111111111111111111010000006441e3a5dca2108390a00fc3f135ed4c3069ad8ef36e27bb02d5553280979abab75b9d4885b3cbd3afd00eadb47513e9fd75d31ae1ab7eaecf4264f5c04d2f511f0841210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac68250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
+        txid: '49f3eaa422872d1a9383f76368afda09ed5c515c821fd8c84172f7a191551556',
+    };
     mockedChronikClient.setBroadcastTx(
-        '02000000021111111111111111111111111111111111111111111111111111111111111111010000006441aa58606dc2133b1547da04323797794c8ae8a245518c82b6a360db52f9451b33b301eeb18c5851fd98989a7c24b384bfb49c18e37d1ffdf4e6bc42c30575913041210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff111111111111111111111111111111111111111111111111111111111111111100000000644168bf907b93ffc6f1dad8378ca5de1a35e4b3d3fae7f151fed92eabffa301ba01dce9d79108e4a4374414f5ac7364d99ef5ff506ef5a69cc58e91e4871e4f27f541210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac68250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
-        '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
+        mockCachetClaim.rawTx,
+        mockCachetClaim.txid,
     );
     // Set an ineligible mock
     // Seen just now
@@ -136,7 +137,6 @@ describe('routes.js', function () {
         app = startExpressServer(
             TEST_PORT,
             mockedChronikClient as unknown as ChronikClient,
-            ecc,
             // We need higher rate limits so we do not rate limit ourselves in the tests
             rateLimit({
                 windowMs: 60000,
@@ -377,7 +377,7 @@ describe('routes.js', function () {
             .expect({
                 address: ELIGIBLE_ADDRESS,
                 msg: 'Success',
-                txid: '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
+                txid: mockCachetClaim.txid,
             });
     });
     it('/claimxec/:address returns 500 and expected msg if there is an error checking the recaptcha', function () {

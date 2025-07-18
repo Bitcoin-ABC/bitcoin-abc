@@ -6,6 +6,10 @@
 export const DEFAULT_DUST_SATS = 546n;
 /** Default fee per kB on the eCash network. */
 export const DEFAULT_FEE_SATS_PER_KB = 1000n;
+
+/** Derivation path for non-HD token aware XEC wallets, like ecash-wallet or Cashtab */
+export const XEC_TOKEN_AWARE_DERIVATION_PATH = `m/44'/1899'/0'/0/0`;
+
 /**
  * Confirmations required before coinbase utxos
  * are spendable

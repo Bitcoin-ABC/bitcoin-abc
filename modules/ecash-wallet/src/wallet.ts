@@ -33,6 +33,10 @@ import {
     OP_RETURN_MAX_BYTES,
     ALP_POLICY_MAX_OUTPUTS,
     payment,
+    XEC_TOKEN_AWARE_DERIVATION_PATH,
+    mnemonicToSeed,
+    HdNode,
+    toHex,
 } from 'ecash-lib';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
 
@@ -42,7 +46,7 @@ import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
  * Implements a one-address eCash (XEC) wallet
  * Useful for running a simple hot wallet
  */
-class Wallet {
+export class Wallet {
     /** Initialized chronik instance */
     chronik: ChronikClient;
     /** Initialized Ecc instance */
@@ -191,6 +195,23 @@ class Wallet {
      */
     static fromSk(sk: Uint8Array, chronik: ChronikClient) {
         return new Wallet(sk, chronik);
+    }
+
+    /**
+     * static constructor from mnemonic
+     *
+     * NB ecash-lib mnemonicToSeed does not validate for bip39 mnemonics
+     * Any string will be walletized
+     */
+    static fromMnemonic(mnemonic: string, chronik: ChronikClient) {
+        const seed = mnemonicToSeed(mnemonic);
+        const master = HdNode.fromSeed(seed);
+
+        // ecash-wallet Wallets are token aware, so we use the token-aware derivation path
+        const xecMaster = master.derivePath(XEC_TOKEN_AWARE_DERIVATION_PATH);
+        const sk = xecMaster.seckey()!;
+
+        return Wallet.fromSk(sk, chronik);
     }
 
     /**
@@ -362,8 +383,8 @@ class WalletAction {
 
         // If we run out of availableUtxos without returning inputs, we can't afford this tx
         throw new Error(
-            `Insufficient satoshis in available utxos (${inputSats}) to cover outputs of this tx (${outputSats}) + fee ${
-                typeof txFee !== 'undefined' ? `(${txFee})` : ``
+            `Insufficient satoshis in available utxos (${inputSats}) to cover outputs of this tx (${outputSats}) + fee${
+                typeof txFee !== 'undefined' ? ` (${txFee})` : ``
             }`,
         );
     }
@@ -486,7 +507,10 @@ class BuiltTx {
     }
 
     public async broadcast() {
-        return await this._wallet.chronik.broadcastTx(this.tx.ser());
+        // NB we get the same result here if we do not use toHex
+        // We use toHex because it simplifies creating and storing
+        // mocks for mock-chronik-client in tests
+        return await this._wallet.chronik.broadcastTx(toHex(this.tx.ser()));
     }
 }
 
@@ -2358,5 +2382,3 @@ export const finalizeOutputs = (
  * [] New diff: support remaining token types
  * [] New diff: chained txs
  */
-
-export default Wallet;

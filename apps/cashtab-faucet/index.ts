@@ -5,9 +5,8 @@
 import config from './config';
 import 'dotenv/config';
 import { startExpressServer } from './src/routes';
-import { getWalletFromSeed } from './src/wallet';
+import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
-import { Ecc } from 'ecash-lib';
 import { rateLimit } from 'express-rate-limit';
 
 // Connect to available in-node chronik servers
@@ -21,15 +20,12 @@ if (typeof mnemonic !== 'string') {
 }
 
 // Init wallet
-const wallet = getWalletFromSeed(mnemonic);
-
-const ecc = new Ecc();
+const wallet = Wallet.fromMnemonic(mnemonic, chronik);
 
 // Start the express app to expose API endpoints
 const server = startExpressServer(
     config.port,
     chronik,
-    ecc,
     rateLimit(config.limiter),
     rateLimit(config.tokenLimiter),
     process.env.RECAPTCHA_SK || '',

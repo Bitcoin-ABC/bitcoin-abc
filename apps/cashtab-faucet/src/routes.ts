@@ -10,10 +10,9 @@ import config from '../config';
 import { getHistoryAfterTimestamp } from './chronik/clientHandler';
 import { isAddressEligibleForTokenReward } from './rewards';
 import { sendReward, sendXecAirdrop } from './transactions';
-import { ServerWallet } from './wallet';
+import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
-import { isValidCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
-import { Ecc } from 'ecash-lib';
+import { isValidCashAddress } from 'ecashaddrjs';
 import { RateLimitRequestHandler } from 'express-rate-limit';
 import axios from 'axios';
 
@@ -34,13 +33,11 @@ function logIpInfo(req: Request) {
 export const startExpressServer = (
     port: number,
     chronik: ChronikClient,
-    ecc: Ecc,
     limiter: RateLimitRequestHandler,
     tokenLimiter: RateLimitRequestHandler,
     recaptchaSecret: string,
-    wallet: ServerWallet,
+    wallet: Wallet,
 ): http.Server => {
-    const serverWalletOutputScript = getOutputScriptFromAddress(wallet.address);
     // Initialize express
     const app: Express = express();
 
@@ -110,7 +107,7 @@ export const startExpressServer = (
             const isAddressEligible = isAddressEligibleForTokenReward(
                 address,
                 config.rewardsTokenId,
-                serverWalletOutputScript,
+                wallet.script.toHex(),
                 historyToCheck,
             );
 
@@ -232,7 +229,7 @@ export const startExpressServer = (
             const isAddressEligible = isAddressEligibleForTokenReward(
                 address,
                 config.rewardsTokenId,
-                serverWalletOutputScript,
+                wallet.script.toHex(),
                 historyToCheck,
             );
 
@@ -250,8 +247,6 @@ export const startExpressServer = (
             let rewardSuccess;
             try {
                 rewardSuccess = await sendReward(
-                    chronik,
-                    ecc,
                     wallet,
                     config.rewardsTokenId,
                     config.rewardAmountTokenSats,
@@ -269,7 +264,7 @@ export const startExpressServer = (
             }
 
             // Get txid before sending response
-            const { txid } = rewardSuccess.response;
+            const { txid } = rewardSuccess;
             interface SendRewardResponse {
                 address: string;
                 txid?: string;
@@ -378,8 +373,6 @@ export const startExpressServer = (
             let airdropSuccess;
             try {
                 airdropSuccess = await sendXecAirdrop(
-                    chronik,
-                    ecc,
                     wallet,
                     config.xecAirdropAmountSats,
                     address,
@@ -397,7 +390,7 @@ export const startExpressServer = (
             }
 
             // Get txid before sending response
-            const { txid } = airdropSuccess.response;
+            const { txid } = airdropSuccess;
             interface SendRewardResponse {
                 address: string;
                 txid?: string;

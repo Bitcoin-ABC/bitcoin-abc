@@ -27,7 +27,7 @@ import {
     ALP_TOKEN_TYPE_STANDARD,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
-import Wallet from '../src/wallet';
+import { Wallet } from '../src/wallet';
 
 use(chaiAsPromised);
 

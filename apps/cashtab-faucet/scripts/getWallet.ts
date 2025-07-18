@@ -1,72 +1,38 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import {
+    mnemonicToSeed,
+    toHex,
+    HdNode,
+    XEC_TOKEN_AWARE_DERIVATION_PATH,
+} from 'ecash-lib';
+import { encodeCashAddress } from 'ecashaddrjs';
+
 /**
  * getWallet.ts
- * Generate a 12-word seed for an eCash wallet
  *
- * Generate a new 12-word seed and wallet
- * ts-node scripts/getWallet.ts
+ * Print the hex sk and ecash: address of a given mnemonic using ecash-lib methods
  *
- * Get address, wif, and utxo set from an existing wallet
- * ts-node scripts/getWallet.ts "spare pudding shuffle cruise crater column loud unknown design abstract climb estate"
+ * Usage
+ * npx tsx getWallet.ts "your mnemonic"
+ *
+ * Note that ecash-lib does not validate mnemonics, so any string will be accepted
  */
 
-import config from '../config';
-import { ChronikClient } from 'chronik-client';
-import * as bip39 from 'bip39';
-import { ServerWallet, getWalletFromSeed, syncWallet } from '../src/wallet';
+const mnemonic = process.argv[2];
 
-// Initialize new in-node chronik connection
-const chronik = new ChronikClient(config.chronikUrls);
-
-// Get input from bash or use defaults
-const mnemonic =
-    typeof process.argv[2] !== 'undefined' ? process.argv[2] : undefined;
-
-interface WalletReturn {
-    makingNewWallet: boolean;
-    mnemonic: string;
-    wallet: ServerWallet;
-}
-/**
- * Generate a new wallet OR, if called with a valid 12-word mnemonic,
- * give its corresponding, address, wif, and utxo set
- * @param chronik
- * @param mnemonic
- */
-async function getWallet(
-    chronik: ChronikClient,
-    mnemonic?: string,
-): Promise<WalletReturn> {
-    const makingNewWallet = typeof mnemonic === 'undefined';
-    if (typeof mnemonic === 'undefined') {
-        // Need to use `if (typeof mnemonic === 'undefined')` instead of `if (makingNewWallet)`
-        // as typescript will throw lint error on `const wallet = getWalletFromSeed(mnemonic)`
-        // with the second approach (says mnemonic may be undefined)
-        mnemonic = bip39.generateMnemonic();
-    }
-    const wallet = getWalletFromSeed(mnemonic);
-    if (makingNewWallet) {
-        await syncWallet(chronik, wallet);
-    }
-    return { makingNewWallet, mnemonic, wallet };
+if (!mnemonic) {
+    throw new Error('MNEMONIC is not set');
 }
 
-getWallet(chronik, mnemonic).then(
-    result => {
-        const { makingNewWallet, mnemonic, wallet } = result;
-        console.log(
-            '\x1b[32m%s\x1b[0m',
-            `✔ Wallet ${makingNewWallet ? 'generated' : 'synced'}`,
-        );
-        console.log(mnemonic);
-        console.log(wallet);
-        process.exit(0);
-    },
-    err => {
-        console.log('\x1b[31m%s\x1b[0m', `Error in getWallet`, err);
-        process.exit(1);
-    },
-);
+const seed = mnemonicToSeed(mnemonic);
+const master = HdNode.fromSeed(seed);
+
+// Use XEC token-aware wallet path
+const xecMaster = master.derivePath(XEC_TOKEN_AWARE_DERIVATION_PATH);
+const sk = toHex(xecMaster.seckey()!);
+console.log(`sk:      ${sk}`);
+const address = encodeCashAddress('ecash', 'p2pkh', toHex(xecMaster.pkh()!));
+console.log(`address: ${address}`);
