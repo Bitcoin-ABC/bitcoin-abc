@@ -57,6 +57,8 @@ void ApplyArgsManOptions(const ArgsManager &args,
                          BlockAssembler::Options &options) {
     options.fPrintPriority =
         args.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
+    options.add_finalized_txs =
+        args.GetBoolArg("-avalanchepreconsensusmining", false);
 }
 
 static BlockAssembler::Options ConfiguredOptions() {
@@ -393,10 +395,15 @@ void BlockAssembler::addTxs(const CTxMemPool &mempool) {
 void BlockAssembler::addFinalizedTxs(const CTxMemPool &mempool) {
     AssertLockHeld(mempool.cs);
 
-    mempool.finalizedTxs.forEachLeaf([this](const CTxMemPoolEntryRef &entry) {
-        // Tx can be added.
-        AddToBlock(entry);
-        return true;
-    });
+    mempool.finalizedTxs.forEachLeaf(
+        [this, &mempool](const CTxMemPoolEntryRef &entry) {
+            // A tx can be added if it exists in the mempool. Otherwise this
+            // means that a block connected but is not yet finalized containing
+            // this tx.
+            if (mempool.exists(entry->GetTx().GetId())) {
+                AddToBlock(entry);
+            }
+            return true;
+        });
 }
 } // namespace node

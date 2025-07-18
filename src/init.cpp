@@ -1557,6 +1557,7 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
 
     hidden_args.emplace_back("-avalanchepreconsensus");
+    hidden_args.emplace_back("-avalanchepreconsensusmining");
     hidden_args.emplace_back("-avalanchestakingpreconsensus");
 
     // Add the hidden options

@@ -6,6 +6,7 @@
 #ifndef BITCOIN_NODE_MINER_H
 #define BITCOIN_NODE_MINER_H
 
+#include <common/args.h>
 #include <consensus/amount.h>
 #include <kernel/mempool_entry.h>
 #include <node/blockfitter.h>

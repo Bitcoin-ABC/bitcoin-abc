@@ -47,6 +47,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-h",
     "-automaticunparking",
     "-avalanchepreconsensus",
+    "-avalanchepreconsensusmining",
     "-avalanchestakingpreconsensus",
     "-chronikallowpause",
     "-chronikcors",
