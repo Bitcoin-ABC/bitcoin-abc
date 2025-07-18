@@ -4,12 +4,17 @@
         "s": "50002",
         "t": "50001"
     },
-    "electrum.bytesofman.com": {
+    "electrum.fabien.cash": {
         "pruning": "-",
         "s": "50002",
         "t": "50001"
     },
-    "fulcrum.pepipierre.fr": {
+    "fulcrum.pierre.cash": {
+      "pruning": "-",
+      "s": "50002",
+      "t": "50001"
+    },
+    "electrum.pierre.cash": {
       "pruning": "-",
       "s": "50002",
       "t": "50001"
