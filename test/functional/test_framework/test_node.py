@@ -144,6 +144,7 @@ class TestNode:
             "-logthreadnames",
             "-logsourcelocations",
             "-loglevel=trace",
+            "-nologratelimit",
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",

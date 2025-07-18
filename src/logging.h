@@ -8,6 +8,7 @@
 #define BITCOIN_LOGGING_H
 
 #include <crypto/siphash.h>
+#include <span.h>
 #include <threadsafety.h>
 #include <tinyformat.h>
 #include <util/fs.h>
@@ -19,6 +20,7 @@
 #include <cstring>
 #include <functional>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <source_location>
 #include <string>
@@ -48,11 +50,10 @@ struct SourceLocationEqual {
 struct SourceLocationHasher {
     size_t operator()(const std::source_location &s) const noexcept {
         // Use CSipHasher(0, 0) as a simple way to get uniform distribution.
-        return static_cast<size_t>(
-            CSipHasher(0, 0)
-                .Write(std::hash<std::string_view>{}(s.file_name()))
-                .Write(s.line())
-                .Finalize());
+        return size_t(CSipHasher(0, 0)
+                          .Write(s.line())
+                          .Write(MakeUCharSpan(std::string_view{s.file_name()}))
+                          .Finalize());
     }
 };
 
@@ -112,45 +113,42 @@ enum class Level {
 constexpr auto DEFAULT_LOG_LEVEL{Level::Debug};
 // buffer up to 1MB of log data prior to StartLogging
 constexpr size_t DEFAULT_MAX_LOG_BUFFER{1'000'000};
-
-// maximum number of bytes that can be logged within one window
+// maximum number of bytes per source location that can be logged within the
+// RATELIMIT_WINDOW
 constexpr uint64_t RATELIMIT_MAX_BYTES{1024 * 1024};
+// time window after which log ratelimit stats are reset
+constexpr auto RATELIMIT_WINDOW{1h};
+constexpr bool DEFAULT_LOGRATELIMIT{true};
 
-//! Keeps track of an individual source location and how many available bytes
-//! are left for logging from it.
-class LogLimitStats {
-private:
-    //! Remaining bytes in the current window interval.
-    uint64_t m_available_bytes;
-    //! Number of bytes that were not consumed within the current window.
-    uint64_t m_dropped_bytes{0};
-
-public:
-    LogLimitStats(uint64_t max_bytes) : m_available_bytes{max_bytes} {}
-    //! Consume bytes from the window if enough bytes are available.
-    //!
-    //! Returns whether enough bytes were available.
-    bool Consume(uint64_t bytes);
-
-    uint64_t GetAvailableBytes() const { return m_available_bytes; }
-
-    uint64_t GetDroppedBytes() const { return m_dropped_bytes; }
-};
-
-/**
- * Fixed window rate limiter for logging.
- */
+//! Fixed window rate limiter for logging.
 class LogRateLimiter {
+public:
+    //! Keeps track of an individual source location and how many available
+    //! bytes are left for logging from it.
+    struct Stats {
+        //! Remaining bytes
+        uint64_t m_available_bytes;
+        //! Number of bytes that were consumed but didn't fit in the available
+        //! bytes.
+        uint64_t m_dropped_bytes{0};
+
+        Stats(uint64_t max_bytes) : m_available_bytes{max_bytes} {}
+        //! Updates internal accounting and returns true if enough
+        //! available_bytes were remaining
+        bool Consume(uint64_t bytes);
+    };
+
 private:
     mutable StdMutex m_mutex;
 
-    //! Counters for each source location that has attempted to log something.
-    std::unordered_map<std::source_location, LogLimitStats,
-                       SourceLocationHasher, SourceLocationEqual>
+    //! Stats for each source location that has attempted to log something.
+    std::unordered_map<std::source_location, Stats, SourceLocationHasher,
+                       SourceLocationEqual>
         m_source_locations GUARDED_BY(m_mutex);
-    //! True if at least one log location is suppressed.
+    //! Whether any log locations are suppressed.
     //! Cached view on m_source_locations for performance reasons.
     std::atomic<bool> m_suppression_active{false};
+    LogRateLimiter(uint64_t max_bytes, std::chrono::seconds reset_window);
 
 public:
     using SchedulerFunction =
@@ -162,11 +160,11 @@ public:
      *                          interval.
      * @param max_bytes         Maximum number of bytes that can be logged for
      *                          each source location.
-     * @param reset_window      Time window after which the byte counters are
-     *                          reset.
+     * @param reset_window      Time window after which the stats are reset.
      */
-    LogRateLimiter(SchedulerFunction scheduler_func, uint64_t max_bytes,
-                   std::chrono::seconds reset_window);
+    static std::shared_ptr<LogRateLimiter>
+    Create(SchedulerFunction &&scheduler_func, uint64_t max_bytes,
+           std::chrono::seconds reset_window);
     //! Maximum number of bytes logged per location per window.
     const uint64_t m_max_bytes;
     //! Interval after which the window is reset.
@@ -222,7 +220,7 @@ private:
     std::atomic_bool m_started_new_line{true};
 
     //! Manages the rate limiting of each log location.
-    std::unique_ptr<LogRateLimiter> m_limiter GUARDED_BY(m_cs);
+    std::shared_ptr<LogRateLimiter> m_limiter GUARDED_BY(m_cs);
 
     //! Category-specific log level. Overrides `m_log_level`.
     std::unordered_map<LogFlags, Level> m_category_log_levels GUARDED_BY(m_cs);
@@ -313,7 +311,7 @@ public:
      */
     void DisableLogging() EXCLUSIVE_LOCKS_REQUIRED(!m_cs);
 
-    void SetRateLimiting(std::unique_ptr<LogRateLimiter> &&limiter)
+    void SetRateLimiting(std::shared_ptr<LogRateLimiter> limiter)
         EXCLUSIVE_LOCKS_REQUIRED(!m_cs) {
         StdLockGuard scoped_lock(m_cs);
         m_limiter = std::move(limiter);
@@ -386,10 +384,10 @@ bool GetLogCategory(BCLog::LogFlags &flag, std::string_view str);
 // unconditionally log to debug.log! It should not be the case that an inbound
 // peer can fill up a user's disk with debug.log entries.
 template <typename... Args>
-static inline void
-LogPrintf_(std::source_location &&source_loc, const BCLog::LogFlags flag,
-           const BCLog::Level level, const bool should_ratelimit,
-           const char *fmt, const Args &...args) {
+static inline void LogPrintf_(std::source_location &&source_loc,
+                              BCLog::LogFlags flag, BCLog::Level level,
+                              bool should_ratelimit, const char *fmt,
+                              const Args &...args) {
     if (LogInstance().Enabled()) {
         std::string log_msg;
         try {

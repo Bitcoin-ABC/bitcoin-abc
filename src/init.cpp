@@ -2244,11 +2244,15 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         },
         std::chrono::minutes{1});
 
-    LogInstance().SetRateLimiting(std::make_unique<BCLog::LogRateLimiter>(
-        [&scheduler](auto func, auto window) {
-            scheduler.scheduleEvery(std::move(func), window);
-        },
-        BCLog::RATELIMIT_MAX_BYTES, 1h));
+    if (args.GetBoolArg("-logratelimit", BCLog::DEFAULT_LOGRATELIMIT)) {
+        LogInstance().SetRateLimiting(BCLog::LogRateLimiter::Create(
+            [&scheduler](auto func, auto window) {
+                scheduler.scheduleEvery(std::move(func), window);
+            },
+            BCLog::RATELIMIT_MAX_BYTES, BCLog::RATELIMIT_WINDOW));
+    } else {
+        LogInfo("Log rate limiting disabled\n");
+    }
 
     GetMainSignals().RegisterBackgroundSignalScheduler(*node.scheduler);
 
