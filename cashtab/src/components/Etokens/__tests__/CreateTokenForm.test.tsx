@@ -7,60 +7,90 @@ import {
     walletWithXecAndTokens,
     MOCK_CHRONIK_TOKEN_CALL,
     MOCK_CHRONIK_GENESIS_TX_CALL,
+    bearTokenAndTx,
 } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { explorer } from 'config/explorer';
-import {
-    initializeCashtabStateForTests,
-    clearLocalForage,
-} from 'components/App/fixtures/helpers';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
-import { when } from 'jest-when';
-import appConfig from 'config/app';
-import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { prepareContext, mockPrice } from 'test';
+import { ThemeProvider } from 'styled-components';
+import { theme } from 'assets/styles/theme';
+import { MemoryRouter } from 'react-router-dom';
+import { WalletProvider } from 'wallet/context';
+import { ChronikClient, TokenInfo, Tx, Utxo } from 'chronik-client';
 import { Ecc } from 'ecash-lib';
+import { Agora } from 'ecash-agora';
 import { MAX_OUTPUT_AMOUNT_SLP_ATOMS } from 'token-protocols/slpv1';
 import { MAX_OUTPUT_AMOUNT_ALP_ATOMS } from 'token-protocols/alp';
-import { MockAgora } from '../../../../../modules/mock-chronik-client/dist';
+import {
+    MockAgora,
+    MockChronikClient,
+} from '../../../../../modules/mock-chronik-client';
+import App from 'components/App/App';
+import { CashtabWallet, TokenUtxo } from 'wallet';
+
+interface CreateTokenFormTestWrapperProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    theme: any;
+    route?: string;
+}
+
+const CreateTokenFormTestWrapper: React.FC<CreateTokenFormTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    theme,
+    route = '/create-token',
+}) => (
+    <WalletProvider
+        chronik={chronik as unknown as ChronikClient}
+        agora={agora as unknown as Agora}
+        ecc={ecc}
+    >
+        <MemoryRouter initialEntries={[route]}>
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
+        </MemoryRouter>
+    </WalletProvider>
+);
 
 describe('<CreateTokenForm />', () => {
     const ecc = new Ecc();
-    // We need mockAgora now that we are using agora to subscribe to websockets
-    let user, mockAgora;
+    let user: ReturnType<typeof userEvent.setup>;
+    let mockAgora: MockAgora;
+
     beforeEach(() => {
         mockAgora = new MockAgora();
         // Configure userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
-        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
-        const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs requiring different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003;
-        const priceResponse = {
-            ecash: {
-                usd: xecPrice,
-                last_updated_at: 1706644626,
-            },
-        };
-        when(fetch)
-            .calledWith(priceApiUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
-            });
+        mockPrice(0.00003);
     });
+
     afterEach(async () => {
         jest.clearAllMocks();
-        await clearLocalForage(localforage);
+        await localforage.clear();
     });
+
     it('User can create an SLP1 token with no mint baton', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
 
         // Add tx mock to mockedChronik
@@ -69,12 +99,13 @@ describe('<CreateTokenForm />', () => {
         const txid =
             '71626fb3bd4be7713096107af225eff0f9243c5374ca50fe3bf9a736e14b9f9c';
         mockedChronik.setBroadcastTx(hex, txid);
+
         render(
-            <CashtabTestWrapper
+            <CreateTokenFormTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
-                route="/create-token"
+                theme={theme}
             />,
         );
 
@@ -145,6 +176,7 @@ describe('<CreateTokenForm />', () => {
             `${explorer.blockExplorerUrl}/tx/${txid}`,
         );
     });
+
     it('User can create an SLP1 token with a mint baton', async () => {
         const createdTokenId =
             '999507a9f1859adf85405abe28bb75d3c470ef53d2e4bb18880454a5fa9aa9e4';
@@ -156,38 +188,62 @@ describe('<CreateTokenForm />', () => {
                 isMintBaton: false,
                 atoms: 10n,
             },
-        };
-        const mockedChronik = await initializeCashtabStateForTests(
-            {
-                ...walletWithXecAndTokens,
-                state: {
-                    ...walletWithXecAndTokens.state,
-                    slpUtxos: [
-                        ...walletWithXecAndTokens.state.slpUtxos,
-                        MOCK_UTXO_FOR_BALANCE,
-                    ],
-                },
+        } as unknown as TokenUtxo;
+
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        // Add created token mock
+        tokenMocks.set(createdTokenId, {
+            tx: MOCK_CHRONIK_GENESIS_TX_CALL,
+            tokenInfo: MOCK_CHRONIK_TOKEN_CALL,
+        });
+
+        const walletWithCreatedToken: CashtabWallet = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    MOCK_UTXO_FOR_BALANCE,
+                ],
             },
+        };
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithCreatedToken],
+            tokenMocks,
         );
 
         // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
-        mockedChronik.setToken(createdTokenId, MOCK_CHRONIK_TOKEN_CALL);
-        mockedChronik.setTx(createdTokenId, MOCK_CHRONIK_GENESIS_TX_CALL);
+        mockedChronik.setToken(
+            createdTokenId,
+            MOCK_CHRONIK_TOKEN_CALL as unknown as TokenInfo,
+        );
+        mockedChronik.setTx(
+            createdTokenId,
+            MOCK_CHRONIK_GENESIS_TX_CALL as unknown as Tx,
+        );
         mockedChronik.setUtxosByTokenId(createdTokenId, [
             MOCK_UTXO_FOR_BALANCE,
-        ]);
+        ] as unknown as Utxo[]);
+
         // Add tx mock to mockedChronik
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441ff86eb97dad643075e75ed273334cee9aef1b938436dc350bcb48f73d129ce6a9d9ea40e749303e7bcbd27a082f1ee03080582f00f1ec80f202166bff431a0334121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c000102010208000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac307d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
 
         mockedChronik.setBroadcastTx(hex, createdTokenId);
+
         render(
-            <CashtabTestWrapper
+            <CreateTokenFormTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
-                route="/create-token"
+                theme={theme}
             />,
         );
 
@@ -273,11 +329,21 @@ describe('<CreateTokenForm />', () => {
         // We are sent to its token-action page
         expect(await screen.findByTitle('Token Stats')).toBeInTheDocument();
     });
+
     it('User can create an NFT collection', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
         );
+
         // Add tx mock to mockedChronik
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064415594de73e7f09dc4bd7622b136921d8b883c131559e9ba9212185fb5f7db1fe062715183484097a5f7cf71d75af3b9b3b2768f7e011550893376ef9ec150887b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000006e6a04534c500001810747454e45534953033448432454686520466f75722048616c662d436f696e73206f66204a696e2d71756120283448432925656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c294c0001004c0008000000000000000422020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac467f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -287,10 +353,11 @@ describe('<CreateTokenForm />', () => {
 
         // Load component with create-nft-collection route
         render(
-            <CashtabTestWrapper
+            <CreateTokenFormTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
+                theme={theme}
                 route="/create-nft-collection"
             />,
         );
@@ -357,6 +424,7 @@ describe('<CreateTokenForm />', () => {
             await screen.findByText('NFT Collection created!'),
         ).toHaveAttribute('href', `${explorer.blockExplorerUrl}/tx/${txid}`);
     });
+
     it('User can create an ALP token', async () => {
         const createdTokenId =
             '75883c5ebc2c3b375ae6e25dcc845dfbc6b34ae6c1319fb840e7dcba1f8135e7';
@@ -369,37 +437,61 @@ describe('<CreateTokenForm />', () => {
                 atoms: 10n,
             },
         };
-        const mockedChronik = await initializeCashtabStateForTests(
-            {
-                ...walletWithXecAndTokens,
-                state: {
-                    ...walletWithXecAndTokens.state,
-                    slpUtxos: [
-                        ...walletWithXecAndTokens.state.slpUtxos,
-                        MOCK_UTXO_FOR_BALANCE,
-                    ],
-                },
+
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        // Add created token mock
+        tokenMocks.set(createdTokenId, {
+            tx: MOCK_CHRONIK_GENESIS_TX_CALL,
+            tokenInfo: MOCK_CHRONIK_TOKEN_CALL,
+        });
+
+        const walletWithCreatedToken: CashtabWallet = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    MOCK_UTXO_FOR_BALANCE,
+                ] as unknown as TokenUtxo[],
             },
+        };
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithCreatedToken],
+            tokenMocks,
         );
 
         // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
-        mockedChronik.setToken(createdTokenId, MOCK_CHRONIK_TOKEN_CALL);
-        mockedChronik.setTx(createdTokenId, MOCK_CHRONIK_GENESIS_TX_CALL);
+        mockedChronik.setToken(
+            createdTokenId,
+            MOCK_CHRONIK_TOKEN_CALL as unknown as TokenInfo,
+        );
+        mockedChronik.setTx(
+            createdTokenId,
+            MOCK_CHRONIK_GENESIS_TX_CALL as unknown as Tx,
+        );
         mockedChronik.setUtxosByTokenId(createdTokenId, [
             MOCK_UTXO_FOR_BALANCE,
-        ]);
+        ] as unknown as Utxo[]);
+
         // Add tx mock to mockedChronik
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064417055f05736401020a4eec59c8c9cb2e76bdbcfca5e2a9b1468e1dcf5ef5534febab436728463762b015f9564fa33cc870de0cfcafa7a906b663bc8ba58816c644121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000646a504c60534c5032000747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d0021031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d02010087930300000122020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188acf47c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
 
         mockedChronik.setBroadcastTx(hex, createdTokenId);
+
         render(
-            <CashtabTestWrapper
+            <CreateTokenFormTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
-                route="/create-token"
+                theme={theme}
             />,
         );
 
@@ -478,6 +570,7 @@ describe('<CreateTokenForm />', () => {
         // We are sent to its token-action page
         expect(await screen.findByTitle('Token Stats')).toBeInTheDocument();
     });
+
     it('Validation works as expected for ALP and SLP max supply', async () => {
         const createdTokenId =
             '75883c5ebc2c3b375ae6e25dcc845dfbc6b34ae6c1319fb840e7dcba1f8135e7';
@@ -490,33 +583,55 @@ describe('<CreateTokenForm />', () => {
                 atoms: 10n,
             },
         };
-        const mockedChronik = await initializeCashtabStateForTests(
-            {
-                ...walletWithXecAndTokens,
-                state: {
-                    ...walletWithXecAndTokens.state,
-                    slpUtxos: [
-                        ...walletWithXecAndTokens.state.slpUtxos,
-                        MOCK_UTXO_FOR_BALANCE,
-                    ],
-                },
+
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        // Add created token mock
+        tokenMocks.set(createdTokenId, {
+            tx: MOCK_CHRONIK_GENESIS_TX_CALL,
+            tokenInfo: MOCK_CHRONIK_TOKEN_CALL,
+        });
+
+        const walletWithCreatedToken: CashtabWallet = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    MOCK_UTXO_FOR_BALANCE,
+                ] as unknown as TokenUtxo[],
             },
+        };
+
+        const mockedChronik = await prepareContext(
             localforage,
+            [walletWithCreatedToken],
+            tokenMocks,
         );
 
         // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
-        mockedChronik.setToken(createdTokenId, MOCK_CHRONIK_TOKEN_CALL);
-        mockedChronik.setTx(createdTokenId, MOCK_CHRONIK_GENESIS_TX_CALL);
+        mockedChronik.setToken(
+            createdTokenId,
+            MOCK_CHRONIK_TOKEN_CALL as unknown as TokenInfo,
+        );
+        mockedChronik.setTx(
+            createdTokenId,
+            MOCK_CHRONIK_GENESIS_TX_CALL as unknown as Tx,
+        );
         mockedChronik.setUtxosByTokenId(createdTokenId, [
             MOCK_UTXO_FOR_BALANCE,
-        ]);
+        ] as unknown as Utxo[]);
 
         render(
-            <CashtabTestWrapper
+            <CreateTokenFormTestWrapper
                 chronik={mockedChronik}
                 agora={mockAgora}
                 ecc={ecc}
-                route="/create-token"
+                theme={theme}
             />,
         );
 
