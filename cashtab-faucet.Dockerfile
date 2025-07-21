@@ -80,6 +80,7 @@ RUN npm run build
 
 # ecash-wallet
 WORKDIR /app/modules/ecash-wallet
+COPY modules/ecash-wallet/ .
 RUN npm ci
 RUN npm run build
 
