@@ -268,7 +268,8 @@ def check_MACHO_lld(binary) -> bool:
 def check_PE_libraries(binary) -> bool:
     ok: bool = True
     for dylib in binary.libraries:
-        if dylib not in PE_ALLOWED_LIBRARIES:
+        # Windows file names are case-insensitive
+        if dylib.lower() not in [lib.lower() for lib in PE_ALLOWED_LIBRARIES]:
             print(f"{dylib} is not in ALLOWED_LIBRARIES!")
             ok = False
     return ok
