@@ -14,6 +14,7 @@ import CardCarousel from "./components/Home/CardCarousel";
 import Quotes from "./components/Home/Quotes";
 import FeaturedArticles from "./components/Home/FeaturedArticles";
 import GettingStarted from "./components/Home/GettingStarted";
+import FAQ from "./components/Home/FAQ";
 
 export default function Home() {
   return (
@@ -25,7 +26,6 @@ export default function Home() {
       <PoweringPayments />
       <BentoGrid />
       <AvalancheEnhanced />
-
       <div className="pb-30 bg-[linear-gradient(-135deg,_#1F1428,_#090916,_#0F1528,_#090916)]">
         <Developers />
         <CardCarousel />
@@ -33,6 +33,7 @@ export default function Home() {
       </div>
       <GettingStarted />
       <FeaturedArticles />
+      <FAQ />
     </main>
   );
 }
