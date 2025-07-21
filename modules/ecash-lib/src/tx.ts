@@ -3,12 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Bytes } from './io/bytes.js';
-import { fromHexRev, fromHex } from './io/hex.js';
+import { fromHexRev, toHexRev, fromHex } from './io/hex.js';
 import { writeVarSize, readVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { WriterLength } from './io/writerlength.js';
 import { Script } from './script.js';
+import { sha256d } from './hash.js';
 
 /**
  * Default value for nSequence of inputs if left undefined; this opts out of
@@ -158,6 +159,16 @@ export class Tx {
     /** Deserialize a Tx from a hex string */
     public static fromHex(hex: string): Tx {
         return Tx.deser(fromHex(hex));
+    }
+
+    /**
+     * Compute the transaction ID (TxId) as a hex string (little-endian).
+     * This follows the eCash convention: the TxId is the double SHA256 of the
+     * serialized transaction, returned as a hex string in little-endian (reversed) order.
+     * See the node src/primitives/txid.h for more details.
+     */
+    public txid(): string {
+        return toHexRev(sha256d(this.ser()));
     }
 }
 
