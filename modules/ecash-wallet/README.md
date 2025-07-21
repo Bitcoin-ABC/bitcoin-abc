@@ -11,9 +11,11 @@ Install with `npm` (when published).
 Import. Create your `Wallet` and use methods.
 
 ```
-import Wallet from "ecash-wallet";
+import { Wallet } from "ecash-wallet";
 
-const wallet = Wallet.fromSk(sk, chronik);
+const mnemonic = 'morning average minor stable parrot refuse credit exercise february mirror just begin',
+
+const wallet = Wallet.fromMnemonic(mnemonic, chronik);
 ```
 
 See tests for detailed methods.
@@ -28,3 +30,7 @@ See tests for detailed methods.
 [D17822](https://reviews.bitcoinabc.org/D17822) Add support for building and broadcasting txs, including ALP and SLP token txs. Update methods and syntax. Add preliminary support for Postage protocol.
 [D18384](https://reviews.bitcoinabc.org/D18384) Add `fromMnemonic` constructor, make `Wallet` a normal export (not uniquely a default export), call `broadcastTx` using hex rawTx to facilitate testing with mock-chronik-client (practical improvements from implementing `ecash-wallet` in `cashtab-faucet`)
 [D18390](https://reviews.bitcoinabc.org/D18390) Patch the `main` entry in `package.json` to point to `dist/index.js`
+
+# 1.0.1
+
+[D18391](https://reviews.bitcoinabc.org/D18391) Patch README
