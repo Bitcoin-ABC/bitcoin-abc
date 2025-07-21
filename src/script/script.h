@@ -423,7 +423,7 @@ private:
  * elements. Tests in October 2015 showed use of this reduced dbcache memory
  * usage by 23% and made an initial sync 13% faster.
  */
-typedef prevector<28, uint8_t> CScriptBase;
+using CScriptBase = prevector<28, uint8_t>;
 
 bool GetScriptOp(CScriptBase::const_iterator &pc,
                  CScriptBase::const_iterator end, opcodetype &opcodeRet,
