@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Bytes } from './io/bytes.js';
-import { fromHexRev } from './io/hex.js';
-import { writeVarSize } from './io/varsize.js';
+import { fromHexRev, fromHex } from './io/hex.js';
+import { writeVarSize, readVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { WriterLength } from './io/writerlength.js';
@@ -116,6 +116,48 @@ export class Tx {
             writeTxOutput(output, writer);
         }
         writer.putU32(this.locktime);
+    }
+
+    /** Deserialize a Tx from a Uint8Array */
+    public static deser(data: Uint8Array): Tx {
+        const bytes = new Bytes(data);
+        const version = bytes.readU32();
+        const numInputs = readVarSize(bytes);
+        const inputs: TxInput[] = [];
+        for (let i = 0; i < numInputs; ++i) {
+            // Read OutPoint
+            const txid = bytes.readBytes(32);
+            const outIdx = bytes.readU32();
+            // Read script
+            const script = Script.readWithSize(bytes);
+            // Read sequence
+            const sequence = bytes.readU32();
+            inputs.push({
+                prevOut: {
+                    txid,
+                    outIdx,
+                },
+                script,
+                sequence,
+            });
+        }
+        const numOutputs = readVarSize(bytes);
+        const outputs: TxOutput[] = [];
+        for (let i = 0; i < numOutputs; ++i) {
+            outputs.push(readTxOutput(bytes));
+        }
+        const locktime = bytes.readU32();
+        return new Tx({
+            version,
+            inputs,
+            outputs,
+            locktime,
+        });
+    }
+
+    /** Deserialize a Tx from a hex string */
+    public static fromHex(hex: string): Tx {
+        return Tx.deser(fromHex(hex));
     }
 }
 

@@ -95,3 +95,4 @@ console.log(toHex(rawTx));
 -   3.1.0 - Add methods for signing and verifying messages [D17778](https://reviews.bitcoinabc.org/D17778)
 -   3.2.0 - Add method for parsing pushes from an EMPP OP_RETURN [D18057](https://reviews.bitcoinabc.org/D18057)
 -   4.0.0 - Add constants and types to support `ecash-wallet` [D17822](https://reviews.bitcoinabc.org/D17822)
+-   4.1.0 - Add Tx deserialization methods [D18393](https://reviews.bitcoinabc.org/D18393)
