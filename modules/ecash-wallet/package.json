@@ -1,8 +1,8 @@
 {
     "name": "ecash-wallet",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "An ecash wallet class. Manage keys, build and broadcast txs. Includes support for tokens and agora.",
-    "main": "index.js",
+    "main": "dist/index.js",
     "scripts": {
         "test": "mocha --require mocha-suppress-logs --import=tsx ./src/*.test.ts",
         "integration-tests": "mocha --import=tsx ./test/*.test.ts --timeout 60000",
