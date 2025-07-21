@@ -17,7 +17,7 @@ function txidToBytes(txid: string | Uint8Array | undefined): Uint8Array {
 }
 
 const checkTx = (tx: Tx, rawHex: string) => {
-    expect(toHex(tx.ser())).to.equal(rawHex);
+    expect(tx.toHex()).to.equal(rawHex);
     expect(tx.serSize()).to.equal(rawHex.length >> 1);
 };
 
@@ -211,12 +211,22 @@ describe('Tx', () => {
             );
         }
 
+        // Test toHex() roundtrip: fromHex(toHex()) should produce identical transactions
+        const originalRoundtrip = Tx.fromHex(original.toHex());
+        expect(originalRoundtrip.toHex()).to.equal(original.toHex());
+
+        const deserRoundtrip = Tx.fromHex(deser.toHex());
+        expect(deserRoundtrip.toHex()).to.equal(deser.toHex());
+
+        const deserHexRoundtrip = Tx.fromHex(deserHex.toHex());
+        expect(deserHexRoundtrip.toHex()).to.equal(deserHex.toHex());
+
         // Try a roundrip from a raw tx (txid:
         // 010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f)
         const rawTx =
             '0200000001c69355f371948c098d9f4f27db5744c0b8f30d8ef88e390e3fff944bd36dbc74c80100006b48304502210086860e8ee3721d2ebc919dca21e44ff96a2adc287528e46e12665dc1a5af75ec02206dd0c593becad3d4055ed011f9d61468a378090e1fe4246eeb34b68744ec5e93412103bc01efabf76dafe666a98c88fe72915c4cceb26cacf6772904b3fa1fa5629765feffffff030000000000000000406a04534c500001010747454e45534953054c6f6c6c79054c4f4c4c591468747470733a2f2f636173687461622e636f6d2f4c0001084c00080162ea854d0fc00022020000000000001976a914104e67d912a7aab2a159bba141477e5867c04bfd88acbc100000000000001976a914104e67d912a7aab2a159bba141477e5867c04bfd88ac00000000';
         const deserRaw = Tx.fromHex(rawTx);
-        expect(toHex(deserRaw.ser())).to.equal(rawTx);
+        expect(deserRaw.toHex()).to.equal(rawTx);
     });
 
     it('deserialization errors', () => {

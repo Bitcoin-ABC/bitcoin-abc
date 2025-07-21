@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Bytes } from './io/bytes.js';
-import { fromHexRev, toHexRev, fromHex } from './io/hex.js';
+import { fromHexRev, toHexRev, fromHex, toHex } from './io/hex.js';
 import { writeVarSize, readVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
 import { WriterBytes } from './io/writerbytes.js';
@@ -96,6 +96,11 @@ export class Tx {
         const writerBytes = new WriterBytes(this.serSize());
         this.write(writerBytes);
         return writerBytes.data;
+    }
+
+    /** Serialize the tx to a hex string */
+    public toHex(): string {
+        return toHex(this.ser());
     }
 
     /** Calculate the serialized size of the tx */

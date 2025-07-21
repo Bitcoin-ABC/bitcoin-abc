@@ -97,3 +97,4 @@ console.log(toHex(rawTx));
 -   4.0.0 - Add constants and types to support `ecash-wallet` [D17822](https://reviews.bitcoinabc.org/D17822)
 -   4.1.0 - Add Tx deserialization methods [D18393](https://reviews.bitcoinabc.org/D18393)
 -   4.2.0 - Add Tx.txid() method to compute the TxId of a transaction [D18394](https://reviews.bitcoinabc.org/D18394)
+-   4.3.0 - Export a Tx.toHex() method [D18396](https://reviews.bitcoinabc.org/D18396)
