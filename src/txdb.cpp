@@ -195,12 +195,11 @@ bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
     return Read(std::make_pair(DB_BLOCK_FILES, nFile), info);
 }
 
-bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
+void CBlockTreeDB::WriteReindexing(bool fReindexing) {
     if (fReindexing) {
         Write(DB_REINDEX_FLAG, uint8_t{'1'});
-        return true;
     } else {
-        return Erase(DB_REINDEX_FLAG);
+        Erase(DB_REINDEX_FLAG);
     }
 }
 

@@ -301,11 +301,10 @@ public:
         return true;
     }
 
-    template <typename K> bool Erase(const K &key, bool fSync = false) {
+    template <typename K> void Erase(const K &key, bool fSync = false) {
         CDBBatch batch(*this);
         batch.Erase(key);
         WriteBatch(batch, fSync);
-        return true;
     }
 
     void WriteBatch(CDBBatch &batch, bool fSync = false);

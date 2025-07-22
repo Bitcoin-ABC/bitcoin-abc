@@ -105,7 +105,7 @@ public:
         int nLastFile, const std::vector<const CBlockIndex *> &blockinfo);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo &info);
     bool ReadLastBlockFile(int &nFile);
-    bool WriteReindexing(bool fReindexing);
+    void WriteReindexing(bool fReindexing);
     bool IsReindexing() const;
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
