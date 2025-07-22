@@ -100,14 +100,14 @@ private:
 class CBlockTreeDB : public CDBWrapper {
 public:
     using CDBWrapper::CDBWrapper;
-    bool WriteBatchSync(
+    void WriteBatchSync(
         const std::vector<std::pair<int, const CBlockFileInfo *>> &fileInfo,
         int nLastFile, const std::vector<const CBlockIndex *> &blockinfo);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo &info);
     bool ReadLastBlockFile(int &nFile);
     void WriteReindexing(bool fReindexing);
     bool IsReindexing() const;
-    bool WriteFlag(const std::string &name, bool fValue);
+    void WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts(
         const Consensus::Params &params,

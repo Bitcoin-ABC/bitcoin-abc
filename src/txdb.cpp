@@ -45,10 +45,7 @@ util::Result<void> CheckLegacyTxindex(CBlockTreeDB &block_tree_db) {
     block_tree_db.ReadFlag("txindex", txindex_legacy_flag);
     if (txindex_legacy_flag) {
         // Disable legacy txindex and warn once about occupied disk space
-        if (!block_tree_db.WriteFlag("txindex", false)) {
-            return util::Error{Untranslated(
-                "Failed to write block index db flag 'txindex'='0'")};
-        }
+        block_tree_db.WriteFlag("txindex", false);
         return util::Error{
             _("The block index db contains a legacy 'txindex'. To clear the "
               "occupied disk space, run a full -reindex, otherwise ignore "
@@ -265,7 +262,7 @@ void CCoinsViewDBCursor::Next() {
     }
 }
 
-bool CBlockTreeDB::WriteBatchSync(
+void CBlockTreeDB::WriteBatchSync(
     const std::vector<std::pair<int, const CBlockFileInfo *>> &fileInfo,
     int nLastFile, const std::vector<const CBlockIndex *> &blockinfo) {
     CDBBatch batch(*this);
@@ -282,12 +279,10 @@ bool CBlockTreeDB::WriteBatchSync(
                     CDiskBlockIndex(*it));
     }
     WriteBatch(batch, true);
-    return true;
 }
 
-bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
+void CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
     Write(std::make_pair(DB_FLAG, name), fValue ? uint8_t{'1'} : uint8_t{'0'});
-    return true;
 }
 
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {

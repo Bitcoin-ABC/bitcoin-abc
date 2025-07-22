@@ -2720,11 +2720,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     LOG_TIME_MILLIS_WITH_CATEGORY("write block index to disk",
                                                   BCLog::BENCH);
 
-                    if (!m_blockman.WriteBlockIndexDB()) {
-                        return FatalError(
-                            m_chainman.GetNotifications(), state,
-                            "Failed to write to block index database");
-                    }
+                    m_blockman.WriteBlockIndexDB();
                 }
 
                 // Finally remove any pruned files
