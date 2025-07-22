@@ -4,7 +4,7 @@
 
 # Dockerfile for deploying charts.e.cash with Vercel in CI/CD
 
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
 WORKDIR /app
 
