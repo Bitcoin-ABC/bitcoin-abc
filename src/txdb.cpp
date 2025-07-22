@@ -179,12 +179,12 @@ bool CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
 
     LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n",
              batch.SizeEstimate() * (1.0 / 1048576.0));
-    bool ret = m_db->WriteBatch(batch);
+    m_db->WriteBatch(batch);
     LogPrint(BCLog::COINDB,
              "Committed %u changed transaction outputs (out of "
              "%u) to coin database...\n",
              (unsigned int)changed, (unsigned int)count);
-    return ret;
+    return true;
 }
 
 size_t CCoinsViewDB::EstimateSize() const {
@@ -281,7 +281,8 @@ bool CBlockTreeDB::WriteBatchSync(
         batch.Write(std::make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()),
                     CDiskBlockIndex(*it));
     }
-    return WriteBatch(batch, true);
+    WriteBatch(batch, true);
+    return true;
 }
 
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
@@ -399,5 +400,6 @@ bool CBlockTreeDB::Upgrade() {
     LogPrintf("Updating the block index database version to %d\n",
               CLIENT_VERSION);
     batch.Write("version", uint64_t(CLIENT_VERSION));
-    return WriteBatch(batch);
+    WriteBatch(batch);
+    return true;
 }

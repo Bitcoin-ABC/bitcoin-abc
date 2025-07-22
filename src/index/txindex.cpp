@@ -44,7 +44,8 @@ bool TxIndex::DB::WriteTxs(
     for (const auto &tuple : v_pos) {
         batch.Write(std::make_pair(DB_TXINDEX, tuple.first), tuple.second);
     }
-    return WriteBatch(batch);
+    WriteBatch(batch);
+    return true;
 }
 
 TxIndex::TxIndex(std::unique_ptr<interfaces::Chain> chain, size_t n_cache_size,

@@ -298,9 +298,7 @@ bool CoinStatsIndex::Rewind(const CBlockIndex *current_tip,
         return false;
     }
 
-    if (!m_db->WriteBatch(batch)) {
-        return false;
-    }
+    m_db->WriteBatch(batch);
 
     {
         LOCK(cs_main);

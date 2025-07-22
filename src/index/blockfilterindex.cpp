@@ -330,9 +330,7 @@ bool BlockFilterIndex::Rewind(const CBlockIndex *current_tip,
     // the position should get updated here atomically as well in case Commit
     // fails.
     batch.Write(DB_FILTER_POS, m_next_filter_pos);
-    if (!m_db->WriteBatch(batch)) {
-        return false;
-    }
+    m_db->WriteBatch(batch);
 
     return BaseIndex::Rewind(current_tip, new_tip);
 }
