@@ -14,9 +14,10 @@ import {
 } from "../data/blog";
 import ContentContainer from "../components/Atoms/ContentContainer";
 import Button from "../components/Atoms/Button";
-import { CACHE_INTERVAL_SECONDS } from "../constants";
 
-export const revalidate = CACHE_INTERVAL_SECONDS;
+// Length of time to cache the page in seconds
+// Value must be a static export to work with Next.js
+export const revalidate = 43200;
 
 export default async function BlogPage() {
   let posts: BlogPost[] = [];
@@ -38,7 +39,7 @@ export default async function BlogPage() {
   const more = rest.slice(9);
 
   const getImageUrl = (post: BlogPost) =>
-    post.attributes.image.data.attributes.formats.medium?.url ||
+    post.attributes.image.data.attributes.formats.small?.url ||
     post.attributes.image.data.attributes.url;
 
   return (
@@ -58,6 +59,7 @@ export default async function BlogPage() {
             fill
             className="object-cover"
             priority
+            unoptimized
           />
         </div>
         <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent p-8">
@@ -97,6 +99,7 @@ export default async function BlogPage() {
                   fill
                   className="object-cover"
                   priority={idx === 0}
+                  unoptimized
                 />
               </div>
             </div>

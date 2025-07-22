@@ -15,9 +15,10 @@ import {
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
 import Button from "../Atoms/Button";
-import { CACHE_INTERVAL_SECONDS } from "../../constants";
 
-export const revalidate = CACHE_INTERVAL_SECONDS;
+// Length of time to cache the page in seconds
+// Value must be a static export to work with Next.js
+export const revalidate = 43200;
 
 export default async function FeaturedArticles() {
   let posts: BlogPost[] = [];
@@ -45,7 +46,7 @@ export default async function FeaturedArticles() {
       <div className="flex gap-4 overflow-x-auto pb-4 lg:grid lg:grid-cols-3 lg:overflow-x-visible">
         {posts.map((post, idx) => {
           const imageUrl =
-            post.attributes.image.data.attributes.formats.medium?.url ||
+            post.attributes.image.data.attributes.formats.small?.url ||
             post.attributes.image.data.attributes.url;
           return (
             <div
@@ -60,6 +61,7 @@ export default async function FeaturedArticles() {
                     fill
                     className="object-cover"
                     priority={idx === 0}
+                    unoptimized
                   />
                 </div>
               </div>

@@ -14,9 +14,10 @@ import {
   BlogPost,
 } from "../../data/blog";
 import ContentContainer from "../../components/Atoms/ContentContainer";
-import { CACHE_INTERVAL_SECONDS } from "../../constants";
 
-export const revalidate = CACHE_INTERVAL_SECONDS;
+// Length of time to cache the page in seconds
+// Value must be a static export to work with Next.js
+export const revalidate = 43200;
 
 export default async function BlogPostPage({
   params,
@@ -41,7 +42,7 @@ export default async function BlogPostPage({
   }
 
   const imageUrl =
-    post.attributes.image.data.attributes.formats.medium?.url ||
+    post.attributes.image.data.attributes.formats.small?.url ||
     post.attributes.image.data.attributes.url;
 
   return (
@@ -60,6 +61,7 @@ export default async function BlogPostPage({
             fill
             className="object-cover"
             priority
+            unoptimized
           />
         </div>
       </div>
