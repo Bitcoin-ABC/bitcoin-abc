@@ -253,7 +253,8 @@ bool CoinStatsIndex::WriteBlock(const CBlock &block,
     // Intentionally do not update DB_MUHASH here so it stays in sync with
     // DB_BEST_BLOCK, and the index is not corrupted if there is an unclean
     // shutdown.
-    return m_db->Write(DBHeightKey(pindex->nHeight), value);
+    m_db->Write(DBHeightKey(pindex->nHeight), value);
+    return true;
 }
 
 static bool CopyHeightIndexToHashIndex(CDBIterator &db_it, CDBBatch &batch,

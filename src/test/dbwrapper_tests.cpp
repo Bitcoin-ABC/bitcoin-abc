@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper) {
         BOOST_CHECK(obfuscate !=
                     is_null_key(dbwrapper_private::GetObfuscateKey(dbw)));
 
-        BOOST_CHECK(dbw.Write(key, in));
+        dbw.Write(key, in);
         BOOST_CHECK(dbw.Read(key, res));
         BOOST_CHECK_EQUAL(res.ToString(), in.ToString());
     }
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
         std::string key_block = "b" + m_rng.rand256().ToString();
 
         uint256 in_block = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key_block, in_block));
+        dbw.Write(key_block, in_block);
         BOOST_CHECK(dbw.Read(key_block, res));
         BOOST_CHECK_EQUAL(res.ToString(), in_block.ToString());
 
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
         std::string key_file = strprintf("f%04x", m_rng.rand32());
 
         uint256 in_file_info = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key_file, in_file_info));
+        dbw.Write(key_file, in_file_info);
         BOOST_CHECK(dbw.Read(key_file, res));
         BOOST_CHECK_EQUAL(res.ToString(), in_file_info.ToString());
 
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
         std::string key_transaction = "t" + m_rng.rand256().ToString();
 
         uint256 in_transaction = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key_transaction, in_transaction));
+        dbw.Write(key_transaction, in_transaction);
         BOOST_CHECK(dbw.Read(key_transaction, res));
         BOOST_CHECK_EQUAL(res.ToString(), in_transaction.ToString());
 
@@ -99,28 +99,28 @@ BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
         std::string key_utxo = "c" + m_rng.rand256().ToString();
 
         uint256 in_utxo = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key_utxo, in_utxo));
+        dbw.Write(key_utxo, in_utxo);
         BOOST_CHECK(dbw.Read(key_utxo, res));
         BOOST_CHECK_EQUAL(res.ToString(), in_utxo.ToString());
 
         // Simulate last block file number - "l"
         uint8_t key_last_blockfile_number{'l'};
         uint32_t lastblockfilenumber = m_rng.rand32();
-        BOOST_CHECK(dbw.Write(key_last_blockfile_number, lastblockfilenumber));
+        dbw.Write(key_last_blockfile_number, lastblockfilenumber);
         BOOST_CHECK(dbw.Read(key_last_blockfile_number, res_uint_32));
         BOOST_CHECK_EQUAL(lastblockfilenumber, res_uint_32);
 
         // Simulate Is Reindexing - "R"
         uint8_t key_IsReindexing{'R'};
         bool isInReindexing = m_rng.randbool();
-        BOOST_CHECK(dbw.Write(key_IsReindexing, isInReindexing));
+        dbw.Write(key_IsReindexing, isInReindexing);
         BOOST_CHECK(dbw.Read(key_IsReindexing, res_bool));
         BOOST_CHECK_EQUAL(isInReindexing, res_bool);
 
         // Simulate last block hash up to which UXTO covers - 'B'
         uint8_t key_lastblockhash_uxto{'B'};
         uint256 lastblock_hash = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key_lastblockhash_uxto, lastblock_hash));
+        dbw.Write(key_lastblockhash_uxto, lastblock_hash);
         BOOST_CHECK(dbw.Read(key_lastblockhash_uxto, res));
         BOOST_CHECK_EQUAL(lastblock_hash, res);
 
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
             strprintf("%s%01x%s", file_option_tag, filename_length, filename);
 
         bool in_file_bool = m_rng.randbool();
-        BOOST_CHECK(dbw.Write(key_file_option, in_file_bool));
+        dbw.Write(key_file_option, in_file_bool);
         BOOST_CHECK(dbw.Read(key_file_option, res_bool));
         BOOST_CHECK_EQUAL(res_bool, in_file_bool);
     }
@@ -195,10 +195,10 @@ BOOST_AUTO_TEST_CASE(dbwrapper_iterator) {
         // The two keys are intentionally chosen for ordering
         uint8_t key{'j'};
         uint256 in = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key, in));
+        dbw.Write(key, in);
         uint8_t key2{'k'};
         uint256 in2 = m_rng.rand256();
-        BOOST_CHECK(dbw.Write(key2, in2));
+        dbw.Write(key2, in2);
 
         std::unique_ptr<CDBIterator> it(
             const_cast<CDBWrapper &>(dbw).NewIterator());
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate) {
     uint256 in = m_rng.rand256();
     uint256 res;
 
-    BOOST_CHECK(dbw->Write(key, in));
+    dbw->Write(key, in);
     BOOST_CHECK(dbw->Read(key, res));
     BOOST_CHECK_EQUAL(res.ToString(), in.ToString());
 
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate) {
     uint256 res3;
 
     // Check that we can write successfully
-    BOOST_CHECK(odbw.Write(key, in2));
+    odbw.Write(key, in2);
     BOOST_CHECK(odbw.Read(key, res3));
     BOOST_CHECK_EQUAL(res3.ToString(), in2.ToString());
 }
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(existing_data_reindex) {
     uint256 in = m_rng.rand256();
     uint256 res;
 
-    BOOST_CHECK(dbw->Write(key, in));
+    dbw->Write(key, in);
     BOOST_CHECK(dbw->Read(key, res));
     BOOST_CHECK_EQUAL(res.ToString(), in.ToString());
 
@@ -317,7 +317,7 @@ BOOST_AUTO_TEST_CASE(existing_data_reindex) {
     uint256 res3;
 
     // Check that we can write successfully
-    BOOST_CHECK(odbw.Write(key, in2));
+    odbw.Write(key, in2);
     BOOST_CHECK(odbw.Read(key, res3));
     BOOST_CHECK_EQUAL(res3.ToString(), in2.ToString());
 }
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(iterator_ordering) {
         uint8_t key = x;
         uint32_t value = x * x;
         if (!(x & 1)) {
-            BOOST_CHECK(dbw.Write(key, value));
+            dbw.Write(key, value);
         }
     }
 
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE(iterator_ordering) {
         uint8_t key = x;
         uint32_t value = x * x;
         if (x & 1) {
-            BOOST_CHECK(dbw.Write(key, value));
+            dbw.Write(key, value);
         }
     }
 
@@ -426,7 +426,7 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering) {
                 key += key;
             }
             uint32_t value = x * x;
-            BOOST_CHECK(dbw.Write(key, value));
+            dbw.Write(key, value);
         }
     }
 

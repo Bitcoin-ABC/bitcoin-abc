@@ -275,9 +275,7 @@ bool BlockFilterIndex::WriteBlock(const CBlock &block,
     value.second.header = filter.ComputeHeader(prev_header);
     value.second.pos = m_next_filter_pos;
 
-    if (!m_db->Write(DBHeightKey(pindex->nHeight), value)) {
-        return false;
-    }
+    m_db->Write(DBHeightKey(pindex->nHeight), value);
 
     m_next_filter_pos.nPos += bytes_written;
     return true;

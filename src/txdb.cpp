@@ -197,7 +197,8 @@ bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
 
 bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
     if (fReindexing) {
-        return Write(DB_REINDEX_FLAG, uint8_t{'1'});
+        Write(DB_REINDEX_FLAG, uint8_t{'1'});
+        return true;
     } else {
         return Erase(DB_REINDEX_FLAG);
     }
@@ -286,8 +287,8 @@ bool CBlockTreeDB::WriteBatchSync(
 }
 
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
-    return Write(std::make_pair(DB_FLAG, name),
-                 fValue ? uint8_t{'1'} : uint8_t{'0'});
+    Write(std::make_pair(DB_FLAG, name), fValue ? uint8_t{'1'} : uint8_t{'0'});
+    return true;
 }
 
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
