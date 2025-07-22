@@ -152,6 +152,11 @@ h2 {
   backdrop-filter: blur(14px);
 }
 
+.custom-filter {
+  filter: invert(49%) sepia(42%) saturate(4625%) hue-rotate(168deg)
+    brightness(97%) contrast(99%);
+}
+
 .perspective-container {
   perspective: 1000px;
 }
