@@ -12,8 +12,5 @@ COPY apps/metachronik .
 RUN npm install chronik-client@latest
 RUN npm ci
 
-# Build the TypeScript project
+# Build metachronik
 RUN npm run build
-
-# Use the local Railway CLI via npx for deployment
-CMD ["sh", "-c", "npx railway up"]

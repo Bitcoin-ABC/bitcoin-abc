@@ -11,14 +11,3 @@ WORKDIR /app
 COPY web/charts.e.cash/package*.json ./
 RUN npm ci
 COPY web/charts.e.cash .
-
-CMD ["sh", "-c", "\
-  npx vercel pull --yes --environment=$VERCEL_ENVIRONMENT --token=$VERCEL_TOKEN && \
-  if [ $VERCEL_ENVIRONMENT = production ]; then \
-    npx vercel build --token=$VERCEL_TOKEN --prod && \
-    npx vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN; \
-  else \
-    npx vercel build --token=$VERCEL_TOKEN && \
-    npx vercel deploy --prebuilt --token=$VERCEL_TOKEN; \
-  fi \
-"]
