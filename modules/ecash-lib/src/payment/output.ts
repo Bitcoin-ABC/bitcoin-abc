@@ -13,17 +13,34 @@ export type PaymentOutput = PaymentNonTokenOutput | PaymentTokenOutput;
  *
  * Note than an OP_RETURN output is a NonTokenPaymentOutput
  */
-export interface PaymentNonTokenOutput {
-    /** The amount of satoshis in this tx output */
-    sats?: bigint;
-    /** The outputScript of this tx output */
-    script?: Script;
-}
+export type PaymentNonTokenOutput =
+    | {
+          /** The amount of satoshis in this tx output */
+          sats?: bigint;
+          /** The outputScript of this tx output */
+          script: Script;
+          /**
+           * The eCash address of this tx output
+           * Alternative to script - if script is provided, address should not be set
+           */
+          address?: never;
+      }
+    | {
+          /** The amount of satoshis in this tx output */
+          sats?: bigint;
+          /** The outputScript of this tx output */
+          script?: never;
+          /**
+           * The eCash address of this tx output
+           * Alternative to script - if script is not provided, address must be set
+           */
+          address: string;
+      };
 
 /**
  * All token transaction outputs specified in Action have this shape
  */
-export interface PaymentTokenOutput extends PaymentNonTokenOutput {
+export type PaymentTokenOutput = PaymentNonTokenOutput & {
     /** The tokenId of the token associated with this tx output */
     tokenId: string;
     /**
@@ -34,4 +51,4 @@ export interface PaymentTokenOutput extends PaymentNonTokenOutput {
     atoms: bigint;
     /** Is this tx output a mint baton */
     isMintBaton: boolean;
-}
+};

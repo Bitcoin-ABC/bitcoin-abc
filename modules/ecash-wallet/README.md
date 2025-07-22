@@ -34,3 +34,7 @@ See tests for detailed methods.
 # 1.0.1
 
 [D18391](https://reviews.bitcoinabc.org/D18391) Patch README
+
+# 1.1.0
+
+[D18398](https://reviews.bitcoinabc.org/D18398) Accept addresses in the transaction ouputs

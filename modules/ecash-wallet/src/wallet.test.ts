@@ -37,6 +37,7 @@ import {
     finalizeOutputs,
     selectUtxos,
     SatsSelectionStrategy,
+    paymentOutputsToTxOutputs,
 } from './wallet';
 
 const expect = chai.expect;
@@ -1700,6 +1701,87 @@ describe('Support functions', () => {
             } as unknown as TokenType);
         });
     });
+    context('paymentOutputsToTxOutputs', () => {
+        it('Converts PaymentOutput array to TxOutput array with specified sats', () => {
+            const outputs: payment.PaymentOutput[] = [
+                {
+                    sats: 1000n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                },
+                {
+                    sats: 2000n,
+                    script: DUMMY_SCRIPT,
+                },
+            ];
+            const dustSats = 546n;
+
+            const result = paymentOutputsToTxOutputs(outputs, dustSats);
+
+            expect(result).to.have.length(2);
+            expect(result[0].sats).to.equal(1000n);
+            expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+            expect(result[1].sats).to.equal(2000n);
+            expect(result[1].script).to.deep.equal(DUMMY_SCRIPT);
+        });
+
+        it('Uses dustSats as fallback when sats is undefined', () => {
+            const outputs: payment.PaymentOutput[] = [
+                {
+                    script: MOCK_DESTINATION_SCRIPT,
+                },
+                {
+                    script: DUMMY_SCRIPT,
+                },
+            ];
+            const dustSats = 546n;
+
+            const result = paymentOutputsToTxOutputs(outputs, dustSats);
+
+            expect(result).to.have.length(2);
+            expect(result[0].sats).to.equal(dustSats);
+            expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+            expect(result[1].sats).to.equal(dustSats);
+            expect(result[1].script).to.deep.equal(DUMMY_SCRIPT);
+        });
+
+        it('Handles mixed sats values correctly', () => {
+            const dummyP2pkhScript = Script.p2pkh(fromHex('00'.repeat(20)));
+            const outputs: payment.PaymentOutput[] = [
+                {
+                    sats: 1000n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                },
+                {
+                    // sats undefined, should use dustSats
+                    script: DUMMY_SCRIPT,
+                },
+                {
+                    sats: 0n, // Explicit 0 sats (like OP_RETURN)
+                    script: dummyP2pkhScript,
+                },
+            ];
+            const dustSats = 546n;
+
+            const result = paymentOutputsToTxOutputs(outputs, dustSats);
+
+            expect(result).to.have.length(3);
+            expect(result[0].sats).to.equal(1000n);
+            expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+            expect(result[1].sats).to.equal(dustSats);
+            expect(result[1].script).to.deep.equal(DUMMY_SCRIPT);
+            expect(result[2].sats).to.equal(0n);
+            expect(result[2].script).to.deep.equal(dummyP2pkhScript);
+        });
+
+        it('Works with empty array', () => {
+            const outputs: payment.PaymentOutput[] = [];
+            const dustSats = 546n;
+
+            const result = paymentOutputsToTxOutputs(outputs, dustSats);
+
+            expect(result).to.deep.equal([]);
+        });
+    });
     context('finalizeOutputs', () => {
         /**
          * NB in practice, "requiredUtxos" will be a calculated param in the class
@@ -1725,6 +1807,93 @@ describe('Support functions', () => {
             decimals: 4,
         };
         const DUMMY_CHANGE_SCRIPT = MOCK_DESTINATION_SCRIPT;
+
+        context('Address support', () => {
+            it('Converts address field to script field for non-token outputs', () => {
+                const testAction = {
+                    outputs: [
+                        {
+                            address: MOCK_DESTINATION_ADDRESS,
+                            sats: 1000n,
+                        },
+                    ],
+                };
+
+                const result = finalizeOutputs(
+                    testAction,
+                    // Non-token UTXO
+                    [DUMMY_UTXO],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // The function should return the massaged outputs
+                expect(result).to.have.length(1);
+                expect(result[0].sats).to.equal(1000n);
+                expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+
+                // Original action should remain unchanged (deep copy behavior)
+                expect(testAction.outputs[0]).to.deep.equal({
+                    address: MOCK_DESTINATION_ADDRESS,
+                    sats: 1000n,
+                });
+            });
+
+            it('Leaves script-only outputs unchanged', () => {
+                const testAction = {
+                    outputs: [
+                        {
+                            script: MOCK_DESTINATION_SCRIPT,
+                            sats: 1000n,
+                        },
+                    ],
+                };
+
+                const result = finalizeOutputs(
+                    testAction,
+                    [DUMMY_UTXO],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // The returned output should have the same script and sats
+                expect(result).to.have.length(1);
+                expect(result[0].sats).to.equal(1000n);
+                expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+            });
+
+            it('Handles multiple outputs with mixed address and script fields', () => {
+                const testAction = {
+                    outputs: [
+                        {
+                            address: MOCK_DESTINATION_ADDRESS,
+                            sats: 1000n,
+                        },
+                        {
+                            script: MOCK_DESTINATION_SCRIPT,
+                            sats: 2000n,
+                        },
+                    ],
+                };
+
+                const result = finalizeOutputs(
+                    testAction,
+                    // Sufficient sats for both outputs
+                    [{ ...DUMMY_UTXO, sats: 5000n }],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // The returned outputs should be processed correctly
+                expect(result).to.have.length(2);
+
+                // First output: address converted to script
+                expect(result[0].sats).to.equal(1000n);
+                expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+
+                // Second output: script unchanged
+                expect(result[1].sats).to.equal(2000n);
+                expect(result[1].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+            });
+        });
+
         context('Validation rules common to all token types', () => {
             it('Throws if Action does not specify any outputs', () => {
                 expect(() =>
@@ -2357,10 +2526,10 @@ describe('Support functions', () => {
                     DUMMY_CHANGE_SCRIPT,
                 );
 
-                // No error thrown
-                expect(result).to.equal(undefined);
+                // No error thrown, returns processed outputs
+                expect(result).to.have.length(SLP_MAX_SEND_OUTPUTS + 1);
 
-                // No outputs added (+1 for the OP_RETURN 0-index output)
+                // Original action remains unchanged
                 expect(testAction.outputs.length).to.equal(
                     SLP_MAX_SEND_OUTPUTS + 1,
                 );
@@ -2412,16 +2581,11 @@ describe('Support functions', () => {
                     DUMMY_CHANGE_SCRIPT,
                 );
 
-                // No error thrown
-                expect(result).to.equal(undefined);
+                // No error thrown, check returned outputs
+                expect(result).to.have.length(outputsLengthBeforeChange + 1);
 
-                // An output is added
-                expect(testAction.outputs.length).to.equal(
-                    outputsLengthBeforeChange + 1,
-                );
-
-                // The OP_RETURN has been written
-                const opReturn = testAction.outputs[0].script.toHex();
+                // The OP_RETURN has been written in the returned results
+                const opReturn = result[0].script.toHex();
                 expect(opReturn).to.equal(
                     `6a04534c500001010453454e442011111111111111111111111111111111111111111111111111111111111111110800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f4240080000000000000037`,
                 );
@@ -2781,54 +2945,55 @@ describe('Support functions', () => {
                 );
             });
             it('Does not throw if we have SEND and MINT actions associated with different tokenIds', () => {
-                expect(
-                    finalizeOutputs(
-                        {
-                            outputs: [
-                                { sats: 0n },
-                                // Send output
-                                {
-                                    sats: 546n,
-                                    tokenId: '11'.repeat(32),
-                                    atoms: 1_000_000n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: false,
-                                },
-                                // Mint output of a different token
-                                {
-                                    sats: 546n,
-                                    tokenId: '22'.repeat(32),
-                                    atoms: 1_000_000n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: false,
-                                },
-                            ],
-                            tokenActions: [
-                                {
-                                    type: 'SEND',
-                                    tokenId: '11'.repeat(32),
-                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                                },
-                                {
-                                    type: 'MINT',
-                                    tokenId: '22'.repeat(32),
-                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                                },
-                            ] as payment.TokenAction[],
-                        },
-                        [
+                const result = finalizeOutputs(
+                    {
+                        outputs: [
+                            { sats: 0n },
+                            // Send output
                             {
-                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
-                                token: {
-                                    ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
-                                    tokenId: '11'.repeat(32),
-                                    atoms: 1_000_000_000n,
-                                } as Token,
+                                sats: 546n,
+                                tokenId: '11'.repeat(32),
+                                atoms: 1_000_000n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: false,
+                            },
+                            // Mint output of a different token
+                            {
+                                sats: 546n,
+                                tokenId: '22'.repeat(32),
+                                atoms: 1_000_000n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: false,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
-                    ),
-                ).to.equal(undefined);
+                        tokenActions: [
+                            {
+                                type: 'SEND',
+                                tokenId: '11'.repeat(32),
+                                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            },
+                            {
+                                type: 'MINT',
+                                tokenId: '22'.repeat(32),
+                                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            },
+                        ] as payment.TokenAction[],
+                    },
+                    [
+                        {
+                            ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
+                                tokenId: '11'.repeat(32),
+                                atoms: 1_000_000_000n,
+                            } as Token,
+                        },
+                    ],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // Should return the processed outputs successfully (3 original + 1 change)
+                expect(result).to.have.length(4);
             });
             it('Throws if action exceeds ALP_POLICY_MAX_OUTPUTS max outputs per tx', () => {
                 const tokenIdThisAction = `11`.repeat(32);
@@ -3044,103 +3209,104 @@ describe('Support functions', () => {
                 );
             });
             it('Does not throw for a complex but on-spec ALP tx', () => {
-                expect(
-                    finalizeOutputs(
-                        {
-                            outputs: [
-                                // OP_RETURN placeholder
-                                { sats: 0n },
-                                // Send output
-                                {
-                                    sats: 546n,
-                                    tokenId: '11'.repeat(32),
-                                    atoms: 1_000_000n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: false,
-                                },
-                                // Mint output of a different token
-                                {
-                                    sats: 546n,
-                                    tokenId: '22'.repeat(32),
-                                    atoms: 1_000_000n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: false,
-                                },
-                                // Another send output of the first token
-                                {
-                                    sats: 546n,
-                                    tokenId: '11'.repeat(32),
-                                    atoms: 2_000_000n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: false,
-                                },
-                                // A non-consecutive mint qty of the minting token
-                                {
-                                    sats: 546n,
-                                    tokenId: '22'.repeat(32),
-                                    atoms: 2_000_000n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: false,
-                                },
-                                // A normal XEC send output
-                                { sats: 10_000_000n, script: DUMMY_SCRIPT },
-                                // A mint baton of the minting token
-                                {
-                                    sats: 546n,
-                                    tokenId: '22'.repeat(32),
-                                    atoms: 0n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: true,
-                                },
-                                // A consecutive mint baton of the minting token
-                                {
-                                    sats: 546n,
-                                    tokenId: '22'.repeat(32),
-                                    atoms: 0n,
-                                    script: DUMMY_SCRIPT,
-                                    isMintBaton: true,
-                                },
-                                // A normal XEC send output
-                                { sats: 10_000_000n, script: DUMMY_SCRIPT },
+                const result = finalizeOutputs(
+                    {
+                        outputs: [
+                            // OP_RETURN placeholder
+                            { sats: 0n },
+                            // Send output
+                            {
+                                sats: 546n,
+                                tokenId: '11'.repeat(32),
+                                atoms: 1_000_000n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: false,
+                            },
+                            // Mint output of a different token
+                            {
+                                sats: 546n,
+                                tokenId: '22'.repeat(32),
+                                atoms: 1_000_000n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: false,
+                            },
+                            // Another send output of the first token
+                            {
+                                sats: 546n,
+                                tokenId: '11'.repeat(32),
+                                atoms: 2_000_000n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: false,
+                            },
+                            // A non-consecutive mint qty of the minting token
+                            {
+                                sats: 546n,
+                                tokenId: '22'.repeat(32),
+                                atoms: 2_000_000n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: false,
+                            },
+                            // A normal XEC send output
+                            { sats: 10_000_000n, script: DUMMY_SCRIPT },
+                            // A mint baton of the minting token
+                            {
+                                sats: 546n,
+                                tokenId: '22'.repeat(32),
+                                atoms: 0n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: true,
+                            },
+                            // A consecutive mint baton of the minting token
+                            {
+                                sats: 546n,
+                                tokenId: '22'.repeat(32),
+                                atoms: 0n,
+                                script: DUMMY_SCRIPT,
+                                isMintBaton: true,
+                            },
+                            // A normal XEC send output
+                            { sats: 10_000_000n, script: DUMMY_SCRIPT },
 
-                                // A normal XEC send output
-                                { sats: 10_000_000n, script: DUMMY_SCRIPT },
-                            ],
-                            tokenActions: [
-                                {
-                                    type: 'SEND',
-                                    tokenId: '11'.repeat(32),
-                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                                },
-                                {
-                                    type: 'MINT',
-                                    tokenId: '22'.repeat(32),
-                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                                },
-                            ] as payment.TokenAction[],
-                        },
-                        [
-                            DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
-                            {
-                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
-                                token: {
-                                    ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
-                                    tokenId: '11'.repeat(32),
-                                    atoms: 1_000_000_000n,
-                                } as Token,
-                            },
-                            {
-                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
-                                token: {
-                                    ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
-                                    tokenId: '22'.repeat(32),
-                                    atoms: 1_000_000_000n,
-                                } as Token,
-                            },
+                            // A normal XEC send output
+                            { sats: 10_000_000n, script: DUMMY_SCRIPT },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
-                    ),
-                ).to.equal(undefined);
+                        tokenActions: [
+                            {
+                                type: 'SEND',
+                                tokenId: '11'.repeat(32),
+                                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            },
+                            {
+                                type: 'MINT',
+                                tokenId: '22'.repeat(32),
+                                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            },
+                        ] as payment.TokenAction[],
+                    },
+                    [
+                        DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                        {
+                            ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
+                                tokenId: '11'.repeat(32),
+                                atoms: 1_000_000_000n,
+                            } as Token,
+                        },
+                        {
+                            ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
+                                tokenId: '22'.repeat(32),
+                                atoms: 1_000_000_000n,
+                            } as Token,
+                        },
+                    ],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // Should return the processed outputs successfully (10 original + 1 change)
+                expect(result).to.have.length(11);
             });
             it('Throws if generating a token change output will cause us to exceed ALP_TOKEN_TYPE_STANDARD max outputs per tx', () => {
                 const tokenIdThisAction = `11`.repeat(32);
@@ -3225,10 +3391,10 @@ describe('Support functions', () => {
                     DUMMY_CHANGE_SCRIPT,
                 );
 
-                // No error thrown
-                expect(result).to.equal(undefined);
+                // No error thrown, returns processed outputs
+                expect(result).to.have.length(ALP_POLICY_MAX_OUTPUTS + 1);
 
-                // No outputs added (+1 for the OP_RETURN 0-index output)
+                // Original action remains unchanged
                 expect(testAction.outputs.length).to.equal(
                     ALP_POLICY_MAX_OUTPUTS + 1,
                 );
@@ -3310,16 +3476,11 @@ describe('Support functions', () => {
                     DUMMY_CHANGE_SCRIPT,
                 );
 
-                // No error thrown
-                expect(result).to.equal(undefined);
+                // No error thrown, returns processed outputs with change added
+                expect(result).to.have.length(outputsLengthBeforeChange + 2);
 
-                // Two outputs are added
-                expect(testAction.outputs.length).to.equal(
-                    outputsLengthBeforeChange + 2,
-                );
-
-                // We get the expected EMPP OP_RETURN
-                expect(testAction.outputs[0].script.toHex()).to.equal(
+                // We get the expected EMPP OP_RETURN in the results
+                expect(result[0].script.toHex()).to.equal(
                     `6a504c67534c5032000453454e4411111111111111111111111111111111111111111111111111111111111111110a40420f00000040420f00000040420f00000040420f0000000000000000000000000000000000000000000000000000000000000000003700000000004c6d534c5032000453454e4422222222222222222222222222222222222222222222222222222222222222220b00000000000000000000000000000000000000000000000040420f00000040420f00000040420f00000040420f00000040420f000000000000000000420000000000`,
                 );
             });
@@ -3511,20 +3672,15 @@ describe('Support functions', () => {
                     mockChangeScript,
                 );
 
-                // No error thrown
-                expect(result).to.equal(undefined);
-
-                // Two outputs are added
-                expect(testAction.outputs.length).to.equal(
-                    outputsLengthBeforeChange + 2,
-                );
+                // No error thrown, returns processed outputs
+                expect(result).to.have.length(outputsLengthBeforeChange + 2);
 
                 const ALP_SEND = '53454e44';
                 const ALP_BURN = '4255524e';
 
                 // NB we do not parse this EMPP string to find the appropriate change values
                 // This behavior is confirmed in transactions.test.ts
-                const opReturnHex = testAction.outputs[0].script?.toHex();
+                const opReturnHex = result[0].script?.toHex();
                 const sendOneEmpp = `37534c50320004${ALP_SEND}${tokenOne}02000000000000360000000000`;
                 const sendTwoEmpp = `3d534c50320004${ALP_SEND}${tokenTwo}0340420f000000000000000000400000000000`;
                 const burnOneEmpp = `30534c50320004${ALP_BURN}${tokenOne}010000000000`;
@@ -3572,13 +3728,13 @@ describe('Support functions', () => {
                     ],
                 };
 
-                finalizeOutputs(
+                const resultRearranged = finalizeOutputs(
                     testActionsRearranged,
                     testUtxos,
                     mockChangeScript,
                 );
                 const opReturnHexRearranged =
-                    testActionsRearranged.outputs[0].script?.toHex();
+                    resultRearranged[0].script?.toHex();
 
                 // EMPP order matches user-specified ordering in tokenActions
                 expect(opReturnHexRearranged).to.equal(

@@ -303,14 +303,12 @@ class WalletAction {
          * Validate outputs AND add token-required generated outputs
          * i.e. token change or burn-adjusted token change
          */
-        finalizeOutputs(
+        const outputs = finalizeOutputs(
             this.action,
             selectedUtxos,
             this._wallet.script,
             dustSats,
         );
-
-        const { outputs } = this.action;
 
         // Determine the exact utxos we need for this tx by building and signing the tx
         let inputSats = Wallet.sumUtxosSats(selectedUtxos);
@@ -417,14 +415,12 @@ class WalletAction {
          * Validate outputs AND add token-required generated outputs
          * i.e. token change or burn-adjusted token change
          */
-        finalizeOutputs(
+        const outputs = finalizeOutputs(
             this.action,
             selectedUtxos,
             this._wallet.script,
             dustSats,
         );
-
-        const { outputs } = this.action;
 
         // Create inputs with the specified sighash
         const finalizedInputs = selectedUtxos.map(utxo =>
@@ -1361,6 +1357,22 @@ export const getTokenType = (action: payment.Action): TokenType | undefined => {
     return tokenType;
 };
 
+// Convert user-specified ecash-wallet Output[] to TxOutput[], so we can build
+// and sign the tx that fulfills this Action
+export const paymentOutputsToTxOutputs = (
+    outputs: payment.PaymentOutput[],
+    dustSats: bigint,
+): TxOutput[] => {
+    const txBuilderOutputs: TxOutput[] = [];
+    for (const output of outputs) {
+        txBuilderOutputs.push({
+            sats: output.sats ?? dustSats,
+            script: output.script as Script,
+        });
+    }
+    return txBuilderOutputs;
+};
+
 /**
  * finalizeOutputs
  *
@@ -1393,17 +1405,38 @@ export const getTokenType = (action: payment.Action): TokenType | undefined => {
  * - Only one token type per tx
  * - We do not support SLP intentional burns
  * - We do not support ALP combined MINT / BURN txs
+ *
+ * Returns: The action outputs. The script field of each output will be set if
+ * the address was specified.
  */
 export const finalizeOutputs = (
     action: payment.Action,
     requiredUtxos: ScriptUtxo[],
     changeScript: Script,
     dustSats = DEFAULT_DUST_SATS,
-) => {
-    const { outputs, tokenActions } = action;
+): TxOutput[] => {
+    // Make a deep copy of outputs to avoid mutating the action object
+    const outputs = action.outputs.map(output => ({ ...output }));
+    const tokenActions = action.tokenActions;
 
     if (outputs.length === 0) {
         throw new Error(`No outputs specified. All actions must have outputs.`);
+    }
+
+    // Convert any address fields to script fields before processing
+    for (let i = 0; i < outputs.length; i++) {
+        const output = outputs[i];
+        if ('address' in output && output.address) {
+            // Convert from address variant to script variant of the union type
+            const { address, ...restOfOutput } =
+                output as payment.PaymentNonTokenOutput & {
+                    address: string;
+                };
+            outputs[i] = {
+                ...restOfOutput,
+                script: Script.fromAddress(address),
+            } as payment.PaymentOutput;
+        }
     }
 
     // We do not support manually-specified leftover outputs
@@ -1463,7 +1496,7 @@ export const finalizeOutputs = (
             );
         }
         // For this case, validation is finished
-        return;
+        return paymentOutputsToTxOutputs(outputs, dustSats);
     }
 
     // Everything below is for token txs
@@ -2361,18 +2394,7 @@ export const finalizeOutputs = (
         }
     }
 
-    // Convert user-specified ecash-wallet Output[] to TxOutput[], so we can
-    // build and sign the tx that fulfills this Action
-    const txBuilderOutputs: TxOutput[] = [];
-    for (const output of outputs) {
-        txBuilderOutputs.push({
-            sats: output.sats ?? dustSats,
-            script: output.script as Script,
-        });
-    }
-
-    // Overwrite action.outputs with txBuilderOutputs so it is ready for txBuilder
-    action.outputs = txBuilderOutputs;
+    return paymentOutputsToTxOutputs(outputs, dustSats);
 };
 
 /**
