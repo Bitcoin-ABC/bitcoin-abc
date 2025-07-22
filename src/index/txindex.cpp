@@ -27,7 +27,7 @@ public:
     bool ReadTxPos(const TxId &txid, CDiskTxPos &pos) const;
 
     /// Write a batch of transaction positions to the DB.
-    bool WriteTxs(const std::vector<std::pair<TxId, CDiskTxPos>> &v_pos);
+    void WriteTxs(const std::vector<std::pair<TxId, CDiskTxPos>> &v_pos);
 };
 
 TxIndex::DB::DB(size_t n_cache_size, bool f_memory, bool f_wipe)
@@ -38,14 +38,13 @@ bool TxIndex::DB::ReadTxPos(const TxId &txid, CDiskTxPos &pos) const {
     return Read(std::make_pair(DB_TXINDEX, txid), pos);
 }
 
-bool TxIndex::DB::WriteTxs(
+void TxIndex::DB::WriteTxs(
     const std::vector<std::pair<TxId, CDiskTxPos>> &v_pos) {
     CDBBatch batch(*this);
     for (const auto &tuple : v_pos) {
         batch.Write(std::make_pair(DB_TXINDEX, tuple.first), tuple.second);
     }
     WriteBatch(batch);
-    return true;
 }
 
 TxIndex::TxIndex(std::unique_ptr<interfaces::Chain> chain, size_t n_cache_size,
@@ -69,7 +68,8 @@ bool TxIndex::WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
         vPos.emplace_back(tx->GetId(), pos);
         pos.nTxOffset += ::GetSerializeSize(*tx);
     }
-    return m_db->WriteTxs(vPos);
+    m_db->WriteTxs(vPos);
+    return true;
 }
 
 BaseIndex::DB &TxIndex::GetDB() const {
