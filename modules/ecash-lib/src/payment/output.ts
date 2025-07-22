@@ -18,7 +18,7 @@ export type PaymentNonTokenOutput =
           /** The amount of satoshis in this tx output */
           sats?: bigint;
           /** The outputScript of this tx output */
-          script: Script;
+          script?: Script;
           /**
            * The eCash address of this tx output
            * Alternative to script - if script is provided, address should not be set

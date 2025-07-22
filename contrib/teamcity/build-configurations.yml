@@ -826,6 +826,7 @@ builds:
       - modules/mock-chronik-client/
       - modules/ecashaddrjs/
       - modules/chronik-client/
+      - modules/ecash-lib/
     env:
       JS_PROJECT_ROOT: apps/token-server
       RUN_NPM_BUILD: "true"
