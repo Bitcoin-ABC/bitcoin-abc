@@ -7,6 +7,7 @@ import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import ContentContainer from "../Atoms/ContentContainer";
 import { cn } from "@/app/utils/cn";
+import { motion } from "framer-motion";
 
 type Quote = {
   quote: string;
@@ -141,7 +142,11 @@ export default function Quotes() {
 
   return (
     <ContentContainer className="max-w-[1400px]">
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+        viewport={{ once: true, amount: 0.5 }}
         className="scrollx-container scrollx-fade py-15 lg:py-30 m-auto flex w-full snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-[20vw] lg:gap-8 lg:px-[calc(50vw-325px)] xl:px-[325px]"
         ref={containerRef}
       >
@@ -174,8 +179,14 @@ export default function Quotes() {
             </div>
           </div>
         ))}
-      </div>
-      <div className="mt-2 flex justify-center gap-3 lg:mt-4">
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        viewport={{ once: true }}
+        className="mt-2 flex justify-center gap-3 lg:mt-4"
+      >
         {quotes.map((_, i) => {
           const isActive = activeIndex === i;
           return (
@@ -192,7 +203,7 @@ export default function Quotes() {
             />
           );
         })}
-      </div>
+      </motion.div>
     </ContentContainer>
   );
 }

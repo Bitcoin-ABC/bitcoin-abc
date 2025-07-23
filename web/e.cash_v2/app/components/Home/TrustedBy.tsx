@@ -2,21 +2,33 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 const Logos = ["bithumb", "upbit", "binance", "coinex", "indodax"];
 
 export default function TrustedBy() {
   return (
     <ContentContainer>
-      <div className="relative m-auto w-full max-w-[300px] text-center text-sm font-light leading-none tracking-wider lg:max-w-none">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+        className="relative m-auto w-full max-w-[300px] text-center text-sm font-light leading-none tracking-wider lg:max-w-none"
+      >
         TRUSTED BY BUSINESSES THAT VALUE{" "}
         <span className="font-medium">SPEED</span>,{" "}
         <span className="font-medium">SECURITY</span> AND{" "}
         <span className="font-medium">SCALABILITY</span>
-      </div>
-      <div className="logo-mask-gradient m-auto mb-20 mt-8 flex w-full select-none items-center overflow-hidden lg:max-w-[70%]">
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+        className="logo-mask-gradient m-auto mb-20 mt-8 flex w-full select-none items-center overflow-hidden lg:max-w-[70%]"
+      >
         <div className="srcoll-animation lg:gap-22 flex items-center gap-10">
           {[...Logos, ...Logos].map((item, index) => (
             <div
@@ -33,7 +45,7 @@ export default function TrustedBy() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </ContentContainer>
   );
 }

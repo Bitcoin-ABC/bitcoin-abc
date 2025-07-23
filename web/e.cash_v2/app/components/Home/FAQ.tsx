@@ -10,6 +10,7 @@ import Button from "../Atoms/Button";
 import GridPattern from "../Atoms/GridPattern";
 import { cn } from "../../utils/cn";
 import { faqs } from "../../data/faqs";
+import { motion } from "framer-motion";
 
 // Helper function to convert URLs in text to clickable links
 const renderTextWithLinks = (text: string) => {
@@ -51,7 +52,13 @@ export default function FAQ() {
     <ContentContainer className="z-30 max-w-[1300px] pb-20">
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
         {/* Left Column - Introduction */}
-        <div className="relative flex max-w-[430px] flex-col">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="relative flex max-w-[430px] flex-col"
+        >
           {/* GridPattern background */}
           <GridPattern className="bottom-0 left-0 -z-10 hidden lg:absolute lg:left-[-40px]" />
           <div className="mb-6">
@@ -66,14 +73,22 @@ export default function FAQ() {
             Excited about eCash? So are we! Here are some answers to the most
             frequently asked eCash questions.
           </p>
-        </div>
+        </motion.div>
 
         {/* Right Column - FAQ Items */}
         <div className="flex flex-col">
           {displayedFaqs.map(({ question, answer }, index) => {
             const isOpen = index === openIndex;
             return (
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  ease: "easeInOut",
+                  delay: index * 0.1,
+                }}
+                viewport={{ once: true, amount: 0.5 }}
                 key={index}
                 className="border-white/15 group cursor-pointer border-b py-5 transition-all hover:border-white/100"
                 onClick={() => toggleItem(index)}
@@ -104,20 +119,30 @@ export default function FAQ() {
                 >
                   {renderTextWithLinks(answer)}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
 
           {/* More/Less FAQs Button */}
           {faqs.length > 5 && (
-            <div className="mt-8 flex justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{
+                duration: 0.6,
+                ease: "easeInOut",
+                delay: 0.2,
+              }}
+              viewport={{ once: true, amount: 0.5 }}
+              className="mt-8 flex justify-center"
+            >
               <Button
                 variant="white"
                 onClick={() => setShowAllFaqs(!showAllFaqs)}
               >
                 {showAllFaqs ? "Less" : "More"}
               </Button>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

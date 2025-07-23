@@ -2,10 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import Link from "next/link";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import PlusHeader from "../Atoms/PlusHeader";
+import { motion } from "framer-motion";
 
 export default function CardCarousel() {
   type CardProps = {
@@ -45,11 +47,23 @@ export default function CardCarousel() {
   return (
     <ContentContainer className="max-w-[1400px]">
       <div className="flex w-full flex-col rounded-2xl bg-[#070712] p-8 lg:p-14">
-        <div className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]"
+        >
           <PlusHeader text="What we’re doing" />
           <h2>Building the future of digital payments</h2>
-        </div>
-        <div className="scrollx-container mt-12 flex w-full snap-x snap-mandatory items-center gap-4 overflow-x-auto scroll-smooth lg:gap-8">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="scrollx-container mt-12 flex w-full snap-x snap-mandatory items-center gap-4 overflow-x-auto scroll-smooth lg:gap-8"
+        >
           <Card
             text="Active developer community"
             image="/developer-community.png"
@@ -65,7 +79,7 @@ export default function CardCarousel() {
             image="/live-transactions.png"
             href="https://explorer.e.cash/"
           />
-        </div>
+        </motion.div>
       </div>
     </ContentContainer>
   );

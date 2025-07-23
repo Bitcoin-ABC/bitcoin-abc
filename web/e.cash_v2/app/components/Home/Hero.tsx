@@ -10,6 +10,7 @@ import Link from "next/link";
 import GridPattern from "../Atoms/GridPattern";
 import Spline from "@splinetool/react-spline";
 import Button from "../Atoms/Button";
+import { motion } from "motion/react";
 
 export default function Hero() {
   type HeroBoxProps = {
@@ -50,10 +51,30 @@ export default function Hero() {
       <ContentContainer>
         <div className="flex flex-col items-center lg:flex-row">
           <div className="relative z-10 flex w-full flex-col items-start justify-center self-stretch lg:w-[55%]">
-            <div className="mask-gradient-fade-to-left bg-white/14 absolute top-20 hidden h-[1px] w-full lg:block" />
-            <div className="mask-gradient-fade-to-left top-19.75 absolute hidden h-[1px] w-full bg-black lg:block" />
-            <div className="mask-gradient-fade-to-left bg-white/14 absolute bottom-20 hidden h-[1px] w-full lg:block" />
-            <div className="mask-gradient-fade-to-left bottom-20.25 absolute hidden h-[1px] w-full bg-black lg:block" />
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="mask-gradient-fade-to-left bg-white/14 absolute top-20 hidden h-[1px] w-full lg:block"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="mask-gradient-fade-to-left top-19.75 absolute hidden h-[1px] w-full bg-black lg:block"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="mask-gradient-fade-to-left bg-white/14 absolute bottom-20 hidden h-[1px] w-full lg:block"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="mask-gradient-fade-to-left bottom-20.25 absolute hidden h-[1px] w-full bg-black lg:block"
+            />
 
             <div className="relative z-20 m-auto mb-6 h-[150px] w-full max-w-[150px] lg:hidden">
               {loading && (
@@ -70,17 +91,29 @@ export default function Hero() {
                 onLoad={() => setLoading(false)}
               />
             </div>
-            <h1 className="m-auto mb-2 w-auto max-w-[200px] text-center text-4xl font-bold tracking-tighter lg:m-0 lg:mb-6 lg:w-96 lg:max-w-none lg:text-left lg:text-6xl lg:leading-[60px]">
-              Cash for the Internet
-            </h1>
-            <p className="lg:w-70 m-auto mb-10 max-w-[280px] text-center lg:m-0 lg:mb-6 lg:text-left">
-              Scalable payments to meet the{" "}
-              <span className="text-primaryText">demands of tomorrow.</span>
-            </p>
-            <Button href="#developers">Start Building</Button>
+            <motion.div
+              className="relative z-50 m-auto text-center lg:m-0 lg:text-left"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <h1 className="m-auto mb-2 w-auto max-w-[200px] text-center text-4xl font-bold tracking-tighter lg:m-0 lg:mb-6 lg:w-96 lg:max-w-none lg:text-left lg:text-6xl lg:leading-[60px]">
+                Cash for the Internet
+              </h1>
+              <p className="lg:w-70 m-auto mb-10 max-w-[280px] text-center lg:m-0 lg:mb-6 lg:text-left">
+                Scalable payments to meet the{" "}
+                <span className="text-primaryText">demands of tomorrow.</span>
+              </p>
+              <Button href="#developers">Start Building</Button>
+            </motion.div>
           </div>
 
-          <div className="relative z-20 mt-8 hidden w-full flex-col items-end lg:my-20 lg:flex lg:w-[45%]">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            className="relative z-20 mt-8 hidden w-full flex-col items-end lg:my-20 lg:flex lg:w-[45%]"
+          >
             <div className="absolute right-0 top-[-2px] h-[2px] w-full bg-black" />
 
             <HeroBox
@@ -94,7 +127,7 @@ export default function Hero() {
               href="https://avalance.cash"
               text="A breakthrough consensus protocol integrated with eCash's core technology."
             />
-          </div>
+          </motion.div>
         </div>
       </ContentContainer>
       <GridPattern className="left-1/2 top-16 z-10 hidden -translate-x-[calc(50%+100px)] lg:inline-flex" />
@@ -113,7 +146,12 @@ export default function Hero() {
           className="object-contain"
         />
       </div>
-      <div className="absolute left-1/2 top-1/2 z-10 hidden h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 lg:block">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+        className="absolute left-1/2 top-1/2 z-10 hidden h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 lg:block"
+      >
         <div className="absolute bottom-[-100px] left-1/2 z-0 h-[125px] w-[312px] -translate-x-1/2">
           <Image
             src="/shadow.png"
@@ -132,7 +170,7 @@ export default function Hero() {
         )}
 
         <Spline scene="/scene.splinecode" onLoad={() => setLoading(false)} />
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -2,7 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import ContentContainer from "../Atoms/ContentContainer";
+import { motion } from "framer-motion";
 
 export default function DigitalPaymentLandscape() {
   const Chart = () => {
@@ -186,7 +188,13 @@ export default function DigitalPaymentLandscape() {
   return (
     <ContentContainer className="my-20 mb-0 px-0 lg:px-4">
       <div className="custom-box from-white/1 to-white/1 py-15 lg:py-22 flex flex-col items-center rounded-lg border border-white/10 bg-gradient-to-br via-[#15172A] px-6 lg:flex-row lg:gap-6 lg:px-20 lg:pb-20 lg:pr-10">
-        <div className="order-3 flex w-full flex-col gap-4 self-stretch lg:order-1 lg:w-1/2">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.75 }}
+          className="order-3 flex w-full flex-col gap-4 self-stretch lg:order-1 lg:w-1/2"
+        >
           <h2>
             The digital payment landscape is on the verge of explosive growth.
           </h2>
@@ -195,13 +203,19 @@ export default function DigitalPaymentLandscape() {
             transactions — a scale that would overwhelm today's payment
             infrastructure.
           </p>
-        </div>
-        <div className="perspective-container text-secondaryText relative order-1 flex w-full items-center gap-4 pb-10 lg:order-2 lg:w-1/2 lg:justify-end lg:pb-12">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.7 }}
+          className="perspective-container text-secondaryText relative order-1 flex w-full items-center gap-4 pb-10 lg:order-2 lg:w-1/2 lg:justify-end lg:pb-12"
+        >
           <div className="font-fira-code fade-up absolute left-1/2 top-[-10px] ml-5 w-full -translate-x-1/2 text-center text-[8px] font-light uppercase leading-none tracking-widest lg:top-0 lg:w-[calc(100%-34px)] lg:text-xs">
             Number of non-cash payments
           </div>
           <Chart />
-        </div>
+        </motion.div>
         <div className="font-fira-code text-secondaryText bottom-[30px] right-[30px] order-2 mb-10 text-[8px] lg:absolute lg:mb-0 lg:text-[10px]">
           SOURCE: CAPGEMINI RESEARCH INSTITUTE
         </div>

@@ -6,6 +6,7 @@ import { useState } from "react";
 import Image from "next/image";
 import ContentContainer from "../Atoms/ContentContainer";
 import { cn } from "../../utils/cn";
+import { motion } from "framer-motion";
 
 interface Feature {
   feature: string;
@@ -75,27 +76,49 @@ export default function AvalancheEnhanced() {
   return (
     <ContentContainer className="pb-30 z-30 max-w-[1200px] rounded-[44px] bg-zinc-950 pt-10">
       <div className="flex flex-col text-center">
-        <div className="relative m-auto mb-[-20px] h-[150px] w-[150px] lg:mb-[-40px] lg:h-[220px] lg:w-[220px]">
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="relative m-auto mb-[-20px] h-[150px] w-[150px] lg:mb-[-40px] lg:h-[220px] lg:w-[220px]"
+        >
           <Image
             src="/avalanche2.png"
             alt="avalanche"
             fill
             className="object-contain"
           />
-        </div>
-        <h3 className="pink-gradient-text z-20 m-auto mb-6 max-w-[300px] text-4xl font-bold tracking-[-1.4px] lg:max-w-none lg:text-6xl">
+        </motion.div>
+        <motion.h3
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="pink-gradient-text z-20 m-auto mb-6 max-w-[300px] text-4xl font-bold tracking-[-1.4px] lg:max-w-none lg:text-6xl"
+        >
           Avalanche enhanced
-        </h3>
-        <div className="m-auto max-w-[300px] text-xl font-bold leading-7 lg:max-w-[550px] lg:text-2xl">
+        </motion.h3>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="m-auto max-w-[300px] text-xl font-bold leading-7 lg:max-w-[550px] lg:text-2xl"
+        >
           The unique Avalanche/PoW hybrid consensus allows nodes to make
           decisions in real-time without sacrificing decentralization
           principles.
-        </div>
+        </motion.div>
         <div className="m-auto mt-10 w-full max-w-[600px]">
           {features.map(({ feature, details }, index) => {
             const isOpen = index === openIndex;
             return (
-              <div
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                viewport={{ once: true, amount: 0.4 }}
                 key={index}
                 className="border-white/15 group cursor-pointer border-b py-5 transition-all hover:border-white/100"
                 onClick={() => toggleItem(index)}
@@ -126,7 +149,7 @@ export default function AvalancheEnhanced() {
                 >
                   {details}
                 </p>
-              </div>
+              </motion.div>
             );
           })}
         </div>

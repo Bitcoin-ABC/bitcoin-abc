@@ -2,11 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
 import CodeSnippet from "../Atoms/CodeSnippet";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function Developers() {
   const ScrollElement = () => {
@@ -82,7 +84,13 @@ export default function Developers() {
             <Lines />
           </div>
           <div className="flex w-full flex-col items-center lg:flex-row">
-            <div className="border-borderLight mb-10 flex w-full flex-col items-start justify-center gap-6 self-stretch lg:mb-0 lg:w-[40%] lg:border lg:border-b-0 lg:p-10">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              viewport={{ once: true, amount: 0.5 }}
+              className="border-borderLight mb-10 flex w-full flex-col items-start justify-center gap-6 self-stretch lg:mb-0 lg:w-[40%] lg:border lg:border-b-0 lg:p-10"
+            >
               <PlusHeader text="For Developers" />
               <h2>The ongoing development that powers our ecosystem</h2>
               <p>
@@ -91,12 +99,24 @@ export default function Developers() {
                 flexible hooks for custom implementations, backed by
                 comprehensive test coverage and dedicated developer support.
               </p>
-            </div>
-            <div className="border-borderLight w-full lg:w-[60%] lg:border lg:border-b-0 lg:border-l-0">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              viewport={{ once: true, amount: 0.5 }}
+              className="border-borderLight w-full lg:w-[60%] lg:border lg:border-b-0 lg:border-l-0"
+            >
               <CodeSnippet />
-            </div>
+            </motion.div>
           </div>
-          <div className="flex w-full flex-col items-stretch lg:h-[230px] lg:flex-row">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="flex w-full flex-col items-stretch lg:h-[230px] lg:flex-row"
+          >
             <div className="border-borderLight hidden w-1/4 items-center justify-center lg:flex lg:border">
               <div className="relative h-[60%] w-full">
                 <Image
@@ -137,7 +157,7 @@ export default function Developers() {
                 ecash developer telegram group
               </span>
             </Link>
-          </div>
+          </motion.div>
         </ContentContainer>
       </div>
     </div>

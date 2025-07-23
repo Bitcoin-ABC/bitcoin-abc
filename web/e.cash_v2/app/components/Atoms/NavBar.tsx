@@ -11,6 +11,7 @@ import { cn } from "../../utils/cn";
 import { navbarLinks } from "../../data/navbarLinks";
 import Button from "./Button";
 import { useRef } from "react";
+import { motion } from "framer-motion";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -79,7 +80,10 @@ export default function Navbar() {
 
   return (
     <>
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
         className={cn(
           "fixed z-50 flex w-full items-center justify-center px-4 py-4 transition-all duration-300",
           (isScrolled || mobileMenuOpen) &&
@@ -289,7 +293,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mobile menu overlay */}
       <div

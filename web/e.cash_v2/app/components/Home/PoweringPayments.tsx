@@ -7,6 +7,7 @@ import { useRef, useState, useEffect } from "react";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import { cn } from "../../utils/cn";
+import { motion } from "framer-motion";
 
 const eCashFeatures = [
   {
@@ -133,7 +134,13 @@ export default function PoweringPayments() {
 
   return (
     <ContentContainer className="mb-30 max-w-[1400px]">
-      <div className="flex flex-col items-center justify-center lg:flex-row">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+        viewport={{ once: true, amount: 0.75 }}
+        className="flex flex-col items-center justify-center lg:flex-row"
+      >
         <div className="hidden grow basis-0 flex-col items-end justify-center gap-2 self-stretch lg:flex [&>*:nth-child(2)]:self-start">
           {eCashFeatures.slice(0, 3).map((feature, index) => (
             <FeatureCard
@@ -192,7 +199,7 @@ export default function PoweringPayments() {
             />
           ))}
         </div>
-      </div>
+      </motion.div>
       <div className="bg-background relative z-20 m-auto mt-[-50px] h-[20px] w-full max-w-[750px] rounded border border-b-0 border-x-[#211a36] border-t-[#211a36] lg:mt-0" />
       <div className="bg-background relative z-20 flex w-full items-center justify-between gap-4 px-2 lg:hidden">
         {eCashFeatures.map((feature, index) => (

@@ -2,9 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import PlusHeader from "../Atoms/PlusHeader";
+import { motion } from "framer-motion";
 
 export default function WhatWeDo() {
   type CardProps = {
@@ -37,7 +39,13 @@ export default function WhatWeDo() {
           className="-rotate-[36deg] object-contain"
         />
       </div>
-      <div className="relative z-10 flex w-full flex-col gap-10 py-14 lg:flex-row lg:items-center lg:justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+        viewport={{ once: true, amount: 0.5 }}
+        className="relative z-10 flex w-full flex-col gap-10 py-14 lg:flex-row lg:items-center lg:justify-between"
+      >
         <div className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
           <PlusHeader text="What we do" />
 
@@ -60,7 +68,7 @@ export default function WhatWeDo() {
             image="/vision.png"
           />
         </div>
-      </div>
+      </motion.div>
     </ContentContainer>
   );
 }

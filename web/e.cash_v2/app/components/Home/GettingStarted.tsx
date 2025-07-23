@@ -2,11 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
 import Button from "../Atoms/Button";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export type GettingStartedLink = {
   text: string;
@@ -69,7 +71,13 @@ export default function GettingStarted() {
   return (
     <ContentContainer className="text-background lg:rounded-4xl max-w-[1400px] bg-neutral-100 p-2 py-6 lg:p-20">
       <div className="flex h-full w-full flex-col items-center gap-2">
-        <div className="flex w-full flex-col items-center rounded-2xl bg-white px-10 pt-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          viewport={{ once: true, amount: 0.5 }}
+          className="flex w-full flex-col items-center rounded-2xl bg-white px-10 pt-10"
+        >
           <PlusHeader text="Getting started" inverse />
           <h3 className="mt-4 max-w-[450px] text-center text-4xl font-bold leading-none lg:text-6xl">
             The wallet that’s different
@@ -89,11 +97,22 @@ export default function GettingStarted() {
               className="object-contain"
             />
           </div>
-        </div>
+        </motion.div>
 
         <div className="flex w-full flex-col items-stretch gap-2 lg:h-[300px] lg:flex-row">
           {gettingStartedLinks.map((col: GettingStartedColumn, idx: number) => (
-            <div key={idx} className="flex h-full w-full flex-col lg:w-1/4">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                ease: "easeInOut",
+                delay: idx * 0.1,
+              }}
+              viewport={{ once: true, amount: 0.7 }}
+              key={idx}
+              className="flex h-full w-full flex-col lg:w-1/4"
+            >
               <div className="str flex w-full flex-1 flex-col rounded-2xl bg-white p-6">
                 {col.title && (
                   <div className="mb-3 text-xl font-bold">{col.title}</div>
@@ -131,7 +150,7 @@ export default function GettingStarted() {
                   </Button>
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

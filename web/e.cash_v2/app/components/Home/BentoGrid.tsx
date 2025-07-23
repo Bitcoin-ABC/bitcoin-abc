@@ -2,11 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+"use client";
 import React from "react";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import { cn } from "../../utils/cn";
 import GridPattern from "../Atoms/GridPattern";
+import { motion } from "framer-motion";
 
 export default function BentoGrid() {
   type CardProps = {
@@ -18,6 +20,7 @@ export default function BentoGrid() {
     className?: string;
     imageStyles?: string;
     imagePosition?: string;
+    index?: number;
   };
 
   const Card = ({
@@ -29,9 +32,16 @@ export default function BentoGrid() {
     className,
     imageStyles,
     imagePosition,
+    index = 0,
   }: CardProps) => {
+    const initialX = index % 2 === 0 ? -30 : 30;
+
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 0, x: initialX }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+        viewport={{ once: true, amount: 0.5 }}
         className={cn(
           "from-white/1 to-white/1 relative w-full overflow-hidden rounded-2xl via-[#21173B] p-5 lg:p-8",
           className
@@ -53,7 +63,7 @@ export default function BentoGrid() {
             className={cn(imagePosition, "object-contain")}
           />
         </div>
-      </div>
+      </motion.div>
     );
   };
   const cardHeight = "h-unset lg:h-[350px]";
@@ -77,6 +87,7 @@ export default function BentoGrid() {
             className="bg-gradient-to-bl pb-[250px] lg:w-2/3 lg:pb-0"
             imageStyles="absolute right-0 lg:right-[20px] bottom-0 lg:h-[90%] lg:w-[70%] w-full h-[230px]"
             imagePosition="object-bottom lg:object-bottom-right"
+            index={0}
           />
           <Card
             title="Minimal Fees"
@@ -86,6 +97,7 @@ export default function BentoGrid() {
             className="bg-gradient-to-bl pb-[250px] lg:w-1/3 lg:pb-0"
             imageStyles="absolute left-0 lg:left-1/2 lg:-translate-x-1/2 bottom-5 lg:h-[80%] lg:w-[80%] w-full h-[230px]"
             imagePosition="object-bottom"
+            index={1}
           >
             <GridPattern className="left-30 scale-70 top-[40%]" />
           </Card>
@@ -105,6 +117,7 @@ export default function BentoGrid() {
             className="bg-gradient-to-br pb-[250px] lg:w-1/2 lg:pb-0"
             imageStyles="absolute right-0 lg:right-8 lg:top-0 lg:h-full lg:w-[50%] w-full h-[180px] bottom-5"
             imagePosition="object-bottom lg:object-center"
+            index={2}
           >
             <GridPattern className="scale-60 right-[-40px] top-0" />
             <GridPattern className="scale-60 right-[-40px] top-1/2" />
@@ -117,6 +130,7 @@ export default function BentoGrid() {
             className="bg-gradient-to-bl pb-[250px] lg:w-1/2 lg:pb-0"
             imageStyles="absolute right-0 bottom-0 h-[230px] lg:h-full w-full"
             imagePosition="object-bottom-right"
+            index={3}
           />
         </div>
 
@@ -134,6 +148,7 @@ export default function BentoGrid() {
             className="lg:h-unset flex h-[350px] flex-col justify-between bg-gradient-to-bl lg:w-1/2"
             imageStyles="absolute left-0 left-0 bottom-0 h-[70%] w-full opacity-80"
             imagePosition="object-bottom-left"
+            index={4}
           >
             <div className="z-30 mb-4 flex w-full items-center justify-between self-baseline border-b border-dashed border-white/50 pb-[17px]">
               <div>
@@ -150,6 +165,7 @@ export default function BentoGrid() {
             className="flex flex-col justify-between bg-gradient-to-br pb-[250px] lg:w-1/2 lg:pb-0"
             imageStyles="absolute right-0 bottom-0 h-[230px] lg:h-full w-full"
             imagePosition="object-bottom lg:object-right"
+            index={5}
           />
         </div>
       </div>
