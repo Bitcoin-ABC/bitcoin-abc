@@ -13,7 +13,6 @@
 #include <util/time.h>
 
 #include <cctype>
-#include <cstdbool>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
