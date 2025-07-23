@@ -384,7 +384,9 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void updateFeeForBlock() EXCLUSIVE_LOCKS_REQUIRED(cs);
-    void removeForFinalizedBlock(const std::vector<CTransactionRef> &vtx)
+    void
+    removeForFinalizedBlock(const std::unordered_set<TxId, SaltedTxIdHasher>
+                                &confirmedTxIdsInNonFinalizedBlocks)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void clear(bool include_finalized_txs = false);

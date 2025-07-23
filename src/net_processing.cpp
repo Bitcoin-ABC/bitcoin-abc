@@ -6950,17 +6950,49 @@ void PeerManagerImpl::ProcessMessage(
                             auto &chainstate = m_chainman.ActiveChainstate();
                             chainstate.UnparkBlock(pindex);
 
-                            m_chainman.ActiveChainstate()
-                                .AvalancheFinalizeBlock(pindex, *m_avalanche);
+                            const bool newlyFinalized =
+                                !chainstate.IsBlockAvalancheFinalized(pindex) &&
+                                chainstate.AvalancheFinalizeBlock(pindex,
+                                                                  *m_avalanche);
 
-                            if (m_opts.avalanche_preconsensus) {
+                            // Skip if the block is already finalized, aka an
+                            // ancestor of the finalized tip.
+                            if (m_opts.avalanche_preconsensus &&
+                                newlyFinalized) {
                                 auto pblock = getBlockFromIndex(pindex);
                                 assert(pblock);
 
                                 {
+                                    // If the finalized block is not the tip, we
+                                    // need to keep track of the transactions
+                                    // from the non final blocks, so that we can
+                                    // check if they were finalized by
+                                    // pre-consensus. If these transactions were
+                                    // pruned from the radix tree, their
+                                    // finalization status could be lost in the
+                                    // case the non final blocks are later
+                                    // rejected.
+                                    CBlockIndex *tip = m_chainman.ActiveTip();
+                                    std::unordered_set<TxId, SaltedTxIdHasher>
+                                        confirmedTxIdsInNonFinalizedBlocks;
+                                    for (const CBlockIndex *block = tip;
+                                         block != nullptr && block != pindex;
+                                         block = block->pprev) {
+                                        auto currentBlock =
+                                            getBlockFromIndex(block);
+                                        assert(currentBlock);
+                                        for (const auto &tx :
+                                             currentBlock->vtx) {
+                                            confirmedTxIdsInNonFinalizedBlocks
+                                                .insert(tx->GetId());
+                                        }
+                                    }
+
+                                    // Remove the transactions that are not
+                                    // confirmed
                                     LOCK(m_mempool.cs);
                                     m_mempool.removeForFinalizedBlock(
-                                        pblock->vtx);
+                                        confirmedTxIdsInNonFinalizedBlocks);
 
                                     // Now add mempool transactions to the poll.
                                     // To determine which transaction to add, we

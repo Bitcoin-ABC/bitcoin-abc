@@ -5,6 +5,7 @@
 
 #include <txmempool.h>
 
+#include <blockindex.h>
 #include <clientversion.h>
 #include <coins.h>
 #include <common/system.h>
@@ -326,18 +327,38 @@ void CTxMemPool::updateFeeForBlock() {
 }
 
 void CTxMemPool::removeForFinalizedBlock(
-    const std::vector<CTransactionRef> &vtx) {
+    const std::unordered_set<TxId, SaltedTxIdHasher>
+        &confirmedTxIdsInNonFinalizedBlocks) {
     AssertLockHeld(cs);
 
-    for (const auto &tx : vtx) {
-        // If the tx has a parent, it will be in the block as well or the block
-        // is invalid. If the tx has a child, it can remain in the tree for the
-        // next block. So we can simply remove the txs from the block with no
-        // further check.
-        if (auto removed_tx = finalizedTxs.remove(tx->GetId())) {
-            m_finalizedTxsFitter.removeTxUnchecked(removed_tx->GetTxSize(),
-                                                   removed_tx->GetSigChecks(),
-                                                   removed_tx->GetFee());
+    std::vector<CTxMemPoolEntryRef> finalizedTxsToKeep;
+    finalizedTxs.forEachLeaf(
+        [&](const CTxMemPoolEntryRef &entry) NO_THREAD_SAFETY_ANALYSIS {
+            if (mapTx.count(entry->GetTx().GetId()) > 0 ||
+                confirmedTxIdsInNonFinalizedBlocks.count(
+                    entry->GetTx().GetId()) > 0) {
+                // The transaction is either in the mempool (not confirmed) or
+                // confirmed in a non-finalized block (which might be rejeted by
+                // avalanche), so we keep it in the radix tree.
+                finalizedTxsToKeep.push_back(entry);
+            }
+
+            // All the other transactions are either confirmed in the finalized
+            // block or in one of its ancestors.
+            return true;
+        });
+
+    // Clear the radix tree and add back the transactions that are not confirmed
+    decltype(finalizedTxs) empty;
+    std::swap(finalizedTxs, empty);
+
+    m_finalizedTxsFitter.resetBlock();
+    for (const auto &entry : finalizedTxsToKeep) {
+        // We don't need to proceed to all the checks that happen during
+        // finalization here so we only recompute the size and sigchecks.
+        if (finalizedTxs.insert(entry)) {
+            m_finalizedTxsFitter.addTx(entry->GetTxSize(),
+                                       entry->GetSigChecks(), entry->GetFee());
         }
     }
 }

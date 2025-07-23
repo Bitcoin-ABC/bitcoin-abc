@@ -593,7 +593,7 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
     LOCK2(cs_main, pool.cs);
     const CBlockIndex &tip = *Assert(chainman.ActiveTip());
 
-    std::vector<CTransactionRef> txs;
+    Package txs;
     txs.reserve(100);
     for (size_t i = 0; i < 100; i++) {
         CTransactionRef tx = make_tx({int64_t(i + 1) * COIN});
@@ -613,10 +613,15 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
         txs.push_back(std::move(tx));
     }
 
-    std::vector<CTransactionRef> minedTxs(txs.begin(), txs.begin() + 50);
-    pool.removeForFinalizedBlock(minedTxs);
+    // Mine the first 50 transactions and assume the block is finalized
+    Package minedTxsInFinalBlock(txs.begin(), txs.begin() + 50);
+    DisconnectedBlockTransactions disconnectedBlockTxs;
+    disconnectedBlockTxs.removeForBlock(minedTxsInFinalBlock, pool);
+    disconnectedBlockTxs.clear();
 
-    for (const auto &tx : minedTxs) {
+    pool.removeForFinalizedBlock({});
+
+    for (const auto &tx : minedTxsInFinalBlock) {
         // No longer in the radix tree
         BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
     }
@@ -626,8 +631,8 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
     }
 
     // Repeat is no op
-    pool.removeForFinalizedBlock(minedTxs);
-    for (const auto &tx : minedTxs) {
+    pool.removeForFinalizedBlock({});
+    for (const auto &tx : minedTxsInFinalBlock) {
         // No longer in the radix tree
         BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
     }
@@ -636,8 +641,31 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
         BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
     }
 
+    // Mine 20 more txs but assume the block is not finalized
+    Package minedTxsInNonFinalBlock(txs.begin() + 50, txs.begin() + 70);
+    disconnectedBlockTxs.removeForBlock(minedTxsInNonFinalBlock, pool);
+    disconnectedBlockTxs.clear();
+
+    std::unordered_set<TxId, SaltedTxIdHasher> minedTxIdsInNonFinalBlock;
+    for (const auto &tx : minedTxsInNonFinalBlock) {
+        minedTxIdsInNonFinalBlock.insert(tx->GetId());
+    }
+    pool.removeForFinalizedBlock(minedTxIdsInNonFinalBlock);
+
+    for (const auto &tx : minedTxsInFinalBlock) {
+        // No longer in the radix tree
+        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+    }
+    // Check that the 50 last txs including the mined ones are still in the
+    // radix tree
+    for (size_t i = 50; i < 100; i++) {
+        BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
+    }
+
     // Remove them all
-    pool.removeForFinalizedBlock(txs);
+    disconnectedBlockTxs.removeForBlock(txs, pool);
+    disconnectedBlockTxs.clear();
+    pool.removeForFinalizedBlock({});
     for (const auto &tx : txs) {
         // No longer in the radix tree
         BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
