@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Atoms/NavBar";
+import Footer from "./components/Atoms/Footer";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -65,6 +66,7 @@ export default function RootLayout({
       >
         <Navbar />
         {children}
+        <Footer />
       </body>
     </html>
   );
