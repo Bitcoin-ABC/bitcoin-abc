@@ -1196,7 +1196,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     // - added to mempool
                     // - removed from mempool
                     // - confirmed
-                    if tx_msg.msg_type == TxMsgType::Finalized {
+                    if let TxMsgType::Finalized(_) = tx_msg.msg_type {
                         continue;
                     }
 
@@ -1467,7 +1467,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     // - added to mempool
                     // - removed from mempool
                     // - confirmed
-                    if tx_msg.msg_type == TxMsgType::Finalized {
+                    if let TxMsgType::Finalized(_) = tx_msg.msg_type {
                         continue;
                     }
 

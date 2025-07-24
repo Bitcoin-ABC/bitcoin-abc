@@ -106,6 +106,7 @@ mod ffi_inner {
             block: &CBlock,
             bindex: &CBlockIndex,
         );
+        fn handle_tx_finalized(&self, txid: [u8; 32]);
     }
 
     unsafe extern "C++" {

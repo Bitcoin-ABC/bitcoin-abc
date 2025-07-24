@@ -19,7 +19,12 @@ from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, chronik_sub_to_blocks, chronik_sub_txid
+from test_framework.util import (
+    assert_equal,
+    chronik_sub_to_blocks,
+    chronik_sub_txid,
+    uint256_hex,
+)
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
@@ -40,6 +45,7 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
+                "-avalanchepreconsensus=1",
                 "-chronik",
                 "-enableminerfund",
             ],
@@ -72,6 +78,16 @@ class ChronikWsTest(BitcoinTestFramework):
         quorum = get_quorum()
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        def finalize_proofs(quorum):
+            proofids = [q.proof.proofid for q in quorum]
+            [can_find_inv_in_poll(quorum, proofid) for proofid in proofids]
+            return all(
+                node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
+                for proofid in proofids
+            )
+
+        self.wait_until(lambda: finalize_proofs(quorum))
 
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_tip(tip))
@@ -398,6 +414,9 @@ class ChronikWsTest(BitcoinTestFramework):
                 tx=pb.MsgTx(
                     msg_type=pb.TX_FINALIZED,
                     txid=bytes.fromhex(txid)[::-1],
+                    finalization_reason=pb.TxFinalizationReason(
+                        finalization_type=pb.TX_FINALIZATION_REASON_POST_CONSENSUS
+                    ),
                 )
             ),
         )
@@ -418,6 +437,31 @@ class ChronikWsTest(BitcoinTestFramework):
                 tx=pb.MsgTx(
                     msg_type=pb.TX_ADDED_TO_MEMPOOL,
                     txid=bytes.fromhex(txid)[::-1],
+                )
+            ),
+        )
+
+        def finalize_tx(txid):
+            def vote_until_final():
+                can_find_inv_in_poll(
+                    quorum,
+                    int(txid, 16),
+                    other_response=AvalancheVoteError.UNKNOWN,
+                )
+                return node.isfinaltransaction(txid)
+
+            self.wait_until(vote_until_final)
+
+        finalize_tx(txid)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_FINALIZED,
+                    txid=bytes.fromhex(txid)[::-1],
+                    finalization_reason=pb.TxFinalizationReason(
+                        finalization_type=pb.TX_FINALIZATION_REASON_PRE_CONSENSUS
+                    ),
                 )
             ),
         )

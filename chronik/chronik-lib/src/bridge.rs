@@ -353,6 +353,16 @@ impl Chronik {
         );
     }
 
+    /// Transaction finalized with Avalanche
+    pub fn handle_tx_finalized(&self, txid: [u8; 32]) {
+        self.block_if_paused();
+        let txid = TxId::from(txid);
+        self.node.ok_or_abort(
+            "handle_tx_finalized",
+            self.finalize_transaction(&txid),
+        );
+    }
+
     fn add_tx_to_mempool(
         &self,
         ptx: &ffi::CTransaction,
@@ -447,6 +457,16 @@ impl Chronik {
         indexer.handle_block_invalidated(block)?;
         log_chronik!(
             "Chronik: block {block_hash} invalidated with {num_txs} txs\n",
+        );
+        Ok(())
+    }
+
+    fn finalize_transaction(&self, txid: &TxId) -> Result<()> {
+        let mut indexer = self.indexer.blocking_write();
+        indexer.handle_transaction_finalized(txid)?;
+        log_chronik!(
+            "Chronik: transaction {} finalized by pre-consensus\n",
+            txid
         );
         Ok(())
     }

@@ -142,6 +142,7 @@ impl Subs {
             // Short-circuit if no subscriptions
             return;
         }
+
         for tx in txs {
             self.subs_txid.handle_tx_event(tx, &(), msg_type);
             self.subs_script.handle_tx_event(tx, &(), msg_type);

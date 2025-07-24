@@ -29,7 +29,16 @@ pub enum TxMsgType {
     /// Tx was confirmed in a block.
     Confirmed,
     /// Tx was finalized by Avalanche.
-    Finalized,
+    Finalized(TxFinalizationReason),
+}
+
+/// Why did the tx finalize
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TxFinalizationReason {
+    /// Tx finalized by post-consensus
+    PostConsensus,
+    /// Tx finalized by pre-consensus
+    PreConsensus,
 }
 
 const GROUP_CHANNEL_CAPACITY: usize = 16;

@@ -13,7 +13,7 @@ use bitcoinsuite_slp::{lokad_id::LokadId, token_id::TokenId};
 use chronik_db::plugins::PluginMember;
 use chronik_indexer::{
     subs::{BlockMsg, BlockMsgType},
-    subs_group::{TxMsg, TxMsgType},
+    subs_group::{TxFinalizationReason, TxMsg, TxMsgType},
 };
 use chronik_plugin::data::PluginGroup;
 use chronik_proto::proto;
@@ -398,20 +398,32 @@ fn sub_block_msg_action(
 fn sub_tx_msg_action(
     tx_msg: Result<TxMsg, broadcast::error::RecvError>,
 ) -> Result<WsAction> {
-    use proto::{ws_msg::MsgType, TxMsgType::*};
+    use proto::{ws_msg::MsgType, TxFinalizationReasonType::*, TxMsgType::*};
     let tx_msg = match tx_msg {
         Ok(tx_msg) => tx_msg,
         Err(_) => return Ok(WsAction::Nothing),
     };
-    let tx_msg_type = match tx_msg.msg_type {
-        TxMsgType::AddedToMempool => TxAddedToMempool,
-        TxMsgType::RemovedFromMempool => TxRemovedFromMempool,
-        TxMsgType::Confirmed => TxConfirmed,
-        TxMsgType::Finalized => TxFinalized,
+    let (tx_msg_type, finalization_reason) = match tx_msg.msg_type {
+        TxMsgType::AddedToMempool => (TxAddedToMempool, None),
+        TxMsgType::RemovedFromMempool => (TxRemovedFromMempool, None),
+        TxMsgType::Confirmed => (TxConfirmed, None),
+        TxMsgType::Finalized(TxFinalizationReason::PostConsensus) => (
+            TxFinalized,
+            Some(proto::TxFinalizationReason {
+                finalization_type: TxFinalizationReasonPostConsensus as _,
+            }),
+        ),
+        TxMsgType::Finalized(TxFinalizationReason::PreConsensus) => (
+            TxFinalized,
+            Some(proto::TxFinalizationReason {
+                finalization_type: TxFinalizationReasonPreConsensus as _,
+            }),
+        ),
     };
     let msg_type = Some(MsgType::Tx(proto::MsgTx {
         msg_type: tx_msg_type as _,
         txid: tx_msg.txid.to_vec(),
+        finalization_reason,
     }));
     let msg_proto = proto::WsMsg { msg_type };
     let msg = ws::Message::Binary(msg_proto.encode_to_vec());

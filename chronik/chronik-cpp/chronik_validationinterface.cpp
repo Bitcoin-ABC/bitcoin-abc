@@ -75,6 +75,10 @@ private:
                           const std::shared_ptr<const CBlock> &block) override {
         m_chronik->handle_block_invalidated(*block, *pindex);
     }
+
+    void TransactionFinalized(const CTransactionRef &tx) override {
+        m_chronik->handle_tx_finalized(chronik::util::HashToArray(tx->GetId()));
+    }
 };
 
 std::unique_ptr<ChronikValidationInterface> g_chronik_validation_interface;

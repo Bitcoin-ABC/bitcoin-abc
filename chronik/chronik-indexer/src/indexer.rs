@@ -46,11 +46,12 @@ use crate::{
     indexer::ChronikIndexerError::*,
     merkle::MerkleTree,
     query::{
-        QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
-        QueryPlugins, QueryTxs, UtxoProtobufOutput, UtxoProtobufValue,
+        read_plugin_outputs, QueryBlocks, QueryBroadcast, QueryGroupHistory,
+        QueryGroupUtxos, QueryPlugins, QueryTxs, UtxoProtobufOutput,
+        UtxoProtobufValue,
     },
     subs::{BlockMsg, BlockMsgType, Subs},
-    subs_group::TxMsgType,
+    subs_group::{TxFinalizationReason, TxMsgType},
 };
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 13;
@@ -88,7 +89,7 @@ pub struct ChronikIndexerParams {
 #[derive(Debug)]
 pub struct ChronikIndexer {
     db: Db,
-    _node: Arc<Node>,
+    node: Arc<Node>,
     mem_data: MemData,
     mempool: Mempool,
     script_group: ScriptGroup,
@@ -247,9 +248,17 @@ pub enum ChronikIndexerError {
     #[error("Inconsistent DB: Tx with tx_num {0} doesn't exist")]
     TxNotFound(TxNum),
 
+    /// Inconsistent DB: Tx doesn't exist
+    #[error("Inconsistent DB: Tx with id {0} doesn't exist")]
+    TxIdNotFound(TxId),
+
     /// Inconsistent DB: Block doesn't exist
     #[error("Inconsistent DB: Block with height {0} doesn't exist")]
     BlockNotFound(BlockHeight),
+
+    /// Inconsistent DB: Tx doesn't exist
+    #[error("Inconsistent DB: Tx with id {0} has no block")]
+    DbTxHasNoBlock(TxId),
 }
 
 /// Structured data about the paths used by the indexer setup
@@ -356,7 +365,7 @@ impl ChronikIndexer {
         });
         Ok(ChronikIndexer {
             db: db_info.db,
-            _node: node,
+            node,
             mempool,
             mem_data,
             script_group: ScriptGroup,
@@ -884,7 +893,7 @@ impl ChronikIndexer {
         };
         subs.handle_block_tx_events(
             &block.txs,
-            TxMsgType::Finalized,
+            TxMsgType::Finalized(TxFinalizationReason::PostConsensus),
             &token_id_aux,
             &plugin_outputs,
         );
@@ -907,6 +916,82 @@ impl ChronikIndexer {
                 block_txs.remove(0)
             }),
         });
+        Ok(())
+    }
+
+    /// Transaction finalized with Avalanche.
+    pub fn handle_transaction_finalized(&mut self, txid: &TxId) -> Result<()> {
+        let (tx, token_id_aux, plugin_outputs) = match self.mempool.tx(txid) {
+            Some(tx) => {
+                let tx = tx.tx.clone();
+                let token_id_aux = if self.is_token_index_enabled {
+                    TokenIdGroupAux::from_mempool(&tx, self.mempool.tokens())
+                } else {
+                    TokenIdGroupAux::default()
+                };
+                let plugin_outputs = read_plugin_outputs(
+                    &self.db,
+                    &self.mempool,
+                    &tx,
+                    None,
+                    !self.plugin_name_map.is_empty(),
+                )?;
+
+                (tx, token_id_aux, plugin_outputs)
+            }
+            None => {
+                // It is possible that the transaction has been mined and is no
+                // longer in the mempool when it gets finalized, either because
+                // of the vote or because the callback is asynchronous. We need
+                // to handle both the mempool (above) and the DB case.
+                let tx_reader = TxReader::new(&self.db)?;
+                let (tx_num, block_tx) = tx_reader
+                    .tx_and_num_by_txid(txid)?
+                    .ok_or(TxIdNotFound(*txid))?;
+                let tx_entry = block_tx.entry;
+                let block_reader = BlockReader::new(&self.db)?;
+                let block = block_reader
+                    .by_height(block_tx.block_height)?
+                    .ok_or(DbTxHasNoBlock(*txid))?;
+                let tx = Tx::from(
+                    self.node
+                        .bridge
+                        .load_tx(
+                            block.file_num,
+                            tx_entry.data_pos,
+                            tx_entry.undo_pos,
+                        )
+                        .wrap_err(TxNotFound(tx_num))?,
+                );
+                let txs = [tx.clone()];
+                let index_txs = prepare_indexed_txs_cached(
+                    &self.db,
+                    tx_num,
+                    &txs,
+                    &mut self.mem_data.tx_num_cache,
+                    PrepareUpdateMode::Read,
+                )?;
+                let token_id_aux =
+                    TokenIdGroupAux::from_db(&index_txs, &self.db)?;
+                let plugin_outputs = read_plugin_outputs(
+                    &self.db,
+                    &self.mempool,
+                    &tx,
+                    Some(tx_num),
+                    !self.plugin_name_map.is_empty(),
+                )?;
+
+                (tx, token_id_aux, plugin_outputs)
+            }
+        };
+
+        let subs = self.subs.get_mut();
+        subs.handle_tx_event(
+            &tx,
+            TxMsgType::Finalized(TxFinalizationReason::PreConsensus),
+            &token_id_aux,
+            &plugin_outputs,
+        );
         Ok(())
     }
 

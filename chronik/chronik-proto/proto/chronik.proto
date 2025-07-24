@@ -563,12 +563,29 @@ enum BlockMsgType {
     BLK_INVALIDATED = 3;
 }
 
+// Type of tx finalization
+enum TxFinalizationReasonType {
+    // The transaction is finalized by post-consensus
+    TX_FINALIZATION_REASON_POST_CONSENSUS = 0;
+    // The transaction is finalized by pre-consensus
+    TX_FINALIZATION_REASON_PRE_CONSENSUS = 1;
+}
+
+// The reason that caused a tx to finalize
+message TxFinalizationReason {
+    // What kind of finalization occured
+    TxFinalizationReasonType finalization_type = 1;
+}
+
 // Tx got added to/removed from mempool, or confirmed in a block, etc.
 message MsgTx {
     // What happened to the tx
     TxMsgType msg_type = 1;
     // Txid of the tx (little-endian)
     bytes txid = 2;
+    // If the transaction is finalized, whether it's from pre-consensus or
+    // post-consensus
+    TxFinalizationReason finalization_reason = 3;
 }
 
 // Type of message for a tx

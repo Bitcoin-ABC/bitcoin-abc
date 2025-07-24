@@ -11,12 +11,18 @@ from test_framework.address import (
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.hash import hash160
-from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
+from test_framework.messages import (
+    AvalancheVoteError,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+)
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, chronik_sub_script
+from test_framework.util import assert_equal, chronik_sub_script, uint256_hex
 
 QUORUM_NODE_COUNT = 16
 
@@ -33,6 +39,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
+                "-avalanchepreconsensus=1",
                 "-chronik",
             ],
         ]
@@ -174,16 +181,25 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
 
-        def check_tx_msgs(ws, msg_type, txids):
+        def check_tx_msgs(ws, msg_type, txids, finalization_type=None):
             for txid in txids:
+                tx = (
+                    pb.MsgTx(
+                        msg_type=msg_type,
+                        txid=bytes.fromhex(txid)[::-1],
+                        finalization_reason=pb.TxFinalizationReason(
+                            finalization_type=finalization_type,
+                        ),
+                    )
+                    if finalization_type is not None
+                    else pb.MsgTx(
+                        msg_type=msg_type,
+                        txid=bytes.fromhex(txid)[::-1],
+                    )
+                )
                 assert_equal(
                     ws.recv(),
-                    pb.WsMsg(
-                        tx=pb.MsgTx(
-                            msg_type=msg_type,
-                            txid=bytes.fromhex(txid)[::-1],
-                        )
-                    ),
+                    pb.WsMsg(tx=tx),
                 )
 
         # For ws1, this sends a REMOVED_FROM_MEMPOOL for tx3, and two CONFIRMED
@@ -200,9 +216,45 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         check_tx_msgs(ws1, pb.TX_ADDED_TO_MEMPOOL, [txid, tx3_conflict.hash])
         check_tx_msgs(ws2, pb.TX_ADDED_TO_MEMPOOL, [txid, txid2])
 
+        # Let's get rid of the proofs vote
+        def finalize_proofs(quorum):
+            proofids = [q.proof.proofid for q in quorum]
+            [can_find_inv_in_poll(quorum, proofid) for proofid in proofids]
+            return all(
+                node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
+                for proofid in proofids
+            )
+
+        self.wait_until(lambda: finalize_proofs(quorum))
+
         # Test Avalanche finalization
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_tip(tip))
+
+        def finalize_tx(txid):
+            def vote_until_final():
+                can_find_inv_in_poll(
+                    quorum,
+                    int(txid, 16),
+                    other_response=AvalancheVoteError.UNKNOWN,
+                )
+                return node.isfinaltransaction(txid)
+
+            self.wait_until(vote_until_final)
+
+        finalize_tx(txid)
+        check_tx_msgs(
+            ws1,
+            pb.TX_FINALIZED,
+            sorted([txid]),
+            pb.TX_FINALIZATION_REASON_PRE_CONSENSUS,
+        )
+        check_tx_msgs(
+            ws2,
+            pb.TX_FINALIZED,
+            sorted([txid]),
+            pb.TX_FINALIZATION_REASON_PRE_CONSENSUS,
+        )
 
         # Mine txs in a block -> sends CONFIRMED
         tip = self.generate(node, 1)[-1]
@@ -211,8 +263,18 @@ class ChronikWsScriptTest(BitcoinTestFramework):
 
         # Wait for Avalanche finalization of block -> sends TX_FINALIZED
         self.wait_until(lambda: has_finalized_tip(tip))
-        check_tx_msgs(ws1, pb.TX_FINALIZED, sorted([txid, tx3_conflict.hash]))
-        check_tx_msgs(ws2, pb.TX_FINALIZED, sorted([txid, txid2]))
+        check_tx_msgs(
+            ws1,
+            pb.TX_FINALIZED,
+            sorted([txid, tx3_conflict.hash]),
+            pb.TX_FINALIZATION_REASON_POST_CONSENSUS,
+        )
+        check_tx_msgs(
+            ws2,
+            pb.TX_FINALIZED,
+            sorted([txid, txid2]),
+            pb.TX_FINALIZATION_REASON_POST_CONSENSUS,
+        )
 
         # Invalid subscription, payload too short
         ws1.sub_script("p2pkh", b"abc")
