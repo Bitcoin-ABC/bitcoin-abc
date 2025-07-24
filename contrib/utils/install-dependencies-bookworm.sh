@@ -46,6 +46,7 @@ PACKAGES=(
   libboost-dev
   libbz2-dev
   libcap-dev
+  libclang-dev
   libdb++-dev
   libdb-dev
   libevent-dev

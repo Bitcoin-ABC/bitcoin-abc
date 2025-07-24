@@ -181,8 +181,9 @@ impl Db {
         keys: impl IntoIterator<Item = impl AsRef<[u8]>>,
         sorted_inputs: bool,
     ) -> Result<Vec<Option<rocksdb::DBPinnableSlice<'_>>>> {
+        let keys: Vec<_> = keys.into_iter().collect();
         self.db
-            .batched_multi_get_cf(cf, keys, sorted_inputs)
+            .batched_multi_get_cf(cf, keys.iter(), sorted_inputs)
             .into_iter()
             .map(|value| value.map_err(|err| RocksDb(err).into()))
             .collect()

@@ -49,7 +49,7 @@ thiserror = "2.0.3"
 topo_sort = "0.4"
 
 # Key-value database
-rocksdb = { version = "0.21", default-features = false }
+rocksdb = { version = "0.24", default-features = false }
 
 [dev-dependencies]
 # Colorful diffs for assertions
