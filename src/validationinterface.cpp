@@ -312,3 +312,23 @@ void CMainSignals::BlockInvalidated(
     ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s", __func__,
                           block ? block->GetHash().ToString() : "null");
 }
+
+void CMainSignals::TransactionFinalized(const CTransactionRef &tx) {
+    auto event = [tx, this] {
+        m_internals->Iterate([&](CValidationInterface &callbacks) {
+            callbacks.TransactionFinalized(tx);
+        });
+    };
+    ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,
+                          tx->GetId().ToString());
+}
+
+void CMainSignals::TransactionInvalidated(const CTransactionRef &tx) {
+    auto event = [tx, this] {
+        m_internals->Iterate([&](CValidationInterface &callbacks) {
+            callbacks.TransactionInvalidated(tx);
+        });
+    };
+    ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,
+                          tx->GetId().ToString());
+}

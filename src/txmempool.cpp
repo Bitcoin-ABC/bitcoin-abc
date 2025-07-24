@@ -555,6 +555,8 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
     auto it = mapTx.find(tx->GetTx().GetId());
     if (it == mapTx.end()) {
         // Trying to finalize a tx that is not in the mempool !
+        LogPrintf("Trying to finalize tx %s that is not in the mempool\n",
+                  tx->GetTx().GetId().ToString());
         return false;
     }
 
@@ -564,6 +566,8 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
                                    /*fSearchForParents=*/false)) {
         // Failed to get a list of parents for this tx. If we finalize it we
         // might be missing a parent and generate an invalid block.
+        LogPrintf("Failed to calculate ancestors for tx %s\n",
+                  tx->GetTx().GetId().ToString());
         return false;
     }
 
@@ -633,6 +637,8 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
                                        (*ancestor_it)->GetFee());
 
             finalizedTxIds.push_back((*ancestor_it)->GetTx().GetId());
+
+            GetMainSignals().TransactionFinalized((*it)->GetSharedTx());
         }
     }
 

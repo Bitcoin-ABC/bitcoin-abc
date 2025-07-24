@@ -197,6 +197,10 @@ protected:
     virtual void BlockFinalized(const CBlockIndex *pindex){};
     virtual void BlockInvalidated(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
+
+    virtual void TransactionFinalized(const CTransactionRef &tx){};
+    virtual void TransactionInvalidated(const CTransactionRef &tx){};
+
     friend class CMainSignals;
     friend class ValidationInterfaceTest;
 };
@@ -248,6 +252,8 @@ public:
     void BlockFinalized(const CBlockIndex *pindex);
     void BlockInvalidated(const CBlockIndex *pindex,
                           const std::shared_ptr<const CBlock> &block);
+    void TransactionFinalized(const CTransactionRef &tx);
+    void TransactionInvalidated(const CTransactionRef &tx);
 };
 
 CMainSignals &GetMainSignals();
