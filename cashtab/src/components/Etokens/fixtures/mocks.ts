@@ -3,8 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { fromHex } from 'ecash-lib';
+import { Utxo } from 'chronik-client';
 import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
 import { FIRMA } from 'constants/tokens';
+import { XecTxType } from 'chronik';
+import { CashtabWallet, CashtabWalletPaths } from 'wallet';
 
 /**
  * Etokens/fixtures/mocks.js
@@ -17,7 +20,7 @@ import { FIRMA } from 'constants/tokens';
  */
 
 // Used only for circulating suppply calculation
-const MOCK_TOKEN_UTXO = {
+const MOCK_TOKEN_UTXO: Utxo = {
     token: {
         tokenId:
             '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
@@ -29,9 +32,9 @@ const MOCK_TOKEN_UTXO = {
         atoms: 2999998798000000000n,
         isMintBaton: false,
     },
-};
+} as unknown as Utxo;
 
-export const tokenTestWallet = {
+export const tokenTestWallet: CashtabWallet = {
     state: {
         balanceSats: 997081,
         slpUtxos: [
@@ -405,6 +408,7 @@ export const tokenTestWallet = {
                     },
                 ],
                 lockTime: 0,
+                isFinal: true,
                 timeFirstSeen: 1713184114,
                 size: 339,
                 isCoinbase: false,
@@ -429,7 +433,7 @@ export const tokenTestWallet = {
                 tokenFailedParsings: [],
                 tokenStatus: 'TOKEN_STATUS_NORMAL',
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 998173,
                     stackArray: [
                         '534c5000',
@@ -444,6 +448,8 @@ export const tokenTestWallet = {
                         'ffffffffffffffff',
                     ],
                     recipients: [],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -562,8 +568,9 @@ export const tokenTestWallet = {
                     hash: '000000000000000019fa0a69b1b204692bb8e5696e0df32137e4a34b77e0d675',
                     timestamp: 1713183906,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -576,6 +583,8 @@ export const tokenTestWallet = {
                     recipients: [
                         'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -657,8 +666,9 @@ export const tokenTestWallet = {
                     hash: '000000000000000014a2459ce878eecab3abfca3aede8b71b30121f210b48117',
                     timestamp: 1710948609,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 999403,
                     stackArray: [
                         '534c5000',
@@ -673,6 +683,8 @@ export const tokenTestWallet = {
                         '00000000000186a0',
                     ],
                     recipients: [],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -808,11 +820,14 @@ export const tokenTestWallet = {
                     hash: '000000000000000017739c96aa947a25e7ff176eb1a669095f950cefade4f255',
                     timestamp: 1710794047,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 1000,
                     stackArray: ['50', '534c5032ff'],
                     recipients: [],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -959,8 +974,9 @@ export const tokenTestWallet = {
                     hash: '000000000000000010aa8982051dceef402d15f18adf260492e0829cc715b29b',
                     timestamp: 1710789519,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 546,
                     stackArray: [
                         '50',
@@ -970,6 +986,8 @@ export const tokenTestWallet = {
                         'ecash:qqnzycgzwzfa7yq97ag3wnv867q2m74mhufqefypm0',
                         'ecash:qr0w2r6hvd3rwlwj7qc520qtkzgqnt90sypk26yd2u',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -1177,13 +1195,16 @@ export const tokenTestWallet = {
                     hash: '000000000000000010aa8982051dceef402d15f18adf260492e0829cc715b29b',
                     timestamp: 1710789519,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 1000000,
                     stackArray: [],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
         ],
@@ -1205,7 +1226,7 @@ export const tokenTestWallet = {
                 ),
             },
         ],
-    ]),
+    ]) as unknown as CashtabWalletPaths,
     name: 'Token Test',
 };
 
@@ -2504,7 +2525,7 @@ export const supportedTokens = [
  * Mocks to test Etokens.js component
  */
 
-export const EtokensWalletMock = {
+export const EtokensWalletMock: CashtabWallet = {
     state: {
         balanceSats: 97511071,
         slpUtxos: [
@@ -4621,8 +4642,9 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000248d6bde23611725c98c415a9246e28852187e6613e68998',
                     timestamp: 1713394342,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -4635,6 +4657,8 @@ export const EtokensWalletMock = {
                     recipients: [
                         'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -4761,8 +4785,9 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000248d6bde23611725c98c415a9246e28852187e6613e68998',
                     timestamp: 1713394342,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 97511200,
                     stackArray: [
                         '534c5000',
@@ -4773,6 +4798,8 @@ export const EtokensWalletMock = {
                         '0000000005f5e100',
                     ],
                     recipients: [],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -4836,13 +4863,16 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000248d6bde23611725c98c415a9246e28852187e6613e68998',
                     timestamp: 1713394342,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 14900876,
                     stackArray: [],
                     recipients: [
                         'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -4997,8 +5027,9 @@ export const EtokensWalletMock = {
                     hash: '00000000000000000dc214713fb8afc4aeacac08c696cbf9cba5799c7d7e49bd',
                     timestamp: 1713392944,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -5011,6 +5042,8 @@ export const EtokensWalletMock = {
                     recipients: [
                         'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5120,8 +5153,9 @@ export const EtokensWalletMock = {
                     hash: '000000000000000035b621834b4408d0b1a8da7d975cb14c0b9330d1e2398d8b',
                     timestamp: 1713384866,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -5133,6 +5167,8 @@ export const EtokensWalletMock = {
                     recipients: [
                         'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5268,13 +5304,16 @@ export const EtokensWalletMock = {
                     hash: '000000000000000035b621834b4408d0b1a8da7d975cb14c0b9330d1e2398d8b',
                     timestamp: 1713384866,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 100000,
                     stackArray: [],
                     recipients: [
                         'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5405,8 +5444,9 @@ export const EtokensWalletMock = {
                     hash: '000000000000000035b621834b4408d0b1a8da7d975cb14c0b9330d1e2398d8b',
                     timestamp: 1713384866,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -5419,6 +5459,8 @@ export const EtokensWalletMock = {
                     recipients: [
                         'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5466,13 +5508,16 @@ export const EtokensWalletMock = {
                     hash: '00000000000000002b65f361a83af2188ef1a1863166b61bf3f4cf3a31aae8e2',
                     timestamp: 1713325389,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 3500,
                     stackArray: [],
                     recipients: [
                         'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5520,13 +5565,16 @@ export const EtokensWalletMock = {
                     hash: '00000000000000002b65f361a83af2188ef1a1863166b61bf3f4cf3a31aae8e2',
                     timestamp: 1713325389,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 2200,
                     stackArray: [],
                     recipients: [
                         'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5574,13 +5622,16 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000277b46dec1b257e7263ee60265d9fcc71b314df14653998d',
                     timestamp: 1713289283,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 3300,
                     stackArray: [],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5636,13 +5687,16 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000203af5adb7c5ebafe7e91a4ebb83b5924386bfdbe30f0e2b',
                     timestamp: 1713278396,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 546,
                     stackArray: ['00746162', '66696e616c697a696e67'],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5694,13 +5748,16 @@ export const EtokensWalletMock = {
                     hash: '00000000000000000f924a5abaa971e7731dc55b8ce20fa9350a46c1b730b882',
                     timestamp: 1713274758,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 3300,
                     stackArray: [],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5757,8 +5814,9 @@ export const EtokensWalletMock = {
                     hash: '00000000000000002bca9ce259a2e0913a92fbff00cd822253053518421fa141',
                     timestamp: 1713270512,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 3300,
                     stackArray: [
                         '00746162',
@@ -5767,6 +5825,8 @@ export const EtokensWalletMock = {
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5842,13 +5902,16 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000234e3b649b952014149a5e88f44a84ed8f7b846f15fd9a61',
                     timestamp: 1713267975,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 3300,
                     stackArray: [],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5900,13 +5963,16 @@ export const EtokensWalletMock = {
                     hash: '00000000000000001a036ba6ec1cf775cdaf890c2814d1fb8160236034014ff5',
                     timestamp: 1713227574,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 2200,
                     stackArray: [],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -5970,13 +6036,16 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000039a926e889bcca1771fbe710f327691e3713d0f0388f523',
                     timestamp: 1713216844,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 546,
                     stackArray: [],
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -6118,8 +6187,9 @@ export const EtokensWalletMock = {
                     hash: '0000000000000000206e36055520619fd93f187ce67049e77134d9cdc77aa48c',
                     timestamp: 1713214540,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 51228,
                     stackArray: [
                         '64726f70',
@@ -6132,6 +6202,8 @@ export const EtokensWalletMock = {
                         'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
                         'ecash:qrhgew49vsk3chg679grahdx54gyf6qsdcurky8xms',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -6285,8 +6357,9 @@ export const EtokensWalletMock = {
                     hash: '00000000000000002cc404f4a2c0327a2d9e1e42d29fe6d6946eae00e5eadd4f',
                     timestamp: 1713188909,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 546,
                     stackArray: [
                         '534c5000',
@@ -6298,6 +6371,8 @@ export const EtokensWalletMock = {
                     recipients: [
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     ],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -6344,11 +6419,14 @@ export const EtokensWalletMock = {
                     hash: '000000000000000017c3805e03ec4153b158452be04f2df1450f0ad337c07ebe',
                     timestamp: 1713016680,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Received',
+                    xecTxType: XecTxType.Received,
                     satoshisSent: 550,
                     stackArray: ['63686174', '74657374'],
                     recipients: [],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
             {
@@ -6430,8 +6508,9 @@ export const EtokensWalletMock = {
                     hash: '000000000000000004e831e42308b70404225ed112f84e34df1e048a12e3aeac',
                     timestamp: 1712880601,
                 },
+                isFinal: true,
                 parsed: {
-                    xecTxType: 'Sent',
+                    xecTxType: XecTxType.Sent,
                     satoshisSent: 1900,
                     stackArray: [
                         '534c5000',
@@ -6446,6 +6525,8 @@ export const EtokensWalletMock = {
                         'ffffffffffffffff',
                     ],
                     recipients: [],
+                    appActions: [],
+                    parsedTokenEntries: [],
                 },
             },
         ],
@@ -6462,7 +6543,7 @@ export const EtokensWalletMock = {
                 pk: new Uint8Array(),
             },
         ],
-    ]),
+    ]) as unknown as CashtabWalletPaths,
     name: 'Etokens Test',
 };
 export const EtokensStoredCashtabCache = {
