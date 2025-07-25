@@ -206,6 +206,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
 }
 
 Processor::~Processor() {
+    chainNotificationsHandler->disconnect();
     chainNotificationsHandler.reset();
     stopEventLoop();
 
