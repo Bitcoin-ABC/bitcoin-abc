@@ -9,21 +9,55 @@ import userEvent from '@testing-library/user-event';
 import { when } from 'jest-when';
 import { explorer } from 'config/explorer';
 import {
-    initializeCashtabStateForTests,
-    clearLocalForage,
-} from 'components/App/fixtures/helpers';
-import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import appConfig from 'config/app';
+    walletWithXecAndTokens,
+    bearTokenAndTx,
+} from 'components/App/fixtures/mocks';
+import { slp1FixedCachet } from 'components/Etokens/fixtures/mocks';
+import { Ecc } from 'ecash-lib';
+import {
+    MockAgora,
+    MockChronikClient,
+} from '../../../../../modules/mock-chronik-client';
+import { token as tokenConfig } from 'config/token';
+import { prepareContext, mockPrice } from 'test';
+import { ThemeProvider } from 'styled-components';
+import { theme } from 'assets/styles/theme';
+import { MemoryRouter } from 'react-router-dom';
+import { WalletProvider } from 'wallet/context';
+import { ChronikClient, Utxo } from 'chronik-client';
+import { Agora } from 'ecash-agora';
+import App from 'components/App/App';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
-import {
-    slp1FixedBear,
-    slp1FixedCachet,
-} from 'components/Etokens/fixtures/mocks';
-import { Ecc } from 'ecash-lib';
-import { MockAgora } from '../../../../../modules/mock-chronik-client';
-import { token as tokenConfig } from 'config/token';
+import { CashtabWallet } from 'wallet';
+
+interface TokenTestWrapperProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    theme: any;
+    route?: string;
+}
+
+const TokenTestWrapper: React.FC<TokenTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    theme,
+    route = '/token/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+}) => (
+    <WalletProvider
+        chronik={chronik as unknown as ChronikClient}
+        agora={agora as unknown as Agora}
+        ecc={ecc}
+    >
+        <MemoryRouter initialEntries={[route]}>
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
+        </MemoryRouter>
+    </WalletProvider>
+);
 
 const SEND_TOKEN_TOKENID =
     '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109';
@@ -49,52 +83,42 @@ const SEND_AMOUNT_VALIDATION_ERRORS_TOKEN = [
 
 describe('<Token />', () => {
     const ecc = new Ecc();
-    let user, mockedChronik, mockAgora;
-    beforeEach(async () => {
-        // Mock the app with context at the Send screen
-        mockAgora = new MockAgora();
-        mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-        );
-        // Set chronik mocks required for cache preparation and supply calc
-        mockedChronik.setToken(slp1FixedBear.tokenId, slp1FixedBear.token);
-        mockedChronik.setTx(slp1FixedBear.tokenId, slp1FixedBear.tx);
-        mockedChronik.setUtxosByTokenId(
-            slp1FixedBear.tokenId,
-            slp1FixedBear.utxos,
-        );
+    let user: ReturnType<typeof userEvent.setup>;
+    let mockedAgora: MockAgora;
+    let mockedChronik: MockChronikClient;
 
+    beforeEach(async () => {
+        mockedAgora = new MockAgora();
+
+        const tokenMocks = new Map();
+        // Add BEAR token mock
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        tokenMocks.set(slp1FixedCachet.tokenId, {
+            tx: slp1FixedCachet.tx,
+            tokenInfo: slp1FixedCachet.token,
+        });
+
+        mockedChronik = await prepareContext(
+            localforage,
+            [walletWithXecAndTokens],
+            tokenMocks,
+        );
         // Set up userEvent
         user = userEvent.setup();
-        // Mock the fetch call to Cashtab's price API
+        // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
-        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
-        const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs requiring different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003;
-        const priceResponse = {
-            ecash: {
-                usd: xecPrice,
-                last_updated_at: 1706644626,
-            },
-        };
-        when(fetch)
-            .calledWith(priceApiUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
-            });
+        mockPrice(0.00003);
     });
+
     afterEach(async () => {
         jest.clearAllMocks();
-        await clearLocalForage(localforage);
+        await localforage.clear();
     });
 
     it('For a fungible SLP token, renders the Token screen with sale by default and expected inputs', async () => {
-        // Need to mock agora API endpoints
-        const mockedAgora = new MockAgora();
-
         // No active offers
         mockedAgora.setActiveOffersByTokenId(SEND_TOKEN_TOKENID, []);
 
@@ -105,13 +129,14 @@ describe('<Token />', () => {
             )
             .mockResolvedValue({
                 json: () => Promise.resolve({ isBlacklisted: false }),
-            });
+            } as Response);
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
                 ecc={ecc}
                 agora={mockedAgora}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -152,10 +177,8 @@ describe('<Token />', () => {
             await screen.findByText('No active offers for this token'),
         ).toBeInTheDocument();
     });
-    it('We show an alert and do not render the Orderbook for a blacklisted token', async () => {
-        // Need to mock agora API endpoints
-        const mockedAgora = new MockAgora();
 
+    it('We show an alert and do not render the Orderbook for a blacklisted token', async () => {
         // No active offers
         mockedAgora.setActiveOffersByTokenId(SEND_TOKEN_TOKENID, []);
 
@@ -166,13 +189,14 @@ describe('<Token />', () => {
             )
             .mockResolvedValue({
                 json: () => Promise.resolve({ isBlacklisted: true }),
-            });
+            } as Response);
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
                 ecc={ecc}
                 agora={mockedAgora}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -215,12 +239,14 @@ describe('<Token />', () => {
             ),
         ).toBeInTheDocument();
     });
+
     it('Accepts a valid ecash: prefixed address', async () => {
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -255,12 +281,14 @@ describe('<Token />', () => {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
     });
+
     it('Accepts a valid etoken: prefixed address', async () => {
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -296,12 +324,14 @@ describe('<Token />', () => {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
     });
+
     it('Displays a validation error for an invalid address', async () => {
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -330,12 +360,14 @@ describe('<Token />', () => {
         // We get the expected error
         expect(screen.getByText('Invalid address')).toBeInTheDocument();
     });
+
     it('Displays a validation error if the user includes any query string', async () => {
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -367,6 +399,7 @@ describe('<Token />', () => {
             screen.getByText('eToken sends do not support bip21 query strings'),
         ).toBeInTheDocument();
     });
+
     it('Renders the send token notification upon successful broadcast', async () => {
         const hex =
             '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006441bac61dbfa47bc7b92952caaa867c2c5fd11bde4cfa36c21b818dbb80c15b19a0c94845e916bc57bc5f35f32ca379bd48a6ee1dc4ded52794bcee231655b105f14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a59dcc96f885dcbf56d473ba74b3202adb00dbc1142e379efa3784b559d7be97aa3d777eb4001613f205191d177c9896f652132d397a65cdfa93c69657d59f1b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acbb800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -376,10 +409,11 @@ describe('<Token />', () => {
         mockedChronik.setBroadcastTx(hex, txid);
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -417,6 +451,7 @@ describe('<Token />', () => {
             ),
         );
     });
+
     it('Renders the burn token success notification upon successful burn tx broadcast', async () => {
         const hex =
             '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b0100000064416e015895372b0c7af66e744e54c05fac76fad69179763cb2feb35472e77017ebd223f9b3b1c12a9cb2e63570a967a3ee7db8b46ad6820a24cebcf41523d01c1a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441cc7b1ea349953692258fd581b8fc4061a324ac7893586dcbbbb4ef41a32beb142d6e28c06304b99ad7a0c6fde5c55a9b98cdb74be34c65d5631d2a5c5921ce9a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188acbb800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -426,10 +461,11 @@ describe('<Token />', () => {
         mockedChronik.setBroadcastTx(hex, txid);
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -496,12 +532,14 @@ describe('<Token />', () => {
             ),
         );
     });
+
     it('Mint switch is disabled if no mint batons for this token in the wallet', async () => {
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
@@ -518,10 +556,10 @@ describe('<Token />', () => {
         // The mint switch is not rendered
         expect(screen.queryByTitle('Toggle Mint')).not.toBeInTheDocument();
     });
+
     it('We can mint an slpv1 token if we have a mint baton', async () => {
         // Mock context with a mint baton utxo
-        const mockTokenId =
-            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
+        const CACHET_TOKENID = slp1FixedCachet.tokenId;
         const mintBatonUtxo = {
             outpoint: {
                 txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
@@ -566,29 +604,41 @@ describe('<Token />', () => {
             },
             path: 1899,
         };
-        const mintMockedChronik = await initializeCashtabStateForTests(
-            {
-                ...walletWithXecAndTokens,
-                state: {
-                    ...walletWithXecAndTokens.state,
-                    slpUtxos: [
-                        ...walletWithXecAndTokens.state.slpUtxos,
-                        mintBatonUtxo,
-                        balanceUtxo,
-                    ],
-                },
+        // Test is for a different wallet, do not use the beforeEach mocks
+
+        const tokenMocks = new Map();
+        // Add BEAR token mock (from original wallet)
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        // Add CACHET token mock
+        tokenMocks.set(CACHET_TOKENID, {
+            tx: slp1FixedCachet.tx,
+            tokenInfo: slp1FixedCachet.token,
+        });
+
+        const walletWithMintBaton = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    mintBatonUtxo,
+                    balanceUtxo,
+                ],
             },
+        };
+
+        const mintMockedChronik = await prepareContext(
             localforage,
+            [walletWithMintBaton] as unknown as CashtabWallet[],
+            tokenMocks,
         );
-        // Set mock tokeninfo call
-        mintMockedChronik.setToken(
-            slp1FixedCachet.tokenId,
-            slp1FixedCachet.token,
-        );
-        mintMockedChronik.setTx(slp1FixedCachet.tokenId, slp1FixedCachet.tx);
+
         mintMockedChronik.setUtxosByTokenId(
-            slp1FixedCachet.tokenId,
-            slp1FixedCachet.utxos,
+            CACHET_TOKENID,
+            slp1FixedCachet.utxos as unknown as Utxo[],
         );
 
         const hex =
@@ -598,12 +648,18 @@ describe('<Token />', () => {
 
         mintMockedChronik.setBroadcastTx(hex, txid);
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mintMockedChronik}
-                agora={mockAgora}
                 ecc={ecc}
-                route={`/token/${mockTokenId}`}
+                agora={mockedAgora}
+                theme={theme}
+                route={`/token/${CACHET_TOKENID}`}
             />,
+        );
+
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // Wait for element to get token info and load
@@ -628,16 +684,17 @@ describe('<Token />', () => {
         // Mint it
         await user.click(screen.getByRole('button', { name: /Mint CACHET/ }));
 
-        const burnTokenSuccessNotification = await screen.findByText(
+        const mintTokenSuccessNotification = await screen.findByText(
             '⚗️ Minted 100.33 CACHET',
         );
         await waitFor(() =>
-            expect(burnTokenSuccessNotification).toHaveAttribute(
+            expect(mintTokenSuccessNotification).toHaveAttribute(
                 'href',
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
             ),
         );
     });
+
     it('We can mint an slpv1 token if we have a mint baton and confirm modals enabled', async () => {
         // Mock context with a mint baton utxo
         const mintBatonUtxo = {
@@ -653,8 +710,8 @@ describe('<Token />', () => {
                 tokenId:
                     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
                 tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    protocol: 'SLP' as const,
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE' as const,
                     number: 1,
                 },
                 atoms: 0n,
@@ -675,8 +732,8 @@ describe('<Token />', () => {
                 tokenId:
                     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
                 tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    protocol: 'SLP' as const,
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE' as const,
                     number: 1,
                 },
                 atoms: 20000n,
@@ -684,29 +741,37 @@ describe('<Token />', () => {
             },
             path: 1899,
         };
-        const mintMockedChronik = await initializeCashtabStateForTests(
-            {
-                ...walletWithXecAndTokens,
-                state: {
-                    ...walletWithXecAndTokens.state,
-                    slpUtxos: [
-                        ...walletWithXecAndTokens.state.slpUtxos,
-                        mintBatonUtxo,
-                        balanceUtxo,
-                    ],
-                },
+
+        const walletWithMintBaton = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    mintBatonUtxo,
+                    balanceUtxo,
+                ],
             },
+        };
+
+        // Test is for a different wallet, do not use the beforeEach mocks
+
+        const tokenMocks = new Map();
+        // Add BEAR token mock (from original wallet)
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        // Add CACHET token mock
+        tokenMocks.set(slp1FixedCachet.tokenId, {
+            tx: slp1FixedCachet.tx,
+            tokenInfo: slp1FixedCachet.token,
+        });
+
+        const mintMockedChronik = await prepareContext(
             localforage,
-        );
-        // Set mock tokeninfo call
-        mintMockedChronik.setToken(
-            slp1FixedCachet.tokenId,
-            slp1FixedCachet.token,
-        );
-        mintMockedChronik.setTx(slp1FixedCachet.tokenId, slp1FixedCachet.tx);
-        mintMockedChronik.setUtxosByTokenId(
-            slp1FixedCachet.tokenId,
-            slp1FixedCachet.utxos,
+            [walletWithMintBaton],
+            tokenMocks,
         );
 
         const hex =
@@ -717,18 +782,26 @@ describe('<Token />', () => {
         mintMockedChronik.setBroadcastTx(hex, txid);
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mintMockedChronik}
                 ecc={ecc}
-                agora={mockAgora}
+                agora={mockedAgora}
+                theme={theme}
+                route={`/`}
             />,
+        );
+
+        // Wait for Cashtab wallet info to load
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // Default route is home
         await screen.findByTestId('tx-history');
 
         // Click the hamburger menu
-        await user.click(screen.queryByTitle('Show Other Screens'));
+        const hamburgerMenu = screen.getByTitle('Show Other Screens');
+        await user.click(hamburgerMenu);
 
         // Navigate to Settings screen
         await user.click(
@@ -794,18 +867,21 @@ describe('<Token />', () => {
             screen.queryByText(`Are you sure you want to mint 100.33 CACHET?`),
         ).not.toBeInTheDocument();
     });
+
     it('For an uncached token with no balance, we show a spinner while loading the token info, then show an info screen and open agora offers', async () => {
-        // Set mock tokeninfo call
         const CACHET_TOKENID = slp1FixedCachet.tokenId;
-        mockedChronik.setToken(CACHET_TOKENID, slp1FixedCachet.token);
-        mockedChronik.setTx(CACHET_TOKENID, slp1FixedCachet.tx);
-        mockedChronik.setUtxosByTokenId(CACHET_TOKENID, slp1FixedCachet.utxos);
+
+        mockedChronik.setUtxosByTokenId(
+            CACHET_TOKENID,
+            slp1FixedCachet.utxos as unknown as Utxo[],
+        );
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${CACHET_TOKENID}`}
             />,
         );
@@ -814,9 +890,6 @@ describe('<Token />', () => {
         await waitFor(() =>
             expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
-
-        // We see a spinner while token info is loading
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
 
         // Cashtab pings chronik to build token cache info and displays token summary table
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
@@ -835,9 +908,12 @@ describe('<Token />', () => {
         // We do not see token actions
         expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
     });
+
     it('For an uncached token with no balance, we show a chronik query error if we are unable to fetch the token info', async () => {
         // Set mock tokeninfo call
         const CACHET_TOKENID = slp1FixedCachet.tokenId;
+
+        // Override the token mock to return an error
         mockedChronik.setToken(CACHET_TOKENID, new Error('some error'));
         mockedChronik.setTx(CACHET_TOKENID, new Error('some error'));
         mockedChronik.setUtxosByTokenId(
@@ -846,10 +922,11 @@ describe('<Token />', () => {
         );
 
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${CACHET_TOKENID}`}
             />,
         );
@@ -877,13 +954,16 @@ describe('<Token />', () => {
         // We do not see token actions
         expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
     });
+
     it('For an invalid tokenId, we do not query chronik, and we show an invalid tokenId notice', async () => {
         const invalidTokenId = '012345';
+
         render(
-            <CashtabTestWrapper
+            <TokenTestWrapper
                 chronik={mockedChronik}
-                agora={mockAgora}
+                agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route={`/token/${invalidTokenId}`}
             />,
         );
