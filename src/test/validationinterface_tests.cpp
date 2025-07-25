@@ -177,12 +177,19 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
 
     callCount = 0;
     calledIndex = nullptr;
-    BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(nullptr, *avalanche));
+    {
+        LOCK(::cs_main);
+        BOOST_CHECK(
+            !activeChainState.AvalancheFinalizeBlock(nullptr, *avalanche));
+    }
     SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 0);
     BOOST_CHECK_EQUAL(calledIndex, nullptr);
 
-    BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
+    {
+        LOCK(::cs_main);
+        BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
+    }
     SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 1);
     BOOST_CHECK_EQUAL(calledIndex, tip);
@@ -190,7 +197,11 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
     // Successive calls won't call the validation again, because the block is
     // already finalized.
     for (size_t i = 0; i < 10; i++) {
-        BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
+        {
+            LOCK(::cs_main);
+            BOOST_CHECK(
+                activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
+        }
         SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 1);
         BOOST_CHECK_EQUAL(calledIndex, tip);
