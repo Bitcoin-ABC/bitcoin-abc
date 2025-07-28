@@ -262,6 +262,12 @@ mod ffi_inner {
             data_pos: u32,
         ) -> Result<Vec<u8>>;
 
+        /// Check if the transaction is finalized via avalanche pre-consensus.
+        fn is_avalanche_finalized_preconsensus(
+            self: &ChronikBridge,
+            mempool_txid: &[u8; 32],
+        ) -> bool;
+
         /// Find at which block the given block_index forks off from the node.
         fn find_fork(
             self: &ChronikBridge,

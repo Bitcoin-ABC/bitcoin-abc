@@ -927,13 +927,15 @@ impl ChronikIndexer {
     }
 
     /// Return [`QueryGroupUtxos`] for scripts to query the utxos of scripts.
-    pub fn script_utxos(
-        &self,
-    ) -> Result<QueryGroupUtxos<'_, ScriptGroup, UtxoProtobufValue>> {
+    pub fn script_utxos<'a>(
+        &'a self,
+        node: &'a Node,
+    ) -> Result<QueryGroupUtxos<'a, ScriptGroup, UtxoProtobufValue>> {
         Ok(QueryGroupUtxos {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            node,
             mempool_utxos: self.mempool.script_utxos(),
             group: self.script_group.clone(),
             utxo_mapper: UtxoProtobufValue,
@@ -963,13 +965,15 @@ impl ChronikIndexer {
     }
 
     /// Return [`QueryGroupUtxos`] for token IDs to query the utxos of token IDs
-    pub fn token_id_utxos(
-        &self,
-    ) -> QueryGroupUtxos<'_, TokenIdGroup, UtxoProtobufOutput> {
+    pub fn token_id_utxos<'a>(
+        &'a self,
+        node: &'a Node,
+    ) -> QueryGroupUtxos<'a, TokenIdGroup, UtxoProtobufOutput> {
         QueryGroupUtxos {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            node,
             mempool_utxos: self.mempool.token_id_utxos(),
             group: TokenIdGroup,
             utxo_mapper: UtxoProtobufOutput,

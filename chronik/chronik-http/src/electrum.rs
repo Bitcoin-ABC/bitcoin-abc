@@ -2225,7 +2225,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let indexer = self.indexer.read().await;
         let script_utxos = indexer
-            .script_utxos()
+            .script_utxos(&self.node)
             .map_err(|_| RPCError::InternalError)?;
         let script = match script_utxos.script(
             GroupMember::MemberHash(script_hash),

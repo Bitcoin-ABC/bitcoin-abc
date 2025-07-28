@@ -68,6 +68,10 @@ pub enum QueryTxError {
 impl<'a> QueryTxs<'a> {
     /// Query a tx by txid from the mempool or DB.
     pub fn tx_by_id(&self, txid: TxId) -> Result<proto::Tx> {
+        let is_final_preconsensus = self
+            .node
+            .bridge
+            .is_avalanche_finalized_preconsensus(txid.as_bytes());
         match self.mempool.tx(&txid) {
             Some(tx) => Ok(make_tx_proto(MakeTxProtoParams {
                 tx: &tx.tx,
@@ -88,6 +92,7 @@ impl<'a> QueryTxs<'a> {
                     !self.plugin_name_map.is_empty(),
                 )?,
                 plugin_name_map: self.plugin_name_map,
+                is_final_preconsensus,
             })),
             None => {
                 let tx_reader = TxReader::new(self.db)?;
@@ -138,6 +143,7 @@ impl<'a> QueryTxs<'a> {
                         !self.plugin_name_map.is_empty(),
                     )?,
                     plugin_name_map: self.plugin_name_map,
+                    is_final_preconsensus,
                 }))
             }
         }

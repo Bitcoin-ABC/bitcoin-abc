@@ -508,10 +508,12 @@ async fn handle_script_unconfirmed_txs(
 async fn handle_script_utxos(
     Path((script_type, payload)): Path<(String, String)>,
     Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
 ) -> Result<Protobuf<proto::ScriptUtxos>, ReportError> {
     let indexer = indexer.read().await;
     Ok(Protobuf(
-        handlers::handle_script_utxos(&script_type, &payload, &indexer).await?,
+        handlers::handle_script_utxos(&script_type, &payload, &indexer, &node)
+            .await?,
     ))
 }
 
@@ -570,10 +572,11 @@ async fn handle_token_id_unconfirmed_txs(
 async fn handle_token_id_utxos(
     Path(token_id_hex): Path<String>,
     Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
 ) -> Result<Protobuf<proto::Utxos>, ReportError> {
     let indexer = indexer.read().await;
     Ok(Protobuf(
-        handlers::handle_token_id_utxos(&token_id_hex, &indexer).await?,
+        handlers::handle_token_id_utxos(&token_id_hex, &indexer, &node).await?,
     ))
 }
 
@@ -632,10 +635,12 @@ async fn handle_lokad_id_unconfirmed_txs(
 async fn handle_plugin_utxos(
     Path((plugin_name, payload)): Path<(String, String)>,
     Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
 ) -> Result<Protobuf<proto::Utxos>, ReportError> {
     let indexer = indexer.read().await;
     Ok(Protobuf(
-        handlers::handle_plugin_utxos(&plugin_name, &payload, &indexer).await?,
+        handlers::handle_plugin_utxos(&plugin_name, &payload, &indexer, &node)
+            .await?,
     ))
 }
 

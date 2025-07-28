@@ -55,6 +55,7 @@ pub(crate) struct MakeTxProtoParams<'a> {
     pub(crate) token: Option<&'a TxTokenData<'a>>,
     pub(crate) plugin_outputs: &'a BTreeMap<OutPoint, PluginOutput>,
     pub(crate) plugin_name_map: &'a PluginNameMap,
+    pub(crate) is_final_preconsensus: bool,
 }
 
 /// Make a [`proto::Tx`].
@@ -162,9 +163,10 @@ pub(crate) fn make_tx_proto(params: MakeTxProtoParams<'_>) -> proto::Tx {
         time_first_seen: params.time_first_seen,
         size: tx.ser_len() as u32,
         is_coinbase: params.is_coinbase,
-        is_final: params.block.is_some_and(|block| {
-            params.avalanche.is_final_height(block.height)
-        }),
+        is_final: params.is_final_preconsensus
+            || params.block.is_some_and(|block| {
+                params.avalanche.is_final_height(block.height)
+            }),
     }
 }
 

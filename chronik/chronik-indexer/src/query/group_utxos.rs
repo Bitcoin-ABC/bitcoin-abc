@@ -29,6 +29,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
+    indexer::Node,
     query::{
         make_outpoint_proto, make_plugins_proto, make_utxo_token_proto,
         read_db_token_output, QueryGroupUtxosError::*,
@@ -50,6 +51,8 @@ where
     pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
+    /// Access to bitcoind
+    pub node: &'a Node,
     /// The part of the mempool we search for this group's history.
     pub mempool_utxos: &'a MempoolGroupUtxos<G>,
     /// Group to query txs by
@@ -262,6 +265,12 @@ where
                 }
             }
 
+            let is_final = self.avalanche.is_final_height(db_tx.block_height)
+                || self
+                    .node
+                    .bridge
+                    .is_avalanche_finalized_preconsensus(txid.as_bytes());
+
             let outpoint = OutPoint { txid, out_idx };
             utxos.push(U::map_proto(
                 db_utxo.data,
@@ -269,9 +278,7 @@ where
                     outpoint,
                     block_height: db_tx.block_height,
                     is_coinbase: db_tx.entry.is_coinbase,
-                    is_final: self
-                        .avalanche
-                        .is_final_height(db_tx.block_height),
+                    is_final,
                     token: read_db_token_output(
                         self.db,
                         tx_num,
@@ -294,6 +301,7 @@ where
                 .mempool
                 .tx(&mempool_outpoint.txid)
                 .ok_or(MissingMempoolTx(mempool_outpoint.txid))?;
+            let txid = mempool_tx.tx.txid();
             let output = mempool_tx
                 .tx
                 .outputs
@@ -312,7 +320,10 @@ where
                     outpoint: mempool_outpoint,
                     block_height: -1,
                     is_coinbase: false,
-                    is_final: false,
+                    is_final: self
+                        .node
+                        .bridge
+                        .is_avalanche_finalized_preconsensus(txid.as_bytes()),
                     token,
                     plugin: plugin_output,
                 },

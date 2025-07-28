@@ -164,6 +164,10 @@ impl QueryBroadcast<'_> {
             None,
             !self.plugin_name_map.is_empty(),
         )?;
+        let is_final_preconsensus = self
+            .node
+            .bridge
+            .is_avalanche_finalized_preconsensus(tx.txid().as_bytes());
         Ok(make_tx_proto(MakeTxProtoParams {
             tx: &tx,
             outputs_spent: &OutputsSpent::default(),
@@ -174,6 +178,7 @@ impl QueryBroadcast<'_> {
             token: token.as_ref(),
             plugin_outputs: &plugin_outputs,
             plugin_name_map: self.plugin_name_map,
+            is_final_preconsensus,
         }))
     }
 }

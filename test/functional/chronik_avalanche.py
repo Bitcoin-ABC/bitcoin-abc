@@ -10,7 +10,13 @@ from test_framework.address import (
 )
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import COINBASE_MATURITY
-from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
+from test_framework.messages import (
+    AvalancheVoteError,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+)
 from test_framework.script import OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
@@ -32,6 +38,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
                 "-persistavapeers=0",
+                "-avalanchepreconsensus",
             ],
         ]
         self.supports_cli = False
@@ -72,6 +79,10 @@ class ChronikAvalancheTest(BitcoinTestFramework):
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
 
+        # Finalize the tip so we don't get extra polls
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_tip(tip))
+
         # Build tx to finalize in a block
         coinvalue = 5000000000
         tx = CTransaction()
@@ -98,24 +109,39 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         # Block not finalized
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
 
-        # Mine block
-        tip = self.generate(node, 1, sync_fun=self.no_op)[-1]
+        def finalize_tx(txid):
+            def vote_until_final():
+                can_find_inv_in_poll(
+                    quorum, int(txid, 16), other_response=AvalancheVoteError.UNKNOWN
+                )
+                return node.isfinaltransaction(txid)
 
-        # Not finalized yet
+            self.wait_until(vote_until_final)
+
+        # Finalize the tx via preconsensus
+        finalize_tx(txid)
+        assert_equal(chronik.tx(txid).ok().block.is_final, False)
+        assert_equal(chronik.tx(txid).ok().is_final, True)
+
+        # Mine a block to confirm the tx
+        tip = self.generate(node, 1, sync_fun=self.no_op)[-1]
+        assert_equal(node.getrawmempool(), [])
+
+        # The block is not finalized yet but the tx is still finalized
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
-        assert_equal(chronik.tx(txid).ok().is_final, False)
+        assert_equal(chronik.tx(txid).ok().is_final, True)
 
         def chronik_wait_for_block_final(block_hash):
             self.wait_until(lambda: chronik.block(tip).ok().block_info.is_final)
 
-        def chronik_wait_for_tx_final(txid):
+        def chronik_wait_for_tx_block_final(txid):
             self.wait_until(lambda: chronik.tx(txid).ok().block.is_final)
 
         # After we wait, both block and tx are finalized
         self.wait_until(lambda: has_finalized_tip(tip))
         chronik_wait_for_block_final(tip)
-        chronik_wait_for_tx_final(txid)
+        chronik_wait_for_tx_block_final(txid)
 
         # Confirmation that the tx is finalized.
         assert_equal(chronik.tx(txid).ok().is_final, True)
@@ -130,7 +156,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         quorum = get_quorum()
         self.wait_until(lambda: has_finalized_tip(tip))
         chronik_wait_for_block_final(tip)
-        chronik_wait_for_tx_final(txid)
+        chronik_wait_for_tx_block_final(txid)
         assert_equal(chronik.tx(txid).ok().is_final, True)
 
         # Generate 10 blocks to invalidate, wait for Avalanche

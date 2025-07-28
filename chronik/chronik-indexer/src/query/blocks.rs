@@ -256,6 +256,10 @@ impl<'a> QueryBlocks<'a> {
                     )
                     .wrap_err(ReadFailure(db_tx.entry.txid))?,
             );
+            let is_final_preconsensus =
+                self.node.bridge.is_avalanche_finalized_preconsensus(
+                    db_tx.entry.txid.as_bytes(),
+                );
             let outputs_spent = OutputsSpent::query(
                 &spent_by_reader,
                 &tx_reader,
@@ -285,6 +289,7 @@ impl<'a> QueryBlocks<'a> {
                 token: token.as_ref(),
                 plugin_outputs: &plugin_outputs,
                 plugin_name_map: self.plugin_name_map,
+                is_final_preconsensus,
             }));
         }
         let total_num_txs = (tx_range.end - tx_range.start) as usize;

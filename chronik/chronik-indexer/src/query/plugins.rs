@@ -18,6 +18,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
+    indexer::Node,
     query::{QueryGroupUtxos, QueryPluginsError::*, UtxoProtobufOutput},
 };
 
@@ -87,7 +88,8 @@ pub enum QueryPluginsError {
 impl<'a> QueryPlugins<'a> {
     /// Query the UTXOs a plugin has grouped for one member of the group
     pub fn utxos(
-        &self,
+        &'a self,
+        node: &'a Node,
         plugin_name: &str,
         group: &[u8],
     ) -> Result<Vec<proto::Utxo>> {
@@ -97,6 +99,7 @@ impl<'a> QueryPlugins<'a> {
                 db: self.db,
                 avalanche: self.avalanche,
                 mempool: self.mempool,
+                node,
                 mempool_utxos: self.mempool.plugins().group_utxos(),
                 group: PluginsGroup,
                 utxo_mapper: UtxoProtobufOutput,

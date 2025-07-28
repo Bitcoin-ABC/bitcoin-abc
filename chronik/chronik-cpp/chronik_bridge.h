@@ -84,6 +84,9 @@ public:
 
     rust::Vec<uint8_t> load_raw_tx(uint32_t file_num, uint32_t data_pos) const;
 
+    bool is_avalanche_finalized_preconsensus(
+        const std::array<uint8_t, 32> &txid) const;
+
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
 
     void lookup_spent_coins(Tx &, rust::Vec<OutPoint> &not_found,

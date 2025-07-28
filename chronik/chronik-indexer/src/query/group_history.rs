@@ -351,6 +351,10 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             .take(request_page_size);
         for (_, txid) in page_mempool_txs_iter {
             let entry = self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
+            let is_final_preconsensus = self
+                .node
+                .bridge
+                .is_avalanche_finalized_preconsensus(txid.as_bytes());
             page_txs.push(make_tx_proto(MakeTxProtoParams {
                 tx: &entry.tx,
                 outputs_spent: &OutputsSpent::new_mempool(
@@ -373,6 +377,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                     !self.plugin_name_map.is_empty(),
                 )?,
                 plugin_name_map: self.plugin_name_map,
+                is_final_preconsensus,
             }));
         }
 
@@ -457,6 +462,10 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 .map(|(_, txid)| -> Result<_> {
                     let entry =
                         self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
+                    let is_final_preconsensus = self
+                        .node
+                        .bridge
+                        .is_avalanche_finalized_preconsensus(txid.as_bytes());
                     Ok(make_tx_proto(MakeTxProtoParams {
                         tx: &entry.tx,
                         outputs_spent: &OutputsSpent::new_mempool(
@@ -479,6 +488,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                             !self.plugin_name_map.is_empty(),
                         )?,
                         plugin_name_map: self.plugin_name_map,
+                        is_final_preconsensus,
                     }))
                 })
                 .collect::<Result<Vec<_>>>()?,
@@ -531,6 +541,10 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             Some(tx_num),
             !self.plugin_name_map.is_empty(),
         )?;
+        let is_final_preconsensus =
+            self.node.bridge.is_avalanche_finalized_preconsensus(
+                block_tx.entry.txid.as_bytes(),
+            );
         Ok(make_tx_proto(MakeTxProtoParams {
             tx: &tx,
             outputs_spent: &outputs_spent,
@@ -541,6 +555,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             token: token.as_ref(),
             plugin_outputs: &plugin_outputs,
             plugin_name_map: self.plugin_name_map,
+            is_final_preconsensus,
         }))
     }
 }
