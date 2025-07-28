@@ -4712,7 +4712,8 @@ uint32_t
 PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                                        const TxId &id) const {
     // Finalized
-    if (WITH_LOCK(m_mempool.cs, return m_mempool.isAvalancheFinalized(id))) {
+    if (WITH_LOCK(m_mempool.cs,
+                  return m_mempool.isAvalancheFinalizedPreConsensus(id))) {
         return 0;
     }
 

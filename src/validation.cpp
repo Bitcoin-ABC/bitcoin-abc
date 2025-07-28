@@ -632,7 +632,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // Check for conflicts with in-memory transactions
     for (const CTxIn &txin : tx.vin) {
         if (const auto ptxConflicting = m_pool.GetConflictTx(txin.prevout)) {
-            if (m_pool.isAvalancheFinalized(ptxConflicting->GetId())) {
+            if (m_pool.isAvalancheFinalizedPreConsensus(
+                    ptxConflicting->GetId())) {
                 return state.Invalid(TxValidationResult::TX_CONFLICT,
                                      "finalized-tx-conflict");
             }

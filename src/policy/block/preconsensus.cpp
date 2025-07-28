@@ -25,7 +25,8 @@ bool PreConsensusPolicy::operator()(BlockPolicyValidationState &state) {
 
             // Only allow for the exact txid for each coin spent
             if (ptxConflicting && ptxConflicting->GetId() != tx->GetId() &&
-                m_mempool->isAvalancheFinalized(ptxConflicting->GetId())) {
+                m_mempool->isAvalancheFinalizedPreConsensus(
+                    ptxConflicting->GetId())) {
                 return state.Invalid(
                     BlockPolicyValidationResult::POLICY_VIOLATION,
                     "finalized-tx-conflict",

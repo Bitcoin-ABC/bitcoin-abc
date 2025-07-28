@@ -215,7 +215,7 @@ void MinerTestingSetup::TestPackageSelection(
     tx.vout[0].nValue = int64_t(5000000000LL - 1000 - 50000) * SATOSHI;
     TxId freeTxId = tx.GetId();
     AddUnchecked(entry.Fee(Amount::zero()).FromTx(tx));
-    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(freeTxId));
+    BOOST_CHECK(!m_node.mempool->isAvalancheFinalizedPreConsensus(freeTxId));
 
     // Add a child transaction with high fee.
     Amount feeToUse = 50000 * SATOSHI;
@@ -225,7 +225,8 @@ void MinerTestingSetup::TestPackageSelection(
         int64_t(5000000000LL - 1000 - 50000) * SATOSHI - feeToUse;
     TxId highFeeDecendantTxId = tx.GetId();
     AddUnchecked(entry.Fee(feeToUse).FromTx(tx));
-    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(highFeeDecendantTxId));
+    BOOST_CHECK(!m_node.mempool->isAvalancheFinalizedPreConsensus(
+        highFeeDecendantTxId));
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
 
     // Verify that the free tx and its high fee descendant tx didn't get
@@ -697,7 +698,8 @@ void MinerTestingSetup::TestPrioritisedMining(
     tx.vout[0].nValue = (fiveBillion - 10000) * SATOSHI;
     const TxId hashMediumFeeTx =
         finalizePrioritizedTx(tx, 10000 * SATOSHI, -5 * COIN);
-    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(hashMediumFeeTx));
+    BOOST_CHECK(
+        !m_node.mempool->isAvalancheFinalizedPreConsensus(hashMediumFeeTx));
 
     // This tx also has a low fee, but is prioritised
     tx.vin[0].prevout = COutPoint{hashParentTx, 0};
@@ -731,7 +733,8 @@ void MinerTestingSetup::TestPrioritisedMining(
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeGrandchild =
         finalizePrioritizedTx(tx, Amount::zero(), Amount::zero());
-    BOOST_CHECK(!m_node.mempool->isAvalancheFinalized(hashFreeGrandchild));
+    BOOST_CHECK(
+        !m_node.mempool->isAvalancheFinalizedPreConsensus(hashFreeGrandchild));
 
     auto pblocktemplate =
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);

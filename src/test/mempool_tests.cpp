@@ -606,7 +606,7 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
         std::vector<TxId> finalizedTxIds;
         BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry, params, tip,
                                                finalizedTxIds));
-        BOOST_CHECK(pool.isAvalancheFinalized(txid));
+        BOOST_CHECK(pool.isAvalancheFinalizedPreConsensus(txid));
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
         BOOST_CHECK_EQUAL(finalizedTxIds[0], txid);
 
@@ -623,22 +623,22 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
 
     for (const auto &tx : minedTxsInFinalBlock) {
         // No longer in the radix tree
-        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+        BOOST_CHECK(!pool.isAvalancheFinalizedPreConsensus(tx->GetId()));
     }
     // Other txs are still there
     for (size_t i = 50; i < 100; i++) {
-        BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
+        BOOST_CHECK(pool.isAvalancheFinalizedPreConsensus(txs[i]->GetId()));
     }
 
     // Repeat is no op
     pool.removeForFinalizedBlock({});
     for (const auto &tx : minedTxsInFinalBlock) {
         // No longer in the radix tree
-        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+        BOOST_CHECK(!pool.isAvalancheFinalizedPreConsensus(tx->GetId()));
     }
     // Other txs are still there
     for (size_t i = 50; i < 100; i++) {
-        BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
+        BOOST_CHECK(pool.isAvalancheFinalizedPreConsensus(txs[i]->GetId()));
     }
 
     // Mine 20 more txs but assume the block is not finalized
@@ -654,12 +654,12 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
 
     for (const auto &tx : minedTxsInFinalBlock) {
         // No longer in the radix tree
-        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+        BOOST_CHECK(!pool.isAvalancheFinalizedPreConsensus(tx->GetId()));
     }
     // Check that the 50 last txs including the mined ones are still in the
     // radix tree
     for (size_t i = 50; i < 100; i++) {
-        BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
+        BOOST_CHECK(pool.isAvalancheFinalizedPreConsensus(txs[i]->GetId()));
     }
 
     // Remove them all
@@ -668,7 +668,7 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
     pool.removeForFinalizedBlock({});
     for (const auto &tx : txs) {
         // No longer in the radix tree
-        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+        BOOST_CHECK(!pool.isAvalancheFinalizedPreConsensus(tx->GetId()));
     }
 }
 

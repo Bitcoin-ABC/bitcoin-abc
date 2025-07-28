@@ -308,7 +308,7 @@ void CTxMemPool::removeConflicts(const CTransaction &tx) {
             if (txConflict != tx) {
                 // We reject blocks that contains a tx conflicting with a
                 // finalized tx, so this should never happen
-                Assume(!isAvalancheFinalized(txConflict.GetId()));
+                Assume(!isAvalancheFinalizedPreConsensus(txConflict.GetId()));
                 ClearPrioritisation(txConflict.GetId());
                 removeRecursive(txConflict, MemPoolRemovalReason::CONFLICT);
             }
@@ -608,7 +608,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
         // It is possible (and normal) that an ancestor is already finalized.
         // Beware to not account for it in this case.
-        if (isAvalancheFinalized(entry->GetTx().GetId())) {
+        if (isAvalancheFinalizedPreConsensus(entry->GetTx().GetId())) {
             iter_it = setAncestors.erase(iter_it);
             continue;
         }
@@ -848,7 +848,7 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     setEntries toremove;
     size_t skippedFinalizedTxs{0};
     while (it != mapTx.get<entry_time>().end() && (*it)->GetTime() < time) {
-        if (isAvalancheFinalized((*it)->GetTx().GetId())) {
+        if (isAvalancheFinalizedPreConsensus((*it)->GetTx().GetId())) {
             // Don't expire finalized transactions
             ++skippedFinalizedTxs;
         } else {
@@ -952,7 +952,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         auto rit = by_modified_feerate.rbegin();
 
         // We don't evict finalized transactions, even if they have lower fee
-        while (isAvalancheFinalized((*rit)->GetTx().GetId())) {
+        while (isAvalancheFinalizedPreConsensus((*rit)->GetTx().GetId())) {
             ++finalizedTxsSkipped;
             ++rit;
             if (rit == by_modified_feerate.rend()) {

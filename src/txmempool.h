@@ -536,7 +536,7 @@ public:
                                std::vector<TxId> &finalizedTxIds)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, cs);
 
-    bool isAvalancheFinalized(const TxId &txid) const
+    bool isAvalancheFinalizedPreConsensus(const TxId &txid) const
         EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
         return finalizedTxs.get(txid) != nullptr;
