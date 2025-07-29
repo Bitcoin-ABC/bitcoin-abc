@@ -126,13 +126,28 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
                       MempoolAcceptResult::ResultType::VALID);
     TxId txid = tx.GetId();
 
-    // Tx we look up coins for
+    // Tx we look up coins for. Only the prev_out field is relevant so the other
+    // ones are default
     chronik_bridge::Tx query_tx = {
-        .inputs = {
-            {.prev_out = {chronik::util::HashToArray(txid), 0}},
-            {.prev_out = {chronik::util::HashToArray(txid), 1}},
-            {.prev_out = {{}, 0x12345678}},
-        }};
+        .txid = {},
+        .inputs =
+            {
+                {.prev_out = {chronik::util::HashToArray(txid), 0},
+                 .script = {},
+                 .sequence = 0,
+                 .coin = {}},
+                {.prev_out = {chronik::util::HashToArray(txid), 1},
+                 .script = {},
+                 .sequence = 0,
+                 .coin = {}},
+                {.prev_out = {{}, 0x12345678},
+                 .script = {},
+                 .sequence = 0,
+                 .coin = {}},
+            },
+        .outputs = {},
+        .locktime = 0,
+    };
 
     // Do lookup
     rust::Vec<chronik_bridge::OutPoint> not_found;
