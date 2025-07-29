@@ -16,7 +16,7 @@ use bitcoinsuite_core::{
     net::Net,
     tx::{Tx, TxId},
 };
-use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
+use chronik_bridge::ffi::init_error;
 use chronik_db::{
     index_tx::TxNumCacheSettings, io::GroupHistorySettings, mem::MempoolTx,
 };
@@ -105,7 +105,7 @@ fn try_setup_chronik(
     })?;
     log!("Starting Chronik bound to {:?}\n", hosts);
     let bridge = chronik_bridge::ffi::make_bridge(node_context);
-    let bridge_ref = expect_unique_ptr("make_bridge", &bridge);
+    let node = Arc::new(Node { bridge });
     let (pause, pause_notify) = Pause::new_pair(params.is_pause_allowed);
     let mut indexer = ChronikIndexer::setup(
         ChronikIndexerParams {
@@ -125,18 +125,14 @@ fn try_setup_chronik(
             },
             decompress_script_fn: decompress_script,
         },
-        |file_num, data_pos, undo_pos| {
-            Ok(Tx::from(bridge_ref.load_tx(file_num, data_pos, undo_pos)?))
-        },
-        || bridge_ref.shutdown_requested(),
+        node.clone(),
     )?;
-    indexer.resync_indexer(bridge_ref)?;
-    if bridge.shutdown_requested() {
+    indexer.resync_indexer(node.as_ref())?;
+    if node.bridge.shutdown_requested() {
         // Don't setup Chronik if the user requested shutdown during resync
         return Ok(());
     }
     let indexer = Arc::new(RwLock::new(indexer));
-    let node = Arc::new(Node { bridge });
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
@@ -418,7 +414,7 @@ impl Chronik {
 
     fn finalize_block(&self, bindex: &ffi::CBlockIndex) -> Result<()> {
         let mut indexer = self.indexer.blocking_write();
-        let block = indexer.load_chronik_block(&self.node.bridge, bindex)?;
+        let block = indexer.load_chronik_block(&self.node, bindex)?;
         let block_hash = block.db_block.hash.clone();
         let num_txs = block.block_txs.txs.len();
         indexer.handle_block_finalized(block)?;

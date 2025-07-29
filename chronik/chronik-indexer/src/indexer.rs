@@ -88,6 +88,7 @@ pub struct ChronikIndexerParams {
 #[derive(Debug)]
 pub struct ChronikIndexer {
     db: Db,
+    _node: Arc<Node>,
     mem_data: MemData,
     mempool: Mempool,
     script_group: ScriptGroup,
@@ -332,18 +333,16 @@ impl ChronikIndexer {
     /// Setup the indexer with the given parameters, e.g. open the DB etc.
     pub fn setup(
         params: ChronikIndexerParams,
-        load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
-        shutdown_requested: impl Fn() -> bool,
+        node: Arc<Node>,
     ) -> Result<Self> {
         let path_info = ChronikIndexer::prepare_db_folder(&params)?;
         let db_info = ChronikIndexer::prepare_db(&params, &path_info.db_path)?;
 
         upgrade_db_if_needed(
             &db_info.db,
+            &node,
             db_info.schema_version,
             params.enable_token_index,
-            &load_tx,
-            &shutdown_requested,
         )?;
 
         let mempool = Mempool::new(
@@ -357,6 +356,7 @@ impl ChronikIndexer {
         });
         Ok(ChronikIndexer {
             db: db_info.db,
+            _node: node,
             mempool,
             mem_data,
             script_group: ScriptGroup,
@@ -376,13 +376,10 @@ impl ChronikIndexer {
     }
 
     /// Resync Chronik index to the node
-    pub fn resync_indexer(
-        &mut self,
-        bridge: &ffi::ChronikBridge,
-    ) -> Result<()> {
+    pub fn resync_indexer(&mut self, node: &Node) -> Result<()> {
         let block_reader = BlockReader::new(&self.db)?;
         let indexer_tip = block_reader.tip()?;
-        let Ok(node_tip_index) = bridge.get_chain_tip() else {
+        let Ok(node_tip_index) = node.bridge.get_chain_tip() else {
             if let Some(indexer_tip) = &indexer_tip {
                 return Err(
                     CannotRewindChronik(indexer_tip.hash.clone()).into()
@@ -402,10 +399,11 @@ impl ChronikIndexer {
                      {node_tip_hash} at height {node_height}, and Chronik is \
                      on block {indexer_tip_hash} at height {indexer_height}.\n"
                 );
-                let indexer_tip_index = bridge
+                let indexer_tip_index = node
+                    .bridge
                     .lookup_block_index(tip.hash.to_bytes())
                     .map_err(|_| CannotRewindChronik(tip.hash.clone()))?;
-                self.rewind_indexer(bridge, indexer_tip_index, &tip)?
+                self.rewind_indexer(node, indexer_tip_index, &tip)?
             }
             Some(tip) => tip.height,
             None => {
@@ -417,21 +415,21 @@ impl ChronikIndexer {
             }
         };
         if self.needs_lokad_id_reindex {
-            self.reindex_lokad_id_index(bridge, node_tip_index, start_height)?;
+            self.reindex_lokad_id_index(node, node_tip_index, start_height)?;
             self.needs_lokad_id_reindex = false;
         }
         if self.needs_scripthash_reindex {
-            self.reindex_scripthash_index(bridge)?;
+            self.reindex_scripthash_index(node)?;
             self.needs_scripthash_reindex = false;
         }
         let tip_height = node_tip_info.height;
         for height in start_height + 1..=tip_height {
-            if bridge.shutdown_requested() {
+            if node.bridge.shutdown_requested() {
                 log!("Stopped re-sync adding blocks\n");
                 return Ok(());
             }
             let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
-            let block = self.load_chronik_block(bridge, block_index)?;
+            let block = self.load_chronik_block(node, block_index)?;
             let hash = block.db_block.hash.clone();
             self.handle_block_connected(block)?;
             log_chronik!(
@@ -458,12 +456,13 @@ impl ChronikIndexer {
 
     fn rewind_indexer(
         &mut self,
-        bridge: &ffi::ChronikBridge,
+        node: &Node,
         indexer_tip_index: &ffi::CBlockIndex,
         indexer_db_tip: &DbBlock,
     ) -> Result<BlockHeight> {
         let indexer_height = indexer_db_tip.height;
-        let fork_block_index = bridge
+        let fork_block_index = node
+            .bridge
             .find_fork(indexer_tip_index)
             .map_err(|_| CannotRewindChronik(indexer_db_tip.hash.clone()))?;
         let fork_info = ffi::get_block_info(fork_block_index);
@@ -476,7 +475,7 @@ impl ChronikIndexer {
         );
         log!("Reverting Chronik blocks {revert_height} to {indexer_height}.\n");
         for height in (revert_height..indexer_height).rev() {
-            if bridge.shutdown_requested() {
+            if node.bridge.shutdown_requested() {
                 log!("Stopped re-sync rewinding blocks\n");
                 // return MAX here so we don't add any blocks
                 return Ok(BlockHeight::MAX);
@@ -487,10 +486,11 @@ impl ChronikIndexer {
                     missing: height,
                     exists: indexer_height,
                 })?;
-            let block_index = bridge
+            let block_index = node
+                .bridge
                 .lookup_block_index(db_block.hash.to_bytes())
                 .map_err(|_| CannotRewindChronik(db_block.hash))?;
-            let block = self.load_chronik_block(bridge, block_index)?;
+            let block = self.load_chronik_block(node, block_index)?;
             self.handle_block_disconnected(block)?;
         }
         Ok(fork_info.height)
@@ -498,7 +498,7 @@ impl ChronikIndexer {
 
     fn reindex_lokad_id_index(
         &mut self,
-        bridge: &ffi::ChronikBridge,
+        node: &Node,
         node_tip_index: &ffi::CBlockIndex,
         end_height: BlockHeight,
     ) -> Result<()> {
@@ -513,12 +513,12 @@ impl ChronikIndexer {
         self.db.write_batch(batch)?;
 
         for height in 0..=end_height {
-            if bridge.shutdown_requested() {
+            if node.bridge.shutdown_requested() {
                 log!("Stopped reindexing LOKAD ID index\n");
                 return Ok(());
             }
             let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
-            let block = self.load_chronik_block(bridge, block_index)?;
+            let block = self.load_chronik_block(node, block_index)?;
             let first_tx_num = tx_reader
                 .first_tx_num_by_block(block.db_block.height)?
                 .unwrap();
@@ -554,10 +554,7 @@ impl ChronikIndexer {
         Ok(())
     }
 
-    fn reindex_scripthash_index(
-        &mut self,
-        bridge: &ffi::ChronikBridge,
-    ) -> Result<()> {
+    fn reindex_scripthash_index(&mut self, node: &Node) -> Result<()> {
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, ScriptGroup)?;
         let metadata_writer = MetadataWriter::new(&self.db)?;
@@ -569,7 +566,7 @@ impl ChronikIndexer {
 
         script_history_writer
             .reindex_member_hash(self.decompress_script_fn, || {
-                bridge.shutdown_requested()
+                node.bridge.shutdown_requested()
             })?;
 
         let mut batch = WriteBatch::default();
@@ -580,7 +577,7 @@ impl ChronikIndexer {
         // We also wipe the db now to be sure to not keep a useless partial
         // index on disk in case -chronikscripthashindex=0 is set on next
         // restart.
-        if bridge.shutdown_requested() {
+        if node.bridge.shutdown_requested() {
             script_history_writer.wipe_member_hash(&mut batch);
             self.db.write_batch(batch)?;
             return Ok(());
@@ -1131,12 +1128,12 @@ impl ChronikIndexer {
     /// Load a ChronikBlock from the node given the CBlockIndex.
     pub fn load_chronik_block(
         &self,
-        bridge: &ffi::ChronikBridge,
+        node: &Node,
         block_index: &ffi::CBlockIndex,
     ) -> Result<ChronikBlock> {
-        let ffi_block = bridge.load_block(block_index)?;
+        let ffi_block = node.bridge.load_block(block_index)?;
         let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-        let ffi_block_undo = bridge.load_block_undo(block_index)?;
+        let ffi_block_undo = node.bridge.load_block_undo(block_index)?;
         let ffi_block_undo =
             expect_unique_ptr("load_block_undo", &ffi_block_undo);
         let block = ffi::bridge_block(ffi_block, ffi_block_undo, block_index)?;
@@ -1219,11 +1216,14 @@ fn verify_enable_token_index(db: &Db, enable_token_index: bool) -> Result<()> {
 
 fn upgrade_db_if_needed(
     db: &Db,
+    node: &Node,
     mut schema_version: u64,
     enable_token_index: bool,
-    load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
-    shutdown_requested: impl Fn() -> bool,
 ) -> Result<()> {
+    let load_tx = |file_num, data_pos, undo_pos| {
+        Ok(Tx::from(node.bridge.load_tx(file_num, data_pos, undo_pos)?))
+    };
+
     // DB has version 10, upgrade to 11
     if schema_version == 10 {
         upgrade_10_to_11(db, enable_token_index)?;
@@ -1231,17 +1231,13 @@ fn upgrade_db_if_needed(
     }
     // DB has version 11, upgrade to 12
     if schema_version == 11 {
-        upgrade_11_to_12(db, enable_token_index, &load_tx)?;
-        schema_version = 12;
+        upgrade_11_to_12(db, enable_token_index, load_tx)?;
     }
     // DB has version 12, upgrade to 13
     if schema_version == 12 {
-        upgrade_12_to_13(
-            db,
-            enable_token_index,
-            &load_tx,
-            &shutdown_requested,
-        )?;
+        upgrade_12_to_13(db, enable_token_index, load_tx, || {
+            node.bridge.shutdown_requested()
+        })?;
     }
     Ok(())
 }

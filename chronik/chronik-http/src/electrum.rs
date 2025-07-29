@@ -1246,14 +1246,15 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         indexer: &tokio::sync::RwLockReadGuard<'_, ChronikIndexer>,
         block_hash: Vec<u8>,
     ) -> Result<Vec<Sha256d>, RPCError> {
-        let bridge = &self.node.bridge;
-        let bindex = bridge
+        let bindex = self
+            .node
+            .bridge
             .lookup_block_index(
                 block_hash.try_into().map_err(|_| RPCError::InternalError)?,
             )
             .map_err(|_| RPCError::InternalError)?;
         let block = indexer
-            .load_chronik_block(bridge, bindex)
+            .load_chronik_block(&self.node, bindex)
             .map_err(|_| RPCError::InternalError)?;
 
         let txids: Vec<Sha256d> = block
