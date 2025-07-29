@@ -25,10 +25,10 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         self.assertFalse(ks.can_import())
         self.assertFalse(ks.has_seed())
 
-    def _create_standard_wallet(self, ks):
+    def _create_standard_wallet(self, ks, custom_gap_limit=None):
         store = storage.WalletStorage("if_this_exists_mocking_failed_648151893")
         store.put("keystore", ks.dump())
-        store.put(StorageKeys.GAP_LIMIT, self.gap_limit)
+        store.put(StorageKeys.GAP_LIMIT, custom_gap_limit or self.gap_limit)
         w = wallet.StandardWallet(store)
         w.synchronize()
         return w
@@ -208,6 +208,173 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
                 PublicKey.from_WIF_privkey(expected_auxiliary_keys[0]), None
             ),
             None,
+        )
+
+    @mock.patch.object(storage.WalletStorage, "_write")
+    def test_bip39_seed_bip44_standard_899(self, mock_write):
+        seed_words = "best evil rare tone cake globe iron curve sure true royal educate"
+
+        self.assertTrue(mnemo.is_bip39_seed(seed_words))
+
+        ks = keystore.from_seed(
+            seed_words, "", seed_type="bip39", derivation="m/44'/899'/0'"
+        )
+        self.assertEqual(
+            ks.xpub,
+            "xpub6C2vbA921iYDwFw29sdPfo6gp3ZProopgjzPxNK4sppDbXNgvSWS1sXV4raPMHJHFQbLjGhBt4yTaT2JWNAJZrNA7rtzdwHLrrbu4J7feST",
+        )
+        w = self._create_standard_wallet(ks, custom_gap_limit=5)
+
+        # Receive addresses and pubkeys
+        self.assertEqual(
+            w.get_receiving_addresses()[0:5],
+            [
+                Address.from_string(addr)
+                for addr in (
+                    "ecash:qrnlqu4z9y0hqkfu87p3kh09r30df38lwqmalds6nx",
+                    "ecash:qz05aw3dvht8dpdqtmuy82qpyzzk7lfd9yu7svn4kd",
+                    "ecash:qrhp9f2srclnhr87xfq8a439ux6x0qxk25mzzl65vl",
+                    "ecash:qzde2f4hsk3r8n0j7n7h7sckup8xc7n5cs4w4ea5dw",
+                    "ecash:qz9pjzplhakj2w0vexmqp4wnjuvf3vclw5kq76uxp0",
+                )
+            ],
+        )
+        self.assertEqual(
+            w.get_pubkey(0, 0),
+            "0370ecd87c8ad9943db0c24c6d5eb32d00991f5919ebbbd2b2febbb093016d201b",
+        )
+        self.assertEqual(
+            w.get_pubkey(0, 1),
+            "0364818245a70aff08bd71f9f6908b4815e1f2ec0460aa190c79824d82003aa7ec",
+        )
+
+        # Change addresses and pubkeys
+        self.assertEqual(
+            w.get_change_addresses()[0:5],
+            [
+                Address.from_string(addr)
+                for addr in (
+                    "ecash:qpvzr6lydc70xh4q8dnen6taa2p6s6sx4snw2v6m5k",
+                    "ecash:qq94p5480q6aahrvme98ufqe87gmnqssrs4dmzpk0w",
+                    "ecash:qqv5vkpyenlf6zcrnenhfdwdejy8a7cptq9sexhhag",
+                    "ecash:qqyl7x2086hh2y5qhq4mukhcf7c06kxgjcf5070hnv",
+                    "ecash:qpz525ugrhxhzqfglhgyrg62mvsv7cxheq3zpt7ny8",
+                )
+            ],
+        )
+        self.assertEqual(
+            w.get_pubkey(1, 0),
+            "0340a8a131cd60a387997f9992877536a08640ab1c073f70d9bcfbd56e12720a11",
+        )
+        self.assertEqual(
+            w.get_pubkey(1, 1),
+            "0393391a59cf5275b928c86c2580b6d242008efe50b157d1e4f42bb1cc31a46611",
+        )
+
+        # New wallet with same seed and coin type, but with account=1
+        ks = keystore.from_seed(
+            seed_words, "", seed_type="bip39", derivation="m/44'/899'/1'"
+        )
+        self.assertEqual(
+            ks.xpub,
+            "xpub6C2vbA921iYE1UXpfX7wrzb6VZ5TGfhrNVUmyuTv7gXkUNfo55fqueZ482oHRmcGqZ2iVgRjhXhHBfFoeAtFR4TGuqKmMf6ucuRabWHwahW",
+        )
+        w = self._create_standard_wallet(ks, custom_gap_limit=5)
+        self.assertEqual(
+            w.get_receiving_addresses()[0:5],
+            [
+                Address.from_string(addr)
+                for addr in (
+                    "ecash:qr9jynfj87kdtr4wrrv0wvpuawjggr24gc65em3jt3",
+                    "ecash:qznhtrnlu8fgqyksjwx37pq203cqfs0wn5q0vg0wfv",
+                    "ecash:qpt4cqt4jgmhvvdnlsfd6rrgvw6c39ve0qmjx5a773",
+                    "ecash:qq6m92xysd0z6pp0qyylwl3f74wvzh48wsnjyyejv9",
+                    "ecash:qz3722jlk0tjudykn4ewnrkydn9qzekgsu9s4yrgc2",
+                )
+            ],
+        )
+        self.assertEqual(
+            w.get_pubkey(0, 0),
+            "0254d46d76211dd914244f481609f44e7df9364ccaf91bb963f5a55d20cc8f4a32",
+        )
+        self.assertEqual(
+            w.get_pubkey(0, 1),
+            "039d70bb395fa08424658d77678f6c3ed38cfbe6d4d9f87f7873cd8cee926ad4f6",
+        )
+        self.assertEqual(
+            w.get_change_addresses()[0:5],
+            [
+                Address.from_string(addr)
+                for addr in (
+                    "ecash:qq8hs758nucv07w5hpmqpule3ujv5mjf3s393dejew",
+                    "ecash:qqhat0wuwlvxdgfjpgre4qx2v3xc6c4q0yzzszx2r5",
+                    "ecash:qqnvpc08qc2q969zan84dcvdfldd9ut7kgfmqy4x8h",
+                    "ecash:qrzy0d3vlwps5fs38ndzpaf3jt0e00tn4scvfzk7kx",
+                    "ecash:qqmglra8la4xcx00cn62e8jrwf767yek9u6tral32m",
+                )
+            ],
+        )
+        self.assertEqual(
+            w.get_pubkey(1, 0),
+            "03bea85fc7d4ccc8d06a1251451228f8057556bd656573e879281f5547d12818d8",
+        )
+        self.assertEqual(
+            w.get_pubkey(1, 1),
+            "03bebd2b38346223c8d9f1339abd888385998de9f2955ac84d7f15e6e6e0f38eb7",
+        )
+
+    @mock.patch.object(storage.WalletStorage, "_write")
+    def test_bip39_seed_bip44_standard_1899(self, mock_write):
+        seed_words = "best evil rare tone cake globe iron curve sure true royal educate"
+        self.assertTrue(mnemo.is_bip39_seed(seed_words))
+        ks = keystore.from_seed(
+            seed_words, "", seed_type="bip39", derivation="m/44'/1899'/0'"
+        )
+        self.assertEqual(
+            ks.xpub,
+            "xpub6CM2aF8wwMpMsB95ykV8cKR3oHDFijzZshhtdUdftZy8rivW6VXLKzGKKbyr9Tv1CehAfGCfyHSfDcmknx68XbQtr5zFh64Z9C7NLEUvByu",
+        )
+        w = self._create_standard_wallet(ks, custom_gap_limit=5)
+
+        self.assertEqual(
+            w.get_receiving_addresses()[0:5],
+            [
+                Address.from_string(addr)
+                for addr in (
+                    "ecash:qr2qwe3uu7d2k7k9qrga3f9u8v9u2lhph50pqpmkhz",
+                    "ecash:qrkxh2s3m4al4x7dzmd8ydlmc5d89me6rqkpsuzg7u",
+                    "ecash:qptd60nraumllk7s50c2nwv7ezhkxa5rw525sydgpg",
+                    "ecash:qrayyptdn3hme2f99v29scylpt9alevve5dr0l2m7q",
+                    "ecash:qrxe2vtlxas773nluapjf4k7jwh8zryzvy76zy2mpl",
+                )
+            ],
+        )
+        self.assertEqual(
+            w.get_change_addresses()[0:5],
+            [
+                Address.from_string(addr)
+                for addr in (
+                    "ecash:qq6hlumjcupe4ljuz2w42crkm6rm77ulr58n0sk75d",
+                    "ecash:qp38m6vj7lktpvf0e4dn8qfpmkvz6kyfscn4jnv95v",
+                    "ecash:qqn0u5q9fcga52nlhg9yqs35k9ytzwl9mcrctfyyrm",
+                    "ecash:qqs65xeuxq54wl2xtqefddl0udkzvv2h2ykldd9twa",
+                    "ecash:qry6ejztd2hnmcy5xzmcsmqqvjym2jpq4s33ttsufz",
+                )
+            ],
+        )
+
+        # test from cashtab/src/wallet/fixtures/vector.js
+        seed_words = (
+            "beauty shoe decline spend still weird slot snack coach flee between paper"
+        )
+        self.assertTrue(mnemo.is_bip39_seed(seed_words))
+        ks = keystore.from_seed(
+            seed_words, "", seed_type="bip39", derivation="m/44'/1899'/0'"
+        )
+        w = self._create_standard_wallet(ks)
+        self.assertEqual(
+            w.get_receiving_addresses()[0],
+            Address.from_string("ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g"),
         )
 
     @mock.patch.object(storage.WalletStorage, "_write")
