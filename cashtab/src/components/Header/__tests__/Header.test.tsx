@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,11 +9,31 @@ import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import Header from 'components/Header';
 import CashtabSettings from 'config/CashtabSettings';
+import { CashtabWallet, CashtabWalletPaths } from 'wallet';
 
-const mockWallets = [
+const mockWallets: CashtabWallet[] = [
     {
         name: 'MyWallet',
-        paths: new Map([[1899, { address: 'ecash:qtestaddress' }]]),
+        mnemonic: 'test mnemonic',
+        paths: new Map([
+            [
+                1899,
+                {
+                    address: 'ecash:qtestaddress',
+                    hash: 'testhash',
+                    wif: 'testwif',
+                    pk: new Uint8Array([1, 2, 3]),
+                    sk: new Uint8Array([4, 5, 6]),
+                },
+            ],
+        ]) as CashtabWalletPaths,
+        state: {
+            balanceSats: 0,
+            nonSlpUtxos: [],
+            slpUtxos: [],
+            parsedTxHistory: [],
+            tokens: new Map(),
+        },
     },
 ];
 
@@ -23,9 +43,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={0.00003}
                     firmaPrice={1}
@@ -62,10 +84,31 @@ describe('<Header />', () => {
                         ...mockWallets,
                         {
                             name: 'BackupWallet',
-                            paths: new Map([[1899, { address: 'ecash:q2' }]]),
+                            mnemonic: 'backup mnemonic',
+                            paths: new Map([
+                                [
+                                    1899,
+                                    {
+                                        address: 'ecash:q2',
+                                        hash: 'testhash2',
+                                        wif: 'testwif2',
+                                        pk: new Uint8Array([7, 8, 9]),
+                                        sk: new Uint8Array([10, 11, 12]),
+                                    },
+                                ],
+                            ]) as CashtabWalletPaths,
+                            state: {
+                                balanceSats: 0,
+                                nonSlpUtxos: [],
+                                slpUtxos: [],
+                                parsedTxHistory: [],
+                                tokens: new Map(),
+                            },
                         },
                     ]}
-                    updateCashtabState={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
                     setCashtabState={setCashtabState}
                     setLoading={setLoading}
                     loading={false}
@@ -97,9 +140,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={0.00003}
                     firmaPrice={1}
@@ -131,9 +176,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={0.00003}
                     firmaPrice={1}
@@ -160,9 +207,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={null}
                     firmaPrice={null}
@@ -186,6 +235,7 @@ describe('<Header />', () => {
             screen.queryByTitle('Price in Local Currency'),
         ).not.toBeInTheDocument();
     });
+
     it('renders fiat price for a non-USD currency', () => {
         const nonUsdSettings = new CashtabSettings();
         nonUsdSettings.fiatCurrency = 'gbp';
@@ -194,9 +244,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={0.00003}
                     firmaPrice={0}
@@ -226,9 +278,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={0.00003}
                     firmaPrice={0.5}
@@ -256,9 +310,11 @@ describe('<Header />', () => {
             <ThemeProvider theme={theme}>
                 <Header
                     wallets={mockWallets}
-                    updateCashtabState={() => {}}
-                    setCashtabState={() => {}}
-                    setLoading={() => {}}
+                    updateCashtabState={(): Promise<boolean> =>
+                        Promise.resolve(true)
+                    }
+                    setCashtabState={(): void => {}}
+                    setLoading={(): void => {}}
                     loading={false}
                     fiatPrice={null}
                     firmaPrice={null}
