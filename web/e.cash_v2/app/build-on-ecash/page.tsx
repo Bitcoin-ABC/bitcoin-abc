@@ -3,11 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import BuildHero from "../components/BuildOnEcash/BuildHero";
+import BuildItems from "../components/BuildOnEcash/BuildItems";
 
 export default function Build() {
   return (
     <main>
       <BuildHero />
+      <BuildItems />
     </main>
   );
 }
