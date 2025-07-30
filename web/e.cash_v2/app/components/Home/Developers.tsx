@@ -10,26 +10,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-export default function Developers() {
-  const ScrollElement = () => {
-    return (
-      <div className="flex shrink-0 items-center">
-        <div className="text-background mx-2 bg-gradient-to-br from-[#BBEBFD] to-[#F9B2EF] px-[6px] py-0 text-sm tracking-wide lg:mx-4 lg:px-2 lg:text-lg">
-          API
-        </div>
-        <div className="pink-gradient-text mr-1 text-xs uppercase tracking-wide lg:mr-0 lg:text-base">
-          Empowering Developers
-        </div>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="ml-2 h-[14px] w-[1px] rotate-[45deg] bg-white lg:ml-4 lg:h-[20px]"
-          />
-        ))}
+export const ScrollElement = () => {
+  return (
+    <div className="flex shrink-0 items-center">
+      <div className="text-background mx-2 bg-gradient-to-br from-[#BBEBFD] to-[#F9B2EF] px-[6px] py-0 text-sm tracking-wide lg:mx-4 lg:px-2 lg:text-lg">
+        API
       </div>
-    );
-  };
+      <div className="pink-gradient-text mr-1 text-xs uppercase tracking-wide lg:mr-0 lg:text-base">
+        Empowering Developers
+      </div>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="ml-2 h-[14px] w-[1px] rotate-[45deg] bg-white lg:ml-4 lg:h-[20px]"
+        />
+      ))}
+    </div>
+  );
+};
 
+export default function Developers() {
   interface DevLinkProps {
     text: string;
     href: string;
