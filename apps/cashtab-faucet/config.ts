@@ -44,7 +44,7 @@ const config: CashtabFaucetConfig = {
     // Rate limits for XEC rewards
     limiter: {
         windowMs: 7 * 24 * 60 * 60 * 1000, // 1 week
-        limit: 12, // requests per IP per `window`
+        limit: 3, // requests per IP per `window`
         standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
         handler: (req: Request, res: Response) => {
