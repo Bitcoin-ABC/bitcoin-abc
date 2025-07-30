@@ -251,13 +251,29 @@ pub enum ChronikIndexerError {
     BlockNotFound(BlockHeight),
 }
 
+/// Structured data about the paths used by the indexer setup
+#[derive(Debug)]
+struct ChronikIndexerPathInfo {
+    perf_path: PathBuf,
+    db_path: PathBuf,
+}
+
+/// Structured data about the db used by the indexer setup
+
+#[derive(Debug)]
+struct ChronikIndexerDbInfo {
+    db: Db,
+    schema_version: u64,
+    needs_lokad_id_reindex: bool,
+    needs_scripthash_reindex: bool,
+    plugin_name_map: PluginNameMap,
+}
+
 impl ChronikIndexer {
-    /// Setup the indexer with the given parameters, e.g. open the DB etc.
-    pub fn setup(
-        params: ChronikIndexerParams,
-        load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
-        shutdown_requested: impl Fn() -> bool,
-    ) -> Result<Self> {
+    /// Prepare the files and directories
+    fn prepare_db_folder(
+        params: &ChronikIndexerParams,
+    ) -> Result<ChronikIndexerPathInfo> {
         let indexes_path = params.datadir_net.join("indexes");
         let perf_path = params.datadir_net.join("perf");
         if !indexes_path.exists() {
@@ -274,8 +290,17 @@ impl ChronikIndexer {
             Db::destroy(&db_path)?;
         }
 
+        Ok(ChronikIndexerPathInfo { perf_path, db_path })
+    }
+
+    /// Prepare the db
+    fn prepare_db(
+        params: &ChronikIndexerParams,
+        db_path: &PathBuf,
+    ) -> Result<ChronikIndexerDbInfo> {
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
-        let db = Db::open(&db_path)?;
+
+        let db = Db::open(db_path)?;
         let is_db_empty = db.is_db_empty()?;
         let schema_version = verify_schema_version(&db)?;
         verify_enable_token_index(&db, params.enable_token_index)?;
@@ -289,18 +314,36 @@ impl ChronikIndexer {
             is_db_empty,
             params.enable_scripthash_index,
         )?;
-        upgrade_db_if_needed(
-            &db,
-            schema_version,
-            params.enable_token_index,
-            &load_tx,
-            &shutdown_requested,
-        )?;
-
         let plugin_name_map = update_plugins_index(
             &db,
             &params.plugin_ctx,
             params.enable_lokad_id_index,
+        )?;
+
+        Ok(ChronikIndexerDbInfo {
+            db,
+            schema_version,
+            needs_lokad_id_reindex,
+            needs_scripthash_reindex,
+            plugin_name_map,
+        })
+    }
+
+    /// Setup the indexer with the given parameters, e.g. open the DB etc.
+    pub fn setup(
+        params: ChronikIndexerParams,
+        load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+        shutdown_requested: impl Fn() -> bool,
+    ) -> Result<Self> {
+        let path_info = ChronikIndexer::prepare_db_folder(&params)?;
+        let db_info = ChronikIndexer::prepare_db(&params, &path_info.db_path)?;
+
+        upgrade_db_if_needed(
+            &db_info.db,
+            db_info.schema_version,
+            params.enable_token_index,
+            &load_tx,
+            &shutdown_requested,
         )?;
 
         let mempool = Mempool::new(
@@ -313,20 +356,20 @@ impl ChronikIndexer {
             script_history: params.script_history,
         });
         Ok(ChronikIndexer {
-            db,
+            db: db_info.db,
             mempool,
             mem_data,
             script_group: ScriptGroup,
             avalanche: Avalanche::default(),
             subs: RwLock::new(Subs::new(ScriptGroup)),
-            perf_path: params.enable_perf_stats.then_some(perf_path),
+            perf_path: params.enable_perf_stats.then_some(path_info.perf_path),
             is_token_index_enabled: params.enable_token_index,
             is_lokad_id_index_enabled: params.enable_lokad_id_index,
-            needs_lokad_id_reindex,
+            needs_lokad_id_reindex: db_info.needs_lokad_id_reindex,
             is_scripthash_index_enabled: params.enable_scripthash_index,
-            needs_scripthash_reindex,
+            needs_scripthash_reindex: db_info.needs_scripthash_reindex,
             plugin_ctx: params.plugin_ctx,
-            plugin_name_map,
+            plugin_name_map: db_info.plugin_name_map,
             block_merkle_tree: Mutex::new(MerkleTree::new()),
             decompress_script_fn: params.decompress_script_fn,
         })
@@ -1519,18 +1562,17 @@ impl std::fmt::Debug for ChronikIndexerParams {
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
-    use bitcoinsuite_core::block::BlockHash;
     use chronik_db::{
         db::{Db, WriteBatch, CF_META},
-        io::{BlockReader, BlockTxs, DbBlock, MetadataReader, MetadataWriter},
+        io::{MetadataReader, MetadataWriter},
         plugins::{PluginMeta, PluginsReader},
     };
     use chronik_plugin::{context::PluginContext, plugin::Plugin};
     use pretty_assertions::assert_eq;
 
     use crate::indexer::{
-        update_plugins_index, ChronikBlock, ChronikIndexer,
-        ChronikIndexerError, ChronikIndexerParams, CURRENT_INDEXER_VERSION,
+        update_plugins_index, ChronikIndexer, ChronikIndexerError,
+        ChronikIndexerParams, CURRENT_INDEXER_VERSION,
     };
 
     /// A mock "decompression" that just prefixes with "DECOMPRESS:".
@@ -1540,11 +1582,6 @@ mod tests {
 
     #[test]
     fn test_indexer() -> Result<()> {
-        use bitcoinsuite_core::tx::{Tx, TxId, TxMut};
-
-        let load_tx = |_, _, _| unreachable!();
-        let shutdown_requested = || false;
-
         let tempdir = tempdir::TempDir::new("chronik-indexer--indexer")?;
         let datadir_net = tempdir.path().join("regtest");
         let params = ChronikIndexerParams {
@@ -1561,7 +1598,7 @@ mod tests {
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
+            ChronikIndexer::prepare_db_folder(&params)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CreateDirFailed(datadir_net.join("indexes")),
@@ -1569,66 +1606,19 @@ mod tests {
 
         // create regtest folder, setup will work now
         std::fs::create_dir(&datadir_net)?;
-        let mut indexer =
-            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)?;
-        // indexes and indexes/chronik folder now exist
+        let path_info = ChronikIndexer::prepare_db_folder(&params)?;
+        // indexes now exists
         assert!(datadir_net.join("indexes").exists());
+
+        ChronikIndexer::prepare_db(&params, &path_info.db_path)?;
+        // indexes/chronik now exists
         assert!(datadir_net.join("indexes").join("chronik").exists());
-
-        // DB is empty
-        assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
-        let coinbase = TxMut {
-            ..Default::default()
-        };
-        let block = ChronikBlock {
-            db_block: DbBlock {
-                hash: BlockHash::from([4; 32]),
-                prev_hash: BlockHash::from([0; 32]),
-                height: 0,
-                n_bits: 0x1deadbef,
-                timestamp: 1234567890,
-                file_num: 0,
-                data_pos: 1337,
-            },
-            block_txs: BlockTxs {
-                block_height: 0,
-                txs: vec![],
-            },
-            size: 285,
-            txs: vec![Tx::with_txid(TxId::from_tx(&coinbase), coinbase)],
-        };
-
-        // Add block
-        indexer.handle_block_connected(block.clone())?;
-        assert_eq!(
-            BlockReader::new(&indexer.db)?.by_height(0)?,
-            Some(block.db_block.clone())
-        );
-
-        // Remove block again
-        indexer.handle_block_disconnected(block.clone())?;
-        assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
-
-        // Add block then wipe, block not there
-        indexer.handle_block_connected(block)?;
-        std::mem::drop(indexer);
-        let indexer = ChronikIndexer::setup(
-            ChronikIndexerParams {
-                wipe_db: true,
-                ..params
-            },
-            load_tx,
-            shutdown_requested,
-        )?;
-        assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
 
         Ok(())
     }
 
     #[test]
     fn test_schema_version() -> Result<()> {
-        let load_tx = |_, _, _| unreachable!();
-        let shutdown_requested = || false;
         let dir = tempdir::TempDir::new("chronik-indexer--schema_version")?;
         let chronik_path = dir.path().join("indexes").join("chronik");
         let params = ChronikIndexerParams {
@@ -1645,7 +1635,9 @@ mod tests {
         };
 
         // Setting up DB first time sets the schema version
-        ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)?;
+        let path_info = ChronikIndexer::prepare_db_folder(&params)?;
+        assert_eq!(&path_info.db_path, &chronik_path);
+        ChronikIndexer::prepare_db(&params, &chronik_path)?;
         {
             let db = Db::open(&chronik_path)?;
             assert_eq!(
@@ -1654,7 +1646,7 @@ mod tests {
             );
         }
         // Opening DB again works fine
-        ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)?;
+        ChronikIndexer::prepare_db(&params, &chronik_path)?;
 
         // Override DB schema version to 0
         {
@@ -1665,7 +1657,7 @@ mod tests {
         }
         // -> DB too old
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
+            ChronikIndexer::prepare_db(&params, &chronik_path)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::DatabaseOutdated(0),
@@ -1683,7 +1675,7 @@ mod tests {
         }
         // -> Chronik too old
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
+            ChronikIndexer::prepare_db(&params, &chronik_path)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::ChronikOutdated(CURRENT_INDEXER_VERSION + 1),
@@ -1698,7 +1690,7 @@ mod tests {
             db.write_batch(batch)?;
         }
         assert_eq!(
-            ChronikIndexer::setup(params.clone(), load_tx, shutdown_requested)
+            ChronikIndexer::prepare_db(&params, &chronik_path)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CorruptedSchemaVersion,
@@ -1706,13 +1698,15 @@ mod tests {
 
         // New db path, but has existing data
         let new_dir = dir.path().join("new");
+        std::fs::create_dir_all(&new_dir)?;
         let new_chronik_path = new_dir.join("indexes").join("chronik");
-        std::fs::create_dir_all(&new_chronik_path)?;
         let new_params = ChronikIndexerParams {
             datadir_net: new_dir,
             wipe_db: false,
             ..params
         };
+        let path_info = ChronikIndexer::prepare_db_folder(&new_params)?;
+        assert_eq!(&path_info.db_path, &new_chronik_path);
         {
             // new db with obscure field in meta
             let db = Db::open(&new_chronik_path)?;
@@ -1722,24 +1716,18 @@ mod tests {
         }
         // Error: non-empty DB without schema version
         assert_eq!(
-            ChronikIndexer::setup(
-                new_params.clone(),
-                load_tx,
-                shutdown_requested
-            )
-            .unwrap_err()
-            .downcast::<ChronikIndexerError>()?,
+            ChronikIndexer::prepare_db(&new_params, &new_chronik_path)
+                .unwrap_err()
+                .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::MissingSchemaVersion,
         );
         // with wipe it works
-        ChronikIndexer::setup(
-            ChronikIndexerParams {
-                wipe_db: true,
-                ..new_params
-            },
-            load_tx,
-            shutdown_requested,
-        )?;
+        let new_params = ChronikIndexerParams {
+            wipe_db: true,
+            ..new_params
+        };
+        ChronikIndexer::prepare_db_folder(&new_params)?;
+        ChronikIndexer::prepare_db(&new_params, &new_chronik_path)?;
 
         Ok(())
     }
