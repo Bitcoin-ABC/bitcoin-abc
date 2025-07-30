@@ -153,7 +153,13 @@ export default function BuildItems() {
       <ContentContainer className="p-0 lg:px-4">
         <div className="flex flex-col gap-8 border-t border-t-white/10 bg-gradient-to-br from-white/5 to-[#15172A] p-10 lg:flex-row lg:border-t-0 lg:from-transparent lg:to-transparent lg:p-0">
           {/* Sidebar Navigation */}
-          <div className="flex-shrink-0 lg:w-[200px]">
+          <motion.div
+            className="flex-shrink-0 lg:w-[200px]"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+            viewport={{ once: true, amount: 0.5 }}
+          >
             <div className="hidden lg:block">
               <PlusHeader text="Quick start" />
             </div>
@@ -198,10 +204,16 @@ export default function BuildItems() {
                 </button>
               ))}
             </nav>
-          </div>
+          </motion.div>
 
           {/* Main Content */}
-          <div className="from-white/1 to-white/1 lg:p-18 flex flex-1 flex-col items-center rounded-lg via-[#15172A] transition-all duration-200 lg:flex-row lg:gap-6 lg:border lg:border-white/10 lg:bg-gradient-to-br">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut", delay: 0.3 }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="from-white/1 to-white/1 lg:p-18 flex flex-1 flex-col items-center rounded-lg via-[#15172A] transition-all duration-200 lg:flex-row lg:gap-6 lg:border lg:border-white/10 lg:bg-gradient-to-br"
+          >
             {selectedCategoryData && (
               <motion.div
                 key={selectedCategory}
@@ -252,27 +264,6 @@ export default function BuildItems() {
                           <p className="text-secondaryText">
                             {item.description}
                           </p>
-                          {/* <a
-                            href={item.url}
-                            target={item.external ? "_blank" : "_self"}
-                            rel={item.external ? "noopener noreferrer" : ""}
-                            className="inline-flex items-center gap-2 text-purple-400 transition-colors duration-200 hover:text-purple-300"
-                          >
-                            Learn more
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          </a> */}
                         </div>
                       </div>
                     </motion.a>
@@ -280,7 +271,7 @@ export default function BuildItems() {
                 </div>
               </motion.div>
             )}
-          </div>
+          </motion.div>
         </div>
       </ContentContainer>
     </div>
