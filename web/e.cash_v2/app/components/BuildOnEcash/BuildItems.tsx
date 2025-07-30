@@ -27,7 +27,7 @@ const buildCategories: BuildCategory[] = [
     description: "Learn more about contributing to the Bitcoin ABC repository",
     items: [
       {
-        name: "Contribution guide",
+        name: "Contribution Guide",
         description:
           "Learn more about contributing to the Bitcoin ABC repository",
         url: "https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md",
@@ -35,7 +35,7 @@ const buildCategories: BuildCategory[] = [
       {
         name: "Source Code",
         description:
-          "Source Code for eCash Software from Bitcoin ABC - Including the Full Node, Electrum ABC wallet, and Cashtab Wallet",
+          "Source code for eCash software from Bitcoin ABC - including the full node, Electrum ABC wallet, and Cashtab wallet",
         url: "https://github.com/Bitcoin-ABC/bitcoin-abc",
       },
     ],
@@ -46,11 +46,11 @@ const buildCategories: BuildCategory[] = [
     items: [
       {
         name: "Bitcoin ABC Releases",
-        description: "Ready-to-run Binaries for the Bitcoin ABC Full Node",
+        description: "Ready-to-run binaries for the Bitcoin ABC full node",
         url: "https://www.bitcoinabc.org/releases/",
       },
       {
-        name: "Chronik indexer",
+        name: "Chronik Indexer",
         description:
           "Chronik is a fast and reliable indexer built into the Bitcoin ABC node software",
         url: "https://chronik.e.cash/",
@@ -64,7 +64,7 @@ const buildCategories: BuildCategory[] = [
       {
         name: "chronik-client",
         description:
-          "Interact with the eCash blockchain through the chronik indexer",
+          "Interact with the eCash blockchain through the Chronik indexer",
         url: "https://www.npmjs.com/package/chronik-client",
       },
       {
@@ -90,7 +90,7 @@ const buildCategories: BuildCategory[] = [
       },
       {
         name: "ecash-wallet",
-        description: "The best way to build and broadcast eCash txs",
+        description: "The best way to build and broadcast eCash transactions",
         url: "https://www.npmjs.com/package/ecash-wallet",
       },
       {
@@ -105,8 +105,8 @@ const buildCategories: BuildCategory[] = [
     description: "Real-world implementations and codebases",
     items: [
       {
-        name: "Cashtab codebase",
-        description: "Public repo for the Cashtab wallet",
+        name: "Cashtab Codebase",
+        description: "Public repository for the Cashtab wallet",
         url: "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab",
       },
     ],
@@ -117,12 +117,12 @@ const buildCategories: BuildCategory[] = [
     items: [
       {
         name: "Bitcoin ABC",
-        description: "Documentation for the Bitcoin ABC Full Node Software",
+        description: "Documentation for the Bitcoin ABC full node software",
         url: "https://www.bitcoinabc.org/doc/",
       },
       {
         name: "Chronik",
-        description: "Documentation for the Chronik Indexer",
+        description: "Documentation for the Chronik indexer",
         url: "https://chronik.e.cash/",
       },
     ],
