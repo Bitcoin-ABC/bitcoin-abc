@@ -4,6 +4,7 @@
 
 import TechHero from "../components/Tech/TechHero";
 import TechFeatures from "../components/Tech/TechFeatures";
+import CoreTech from "../components/Tech/CoreTech";
 
 export default function Tech() {
   return (
@@ -11,6 +12,7 @@ export default function Tech() {
       <div className="bg-gradient-to-br from-[#1F1428] via-[#090916] to-[#0F1528]">
         <TechHero />
         <TechFeatures />
+        <CoreTech />
       </div>
     </main>
   );
