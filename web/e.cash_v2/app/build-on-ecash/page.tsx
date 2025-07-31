@@ -6,6 +6,7 @@ import BuildHero from "../components/BuildOnEcash/BuildHero";
 import BuildItems from "../components/BuildOnEcash/BuildItems";
 import BentoGrid from "../components/Home/BentoGrid";
 import { ScrollElement } from "../components/Home/Developers";
+import ProductsSection from "../components/BuildOnEcash/ProductsSection";
 
 export default function Build() {
   return (
@@ -20,6 +21,7 @@ export default function Build() {
           ))}
         </div>
       </div>
+      <ProductsSection />
     </main>
   );
 }
