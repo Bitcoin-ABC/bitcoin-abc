@@ -484,6 +484,12 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight);
 
 /**
+ * Get the coins spent by ptx from the coins_view. Assumes coins are present.
+ */
+std::vector<Coin> GetSpentCoins(const CTransactionRef &ptx,
+                                const CCoinsViewCache &coins_view);
+
+/**
  * Calculate LockPoints required to check if transaction will be BIP68 final in
  * the next block to be created on top of tip.
  *
