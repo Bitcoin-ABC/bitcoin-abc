@@ -323,10 +323,12 @@ void CMainSignals::TransactionFinalized(const CTransactionRef &tx) {
                           tx->GetId().ToString());
 }
 
-void CMainSignals::TransactionInvalidated(const CTransactionRef &tx) {
-    auto event = [tx, this] {
+void CMainSignals::TransactionInvalidated(
+    const CTransactionRef &tx,
+    std::shared_ptr<const std::vector<Coin>> spent_coins) {
+    auto event = [tx, spent_coins, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.TransactionInvalidated(tx);
+            callbacks.TransactionInvalidated(tx, spent_coins);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,

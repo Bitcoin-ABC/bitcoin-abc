@@ -59,7 +59,8 @@ public:
                       onBlockInvalidated_call = nullptr,
                   std::function<void(const CTransactionRef &)>
                       onTransactionFinalized_call = nullptr,
-                  std::function<void(const CTransactionRef &)>
+                  std::function<void(const CTransactionRef &,
+                                     std::shared_ptr<const std::vector<Coin>>)>
                       onTransactionInvalidated_call = nullptr,
                   std::function<void()> on_destroy = nullptr)
         : m_onBlockChecked_call(std::move(onBlockChecked_call)),
@@ -119,14 +120,18 @@ public:
         GetMainSignals().TransactionFinalized(tx);
     }
 
-    void TransactionInvalidated(const CTransactionRef &tx) override {
+    void TransactionInvalidated(
+        const CTransactionRef &tx,
+        std::shared_ptr<const std::vector<Coin>> spent_coins) override {
         if (m_onTransactionInvalidated_call) {
-            m_onTransactionInvalidated_call(tx);
+            m_onTransactionInvalidated_call(tx, spent_coins);
         }
     }
 
-    static void CallTransactionInvalidated(const CTransactionRef &tx) {
-        GetMainSignals().TransactionInvalidated(tx);
+    static void CallTransactionInvalidated(
+        const CTransactionRef &tx,
+        std::shared_ptr<const std::vector<Coin>> spent_coins) {
+        GetMainSignals().TransactionInvalidated(tx, spent_coins);
     }
 
     std::function<void()> m_onBlockChecked_call;
@@ -135,7 +140,8 @@ public:
                        const std::shared_ptr<const CBlock> &)>
         m_onBlockInvalidated_call;
     std::function<void(const CTransactionRef &)> m_onTransactionFinalized_call;
-    std::function<void(const CTransactionRef &)>
+    std::function<void(const CTransactionRef &,
+                       std::shared_ptr<const std::vector<Coin>>)>
         m_onTransactionInvalidated_call;
     std::function<void()> m_on_destroy;
 };
@@ -384,15 +390,20 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {
     uint32_t callCount = 0;
     TxId calledTxId;
+    std::shared_ptr<const std::vector<Coin>> calledSpentCoins;
     RegisterSharedValidationInterface(std::make_shared<TestInterface>(
-        nullptr, nullptr, nullptr, nullptr, [&](const CTransactionRef &tx) {
+        nullptr, nullptr, nullptr, nullptr,
+        [&](const CTransactionRef &tx,
+            std::shared_ptr<const std::vector<Coin>> spentCoins) {
             callCount++;
             calledTxId = tx->GetId();
+            calledSpentCoins = spentCoins;
         }));
 
     CMutableTransaction mtx;
     mtx.nVersion = 2;
-    mtx.vin.emplace_back(COutPoint{TxId(FastRandomContext().rand256()), 0});
+    COutPoint outpoint{TxId(FastRandomContext().rand256()), 0};
+    mtx.vin.emplace_back(outpoint);
     CScript scriptPubKey;
     for (size_t i = 0; i < 100; i++) {
         // Make sure the tx size is larger than 100 bytes
@@ -400,28 +411,58 @@ BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {
     }
     mtx.vout.emplace_back(1 * COIN, scriptPubKey);
 
+    auto &chainman = *Assert(m_node.chainman);
+    Coin coin{mtx.vout[0], 100, false};
+    const std::vector<Coin> coins({coin});
+    auto spentCoins = std::make_shared<const std::vector<Coin>>(coins);
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coinsViewCache =
+            chainman.ActiveChainstate().CoinsTip();
+        coinsViewCache.AddCoin(outpoint, coin, false);
+    }
+
     {
         CTransactionRef tx = MakeTransactionRef(mtx);
         for (size_t i = 0; i < 10; i++) {
-            TestInterface::CallTransactionInvalidated(tx);
+            TestInterface::CallTransactionInvalidated(tx, spentCoins);
         }
         SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 10);
         BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
+        BOOST_CHECK_EQUAL(calledSpentCoins->size(), 1);
+        const Coin &calledCoin = (*calledSpentCoins)[0];
+        BOOST_CHECK(calledCoin.GetTxOut() == coin.GetTxOut());
+        BOOST_CHECK_EQUAL(calledCoin.GetHeight(), coin.GetHeight());
+        BOOST_CHECK_EQUAL(calledCoin.IsCoinBase(), coin.IsCoinBase());
     }
 
     callCount = 0;
     calledTxId = TxId();
 
     for (size_t i = 0; i < 10; i++) {
-        mtx.vin[0] = CTxIn(COutPoint{TxId(FastRandomContext().rand256()), 0});
+        COutPoint _outpoint{TxId(FastRandomContext().rand256()), 0};
+        mtx.vin[0] = CTxIn(_outpoint);
         CTransactionRef tx = MakeTransactionRef(mtx);
 
-        TestInterface::CallTransactionInvalidated(tx);
+        {
+            LOCK(cs_main);
+            CCoinsViewCache &coinsViewCache =
+                chainman.ActiveChainstate().CoinsTip();
+            coinsViewCache.AddCoin(_outpoint, coin, false);
+        }
+        calledSpentCoins.reset();
+        TestInterface::CallTransactionInvalidated(tx, spentCoins);
         SyncWithValidationInterfaceQueue();
 
         BOOST_CHECK_EQUAL(callCount, i + 1);
         BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
+        BOOST_CHECK_EQUAL(calledSpentCoins->size(), 1);
+        const Coin &calledCoin = (*calledSpentCoins)[0];
+        BOOST_CHECK(calledCoin.GetTxOut() == coin.GetTxOut());
+        BOOST_CHECK_EQUAL(calledCoin.GetHeight(), coin.GetHeight());
+        BOOST_CHECK_EQUAL(calledCoin.IsCoinBase(), coin.IsCoinBase());
     }
 }
 
