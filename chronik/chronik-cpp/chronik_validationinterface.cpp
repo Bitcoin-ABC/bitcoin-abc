@@ -79,6 +79,12 @@ private:
     void TransactionFinalized(const CTransactionRef &tx) override {
         m_chronik->handle_tx_finalized(chronik::util::HashToArray(tx->GetId()));
     }
+
+    void TransactionInvalidated(
+        const CTransactionRef &tx,
+        std::shared_ptr<const std::vector<Coin>> spent_coins) override {
+        m_chronik->handle_tx_invalidated(*tx, *spent_coins);
+    }
 };
 
 std::unique_ptr<ChronikValidationInterface> g_chronik_validation_interface;

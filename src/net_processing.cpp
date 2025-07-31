@@ -7126,7 +7126,20 @@ void PeerManagerImpl::ProcessMessage(
                             [&txid](TxConflicting &conflicting) {
                                 conflicting.EraseTx(txid);
                             });
-                        WITH_LOCK(cs_main, m_recent_rejects.insert(txid));
+
+                        LOCK(cs_main);
+                        m_recent_rejects.insert(txid);
+
+                        CCoinsViewMemPool coinViewMempool(
+                            &m_chainman.ActiveChainstate().CoinsTip(),
+                            m_mempool);
+                        CCoinsViewCache coinViewCache(&coinViewMempool);
+                        auto spentCoins =
+                            std::make_shared<const std::vector<Coin>>(
+                                GetSpentCoins(tx, coinViewCache));
+
+                        GetMainSignals().TransactionInvalidated(tx, spentCoins);
+
                         break;
                     }
                     case avalanche::VoteStatus::Finalized:

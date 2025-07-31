@@ -222,6 +222,26 @@ impl Mempool {
         Ok(None)
     }
 
+    /// Analyze a tx which is not already in the mempool without adding it
+    pub fn probe_tx(
+        &mut self,
+        db: &Db,
+        mempool_tx: MempoolTx,
+        plugin_ctx: &PluginContext,
+        plugin_name_map: &PluginNameMap,
+    ) -> Result<MempoolResult<'_>> {
+        let txid = mempool_tx.tx.txid();
+
+        // FIXME this is a hacky way of probing the tx: we reuse the parsing
+        // code that happens when inserting into the mempool then remove the
+        // transaction.
+        // The opposite should be done instead, where the actual parsing happens
+        // here and the insert/remove functions use the result from the probe to
+        // take action on the mempool.
+        self.insert(db, mempool_tx, plugin_ctx, plugin_name_map)?;
+        self.remove(txid)
+    }
+
     /// Get all mempool txs
     pub fn txs(&self) -> &HashMap<TxId, MempoolTx> {
         &self.txs

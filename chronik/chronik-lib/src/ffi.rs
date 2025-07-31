@@ -107,6 +107,11 @@ mod ffi_inner {
             bindex: &CBlockIndex,
         );
         fn handle_tx_finalized(&self, txid: [u8; 32]);
+        fn handle_tx_invalidated(
+            &self,
+            tx: &CTransaction,
+            spent_coins: &CxxVector<CCoin>,
+        );
     }
 
     unsafe extern "C++" {

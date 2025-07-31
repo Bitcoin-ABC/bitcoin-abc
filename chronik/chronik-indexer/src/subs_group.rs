@@ -30,6 +30,8 @@ pub enum TxMsgType {
     Confirmed,
     /// Tx was finalized by Avalanche.
     Finalized(TxFinalizationReason),
+    /// Tx was invalidated by Avalanche.
+    Invalidated,
 }
 
 /// Why did the tx finalize

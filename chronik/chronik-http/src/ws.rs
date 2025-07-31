@@ -419,6 +419,7 @@ fn sub_tx_msg_action(
                 finalization_type: TxFinalizationReasonPreConsensus as _,
             }),
         ),
+        TxMsgType::Invalidated => (TxInvalidated, None),
     };
     let msg_type = Some(MsgType::Tx(proto::MsgTx {
         msg_type: tx_msg_type as _,

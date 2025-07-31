@@ -9,6 +9,7 @@ from test_framework.blocktools import create_block, create_coinbase
 from test_framework.cashaddr import decode
 from test_framework.messages import (
     XEC,
+    AvalancheTxVoteError,
     AvalancheVoteError,
     CTransaction,
     CTxOut,
@@ -466,8 +467,61 @@ class ChronikWsTest(BitcoinTestFramework):
             ),
         )
 
+        def invalidate_tx(txid):
+            def vote_until_final():
+                can_find_inv_in_poll(
+                    quorum,
+                    int(txid, 16),
+                    response=AvalancheTxVoteError.INVALID,
+                    other_response=AvalancheVoteError.UNKNOWN,
+                )
+                return (
+                    txid not in node.getrawmempool()
+                    and node.gettransactionstatus(txid)["pool"] == "none"
+                )
+
+            self.wait_until(vote_until_final)
+
+        # Create a new tx that will be invalidated
+        tx = wallet.create_self_transfer()
+        txid2 = tx["txid"]
+        chronik_sub_txid(ws, node, txid2)
+
+        wallet.sendrawtransaction(from_node=node, tx_hex=tx["hex"])
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(txid2)[::-1],
+                )
+            ),
+        )
+
+        invalidate_tx(txid2)
+        # We first get the removal message, then the invalidated one
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
+                    txid=bytes.fromhex(txid2)[::-1],
+                )
+            ),
+        )
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_INVALIDATED,
+                    txid=bytes.fromhex(txid2)[::-1],
+                )
+            ),
+        )
+
         # Unsubscribe
         chronik_sub_txid(ws, node, txid, is_unsub=True)
+        chronik_sub_txid(ws, node, txid2, is_unsub=True)
 
         # Tx confirmed
         tip = self.generate(wallet, 1)[0]

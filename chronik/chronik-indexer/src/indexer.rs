@@ -995,6 +995,57 @@ impl ChronikIndexer {
         Ok(())
     }
 
+    /// Transaction invalidated with Avalanche.
+    pub fn handle_transaction_invalidated(&mut self, tx: Tx) -> Result<()> {
+        let txid = tx.txid();
+
+        match self.mempool.tx(&txid) {
+            Some(tx) => {
+                let token_id_aux = if self.is_token_index_enabled {
+                    TokenIdGroupAux::from_mempool(&tx.tx, self.mempool.tokens())
+                } else {
+                    TokenIdGroupAux::default()
+                };
+                let plugin_outputs = read_plugin_outputs(
+                    &self.db,
+                    &self.mempool,
+                    &tx.tx,
+                    None,
+                    !self.plugin_name_map.is_empty(),
+                )?;
+
+                self.subs.get_mut().handle_tx_event(
+                    &tx.tx,
+                    TxMsgType::Invalidated,
+                    &token_id_aux,
+                    &plugin_outputs,
+                );
+            }
+            None => {
+                // If the tx is no longer in the mempool we need to parse it
+                // again.
+                let result = self.mempool.probe_tx(
+                    &self.db,
+                    MempoolTx {
+                        tx,
+                        time_first_seen: 0,
+                    },
+                    &self.plugin_ctx,
+                    &self.plugin_name_map,
+                )?;
+
+                self.subs.get_mut().handle_tx_event(
+                    &result.mempool_tx.tx,
+                    TxMsgType::Invalidated,
+                    &result.token_id_aux,
+                    &result.plugin_outputs,
+                );
+            }
+        }
+
+        Ok(())
+    }
+
     /// Return [`QueryBroadcast`] to broadcast tx to the network.
     pub fn broadcast<'a>(&'a self, node: &'a Node) -> QueryBroadcast<'a> {
         QueryBroadcast {

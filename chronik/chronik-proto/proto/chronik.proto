@@ -598,6 +598,8 @@ enum TxMsgType {
     TX_CONFIRMED = 2;
     // Tx finalized by Avalanche
     TX_FINALIZED = 3;
+    // Tx invalidated by Avalanche
+    TX_INVALIDATED = 4;
 }
 
 // Empty msg without any data

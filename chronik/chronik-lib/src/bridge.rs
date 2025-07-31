@@ -363,6 +363,19 @@ impl Chronik {
         );
     }
 
+    /// Transaction invalidated with Avalanche
+    pub fn handle_tx_invalidated(
+        &self,
+        tx: &ffi::CTransaction,
+        spent_coins: &cxx::CxxVector<ffi::CCoin>,
+    ) {
+        self.block_if_paused();
+        self.node.ok_or_abort(
+            "handle_tx_invalidated",
+            self.invalidate_transaction(tx, spent_coins),
+        );
+    }
+
     fn add_tx_to_mempool(
         &self,
         ptx: &ffi::CTransaction,
@@ -467,6 +480,21 @@ impl Chronik {
         log_chronik!(
             "Chronik: transaction {} finalized by pre-consensus\n",
             txid
+        );
+        Ok(())
+    }
+
+    fn invalidate_transaction(
+        &self,
+        tx: &ffi::CTransaction,
+        spent_coins: &cxx::CxxVector<ffi::CCoin>,
+    ) -> Result<()> {
+        let mut indexer = self.indexer.blocking_write();
+        let tx = chronik_bridge::ffi::bridge_tx(tx, spent_coins)?;
+        let txid: TxId = TxId::from(tx.txid);
+        indexer.handle_transaction_invalidated(Tx::from(tx))?;
+        log_chronik!(
+            "Chronik: transaction {txid} invalidated by pre-consensus\n"
         );
         Ok(())
     }
