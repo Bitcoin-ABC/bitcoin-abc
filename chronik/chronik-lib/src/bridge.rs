@@ -103,7 +103,7 @@ fn try_setup_chronik(
         plugins_dir: datadir.join("plugins"),
         plugins_conf: datadir.join("plugins.toml"),
     })?;
-    log!("Starting Chronik bound to {:?}\n", hosts);
+    log!("Starting Chronik bound to {hosts:?}\n");
     let bridge = chronik_bridge::ffi::make_bridge(node_context);
     let node = Arc::new(Node { bridge });
     let (pause, pause_notify) = Pause::new_pair(params.is_pause_allowed);
@@ -175,8 +175,7 @@ fn try_setup_chronik(
             })
             .collect::<Result<Vec<_>>>()?;
         log!(
-            "Starting Chronik Electrum interface bound to {:?}\n",
-            electrum_hosts
+            "Starting Chronik Electrum interface bound to {electrum_hosts:?}\n",
         );
         let electrum_server =
             ChronikElectrumServer::setup(ChronikElectrumServerParams {
@@ -304,7 +303,7 @@ impl Chronik {
             "handle_tx_removed_from_mempool",
             indexer.handle_tx_removed_from_mempool(txid),
         );
-        log_chronik!("Chronik: transaction {} removed from mempool\n", txid);
+        log_chronik!("Chronik: transaction {txid} removed from mempool\n");
     }
 
     /// Block connected to the longest chain
@@ -389,7 +388,7 @@ impl Chronik {
             tx: Tx::from(tx),
             time_first_seen,
         })?;
-        log_chronik!("Chronik: transaction {} added to mempool\n", txid);
+        log_chronik!("Chronik: transaction {txid} added to mempool\n");
         Ok(())
     }
 
@@ -407,9 +406,7 @@ impl Chronik {
         let num_txs = block.block_txs.txs.len();
         indexer.handle_block_connected(block)?;
         log_chronik!(
-            "Chronik: block {} connected with {} txs\n",
-            block_hash,
-            num_txs,
+            "Chronik: block {block_hash} connected with {num_txs} txs\n"
         );
         Ok(())
     }
@@ -428,9 +425,7 @@ impl Chronik {
         let num_txs = block.block_txs.txs.len();
         indexer.handle_block_disconnected(block)?;
         log_chronik!(
-            "Chronik: block {} disconnected with {} txs\n",
-            block_hash,
-            num_txs,
+            "Chronik: block {block_hash} disconnected with {num_txs} txs\n"
         );
         Ok(())
     }
@@ -442,9 +437,7 @@ impl Chronik {
         let num_txs = block.block_txs.txs.len();
         indexer.handle_block_finalized(block)?;
         log_chronik!(
-            "Chronik: block {} finalized with {} txs\n",
-            block_hash,
-            num_txs,
+            "Chronik: block {block_hash} finalized with {num_txs} txs\n"
         );
         Ok(())
     }
@@ -478,8 +471,7 @@ impl Chronik {
         let mut indexer = self.indexer.blocking_write();
         indexer.handle_transaction_finalized(txid)?;
         log_chronik!(
-            "Chronik: transaction {} finalized by pre-consensus\n",
-            txid
+            "Chronik: transaction {txid} finalized by pre-consensus\n"
         );
         Ok(())
     }
