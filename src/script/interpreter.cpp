@@ -209,6 +209,9 @@ bool ScriptInterpreter::RunNextOp() {
     bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
     bool fExec = vfExec.all_true();
 
+    // Maximum integer byte size
+    const size_t nMaxNumSize = MAX_SCRIPTNUM_BYTE_SIZE;
+
     //
     // Read instruction
     //
@@ -583,7 +586,9 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                int64_t n = CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                int64_t n =
+                    CScriptNum(stacktop(-1), fRequireMinimal, nMaxNumSize)
+                        .getint();
                 popstack(stack);
                 if (n < 0 || uint64_t(n) >= uint64_t(stack.size())) {
                     return set_error(serror,
@@ -727,7 +732,7 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                CScriptNum bn(stacktop(-1), fRequireMinimal);
+                CScriptNum bn(stacktop(-1), fRequireMinimal, nMaxNumSize);
                 switch (opcode) {
                     case OP_1ADD:
                         bn += bnOne;
@@ -777,8 +782,8 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                CScriptNum bn1(stacktop(-2), fRequireMinimal);
-                CScriptNum bn2(stacktop(-1), fRequireMinimal);
+                CScriptNum bn1(stacktop(-2), fRequireMinimal, nMaxNumSize);
+                CScriptNum bn2(stacktop(-1), fRequireMinimal, nMaxNumSize);
                 CScriptNum bn(0);
                 switch (opcode) {
                     case OP_ADD:
@@ -861,9 +866,9 @@ bool ScriptInterpreter::RunNextOp() {
                     return set_error(serror,
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
-                CScriptNum bn1(stacktop(-3), fRequireMinimal);
-                CScriptNum bn2(stacktop(-2), fRequireMinimal);
-                CScriptNum bn3(stacktop(-1), fRequireMinimal);
+                CScriptNum bn1(stacktop(-3), fRequireMinimal, nMaxNumSize);
+                CScriptNum bn2(stacktop(-2), fRequireMinimal, nMaxNumSize);
+                CScriptNum bn3(stacktop(-1), fRequireMinimal, nMaxNumSize);
                 bool fValue = (bn2 <= bn1 && bn1 < bn3);
                 popstack(stack);
                 popstack(stack);
@@ -999,7 +1004,8 @@ bool ScriptInterpreter::RunNextOp() {
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
                 const int64_t nKeysCount =
-                    CScriptNum(stacktop(-idxKeyCount), fRequireMinimal)
+                    CScriptNum(stacktop(-idxKeyCount), fRequireMinimal,
+                               nMaxNumSize)
                         .getint();
                 if (nKeysCount < 0 || nKeysCount > MAX_PUBKEYS_PER_MULTISIG) {
                     return set_error(serror, ScriptError::PUBKEY_COUNT);
@@ -1019,7 +1025,8 @@ bool ScriptInterpreter::RunNextOp() {
                                      ScriptError::INVALID_STACK_OPERATION);
                 }
                 const int64_t nSigsCount =
-                    CScriptNum(stacktop(-idxSigCount), fRequireMinimal)
+                    CScriptNum(stacktop(-idxSigCount), fRequireMinimal,
+                               nMaxNumSize)
                         .getint();
                 if (nSigsCount < 0 || nSigsCount > nKeysCount) {
                     return set_error(serror, ScriptError::SIG_COUNT);
@@ -1240,7 +1247,8 @@ bool ScriptInterpreter::RunNextOp() {
 
                 // Make sure the split point is appropriate.
                 uint64_t position =
-                    CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                    CScriptNum(stacktop(-1), fRequireMinimal, nMaxNumSize)
+                        .getint();
                 if (position > data.size()) {
                     return set_error(serror, ScriptError::INVALID_SPLIT_RANGE);
                 }
@@ -1277,7 +1285,8 @@ bool ScriptInterpreter::RunNextOp() {
                 }
 
                 uint64_t size =
-                    CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                    CScriptNum(stacktop(-1), fRequireMinimal, nMaxNumSize)
+                        .getint();
                 if (size > MAX_SCRIPT_ELEMENT_SIZE) {
                     return set_error(serror, ScriptError::PUSH_SIZE);
                 }
@@ -1324,7 +1333,7 @@ bool ScriptInterpreter::RunNextOp() {
                 CScriptNum::MinimallyEncode(n);
 
                 // The resulting number must be a valid number.
-                if (!CScriptNum::IsMinimallyEncoded(n)) {
+                if (!CScriptNum::IsMinimallyEncoded(n, nMaxNumSize)) {
                     return set_error(serror, ScriptError::INVALID_NUMBER_RANGE);
                 }
             } break;

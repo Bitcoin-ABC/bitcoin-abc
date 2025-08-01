@@ -35,6 +35,9 @@ static const int MAX_SCRIPT_SIZE = 10000;
 // Maximum number of values on script interpreter stack
 static const int MAX_STACK_SIZE = 1000;
 
+// Maximum byte size of integers for arithmetic opcodes when interpreting Script
+constexpr size_t MAX_SCRIPTNUM_BYTE_SIZE = 4;
+
 // Threshold for nLockTime: below this value it is interpreted as block number,
 // otherwise as UNIX timestamp. Thresold is Tue Nov 5 00:53:20 1985 UTC
 static const unsigned int LOCKTIME_THRESHOLD = 500000000;
@@ -224,12 +227,10 @@ class CScriptNum {
      * arithmetic is done or the result is interpreted as an integer.
      */
 public:
-    static const size_t MAXIMUM_ELEMENT_SIZE = 4;
-
     explicit CScriptNum(const int64_t &n) { m_value = n; }
 
     explicit CScriptNum(const std::vector<uint8_t> &vch, bool fRequireMinimal,
-                        const size_t nMaxNumSize = MAXIMUM_ELEMENT_SIZE) {
+                        const size_t nMaxNumSize) {
         if (vch.size() > nMaxNumSize) {
             throw scriptnum_error("script number overflow");
         }
@@ -239,9 +240,8 @@ public:
         m_value = set_vch(vch);
     }
 
-    static bool IsMinimallyEncoded(
-        const std::vector<uint8_t> &vch,
-        const size_t nMaxNumSize = CScriptNum::MAXIMUM_ELEMENT_SIZE);
+    static bool IsMinimallyEncoded(const std::vector<uint8_t> &vch,
+                                   const size_t nMaxNumSize);
 
     static bool MinimallyEncode(std::vector<uint8_t> &data);
 

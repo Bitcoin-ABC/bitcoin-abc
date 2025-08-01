@@ -34,8 +34,8 @@ static const int64_t offsets[] = {1,      0x79,   0x80,   0x81,   0xFF,
 
 static void CheckCreateVch(const int64_t &num) {
     CScriptNum scriptnum(num);
-    CScriptNum scriptnum2(scriptnum.getvch(), false);
-    CScriptNum scriptnum3(scriptnum2.getvch(), false);
+    CScriptNum scriptnum2(scriptnum.getvch(), false, MAX_SCRIPTNUM_BYTE_SIZE);
+    CScriptNum scriptnum3(scriptnum2.getvch(), false, MAX_SCRIPTNUM_BYTE_SIZE);
 }
 
 static void CheckAdd(const int64_t &num1, const int64_t &num2) {
@@ -125,7 +125,7 @@ static void CheckCompare(const int64_t &num1, const int64_t &num2) {
 
 static void RunCreate(const int64_t &num) {
     CScriptNum scriptnum(num);
-    if (scriptnum.getvch().size() <= CScriptNum::MAXIMUM_ELEMENT_SIZE) {
+    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE) {
         CheckCreateVch(num);
     } else {
         BOOST_CHECK_THROW(CheckCreateVch(num), scriptnum_error);
