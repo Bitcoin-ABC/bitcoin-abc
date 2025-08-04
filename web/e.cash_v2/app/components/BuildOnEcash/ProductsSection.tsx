@@ -106,7 +106,7 @@ const products: Product[] = [
 
 export default function ProductsSection() {
   return (
-    <div className="relative w-full py-20">
+    <div className="relative w-full py-20" id="products">
       <ContentContainer>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

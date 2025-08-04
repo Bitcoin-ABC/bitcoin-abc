@@ -25,6 +25,14 @@ const nextConfig: NextConfig = {
     ],
   },
   redirects,
+  async rewrites() {
+    return [
+      {
+        source: "/build",
+        destination: "/build-on-ecash",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -119,6 +119,62 @@ here to get the effect */
   }
 }
 
+.scroll-vertical-up {
+  animation: scroll-vertical-up 60s infinite linear;
+  --gap2: 180px;
+}
+
+.scroll-vertical-down {
+  animation: scroll-vertical-down 60s infinite linear;
+  --gap2: 180px;
+}
+
+@keyframes scroll-vertical-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap2)));
+  }
+}
+
+@keyframes scroll-vertical-down {
+  from {
+    transform: translateY(calc(-100% - var(--gap2)));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .scroll-vertical-up {
+    animation: scroll-vertical-up 40s infinite linear;
+  }
+
+  .scroll-vertical-down {
+    animation: scroll-vertical-down 40s infinite linear;
+  }
+
+  @keyframes scroll-vertical-up {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes scroll-vertical-down {
+    from {
+      transform: translateX(-50%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+}
+
 h2 {
   font-size: 40px;
   font-weight: bold;
