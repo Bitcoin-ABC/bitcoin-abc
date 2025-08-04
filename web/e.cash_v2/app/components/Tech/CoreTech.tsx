@@ -19,7 +19,7 @@ export default function CoreTech() {
         "Enhanced security through hybrid consensus",
         "Fork-free network upgrades",
       ],
-      image: "/sphere.png",
+      image: "/avalanche-m.png",
     },
     {
       title: "Chronik",
@@ -30,7 +30,7 @@ export default function CoreTech() {
         "Built into Bitcoin ABC node software",
         "Highly scalable for developers",
       ],
-      image: "/sphere.png",
+      image: "/chronik-m.png",
     },
     {
       title: "Tokens",
@@ -41,7 +41,7 @@ export default function CoreTech() {
         "Zero-slippage trading on native dex",
         "Ultra-low transaction costs",
       ],
-      image: "/sphere.png",
+      image: "/tokens-m.png",
     },
     {
       title: "Staking",
@@ -52,7 +52,7 @@ export default function CoreTech() {
         "Participate in network governance",
         "Incentivized node operation",
       ],
-      image: "/sphere.png",
+      image: "/staking-m.png",
     },
     {
       title: "Subnets",
@@ -63,7 +63,7 @@ export default function CoreTech() {
         "Zero-Knowledge subnet for privacy",
         "Permissionless custom networks",
       ],
-      image: "/sphere.png",
+      image: "/subnets-m.png",
     },
     {
       title: "Small, Convenient Denomination",
@@ -74,7 +74,7 @@ export default function CoreTech() {
         "Simplified price representation",
         "Enhanced market appeal",
       ],
-      image: "/sphere.png",
+      image: "/coins.png",
     },
     {
       title: "CashFusion",
@@ -85,7 +85,7 @@ export default function CoreTech() {
         "Auditable supply cap maintained",
         "Optional privacy features",
       ],
-      image: "/sphere.png",
+      image: "/cashfusion-m.png",
     },
     {
       title: "UTXO Model",
@@ -96,7 +96,7 @@ export default function CoreTech() {
         "Pay-to-many and gasless transactions",
         "Enhanced security and auditability",
       ],
-      image: "/sphere.png",
+      image: "/utxo.png",
     },
   ];
 
@@ -112,7 +112,7 @@ export default function CoreTech() {
               viewport={{ once: true, amount: 0.3 }}
               transition={{
                 duration: 0.6,
-                delay: index * 0.2,
+                delay: 0.2,
                 ease: "easeOut",
               }}
               className="pb-10"
