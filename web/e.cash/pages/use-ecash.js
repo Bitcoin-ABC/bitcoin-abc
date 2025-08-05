@@ -45,6 +45,7 @@ import xecxLogo from '/public/images/xecx-logo-white.png';
 import firmaLogo from '/public/images/firma.png';
 import localecashLogo from '/public/images/localecash.png';
 import musd from '/public/images/MUSD.png';
+import epos from '/public/images/epos.png';
 
 function TileSection({ title, items, children }) {
     return (
@@ -337,6 +338,41 @@ function UseEcash(props) {
                             <Button
                                 text="Get Started"
                                 link="https://localecash.com/"
+                                corner="bottomRight"
+                                color="accent"
+                                openInNewTab
+                            />
+                        </FlexButtons>
+                    </TextImageBlock>
+                    <TextImageBlock
+                        id="epos"
+                        title="ePOS"
+                        image={epos}
+                        alt="ePOS logo"
+                    >
+                        <p>
+                            Use ePOS to create eCash payment requests. The free
+                            webapp allows for multiple cashiers to create
+                            requests without access to the underlying wallet.
+                            General point-of-sale functionality like calculating
+                            a list of items and applying discounts makes it a
+                            useful tool for brick and mortar businesses that
+                            want to accept eCash directly.
+                        </p>
+                        <p>
+                            <i>
+                                The ePOS webapp runs locally and is
+                                non-custodial. Simply set your wallet address
+                                and start receiving XEC, no signup required. 28
+                                fiat currency conversion rates are supported
+                                with more to come.
+                            </i>
+                        </p>
+
+                        <FlexButtons>
+                            <Button
+                                text="Get Started"
+                                link="https://epos.cash/"
                                 corner="bottomRight"
                                 color="accent"
                                 openInNewTab
