@@ -819,6 +819,18 @@ builds:
     templates:
       - js-mocha
 
+  metachronik-tests:
+    runOnDiffRegex:
+      - apps/metachronik/
+      - modules/chronik-client/
+    env:
+      JS_PROJECT_ROOT: apps/metachronik
+      RUN_NPM_BUILD: "true"
+    depends:
+      - chronik-client
+    templates:
+      - js-mocha
+
   cashtab-faucet-tests:
     runOnDiffRegex:
       - apps/cashtab-faucet/

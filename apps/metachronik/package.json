@@ -37,6 +37,8 @@
         "chai-as-promised": "^7.1.1",
         "eslint": "^8.54.0",
         "mocha": "^10.2.0",
+        "mocha-junit-reporter": "^2.2.1",
+        "nyc": "^17.1.0",
         "ts-node": "^10.9.1",
         "tsx": "^4.20.3",
         "typescript": "^5.2.2"
