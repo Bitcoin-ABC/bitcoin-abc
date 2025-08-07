@@ -840,13 +840,14 @@ builds:
       - modules/chronik-client/
       - modules/ecash-lib/
     env:
-      JS_PROJECT_ROOT: apps/token-server
+      JS_PROJECT_ROOT: apps/cashtab-faucet
       RUN_NPM_BUILD: "true"
     depends:
       - ecashaddrjs
       - chronik-client
       - mock-chronik-client
       - ecash-lib
+      - ecash-wallet
     templates:
       - js-mocha
 
