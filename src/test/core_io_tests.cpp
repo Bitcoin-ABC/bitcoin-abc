@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(parse_push_test) {
     BOOST_CHECK_EXCEPTION(
         ParseScript("11111111111111111111"), std::runtime_error,
         HasReason("script parse error: decimal numeric value only allowed in "
-                  "the range -0xFFFFFFFF...0xFFFFFFFF"));
+                  "the range -0x7FFFFFFFFFFFFFFF...0x7FFFFFFFFFFFFFFF"));
 }
 
 void TestFormatRoundTrip(const std::string &script) {

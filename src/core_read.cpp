@@ -90,14 +90,15 @@ CScript ParseScript(const std::string &s) {
             // Number
             const auto num{ToIntegral<int64_t>(w)};
 
-            // limit the range of numbers ParseScript accepts in decimal
-            // since numbers outside -0xFFFFFFFF...0xFFFFFFFF are illegal in
-            // scripts
-            if (!num.has_value() || num > int64_t{0xffffffff} ||
-                num < -1 * int64_t{0xffffffff}) {
+            // Limit the range of numbers ParseScript accepts in decimal
+            // since numbers outside -0x7FFFFFFFFFFFFFFF...0x7FFFFFFFFFFFFFFF
+            // are illegal in scripts.
+            // This means, only the int64_t -0x8000000000000000 is illegal.
+            if (!num.has_value() ||
+                num == std::numeric_limits<int64_t>::min()) {
                 throw std::runtime_error(
                     "script parse error: decimal numeric value only allowed in "
-                    "the range -0xFFFFFFFF...0xFFFFFFFF");
+                    "the range -0x7FFFFFFFFFFFFFFF...0x7FFFFFFFFFFFFFFF");
             }
 
             result << num.value();
