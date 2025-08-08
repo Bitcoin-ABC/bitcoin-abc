@@ -4,13 +4,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Modal from 'components/Common/Modal';
-import { CashtabWallet } from 'wallet';
 
-interface ExtensionProps {
-    wallet: CashtabWallet | false;
-}
-
-const Extension: React.FC<ExtensionProps> = ({ wallet }) => {
+const Extension: React.FC = () => {
     // Extension-only state fields
     const [showApproveAddressShareModal, setShowApproveAddressShareModal] =
         useState<boolean>(false);
@@ -19,54 +14,6 @@ const Extension: React.FC<ExtensionProps> = ({ wallet }) => {
     >(null);
     const [addressRequestTabUrl, setAddressRequestTabUrl] =
         useState<string>('');
-
-    // Extension storage get method
-    const getObjectFromExtensionStorage = async function (
-        key: string,
-    ): Promise<any> {
-        return new Promise((resolve, reject) => {
-            try {
-                chrome.storage.sync.get(key, function (value) {
-                    resolve(value[key]);
-                });
-            } catch (err) {
-                reject(err);
-            }
-        });
-    };
-
-    const copyAddressToExtensionStorage = async (
-        wallet: CashtabWallet | false,
-    ): Promise<void> => {
-        // Get address from active wallet
-        if (wallet === false) {
-            // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.
-            return;
-        }
-
-        let address: string;
-        try {
-            address = wallet.paths.get(1899).address;
-        } catch {
-            // Handle any other errors
-            return;
-        }
-        // Save the address to extension storage API
-
-        // Check for stored value
-        const storedAddress = await getObjectFromExtensionStorage('address');
-        if (address === storedAddress) {
-            // No need to store it again
-            return;
-        }
-
-        // If the address has not been set (or if the user has changed wallets since it was last set), set it
-        await chrome.storage.sync.set({ address: address }, function () {
-            console.info(
-                `Address ${address} saved to storage under key 'address'`,
-            );
-        });
-    };
 
     const handleApprovedAddressShare = async (): Promise<void> => {
         if (addressRequestTabId === null) return;
@@ -97,11 +44,6 @@ const Extension: React.FC<ExtensionProps> = ({ wallet }) => {
         // Close the popup after user action
         window.close();
     };
-
-    useEffect(() => {
-        // On wallet change
-        copyAddressToExtensionStorage(wallet);
-    }, [wallet]);
 
     useEffect(() => {
         // On load

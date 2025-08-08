@@ -482,15 +482,9 @@ export const prepareMockedChronikCallsForWallet = (
  * Remove all keys individually as localforage.clear() occasionally returns before all storage is clear
  * @param {object} localforage the localforage instance used in your test
  */
+import { SUPPORTED_CASHTAB_STORAGE_KEYS } from 'config/storage';
+
 export const clearLocalForage = async localforage => {
-    const SUPPORTED_CASHTAB_STORAGE_KEYS = [
-        'cashtabCache',
-        'contactList',
-        'savedWallets',
-        'settings',
-        'wallet',
-        'wallets',
-    ];
     for (const key of SUPPORTED_CASHTAB_STORAGE_KEYS) {
         await localforage.removeItem(key);
     }

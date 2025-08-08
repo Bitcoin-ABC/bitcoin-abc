@@ -2,6 +2,19 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+/**
+ * We minimally redefine the stored CashtabWallet type here because
+ * importing it from Cashtab src causes build issues with the extension
+ *
+ * Not ideal to define it in two places, but ultimately we will be migrating
+ * Cashtab to ecash-wallet, and then it will be defined in a lib, which
+ * will make much more sense
+ */
+
+interface MinStoredCashtabWallet {
+    paths: Array<[number, { address: string }]>;
+}
+
 interface ChromeWindow {
     id?: number;
     tabs?: chrome.tabs.Tab[];
@@ -83,22 +96,32 @@ chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
     }
 });
 
-// Fetch item from extension storage and return it as a variable
-const getObjectFromExtensionStorage = async function (
+/**
+ * Fetch item from unified extension storage
+ * NB for now, we ONLY do this in the extension itself for the address
+ * We do not really want to be sharing other stored stuff with webapps, e.g. private keys
+ * So, while we have a general method that may be extended later for other purposes,
+ * it is not an oversight that we skip full JSON revival
+ */
+const getObjectFromExtensionStorage = async function <T = unknown>(
     key: string,
-): Promise<any> {
-    return new Promise((resolve, reject) => {
-        try {
-            chrome.storage.sync.get(
-                key,
-                function (value: { [key: string]: any }) {
-                    resolve(value[key]);
-                },
-            );
-        } catch (err) {
-            reject(err);
-        }
-    });
+): Promise<T | null> {
+    try {
+        const result = await chrome.storage.local.get([key]);
+        const value = result[key];
+        return (value as T) ?? null;
+    } catch (err) {
+        console.error('Error fetching from extension storage:', err);
+        throw err;
+    }
+};
+
+// Simple function to extract address from stored wallet data
+const extractAddressFromStoredWallet = (
+    wallet: MinStoredCashtabWallet,
+): string | null => {
+    const path1899 = wallet.paths.find(([key]) => key === 1899);
+    return path1899?.[1]?.address ?? null;
 };
 
 // Get the current active tab
@@ -118,15 +141,53 @@ const getCurrentActiveTab = async function (): Promise<chrome.tabs.Tab> {
     });
 };
 
-// Fetch the active extension address from extension storage API
+// Fetch the active extension address from the active wallet
 async function fetchAddress(tabId?: number): Promise<void> {
     if (!tabId) return;
-    const fetchedAddress = await getObjectFromExtensionStorage('address');
-    // Send this info back to the browser
-    chrome.tabs.sendMessage(Number(tabId), {
-        address: fetchedAddress,
-        success: true,
-    });
+
+    try {
+        // Get wallets from unified storage (raw stored format)
+        const storedWallets = await getObjectFromExtensionStorage<any[]>(
+            'wallets',
+        );
+
+        if (!Array.isArray(storedWallets) || storedWallets.length === 0) {
+            chrome.tabs.sendMessage(Number(tabId), {
+                success: false,
+                reason: 'No wallet found',
+            });
+            return;
+        }
+
+        // Get the active wallet (first wallet in array)
+        const activeWallet = storedWallets[0];
+
+        // NB we do not validate activeWallet this is handled in Cashtab before wallets are stored
+
+        // Extract address from stored wallet data
+        const address = extractAddressFromStoredWallet(activeWallet);
+
+        if (!address) {
+            // Not expected to ever happen
+            chrome.tabs.sendMessage(Number(tabId), {
+                success: false,
+                reason: 'No address found in wallet',
+            });
+            return;
+        }
+
+        // Send the address back to the browser
+        chrome.tabs.sendMessage(Number(tabId), {
+            address: address,
+            success: true,
+        });
+    } catch (error) {
+        console.error('Error fetching address from wallet:', error);
+        chrome.tabs.sendMessage(Number(tabId), {
+            success: false,
+            reason: 'Error accessing wallet data',
+        });
+    }
 }
 
 async function handleDeniedAddressRequest(tabId?: number): Promise<void> {

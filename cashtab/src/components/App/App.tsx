@@ -130,7 +130,7 @@ const App = () => {
             {process.env.REACT_APP_BUILD_ENV === 'extension' ? (
                 <>
                     <ExtensionFrame />
-                    <Extension wallet={wallet} />
+                    <Extension />
                 </>
             ) : (
                 <>

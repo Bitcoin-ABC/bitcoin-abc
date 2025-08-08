@@ -10,7 +10,7 @@ import {
     migrateLegacyCashtabSettings,
     isValidCashtabWallet,
 } from 'validation';
-import localforage from 'localforage';
+import { storage, initializeStorage } from 'platform';
 import {
     getUtxos,
     getHistory,
@@ -123,7 +123,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
     const update = async (cashtabState: CashtabState) => {
         if (!cashtabLoaded) {
-            // Wait for cashtab to get state from localforage before updating
+            // Wait for cashtab to get state from storage before updating
             return;
         }
 
@@ -150,7 +150,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 cashtabState.cashtabCache.tokens,
             );
 
-            // Update cashtabCache.tokens in state and localforage
+            // Update cashtabCache.tokens in state and storage
             updateCashtabState('cashtabCache', {
                 ...cashtabState.cashtabCache,
                 tokens: cashtabState.cashtabCache.tokens,
@@ -214,7 +214,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // Update the changed key in state
         setCashtabState({ ...cashtabState, [`${key}`]: value });
 
-        // Update the changed key in localforage
+        // Update the changed key in storage
 
         // Handle any items that must be converted to JSON before storage
         // For now, this is just cashtabCache
@@ -225,17 +225,17 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             value = cashtabWalletsToJSON(value as CashtabWallet[]);
         }
 
-        // We lock the UI by setting loading to true while we set items in localforage
+        // We lock the UI by setting loading to true while we set items in storage
         // This is to prevent rapid user action from corrupting the db
         setLoading(true);
-        await localforage.setItem(key, value);
+        await storage.set(key, value);
         setLoading(false);
 
         return true;
     };
 
     /**
-     * Load all keys from localforage into state
+     * Load all keys from storage into state
      *
      * If any are invalid, migrate them to valid and update in storage
      *
@@ -243,62 +243,61 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
      *
      * While the app is running, we use cashtabState as the source of truth
      *
-     * We save to localforage on state changes in updateCashtabState
+     * We save to storage on state changes in updateCashtabState
      * so that these persist if the user navigates away from Cashtab     *
      */
     const loadCashtabState = async () => {
         // cashtabState is initialized with defaults when this component loads
 
         // contactList
-        let contactList: null | CashtabContact[] = await localforage.getItem(
-            'contactList',
-        );
+        let contactList: null | CashtabContact[] = await storage.get<
+            CashtabContact[]
+        >('contactList');
         if (contactList !== null) {
-            // If we find a contactList in localforage
+            // If we find a contactList in storage
             if (!isValidContactList(contactList)) {
                 // and this contactList is invalid, migrate
 
                 // contactList is only expected to be invalid as legacy empty, i.e. [{}]
                 // We do not call a function to migrate contactList as no other migration is expected
                 contactList = [];
-                // Update localforage on app load only if existing values are in an obsolete format
+                // Update storage on app load only if existing values are in an obsolete format
                 updateCashtabState(
                     'contactList',
                     contactList as CashtabContact[],
                 );
             }
-            // Set cashtabState contactList to valid localforage or migrated
+            // Set cashtabState contactList to valid storage or migrated
             cashtabState.contactList = contactList as CashtabContact[];
         }
 
         // settings
-        let settings: null | CashtabSettings = await localforage.getItem(
-            'settings',
-        );
+        let settings: null | CashtabSettings =
+            await storage.get<CashtabSettings>('settings');
         if (settings !== null) {
-            // If we find settings in localforage
+            // If we find settings in storage
             if (!isValidCashtabSettings(settings)) {
                 // If a settings object is present but invalid, parse to find and add missing keys
                 settings = migrateLegacyCashtabSettings(
                     settings as unknown as CashtabSettings,
                 );
-                // Update localforage on app load only if existing values are in an obsolete format
+                // Update storage on app load only if existing values are in an obsolete format
                 updateCashtabState(
                     'settings',
                     settings as unknown as CashtabSettings,
                 );
             }
 
-            // Set cashtabState settings to valid localforage or migrated settings
+            // Set cashtabState settings to valid storage or migrated settings
             cashtabState.settings = settings as CashtabSettings;
         }
 
         // cashtabCache
         let cashtabCache: null | CashtabCacheJson | CashtabCache =
-            await localforage.getItem('cashtabCache');
+            await storage.get<CashtabCacheJson | CashtabCache>('cashtabCache');
 
         if (cashtabCache !== null) {
-            // If we find cashtabCache in localforage
+            // If we find cashtabCache in storage
 
             // cashtabCache must be converted from JSON as it stores a Map
             cashtabCache = storedCashtabCacheToMap(
@@ -308,11 +307,11 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             if (!isValidCashtabCache(cashtabCache)) {
                 // If a cashtabCache object is present but invalid, nuke it and start again
                 cashtabCache = cashtabState.cashtabCache;
-                // Update localforage on app load only if existing values are in an obsolete format
+                // Update storage on app load only if existing values are in an obsolete format
                 updateCashtabState('cashtabCache', cashtabCache);
             }
 
-            // Set cashtabState cashtabCache to valid localforage or migrated settings
+            // Set cashtabState cashtabCache to valid storage or migrated settings
             cashtabState.cashtabCache = cashtabCache;
         }
 
@@ -321,20 +320,22 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         // A legacy Cashtab user may have the active wallet stored at the wallet key
         const storedWallet: null | LegacyCashtabWallet =
-            await localforage.getItem('wallet');
+            await storage.get<LegacyCashtabWallet>('wallet');
 
         // After version 1.7.x, Cashtab users have all wallets stored at the wallets key
         const storedWallets:
             | null
             | LegacyCashtabWallet[]
-            | StoredCashtabWallet[] = await localforage.getItem('wallets');
+            | StoredCashtabWallet[] = await storage.get<
+            LegacyCashtabWallet[] | StoredCashtabWallet[]
+        >('wallets');
 
         /**
          * Possible cases
          *
          * 1 - NEW CASHTAB USER
          * wallet === null && wallets === null
-         * nothing in localforage for wallet or wallets
+         * nothing in storage for wallet or wallets
          *
          * 2 - PARTIALLY MIGRATED CASHTAB USER
          * wallet !== null && wallets !== null
@@ -377,16 +378,16 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // Keep original name
             newWallet = { ...newWallet, name: storedWallet.name };
 
-            // wallets[0] is the active wallet in upgraded Cashtab localforage model
+            // wallets[0] is the active wallet in upgraded Cashtab storage model
             wallets.push(newWallet);
 
             // Also migrate savedWallets
             // Note that savedWallets is also a legacy key
             const savedWallets: null | LegacyCashtabWallet[] =
-                await localforage.getItem('savedWallets');
+                await storage.get<LegacyCashtabWallet[]>('savedWallets');
 
             if (savedWallets !== null) {
-                // If we find savedWallets in localforage, they will all be invalid
+                // If we find savedWallets in storage, they will all be invalid
                 // as this key is deprecated
 
                 // Iterate over all savedWallets.
@@ -444,10 +445,10 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         } else {
             // Load from wallets key, or initialize new user
 
-            // If the user has already migrated to latest keys, we load wallets from localforage key directly
+            // If the user has already migrated to latest keys, we load wallets from storage key directly
 
             if (storedWallets !== null && storedWallets.length > 0) {
-                // If we find wallets in localforage
+                // If we find wallets in storage
                 // In this case, we do not need to migrate from the wallet and savedWallets keys
                 // We may or may not need to migrate wallets found at the wallets key to a new format
 
@@ -466,8 +467,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 }
 
                 if (walletsValid) {
-                    // Set cashtabState wallets to wallets from localforage
-                    // (or migrated wallets if localforage included any invalid wallet)
+                    // Set cashtabState wallets to wallets from storage
+                    // (or migrated wallets if storage included any invalid wallet)
                     cashtabState.wallets =
                         loadedPossiblyLegacyWallets as CashtabWallet[];
 
@@ -544,12 +545,12 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     migratedWallets =
                         migratedWallets.concat(otherMigratedWallets);
 
-                    // Set cashtabState wallets to wallets from localforage
-                    // (or migrated wallets if localforage included any invalid wallet)
+                    // Set cashtabState wallets to wallets from storage
+                    // (or migrated wallets if storage included any invalid wallet)
                     cashtabState.wallets = migratedWallets;
                 }
             } else {
-                // So, if we do not find wallets from localforage, cashtabState will be initialized with default
+                // So, if we do not find wallets from storage, cashtabState will be initialized with default
                 // wallets []
                 cashtabState.wallets = wallets;
             }
@@ -939,6 +940,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     };
 
     const cashtabBootup = async () => {
+        // Initialize platform storage
+        const storageInit = await initializeStorage();
+        if (!storageInit.success) {
+            console.error('Failed to initialize storage:', storageInit.error);
+            // We continue anyway as storage adapters have fallbacks
+        }
+
         await loadCashtabState();
     };
 
