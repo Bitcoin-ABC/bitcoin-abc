@@ -3014,6 +3014,28 @@ BOOST_AUTO_TEST_CASE(script_GetScriptAsm) {
                       ScriptToAsmStr(CScript()
                                      << ToByteVector(ParseHex(derSig + "83"))
                                      << vchPubKey));
+
+    // Only render as decimal number if minimally encoded, otherwise plain hex
+    BOOST_CHECK_EQUAL("4779", ScriptToAsmStr(CScript() << ParseHex("ab12")));
+    BOOST_CHECK_EQUAL("ab1200",
+                      ScriptToAsmStr(CScript() << ParseHex("ab1200")));
+    BOOST_CHECK_EQUAL("ab1200000000",
+                      ScriptToAsmStr(CScript() << ParseHex("ab1200000000")));
+    BOOST_CHECK_EQUAL("9223372036854775807",
+                      ScriptToAsmStr(CScript() << 0x7fffffffffffffff));
+    BOOST_CHECK_EQUAL("-9223372036854775807",
+                      ScriptToAsmStr(CScript() << -0x7fffffffffffffff));
+    BOOST_CHECK_EQUAL("000000000000008080",
+                      ScriptToAsmStr(CScript() << -0x8000000000000000));
+    BOOST_CHECK_EQUAL(
+        "-9223372036854775807",
+        ScriptToAsmStr(CScript() << ParseHex("ffffffffffffffff")));
+    BOOST_CHECK_EQUAL(
+        "ffffffffffffff7f00",
+        ScriptToAsmStr(CScript() << ParseHex("ffffffffffffff7f00")));
+    BOOST_CHECK_EQUAL(
+        "ffffffffffffffff00",
+        ScriptToAsmStr(CScript() << ParseHex("ffffffffffffffff00")));
 }
 
 static CScript ScriptFromHex(const char *hex) {
