@@ -157,9 +157,9 @@ pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-
 pip3 install black==24.4.2 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0 flake8-builtins==2.5.0 flake8-comprehensions==3.14.0 djlint==1.34.1
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 
-# Install npm v10.x and nodejs v20.x
-wget https://deb.nodesource.com/setup_20.x -O nodesetup.sh
-echo "dd3bc508520fcdfdc8c4360902eac90cba411a7e59189a80fb61fcbea8f4199c nodesetup.sh" | sha256sum -c
+# Install nodejs v22.x (includes npm v10.x)
+wget https://deb.nodesource.com/setup_22.x -O nodesetup.sh
+echo "c61e58b2284efea4746ffbdcb4d4080f58fa7a31fb0060d2b024eb3d2e95572d nodesetup.sh" | sha256sum -c
 chmod +x nodesetup.sh
 ./nodesetup.sh
 apt-get install -y nodejs

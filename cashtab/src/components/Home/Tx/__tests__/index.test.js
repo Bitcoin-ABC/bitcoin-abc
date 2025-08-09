@@ -1268,7 +1268,7 @@ describe('<Tx />', () => {
         expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
-        expect(screen.getByText('Apr 8, 2024, 24:18:59')).toBeInTheDocument();
+        expect(screen.getByText('Apr 8, 2024, 00:18:59')).toBeInTheDocument();
 
         // We see the expected self-send amount
         expect(screen.getByText('-')).toBeInTheDocument();
@@ -3784,7 +3784,7 @@ describe('<Tx />', () => {
         expect(screen.getByText(/Received from/)).toBeInTheDocument();
 
         // We render the timestamp
-        expect(screen.getByText('Dec 27, 2024, 24:00:01')).toBeInTheDocument();
+        expect(screen.getByText('Dec 27, 2024, 00:00:01')).toBeInTheDocument();
 
         // We see the expected received amount
         expect(screen.getByText('312.5k XEC')).toBeInTheDocument();
@@ -3835,7 +3835,7 @@ describe('<Tx />', () => {
         expect(screen.getByText(/Received from/)).toBeInTheDocument();
 
         // We render the timestamp
-        expect(screen.getByText('Dec 27, 2024, 24:00:01')).toBeInTheDocument();
+        expect(screen.getByText('Dec 27, 2024, 00:00:01')).toBeInTheDocument();
 
         // We see the expected received amount
         expect(screen.getByText('312.5k XEC')).toBeInTheDocument();

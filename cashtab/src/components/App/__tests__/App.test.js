@@ -693,9 +693,14 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(
-            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
-        ).toBeInTheDocument();
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
 
         // We are forwarded to the home screen after the wallet loads
         expect(await screen.findByTestId('tx-history')).toBeInTheDocument();
@@ -743,9 +748,14 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(
-            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
-        ).toBeInTheDocument();
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
@@ -781,9 +791,14 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(
-            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
-        ).toBeInTheDocument();
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
 
         // Check wallets
         const walletsAfterLoad = cashtabWalletsFromJSON(
@@ -897,9 +912,14 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(
-            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
-        ).toBeInTheDocument();
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
@@ -1001,9 +1021,14 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(
-            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
-        ).toBeInTheDocument();
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
@@ -1077,9 +1102,14 @@ describe('<App />', () => {
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(
-            await screen.findByText('9,513.12 XEC', {}, { timeout: 10000 }),
-        ).toBeInTheDocument();
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
