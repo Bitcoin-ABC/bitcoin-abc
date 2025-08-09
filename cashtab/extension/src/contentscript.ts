@@ -12,6 +12,11 @@ interface CashtabMessage {
 interface ChromeMessage {
     text?: string;
     txInfo?: Record<string, string>;
+    txResponse?: {
+        approved: boolean;
+        txid?: string;
+        reason?: string;
+    };
     addressRequest?: boolean;
     addressRequestApproved?: boolean;
     address?: string;
