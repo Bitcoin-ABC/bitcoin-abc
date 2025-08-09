@@ -2,7 +2,7 @@
 # NB cashtab-connect has no other local dependencies
 
 # Stage 1
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app/modules/cashtab-connect
 

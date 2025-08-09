@@ -2,7 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Note token-server has no local dependencies
 WORKDIR /app/apps/token-server

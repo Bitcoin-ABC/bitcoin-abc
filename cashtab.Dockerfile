@@ -44,7 +44,7 @@ COPY modules/ecash-lib-wasm .
 RUN CC=clang ./build-wasm.sh
 
 # Stage 2
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 # Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
 WORKDIR /app/modules

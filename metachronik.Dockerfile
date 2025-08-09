@@ -4,7 +4,7 @@
 
 # Dockerfile for deploying metachronik with Railway in CI/CD
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app/apps/metachronik
 COPY apps/metachronik .

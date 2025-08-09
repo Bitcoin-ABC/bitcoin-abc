@@ -1,7 +1,7 @@
 # Node image for running npm publish
 
 # Stage 1
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Build chronik-client
 WORKDIR /app/modules/ecashaddrjs

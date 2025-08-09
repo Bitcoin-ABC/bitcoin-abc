@@ -4,7 +4,7 @@
 
 # Node image for running npm publish
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Build mock-chronik-client
 WORKDIR /app/modules/mock-chronik-client

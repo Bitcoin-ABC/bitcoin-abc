@@ -50,7 +50,7 @@ RUN CC=clang ./build-wasm.sh
 
 # Node image for prod deployment of ecash-herald
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
 WORKDIR /app/modules

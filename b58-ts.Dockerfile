@@ -1,7 +1,7 @@
 # Node image for running npm publish
 
 # Stage 1
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app/modules/b58-ts
 

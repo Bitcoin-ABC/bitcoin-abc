@@ -5,7 +5,7 @@
 # Stage 1 - Node image for running npm publish
 # Note we do not need the wasmbuilder stage here
 # as we pull ecash-lib from npmjs for publishing ecash-wallet
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app/modules/ecash-wallet
 COPY modules/ecash-wallet .
