@@ -5,6 +5,8 @@
 import AboutHero from "../components/About/AboutHero";
 import AboutSection from "../components/About/AboutSection";
 import VisionSection from "../components/About/VisionSection";
+import FAQ from "../components/Home/FAQ";
+import StartBuildingSection from "../components/Atoms/StartBuildingSection";
 
 export default function About() {
   return (
@@ -13,7 +15,9 @@ export default function About() {
         <AboutHero />
         <AboutSection />
         <VisionSection />
+        <FAQ />
       </div>
+      <StartBuildingSection />
     </main>
   );
 }

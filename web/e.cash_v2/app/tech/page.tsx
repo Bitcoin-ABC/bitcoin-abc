@@ -7,6 +7,9 @@ import TechFeatures from "../components/Tech/TechFeatures";
 import CoreTech from "../components/Tech/CoreTech";
 import RecentlyBuilt from "../components/Tech/RecentlyBuilt";
 import StartBuildingSection from "../components/Atoms/StartBuildingSection";
+import FeaturedArticles from "../components/Home/FeaturedArticles";
+import GettingStarted from "../components/Home/GettingStarted";
+import FAQ from "../components/Home/FAQ";
 
 export default function Tech() {
   return (
@@ -16,6 +19,10 @@ export default function Tech() {
         <TechFeatures />
         <CoreTech />
         <RecentlyBuilt />
+        <FeaturedArticles />
+        <GettingStarted />
+        <div className="mt-30" />
+        <FAQ />
         <StartBuildingSection />
       </div>
     </main>
