@@ -162,7 +162,7 @@ void TorControlConnection::readcb(struct bufferevent *bev, void *ctx) {
             continue;
         }
         // <status>(-|+| )<data><CRLF>
-        self->message.code = atoi(s.substr(0, 3));
+        self->message.code = LocaleIndependentAtoi<int>(s.substr(0, 3));
         self->message.lines.push_back(s.substr(4));
         // '-','+' or ' '
         char ch = s[3];

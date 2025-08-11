@@ -82,7 +82,8 @@ bool ParseMoney(const std::string &money_string, Amount &nRet) {
         return false;
     }
 
-    Amount nWhole = atoi64(strWhole) * currency.baseunit;
+    Amount nWhole =
+        LocaleIndependentAtoi<int64_t>(strWhole) * currency.baseunit;
 
     nRet = nWhole + Amount(nUnits);
     return true;

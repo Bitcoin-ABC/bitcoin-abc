@@ -45,11 +45,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
         "stoul",
         "vsnprintf"
     ],
-    "src/node/blockstorage.cpp" => ["atoi"],
     "src/netbase.cpp" => ["to_lower"],
-    "src/qt/rpcconsole.cpp" => [
-      "atoi",
-    ],
     "src/rest.cpp" => ["strtol"],
     "src/rpc/server.cpp" => ["to_upper"],
     "src/test/dbwrapper_tests.cpp" => ["snprintf"],
@@ -64,26 +60,21 @@ final class LocaleDependenceLinter extends ArcanistLinter {
     ],
     "src/seeder/dns.cpp" => ["strcasecmp"],
     "src/torcontrol.cpp" => [
-      "atoi",
       "strtol",
     ],
     "src/test/fuzz/locale.cpp" => [
-      "atoi",
       "setlocale",
     ],
-    "src/test/fuzz/parse_numbers.cpp" => ["atoi"],
     "src/test/fuzz/string.cpp" => [
+      "atoi",
       "strtol",
       "strtoll",
       "strtoul",
       "strtoull",
     ],
-    "src/common/args.cpp" => ["atoi"],
     "src/util/strencodings.cpp" => [
-      "atoi",
       "strtoll",
     ],
-    "src/util/strencodings.h" => ["atoi"],
     // False positive DbEnv::strerror
     "src/wallet/bdb.cpp" => ["strerror"],
     // Outside this function use `SysErrorString`

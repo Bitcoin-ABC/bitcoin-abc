@@ -981,7 +981,8 @@ static RPCHelpMan getblocktemplate() {
 
                     hashWatchedChain =
                         ParseHashV(lpstr.substr(0, 64), "longpollid");
-                    nTransactionsUpdatedLastLP = atoi64(lpstr.substr(64));
+                    nTransactionsUpdatedLastLP =
+                        LocaleIndependentAtoi<int64_t>(lpstr.substr(64));
                 } else {
                     // NOTE: Spec does not specify behaviour for non-string
                     // longpollid, but this makes testing easier

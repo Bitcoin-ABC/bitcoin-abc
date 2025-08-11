@@ -60,7 +60,7 @@ static bool InterpretBool(const std::string &strValue) {
     if (strValue.empty()) {
         return true;
     }
-    return (atoi(strValue) != 0);
+    return (LocaleIndependentAtoi<int>(strValue) != 0);
 }
 
 static std::string SettingName(const std::string &arg) {
@@ -515,7 +515,7 @@ std::optional<int64_t> SettingToInt(const util::SettingsValue &value) {
     if (value.isNum()) {
         return value.getInt<int64_t>();
     }
-    return atoi64(value.get_str());
+    return LocaleIndependentAtoi<int64_t>(value.get_str());
 }
 
 int64_t SettingToInt(const util::SettingsValue &value, int64_t nDefault) {

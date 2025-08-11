@@ -534,7 +534,7 @@ void BlockManager::CleanupBlockRevFiles() const {
     // removing block files.
     int contiguousCounter = 0;
     for (const auto &item : mapBlockFiles) {
-        if (atoi(item.first) == contiguousCounter) {
+        if (LocaleIndependentAtoi<int>(item.first) == contiguousCounter) {
             contiguousCounter++;
             continue;
         }

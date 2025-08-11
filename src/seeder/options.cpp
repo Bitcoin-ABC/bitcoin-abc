@@ -92,7 +92,7 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
         size_t flagstartpos = 0;
         while (flagstartpos < flagString.size()) {
             size_t flagendpos = flagString.find_first_of(',', flagstartpos);
-            uint64_t flag = atoi64(
+            uint64_t flag = LocaleIndependentAtoi<int64_t>(
                 flagString.substr(flagstartpos, (flagendpos - flagstartpos)));
             filter_whitelist.insert(flag);
             if (flagendpos == std::string::npos) {

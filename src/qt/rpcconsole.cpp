@@ -234,7 +234,8 @@ bool RPCConsole::RPCParseCommandLine(interfaces::Node *node,
                                         }
                                     }
                                     subelement =
-                                        lastResult[atoi(curarg.c_str())];
+                                        lastResult[LocaleIndependentAtoi<int>(
+                                            curarg.c_str())];
                                 } else if (lastResult.isObject()) {
                                     subelement = lastResult.find_value(curarg);
                                 } else {
