@@ -6,6 +6,7 @@ import TechHero from "../components/Tech/TechHero";
 import TechFeatures from "../components/Tech/TechFeatures";
 import CoreTech from "../components/Tech/CoreTech";
 import RecentlyBuilt from "../components/Tech/RecentlyBuilt";
+import StartBuildingSection from "../components/Atoms/StartBuildingSection";
 
 export default function Tech() {
   return (
@@ -15,6 +16,7 @@ export default function Tech() {
         <TechFeatures />
         <CoreTech />
         <RecentlyBuilt />
+        <StartBuildingSection />
       </div>
     </main>
   );
