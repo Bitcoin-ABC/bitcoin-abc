@@ -2924,4 +2924,27 @@ BOOST_AUTO_TEST_CASE(remove_prefix) {
     BOOST_CHECK_EQUAL(RemovePrefix("", ""), "");
 }
 
+BOOST_AUTO_TEST_CASE(clearshrink_test) {
+    {
+        std::vector<uint8_t> v = {1, 2, 3};
+        ClearShrink(v);
+        BOOST_CHECK_EQUAL(v.size(), 0);
+        BOOST_CHECK_EQUAL(v.capacity(), 0);
+    }
+
+    {
+        std::vector<bool> v = {false, true, false, false, true, true};
+        ClearShrink(v);
+        BOOST_CHECK_EQUAL(v.size(), 0);
+        BOOST_CHECK_EQUAL(v.capacity(), 0);
+    }
+
+    {
+        std::deque<int> v = {1, 3, 3, 7};
+        ClearShrink(v);
+        BOOST_CHECK_EQUAL(v.size(), 0);
+        // std::deque has no capacity() we can observe.
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
