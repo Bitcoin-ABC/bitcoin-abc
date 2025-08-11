@@ -4,6 +4,7 @@
 
 import AboutHero from "../components/About/AboutHero";
 import AboutSection from "../components/About/AboutSection";
+import VisionSection from "../components/About/VisionSection";
 
 export default function About() {
   return (
@@ -11,6 +12,7 @@ export default function About() {
       <div className="bg-gradient-to-br from-[#1F1428] via-[#090916] to-[#0F1528]">
         <AboutHero />
         <AboutSection />
+        <VisionSection />
       </div>
     </main>
   );
