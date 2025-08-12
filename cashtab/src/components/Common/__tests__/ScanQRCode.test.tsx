@@ -10,8 +10,21 @@ import ScanQRCode from 'components/Common/ScanQRCode';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 
-// Mock @zxing/browser
-jest.mock('@zxing/browser');
+// Mock html5-qrcode
+jest.mock('html5-qrcode', () => {
+    return {
+        Html5Qrcode: jest.fn().mockImplementation(() => {
+            return {
+                start: jest
+                    .fn((_camera, _config, _onSuccess) => Promise.resolve())
+                    .mockName('start'),
+                stop: jest.fn(() => Promise.resolve()).mockName('stop'),
+                clear: jest.fn(() => undefined).mockName('clear'),
+            };
+        }),
+        Html5QrcodeSupportedFormats: { QR_CODE: 0 },
+    };
+});
 
 describe('<ScanQRCode />', () => {
     it('Does not render the modal on load, but it can be opened and closed on click', async () => {

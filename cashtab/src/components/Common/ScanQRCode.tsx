@@ -7,13 +7,7 @@ import Modal from 'components/Common/Modal';
 import { Alert } from 'components/Common/Atoms';
 import { QRCodeIcon } from 'components/Common/CustomIcons';
 import styled from 'styled-components';
-import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
-import {
-    NotFoundException,
-    FormatException,
-    ChecksumException,
-    Result,
-} from '@zxing/library';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const StyledScanQRCode = styled.button`
     cursor: pointer;
@@ -23,132 +17,193 @@ const StyledScanQRCode = styled.button`
     padding: 0 12px;
 `;
 
-const QRPreview = styled.video`
+const QRPreview = styled.div`
     width: 100%;
+    height: 100%;
+    position: relative;
+    & video,
+    & canvas {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
 `;
 
-/**
- * This interesting interface results from ts throwing issues because the
- * Result interface from @zxing/library apparently has text as private
- * The docs of the lib say to access it with result.text
- * would probably need to contact authors to update
- */
-class ZxingResult {
-    private _result: Result;
-
-    constructor(result: Result) {
-        this._result = result;
-    }
-
-    /**
-     * Gets the text from the result if available.
-     * @returns The text content if it exists, otherwise undefined.
-     */
-    get text(): string | undefined {
-        try {
-            // Assuming 'text' might not be string, but we cast to string | undefined
-            return (this._result as unknown as { text?: string }).text;
-        } catch {
-            // In case accessing .text throws an error
-            return undefined;
-        }
-    }
-}
+const ZoomControls = styled.div`
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 1;
+`;
 
 interface ScanQRCodeProps {
-    onScan: React.ChangeEventHandler<HTMLInputElement>;
+    onScan: (value: string) => void;
 }
+
+/**
+ * Component to scan QR codes using the webcam
+ * - Default not the front-facing camera
+ * - Default zoom 1x but allow different zoom levels
+ *
+ * Based on scanapp.org implementation. This has better performance
+ * scanning more info-dense QR codes and QR codes with larger logos
+ * in the center of the code
+ */
 const ScanQRCode: React.FC<ScanQRCodeProps> = ({
     onScan = () => null,
     ...otherProps
 }) => {
-    const [codeReaderControls, setCodeReaderControls] =
-        useState<null | IScannerControls>(null);
+    const [qrInstance, setQrInstance] = useState<Html5Qrcode | null>(null);
     const [visible, setVisible] = useState(false);
     const [error, setError] = useState<false | Error>(false);
+    const [zoomSupported, setZoomSupported] = useState(false);
+    const [zoomMin, setZoomMin] = useState<number | null>(null);
+    const [zoomMax, setZoomMax] = useState<number | null>(null);
+    const [zoomStep, setZoomStep] = useState<number | null>(null);
+    const [zoomValue, setZoomValue] = useState<number | null>(null);
+    const [modalSize, setModalSize] = useState<number>(480);
 
-    const codeReader = new BrowserQRCodeReader();
+    const computeModalSize = () => {
+        if (typeof window === 'undefined') return 480;
+        const vw = Math.floor(window.innerWidth * 0.9);
+        const vh = Math.floor(window.innerHeight * 0.9);
+        // Keep it square and within viewport
+        return Math.max(300, Math.min(vw, vh));
+    };
+
+    const applyVideoConstraints = async (
+        instance: Html5Qrcode,
+        constraints: MediaTrackConstraints,
+    ) => {
+        const anyInstance = instance as unknown as {
+            applyVideoConstraints?: (c: MediaTrackConstraints) => Promise<void>;
+        };
+        if (typeof anyInstance.applyVideoConstraints === 'function') {
+            try {
+                await anyInstance.applyVideoConstraints(constraints);
+            } catch {
+                // Silently ignore failures; not all browsers support zoom
+            }
+        }
+    };
 
     const scanForQrCode = async () => {
-        // https://www.npmjs.com/package/@zxing/browser
+        // https://www.npmjs.com/package/html5-qrcode
+        try {
+            const instance = new Html5Qrcode('test-area-qr-code-webcam');
+            setQrInstance(instance);
 
-        const controls = await codeReader.decodeFromVideoDevice(
-            // This is the video input device ID
-            // If undefined, app will use the user's default device
-            undefined,
-            'test-area-qr-code-webcam',
-            (result: Result | ZxingResult | undefined, error, controls) => {
-                if (error) {
-                    // If an error is raised
-                    if (
-                        error instanceof NotFoundException ||
-                        error instanceof FormatException ||
-                        error instanceof ChecksumException
-                    ) {
-                        // These are the three subclasses of the ReaderException class in original Java implementation
-                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/ReaderException.html
-
-                        // NotFoundException error
-                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/NotFoundException.html
-                        // The camera is scanning for a QR code every 0.5s
-                        // It throws this error if it doesn't find one
-
-                        // FormatException
-                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/FormatException.html
-                        // This can occur if the camera reads a non-QR code, or misreads a QR code
-                        // In either case, we want to keep scanning
-
-                        // ChecksumException
-                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/ChecksumException.html
-                        // In this case, it is not returning anything, so just keep scanning until you get it right
-                        // This happens when the camera misreads a barcode even if the checksum was good
-                        // Since no result is returned in this case, we want to keep scanning and ignore error
-                        return;
-                    }
-                    // Other errors come from input device, permissions
-                    // These are issues where the user should be notified that the scanning
-                    // ain't gonna work
-                    console.error(`Error scanning for QR code`, error);
-                    // The error will be displayed in the modal area
-                    setError(error);
-
-                    // Stop scanning
-                    return controls.stop();
+            const qrboxFunction = (
+                viewfinderWidth: number,
+                viewfinderHeight: number,
+            ) => {
+                // Square QR Box at ~80% of the min edge, min 250px
+                const minEdge =
+                    viewfinderWidth > viewfinderHeight
+                        ? viewfinderHeight
+                        : viewfinderWidth;
+                const minEdgeSizeThreshold = 250;
+                const edgeSizePercentage = 0.8;
+                const boxSize = Math.floor(minEdge * edgeSizePercentage);
+                if (boxSize < minEdgeSizeThreshold) {
+                    const size = Math.min(minEdge, minEdgeSizeThreshold);
+                    return { width: size, height: size };
                 }
+                return { width: boxSize, height: boxSize };
+            };
 
-                if (
-                    typeof (result as unknown as ZxingResult)?.text !==
-                    'undefined'
-                ) {
-                    // Pass the result to the Send To input field
-                    // We will pass the result of any scanned QR code
-                    // and allow validation in SendXec and SendToken to handle
-                    onScan(
-                        (result as unknown as ZxingResult)
-                            .text as unknown as React.ChangeEvent<HTMLInputElement>,
+            const qrConfig = {
+                fps: 10,
+                qrbox: qrboxFunction,
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+                willReadFrequently: true,
+            } as const;
+
+            await instance.start(
+                { facingMode: 'environment' },
+                qrConfig,
+                decodedText => {
+                    onScan(decodedText);
+                    // Close modal; useEffect will stop/clear the instance safely
+                    setVisible(false);
+                },
+                () => {
+                    // Ignore scan errors; keep scanning
+                },
+            );
+
+            // After start, try to detect and initialize zoom support
+            try {
+                const anyInstance = instance as unknown as {
+                    getRunningTrackCapabilities?: () => MediaTrackCapabilities;
+                };
+                const caps =
+                    typeof anyInstance.getRunningTrackCapabilities ===
+                    'function'
+                        ? anyInstance.getRunningTrackCapabilities()
+                        : null;
+                if (caps && (caps as any).zoom) {
+                    const zoomCaps = (caps as any).zoom as {
+                        min: number;
+                        max: number;
+                        step?: number;
+                    };
+                    setZoomSupported(true);
+                    setZoomMin(zoomCaps.min);
+                    setZoomMax(zoomCaps.max);
+                    setZoomStep(zoomCaps.step || 0.1);
+                    // We default to 1x zoom although scanapp.org does 1.5, seems to work best
+                    // User has option to adjust
+                    const desired = 1;
+                    const initial = Math.min(
+                        Math.max(desired, zoomCaps.min),
+                        zoomCaps.max,
                     );
-                    // Stop the camera
-                    controls.stop();
-                    // Hide the scanning modal
-                    return setVisible(false);
+                    setZoomValue(initial);
+                    await applyVideoConstraints(instance, {
+                        advanced: [
+                            {
+                                zoom: initial,
+                            } as unknown as MediaTrackConstraintSet,
+                        ],
+                    });
+                } else {
+                    setZoomSupported(false);
                 }
-            },
-        );
-        // Add to state so you can call controls.stop() if the user closes the modal
-        setCodeReaderControls(controls);
+            } catch {
+                setZoomSupported(false);
+            }
+        } catch (e) {
+            console.error('Error starting QR scanner', e);
+            setError(e as Error);
+        }
     };
 
     useEffect(() => {
         if (!visible) {
             setError(false);
-            if (
-                codeReaderControls !== null &&
-                typeof codeReaderControls !== 'undefined'
-            ) {
-                codeReaderControls.stop();
+            if (qrInstance) {
+                qrInstance
+                    .stop()
+                    .then(() => qrInstance.clear())
+                    .catch(() => null);
+                setQrInstance(null);
             }
+            setZoomSupported(false);
+            setZoomMin(null);
+            setZoomMax(null);
+            setZoomStep(null);
+            setZoomValue(null);
         } else {
+            // Initialize modal size and bind resize listener
+            const size = computeModalSize();
+            setModalSize(size);
+            const onResize = () => setModalSize(computeModalSize());
+            window.addEventListener('resize', onResize);
             scanForQrCode();
+            return () => window.removeEventListener('resize', onResize);
         }
     }, [visible]);
 
@@ -165,7 +220,8 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                 <Modal
                     handleCancel={() => setVisible(false)}
                     showButtons={false}
-                    height={250}
+                    width={modalSize}
+                    height={modalSize}
                 >
                     {error ? (
                         <Alert>{`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}</Alert>
@@ -174,6 +230,34 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                             title="Video Preview"
                             id="test-area-qr-code-webcam"
                         ></QRPreview>
+                    )}
+                    {zoomSupported && zoomMin !== null && zoomMax !== null && (
+                        <ZoomControls>
+                            <input
+                                type="range"
+                                min={zoomMin}
+                                max={zoomMax}
+                                step={zoomStep || 0.1}
+                                value={zoomValue || zoomMin}
+                                onChange={async e => {
+                                    const value = parseFloat(e.target.value);
+                                    setZoomValue(value);
+                                    if (qrInstance) {
+                                        await applyVideoConstraints(
+                                            qrInstance,
+                                            {
+                                                advanced: [
+                                                    {
+                                                        zoom: value,
+                                                    } as unknown as MediaTrackConstraintSet,
+                                                ],
+                                            },
+                                        );
+                                    }
+                                }}
+                                aria-label="Zoom"
+                            />
+                        </ZoomControls>
                     )}
                 </Modal>
             )}
