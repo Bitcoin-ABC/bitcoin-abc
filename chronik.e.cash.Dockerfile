@@ -3,7 +3,7 @@
 # 2) nginx stage to serve frontend assets
 
 # Stage 1
-FROM node:22-bookworm-slim AS builder
+FROM node:22-bookworm AS builder
 
 # Build ecashaddrjs, local dependency of chronik-client
 WORKDIR /app/modules/ecashaddrjs
