@@ -39,6 +39,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
                 "-acceptnonstdtxn=1",
+                "-avalanchepreconsensus=1",
             ]
         ]
 
@@ -240,7 +241,12 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         yield True
 
         def is_rejected_block(blockhash):
-            can_find_inv_in_poll(quorum, int(blockhash, 16), AvalancheVoteError.INVALID)
+            can_find_inv_in_poll(
+                quorum,
+                int(blockhash, 16),
+                AvalancheVoteError.INVALID,
+                other_response=AvalancheVoteError.UNKNOWN,
+            )
             for tip in node.getchaintips():
                 if tip["hash"] == blockhash:
                     return tip["status"] == "parked"
@@ -256,7 +262,10 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {next_blockhash}".encode()],
             chatty_callable=lambda: can_find_inv_in_poll(
-                quorum, int(next_blockhash, 16), AvalancheVoteError.INVALID
+                quorum,
+                int(next_blockhash, 16),
+                AvalancheVoteError.INVALID,
+                other_response=AvalancheVoteError.UNKNOWN,
             ),
         ):
             pass
@@ -269,6 +278,55 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         send_ipc_message({"block_timestamp": now + 1})
         send_ipc_message({"next_blockhash": next_blockhash})
         assert_equal(node.getblockcount(), finalized_height + 2)
+        yield True
+
+        self.log.info("Step 15: Finalize a tx via preconsensus")
+
+        def finalize_tx(txid):
+            def vote_until_final():
+                can_find_inv_in_poll(
+                    quorum,
+                    int(txid, 16),
+                    response=AvalancheVoteError.ACCEPTED,
+                    other_response=AvalancheVoteError.UNKNOWN,
+                )
+                return node.isfinaltransaction(txid)
+
+            self.wait_until(vote_until_final)
+
+        final_txid = node.sendtoaddress(p2pkh_address, 1000)
+        send_ipc_message({"final_txid": final_txid})
+        assert final_txid in node.getrawmempool()
+
+        finalize_tx(final_txid)
+        node.syncwithvalidationinterfacequeue()
+
+        yield True
+
+        self.log.info("Step 16: Invalidate a tx via preconsensus")
+
+        def invalidate_tx(txid):
+            def vote_until_invalid():
+                can_find_inv_in_poll(
+                    quorum,
+                    int(txid, 16),
+                    response=AvalancheVoteError.INVALID,
+                    other_response=AvalancheVoteError.UNKNOWN,
+                )
+                return (
+                    txid not in node.getrawmempool()
+                    and node.gettransactionstatus(txid)["pool"] == "none"
+                )
+
+            self.wait_until(vote_until_invalid)
+
+        invalid_txid = node.sendtoaddress(p2pkh_address, 1000)
+        send_ipc_message({"invalid_txid": invalid_txid})
+        assert invalid_txid in node.getrawmempool()
+
+        invalidate_tx(invalid_txid)
+        node.syncwithvalidationinterfacequeue()
+
         yield True
 
 

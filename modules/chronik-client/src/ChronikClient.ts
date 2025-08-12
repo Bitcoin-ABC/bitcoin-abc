@@ -1148,11 +1148,18 @@ export class WsEndpoint {
             }
             this.onMessage(msgBlock);
         } else if (typeof msg.tx !== 'undefined') {
-            this.onMessage({
+            const txMsg: MsgTxClient = {
                 type: 'Tx',
                 msgType: convertToTxMsgType(msg.tx.msgType),
                 txid: toHexRev(msg.tx.txid),
-            });
+            };
+            if (typeof msg.tx.finalizationReason !== 'undefined') {
+                txMsg.finalizationReasonType =
+                    convertToTxFinalizationReasonType(
+                        msg.tx.finalizationReason.finalizationType,
+                    );
+            }
+            this.onMessage(txMsg);
         } else {
             console.log('Silently ignored unknown Chronik message:', msg);
         }
@@ -1534,6 +1541,27 @@ function convertToTxMsgType(msgType: proto.TxMsgType): TxMsgType {
     return 'UNRECOGNIZED';
 }
 
+function isTxMsgType(msgType: any): msgType is TxMsgType {
+    return TX_MSG_TYPES.includes(msgType);
+}
+
+// Add converter and type guards for tx finalization reason
+function convertToTxFinalizationReasonType(
+    reason: proto.TxFinalizationReasonType,
+): TxFinalizationReasonType {
+    const reasonStr = proto.txFinalizationReasonTypeToJSON(reason);
+    if (isTxFinalizationReasonType(reasonStr)) {
+        return reasonStr;
+    }
+    return 'UNRECOGNIZED';
+}
+
+function isTxFinalizationReasonType(
+    reason: any,
+): reason is TxFinalizationReasonType {
+    return TX_FINALIZATION_REASON_TYPES.includes(reason);
+}
+
 function convertToTokenInfo(tokenInfo: proto.TokenInfo): TokenInfo {
     if (typeof tokenInfo.tokenType === 'undefined') {
         // Not expected to ever happen
@@ -1597,10 +1625,6 @@ function convertToGenesisInfo(
     }
 
     return returnedGenesisInfo;
-}
-
-function isTxMsgType(msgType: any): msgType is TxMsgType {
-    return TX_MSG_TYPES.includes(msgType);
 }
 
 function convertToCoinbaseData(coinbaseData: proto.CoinbaseData): CoinbaseData {
@@ -2083,6 +2107,8 @@ export interface MsgTxClient {
     msgType: TxMsgType;
     /** Txid of the tx (human-readable big-endian) */
     txid: string;
+    /** If the tx is finalized, why it was finalized */
+    finalizationReasonType?: TxFinalizationReasonType;
 }
 
 /** Tx message types that can come from chronik */
@@ -2091,6 +2117,7 @@ export type TxMsgType =
     | 'TX_REMOVED_FROM_MEMPOOL'
     | 'TX_CONFIRMED'
     | 'TX_FINALIZED'
+    | 'TX_INVALIDATED'
     | 'UNRECOGNIZED';
 
 const TX_MSG_TYPES: TxMsgType[] = [
@@ -2098,6 +2125,19 @@ const TX_MSG_TYPES: TxMsgType[] = [
     'TX_REMOVED_FROM_MEMPOOL',
     'TX_CONFIRMED',
     'TX_FINALIZED',
+    'TX_INVALIDATED',
+    'UNRECOGNIZED',
+];
+
+/** Reasons a tx can be finalized by Avalanche */
+export type TxFinalizationReasonType =
+    | 'TX_FINALIZATION_REASON_POST_CONSENSUS'
+    | 'TX_FINALIZATION_REASON_PRE_CONSENSUS'
+    | 'UNRECOGNIZED';
+
+const TX_FINALIZATION_REASON_TYPES: TxFinalizationReasonType[] = [
+    'TX_FINALIZATION_REASON_POST_CONSENSUS',
+    'TX_FINALIZATION_REASON_PRE_CONSENSUS',
     'UNRECOGNIZED',
 ];
 

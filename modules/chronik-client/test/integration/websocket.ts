@@ -44,6 +44,8 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let get_coinbase_out_value: Promise<number>;
     let get_coinbase_out_scriptpubkey: Promise<string>;
     let get_mixed_output_txid: Promise<string>;
+    let get_final_txid: Promise<string>;
+    let get_invalid_txid: Promise<string>;
     const statusEvent = new EventEmitter();
     // Collect websocket msgs in an array for analysis in each step
     let msgCollector: Array<WsMsgClient> = [];
@@ -158,6 +160,18 @@ describe('Test expected websocket behavior of chronik-client', () => {
                     resolve(message.mixed_output_txid);
                 });
             }
+
+            if (message && message.final_txid) {
+                get_final_txid = new Promise(resolve => {
+                    resolve(message.final_txid);
+                });
+            }
+
+            if (message && message.invalid_txid) {
+                get_invalid_txid = new Promise(resolve => {
+                    resolve(message.invalid_txid);
+                });
+            }
         });
 
         await once(statusEvent, 'ready');
@@ -222,6 +236,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let coinbaseOutScriptpubkey = '';
 
     let mixedOutputTxid = '';
+
+    let finalTxid = '';
+    let invalidTxid = '';
 
     let ws: WsEndpoint;
 
@@ -425,6 +442,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
             type: 'Tx',
             msgType: 'TX_FINALIZED',
             txid: EXPECTED_COINBASE_TXID,
+            finalizationReasonType: 'TX_FINALIZATION_REASON_POST_CONSENSUS',
         });
 
         // We only get these msgs
@@ -525,6 +543,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 type: 'Tx',
                 msgType: 'TX_FINALIZED',
                 txid: txid,
+                finalizationReasonType: 'TX_FINALIZATION_REASON_POST_CONSENSUS',
             });
         }
 
@@ -822,5 +841,66 @@ describe('Test expected websocket behavior of chronik-client', () => {
         // Had we stayed subscribed, we would have expected to receive
         // Tx Confirmed msgs for the mixedTx in last step and block connected for new block
         expect(msgCollector.length).to.eql(0);
+
+        // Subscribe to p2pkh script again for the next step
+        ws.subscribeToScript('p2pkh', p2pkhHash);
+    });
+    it('After a tx is finalized via preconsensus', async () => {
+        finalTxid = await get_final_txid;
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(2, msgCollector);
+
+        let txMsg = msgCollector.shift();
+
+        // First the tx is added to mempool
+        expect(txMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
+            txid: finalTxid,
+        });
+
+        txMsg = msgCollector.shift();
+
+        // Then the tx is finalized
+        expect(txMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_FINALIZED',
+            txid: finalTxid,
+            finalizationReasonType: 'TX_FINALIZATION_REASON_PRE_CONSENSUS',
+        });
+    });
+    it('After a tx is invalidated via preconsensus', async () => {
+        invalidTxid = await get_invalid_txid;
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(3, msgCollector);
+
+        let txMsg = msgCollector.shift();
+
+        // First the tx is added to mempool
+        expect(txMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
+            txid: invalidTxid,
+        });
+
+        txMsg = msgCollector.shift();
+
+        // Then the tx is removed from mempool
+        expect(txMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_REMOVED_FROM_MEMPOOL',
+            txid: invalidTxid,
+        });
+
+        txMsg = msgCollector.shift();
+
+        // Then the tx is invalidated
+        expect(txMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_INVALIDATED',
+            txid: invalidTxid,
+        });
     });
 });
