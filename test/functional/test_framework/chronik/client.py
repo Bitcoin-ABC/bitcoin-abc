@@ -186,8 +186,9 @@ class ChronikWs:
         self.ping_interval = kwargs.get("ping_interval", 10)
         self.ping_timeout = kwargs.get("ping_timeout", 5)
         self.is_open = False
+        ws_protocol = 'wss' if client.https else 'ws'
         self.ws_url = (
-            f"{'wss' if client.https else 'ws'}://{client.host}:{client.port}/ws"
+            f"{ws_protocol}://{client.host}:{client.port}{client.path_prefix}/ws"
         )
 
         self.ws = websocket.WebSocketApp(
@@ -305,7 +306,10 @@ class ChronikClient:
     def __init__(
         self, host: str, port: int, https=False, timeout=DEFAULT_TIMEOUT
     ) -> None:
-        self.host = host
+        # Support for hosts in the form of "https://chronik.foo/xec"
+        host_parts = host.split("/", maxsplit=1)
+        self.host = host_parts[0]
+        self.path_prefix = "/" + host_parts[1] if len(host_parts) > 1 else ""
         self.port = port
         self.timeout = timeout
         self.https = https
@@ -325,6 +329,7 @@ class ChronikClient:
         headers = {}
         if body is not None:
             headers["Content-Type"] = self.CONTENT_TYPE
+        path = self.path_prefix + path
         client.request(method, path, body, headers)
         response = client.getresponse()
         content_type = response.getheader("Content-Type")
