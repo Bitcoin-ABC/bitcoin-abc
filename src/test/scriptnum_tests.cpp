@@ -33,7 +33,7 @@ static const int64_t offsets[] = {1,      0x79,   0x80,   0x81,   0xFF,
                                   0x7FFF, 0x8000, 0xFFFF, 0x10000};
 
 static void CheckCreateVch(const int64_t &num, const size_t nMaxNumSize) {
-    // If scriptnum doesn't fit in nMaxNumSize, this will throw scriptnum_error
+    // If scriptnum doesn't fit in nMaxNumSize, throws scriptnum_overflow_error
     CScriptNum(CScriptNum(num).getvch(), false, nMaxNumSize);
 }
 
@@ -131,7 +131,7 @@ static void RunCreate(const int64_t &num) {
     } else {
         BOOST_CHECK_EXCEPTION(
             CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT),
-            scriptnum_error, HasReason("script number overflow"));
+            scriptnum_overflow_error, HasReason("script number overflow"));
     }
 
     // Test in 63+sign-bit context
@@ -140,7 +140,7 @@ static void RunCreate(const int64_t &num) {
     } else {
         BOOST_CHECK_EXCEPTION(
             CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_63_BIT),
-            scriptnum_error, HasReason("script number overflow"));
+            scriptnum_overflow_error, HasReason("script number overflow"));
     }
 }
 

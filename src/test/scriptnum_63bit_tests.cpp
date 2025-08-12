@@ -137,7 +137,7 @@ static void CheckErrorOrOverflow(const stacktype &original_stack,
         BOOST_CHECK(!r);
         if (inputs_overflow) {
             // Overflow
-            BOOST_CHECK_EQUAL(err, ScriptError::UNKNOWN);
+            BOOST_CHECK_EQUAL(err, ScriptError::INTEGER_OVERFLOW);
         } else {
             BOOST_CHECK_EQUAL(err, expected_error);
         }
@@ -158,7 +158,7 @@ static void CheckPassOrOverflow(const stacktype &original_stack,
         if (inputs_overflow || result_overflow) {
             // Overflow
             BOOST_CHECK(!r);
-            BOOST_CHECK_EQUAL(err, ScriptError::UNKNOWN);
+            BOOST_CHECK_EQUAL(err, ScriptError::INTEGER_OVERFLOW);
         } else {
             valtype result_script = FromInt128(expected_int);
             stacktype expected({result_script});

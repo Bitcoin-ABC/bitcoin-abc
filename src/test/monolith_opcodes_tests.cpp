@@ -42,7 +42,7 @@ static void CheckError(uint32_t flags, const stacktype &original_stack,
     stacktype stack{original_stack};
     bool r = EvalScript(stack, script, flags, sigchecker, &err);
     BOOST_CHECK(!r);
-    BOOST_CHECK(err == expected_error);
+    BOOST_CHECK_EQUAL(err, expected_error);
 }
 
 static void CheckErrorForAllFlags(const stacktype &original_stack,
@@ -615,9 +615,9 @@ BOOST_AUTO_TEST_CASE(type_conversion_test) {
     // Values that do not fit in 4 bytes are considered out of range for
     // BIN2NUM.
     CheckBin2NumError({{0xab, 0xcd, 0xef, 0xc2, 0x80}},
-                      ScriptError::INVALID_NUMBER_RANGE);
+                      ScriptError::INTEGER_OVERFLOW);
     CheckBin2NumError({{0x00, 0x00, 0x00, 0x80, 0x80}},
-                      ScriptError::INVALID_NUMBER_RANGE);
+                      ScriptError::INTEGER_OVERFLOW);
 
     // NUM2BIN must not generate oversized push.
     valtype largezero(MAX_SCRIPT_ELEMENT_SIZE, 0);
@@ -659,22 +659,22 @@ static void CheckDivMod(const valtype &a, const valtype &b,
 
         if (flags & SCRIPT_VERIFY_MINIMALDATA) {
             CheckError(flags, {a, {0x00}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
             CheckError(flags, {a, {0x80}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
             CheckError(flags, {a, {0x00, 0x00}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
             CheckError(flags, {a, {0x00, 0x80}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
 
             CheckError(flags, {b, {0x00}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
             CheckError(flags, {b, {0x80}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
             CheckError(flags, {b, {0x00, 0x00}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
             CheckError(flags, {b, {0x00, 0x80}}, CScript() << OP_DIV,
-                       ScriptError::UNKNOWN);
+                       ScriptError::BAD_INTEGER_ENCODING);
         } else {
             CheckError(flags, {a, {0x00}}, CScript() << OP_DIV,
                        ScriptError::DIV_BY_ZERO);
@@ -733,11 +733,11 @@ BOOST_AUTO_TEST_CASE(div_and_mod_opcode_tests) {
     // CheckOps not valid numbers
     CheckDivModError(
         {{0x01, 0x02, 0x03, 0x04, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05}},
-        ScriptError::UNKNOWN);
+        ScriptError::INTEGER_OVERFLOW);
     CheckDivModError({{0x01, 0x02, 0x03, 0x04, 0x05}, {0x01}},
-                     ScriptError::UNKNOWN);
+                     ScriptError::INTEGER_OVERFLOW);
     CheckDivModError({{0x01, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05}},
-                     ScriptError::UNKNOWN);
+                     ScriptError::INTEGER_OVERFLOW);
 
     // 0x185377af / 0x85f41b01 = -4
     // 0x185377af % 0x85f41b01 = 0x00830bab

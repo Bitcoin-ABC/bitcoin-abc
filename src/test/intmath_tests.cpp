@@ -116,10 +116,11 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
         // Test CScriptNum + and +=
         if (expect_overflow) {
             BOOST_CHECK_EXCEPTION(CScriptNum(a_64) + CScriptNum(b_64),
-                                  scriptnum_error,
+                                  scriptnum_overflow_error,
                                   HasReason("script number overflow"));
             CScriptNum lhs(a_64);
-            BOOST_CHECK_EXCEPTION(lhs += CScriptNum(b_64), scriptnum_error,
+            BOOST_CHECK_EXCEPTION(lhs += CScriptNum(b_64),
+                                  scriptnum_overflow_error,
                                   HasReason("script number overflow"));
         } else {
             BOOST_CHECK_EQUAL((CScriptNum(a_64) + CScriptNum(b_64)).getint(),
@@ -149,10 +150,11 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
         // Test CScriptNum - and -=
         if (expect_overflow) {
             BOOST_CHECK_EXCEPTION(CScriptNum(a_64) - CScriptNum(b_64),
-                                  scriptnum_error,
+                                  scriptnum_overflow_error,
                                   HasReason("script number overflow"));
             CScriptNum lhs(a_64);
-            BOOST_CHECK_EXCEPTION(lhs -= CScriptNum(b_64), scriptnum_error,
+            BOOST_CHECK_EXCEPTION(lhs -= CScriptNum(b_64),
+                                  scriptnum_overflow_error,
                                   HasReason("script number overflow"));
         } else {
             BOOST_CHECK_EQUAL((CScriptNum(a_64) - CScriptNum(b_64)).getint(),

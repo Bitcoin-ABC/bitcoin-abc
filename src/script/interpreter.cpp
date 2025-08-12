@@ -196,7 +196,23 @@ bool ScriptInterpreter::RunUntilEnd() {
     return set_success(&script_error);
 }
 
-bool ScriptInterpreter::RunNextOp() {
+bool ScriptInterpreter::RunNextOp() noexcept {
+    try {
+        if (!RunNextOpInner()) {
+            // script_error is set
+            return false;
+        }
+    } catch (scriptnum_overflow_error &e) {
+        return set_error(&script_error, ScriptError::INTEGER_OVERFLOW);
+    } catch (scriptnum_encoding_error &e) {
+        return set_error(&script_error, ScriptError::BAD_INTEGER_ENCODING);
+    } catch (...) {
+        return set_error(&script_error, ScriptError::UNKNOWN);
+    }
+    return true;
+}
+
+bool ScriptInterpreter::RunNextOpInner() {
     static const CScriptNum bnZero(0);
     static const CScriptNum bnOne(1);
     static const valtype vchFalse(0);
@@ -1335,8 +1351,10 @@ bool ScriptInterpreter::RunNextOp() {
                 CScriptNum::MinimallyEncode(n);
 
                 // The resulting number must be a valid number.
+                // Note: Since n is already minimally encoded, this only checks
+                // for integer overflows.
                 if (!CScriptNum::IsMinimallyEncoded(n, nMaxNumSize)) {
-                    return set_error(serror, ScriptError::INVALID_NUMBER_RANGE);
+                    return set_error(serror, ScriptError::INTEGER_OVERFLOW);
                 }
             } break;
 

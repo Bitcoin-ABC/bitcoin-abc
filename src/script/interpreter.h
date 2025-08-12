@@ -142,9 +142,9 @@ public:
     // Run all opcodes to completion, setting script_error on any error
     bool RunUntilEnd();
 
-    // Execute the next op of the script, return `false` if it failed
-    // May throw an exception if there's e.g. an integer overflow
-    bool RunNextOp();
+    // Execute the next op of the script, return `false` if it failed.
+    // The corresponding error can be obtained via GetScriptError
+    bool RunNextOp() noexcept;
 
     // Get the condition stack, determining if opcodes are currently executed
     const ConditionStack &GetConditionStack() { return vfExec; }
@@ -161,6 +161,12 @@ public:
     const std::vector<std::vector<uint8_t>> &GetAltStack() const {
         return altstack;
     }
+
+private:
+    // Inner private opcode execution function, called by RunNextOp.
+    // Execute the next op of the script, return `false` if it failed.
+    // May throw an exception if there's e.g. an integer overflow.
+    bool RunNextOpInner();
 };
 
 bool EvalScript(std::vector<std::vector<uint8_t>> &stack, const CScript &script,

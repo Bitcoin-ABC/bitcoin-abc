@@ -510,7 +510,7 @@ def test_redeem_script_exception():
         "-inputindex=0",
         "-scriptpubkey=" + script_pub_key.hex(),
         "-value=0",
-        expected_stderr="redeemScript failed execution: Exception: script number overflow\n",
+        expected_stderr="redeemScript failed execution: Integer overflow\n",
     )
     assert (
         stdout

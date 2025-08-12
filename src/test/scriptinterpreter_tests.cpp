@@ -153,7 +153,8 @@ BOOST_AUTO_TEST_CASE(RunUntilEnd_test) {
         ScriptInterpreter interpreter(stack, script, flags, checker, metrics);
         BOOST_CHECK(!interpreter.RunUntilEnd());
         BOOST_CHECK(interpreter.IsAtEnd());
-        BOOST_CHECK_EQUAL(interpreter.GetScriptError(), ScriptError::UNKNOWN);
+        BOOST_CHECK_EQUAL(interpreter.GetScriptError(),
+                          ScriptError::INTEGER_OVERFLOW);
     }
 }
 

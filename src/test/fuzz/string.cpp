@@ -221,7 +221,11 @@ FUZZ_TARGET(string) {
     (void)ContainsNoNUL(random_string_1);
     (void)_(random_string_1.c_str());
     try {
-        throw scriptnum_error{random_string_1};
+        throw scriptnum_overflow_error{random_string_1};
+    } catch (const std::runtime_error &) {
+    }
+    try {
+        throw scriptnum_encoding_error{random_string_1};
     } catch (const std::runtime_error &) {
     }
 

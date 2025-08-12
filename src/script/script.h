@@ -212,9 +212,13 @@ std::string GetOpName(opcodetype opcode);
  */
 bool CheckMinimalPush(const std::vector<uint8_t> &data, opcodetype opcode);
 
-class scriptnum_error : public std::runtime_error {
-public:
-    explicit scriptnum_error(const std::string &str)
+struct scriptnum_overflow_error : public std::runtime_error {
+    explicit scriptnum_overflow_error(const std::string &str)
+        : std::runtime_error(str) {}
+};
+
+struct scriptnum_encoding_error : public std::runtime_error {
+    explicit scriptnum_encoding_error(const std::string &str)
         : std::runtime_error(str) {}
 };
 
@@ -234,10 +238,11 @@ public:
     explicit CScriptNum(const std::vector<uint8_t> &vch, bool fRequireMinimal,
                         const size_t nMaxNumSize) {
         if (vch.size() > nMaxNumSize) {
-            throw scriptnum_error("script number overflow");
+            throw scriptnum_overflow_error("script number overflow");
         }
         if (fRequireMinimal && !IsMinimallyEncoded(vch, nMaxNumSize)) {
-            throw scriptnum_error("non-minimally encoded script number");
+            throw scriptnum_encoding_error(
+                "non-minimally encoded script number");
         }
         m_value = set_vch(vch);
     }
@@ -276,14 +281,14 @@ public:
     inline CScriptNum operator+(const int64_t &rhs) const {
         int64_t result;
         if (AddInt63Overflow(m_value, rhs, result)) {
-            throw scriptnum_error("script number overflow");
+            throw scriptnum_overflow_error("script number overflow");
         }
         return CScriptNum(result);
     }
     inline CScriptNum operator-(const int64_t &rhs) const {
         int64_t result;
         if (SubInt63Overflow(m_value, rhs, result)) {
-            throw scriptnum_error("script number overflow");
+            throw scriptnum_overflow_error("script number overflow");
         }
         return CScriptNum(result);
     }

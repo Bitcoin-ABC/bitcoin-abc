@@ -42,9 +42,10 @@ std::string ScriptErrorString(const ScriptError serror) {
             return "Input SigChecks limit exceeded";
         case ScriptError::INVALID_OPERAND_SIZE:
             return "Invalid operand size";
-        case ScriptError::INVALID_NUMBER_RANGE:
-            return "Given operand is not a number within the valid range "
-                   "[-2^31...2^31]";
+        case ScriptError::INTEGER_OVERFLOW:
+            return "Integer overflow";
+        case ScriptError::BAD_INTEGER_ENCODING:
+            return "Integer non-minimally encoded";
         case ScriptError::IMPOSSIBLE_ENCODING:
             return "The requested encoding is impossible to satisfy";
         case ScriptError::INVALID_SPLIT_RANGE:
