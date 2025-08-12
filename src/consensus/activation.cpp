@@ -114,21 +114,6 @@ bool IsCowperthwaiteEnabled(const Consensus::Params &params,
     return IsCowperthwaiteEnabled(params, pindexPrev->nHeight);
 }
 
-bool IsSchumpeterEnabled(const Consensus::Params &params,
-                         int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetIntArg("-schumpeteractivationtime",
-                                              params.schumpeterActivationTime);
-}
-
-bool IsSchumpeterEnabled(const Consensus::Params &params,
-                         const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsSchumpeterEnabled(params, pindexPrev->GetMedianTimePast());
-}
-
 bool IsShibusawaEnabled(const Consensus::Params &params,
                         int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetIntArg("-shibusawaactivationtime",

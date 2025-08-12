@@ -96,14 +96,14 @@ add_dependencies(check-extended check-functional-extended)
 
 add_functional_test_check(check-functional-upgrade-activated
 	"functional tests with the next upgrade activated"
-	--with-schumpeteractivation
+	--with-shibusawaactivation
 )
 add_dependencies(check-upgrade-activated check-functional-upgrade-activated)
 
 add_functional_test_check(check-functional-upgrade-activated-extended
 	"extended functional tests with the next upgrade activated"
 	--extended
-	--with-schumpeteractivation
+	--with-shibusawaactivation
 )
 add_dependencies(check-upgrade-activated-extended check-functional-upgrade-activated-extended)
 
