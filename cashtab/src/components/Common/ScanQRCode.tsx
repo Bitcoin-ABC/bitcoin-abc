@@ -21,25 +21,79 @@ const QRPreview = styled.div`
     width: 100%;
     height: 100%;
     position: relative;
+    overflow: hidden;
     & video,
     & canvas {
         width: 100% !important;
         height: 100% !important;
-        object-fit: cover;
+        object-fit: contain;
+    }
+    & video::-webkit-media-controls,
+    & video::-webkit-media-controls-enclosure,
+    & video::-webkit-media-controls-start-playback-button {
+        display: none !important;
     }
 `;
 
-const ZoomControls = styled.div`
+const ControlsBar = styled.div`
     position: absolute;
-    left: 12px;
-    right: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 80px);
     bottom: 12px;
     z-index: 1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+`;
+
+const TorchButton = styled.button<{ off: boolean }>`
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    padding: 8px;
+    border-radius: 50%;
+    border: 1px solid ${props => props.theme.secondaryAccent};
+    background: ${props => props.theme.secondaryBackground};
+    color: ${props => props.theme.primaryText};
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    overflow: visible;
+    &:after {
+        content: ${props => (props.off ? "''" : "'\u274C'")};
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        font-size: 14px;
+    }
 `;
 
 interface ScanQRCodeProps {
     onScan: (value: string) => void;
 }
+
+// Minimal local copy of the Html5Qrcode start options type to avoid using 'any'
+type QrboxFunction = (
+    viewfinderWidth: number,
+    viewfinderHeight: number,
+) => { width: number; height: number };
+interface Html5QrcodeStartOptionsLike {
+    fps: number;
+    qrbox?: number | QrboxFunction;
+    formatsToSupport?: Html5QrcodeSupportedFormats[];
+    experimentalFeatures?: { useBarCodeDetectorIfSupported?: boolean };
+    willReadFrequently?: boolean;
+    aspectRatio?: number;
+    videoConstraints?: MediaTrackConstraints;
+}
+
+// Global aspect ratio used across platforms
+const ASPECT_RATIO = 16 / 9;
 
 /**
  * Component to scan QR codes using the webcam
@@ -62,14 +116,92 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
     const [zoomMax, setZoomMax] = useState<number | null>(null);
     const [zoomStep, setZoomStep] = useState<number | null>(null);
     const [zoomValue, setZoomValue] = useState<number | null>(null);
-    const [modalSize, setModalSize] = useState<number>(480);
+    const [modalWidth, setModalWidth] = useState<number>(480);
+    const [modalHeight, setModalHeight] = useState<number>(360);
+    const [torchSupported, setTorchSupported] = useState(false);
+    const [torchOn, setTorchOn] = useState(false);
 
-    const computeModalSize = () => {
-        if (typeof window === 'undefined') return 480;
-        const vw = Math.floor(window.innerWidth * 0.9);
-        const vh = Math.floor(window.innerHeight * 0.9);
-        // Keep it square and within viewport
-        return Math.max(300, Math.min(vw, vh));
+    const isCapacitorAndroid = (): boolean => {
+        try {
+            const w: any = (globalThis as any).window || (globalThis as any);
+            const Capacitor = w?.Capacitor || (globalThis as any).Capacitor;
+            const platform =
+                typeof Capacitor?.getPlatform === 'function'
+                    ? Capacitor.getPlatform()
+                    : Capacitor?.platform;
+            return platform === 'android';
+        } catch {
+            return false;
+        }
+    };
+
+    const requestAndroidCameraPermission = async (): Promise<void> => {
+        if (!isCapacitorAndroid()) return;
+        try {
+            const w: any = (globalThis as any).window || (globalThis as any);
+            const Capacitor = w?.Capacitor || (globalThis as any).Capacitor;
+            const Camera = w?.Camera || Capacitor?.Plugins?.Camera;
+            if (Camera?.requestPermissions) {
+                await Camera.requestPermissions();
+            }
+        } catch (e) {
+            // Non-fatal: proceed and let getUserMedia surface errors
+            console.warn('Camera permission request failed', e);
+        }
+    };
+
+    const isMobileDevice = (): boolean => {
+        try {
+            const ua = navigator.userAgent || '';
+            if (
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                    ua,
+                )
+            ) {
+                return true;
+            }
+            return (window.innerWidth || 0) <= 768;
+        } catch {
+            return false;
+        }
+    };
+
+    const computeModalDims = (): {
+        width: number;
+        height: number;
+        paddingPx: number;
+    } => {
+        if (typeof window === 'undefined')
+            return { width: 480, height: 360, paddingPx: 12 };
+        const vv: any = (window as any).visualViewport;
+        const viewportW = vv && vv.width ? vv.width : window.innerWidth;
+        const viewportH = vv && vv.height ? vv.height : window.innerHeight;
+        if (isMobileDevice()) {
+            // Fullscreen modal on mobile with no padding; overlays float on top
+            return {
+                width: Math.floor(viewportW),
+                height: Math.floor(viewportH),
+                paddingPx: 0,
+            };
+        }
+        // Desktop: keep 16:9 area centered with modest padding
+        const paddingPx = 12;
+        const availableW = Math.floor(viewportW - paddingPx * 2);
+        const availableH = Math.floor(viewportH - paddingPx * 2);
+        const targetRatio = ASPECT_RATIO;
+        let width = Math.min(availableW, Math.floor(availableH * targetRatio));
+        let height = Math.floor(width / targetRatio);
+        const minEdge = 300;
+        if (Math.min(width, height) < minEdge) {
+            if (width < height) {
+                width = Math.min(availableW, minEdge);
+                height = Math.floor(width / targetRatio);
+            } else {
+                height = Math.min(availableH, minEdge);
+                width = Math.floor(height * targetRatio);
+            }
+        }
+        return { width, height, paddingPx };
     };
 
     const applyVideoConstraints = async (
@@ -91,48 +223,81 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
     const scanForQrCode = async () => {
         // https://www.npmjs.com/package/html5-qrcode
         try {
+            await requestAndroidCameraPermission();
             const instance = new Html5Qrcode('test-area-qr-code-webcam');
             setQrInstance(instance);
 
-            const qrboxFunction = (
-                viewfinderWidth: number,
-                viewfinderHeight: number,
-            ) => {
-                // Square QR Box at ~80% of the min edge, min 250px
-                const minEdge =
-                    viewfinderWidth > viewfinderHeight
-                        ? viewfinderHeight
-                        : viewfinderWidth;
-                const minEdgeSizeThreshold = 250;
-                const edgeSizePercentage = 0.8;
-                const boxSize = Math.floor(minEdge * edgeSizePercentage);
-                if (boxSize < minEdgeSizeThreshold) {
-                    const size = Math.min(minEdge, minEdgeSizeThreshold);
-                    return { width: size, height: size };
-                }
-                return { width: boxSize, height: boxSize };
-            };
+            const mobile = isMobileDevice();
+            const hasBarcodeDetector =
+                typeof (window as any).BarcodeDetector === 'function';
+            // Prefer full-frame ROI where possible to maximize info for dense codes
+            const qrbox = hasBarcodeDetector
+                ? (viewfinderWidth: number, viewfinderHeight: number) => ({
+                      width: viewfinderWidth,
+                      height: viewfinderHeight,
+                  })
+                : mobile
+                ? Math.floor(
+                      Math.max(250, Math.min(modalWidth, modalHeight)) * 0.85,
+                  )
+                : (viewfinderWidth: number, viewfinderHeight: number) => ({
+                      width: viewfinderWidth,
+                      height: viewfinderHeight,
+                  });
 
-            const qrConfig = {
-                fps: 10,
-                qrbox: qrboxFunction,
+            const qrConfig: Html5QrcodeStartOptionsLike = {
+                fps: hasBarcodeDetector ? 12 : 10,
+                qrbox,
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
                 experimentalFeatures: { useBarCodeDetectorIfSupported: true },
                 willReadFrequently: true,
-            } as const;
+                aspectRatio: ASPECT_RATIO,
+            };
 
-            await instance.start(
-                { facingMode: 'environment' },
-                qrConfig,
-                decodedText => {
-                    onScan(decodedText);
-                    // Close modal; useEffect will stop/clear the instance safely
-                    setVisible(false);
-                },
-                () => {
-                    // Ignore scan errors; keep scanning
-                },
-            );
+            // Prefer a back/rear/environment camera; never use front
+            let cameraParam: any = { facingMode: 'environment' };
+            try {
+                const getCameras = (Html5Qrcode as any).getCameras;
+                if (typeof getCameras === 'function') {
+                    const cameras = await getCameras();
+                    if (Array.isArray(cameras) && cameras.length > 0) {
+                        const backRegex = /back|rear|environment/i;
+                        const back = cameras.find((c: any) =>
+                            backRegex.test(c.label || ''),
+                        );
+                        if (back && back.id) cameraParam = back.id;
+                    }
+                }
+            } catch {
+                // ignore enumeration failures
+            }
+
+            try {
+                await instance.start(
+                    cameraParam,
+                    qrConfig,
+                    decodedText => {
+                        onScan(decodedText);
+                        setVisible(false);
+                    },
+                    () => {
+                        /* noop */
+                    },
+                );
+            } catch {
+                // fallback: explicit facingMode environment
+                await instance.start(
+                    { facingMode: 'environment' },
+                    qrConfig,
+                    decodedText => {
+                        onScan(decodedText);
+                        setVisible(false);
+                    },
+                    () => {
+                        /* noop */
+                    },
+                );
+            }
 
             // After start, try to detect and initialize zoom support
             try {
@@ -154,9 +319,8 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                     setZoomMin(zoomCaps.min);
                     setZoomMax(zoomCaps.max);
                     setZoomStep(zoomCaps.step || 0.1);
-                    // We default to 1x zoom although scanapp.org does 1.5, seems to work best
-                    // User has option to adjust
-                    const desired = 1;
+                    // Default to 1.5x zoom for faster decode if supported
+                    const desired = 1.5;
                     const initial = Math.min(
                         Math.max(desired, zoomCaps.min),
                         zoomCaps.max,
@@ -172,6 +336,22 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                 } else {
                     setZoomSupported(false);
                 }
+                // Attempt continuous focus to improve decode stability
+                try {
+                    await applyVideoConstraints(instance, {
+                        advanced: [
+                            {
+                                // Not standardized everywhere; best-effort
+                                focusMode: 'continuous',
+                            } as unknown as MediaTrackConstraintSet,
+                        ],
+                    });
+                } catch {
+                    /* noop */
+                }
+                // Torch capability
+                const torchCap = (caps as any)?.torch;
+                setTorchSupported(Boolean(torchCap));
             } catch {
                 setZoomSupported(false);
             }
@@ -198,12 +378,34 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
             setZoomValue(null);
         } else {
             // Initialize modal size and bind resize listener
-            const size = computeModalSize();
-            setModalSize(size);
-            const onResize = () => setModalSize(computeModalSize());
+            const dims = computeModalDims();
+            setModalWidth(dims.width);
+            setModalHeight(dims.height);
+            // Prevent background/body scrolling while modal is open
+            const previousOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            const onResize = () => {
+                const next = computeModalDims();
+                setModalWidth(next.width);
+                setModalHeight(next.height);
+            };
             window.addEventListener('resize', onResize);
-            scanForQrCode();
-            return () => window.removeEventListener('resize', onResize);
+            const vv: any = (window as any).visualViewport;
+            if (vv && typeof vv.addEventListener === 'function') {
+                vv.addEventListener('resize', onResize);
+            }
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    scanForQrCode();
+                }, 0);
+            });
+            return () => {
+                window.removeEventListener('resize', onResize);
+                if (vv && typeof vv.removeEventListener === 'function') {
+                    vv.removeEventListener('resize', onResize);
+                }
+                document.body.style.overflow = previousOverflow;
+            };
         }
     }, [visible]);
 
@@ -220,8 +422,10 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                 <Modal
                     handleCancel={() => setVisible(false)}
                     showButtons={false}
-                    width={modalSize}
-                    height={modalSize}
+                    width={modalWidth}
+                    height={modalHeight}
+                    noScroll
+                    paddingPx={isMobileDevice() ? 0 : 12}
                 >
                     {error ? (
                         <Alert>{`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}</Alert>
@@ -229,35 +433,66 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                         <QRPreview
                             title="Video Preview"
                             id="test-area-qr-code-webcam"
-                        ></QRPreview>
-                    )}
-                    {zoomSupported && zoomMin !== null && zoomMax !== null && (
-                        <ZoomControls>
-                            <input
-                                type="range"
-                                min={zoomMin}
-                                max={zoomMax}
-                                step={zoomStep || 0.1}
-                                value={zoomValue || zoomMin}
-                                onChange={async e => {
-                                    const value = parseFloat(e.target.value);
-                                    setZoomValue(value);
-                                    if (qrInstance) {
-                                        await applyVideoConstraints(
-                                            qrInstance,
-                                            {
-                                                advanced: [
-                                                    {
-                                                        zoom: value,
-                                                    } as unknown as MediaTrackConstraintSet,
-                                                ],
-                                            },
-                                        );
-                                    }
-                                }}
-                                aria-label="Zoom"
-                            />
-                        </ZoomControls>
+                            style={{ width: '100%', height: '100%' }}
+                        >
+                            {zoomSupported &&
+                                zoomMin !== null &&
+                                zoomMax !== null && (
+                                    <ControlsBar>
+                                        <input
+                                            type="range"
+                                            min={zoomMin}
+                                            max={zoomMax}
+                                            step={zoomStep || 0.1}
+                                            value={zoomValue || zoomMin}
+                                            onChange={async e => {
+                                                const value = parseFloat(
+                                                    e.target.value,
+                                                );
+                                                setZoomValue(value);
+                                                if (qrInstance) {
+                                                    await applyVideoConstraints(
+                                                        qrInstance,
+                                                        {
+                                                            advanced: [
+                                                                {
+                                                                    zoom: value,
+                                                                } as unknown as MediaTrackConstraintSet,
+                                                            ],
+                                                        },
+                                                    );
+                                                }
+                                            }}
+                                            aria-label="Zoom"
+                                        />
+                                        {torchSupported && (
+                                            <TorchButton
+                                                off={!torchOn}
+                                                onClick={async () => {
+                                                    const next = !torchOn;
+                                                    setTorchOn(next);
+                                                    if (qrInstance) {
+                                                        await applyVideoConstraints(
+                                                            qrInstance,
+                                                            {
+                                                                advanced: [
+                                                                    {
+                                                                        torch: next,
+                                                                    } as unknown as MediaTrackConstraintSet,
+                                                                ],
+                                                            },
+                                                        );
+                                                    }
+                                                }}
+                                                aria-label="Toggle torch"
+                                            >
+                                                {/* flashlight emoji */}
+                                                {'🔦'}
+                                            </TorchButton>
+                                        )}
+                                    </ControlsBar>
+                                )}
+                        </QRPreview>
                     )}
                 </Modal>
             )}

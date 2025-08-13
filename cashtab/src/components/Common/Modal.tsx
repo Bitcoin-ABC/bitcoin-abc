@@ -6,7 +6,11 @@ import React from 'react';
 import styled from 'styled-components';
 import { CashtabScroll } from './Atoms';
 
-const ModalContainer = styled.div<{ width: number; height: number }>`
+const ModalContainer = styled.div<{
+    width: number;
+    height: number;
+    paddingPx?: number;
+}>`
     width: ${props => props.width}px;
     height: ${props => props.height}px;
     transition: height 1s ease-in-out;
@@ -19,7 +23,8 @@ const ModalContainer = styled.div<{ width: number; height: number }>`
     border-radius: 9px;
     background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(5px);
-    padding: 12px;
+    padding: ${props =>
+        typeof props.paddingPx === 'number' ? props.paddingPx : 12}px;
     z-index: 1000;
     box-sizing: border-box;
     *,
@@ -39,7 +44,11 @@ const ModalTitle = styled.div`
 `;
 
 const MODAL_HEIGHT_DELTA = 68;
-const ModalBody = styled.div<{ showButtons: boolean; height: number }>`
+const ModalBody = styled.div<{
+    showButtons: boolean;
+    height: number;
+    noScroll?: boolean;
+}>`
     position: absolute;
     top: 0;
     left: 0;
@@ -47,7 +56,7 @@ const ModalBody = styled.div<{ showButtons: boolean; height: number }>`
     height: ${props =>
         props.showButtons ? props.height - MODAL_HEIGHT_DELTA : props.height}px;
     transition: height 1s ease-in-out;
-    overflow: auto;
+    overflow: ${props => (props.noScroll ? 'hidden' : 'auto')};
     padding: 6px;
     word-wrap: break-word;
     ${CashtabScroll}
@@ -147,6 +156,8 @@ interface ModalProps {
     height?: number;
     showButtons?: boolean;
     disabled?: boolean;
+    noScroll?: boolean;
+    paddingPx?: number;
 }
 export const Modal: React.FC<ModalProps> = ({
     title,
@@ -159,12 +170,18 @@ export const Modal: React.FC<ModalProps> = ({
     height = 210,
     showButtons = true,
     disabled = false,
+    noScroll = false,
+    paddingPx,
 }) => {
     return (
         <>
-            <ModalContainer width={width} height={height}>
+            <ModalContainer width={width} height={height} paddingPx={paddingPx}>
                 <ModalExit onClick={handleCancel}>X</ModalExit>
-                <ModalBody height={height} showButtons={showButtons}>
+                <ModalBody
+                    height={height}
+                    showButtons={showButtons}
+                    noScroll={noScroll}
+                >
                     {typeof title !== 'undefined' && (
                         <ModalTitle>{title}</ModalTitle>
                     )}
