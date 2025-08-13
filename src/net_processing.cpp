@@ -7223,6 +7223,11 @@ void PeerManagerImpl::ProcessMessage(
                             for (const auto &finalized_txid : finalizedTxIds) {
                                 m_avalanche->setRecentlyFinalized(
                                     finalized_txid);
+                                // Log the parent tx being implicitely finalized
+                                // as well
+                                if (finalized_txid != txid) {
+                                    logVoteUpdate(u, "tx", finalized_txid);
+                                }
                             }
 
                             // NO_THREAD_SAFETY_ANALYSIS because

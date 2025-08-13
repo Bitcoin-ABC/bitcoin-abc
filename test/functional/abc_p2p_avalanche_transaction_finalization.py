@@ -116,9 +116,12 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
 
         # Keep the chain ordering. We only vote for the penultimate child tx
         txids = [tx["txid"] for tx in txs]
-        self.finalize_tx(
-            int(txids[-2], 16), other_response=AvalancheTxVoteError.UNKNOWN
-        )
+        with node.assert_debug_log(
+            [f"Avalanche finalized tx {txid}" for txid in txids[:-1]], timeout=60
+        ):
+            self.finalize_tx(
+                int(txids[-2], 16), other_response=AvalancheTxVoteError.UNKNOWN
+            )
 
         # The ancestors should all be final as well
         assert all(node.isfinaltransaction(txid) for txid in txids[:-1])
