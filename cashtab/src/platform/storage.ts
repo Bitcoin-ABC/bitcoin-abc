@@ -6,22 +6,28 @@ import { CashtabStorage, PlatformStorageConfig } from './types';
 import { platformInfo } from './detection';
 import { createWebStorage } from './adapters/web';
 import { createExtensionStorage } from './adapters/extension';
+import { createAndroidStorage } from './adapters/android';
 
 /**
  * Storage configuration for each platform
  */
 const PLATFORM_STORAGE_CONFIG: Record<string, PlatformStorageConfig> = {
-    web: {
+    'web': {
         adapter: createWebStorage,
         isPersistent: false, // Can be cleared by browser
         // Note: Not encrypted, relies on browser security
         description: 'IndexedDB via localforage with localStorage fallback',
     },
-    extension: {
+    'extension': {
         adapter: createExtensionStorage,
         isPersistent: true, // More persistent than web storage
         // Note: Not encrypted, but isolated from web context
         description: 'Chrome extension storage (chrome.storage.local)',
+    },
+    'capacitor-android': {
+        adapter: createAndroidStorage,
+        isPersistent: true,
+        description: 'SQLite Database (unlimited storage)',
     },
 };
 

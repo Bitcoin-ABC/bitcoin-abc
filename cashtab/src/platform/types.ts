@@ -8,7 +8,7 @@
 export interface PlatformInfo {
     isWeb: boolean;
     isExtension: boolean;
-    platform: 'web' | 'extension';
+    platform: 'web' | 'extension' | 'capacitor-android';
 }
 
 /**

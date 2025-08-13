@@ -8,6 +8,20 @@ import { PlatformInfo } from './types';
  * Detect the current platform and return platform information
  */
 export const detectPlatform = (): PlatformInfo => {
+    // Detect Capacitor Android environment
+    // We check for Capacitor globals without importing to avoid bundling on web
+    const isCapacitorAndroid = (() => {
+        try {
+            const w = (globalThis as any).window || (globalThis as any);
+            const Capacitor =
+                (w as any).Capacitor || (globalThis as any).Capacitor;
+            const capPlatform =
+                Capacitor?.getPlatform?.() || Capacitor?.platform;
+            return capPlatform === 'android';
+        } catch {
+            return false;
+        }
+    })();
     // Check if we're in a browser extension environment
     const isExtension = !!(
         typeof (globalThis as any).chrome !== 'undefined' &&
@@ -15,11 +29,15 @@ export const detectPlatform = (): PlatformInfo => {
         (globalThis as any).chrome.runtime.id
     );
 
-    // Web is the default when not extension
-    const isWeb = !isExtension;
+    // Web is the default when not extension or capacitor android
+    const isWeb = !isExtension && !isCapacitorAndroid;
 
     // Determine primary platform identifier
-    const platform: 'web' | 'extension' = isExtension ? 'extension' : 'web';
+    const platform: PlatformInfo['platform'] = isExtension
+        ? 'extension'
+        : isCapacitorAndroid
+        ? 'capacitor-android'
+        : 'web';
 
     return {
         isWeb,

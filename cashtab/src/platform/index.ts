@@ -50,3 +50,4 @@ export type {
 // Platform adapters (for advanced usage)
 export { createWebStorage } from './adapters/web';
 export { createExtensionStorage } from './adapters/extension';
+export { createAndroidStorage } from './adapters/android';

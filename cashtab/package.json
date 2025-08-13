@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.33.4",
+    "version": "3.34.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -26,6 +26,10 @@
         ]
     },
     "dependencies": {
+        "@capacitor-community/sqlite": "^7.0.1",
+        "@capacitor/android": "^7.4.2",
+        "@capacitor/camera": "^7.0.2",
+        "@capacitor/core": "^7.4.2",
         "b58-ts": "file:../modules/b58-ts",
         "bignumber.js": "^9.1.2",
         "bip39": "^3.0.2",
@@ -54,6 +58,7 @@
         "@babel/core": "^7.16.0",
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
         "@babel/preset-typescript": "^7.26.0",
+        "@capacitor/cli": "^7.4.2",
         "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
         "@svgr/webpack": "^6.3.1",
         "@testing-library/jest-dom": "^6.4.2",

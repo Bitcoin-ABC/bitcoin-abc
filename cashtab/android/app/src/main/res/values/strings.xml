@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cashtab</string>
+    <string name="title_activity_main">Cashtab</string>
+    <string name="package_name">org.bitcoinabc.cashtab</string>
+    <string name="custom_url_scheme">org.bitcoinabc.cashtab</string>
+</resources>

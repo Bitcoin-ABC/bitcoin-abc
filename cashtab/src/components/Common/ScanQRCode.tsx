@@ -8,6 +8,8 @@ import { Alert } from 'components/Common/Atoms';
 import { QRCodeIcon } from 'components/Common/CustomIcons';
 import styled from 'styled-components';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { platformInfo } from 'platform';
+import { Camera } from '@capacitor/camera';
 
 const StyledScanQRCode = styled.button`
     cursor: pointer;
@@ -121,35 +123,6 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
     const [torchSupported, setTorchSupported] = useState(false);
     const [torchOn, setTorchOn] = useState(false);
 
-    const isCapacitorAndroid = (): boolean => {
-        try {
-            const w: any = (globalThis as any).window || (globalThis as any);
-            const Capacitor = w?.Capacitor || (globalThis as any).Capacitor;
-            const platform =
-                typeof Capacitor?.getPlatform === 'function'
-                    ? Capacitor.getPlatform()
-                    : Capacitor?.platform;
-            return platform === 'android';
-        } catch {
-            return false;
-        }
-    };
-
-    const requestAndroidCameraPermission = async (): Promise<void> => {
-        if (!isCapacitorAndroid()) return;
-        try {
-            const w: any = (globalThis as any).window || (globalThis as any);
-            const Capacitor = w?.Capacitor || (globalThis as any).Capacitor;
-            const Camera = w?.Camera || Capacitor?.Plugins?.Camera;
-            if (Camera?.requestPermissions) {
-                await Camera.requestPermissions();
-            }
-        } catch (e) {
-            // Non-fatal: proceed and let getUserMedia surface errors
-            console.warn('Camera permission request failed', e);
-        }
-    };
-
     const isMobileDevice = (): boolean => {
         try {
             const ua = navigator.userAgent || '';
@@ -223,7 +196,16 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
     const scanForQrCode = async () => {
         // https://www.npmjs.com/package/html5-qrcode
         try {
-            await requestAndroidCameraPermission();
+            // On Capacitor Android, proactively request camera permission
+            if (platformInfo.platform === 'capacitor-android') {
+                try {
+                    await Camera.requestPermissions();
+                } catch (permErr) {
+                    // Permission request failed; proceed and let getUserMedia surface errors
+                    console.warn('Camera permission request failed', permErr);
+                }
+            }
+
             const instance = new Html5Qrcode('test-area-qr-code-webcam');
             setQrInstance(instance);
 
@@ -365,7 +347,6 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
             if (vv && typeof vv.addEventListener === 'function') {
                 vv.addEventListener('resize', onResize);
             }
-            // Start camera immediately - no delay needed since we removed enumeration
             scanForQrCode();
             return () => {
                 window.removeEventListener('resize', onResize);
