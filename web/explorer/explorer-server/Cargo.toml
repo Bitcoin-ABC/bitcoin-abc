@@ -5,9 +5,9 @@ authors = ["tobiasruck <ruck.tobias@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-bitcoinsuite-chronik-client = { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "6d2d946" }
-bitcoinsuite-error =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "6d2d946" }
-bitcoinsuite-core =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "6d2d946" }
+bitcoinsuite-chronik-client = { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "840b0a7" }
+bitcoinsuite-error =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "840b0a7" }
+bitcoinsuite-core =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "840b0a7" }
 bitcoin = "0.25"
 maud = "0.22"
 tokio = { version = "1.14", features = ["full"] }

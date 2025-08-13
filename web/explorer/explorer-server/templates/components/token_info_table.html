@@ -105,7 +105,7 @@
                     <tr>
                         <td>Total burnt</td>
                         <td>
-                            {{ entry.entry.actual_burn_amount |
+                            {{ entry.entry.actual_burn_atoms |
                             string_to_i128 |
                             render_token_amount(decimals) |
                             safe }}

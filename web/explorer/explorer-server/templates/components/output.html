@@ -35,11 +35,11 @@
                         {% when Some with (slp_token) %}
                         {% match genesis_info %}
                             {% when Some with (genesis_info) %}
-                            {% if slp_token.amount > 0 || slp_token.is_mint_baton %}
+                            {% if slp_token.atoms > 0 || slp_token.is_mint_baton %}
                                 {% if slp_token.is_mint_baton %}
                                     <div class="ui green horizontal label">Mint baton</div>
                                 {% else %}
-                                    {{ slp_token.amount|to_i128|render_token_amount(genesis_info.decimals) |safe }}
+                                    {{ slp_token.atoms|to_i128|render_token_amount(genesis_info.decimals) |safe }}
                                     {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
                                 {% endif %}
                             {% endif %}
@@ -49,13 +49,13 @@
                                 {% when None %}
                             {% endmatch %}
                             <div>
-                                <small>{{ output.value|render_sats|safe }} XEC</small>
+                                <small>{{ output.sats|render_sats|safe }} XEC</small>
                             </div>
                             {% when None %}
-                            {{ output.value|render_sats|safe }} XEC
+                            {{ output.sats|render_sats|safe }} XEC
                         {% endmatch %}
                         {% when None %}
-                        {{ output.value|render_sats|safe }} XEC
+                        {{ output.sats|render_sats|safe }} XEC
                     {% endmatch %}
                 </div>
             </div>

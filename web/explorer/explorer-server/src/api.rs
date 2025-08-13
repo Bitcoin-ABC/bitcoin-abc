@@ -180,25 +180,25 @@ pub fn block_txs_to_json(
 }
 
 pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
-    let sats_input = tx.inputs.iter().map(|input| input.value).sum();
-    let sats_output = tx.outputs.iter().map(|output| output.value).sum();
+    let sats_input = tx.inputs.iter().map(|input| input.sats).sum();
+    let sats_output = tx.outputs.iter().map(|output| output.sats).sum();
 
     let token_input: i128 = tx
         .inputs
         .iter()
         .filter_map(|input| input.token.as_ref())
-        .map(|token| token.amount as i128)
+        .map(|token| token.atoms as i128)
         .sum();
     let token_output: i128 = tx
         .outputs
         .iter()
         .filter_map(|output| output.token.as_ref())
-        .map(|token| token.amount as i128)
+        .map(|token| token.atoms as i128)
         .sum();
     let does_burn_slp = tx
         .token_entries
         .iter()
-        .any(|entry| entry.actual_burn_amount.parse::<i128>().unwrap() > 0);
+        .any(|entry| entry.actual_burn_atoms.parse::<i128>().unwrap() > 0);
 
     let mut delta_sats: i64 = 0;
     let mut delta_tokens: i64 = 0;
@@ -209,9 +209,9 @@ pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
                 continue;
             }
         }
-        delta_sats -= input.value;
+        delta_sats -= input.sats;
         if let Some(slp) = &input.token {
-            delta_tokens -= slp.amount as i64;
+            delta_tokens -= slp.atoms as i64;
         }
     }
 
@@ -221,9 +221,9 @@ pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
                 continue;
             }
         }
-        delta_sats += output.value;
+        delta_sats += output.sats;
         if let Some(slp) = &output.token {
-            delta_tokens += slp.amount as i64;
+            delta_tokens += slp.atoms as i64;
         }
     }
 

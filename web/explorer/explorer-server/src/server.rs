@@ -436,14 +436,14 @@ impl Server {
             .iter()
             .filter_map(|input| input.token.as_ref())
             .filter(|token| token.token_id == token_entry.token_id)
-            .map(|token| token.amount as i128)
+            .map(|token| token.atoms as i128)
             .sum();
         let token_output: i128 = tx
             .outputs
             .iter()
             .filter_map(|output| output.token.as_ref())
             .filter(|token| token.token_id == token_entry.token_id)
-            .map(|token| token.amount as i128)
+            .map(|token| token.atoms as i128)
             .sum();
 
         Ok(TokenEntryTemplate {
@@ -500,7 +500,7 @@ impl Server {
             let mut json_utxo = JsonUtxo {
                 tx_hash: to_be_hex(txid),
                 out_idx: *out_idx,
-                sats_amount: utxo.value,
+                sats_amount: utxo.sats,
                 token_amount: 0,
                 is_coinbase: utxo.is_coinbase,
                 block_height: utxo.block_height,
@@ -511,31 +511,31 @@ impl Server {
                     let token_id_hash = Sha256d::from_hex_be(&token.token_id)
                         .expect("Impossible");
 
-                    json_utxo.token_amount = token.amount;
+                    json_utxo.token_amount = token.atoms;
 
                     match json_balances.entry(token.token_id.clone()) {
                         Entry::Occupied(mut entry) => {
                             let entry = entry.get_mut();
-                            entry.sats_amount += utxo.value;
-                            entry.token_amount += i128::from(token.amount);
+                            entry.sats_amount += utxo.sats;
+                            entry.token_amount += i128::from(token.atoms);
                             entry.utxos.push(json_utxo);
                         }
                         Entry::Vacant(entry) => {
                             entry.insert(JsonBalance {
                                 token_id: Some(token.token_id.clone()),
-                                sats_amount: utxo.value,
-                                token_amount: token.amount.into(),
+                                sats_amount: utxo.sats,
+                                token_amount: token.atoms.into(),
                                 utxos: vec![json_utxo],
                             });
                         }
                     }
 
                     token_ids.insert(token_id_hash);
-                    token_dust += utxo.value;
+                    token_dust += utxo.sats;
                     token_utxos.push(utxo);
                 }
                 _ => {
-                    total_xec += utxo.value;
+                    total_xec += utxo.sats;
                     main_json_balance.utxos.push(json_utxo);
                 }
             };

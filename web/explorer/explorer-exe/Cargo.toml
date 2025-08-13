@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bitcoinsuite-chronik-client = { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "6d2d946" }
-bitcoinsuite-error =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "6d2d946" }
+bitcoinsuite-chronik-client = { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "840b0a7" }
+bitcoinsuite-error =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "840b0a7" }
 explorer-server = { path = "../explorer-server" }
 tokio = { version = "1.14", features = ["full"] }
 futures = "0.3"

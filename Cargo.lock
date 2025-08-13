@@ -500,9 +500,9 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-chronik-client"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7#840b0a7bab8005d5ff3a16455b97573345a89633"
 dependencies = [
- "bitcoinsuite-core 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
+ "bitcoinsuite-core 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7)",
  "bitcoinsuite-error",
  "hex",
  "prost",
@@ -531,7 +531,7 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-core"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7#840b0a7bab8005d5ff3a16455b97573345a89633"
 dependencies = [
  "bs58",
  "bytes",
@@ -551,7 +551,7 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-error"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7#840b0a7bab8005d5ff3a16455b97573345a89633"
 dependencies = [
  "bitcoinsuite-error-derive",
  "eyre",
@@ -562,7 +562,7 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-error-derive"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7#840b0a7bab8005d5ff3a16455b97573345a89633"
 dependencies = [
  "convert_case",
  "proc-macro2",
@@ -1271,7 +1271,7 @@ name = "explorer-exe"
 version = "0.1.0"
 dependencies = [
  "axum 0.5.17",
- "bitcoinsuite-chronik-client 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
+ "bitcoinsuite-chronik-client 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7)",
  "bitcoinsuite-error",
  "explorer-server",
  "futures",
@@ -1286,8 +1286,8 @@ dependencies = [
  "axum 0.5.17",
  "base64 0.13.1",
  "bitcoin",
- "bitcoinsuite-chronik-client 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
- "bitcoinsuite-core 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946)",
+ "bitcoinsuite-chronik-client 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7)",
+ "bitcoinsuite-core 0.1.0 (git+https://github.com/LogosFoundation/bitcoinsuite?rev=840b0a7)",
  "bitcoinsuite-error",
  "chrono",
  "chrono-humanize",
