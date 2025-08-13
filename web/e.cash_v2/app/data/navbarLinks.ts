@@ -26,10 +26,10 @@ export const navbarLinks: NavbarLink[] = [
   { title: "Explorer", href: "https://explorer.e.cash/", category: "more" },
 
   // Get eCash
-  { title: "Mining", href: "/get-ecash/mining", category: "getEcash" },
-  { title: "Staking", href: "/get-ecash/staking", category: "getEcash" },
-  { title: "Exchanges", href: "/get-ecash/exchanges", category: "getEcash" },
-  { title: "Wallets", href: "/get-ecash/wallets", category: "getEcash" },
+  { title: "Mining", href: "/mining", category: "getEcash" },
+  { title: "Staking", href: "/staking", category: "getEcash" },
+  { title: "Exchanges", href: "/get-ecash", category: "getEcash" },
+  { title: "Wallets", href: "/wallets", category: "getEcash" },
 
   // Actions
   { title: "Create wallet", href: "https://cashtab.com", category: "actions" },
