@@ -513,7 +513,7 @@ builds:
       - - all
         - install
       - - check
-        - check-functional
+      - - check-functional
     timeout: 2400
     env:
       TSAN_OPTIONS: log_path=stdout
