@@ -3,6 +3,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test mining with avalanche preconsensus."""
 import random
+import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import AvalancheTxVoteError
@@ -204,6 +205,52 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
         for txid in finalized_txids:
             assert txid not in mempool
             assert txid not in gbt_txids
+
+        # Mine the remaining txs and finalize the tip
+        tip = self.generate(node_non_preconsensus, 1)[0]
+        finalize_tip(tip)
+
+        self.log.info("Check the block template updates for each new finalized tx")
+
+        now = int(time.time())
+        node_preconsensus.setmocktime(now)
+
+        def assert_gbt_txids(expected_txids):
+            # getblocktemplate will update if there is a new transaction AND at
+            # more than 5 seconds elapsed since the last update, so let's make
+            # sure the second condition is always true.
+            nonlocal now
+            now += 6
+            node_preconsensus.setmocktime(now)
+
+            gbt_txids = [
+                tx["txid"]
+                for tx in node_preconsensus.getblocktemplate()["transactions"]
+            ]
+            assert_equal(sorted(gbt_txids), sorted(expected_txids))
+
+        # At this stage the block template is empty
+        assert_gbt_txids([])
+
+        first_txid = wallet.send_self_transfer(from_node=node_preconsensus)["txid"]
+        # The tx is in the mempool but not finalized yet.
+        assert_gbt_txids([])
+
+        # Finalize the tx: it's added to the block template. There has been no
+        # tx added to the mempool since the last getblocktemplate call, but the
+        # template should be updated to include the new finalized tx.
+        finalize_tx(first_txid, other_response=AvalancheTxVoteError.UNKNOWN)
+        assert_gbt_txids([first_txid])
+
+        # Add another tx to the mempool and update the block template before the
+        # tx is finalized. It's not added to the block template yet.
+        second_txid = wallet.send_self_transfer(from_node=node_preconsensus)["txid"]
+        assert_gbt_txids([first_txid])
+
+        # Now finalize the second tx. Similar to the first tx, this new
+        # transaction is added to the block template.
+        finalize_tx(second_txid, other_response=AvalancheTxVoteError.UNKNOWN)
+        assert_gbt_txids([first_txid, second_txid])
 
 
 if __name__ == "__main__":
