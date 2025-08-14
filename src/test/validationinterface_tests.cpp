@@ -298,11 +298,11 @@ BOOST_FIXTURE_TEST_CASE(block_invalidated, TestChain100Setup) {
 
 BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
     uint32_t callCount = 0;
-    TxId calledTxId;
+    std::vector<TxId> calledTxIds;
     RegisterSharedValidationInterface(std::make_shared<TestInterface>(
         nullptr, nullptr, nullptr, [&](const CTransactionRef &tx) {
             callCount++;
-            calledTxId = tx->GetId();
+            calledTxIds.push_back(tx->GetId());
         }));
 
     CMutableTransaction mtx;
@@ -322,11 +322,11 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
         }
         SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 10);
-        BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
+        BOOST_CHECK_EQUAL(calledTxIds[9], tx->GetId());
     }
 
     callCount = 0;
-    calledTxId = TxId();
+    calledTxIds.clear();
 
     for (size_t i = 0; i < 10; i++) {
         mtx.vin[0] = CTxIn(COutPoint{TxId(FastRandomContext().rand256()), 0});
@@ -336,11 +336,11 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
         SyncWithValidationInterfaceQueue();
 
         BOOST_CHECK_EQUAL(callCount, i + 1);
-        BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
+        BOOST_CHECK_EQUAL(calledTxIds[i], tx->GetId());
     }
 
     callCount = 0;
-    calledTxId = TxId();
+    calledTxIds.clear();
 
     bilingual_str error;
     auto avalanche = avalanche::Processor::MakeProcessor(
@@ -368,7 +368,7 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
 
         SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, i + 1);
-        BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
+        BOOST_CHECK_EQUAL(calledTxIds[i], tx->GetId());
 
         // Successive calls won't call the validation again, because the
         // transaction is already finalized.
@@ -383,8 +383,51 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
 
         SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, i + 1);
-        BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
+        BOOST_CHECK_EQUAL(calledTxIds[i], tx->GetId());
     }
+
+    // Chained txs: if the child finalizes, the parents notifications are fired
+    // as well
+    callCount = 0;
+    calledTxIds.clear();
+    TxId lastTxId(FastRandomContext().rand256());
+    CTxMemPoolEntryRef last_entry;
+    std::vector<TxId> expectedTxIds;
+    for (size_t i = 0; i < 10; i++) {
+        CMutableTransaction chained_mtx;
+        chained_mtx.nVersion = 2;
+        chained_mtx.vin.emplace_back(COutPoint{lastTxId, 0});
+        chained_mtx.vout.emplace_back(1 * COIN, scriptPubKey);
+        lastTxId = chained_mtx.GetId();
+        expectedTxIds.push_back(lastTxId);
+
+        CTransactionRef tx = MakeTransactionRef(chained_mtx);
+        last_entry = entryHelper.Fee(int64_t(1000 + i) * SATOSHI).FromTx(tx);
+        {
+            LOCK2(::cs_main, m_node.mempool->cs);
+            m_node.mempool->addUnchecked(last_entry);
+        }
+    }
+    std::vector<TxId> finalizedTxIds;
+    {
+        LOCK2(::cs_main, m_node.mempool->cs);
+        BOOST_CHECK(m_node.mempool->setAvalancheFinalized(
+            last_entry, m_node.chainman->GetConsensus(),
+            *m_node.chainman->ActiveChain().Tip(), finalizedTxIds));
+    }
+    BOOST_CHECK_EQUAL(finalizedTxIds.size(), 10);
+    SyncWithValidationInterfaceQueue();
+    BOOST_CHECK_EQUAL(callCount, 10);
+
+    // Check that all the txids finalization callbacks were called. Ordering is
+    // not important so we sort the vectors first.
+    std::sort(finalizedTxIds.begin(), finalizedTxIds.end());
+    std::sort(calledTxIds.begin(), calledTxIds.end());
+    std::sort(expectedTxIds.begin(), expectedTxIds.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(finalizedTxIds.begin(), finalizedTxIds.end(),
+                                  calledTxIds.begin(), calledTxIds.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(calledTxIds.begin(), calledTxIds.end(),
+                                  expectedTxIds.begin(), expectedTxIds.end());
 }
 
 BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {

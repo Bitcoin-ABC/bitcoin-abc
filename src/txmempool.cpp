@@ -640,7 +640,8 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
             finalizedTxIds.push_back((*ancestor_it)->GetTx().GetId());
 
-            GetMainSignals().TransactionFinalized((*it)->GetSharedTx());
+            GetMainSignals().TransactionFinalized(
+                (*ancestor_it)->GetSharedTx());
         }
     }
 
